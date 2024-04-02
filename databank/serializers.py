@@ -17,7 +17,8 @@ from .models import (
     ExternalSource,
     AcapsSeasonalCalender,
     FDRSIncome,
-    FDRSAnnualIncome
+    FDRSAnnualIncome,
+    FDRSIndicator,
 )
 from utils.file_check import validate_file_type
 
@@ -101,8 +102,14 @@ class AcapsSeasonalCalenderSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class FDRSIndicatorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FDRSIndicator
+        fields = "__all__"
+
+
 class FDRSIncomeSerializer(serializers.ModelSerializer):
-    indicator_display = serializers.CharField(source='get_indicator_display', read_only=True)
+    indicator_details = FDRSIndicatorSerializer(source='indicator', read_only=True)
 
     class Meta:
         model = FDRSIncome

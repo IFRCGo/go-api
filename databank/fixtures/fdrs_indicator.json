@@ -1,0 +1,115 @@
+
+[
+    {
+      "model": "databank.FDRSIndicator",
+      "pk": 1,
+      "fields": {
+        "title": "Home Government",
+        "description": null
+      }
+    },
+    {
+      "model": "databank.FDRSIndicator",
+      "pk": 2,
+      "fields": {
+        "title": "Foreign Government",
+        "description": "Other governments and government departments from outside the country. This includes the EU. Examples are: UK (DFID/FCO), US (USAID/OFDA/OTI/PRM), Sweden (SIDA) etc."
+      }
+    },
+    {
+      "model": "databank.FDRSIndicator",
+      "pk": 3,
+      "fields": {
+        "title": "Individuals",
+        "description": "Members of the public, including funds from membership, major donors and legacies."
+      }
+    },
+    {
+      "model": "databank.FDRSIndicator",
+      "pk": 4,
+      "fields": {
+        "title": "Corporations",
+        "description": "Including donations, proceeds from joint promotions or sponsorship."
+      }
+    },
+    {
+      "model": "databank.FDRSIndicator",
+      "pk": 5,
+      "fields": {
+        "title": "Foundations",
+        "description": "Funds from a 'not for profit' set up with the explicit aim of making donations to other organisations (e.g., Charities Aid Foundation). This includes foundations established by corporations or individuals (e.g., Lebara Foundation and Bill & Melinda Gates Foundation)."
+      }
+    },
+    {
+      "model": "databank.FDRSIndicator",
+      "pk": 6,
+      "fields": {
+        "title": "UN Agencies and other Multilateral Agencies",
+        "description": "These include the development institutions of the UN (e.g., UNDP), the World Bank, Global Fund and regional development banks."
+      }
+    },
+    {
+      "model": "databank.FDRSIndicator",
+      "pk": 7,
+      "fields": {
+        "title": "Pooled funds",
+        "description": "Mechanisms used to receive contributions from multiple financial partners (mainly government donors) and allocate such resources to multiple implementing entities. Humanitarian pooled funds can be global (the START Fund) or country-based (e.g., the CHF, ERF)."
+      }
+    },
+    {
+      "model": "databank.FDRSIndicator",
+      "pk": 8,
+      "fields": {
+        "title": "Non-governmental organizations",
+        "description": "Local and international 'not for profit' civil society organizations independent from states and international governmental organizations."
+      }
+    },
+    {
+      "model": "databank.FDRSIndicator",
+      "pk": 9,
+      "fields": {
+        "title": "Service income",
+        "description": "Income linked to the provision of public services; for example, blood, hospital or ambulance services, search and rescue, etc."
+      }
+    },
+    {
+      "model": "databank.FDRSIndicator",
+      "pk": 10,
+      "fields": {
+        "title": "Income generating activity",
+        "description": "Income linked to the sale of a product or service; for example, commercial first aid training, retail, sale and/or rental of other products and services."
+      }
+    },
+    {
+      "model": "databank.FDRSIndicator",
+      "pk": 11,
+      "fields": {
+        "title": "Other National Society",
+        "description": null
+      }
+    },
+    {
+      "model": "databank.FDRSIndicator",
+      "pk": 12,
+      "fields": {
+        "title": "IFRC (HQ, regional and countries delegations)",
+        "description": null
+      }
+    },
+    {
+      "model": "databank.FDRSIndicator",
+      "pk": 13,
+      "fields": {
+        "title": "ICRC",
+        "description": null
+      }
+    },
+    {
+      "model": "databank.FDRSIndicator",
+      "pk": 14,
+      "fields": {
+        "title": "Other",
+        "description": "Income that does not come from any of the above categories."
+      }
+    }
+]
