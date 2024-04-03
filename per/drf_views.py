@@ -687,6 +687,7 @@ class OpsLearningFilter(filters.FilterSet):
             'appeal_code__num_beneficiaries': ('exact', 'gt', 'gte', 'lt', 'lte'),
             'appeal_code__start_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
             'appeal_code__dtype': ('exact', 'in'),
+            'appeal_code__atype': ('exact', 'in'),
             'appeal_code__country': ('exact', 'in'),
             'appeal_code__country__name': ('exact', 'in'),
             'appeal_code__country__iso': ('exact', 'in'),
