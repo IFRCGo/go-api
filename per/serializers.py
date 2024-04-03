@@ -1024,12 +1024,16 @@ class PerDocumentUploadSerializer(serializers.ModelSerializer):
     def validate_per(self, per):
         if per is None:
             raise serializers.ValidationError("This field is required")
-        country_per = list(
-            Country.objects.filter(id=self.initial_data['country']).values_list("per_overviews", flat=True)
+        country_per_qs = Country.objects.filter(
+            id=self.initial_data['country'],
+            per_overviews=per,
         )
-        if per and per.id not in country_per:
+        if not country_per_qs.exists():
             raise serializers.ValidationError(
-                gettext(f"Per {per.id} doesn't match country {self.initial_data['country']}")
+                gettext(
+                    "Per %(per)s doesn't match country %(country)s"
+                    % {'per': per.id, 'country': self.initial_data['country']}
+                )
             )
         return per
 

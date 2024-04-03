@@ -1,13 +1,14 @@
-from django.db import transaction
 import csv
-import pytz
-from dateutil import parser as date_parser
+from datetime import datetime
+
+from django.db import transaction
 from django.core.management.base import BaseCommand
 from django.contrib.gis.geos import Point
 
 
 from api.models import Country
 from ...models import LocalUnit, LocalUnitType, LocalUnitLevel
+from main.managers import BulkCreateManager
 
 
 class Command(BaseCommand):
@@ -17,64 +18,101 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('filename', nargs='+', type=str)
 
+    def parse_date(self, date):
+        possible_date_format = ('%d-%b-%y', '%m/%d/%Y')
+        for date_format in possible_date_format:
+            try:
+                return datetime.strptime(date, date_format).strftime("%Y-%m-%d")
+            except ValueError:
+                pass
+
     @transaction.atomic
     def handle(self, *args, **options):
         filename = options['filename'][0]
         with open(filename) as csvfile:
             reader = csv.DictReader(csvfile)
+            bulk_mgr = BulkCreateManager(chunk_size=1000)
             for i, row in enumerate(reader):
                 # Without positions we can't use the row:
                 if not row['LONGITUDE'] or not row['LATITUDE']:
+                    self.stdout.write(
+                        self.style.WARNING(f'Skipping row {i}: Empty locations point')
+                    )
                     continue
                 if len(row['POSTCODE']) > 10:
                     row['POSTCODE'] = ''  # better then inserting wrong textual data
-                unit = LocalUnit()
-                unit.country = Country.objects.get(iso3=row['ISO3'])
+                country_iso3_id_map = {
+                    iso3.lower(): _id
+                    for _id, iso3 in Country.objects.filter(iso3__isnull=False).values_list('id', 'iso3')
+                }
+                country = country_iso3_id_map[row['ISO3'].lower()]
                 # We do not check COUNTRY or NATIONAL_SOCIETY, but only this ^
-                if row['TYPECODE'] == 'NS0':
-                    row['TYPECODE'] = 1
-                elif row['TYPECODE'] == 'NS1':
-                    row['TYPECODE'] = 2
-                elif row['TYPECODE'] == 'NS2':
-                    row['TYPECODE'] = 3
-                elif row['TYPECODE'] == 'NS3':
-                    row['TYPECODE'] = 4
-                else:
-                    row['TYPECODE'] = int(row['TYPECODE'])
-                unit.type = LocalUnitType.objects.get(
-                    code=row['TYPECODE'],
+                row['TYPECODE'] = {
+                    'NS0': 1,
+                    'NS1': 2,
+                    'NS2': 3,
+                    'NS3': 4,
+                }.get(
+                    row['TYPECODE'],
+                    int(row['TYPECODE']),
                 )
+                local_unit_id_map = {
+                    code: _id
+                    for _id, code in LocalUnitType.objects.values_list('id', 'code')
+                }
+                type = local_unit_id_map[int(row['TYPECODE'])]
 
                 if row['LEVELCODE']:
-                    unit.level = LocalUnitLevel.objects.get(
-                        level=row['LEVELCODE'],
-                    )
-                unit.subtype = row['SUBTYPE']
-                unit.is_public = row['PUBLICVIEW'].lower() == 'yes'
-                unit.validated = row['VALIDATED'].lower() == 'yes'
-                unit.local_branch_name = row['NAME_LOC']
-                unit.english_branch_name = row['NAME_EN']
-                unit.postcode = row['POSTCODE'].strip()[:10]
-                unit.address_loc = row['ADDRESS_LOC']
-                unit.address_en = row['ADDRESS_EN']
-                unit.city_loc = row['CITY_LOC']
-                unit.city_en = row['CITY_EN']
-                unit.focal_person_loc = row['FOCAL_PERSON_LOC']
-                unit.focal_person_en = row['FOCAL_PERSON_EN']
-                unit.phone = row['TELEPHONE'].strip()[:30]
-                unit.email = row['EMAIL']
-                unit.link = row['WEBSITE']
-                unit.source_en = row['SOURCE_EN']
-                unit.source_loc = row['SOURCE_LOC']
-                unit.location = Point(float(row['LONGITUDE']), float(row['LATITUDE']))
+                    local_unit_level_id_map = {
+                        level: _id
+                        for _id, level in LocalUnitLevel.objects.values_list('id', 'level')
+                    }
+                    level = local_unit_level_id_map[int(row['LEVELCODE'])]
+                subtype = row['SUBTYPE']
+                is_public = row['PUBLICVIEW'].lower() == 'yes'
+                validated = row['VALIDATED'].lower() == 'yes'
+                local_branch_name = row['NAME_LOC']
+                english_branch_name = row['NAME_EN']
+                postcode = row['POSTCODE'].strip()[:10]
+                address_loc = row['ADDRESS_LOC']
+                address_en = row['ADDRESS_EN']
+                city_loc = row['CITY_LOC']
+                city_en = row['CITY_EN']
+                focal_person_loc = row['FOCAL_PERSON_LOC']
+                focal_person_en = row['FOCAL_PERSON_EN']
+                phone = row['TELEPHONE'].strip()[:30]
+                email = row['EMAIL']
+                link = row['WEBSITE']
+                source_en = row['SOURCE_EN']
+                source_loc = row['SOURCE_LOC']
+                location = Point(float(row['LONGITUDE']), float(row['LATITUDE']))
                 if row['DATEOFUPDATE']:
-                    unit.date_of_data = date_parser.parse(row['DATEOFUPDATE']).replace(tzinfo=pytz.utc)
-                unit.save()
-                name = unit.local_branch_name if unit.local_branch_name else unit.english_branch_name
-                city = unit.city_loc if unit.city_loc else unit.city_en
-                if name:
-                    print(f'{i} | {name} saved')
-                elif city:
-                    print(f'{i} | ** {city} city location saved')
-                else:
-                    print(f'{i} | *** entity with ID saved')
+                    print(row['DATEOFUPDATE'])
+                    date_of_data = self.parse_date(row['DATEOFUPDATE'])
+                local_unit = LocalUnit(
+                    country_id=country,
+                    type_id=type,
+                    level_id=level,
+                    subtype=subtype,
+                    is_public=is_public,
+                    validated=validated,
+                    local_branch_name=local_branch_name,
+                    english_branch_name=english_branch_name,
+                    postcode=postcode,
+                    address_en=address_en,
+                    address_loc=address_loc,
+                    city_en=city_en,
+                    city_loc=city_loc,
+                    focal_person_en=focal_person_en,
+                    focal_person_loc=focal_person_loc,
+                    phone=phone,
+                    email=email,
+                    link=link,
+                    source_en=source_en,
+                    source_loc=source_loc,
+                    location=location,
+                    date_of_data=date_of_data
+                )
+                bulk_mgr.add(local_unit)
+        bulk_mgr.done()
+        print('Bulk create summary:', bulk_mgr.summary())

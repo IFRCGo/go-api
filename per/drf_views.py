@@ -17,7 +17,7 @@ from django.db.models import Q
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
-
+from django.db.models import Prefetch
 
 from main.utils import SpreadSheetContentNegotiation
 from .admin_classes import RegionRestrictedAdmin
@@ -41,7 +41,10 @@ from .models import (
     PerComponentRating,
     PerDocumentUpload,
     FormQuestionGroup,
-    FormPrioritizationComponent
+    FormPrioritizationComponent,
+    AreaResponse,
+    FormComponentResponse,
+    FormComponentQuestionAndAnswer
 )
 from .serializers import (
     LatestCountryOverviewSerializer,
@@ -370,14 +373,35 @@ class ExportPerView(views.APIView):
             cell.value = column_title
 
         assessment_rows = []
-        assessment_queryset = PerAssessment.objects.filter(
-            overview=per.id
-        ).order_by(
-            'area_responses__component_response__component__component_num'
+        assessment_queryset = (
+            PerAssessment.objects.filter(overview=per.id)
+            .order_by("area_responses__component_response__component__component_num")
+            .prefetch_related(
+                Prefetch(
+                    "area_responses",
+                    queryset=AreaResponse.objects.filter(
+                        perassessment__overview=per.id
+                    ).prefetch_related(
+                        Prefetch(
+                            "component_response",
+                            queryset=FormComponentResponse.objects.filter(
+                                arearesponse__perassessment__overview=per.id
+                            ).exclude(component_id=14).prefetch_related(
+                                Prefetch(
+                                    "question_responses",
+                                    queryset=FormComponentQuestionAndAnswer.objects.filter(
+                                        formcomponentresponse__arearesponse__perassessment__overview=per.id
+                                    ),
+                                )
+                            )
+                        )
+                    ),
+                )
+            )
         )
-        if assessment_queryset.exists():
-            for assessent in assessment_queryset.first().area_responses.all():
-                for co in assessent.component_response.all().exclude(component_id=14):  # exclude component 14
+        if assessent := assessment_queryset.first():
+            for area_response in assessent.area_responses.all():
+                for co in area_response.component_response.all():
                     question_answer = co.question_responses.all()
                     for question in question_answer:
                         assessment_inner = [

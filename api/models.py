@@ -229,13 +229,14 @@ class Country(models.Model):
         null=True, blank=True,
         max_length=255
     )
-    email = ArrayField(
+    emails = ArrayField(
         models.CharField(
             verbose_name=_('Email'),
             null=True, blank=True,
             max_length=255,
         ),
         default=list,
+        null=True, blank=True
     )
     founded_date = models.DateField(
         verbose_name=_('Found date'),

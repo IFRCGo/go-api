@@ -681,23 +681,6 @@ class FDRSIndicator(models.Model):
     )
 
 
-class FDRSIndicatorEnum(models.TextChoices):
-    HOME_GOVERNMENT = 'h_gov_CHF', _('Home Government')
-    FOREIGN_GOVERNMENT = 'f_gov_CHF', _('Foreign Government')
-    INDIVIDUAL = 'ind_CHF', ('Individual')
-    CORPORATION = 'corp_CHF', _('Corporation')
-    FOUNDATION = 'found_CHF', _('Foundation')
-    UN_AGENCIES = 'un_CHF', _('UN Agencies')
-    POOLED_FUNDS = 'pooled_f_CHF', _('Pooled funds')
-    NON_GOVERNMENTAL_ORGANIZATION = 'ngo_CHF', _('Non Governmental Organization')
-    SERVICE_INCOME = 'si_CHF', _('Service Income')
-    INCOME_GENERATING_ACTIVITY = 'iga_CHF', _('Income Generating Activity')
-    OTHER_NATIONAL_SOCIETY = 'KPI_incomeFromNSsLC_CHF', _('Other National Society')
-    IFRC = 'ifrc_CHF', _('IFRC')
-    ICRC = 'icrc_CHF', _('ICRC')
-    OTHER_SOURCE = 'other_CHF', _('Other Source')
-
-
 class FDRSIncome(models.Model):
     overview = models.ForeignKey(
         CountryOverview,

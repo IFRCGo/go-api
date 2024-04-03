@@ -1,13 +1,15 @@
-from django.db import transaction
+
 import csv
-import pytz
-from dateutil import parser as date_parser
+from datetime import datetime
+
 from django.core.management.base import BaseCommand
 from django.contrib.gis.geos import Point
+from django.db import transaction
 
 
 from api.models import Country
 from ...models import LocalUnit, LocalUnitType
+from main.managers import BulkCreateManager
 
 
 class Command(BaseCommand):
@@ -22,26 +24,43 @@ class Command(BaseCommand):
         filename = options['filename'][0]
         with open(filename) as csvfile:
             reader = csv.DictReader(csvfile)
-            for i, row in enumerate(reader):
+            bulk_mgr = BulkCreateManager(chunk_size=1000)
+            for i, row in enumerate(reader, start=2):
                 # Without positions we can't use the row:
                 if not row['LONGITUDE'] or not row['LATITUDE']:
+                    self.stdout.write(
+                        self.style.WARNING(f'Skipping row {i}: Empty locations point')
+                    )
                     continue
-                unit = LocalUnit()
-                unit.country = Country.objects.get(name=row['COUNTRY'])
-                unit.type = LocalUnitType.objects.get(
-                    code=row['TYPE CODE'],
-                )
-                unit.is_public = row['VISIBILITY'].lower() == 'public'
-                unit.validated = True
-                unit.local_branch_name = row['NAME_LOC']
-                unit.address_loc = row['ADDRESS_LOC']
-                unit.focal_person_loc = row['FOCAL_PERSON_LOC']
-                unit.location = Point(float(row['LONGITUDE']), float(row['LATITUDE']))
+                country_name_id_map = {
+                    country_name.lower(): _id
+                    for _id, country_name in Country.objects.values_list('id', 'name')
+                }
+                country = country_name_id_map[row['COUNTRY'].lower()]
+                local_unit_id_map = {
+                    code: _id
+                    for _id, code in LocalUnitType.objects.values_list('id', 'code')
+                }
+                type = local_unit_id_map[int(row['TYPE CODE'])]
+                is_public = row['VISIBILITY'].lower() == 'public'
+                validated = True
+                local_branch_name = row['NAME_LOC']
+                address_loc = row['ADDRESS_LOC']
+                focal_person_loc = row['FOCAL_PERSON_LOC']
+                location = Point(float(row['LONGITUDE']), float(row['LATITUDE']))
                 if row['DATE OF UPDATE']:
-                    unit.date_of_data = date_parser.parse(row['DATE OF UPDATE']).replace(tzinfo=pytz.utc)
-                unit.save()
-                name = unit.local_branch_name if unit.local_branch_name else unit.english_branch_name
-                if name:
-                    print(f'{i} | {name} saved')
-                else:
-                    print(f'{i} | *** entity with ID saved')
+                    date_of_data = datetime.strptime(row['DATE OF UPDATE'], '%m/%d/%Y').strftime("%Y-%m-%d")
+                local_unit = LocalUnit(
+                    country_id=country,
+                    type_id=type,
+                    is_public=is_public,
+                    validated=validated,
+                    local_branch_name=local_branch_name,
+                    address_loc=address_loc,
+                    focal_person_loc=focal_person_loc,
+                    location=location,
+                    date_of_data=date_of_data
+                )
+                bulk_mgr.add(local_unit)
+            bulk_mgr.done()
+            print('Bulk create summary:', bulk_mgr.summary())

@@ -46,13 +46,16 @@ class Command(BaseCommand):
             city_code = data['ADD_city_code'] if type(data['ADD_city_code']) == str else None
             phone = data['ADD_phone'] if type(data['ADD_phone']) == str else None
             website = data['ADD_webSite'] if type(data['ADD_webSite']) == str else None
-            email = data['ADD_email'] if type(data['ADD_email']) == str and data['ADD_email'] != None else None
+            emails = data['ADD_email'] if type(data['ADD_email']) == str and data['ADD_email'] != None else None
             founded_date = data['ADD_orgCreation'] if type(data['ADD_orgCreation']) == str else None
             iso = data['ADD_country_code']
             # # get the country and try to update the data for those country
             country = Country.objects.filter(iso=iso.upper()).first()
-            if email:
-                email_splitted = re.split('[,; ]+', email)
+            email_splitted = None
+            if emails:
+                # NOTE: Split the email
+                # eg; secretariatgeneral@creuroja.ad;secretariatadmin@@creuroja.ad
+                email_splitted = re.split('[,; ]+', emails)
             if country:
                 added += 1
                 country.address_1 = address_1
@@ -60,7 +63,7 @@ class Command(BaseCommand):
                 country.city_code = city_code
                 country.phone = phone
                 country.website = website
-                country.email = email_splitted
+                country.emails = email_splitted
                 if founded_date:
                     try:
                         country.founded_date = datetime.strptime(founded_date, "%d.%m.%Y").date()
@@ -81,7 +84,7 @@ class Command(BaseCommand):
                         'city_code',
                         'phone',
                         'website',
-                        'email',
+                        'emails',
                         'founded_date'
                     ]
                 )
