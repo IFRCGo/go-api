@@ -183,7 +183,7 @@ class OpsLearningAdmin(GotoNextModelAdmin):
     ls = ("organization", "organization_validated",
           "sector", "sector_validated",
           "per_component", "per_component_validated")
-    list_filter = ("is_validated",) + ls
+    list_filter = ("is_validated", "appeal_code__atype") + ls
     autocomplete_fields = ("appeal_code",) + ls
     search_fields = ("learning", "learning_validated")
     list_display = ("learning", "appeal_code", "is_validated", "modified_at")
