@@ -66,6 +66,7 @@ module "resources" {
   NS_DOCUMENT_API_KEY = var.NS_DOCUMENT_API_KEY
   NS_INITIATIVES_API_KEY = var.NS_INITIATIVES_API_KEY
   NS_INITIATIVES_API_TOKEN = var.NS_INITIATIVES_API_TOKEN
+}
 
 terraform {
   backend "azurerm" {

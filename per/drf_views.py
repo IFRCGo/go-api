@@ -750,9 +750,6 @@ class OpsLearningViewset(viewsets.ModelViewSet):
         context["bom"] = True
 
         return context
-        if OpsLearning.is_user_admin(self.request.user):
-            return OpsLearningSerializer
-        return PublicOpsLearningSerializer
 
 
 class PerDocumentUploadViewSet(viewsets.ModelViewSet):
