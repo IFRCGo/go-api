@@ -25,6 +25,16 @@ class Command(BaseCommand):
         with open(filename) as csvfile:
             reader = csv.DictReader(csvfile)
             bulk_mgr = BulkCreateManager(chunk_size=1000)
+            # Prefetch
+            country_name_id_map = {
+                country_name.lower(): _id
+                for _id, country_name in Country.objects.values_list('id', 'name')
+            }
+            local_unit_id_map = {
+                code: _id
+                for _id, code in LocalUnitType.objects.values_list('id', 'code')
+            }
+
             for i, row in enumerate(reader, start=2):
                 # Without positions we can't use the row:
                 if not row['LONGITUDE'] or not row['LATITUDE']:
@@ -32,15 +42,8 @@ class Command(BaseCommand):
                         self.style.WARNING(f'Skipping row {i}: Empty locations point')
                     )
                     continue
-                country_name_id_map = {
-                    country_name.lower(): _id
-                    for _id, country_name in Country.objects.values_list('id', 'name')
-                }
+
                 country = country_name_id_map[row['COUNTRY'].lower()]
-                local_unit_id_map = {
-                    code: _id
-                    for _id, code in LocalUnitType.objects.values_list('id', 'code')
-                }
                 type = local_unit_id_map[int(row['TYPE CODE'])]
                 is_public = row['VISIBILITY'].lower() == 'public'
                 validated = True
@@ -48,6 +51,7 @@ class Command(BaseCommand):
                 address_loc = row['ADDRESS_LOC']
                 focal_person_loc = row['FOCAL_PERSON_LOC']
                 location = Point(float(row['LONGITUDE']), float(row['LATITUDE']))
+                date_of_data = None
                 if row['DATE OF UPDATE']:
                     date_of_data = datetime.strptime(row['DATE OF UPDATE'], '%m/%d/%Y').strftime("%Y-%m-%d")
                 local_unit = LocalUnit(
@@ -59,7 +63,7 @@ class Command(BaseCommand):
                     address_loc=address_loc,
                     focal_person_loc=focal_person_loc,
                     location=location,
-                    date_of_data=date_of_data
+                    date_of_data=date_of_data,
                 )
                 bulk_mgr.add(local_unit)
             bulk_mgr.done()

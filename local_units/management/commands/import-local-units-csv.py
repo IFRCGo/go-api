@@ -19,6 +19,9 @@ class Command(BaseCommand):
         parser.add_argument('filename', nargs='+', type=str)
 
     def parse_date(self, date):
+        if not date:
+            return
+
         possible_date_format = ('%d-%b-%y', '%m/%d/%Y')
         for date_format in possible_date_format:
             try:
@@ -32,6 +35,21 @@ class Command(BaseCommand):
         with open(filename) as csvfile:
             reader = csv.DictReader(csvfile)
             bulk_mgr = BulkCreateManager(chunk_size=1000)
+
+            # Prefetch dataset
+            country_iso3_id_map = {
+                iso3.lower(): _id
+                for _id, iso3 in Country.objects.filter(iso3__isnull=False).values_list('id', 'iso3')
+            }
+            local_unit_id_map = {
+                code: _id
+                for _id, code in LocalUnitType.objects.values_list('id', 'code')
+            }
+            local_unit_level_id_map = {
+                level: _id
+                for _id, level in LocalUnitLevel.objects.values_list('id', 'level')
+            }
+
             for i, row in enumerate(reader):
                 # Without positions we can't use the row:
                 if not row['LONGITUDE'] or not row['LATITUDE']:
@@ -41,10 +59,6 @@ class Command(BaseCommand):
                     continue
                 if len(row['POSTCODE']) > 10:
                     row['POSTCODE'] = ''  # better then inserting wrong textual data
-                country_iso3_id_map = {
-                    iso3.lower(): _id
-                    for _id, iso3 in Country.objects.filter(iso3__isnull=False).values_list('id', 'iso3')
-                }
                 country = country_iso3_id_map[row['ISO3'].lower()]
                 # We do not check COUNTRY or NATIONAL_SOCIETY, but only this ^
                 row['TYPECODE'] = {
@@ -56,17 +70,9 @@ class Command(BaseCommand):
                     row['TYPECODE'],
                     int(row['TYPECODE']),
                 )
-                local_unit_id_map = {
-                    code: _id
-                    for _id, code in LocalUnitType.objects.values_list('id', 'code')
-                }
-                type = local_unit_id_map[int(row['TYPECODE'])]
-
+                _type = local_unit_id_map[int(row['TYPECODE'])]
+                level = None
                 if row['LEVELCODE']:
-                    local_unit_level_id_map = {
-                        level: _id
-                        for _id, level in LocalUnitLevel.objects.values_list('id', 'level')
-                    }
                     level = local_unit_level_id_map[int(row['LEVELCODE'])]
                 subtype = row['SUBTYPE']
                 is_public = row['PUBLICVIEW'].lower() == 'yes'
@@ -86,12 +92,10 @@ class Command(BaseCommand):
                 source_en = row['SOURCE_EN']
                 source_loc = row['SOURCE_LOC']
                 location = Point(float(row['LONGITUDE']), float(row['LATITUDE']))
-                if row['DATEOFUPDATE']:
-                    print(row['DATEOFUPDATE'])
-                    date_of_data = self.parse_date(row['DATEOFUPDATE'])
+                date_of_data = self.parse_date(row['DATEOFUPDATE'])
                 local_unit = LocalUnit(
                     country_id=country,
-                    type_id=type,
+                    type_id=_type,
                     level_id=level,
                     subtype=subtype,
                     is_public=is_public,
@@ -111,7 +115,7 @@ class Command(BaseCommand):
                     source_en=source_en,
                     source_loc=source_loc,
                     location=location,
-                    date_of_data=date_of_data
+                    date_of_data=date_of_data,
                 )
                 bulk_mgr.add(local_unit)
         bulk_mgr.done()
