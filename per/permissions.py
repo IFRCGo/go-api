@@ -73,7 +73,6 @@ class OpsLearningPermission(permissions.BasePermission):
         return False
 
 
-
 class PerGeneralPermission(permissions.BasePermission):
     message = "You don't have permission"
 
@@ -102,6 +101,6 @@ class PerGeneralPermission(permissions.BasePermission):
             ).values_list('codename', flat=True)
         ]
         per_admin_region_id = list(map(int, per_admin_region_id))
-        if country_id  in per_admin_country_id or region_id in per_admin_region_id:
+        if country_id in per_admin_country_id or region_id in per_admin_region_id:
             return True
         return False

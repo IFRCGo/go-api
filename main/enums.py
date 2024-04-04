@@ -16,7 +16,7 @@ apps_enum_register = [
     ('deployments', deployments_enums.enum_register),
     ('per', per_enums.enum_register),
     ('notifications', notifications_enums.enum_register),
-    ('databank', databank_enums.enum_register)
+    ('databank', databank_enums.enum_register),
 ]
 
 

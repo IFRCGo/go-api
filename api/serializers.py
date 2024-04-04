@@ -247,7 +247,7 @@ class CountryGeoSerializer(ModelSerializer):
             "city_code",
             "phone",
             "website",
-            "email"
+            "emails"
         )
 
 
@@ -756,7 +756,7 @@ class CountryRelationSerializer(ModelSerializer):
             "city_code",
             "phone",
             "website",
-            "email",
+            "emails",
             "directory",
             "initiatives",
             "capacity",

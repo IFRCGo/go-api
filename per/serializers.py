@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.contrib.auth.models import Permission
 
-from api.models import Region, Appeal
+from api.models import Region, Appeal, Country
 from api.serializers import RegoCountrySerializer, UserNameSerializer
 from .models import (
     Form,
@@ -598,6 +598,7 @@ class PerProcessSerializer(serializers.ModelSerializer):
     prioritization = serializers.SerializerMethodField()
     workplan = serializers.SerializerMethodField()
     phase_display = serializers.CharField(source="get_phase_display", read_only=True)
+    type_of_assessment_details = AssessmentTypeSerializer(source="type_of_assessment", read_only=True)
 
     class Meta:
         model = Overview
@@ -614,6 +615,10 @@ class PerProcessSerializer(serializers.ModelSerializer):
             "updated_at",
             "phase",
             "phase_display",
+            "type_of_assessment",
+            "type_of_assessment_details",
+            "ns_focal_point_name",
+            "ns_focal_point_email",
         )
 
     def get_assessment(self, obj) -> typing.Optional[int]:
@@ -641,6 +646,7 @@ class PublicPerProcessSerializer(serializers.ModelSerializer):
     prioritization = serializers.SerializerMethodField()
     workplan = serializers.SerializerMethodField()
     phase_display = serializers.CharField(source="get_phase_display", read_only=True)
+    type_of_assessment_details = AssessmentTypeSerializer(source="type_of_assessment", read_only=True)
 
     class Meta:
         model = Overview
@@ -657,6 +663,10 @@ class PublicPerProcessSerializer(serializers.ModelSerializer):
             "updated_at",
             "phase",
             "phase_display",
+            "type_of_assessment",
+            "type_of_assessment_details",
+            "ns_focal_point_name",
+            "ns_focal_point_email",
         )
 
     def get_assessment(self, obj) -> typing.Optional[int]:
@@ -851,7 +861,7 @@ class PublicPerAssessmentSerializer(serializers.ModelSerializer):
         fields = ("id", "area_responses")
 
 
-#class OrganizationField(serializers.Field):
+# class OrganizationField(serializers.Field):
 #    def to_representation(self, value):
 #        if value and instance.is_validated:
 #            return value
@@ -943,14 +953,14 @@ class OpsLearningCSVSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
         data['finding'] = data.pop('type')
-        del(data['learning_validated'])
-        del(data['type_validated'])
-        del(data['organization_validated'])
-        del(data['sector_validated'])
-        del(data['per_component_validated'])
-        del(data['appeal_document_id'])
-        del(data['created_at'])
-        del(data['is_validated'])
+        del (data['learning_validated'])
+        del (data['type_validated'])
+        del (data['organization_validated'])
+        del (data['sector_validated'])
+        del (data['per_component_validated'])
+        del (data['appeal_document_id'])
+        del (data['created_at'])
+        del (data['is_validated'])
         return data
 
     class Meta:
@@ -1010,6 +1020,22 @@ class PerDocumentUploadSerializer(serializers.ModelSerializer):
                 }
             )
         return data
+
+    def validate_per(self, per):
+        if per is None:
+            raise serializers.ValidationError("This field is required")
+        country_per_qs = Country.objects.filter(
+            id=self.initial_data['country'],
+            per_overviews=per,
+        )
+        if not country_per_qs.exists():
+            raise serializers.ValidationError(
+                gettext(
+                    "Per %(per)s doesn't match country %(country)s"
+                    % {'per': per.id, 'country': self.initial_data['country']}
+                )
+            )
+        return per
 
     def validate_file(self, file):
         validate_file_type(file)

@@ -1,18 +1,16 @@
 import logging
-import json
 import requests
+
 from django.core.management.base import BaseCommand
-from api.models import Country, CountryType
-from collections import defaultdict
+
+from api.models import CountryType
 from databank.models import CountryKeyClimate, CountryOverview
-from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
     help = 'Add minimum, maximum and Average temperature of country temperature data from source api'
-
 
     def handle(self, *args, **options):
         for co in CountryOverview.objects.filter(country__record_type=CountryType.COUNTRY, country__iso3__isnull=False).all():
@@ -30,25 +28,30 @@ class Command(BaseCommand):
                     max_temp = data.get('tasmax', {})
                     merged_data = {
                         country: {
-                            date: (precipation[country][date], average_temp[country][date], min_temp[country][date], max_temp[country][date])
+                            date: (
+                                precipation[country][date],
+                                average_temp[country][date],
+                                min_temp[country][date],
+                                max_temp[country][date]
+                            )
                             for date in precipation[country]
                         } for country in precipation
                     }
-                    for key , value in merged_data.items():
+                    for key, value in merged_data.items():
                         for k, v in value.items():
                             year_month = k.split('-')
                             data = {
                                 'year': year_month[0],
                                 'month': year_month[1],
-                                'max_temp' : v[3],
-                                'min_temp' : v[2],
+                                'max_temp': v[3],
+                                'min_temp': v[2],
                                 'avg_temp': v[1],
-                                'precipitation' :v[0]
+                                'precipitation': v[0]
                             }
                             CountryKeyClimate.objects.create(
                                 overview=co,
                                 **data
                             )
             except Exception as ex:
-                logger.error(f'Error in ingesting climate data',exc_info=True)
+                logger.error('Error in ingesting climate data', exc_info=True)
                 continue
