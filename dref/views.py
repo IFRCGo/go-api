@@ -239,7 +239,7 @@ class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
     )
 
     def get_queryset(self):
-        user = self.request.user
+        # user = self.request.user
         return filter_dref_queryset_by_user_access(self.request.user, super().get_queryset()).order_by('-created_at')
 
 
