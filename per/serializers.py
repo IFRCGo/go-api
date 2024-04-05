@@ -1058,3 +1058,21 @@ class FormQuestionGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = FormQuestionGroup
         fields = "__all__"
+
+
+class CountryLatestOverviewSerializer(serializers.ModelSerializer):
+    phase_display = serializers.CharField(source="get_phase_display", read_only=True)
+    type_of_assessment = AssessmentTypeSerializer(read_only=True)
+
+    class Meta:
+        model = Overview
+        fields = (
+            "id",
+            "date_of_assessment",
+            "phase",
+            "assessment_number",
+            "ns_focal_point_name",
+            "ns_focal_point_email",
+            "type_of_assessment",
+            "phase_display",
+        )

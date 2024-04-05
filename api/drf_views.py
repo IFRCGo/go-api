@@ -20,7 +20,8 @@ from django.db.models import (
     F,
     When,
     Subquery,
-    Avg
+    Avg,
+    ExpressionWrapper
 )
 from django.db.models.functions import TruncMonth, Coalesce
 from django.db.models.fields import IntegerField
@@ -151,6 +152,8 @@ from api.filter_set import (
     CountrySupportingPartnerFilter
 )
 from api.visibility_class import ReadOnlyVisibilityViewsetMixin
+from per.models import Overview
+from per.serializers import CountryLatestOverviewSerializer
 
 
 class DeploymentsByEventViewset(viewsets.ReadOnlyModelViewSet):
@@ -386,14 +389,29 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
         ).annotate(
             date=TruncMonth('created_at')
         ).values('date', 'countries', 'dtype').annotate(
-            targeted_population=Coalesce(Avg(
+            appeal_targeted_population=Coalesce(Avg(
                 'appeals__num_beneficiaries',
                 filter=models.Q(appeals__num_beneficiaries__isnull=False),
                 output_field=models.IntegerField(),
             ), 0),
+            latest_field_report_affected=Coalesce(Subquery(
+                FieldReport.objects.filter(
+                    event=OuterRef("pk")
+                ).order_by().values('event')
+                .annotate(c=models.F('num_affected')).values('c')[:1],
+                output_field=models.IntegerField(),
+            ), 0),
             disaster_name=F('dtype__name'),
             disaster_id=F('dtype__id'),
+        ).annotate(
+            targeted_population=ExpressionWrapper(
+                (
+                    F('appeal_targeted_population') +
+                    F("latest_field_report_affected")
+                ), output_field=models.IntegerField()
+            )
         ).order_by('date', 'countries', 'dtype__name')
+
         if start_date and end_date:
             queryset = queryset.filter(
                 disaster_start_date__gte=start_date,
@@ -430,6 +448,11 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
         ).annotate(
             date=TruncMonth('created_at')
         ).values('date', 'dtype', 'countries').annotate(
+            appeal_targeted_population=Coalesce(Avg(
+                'appeals__num_beneficiaries',
+                filter=models.Q(appeals__num_beneficiaries__isnull=False),
+                output_field=models.IntegerField(),
+            ), 0),
             latest_field_report_affected=Coalesce(Subquery(
                 FieldReport.objects.filter(
                     event=OuterRef("pk")
@@ -442,7 +465,12 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
             amount_funded=F('appeals__amount_funded'),
             amount_requested=F('appeals__amount_requested'),
         ).annotate(
-            targeted_population=Coalesce(F('num_affected'), 0) + F("latest_field_report_affected"),
+            targeted_population=ExpressionWrapper(
+                (
+                    F('appeal_targeted_population') +
+                    F("latest_field_report_affected")
+                ), output_field=models.IntegerField()
+            )
         ).order_by('date', 'countries', 'dtype__name')
 
         if start_date and end_date:
@@ -460,6 +488,26 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
             HistoricalDisasterSerializer(
                 queryset, many=True
             ).data
+        )
+
+    @extend_schema(
+        request=None,
+        responses=CountryLatestOverviewSerializer
+    )
+    @action(
+        detail=True,
+        url_path="latest-per-overview",
+        serializer_class=CountryLatestOverviewSerializer,
+        pagination_class=None
+    )
+    def get_latest_per_overview(self, request, pk):
+        country = self.get_object()
+        queryset = Overview.objects.filter(country_id=country.id).select_related(
+            "country",
+            "type_of_assessment"
+        ).order_by("-created_at").first()
+        return Response(
+            CountryLatestOverviewSerializer(queryset).data
         )
 
 
