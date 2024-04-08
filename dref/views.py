@@ -217,12 +217,11 @@ class CompletedDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = CompletedDrefOperationsSerializer
     permission_classes = [permissions.IsAuthenticated]
     filterset_class = CompletedDrefOperationsFilterSet
-    queryset =  DrefFinalReport.objects.filter(is_published=True).order_by("-created_at").distinct()
+    queryset = DrefFinalReport.objects.filter(is_published=True).order_by("-created_at").distinct()
 
     def get_queryset(self):
         user = self.request.user
         return filter_dref_queryset_by_user_access(user, super().get_queryset())
-
 
 
 class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):

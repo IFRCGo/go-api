@@ -204,9 +204,9 @@ class MiniDrefSerializer(serializers.ModelSerializer):
         queryset = DrefOperationalUpdate.objects.filter(dref_id=obj.id).order_by('-created_at')
         return MiniOperationalUpdateActiveSerializer(queryset, many=True).data
 
-    @extend_schema_field(MiniDrefFinalReportActiveSerializer(many=True))
+    @extend_schema_field(MiniDrefFinalReportActiveSerializer)
     def get_final_report_details(self, obj):
-        queryset = DrefFinalReport.objects.find(dref_id=obj.id)
+        queryset = DrefFinalReport.objects.filter(dref_id=obj.id).first()
         return MiniDrefFinalReportActiveSerializer(queryset).data
 
     def get_has_ops_update(self, obj) -> bool:
