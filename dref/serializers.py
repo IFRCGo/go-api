@@ -133,6 +133,7 @@ class MiniDrefFinalReportActiveSerializer(serializers.ModelSerializer):
             "is_published",
             "national_society",
             "disaster_type",
+            "type_of_dref",
             "type_of_dref_display",
             "appeal_code",
             "created_at",
@@ -203,10 +204,10 @@ class MiniDrefSerializer(serializers.ModelSerializer):
         queryset = DrefOperationalUpdate.objects.filter(dref_id=obj.id).order_by('-created_at')
         return MiniOperationalUpdateActiveSerializer(queryset, many=True).data
 
-    @extend_schema_field(MiniDrefFinalReportActiveSerializer(many=True))
+    @extend_schema_field(MiniDrefFinalReportActiveSerializer)
     def get_final_report_details(self, obj):
-        queryset = DrefFinalReport.objects.filter(dref_id=obj.id)
-        return MiniDrefFinalReportActiveSerializer(queryset, many=True).data
+        queryset = DrefFinalReport.objects.filter(dref_id=obj.id).first()
+        return MiniDrefFinalReportActiveSerializer(queryset).data
 
     def get_has_ops_update(self, obj) -> bool:
         op_count_count = obj.drefoperationalupdate_set.count()
@@ -358,7 +359,7 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
     operational_update_details = MiniOperationalUpdateSerializer(
         source="drefoperationalupdate_set", many=True, read_only=True
     )
-    dref_final_report_details = MiniDrefFinalReportSerializer(source="dreffinalreport", read_only=True)
+    final_report_details = MiniDrefFinalReportSerializer(source="dreffinalreport", read_only=True)
     country_details = MiniCountrySerializer(source="country", read_only=True)
     district_details = MiniDistrictSerializer(source="district", read_only=True, many=True)
     assessment_report_details = DrefFileSerializer(source="assessment_report", read_only=True)
