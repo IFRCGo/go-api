@@ -3,7 +3,6 @@ module "resources" {
   environment = var.environment
   subscriptionId = var.subscriptionId
   domain = var.domain
-  additionalDomain = var.additionalDomain
   DJANGO_SECRET_KEY = var.DJANGO_SECRET_KEY
   DJANGO_DB_NAME = var.DJANGO_DB_NAME
   DJANGO_DB_USER = var.DJANGO_DB_USER
