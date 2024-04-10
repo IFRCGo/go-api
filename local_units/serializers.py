@@ -42,7 +42,7 @@ class LocalUnitSerializer(serializers.ModelSerializer):
     location = serializers.SerializerMethodField()
     country = LocalUnitCountrySerializer()
     type = LocalUnitTypeSerializer()
-    level = LocalUnitLevelSerializer()
+    coverage = LocalUnitLevelSerializer(source='level')  # renaming level to coverage
 
     class Meta:
         model = LocalUnit
@@ -52,8 +52,8 @@ class LocalUnitSerializer(serializers.ModelSerializer):
             'address_loc', 'address_en', 'city_loc', 'city_en', 'link',
             'location', 'focal_person_loc', 'focal_person_en',
             'source_loc', 'source_en', 'subtype', 'date_of_data',
-            'email', 'phone', 'level'
-            ]
+            'email', 'phone', 'coverage'
+        ]
 
     def get_location(self, unit):
         return json.loads(unit.location.geojson)
@@ -106,7 +106,7 @@ class DelegationOfficeSerializer(serializers.ModelSerializer):
             'assistant_email',
             'is_ns_same_location',
             'is_multiple_ifrc_offices',
-            'is_public',
+            'visibility',
             'created_at',
             'modified_at',
             'date_of_data',
@@ -122,9 +122,10 @@ class DelegationOfficeSerializer(serializers.ModelSerializer):
     def get_type(self, office):
         return {'type'}
 
+
 class LocalUnitOptionsSerializer(serializers.Serializer):
     type = LocalUnitTypeSerializer(many=True)
-    level = LocalUnitLevelSerializer(many=True)
+    coverage = LocalUnitLevelSerializer(many=True, source='level')  # renaming level to coverage
 
 
 class MiniDelegationOfficeSerializer(serializers.ModelSerializer):

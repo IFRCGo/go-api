@@ -4,7 +4,7 @@
         "pk": "1",
         "fields": {
             "level": 0,
-            "name": "Head Office"
+            "name": "National"
         }
     },
     {
@@ -12,7 +12,7 @@
         "pk": "2",
         "fields": {
             "level": 1,
-            "name": "Provincial"
+            "name": "Subnational"
         }
     },
     {
@@ -20,7 +20,7 @@
         "pk": "3",
         "fields": {
             "level": 2,
-            "name": "District"
+            "name": "District/Regional"
         }
     },
     {
@@ -28,7 +28,7 @@
         "pk": "4",
         "fields": {
             "level": 3,
-            "name": "Ward"
+            "name": "Local"
         }
     },
     {

@@ -3,7 +3,6 @@ from rest_framework import (
     permissions,
     response
 )
-from django_filters import rest_framework as filters
 from rest_framework.generics import (
     ListAPIView,
     RetrieveAPIView
@@ -13,7 +12,7 @@ from rest_framework.decorators import action
 
 from .models import LocalUnit, DelegationOffice
 from .serializers import LocalUnitSerializer, DelegationOfficeSerializer
-from local_units.filterset import LocalUnitFilters
+from local_units.filterset import LocalUnitFilters, DelegationOfficeFilters
 from local_units.models import (
     LocalUnit,
     LocalUnitLevel,
@@ -47,21 +46,6 @@ class LocalUnitViewSet(viewsets.ModelViewSet):
             ).data
         )
 
-# class LocalUnitDetailAPIView(RetrieveAPIView):
-#     queryset = LocalUnit.objects.all()
-#     serializer_class = LocalUnitSerializer
-
-
-class DelegationOfficeFilters(filters.FilterSet):
-    class Meta:
-        model = DelegationOffice
-        fields = (
-            'country__name',
-            'country__iso3',
-            'country__iso',
-            'dotype__code',
-        )
-
 
 class DelegationOfficeListAPIView(ListAPIView):
     queryset = DelegationOffice.objects.all()
@@ -74,4 +58,3 @@ class DelegationOfficeDetailAPIView(RetrieveAPIView):
     queryset = DelegationOffice.objects.all()
     serializer_class = DelegationOfficeSerializer
     permission_classes = [permissions.IsAuthenticated]
-
