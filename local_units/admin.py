@@ -7,18 +7,28 @@ from .models import (
     LocalUnitLevel,
     DelegationOffice,
     DelegationOfficeType,
+    Affiliation,
+    Functionality,
+    FacilityType,
+    PrimaryHCC,
+    HospitalType,
+    GeneralMedicalService,
+    SpecializedMedicalService,
+    BloodService,
+    ProfessionalTrainingFacility,
+    HealthData,
 )
 
 
 @admin.register(LocalUnitType)
 class LocalUnitTypeAdmin(admin.ModelAdmin):
-    ordering=('code',)
+    ordering = ('code',)
     search_fields = ('name',)
 
 
 @admin.register(LocalUnitLevel)
-class LocalUnitLevel(admin.ModelAdmin):
-    ordering=('level',)
+class LocalUnitLevelAdmin(admin.ModelAdmin):
+    ordering = ('level',)
     search_fields = ('name',)
 
 
@@ -42,8 +52,6 @@ class LocalUnitAdmin(admin.OSMGeoAdmin):
     )
 
 
-
-
 @admin.register(DelegationOffice)
 class DelegationOfficeAdmin(admin.OSMGeoAdmin):
     search_fields = (
@@ -60,6 +68,66 @@ class DelegationOfficeAdmin(admin.OSMGeoAdmin):
         AutocompleteFilterFactory('Country', 'country'),
     )
 
+
 @admin.register(DelegationOfficeType)
 class DelegationOfficeTypeAdmin(admin.ModelAdmin):
-    ordering=('code',)
+    ordering = ('code',)
+
+
+@admin.register(Affiliation)
+class AffiliationAdmin(admin.ModelAdmin):
+    ordering = ('code',)
+    search_fields = ('name',)
+
+
+@admin.register(Functionality)
+class FunctionalityAdmin(admin.ModelAdmin):
+    ordering = ('code',)
+    search_fields = ('name',)
+
+
+@admin.register(FacilityType)
+class FacilityTypeAdmin(admin.ModelAdmin):
+    ordering = ('code',)
+    search_fields = ('name',)
+
+
+@admin.register(PrimaryHCC)
+class PrimaryHCCAdmin(admin.ModelAdmin):
+    ordering = ('code',)
+    search_fields = ('name',)
+
+
+@admin.register(HospitalType)
+class HospitalTypeAdmin(admin.ModelAdmin):
+    ordering = ('code',)
+    search_fields = ('name',)
+
+
+@admin.register(GeneralMedicalService)
+class GeneralMedicalServiceAdmin(admin.ModelAdmin):
+    ordering = ('code',)
+    search_fields = ('name',)
+
+
+@admin.register(SpecializedMedicalService)
+class SpecializedMedicalServiceAdmin(admin.ModelAdmin):
+    ordering = ('code',)
+    search_fields = ('name',)
+
+
+@admin.register(BloodService)
+class BloodServiceAdmin(admin.ModelAdmin):
+    ordering = ('code',)
+    search_fields = ('name',)
+
+
+@admin.register(ProfessionalTrainingFacility)
+class ProfessionalTrainingFacilityAdmin(admin.ModelAdmin):
+    ordering = ('code',)
+    search_fields = ('name',)
+
+
+@admin.register(HealthData)
+class HealthDataAdmin(admin.ModelAdmin):
+    search_fields = ('affiliation',)

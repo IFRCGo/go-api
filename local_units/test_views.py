@@ -181,6 +181,7 @@ class TestDelegationOfficesListView(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 0)
 
+
 class TestDelegationOfficesDetailView(APITestCase):
     def setUp(self):
         region = Region.objects.create(name=2)
