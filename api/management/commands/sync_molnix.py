@@ -439,6 +439,7 @@ def sync_open_positions(molnix_positions, molnix_api, countries):
     successful_updates = 0
 
     for position in molnix_positions:
+        logger.warning('× ' + str(position["id"]))
         if skip_this(position["tags"]):
             warning = "Position id %d skipped due to No-GO" % position["id"]
             logger.warning(warning)
@@ -495,6 +496,11 @@ def sync_open_positions(molnix_positions, molnix_api, countries):
             warnings.append("Position id %d not found in Molnix API" % alert.molnix_id)
         if position and position["status"] == "unfilled":
             alert.molnix_status = position["status"]
+        if position and position['closes']:
+            alert.closes = get_datetime(position["closes"])
+        if position and position['status'] == 'archived':
+            alert.molnix_status = position['status']
+            alert.is_active = False
         else:
             alert.is_active = False
         alert.save()
