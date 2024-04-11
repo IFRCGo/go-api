@@ -439,6 +439,7 @@ def sync_open_positions(molnix_positions, molnix_api, countries):
     successful_updates = 0
 
     for position in molnix_positions:
+        logger.warning('× ' + str(position["id"]))
         if skip_this(position["tags"]):
             warning = "Position id %d skipped due to No-GO" % position["id"]
             logger.warning(warning)
