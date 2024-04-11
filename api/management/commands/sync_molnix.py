@@ -495,6 +495,11 @@ def sync_open_positions(molnix_positions, molnix_api, countries):
             warnings.append("Position id %d not found in Molnix API" % alert.molnix_id)
         if position and position["status"] == "unfilled":
             alert.molnix_status = position["status"]
+        if position and position['closes']:
+            alert.closes = get_datetime(position["closes"])
+        if position and position['status'] == 'archived':
+            alert.molnix_status = position['status']
+            alert.is_active = False
         else:
             alert.is_active = False
         alert.save()
