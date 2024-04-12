@@ -2,6 +2,7 @@ import json
 from rest_framework import serializers
 
 from .models import (
+    HealthData,
     LocalUnit,
     LocalUnitType,
     LocalUnitLevel,
@@ -38,11 +39,19 @@ class LocalUnitLevelSerializer(serializers.ModelSerializer):
         )
 
 
+class HealthDataSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = HealthData
+        fields = ('__all__')
+
+
 class LocalUnitSerializer(serializers.ModelSerializer):
     location = serializers.SerializerMethodField()
     country = LocalUnitCountrySerializer()
     type = LocalUnitTypeSerializer()
     coverage = LocalUnitLevelSerializer(source='level')  # renaming level to coverage
+    health = HealthDataSerializer()
 
     class Meta:
         model = LocalUnit
@@ -52,7 +61,7 @@ class LocalUnitSerializer(serializers.ModelSerializer):
             'address_loc', 'address_en', 'city_loc', 'city_en', 'link',
             'location', 'focal_person_loc', 'focal_person_en',
             'source_loc', 'source_en', 'subtype', 'date_of_data',
-            'email', 'phone', 'coverage'
+            'email', 'phone', 'coverage', 'health', 'data_source_id'
         ]
 
     def get_location(self, unit):
