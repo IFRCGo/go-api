@@ -664,26 +664,26 @@ class PerAggregatedViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class OpsLearningFilter(filters.FilterSet):
-    type_validated = filters.NumberFilter(field_name='type_validated', lookup_expr='exact')
-    appeal_document_id = filters.NumberFilter(field_name='appeal_document_id', lookup_expr='exact')
+    type_validated = filters.NumberFilter(field_name="type_validated", lookup_expr="exact")
+    appeal_document_id = filters.NumberFilter(field_name="appeal_document_id", lookup_expr="exact")
     organization_validated__in = filters.ModelMultipleChoiceFilter(
-        label='validated_organizations',
-        field_name='organization_validated',
-        help_text='Organization GO identifiers, comma separated',
+        label="validated_organizations",
+        field_name="organization_validated",
+        help_text="Organization GO identifiers, comma separated",
         widget=CSVWidget,
         queryset=OrganizationTypes.objects.all(),
     )
     sector_validated__in = filters.ModelMultipleChoiceFilter(
-        label='validated_sectors',
-        field_name='sector_validated',
-        help_text='Sector identifiers, comma separated',
+        label="validated_sectors",
+        field_name="sector_validated",
+        help_text="Sector identifiers, comma separated",
         widget=CSVWidget,
         queryset=SectorTag.objects.all(),
     )
     per_component_validated__in = filters.ModelMultipleChoiceFilter(
-        label='validated_per_components',
-        field_name='per_component_validated',
-        help_text='PER Component identifiers, comma separated',
+        label="validated_per_components",
+        field_name="per_component_validated",
+        help_text="PER Component identifiers, comma separated",
         widget=CSVWidget,
         queryset=FormComponent.objects.all(),
     )
@@ -691,26 +691,26 @@ class OpsLearningFilter(filters.FilterSet):
     class Meta:
         model = OpsLearning
         fields = {
-            'id': ('exact', 'in'),
-            'created_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
-            'modified_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
-            'is_validated': ('exact',),
-            'learning': ('exact', 'icontains'),
-            'learning_validated': ('exact', 'icontains'),
-            'organization_validated': ('exact',),
-            'sector_validated': ('exact',),
-            'per_component_validated': ('exact',),
-            'appeal_code': ('exact', 'in'),
-            'appeal_code__code': ('exact', 'icontains', 'in'),
-            'appeal_code__num_beneficiaries': ('exact', 'gt', 'gte', 'lt', 'lte'),
-            'appeal_code__start_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
-            'appeal_code__dtype': ('exact', 'in'),
-            'appeal_code__atype': ('exact', 'in'),
-            'appeal_code__country': ('exact', 'in'),
-            'appeal_code__country__name': ('exact', 'in'),
-            'appeal_code__country__iso': ('exact', 'in'),
-            'appeal_code__country__iso3': ('exact', 'in'),
-            'appeal_code__region': ('exact', 'in'),
+            "id": ("exact", "in"),
+            "created_at": ("exact", "gt", "gte", "lt", "lte"),
+            "modified_at": ("exact", "gt", "gte", "lt", "lte"),
+            "is_validated": ("exact",),
+            "learning": ("exact", "icontains"),
+            "learning_validated": ("exact", "icontains"),
+            "organization_validated": ("exact",),
+            "sector_validated": ("exact",),
+            "per_component_validated": ("exact",),
+            "appeal_code": ("exact", "in"),
+            "appeal_code__code": ("exact", "icontains", "in"),
+            "appeal_code__num_beneficiaries": ("exact", "gt", "gte", "lt", "lte"),
+            "appeal_code__start_date": ("exact", "gt", "gte", "lt", "lte"),
+            "appeal_code__dtype": ("exact", "in"),
+            "appeal_code__atype": ("exact", "in"),
+            "appeal_code__country": ("exact", "in"),
+            "appeal_code__country__name": ("exact", "in"),
+            "appeal_code__country__iso": ("exact", "in"),
+            "appeal_code__country__iso3": ("exact", "in"),
+            "appeal_code__region": ("exact", "in"),
         }
 
 
@@ -722,14 +722,14 @@ class OpsLearningViewset(viewsets.ModelViewSet):
     permission_classes = [OpsLearningPermission]
     filterset_class = OpsLearningFilter
     search_fields = (
-        'learning',
-        'learning_validated',
-        'appeal_code__code',
-        'appeal_code__name',
-        'appeal_code__name_en',
-        'appeal_code__name_es',
-        'appeal_code__name_fr',
-        'appeal_code__name_ar'
+        "learning",
+        "learning_validated",
+        "appeal_code__code",
+        "appeal_code__name",
+        "appeal_code__name_en",
+        "appeal_code__name_es",
+        "appeal_code__name_fr",
+        "appeal_code__name_ar"
     )
 
     def get_renderers(self):
@@ -741,15 +741,15 @@ class OpsLearningViewset(viewsets.ModelViewSet):
     def get_queryset(self):
         qs = super().get_queryset()
         if OpsLearning.is_user_admin(self.request.user):
-            return qs.select_related('appeal_code',).prefetch_related(
-                'sector', 'organization', 'per_component', 'sector_validated',
-                'organization_validated', 'per_component_validated')
-        return qs.filter(is_validated=True).select_related('appeal_code',).prefetch_related(
-            'sector', 'organization', 'per_component', 'sector_validated',
-            'organization_validated', 'per_component_validated')
+            return qs.select_related("appeal_code",).prefetch_related(
+                "sector", "organization", "per_component", "sector_validated",
+                "organization_validated", "per_component_validated")
+        return qs.filter(is_validated=True).select_related("appeal_code",).prefetch_related(
+            "sector", "organization", "per_component", "sector_validated",
+            "organization_validated", "per_component_validated")
 
     def get_serializer_class(self):
-        if self.request.method == 'GET':
+        if self.request.method == "GET":
             request_format = self.request.GET.get("format", "json")
             if request_format == "csv":
                 return OpsLearningCSVSerializer
@@ -763,14 +763,20 @@ class OpsLearningViewset(viewsets.ModelViewSet):
         # Force the order from the serializer. Otherwise redundant literal list
 
         original = [
-            "id", "appeal_code.code", "learning", "finding", 'sector', 'per_component', 'organization',
-            "appeal_code.country", "appeal_code.region", "appeal_code.dtype", "appeal_code.start_date",
+            "id", "appeal_code.code", "appeal_code.name",
+            "learning", "finding", "sector", "per_component", "organization",
+            "appeal_code.country", "appeal_code.country_name",
+            "appeal_code.region", "appeal_code.region_name",
+            "appeal_code.dtype", "appeal_code.start_date",
             "appeal_code.num_beneficiaries", "modified_at"
         ]
         displayed = [
-            'id', 'appeal_code', 'learning', 'finding', 'sector', 'component', 'organization',
-            'country_name', 'region_name', 'dtype_name', 'appeal_year',
-            'appeal_num_beneficiaries', 'modified_at'
+            "id", "appeal_code", "appeal_name",
+            "learning", "finding", "sector", "component", "organization",
+            "country_id", "country_name",
+            "region_id", "region_name",
+            "dtype_name", "appeal_year",
+            "appeal_num_beneficiaries", "modified_at"
         ]
 
         context["header"] = original
