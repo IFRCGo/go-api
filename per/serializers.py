@@ -869,10 +869,17 @@ class PublicPerAssessmentSerializer(serializers.ModelSerializer):
 
 
 class MiniAppealSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
     start_date = serializers.SerializerMethodField()
     dtype = serializers.SerializerMethodField()
     country = serializers.SerializerMethodField()
     region = serializers.SerializerMethodField()
+    country_name = serializers.SerializerMethodField()
+    region_name = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_name(obj):
+        return obj.name
 
     @staticmethod
     def get_start_date(obj):
@@ -884,15 +891,24 @@ class MiniAppealSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_country(obj):
-        return obj.country and obj.country.name_en
+        return obj.country and obj.country.id
 
     @staticmethod
     def get_region(obj):
+        return obj.region and obj.region.id
+
+    @staticmethod
+    def get_country_name(obj):
+        return obj.country and obj.country.name_en
+
+    @staticmethod
+    def get_region_name(obj):
         return obj.region and obj.region.label
 
     class Meta:
         model = Appeal
-        fields = ('code', 'country', 'region', 'dtype', 'start_date', 'num_beneficiaries')
+        fields = ('code', 'name', 'country', 'region',
+            'country_name', 'region_name', 'dtype', 'start_date', 'num_beneficiaries')
 
 
 class FullAppealSerializer(serializers.ModelSerializer):
