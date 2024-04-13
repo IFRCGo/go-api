@@ -1,4 +1,5 @@
 from rest_framework_csv.renderers import PaginatedCSVRenderer
+from rest_framework.utils.serializer_helpers import ReturnDict
 from main.settings import SEP
 from collections import OrderedDict
 
@@ -14,7 +15,12 @@ class NarrowCSVRenderer(PaginatedCSVRenderer):
 
     def render(self, data, *args, **kwargs):
         if not isinstance(data, list):
-            data = data.get(self.results_field, [])
+            if isinstance(data, ReturnDict):
+                # we have a ReturnDict (from an id query)
+                data = [data]
+            else:
+                # we have a collections.OrderedDict (from a wide-scope query)
+                data = data.get(self.results_field, [])
             data2 = []
             for i, d in enumerate(data):
                 for orgn in d['organization'].split(SEP):
