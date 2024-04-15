@@ -1,4 +1,3 @@
-
 import csv
 from datetime import datetime
 
@@ -45,7 +44,9 @@ class Command(BaseCommand):
 
                 country = country_name_id_map[row['COUNTRY'].lower()]
                 type = local_unit_id_map[int(row['TYPE CODE'])]
-                is_public = row['VISIBILITY'].lower() == 'public'
+                visibility = 3 if row['VISIBILITY'].lower() == 'public' else 1
+                data_source_id = row['DATA SOURCE ID']
+                health_id = row['DATA SOURCE ID']
                 validated = True
                 local_branch_name = row['NAME_LOC']
                 address_loc = row['ADDRESS_LOC']
@@ -57,13 +58,15 @@ class Command(BaseCommand):
                 local_unit = LocalUnit(
                     country_id=country,
                     type_id=type,
-                    is_public=is_public,
+                    visibility=visibility,
                     validated=validated,
                     local_branch_name=local_branch_name,
                     address_loc=address_loc,
                     focal_person_loc=focal_person_loc,
                     location=location,
                     date_of_data=date_of_data,
+                    data_source_id=data_source_id,
+                    health_id=health_id
                 )
                 bulk_mgr.add(local_unit)
             bulk_mgr.done()
