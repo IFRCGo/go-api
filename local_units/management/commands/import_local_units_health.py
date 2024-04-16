@@ -45,7 +45,6 @@ class Command(BaseCommand):
                 country = country_name_id_map[row['COUNTRY'].lower()]
                 type = local_unit_id_map[int(row['TYPE CODE'])]
                 visibility = 3 if row['VISIBILITY'].lower() == 'public' else 1
-                data_source_id = row['DATA SOURCE ID']
                 health_id = row['DATA SOURCE ID']
                 validated = True
                 local_branch_name = row['NAME_LOC']

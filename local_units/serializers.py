@@ -61,7 +61,7 @@ class LocalUnitSerializer(serializers.ModelSerializer):
             'address_loc', 'address_en', 'city_loc', 'city_en', 'link',
             'location', 'focal_person_loc', 'focal_person_en',
             'source_loc', 'source_en', 'subtype', 'date_of_data',
-            'email', 'phone', 'coverage', 'health', 'data_source_id'
+            'email', 'phone', 'coverage', 'health'
         ]
 
     def get_location(self, unit):

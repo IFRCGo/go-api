@@ -284,11 +284,16 @@ class LocalUnitLevel(models.Model):
         verbose_name=_('Name')
     )
 
+    class Meta:
+        verbose_name = _("Local unit coverage")
+        verbose_name_plural = _("Local unit coverages")
+
     def __str__(self):
         return f'{self.name} ({self.level})'
 
 
 class LocalUnit(models.Model):
+    # added to track health local unit data (Table B)
     health = models.ForeignKey(
         HealthData, on_delete=models.SET_NULL, verbose_name=_('Health Data'),
         related_name='health_data', null=True
@@ -406,12 +411,6 @@ class LocalUnit(models.Model):
         verbose_name=_('Social link')
     )
     location = models.PointField()
-    # added to track health local unit type
-    data_source_id = models.IntegerField(
-        verbose_name=_('Data Source Id'),
-        null=True,
-        blank=True
-    )
 
     def __str__(self):
         branch_name = self.local_branch_name or self.english_branch_name
