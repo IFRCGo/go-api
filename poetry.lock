@@ -1526,14 +1526,24 @@ six = ">=1.12"
 
 [[package]]
 name = "gunicorn"
-version = "19.7.1"
+version = "22.0.0"
 description = "WSGI HTTP Server for UNIX"
 optional = false
-python-versions = "*"
+python-versions = ">=3.7"
 files = [
-    {file = "gunicorn-19.7.1-py2.py3-none-any.whl", hash = "sha256:75af03c99389535f218cc596c7de74df4763803f7b63eb09d77e92b3956b36c6"},
-    {file = "gunicorn-19.7.1.tar.gz", hash = "sha256:eee1169f0ca667be05db3351a0960765620dad53f53434262ff8901b68a1b622"},
+    {file = "gunicorn-22.0.0-py3-none-any.whl", hash = "sha256:350679f91b24062c86e386e198a15438d53a7a8207235a78ba1b53df4c4378d9"},
+    {file = "gunicorn-22.0.0.tar.gz", hash = "sha256:4a0b436239ff76fb33f11c07a16482c521a7e09c1ce3cc293c2330afe01bec63"},
 ]
+
+[package.dependencies]
+packaging = "*"
+
+[package.extras]
+eventlet = ["eventlet (>=0.24.1,!=0.36.0)"]
+gevent = ["gevent (>=1.4.0)"]
+setproctitle = ["setproctitle"]
+testing = ["coverage", "eventlet", "gevent", "pytest", "pytest-cov"]
+tornado = ["tornado (>=0.2)"]
 
 [[package]]
 name = "html5lib"
@@ -3655,4 +3665,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "ba09b32af0de7ff9c0d2282b0dabaf51337a09356a8abaebc55718f94ede33bd"
+content-hash = "71404b3671ad3cd68fdc90528cf19f1587ef3741f6d6f55d2584542a41679202"
