@@ -29,6 +29,7 @@ from local_units.serializers import (
     LocalUnitSerializer,
     LocalUnitOptionsSerializer
 )
+from local_units.permissions import ValidateLocalUnitPermission
 
 
 class LocalUnitViewSet(viewsets.ModelViewSet):
@@ -59,6 +60,20 @@ class LocalUnitViewSet(viewsets.ModelViewSet):
                 )
             ).data
         )
+
+    @action(
+        detail=True,
+        url_path="validate",
+        methods=["post"],
+        serializer_class=LocalUnitSerializer,
+        permission_classes=[permissions.IsAuthenticated, ValidateLocalUnitPermission]
+    )
+    def get_validate(self, request, pk=None, version=None):
+        local_unit = self.get_object()
+        local_unit.validated = True
+        local_unit.save(update_fields=["validated"])
+        serializer = LocalUnitSerializer(local_unit, context={"request": request})
+        return response.Response(serializer.data)
 
 
 class DelegationOfficeListAPIView(ListAPIView):
