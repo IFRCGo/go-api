@@ -17,6 +17,13 @@ from local_units.models import (
     LocalUnit,
     LocalUnitLevel,
     LocalUnitType,
+    Affiliation,
+    Functionality,
+    FacilityType,
+    PrimaryHCC,
+    HospitalType,
+    BloodService,
+    ProfessionalTrainingFacility,
 )
 from local_units.serializers import (
     LocalUnitSerializer,
@@ -42,6 +49,13 @@ class LocalUnitViewSet(viewsets.ModelViewSet):
                 instance=dict(
                     type=LocalUnitType.objects.all(),
                     level=LocalUnitLevel.objects.all(),
+                    affiliation=Affiliation.objects.all(),
+                    functionality=Functionality.objects.all(),
+                    health_facility_type=FacilityType.objects.all(),
+                    primary_health_care_center=PrimaryHCC.objects.all(),
+                    hospital_type=HospitalType.objects.all(),
+                    blood_services=BloodService.objects.all(),
+                    professional_training_facilities=ProfessionalTrainingFacility.objects.all(),
                 )
             ).data
         )

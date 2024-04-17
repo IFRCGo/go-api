@@ -8,8 +8,64 @@ from .models import (
     LocalUnitLevel,
     DelegationOffice,
     DelegationOfficeType,
+    Affiliation,
+    Functionality,
+    FacilityType,
+    PrimaryHCC,
+    HospitalType,
+    BloodService,
+    ProfessionalTrainingFacility,
 )
 from api.models import Country
+
+
+class AffiliationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Affiliation
+        fields = "__all__"
+
+
+class FunctionalitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Functionality
+        fields = "__all__"
+
+
+class FacilityTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FacilityType
+        fields = "__all__"
+
+
+class PrimaryHCCSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PrimaryHCC
+        fields = "__all__"
+
+
+class HospitalTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HospitalType
+        fields = "__all__"
+
+
+class BloodServiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BloodService
+        fields = "__all__"
+
+
+class HealthDataSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = HealthData
+        fields = ('__all__')
+
+
+class ProfessionalTrainingFacilitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProfessionalTrainingFacility
+        fields = ('__all__')
 
 
 class LocalUnitCountrySerializer(serializers.ModelSerializer):
@@ -37,13 +93,6 @@ class LocalUnitLevelSerializer(serializers.ModelSerializer):
         fields = (
             'name', 'level', 'id'
         )
-
-
-class HealthDataSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = HealthData
-        fields = ('__all__')
 
 
 class LocalUnitSerializer(serializers.ModelSerializer):
@@ -136,6 +185,13 @@ class DelegationOfficeSerializer(serializers.ModelSerializer):
 class LocalUnitOptionsSerializer(serializers.Serializer):
     type = LocalUnitTypeSerializer(many=True)
     coverage = LocalUnitLevelSerializer(many=True, source='level')  # renaming level to coverage
+    affiliation = AffiliationSerializer(many=True)
+    functionality = FunctionalitySerializer(many=True)
+    health_facility_type = FacilityTypeSerializer(many=True)
+    primary_health_care_center = PrimaryHCCSerializer(many=True)
+    hospital_type = HospitalTypeSerializer(many=True)
+    blood_services = BloodServiceSerializer(many=True)
+    professional_training_facilities = ProfessionalTrainingFacilitySerializer(many=True)
 
 
 class MiniDelegationOfficeSerializer(serializers.ModelSerializer):
