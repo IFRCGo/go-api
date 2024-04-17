@@ -49,6 +49,8 @@ class LocalUnitAdmin(admin.OSMGeoAdmin):
     )
     list_filter = (
         AutocompleteFilterFactory('Country', 'country'),
+        AutocompleteFilterFactory('Type', 'type'),
+        AutocompleteFilterFactory('Level', 'level'),
     )
 
 

@@ -1,9 +1,9 @@
 import csv
 from datetime import datetime
 
+from django.db import transaction
 from django.core.management.base import BaseCommand
 from django.contrib.gis.geos import Point
-from django.db import transaction
 
 
 from api.models import Country
@@ -35,12 +35,8 @@ class Command(BaseCommand):
         with open(filename) as csvfile:
             reader = csv.DictReader(csvfile)
             bulk_mgr = BulkCreateManager(chunk_size=1000)
-            # Prefetch
-            country_name_id_map = {
-                country_name.lower(): _id
-                for _id, country_name in Country.objects.values_list('id', 'name')
-            }
-# not used still now:
+
+            # Prefetch dataset
             country_iso3_id_map = {
                 iso3.lower(): _id
                 for _id, iso3 in Country.objects.filter(iso3__isnull=False).values_list('id', 'iso3')
@@ -49,32 +45,41 @@ class Command(BaseCommand):
                 code: _id
                 for _id, code in LocalUnitType.objects.values_list('id', 'code')
             }
-# not used still now:
             local_unit_level_id_map = {
                 level: _id
                 for _id, level in LocalUnitLevel.objects.values_list('id', 'level')
             }
 
-            for i, row in enumerate(reader, start=2):
+            for i, row in enumerate(reader):
                 # Without positions we can't use the row:
                 if not row['LONGITUDE'] or not row['LATITUDE']:
                     self.stdout.write(
                         self.style.WARNING(f'Skipping row {i}: Empty locations point')
                     )
                     continue
-
-                country = country_name_id_map[row['COUNTRY'].lower()]
-                type = local_unit_id_map[int(row['TYPE CODE'])]
-                subtype = row['SUBTYPE']  # FIXME just a text field
-                visibility = 3 if row['VISIBILITY'].lower() == 'public' else 1
-                health_id = row['DATA SOURCE ID']
-                if not health_id.isdigit():
-                    health_id = None
-                validated = True
-                level_id = int(row['COVERAGECODE']) + 1
+                if len(row['POSTCODE']) > 10:
+                    row['POSTCODE'] = ''  # better then inserting wrong textual data
+                country = country_iso3_id_map[row['ISO3'].lower()]
+                # We do not check COUNTRY or NATIONAL_SOCIETY, but only this ^
+                row['TYPECODE'] = {
+                    'NS0': 1,
+                    'NS1': 2,
+                    'NS2': 3,
+                    'NS3': 4,
+                }.get(
+                    row['TYPECODE'],
+                    int(row['TYPECODE']),
+                )
+                _type = local_unit_id_map[int(row['TYPECODE'])]
+                level = None
+                if row['LEVELCODE']:
+                    level = local_unit_level_id_map[int(row['LEVELCODE'])]
+                subtype = row['SUBTYPE']
+                is_public = row['PUBLICVIEW'].lower() == 'yes'
+                validated = row['VALIDATED'].lower() == 'yes'
                 local_branch_name = row['NAME_LOC']
                 english_branch_name = row['NAME_EN']
-                postcode = row['POSTCODE']
+                postcode = row['POSTCODE'].strip()[:10]
                 address_loc = row['ADDRESS_LOC']
                 address_en = row['ADDRESS_EN']
                 city_loc = row['CITY_LOC']
@@ -87,38 +92,31 @@ class Command(BaseCommand):
                 source_en = row['SOURCE_EN']
                 source_loc = row['SOURCE_LOC']
                 location = Point(float(row['LONGITUDE']), float(row['LATITUDE']))
-                data_source_id = row['DATA SOURCE ID']
-                visibility = 3 if row['VISIBILITY'].lower() == 'public' else 1
-                # health_id = row['DATA SOURCE ID']
-                date_of_data = None
-                if row['DATE OF UPDATE']:
-                    date_of_data = self.parse_date(row['DATEOFUPDATE'])
+                date_of_data = self.parse_date(row['DATEOFUPDATE'])
                 local_unit = LocalUnit(
-                    level_id=level_id,
                     country_id=country,
-                    type_id=type,
+                    type_id=_type,
+                    level_id=level,
+                    subtype=subtype,
                     # is_public=is_public,
                     validated=validated,
                     local_branch_name=local_branch_name,
                     english_branch_name=english_branch_name,
-                    focal_person_loc=focal_person_loc,
-                    focal_person_en=focal_person_en,
-                    location=location,
                     postcode=postcode,
-                    address_loc=address_loc,
                     address_en=address_en,
-                    city_loc=city_loc,
+                    address_loc=address_loc,
                     city_en=city_en,
+                    city_loc=city_loc,
+                    focal_person_en=focal_person_en,
+                    focal_person_loc=focal_person_loc,
                     phone=phone,
                     email=email,
                     link=link,
-                    source_loc=source_loc,
                     source_en=source_en,
+                    source_loc=source_loc,
+                    location=location,
                     date_of_data=date_of_data,
-                    data_source_id=data_source_id,
-                    health_id=health_id,
-                    visibility=visibility,
                 )
                 bulk_mgr.add(local_unit)
-            bulk_mgr.done()
-            print('Bulk create summary:', bulk_mgr.summary())
+        bulk_mgr.done()
+        print('Bulk create summary:', bulk_mgr.summary())
