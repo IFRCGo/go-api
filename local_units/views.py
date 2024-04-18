@@ -8,7 +8,7 @@ from rest_framework.generics import (
     RetrieveAPIView
 )
 from rest_framework.decorators import action
-
+from drf_spectacular.utils import extend_schema
 
 from .models import LocalUnit, DelegationOffice
 from .serializers import LocalUnitSerializer, DelegationOfficeSerializer
@@ -27,7 +27,8 @@ from local_units.models import (
 )
 from local_units.serializers import (
     LocalUnitSerializer,
-    LocalUnitOptionsSerializer
+    LocalUnitOptionsSerializer,
+    LocalUnitDetailSerializer
 )
 from local_units.permissions import ValidateLocalUnitPermission
 
@@ -38,6 +39,15 @@ class LocalUnitViewSet(viewsets.ModelViewSet):
     filterset_class = LocalUnitFilters
     search_fields = ('local_branch_name', 'english_branch_name',)
 
+    def get_serializer_class(self):
+        if self.action == "list":
+            return LocalUnitSerializer
+        return LocalUnitDetailSerializer
+
+    @extend_schema(
+        request=None,
+        responses=LocalUnitOptionsSerializer
+    )
     @action(
         detail=False,
         url_path="options",

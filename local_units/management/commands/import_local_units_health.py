@@ -87,7 +87,6 @@ class Command(BaseCommand):
                 source_en = row['SOURCE_EN']
                 source_loc = row['SOURCE_LOC']
                 location = Point(float(row['LONGITUDE']), float(row['LATITUDE']))
-                data_source_id = row['DATA SOURCE ID']
                 visibility = 3 if row['VISIBILITY'].lower() == 'public' else 1
                 # health_id = row['DATA SOURCE ID']
                 date_of_data = None
@@ -115,7 +114,6 @@ class Command(BaseCommand):
                     source_loc=source_loc,
                     source_en=source_en,
                     date_of_data=date_of_data,
-                    data_source_id=data_source_id,
                     health_id=health_id,
                     visibility=visibility,
                 )

@@ -73,7 +73,7 @@ class LocalUnitCountrySerializer(serializers.ModelSerializer):
     class Meta:
         model = Country
         fields = (
-            'name', 'iso3'
+            'name', 'iso3', 'id'
         )
 
 
@@ -95,7 +95,7 @@ class LocalUnitLevelSerializer(serializers.ModelSerializer):
         )
 
 
-class LocalUnitSerializer(serializers.ModelSerializer):
+class LocalUnitDetailSerializer(serializers.ModelSerializer):
     location = serializers.SerializerMethodField()
     country = LocalUnitCountrySerializer()
     type = LocalUnitTypeSerializer()
@@ -122,6 +122,33 @@ class LocalUnitSerializer(serializers.ModelSerializer):
 
     def get_type(self, unit):
         return {'type'}
+
+
+
+class LocalUnitSerializer(serializers.ModelSerializer):
+    location = serializers.SerializerMethodField()
+    country = LocalUnitCountrySerializer()
+    type = LocalUnitTypeSerializer()
+    class Meta:
+        model  = LocalUnit
+        fields = (
+            'id',
+            'country',
+            'local_branch_name',
+            'english_branch_name',
+            'location',
+            'type',
+            'focal_person_en',
+            'phone',
+            'focal_person_loc',
+            'email',
+            'validated',
+            'address_loc',
+            'address_en',
+        )
+
+    def get_location(self, unit) -> dict:
+        return json.loads(unit.location.geojson)
 
 
 class DelegationOfficeCountrySerializer(serializers.ModelSerializer):
