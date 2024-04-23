@@ -402,6 +402,15 @@ class CountryKeyDocument(models.Model):
     year = models.DateField(
         verbose_name=_('Year')
     )
+    end_year = models.DateField(
+        verbose_name=_('End Year'),
+        null=True, blank=True
+    )
+    year_text = models.CharField(
+        verbose_name=_('Year Text'),
+        max_length=255,
+        null=True, blank=True
+    )
 
     def __str__(self):
         return f'{self.country.name} - {self.name}'

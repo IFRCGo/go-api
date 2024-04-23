@@ -72,6 +72,8 @@ class Command(BaseCommand):
                 'url': item['url'],
                 'thumbnail': item['thumbnail'],
                 'year': str(item['year']) + '-01-01',
+                'end_year': str(item['Endyear']) + '-01-01',
+                'year_text': item['YearText'],
                 'document_type': item['document_type'],
                 'country_code': country_ns_code
             }
@@ -99,7 +101,9 @@ class Command(BaseCommand):
                     'url': document['url'],
                     'thumbnail': document['thumbnail'],
                     'document_type': document['document_type'],
-                    'year': document['year']
+                    'year': document['year'],
+                    'end_year': document['end_year'],
+                    'year_text': document['year_text']
                 }
                 CountryKeyDocument.objects.create(**data)
         return added

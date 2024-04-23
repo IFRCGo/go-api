@@ -92,6 +92,7 @@ class CountryKeyDocumentFilter(filters.FilterSet):
     year__lte = filters.DateFilter(field_name="year", lookup_expr="lte", input_formats=["%Y-%m-%d"])
     year__gte = filters.DateFilter(field_name="year", lookup_expr="gte", input_formats=["%Y-%m-%d"])
     country = filters.NumberFilter(field_name="country", lookup_expr="exact")
+    document_type = filters.CharFilter(field_name="document_type", lookup_expr="exact")
 
     class Meta:
         model = CountryKeyDocument
