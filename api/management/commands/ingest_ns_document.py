@@ -72,7 +72,7 @@ class Command(BaseCommand):
                 'url': item['url'],
                 'thumbnail': item['thumbnail'],
                 'year': str(item['year']) + '-01-01',
-                'end_year': str(item['Endyear']) + '-01-01',
+                'end_year': str(item['EndYear']) + '-01-01' if 'EndYear' in item else None,
                 'year_text': item['YearText'],
                 'document_type': item['document_type'],
                 'country_code': country_ns_code
