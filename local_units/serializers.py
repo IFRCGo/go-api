@@ -17,6 +17,7 @@ from .models import (
     ProfessionalTrainingFacility,
 )
 from api.models import Country
+from main.writable_nested_serializers import NestedCreateMixin, NestedUpdateMixin
 
 
 class AffiliationSerializer(serializers.ModelSerializer):
@@ -55,7 +56,10 @@ class BloodServiceSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class HealthDataSerializer(serializers.ModelSerializer):
+class HealthDataSerializer(
+    NestedCreateMixin,
+    NestedUpdateMixin,
+):
 
     class Meta:
         model = HealthData
@@ -95,12 +99,16 @@ class LocalUnitLevelSerializer(serializers.ModelSerializer):
         )
 
 
-class LocalUnitDetailSerializer(serializers.ModelSerializer):
+class LocalUnitDetailSerializer(
+    NestedCreateMixin,
+    NestedUpdateMixin,
+    #serializers.ModelSerializer
+):
     location = serializers.SerializerMethodField()
-    country = LocalUnitCountrySerializer()
-    type = LocalUnitTypeSerializer()
-    coverage = LocalUnitLevelSerializer(source='level')  # renaming level to coverage
-    health = HealthDataSerializer()
+    country_details = LocalUnitCountrySerializer(source='country', read_only=True)
+    type_details = LocalUnitTypeSerializer(source='type', read_only=True)
+    level_details = LocalUnitLevelSerializer(source='level', read_only=True)
+    health = HealthDataSerializer(required=False, allow_null=True)
 
     class Meta:
         model = LocalUnit
@@ -124,13 +132,15 @@ class LocalUnitDetailSerializer(serializers.ModelSerializer):
         return {'type'}
 
 
-
-class LocalUnitSerializer(serializers.ModelSerializer):
+class LocalUnitSerializer(
+    serializers.ModelSerializer
+):
     location = serializers.SerializerMethodField()
-    country = LocalUnitCountrySerializer()
-    type = LocalUnitTypeSerializer()
+    country_details = LocalUnitCountrySerializer(source='country', read_only=True)
+    type_details = LocalUnitTypeSerializer(source='type', read_only=True)
+
     class Meta:
-        model  = LocalUnit
+        model = LocalUnit
         fields = (
             'id',
             'country',
@@ -145,6 +155,8 @@ class LocalUnitSerializer(serializers.ModelSerializer):
             'validated',
             'address_loc',
             'address_en',
+            'country_details',
+            'type_details',
         )
 
     def get_location(self, unit) -> dict:
