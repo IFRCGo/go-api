@@ -11,3 +11,12 @@ class ValidateLocalUnitPermission(permissions.BasePermission):
         if user.is_superuser:
             return True
         return False
+
+
+class IsAuthenticatedForLocalUnit(permissions.BasePermission):
+    message = "Only Authenticated users allowed to create/update/delete Local Units"
+
+    def has_permission(self, request, view):
+        if request.method in ["POST", "PUT", "PATCH", "DELETE"]:
+            return request.user and request.user.is_authenticated
+        return True

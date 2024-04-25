@@ -25,13 +25,17 @@ from local_units.models import (
     HospitalType,
     BloodService,
     ProfessionalTrainingFacility,
+    VisibilityChoices
 )
 from local_units.serializers import (
     LocalUnitSerializer,
     LocalUnitOptionsSerializer,
     LocalUnitDetailSerializer
 )
-from local_units.permissions import ValidateLocalUnitPermission
+from local_units.permissions import (
+    ValidateLocalUnitPermission,
+    IsAuthenticatedForLocalUnit
+)
 
 
 class LocalUnitViewSet(viewsets.ModelViewSet):
@@ -39,6 +43,13 @@ class LocalUnitViewSet(viewsets.ModelViewSet):
     serializer_class = LocalUnitSerializer
     filterset_class = LocalUnitFilters
     search_fields = ('local_branch_name', 'english_branch_name',)
+    permission_classes = [IsAuthenticatedForLocalUnit]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if not self.request.user.is_authenticated:
+            return qs.filter(visibility=VisibilityChoices.PUBLIC)
+        return qs
 
     def get_serializer_class(self):
         if self.action == "list":

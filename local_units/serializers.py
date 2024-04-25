@@ -109,6 +109,7 @@ class LocalUnitDetailSerializer(
     level_details = LocalUnitLevelSerializer(source='level', read_only=True)
     health = HealthDataSerializer(required=False, allow_null=True)
     location_details = serializers.SerializerMethodField()
+    visibility_display = serializers.CharField(source='get_visibility_display', read_only=True)
 
     class Meta:
         model = LocalUnit
