@@ -7,6 +7,7 @@ from rest_framework.generics import (
     ListAPIView,
     RetrieveAPIView
 )
+from django.db import transaction
 from rest_framework.decorators import action
 from drf_spectacular.utils import extend_schema
 
@@ -43,6 +44,11 @@ class LocalUnitViewSet(viewsets.ModelViewSet):
         if self.action == "list":
             return LocalUnitSerializer
         return LocalUnitDetailSerializer
+
+    def create(self, request, *args, **kwargs):
+        with transaction.atomic():
+            response = super().create(request, *args, **kwargs)
+            return response
 
     @extend_schema(
         request=None,

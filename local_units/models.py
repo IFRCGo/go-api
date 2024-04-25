@@ -410,7 +410,7 @@ class LocalUnit(models.Model):
         null=True,
         verbose_name=_('Social link')
     )
-    location = models.PointField()
+    location = models.PointField(srid=4326, help_text="Local Unit Location")
 
     def __str__(self):
         branch_name = self.local_branch_name or self.english_branch_name

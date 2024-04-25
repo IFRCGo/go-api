@@ -104,11 +104,11 @@ class LocalUnitDetailSerializer(
     NestedUpdateMixin,
     #serializers.ModelSerializer
 ):
-    location = serializers.SerializerMethodField()
     country_details = LocalUnitCountrySerializer(source='country', read_only=True)
     type_details = LocalUnitTypeSerializer(source='type', read_only=True)
     level_details = LocalUnitLevelSerializer(source='level', read_only=True)
     health = HealthDataSerializer(required=False, allow_null=True)
+    location_details = serializers.SerializerMethodField()
 
     class Meta:
         model = LocalUnit
@@ -122,20 +122,14 @@ class LocalUnitDetailSerializer(
         # Hiding following fields for now
         # ['focal_person_loc', 'focal_person_en', 'email', 'phone',]
 
-    def get_location(self, unit):
+    def get_location_details(self, unit) -> dict:
         return json.loads(unit.location.geojson)
-
-    def get_country(self, unit):
-        return {'country'}
-
-    def get_type(self, unit):
-        return {'type'}
 
 
 class LocalUnitSerializer(
     serializers.ModelSerializer
 ):
-    location = serializers.SerializerMethodField()
+    location_details = serializers.SerializerMethodField()
     country_details = LocalUnitCountrySerializer(source='country', read_only=True)
     type_details = LocalUnitTypeSerializer(source='type', read_only=True)
 
@@ -146,7 +140,7 @@ class LocalUnitSerializer(
             'country',
             'local_branch_name',
             'english_branch_name',
-            'location',
+            'location_details',
             'type',
             'focal_person_en',
             'phone',
@@ -159,7 +153,7 @@ class LocalUnitSerializer(
             'type_details',
         )
 
-    def get_location(self, unit) -> dict:
+    def get_location_details(self, unit) -> dict:
         return json.loads(unit.location.geojson)
 
 
