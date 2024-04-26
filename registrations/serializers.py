@@ -1,6 +1,5 @@
 from datetime import timedelta
 from django.contrib.auth.password_validation import validate_password
-from api.serializers import UserNameSerializer
 from django.conf import settings
 
 from rest_framework import serializers
@@ -207,5 +206,3 @@ class UserExternalTokenSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         raise serializers.ValidationError("Update is not allowed")
-
-    

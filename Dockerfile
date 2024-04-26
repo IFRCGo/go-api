@@ -29,8 +29,8 @@ RUN pip install --upgrade --no-cache-dir pip poetry \
     # Clean-up
     && pip uninstall -y poetry virtualenv-clone virtualenv
 
-# RUN playwright install \
-#     && playwright install-deps
+RUN playwright install \
+    && playwright install-deps
 
 
 # TODO: Refactor the whole Azure storage part. (Upgrade is not enough, was tested.)
