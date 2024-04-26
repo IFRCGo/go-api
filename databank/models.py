@@ -535,6 +535,11 @@ class CountryOverview(models.Model):
         verbose_name=_('HDR GII'),
         null=True, blank=True
     )
+    fdrs_data_fetched_year = models.CharField(
+        verbose_name=_('FDRS Data Fetched Year'),
+        null=True, blank=True,
+        max_length=50
+    )
 
     class Meta:
         verbose_name = _('country overview')

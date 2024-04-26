@@ -1,5 +1,6 @@
 import logging
 import requests
+
 from django.conf import settings
 
 from databank.models import CountryOverview as CO
@@ -120,11 +121,14 @@ def load(country, overview, fdrs_data):
     if country.iso is None or fdrs_data is None:
         return
 
+    fdrs_data_fetched_year = max(int(item['year']) for item in fdrs_data.values())
+
     for fdrs_indicator, field in FDRS_INDICATORS_FIELD_MAP:
         value = fdrs_data.get(f'{country.iso.upper()}-{fdrs_indicator}')
         setattr(
             overview,
             field.field.name,
-            value and value['value'],
+            value and value.get('value'),
         )
+    overview.fdrs_data_fetched_year = str(fdrs_data_fetched_year)
     overview.save()
