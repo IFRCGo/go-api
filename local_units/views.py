@@ -25,7 +25,9 @@ from local_units.models import (
     HospitalType,
     BloodService,
     ProfessionalTrainingFacility,
-    VisibilityChoices
+    VisibilityChoices,
+    GeneralMedicalService,
+    SpecializedMedicalService,
 )
 from local_units.serializers import (
     LocalUnitSerializer,
@@ -84,6 +86,8 @@ class LocalUnitViewSet(viewsets.ModelViewSet):
                     hospital_type=HospitalType.objects.all(),
                     blood_services=BloodService.objects.all(),
                     professional_training_facilities=ProfessionalTrainingFacility.objects.all(),
+                    general_medical_services=GeneralMedicalService.objects.all(),
+                    specialized_medical_services=SpecializedMedicalService.objects.all(),
                 )
             ).data
         )

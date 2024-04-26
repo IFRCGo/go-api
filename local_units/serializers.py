@@ -15,9 +15,23 @@ from .models import (
     HospitalType,
     BloodService,
     ProfessionalTrainingFacility,
+    GeneralMedicalService,
+    SpecializedMedicalService,
 )
 from api.models import Country
 from main.writable_nested_serializers import NestedCreateMixin, NestedUpdateMixin
+
+
+class GeneralMedicalServiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GeneralMedicalService
+        fields = "__all__"
+
+
+class SpecializedMedicalServiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SpecializedMedicalService
+        fields = "__all__"
 
 
 class AffiliationSerializer(serializers.ModelSerializer):
@@ -218,7 +232,7 @@ class DelegationOfficeSerializer(serializers.ModelSerializer):
 
 class LocalUnitOptionsSerializer(serializers.Serializer):
     type = LocalUnitTypeSerializer(many=True)
-    coverage = LocalUnitLevelSerializer(many=True, source='level')  # renaming level to coverage
+    level = LocalUnitLevelSerializer(many=True)  # renaming level to coverage
     affiliation = AffiliationSerializer(many=True)
     functionality = FunctionalitySerializer(many=True)
     health_facility_type = FacilityTypeSerializer(many=True)
@@ -226,6 +240,8 @@ class LocalUnitOptionsSerializer(serializers.Serializer):
     hospital_type = HospitalTypeSerializer(many=True)
     blood_services = BloodServiceSerializer(many=True)
     professional_training_facilities = ProfessionalTrainingFacilitySerializer(many=True)
+    general_medical_services = GeneralMedicalServiceSerializer(many=True)
+    specialized_medical_services = SpecializedMedicalServiceSerializer(many=True)
 
 
 class MiniDelegationOfficeSerializer(serializers.ModelSerializer):
