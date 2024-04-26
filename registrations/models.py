@@ -1,3 +1,4 @@
+import uuid
 import reversion
 from django.utils.translation import gettext_lazy as _
 from django.conf import settings
@@ -77,7 +78,7 @@ class UserExternalToken(models.Model):
 
     title = models.CharField(
         verbose_name=_('title'),
-        max_length=200,
+        max_length=255,
     )
 
     user = models.ForeignKey(
@@ -86,12 +87,13 @@ class UserExternalToken(models.Model):
         on_delete=models.CASCADE,
     )
 
-    jti = models.CharField(
+    jti = models.UUIDField(
+        default=uuid.uuid4,
         editable=False,
-        max_length=32,
-        verbose_name=_('jti'),
+        unique=True,
         help_text=_('Unique identifier for the token')
     )
+
     created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
     expire_timestamp = models.DateTimeField(verbose_name=_('expire timestamp'), null=True, blank=True)
     # @Note: Currently not used, but could be utilized for a blacklist feature.
@@ -102,4 +104,12 @@ class UserExternalToken(models.Model):
         verbose_name_plural = _('User External Tokens')
 
     def __str__(self):
-        return f'{self.title}'
+        return f'{self.title}-{self.expire_timestamp.strftime("%Y-%m-%d")}'
+    
+    def get_payload(self) -> dict:
+        return {
+            'jti': str(self.jti),
+            'userId': self.user.id,
+            'exp': self.expire_timestamp,
+            'inMovement': True
+        }

@@ -175,15 +175,15 @@ class UserExternalTokenSerializer(serializers.ModelSerializer):
         if date < now:
             raise serializers.ValidationError('Expire timestamp must be in the future.')
         elif date > now + timedelta(days=settings.JWT_EXPIRE_TIMESTAMP_DAYS):
-            raise serializers.ValidationError('Expire timestamp must be less than 1 year.')
+            raise serializers.ValidationError(f'Expire timestamp must be less than {settings.JWT_EXPIRE_TIMESTAMP_DAYS} days.')
         return date
 
     def create(self, validated_data):
-        validated_data['user'] = user = self.context['request'].user
-        validated_data['jti'] = get_random_string(length=32)
+        validated_data['user'] = self.context['request'].user
 
-        if not user.profile.accepted_montandon_license_terms:
-            raise serializers.ValidationError('User must accept Montandon license terms.')
+        # @Note: Not in use for now
+        # if not user.profile.accepted_montandon_license_terms:
+        #     raise serializers.ValidationError('User must accept Montandon license terms.')
 
         if not validated_data.get('expire_timestamp'):
             validated_data['expire_timestamp'] = timezone.now() + timedelta(days=settings.JWT_EXPIRE_TIMESTAMP_DAYS)
@@ -191,16 +191,9 @@ class UserExternalTokenSerializer(serializers.ModelSerializer):
         # Check if private and public key exists
         if not(settings.JWT_PRIVATE_KEY and settings.JWT_PUBLIC_KEY):
             raise serializers.ValidationError('Please contact system adminstrators to configurate private and public key.')
-        
-        payload = {
-            'jti': validated_data['jti'],
-            'userId': user.id,
-            'exp': validated_data['expire_timestamp'],
-            "inMovement": True,
-        }
 
-        UserExternalToken.objects.create(**validated_data)
-        validated_data["token"] = jwt_encode_handler(payload)
+        instance = super().create(validated_data)
+        validated_data["token"] = jwt_encode_handler(instance.get_payload())
         return validated_data
     
 

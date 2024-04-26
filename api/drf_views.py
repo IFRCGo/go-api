@@ -882,7 +882,7 @@ class UserViewset(viewsets.ModelViewSet):
         url_path="accepted_license_terms",
     )
     def accepted_license_terms(self, request, *args, **kwargs):
-        user = self.get_object()
+        user = request.user
         if user.profile.accepted_montandon_license_terms is True:
             raise serializers.ValidationError("User has already accepted the license terms")
         user.profile.accepted_montandon_license_terms = True
