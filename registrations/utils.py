@@ -58,12 +58,12 @@ def jwt_encode_handler(payload):
     return jwt.encode(
         payload,
         settings.JWT_PRIVATE_KEY,
-        algorithm='RS256',
+        algorithm='ES256',
     )
 
 def jwt_decode_handler(token):
     return jwt.decode(
         token,
         settings.JWT_PUBLIC_KEY,
-        algorithms=['RS256'],
+        algorithms=['ES256'],
     )

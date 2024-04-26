@@ -165,35 +165,47 @@ class RegistrationSerializer(serializers.Serializer):
         )
 
 class UserExternalTokenSerializer(serializers.ModelSerializer):
-    user_details = UserNameSerializer(source="user", read_only=True)
+    token = serializers.CharField(read_only=True)
+    expire_timestamp = serializers.DateTimeField(required=False)
     class Meta:
         model = UserExternalToken
-        fields = 'id', 'user_details', 'token', 'expire_timestamp'
+        fields = ['title', 'token', 'expire_timestamp']
 
-    def validate_expire_timestamp(self, data):
-        if data < timezone.now():
+    def validate_expire_timestamp(self, date):
+        now = timezone.now()
+        if date < now:
             raise serializers.ValidationError('Expire timestamp must be in the future.')
-        return data
+        elif date > now + timedelta(days=settings.JWT_EXPIRE_TIMESTAMP_DAYS):
+            raise serializers.ValidationError('Expire timestamp must be less than 1 year.')
+        return date
 
     def create(self, validated_data):
-        validated_data['user'] = self.context['request'].user
+        validated_data['user'] = user = self.context['request'].user
+        validated_data['jti'] = get_random_string(length=32)
+
+        if not user.profile.accepted_montandon_license_terms:
+            raise serializers.ValidationError('User must accept Montandon license terms.')
 
         if not validated_data.get('expire_timestamp'):
-            validated_data['expire_timestamp'] = timezone.now() + timedelta(days=7)
+            validated_data['expire_timestamp'] = timezone.now() + timedelta(days=settings.JWT_EXPIRE_TIMESTAMP_DAYS)
         
         # Check if private and public key exists
         if not(settings.JWT_PRIVATE_KEY and settings.JWT_PUBLIC_KEY):
-            raise serializers.ValidationError('Please Provide private and public key.')
+            raise serializers.ValidationError('Please contact system adminstrators to configurate private and public key.')
         
         payload = {
-            'user': self.context['request'].user.id,
-            'exp': validated_data['expire_timestamp']
+            'jti': validated_data['jti'],
+            'userId': user.id,
+            'exp': validated_data['expire_timestamp'],
+            "inMovement": True,
         }
 
-        validated_data['token'] = jwt_encode_handler(payload)
-        return super().create(validated_data)
+        UserExternalToken.objects.create(**validated_data)
+        validated_data["token"] = jwt_encode_handler(payload)
+        return validated_data
     
 
     def update(self, instance, validated_data):
         raise serializers.ValidationError("Update is not allowed")
+
     

@@ -99,6 +99,7 @@ env = environ.Env(
     #jwt private and public key
     JWT_PRIVATE_KEY=(str, None),
     JWT_PUBLIC_KEY=(str, None),
+    JWT_EXPIRE_TIMESTAMP_DAYS=(int, 365)
 
     # Country page
     NS_CONTACT_USERNAME=(str, None),
@@ -603,6 +604,7 @@ SEP = '¤'
 
 JWT_PRIVATE_KEY = env('JWT_PRIVATE_KEY')
 JWT_PUBLIC_KEY = env('JWT_PUBLIC_KEY')
+JWT_EXPIRE_TIMESTAMP_DAYS = env('JWT_EXPIRE_TIMESTAMP_DAYS')
 
 # Need to load this to overwrite modeltranslation module
 import main.translation  # noqa: F401 E402
