@@ -1025,16 +1025,19 @@ class PerDocumentUploadSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         country = data['country']
-        user_document_count = PerDocumentUpload.objects.filter(
-            country=country,
-            created_by=self.context["request"].user
-        ).count()
-        if user_document_count > self.MAX_NUMBER_OF_DOCUMENTS:
-            raise serializers.ValidationError(
-                {
-                    "file": gettext("Can add utmost %s documents" % self.MAX_NUMBER_OF_DOCUMENTS)
-                }
-            )
+        per = data.get('per')
+        if per:
+            user_document_count = PerDocumentUpload.objects.filter(
+                country=country,
+                created_by=self.context["request"].user,
+                per=per
+            ).count()
+            if user_document_count > self.MAX_NUMBER_OF_DOCUMENTS:
+                raise serializers.ValidationError(
+                    {
+                        "file": gettext("Can add utmost %s documents" % self.MAX_NUMBER_OF_DOCUMENTS)
+                    }
+                )
         return data
 
     def validate_per(self, per):

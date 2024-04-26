@@ -43,7 +43,7 @@ class Migration(migrations.Migration):
             )
             if form_question_group.exists():
                 form_question_group_first = form_question_group.first()
-                question.question_group = form_question_group
+                question.question_group = form_question_group_first
                 question.save(update_fields=['question_group'])
                 question_count += 1
 
