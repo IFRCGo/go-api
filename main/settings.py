@@ -99,7 +99,7 @@ env = environ.Env(
     #jwt private and public key
     JWT_PRIVATE_KEY=(str, None),
     JWT_PUBLIC_KEY=(str, None),
-    JWT_EXPIRE_TIMESTAMP_DAYS=(int, 365)
+    JWT_EXPIRE_TIMESTAMP_DAYS=(int, 365),
 
     # Country page
     NS_CONTACT_USERNAME=(str, None),
@@ -597,6 +597,7 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'Please see the <a href="https://go-wiki.ifrc.org/en/go-api/api-overview" target="_blank">GO Wiki</a> for an overview of API usage, or the interactive <a href="/api-docs/swagger-ui/" target="_blank">Swagger page</a>.',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+    'ENUM_NAME_OVERRIDES': {},
 }
 
 # A character which is rarely used in strings – for separator:

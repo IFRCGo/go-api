@@ -171,10 +171,26 @@ class TwoGatekeepersTest(APITestCase):
 
 class UserExternalTokenTest(Apitestcase):
 
-    def test_external_token(self):
+    def test_external_token_with_key(self):
         self.client.force_authenticate(self.user)
+        url = f"/api/v2/user/{self.user.id}/accepted_license_terms/"
 
+        # without accepting the terms and conditions
         response = self.client.post('/api/v2/external-token/')
+        self.assertEqual(response.status_code, 400)
+        
+        #accpet the terms and conditions
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 200)
+
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.profile.accepted_montandon_license_terms, True)
+
+        data = {
+            "title": "Montandon"
+        }
+
+        response = self.client.post('/api/v2/external-token/', data, format='json')
         self.assertEqual(response.status_code, 201)
 
     def test_external_token_with_no_keys(self):
