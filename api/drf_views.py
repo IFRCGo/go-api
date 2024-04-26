@@ -6,6 +6,8 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets, mixins
 from rest_framework.decorators import action
+from django_filters import rest_framework as rest_filters
+from rest_framework import filters
 
 from django.http import Http404
 from django.contrib.auth.models import User
@@ -32,6 +34,7 @@ from main.utils import is_tableau
 from main.enums import GlobalEnumSerializer, get_enum_values
 from deployments.models import Personnel
 from databank.serializers import CountryOverviewSerializer
+from main.filters import NullsLastOrderingFilter
 
 from .utils import is_user_ifrc
 from .exceptions import BadRequest
@@ -522,8 +525,10 @@ class CountryKeyDocumentViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = CountryKeyDocument.objects.select_related('country')
     serializer_class = CountryKeyDocumentSerializer
     search_fields = ("name",)
+    ordering_fields = ("year", "end_year",)
     # permission_classes = (IsAuthenticated,)
     filterset_class = CountryKeyDocumentFilter
+    filter_backends = (NullsLastOrderingFilter, rest_filters.DjangoFilterBackend, filters.SearchFilter)
 
 
 class DistrictRMDViewset(viewsets.ReadOnlyModelViewSet):
