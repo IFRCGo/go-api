@@ -39,7 +39,7 @@ class Migration(migrations.Migration):
         question_count = 0
         for question in form_questions_to_migrate:
             form_question_group = FormQuestionGroup.objects.filter(
-                title=question.component.title_en
+                title_en=question.component.title_en
             )
             if form_question_group.exists():
                 form_question_group_first = form_question_group.first()
