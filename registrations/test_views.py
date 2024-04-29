@@ -11,15 +11,15 @@ from unittest import mock
 from rest_framework.test import APITestCase
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives.asymmetric import ec
 from main.test_case import APITestCase as Apitestcase
 
 from django.contrib.auth.models import User
 from django.conf import settings
+from django.test import override_settings
 
 from .models import Pending
 from api.models import Country, Profile
-from .tasks import send_notification_create
 
 
 class TwoGatekeepersTest(APITestCase):
@@ -176,11 +176,7 @@ class UserExternalTokenTest(Apitestcase):
 
     def setUp(self):
         super().setUp()
-        private_key = rsa.generate_private_key(
-            public_exponent=65537,
-            key_size=512,
-            backend=default_backend()
-        )
+        private_key = ec.generate_private_key(ec.SECP256R1(), default_backend())
         public_key = private_key.public_key()
         private_key_pem = private_key.private_bytes(
             encoding=serialization.Encoding.PEM,
@@ -193,34 +189,33 @@ class UserExternalTokenTest(Apitestcase):
             encoding=serialization.Encoding.PEM,
             format=serialization.PublicFormat.SubjectPublicKeyInfo
         )
-        
-        settings.JWT_PRIVATE_KEY = private_key_pem.decode('utf-8')
-        settings.JWT_PUBLIC_KEY = public_key_pem.decode('utf-8')
 
-    # def test_external_token_with_key(self):
-    #     self.client.force_authenticate(self.user)
-    #     url = f"/api/v2/user/{self.user.id}/accepted_license_terms/"
+        self.JWT_PRIVATE_KEY = private_key_pem.decode('utf-8')
+        self.JWT_PUBLIC_KEY = public_key_pem.decode('utf-8')
 
-    #     # accept the terms and conditions
-    #     response = self.client.post(url)
-    #     self.assertEqual(response.status_code, 200)
+    def test_external_token_with_key(self):
+        self.client.force_authenticate(self.user)
+        url = f"/api/v2/user/{self.user.id}/accepted_license_terms/"
 
-    #     self.user.refresh_from_db()
-    #     self.assertEqual(self.user.profile.accepted_montandon_license_terms, True)
+        # accept the terms and conditions
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 200)
 
-    #     data = {
-    #         "title": "ok"
-    #     }
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.profile.accepted_montandon_license_terms, True)
 
-    #     response = self.client.post('/api/v2/external-token/', data, format='json')
-    #     self.assertEqual(response.status_code, 201)
+        data = {
+            "title": "ok"
+        }
+
+        with override_settings(
+            JWT_PRIVATE_KEY=self.JWT_PRIVATE_KEY,
+            JWT_PUBLIC_KEY=self.JWT_PUBLIC_KEY,
+        ):
+            response = self.client.post('/api/v2/external-token/', data, format='json')
+        self.assertEqual(response.status_code, 201)
 
     def test_external_token_with_no_keys(self):
         self.client.force_authenticate(self.user)
-
-        #set keys to None
-        settings.JWT_PRIVATE_KEY = None
-        settings.JWT_PUBLIC_KEY = None
-
         response = self.client.post('/api/v2/external-token/')
         self.assertEqual(response.status_code, 400)

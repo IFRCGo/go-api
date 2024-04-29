@@ -1,8 +1,3 @@
-import os
-import json
-
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.asymmetric import rsa
 import jwt
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -10,7 +5,6 @@ from django.db.models.functions import Lower
 
 from api.models import Country, Profile, UserRegion
 from .models import DomainWhitelist
-from notifications.notification import send_notification
 
 
 def is_valid_domain(email):
@@ -60,6 +54,7 @@ def jwt_encode_handler(payload):
         settings.JWT_PRIVATE_KEY,
         algorithm='ES256',
     )
+
 
 def jwt_decode_handler(token):
     return jwt.decode(
