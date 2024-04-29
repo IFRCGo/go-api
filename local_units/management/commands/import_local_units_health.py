@@ -46,6 +46,8 @@ class Command(BaseCommand):
                 type = local_unit_id_map[int(row['TYPE CODE'])]
                 visibility = 3 if row['VISIBILITY'].lower() == 'public' else 1
                 health_id = row['DATA SOURCE ID']
+                if not health_id.isdigit():
+                    health_id = None
                 validated = True
                 local_branch_name = row['NAME_LOC']
                 address_loc = row['ADDRESS_LOC']
@@ -53,7 +55,7 @@ class Command(BaseCommand):
                 location = Point(float(row['LONGITUDE']), float(row['LATITUDE']))
                 date_of_data = None
                 if row['DATE OF UPDATE']:
-                    date_of_data = datetime.strptime(row['DATE OF UPDATE'], '%m/%d/%Y').strftime("%Y-%m-%d")
+                    date_of_data = datetime.strptime(row['DATE OF UPDATE'], '%Y-%m-%d').strftime("%Y-%m-%d")  # sometimes it was in '%m/%d/%Y
                 local_unit = LocalUnit(
                     country_id=country,
                     type_id=type,
@@ -64,7 +66,6 @@ class Command(BaseCommand):
                     focal_person_loc=focal_person_loc,
                     location=location,
                     date_of_data=date_of_data,
-                    data_source_id=data_source_id,
                     health_id=health_id
                 )
                 bulk_mgr.add(local_unit)
