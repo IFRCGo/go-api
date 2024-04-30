@@ -31,16 +31,16 @@ class Command(BaseCommand):
         country_dict = {}
 
         now = datetime.datetime.now()
-        daterange = f'{now.year - 1}:{now.year}'
+        daterange = f'{now.year - 3}:{now.year - 2}'  # Data of 2022
 
         for country in Country.objects.filter(
             iso3__isnull=False,
             record_type=CountryType.COUNTRY,
             region__isnull=False,
             independent=True
-        ).exclude(iso3="COK"):
+        ).exclude(iso3__in=["COK", "BAR", "NOR"]):
             country_iso3 = country.iso3
-            logger.info(f'Importing country {country_iso3}')
+            print(f'Importing country {country_iso3}')
             for indicator in world_bank_indicators:
                 page = 1  # Reset the page for each indicator
                 while True:

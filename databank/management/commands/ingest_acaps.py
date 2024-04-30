@@ -20,6 +20,8 @@ class Command(BaseCommand):
         logger.info('Importing Acaps Data')
         country_name = CountryOverview.objects.filter(country__record_type=CountryType.COUNTRY).values_list('country__name', flat=True)
         for name in country_name:
+            if ',' in name:
+                name = name.split(',')[0]
             SEASONAL_EVENTS_API = f"https://api.acaps.org/api/v1/seasonal-events-calendar/seasonal-calendar/?country={name}"
             response = requests.get(
                 SEASONAL_EVENTS_API,
@@ -35,7 +37,7 @@ class Command(BaseCommand):
                     df_country = df_data[2]
                     if name.lower() == df_country[0].lower():
                         dict_data = {
-                            'overview': CountryOverview.objects.filter(country__name=name).first(),
+                            'overview': CountryOverview.objects.filter(country__name__icontains=name).first(),
                             'month': df_data[6],
                             'event': df_data[7],
                             'event_type': df_data[8],

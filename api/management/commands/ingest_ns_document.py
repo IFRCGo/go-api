@@ -84,6 +84,7 @@ class Command(BaseCommand):
         result = []
         for country_data in country_table.values.tolist():
             country_ns_code = country_data[0]
+            logger.info(f"Fetching Document for country {country_data[1]}")
             country_documents = self.fetch_country_documents(api_key, country_ns_code)
             if country_documents:
                 result.extend(country_documents)

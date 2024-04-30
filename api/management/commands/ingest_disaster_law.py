@@ -48,6 +48,7 @@ class Command(BaseCommand):
                 if (country_name.strip(), str(country_id)) in duplicated_countries:
                     continue
                 country_url = f'https://disasterlaw.ifrc.org/node/{country_id}'
+                logger.info(f"Importing for country {country_name}")
                 # Get the description from the country page
                 description = None
                 try:
