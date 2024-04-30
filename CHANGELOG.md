@@ -6,6 +6,30 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.499
+
+### Added
+ - Fix comma seperated country import
+ - Fix local unit import job
+ - Remove unused Per FormQuestions
+ - Add custom ordering filter
+ - Handle KeyError in data import
+ - Update Model and script for ingest document
+ - Health Data reader job
+ - Remove duplication of Local Unit Table B reference
+ - Add data_source_id / visibility handling
+ - Fix one-id query of OpsLearning CSV
+ - OpsLearning CSV output change
+ - Add serializer for HealthData
+ - set closes even when set later on Molnix, set archived status correctly
+ - Add logging for processed open-position id-s
+ - LocalUnits + HealthData
+ - Add per filter in per-document-upload
+ - Add filter fix in ActiveDrefSerializer
+ - Add type_of_dref for final report in active dref serializer
+ - Add latest-per-overview api
+ - Add atype as a filter to ops-learning Admin page
+
 ## 1.1.498
 
 ### Added
@@ -2380,7 +2404,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.498...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.499...HEAD
+[1.1.499]: https://github.com/IFRCGo/go-api/compare/1.1.498...1.1.499
 [1.1.498]: https://github.com/IFRCGo/go-api/compare/1.1.497...1.1.498
 [1.1.497]: https://github.com/IFRCGo/go-api/compare/1.1.496...1.1.497
 [1.1.496]: https://github.com/IFRCGo/go-api/compare/1.1.495...1.1.496
