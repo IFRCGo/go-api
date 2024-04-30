@@ -39,7 +39,7 @@ class Command(BaseCommand):
                 do.country = Country.objects.get(iso3=row['iso3'])
                 # We do not check COUNTRY or NATIONAL_SOCIETY, but only this ^
 
-                do.is_public = row['VISIBILITY']
+                do.visibility = 4  # row['visibility']  # 4: IFRC_NS
                 do.is_ns_same_location = row['ns_same_location'].lower() == 'yes'
                 do.is_multiple_ifrc_offices = row['multiple_ifrc_offices'].lower() == 'yes'
 
