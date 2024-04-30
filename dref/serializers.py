@@ -30,6 +30,7 @@ from dref.models import (
 
 from .tasks import send_dref_email
 from dref.utils import get_dref_users
+from utils.file_check import validate_file_type
 
 
 class RiskSecuritySerializer(ModelSerializer):
@@ -64,6 +65,10 @@ class DrefFileSerializer(ModelSerializer):
         model = DrefFile
         fields = "__all__"
         read_only_fields = ("created_by",)
+
+    def validate_file(self, file):
+        validate_file_type(file)
+        return file
 
     def create(self, validated_data):
         validated_data["created_by"] = self.context["request"].user
@@ -128,6 +133,7 @@ class MiniDrefFinalReportActiveSerializer(serializers.ModelSerializer):
             "is_published",
             "national_society",
             "disaster_type",
+            "type_of_dref",
             "type_of_dref_display",
             "appeal_code",
             "created_at",
@@ -198,10 +204,10 @@ class MiniDrefSerializer(serializers.ModelSerializer):
         queryset = DrefOperationalUpdate.objects.filter(dref_id=obj.id).order_by('-created_at')
         return MiniOperationalUpdateActiveSerializer(queryset, many=True).data
 
-    @extend_schema_field(MiniDrefFinalReportActiveSerializer(many=True))
+    @extend_schema_field(MiniDrefFinalReportActiveSerializer)
     def get_final_report_details(self, obj):
-        queryset = DrefFinalReport.objects.filter(dref_id=obj.id)
-        return MiniDrefFinalReportActiveSerializer(queryset, many=True).data
+        queryset = DrefFinalReport.objects.filter(dref_id=obj.id).first()
+        return MiniDrefFinalReportActiveSerializer(queryset).data
 
     def get_has_ops_update(self, obj) -> bool:
         op_count_count = obj.drefoperationalupdate_set.count()
@@ -353,7 +359,7 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
     operational_update_details = MiniOperationalUpdateSerializer(
         source="drefoperationalupdate_set", many=True, read_only=True
     )
-    dref_final_report_details = MiniDrefFinalReportSerializer(source="dreffinalreport", read_only=True)
+    final_report_details = MiniDrefFinalReportSerializer(source="dreffinalreport", read_only=True)
     country_details = MiniCountrySerializer(source="country", read_only=True)
     district_details = MiniDistrictSerializer(source="district", read_only=True, many=True)
     assessment_report_details = DrefFileSerializer(source="assessment_report", read_only=True)
@@ -469,6 +475,10 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
                 gettext(f"Operation timeframe can't be greater than {self.MAX_OPERATION_TIMEFRAME}")
             )
         return operation_timeframe
+
+    def validate_budget_file_preview(self, budget_file_preview):
+        validate_file_type(budget_file_preview)
+        return budget_file_preview
 
     def create(self, validated_data):
         validated_data["created_by"] = self.context["request"].user
@@ -615,6 +625,10 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             end_date_month = datetime.datetime.strptime("%m")
             return abs(end_date_month - start_date_month)
         return None
+
+    def validate_budget_file_preview(self, budget_file_preview):
+        validate_file_type(budget_file_preview)
+        return budget_file_preview
 
     def create(self, validated_data):
         dref = validated_data["dref"]
@@ -922,6 +936,10 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
         if photos and len(photos) > self.MAX_NUMBER_OF_PHOTOS:
             raise serializers.ValidationError("Can add utmost %s photos" % self.MAX_NUMBER_OF_PHOTOS)
         return photos
+
+    def validate_financial_report_preview(self, financial_report_preview):
+        validate_file_type(financial_report_preview)
+        return financial_report_preview
 
     def create(self, validated_data):
         # here check if there is operational update for corresponding dref

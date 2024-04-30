@@ -1,5 +1,13 @@
 from modeltranslation.translator import register, TranslationOptions
-from .models import FormArea, FormComponent, FormAnswer, FormQuestion, FormData, AssessmentType
+from .models import (
+    FormArea,
+    FormComponent,
+    FormAnswer,
+    FormQuestion,
+    FormData,
+    AssessmentType,
+    FormQuestionGroup,
+)
 
 
 @register(FormArea)
@@ -30,3 +38,8 @@ class FormDataTO(TranslationOptions):
 @register(AssessmentType)
 class AssessmentTypeTO(TranslationOptions):
     fields = ("name",)
+
+
+@register(FormQuestionGroup)
+class FormQuestionGroup(TranslationOptions):
+    fields = ("title", "description")

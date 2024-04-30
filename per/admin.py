@@ -166,12 +166,20 @@ class OrganizationTypesAdmin(admin.ModelAdmin):
     ordering = ("order",)
 
 
+class PerDocumentUploadAdmin(admin.ModelAdmin):
+    pass
+
+
+class FormQuestionGroupAdmin(admin.ModelAdmin):
+    pass
+
+
 class OpsLearningAdmin(GotoNextModelAdmin):
     ordering = ("-created_at",)
     ls = ("organization", "organization_validated",
           "sector", "sector_validated",
           "per_component", "per_component_validated")
-    list_filter = ("is_validated",) + ls
+    list_filter = ("is_validated", "appeal_code__atype") + ls
     autocomplete_fields = ("appeal_code",) + ls
     search_fields = ("learning", "learning_validated")
     list_display = ("learning", "appeal_code", "is_validated", "modified_at")
@@ -258,9 +266,12 @@ class OpsLearningAdmin(GotoNextModelAdmin):
         writer = csv.writer(response, quoting=csv.QUOTE_NONNUMERIC)
 
         writer.writerow(
-            ['id', 'appeal_code', 'learning', 'finding', 'sector', 'component',
-            'organization', 'country_name', 'region_name', 'dtype_name', 'appeal_year',
-            'appeal_num_beneficiaries', 'modified_at'])
+            [
+                'id', 'appeal_code', 'learning', 'finding', 'sector', 'component',
+                'organization', 'country_name', 'region_name', 'dtype_name', 'appeal_year',
+                'appeal_num_beneficiaries', 'modified_at'
+            ]
+        )
 
         for opsl in queryset:
             v = opsl.is_validated
@@ -305,3 +316,5 @@ admin.site.register(models.FormComponentResponse, FormComponentResponseAdmin)
 admin.site.register(models.FormComponentQuestionAndAnswer, FormComponentQuestionAndAnswerAdmin)
 admin.site.register(models.OrganizationTypes, OrganizationTypesAdmin)
 admin.site.register(models.OpsLearning, OpsLearningAdmin)
+admin.site.register(models.PerDocumentUpload, PerDocumentUploadAdmin)
+admin.site.register(models.FormQuestionGroup, FormQuestionGroupAdmin)

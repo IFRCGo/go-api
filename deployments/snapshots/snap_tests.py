@@ -11,12 +11,12 @@ snapshots['TestProjectAPI::test_global_project_api 1'] = {
     'ns_with_ongoing_activities': 16,
     'projects_per_programme_type': [
         {
-            'count': 6,
+            'count': 5,
             'programme_type': 0,
             'programme_type_display': 'Bilateral'
         },
         {
-            'count': 3,
+            'count': 4,
             'programme_type': 1,
             'programme_type_display': 'Multilateral'
         },
@@ -63,32 +63,10 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = [
         'target_total': 0
     },
     {
-        'budget_amount_total': 1430000,
+        'budget_amount_total': 2310000,
         'id': 7,
         'iso3': 'kfs',
         'name': 'country-ZwjrVnVzStakFageXSAHAPsUBklxlTimFlGhCKnlmdVlZWmqAC',
-        'ongoing_projects': 1,
-        'operation_types': [
-            1
-        ],
-        'operation_types_display': [
-            'Emergency Operation'
-        ],
-        'projects_per_sector': [
-            {
-                'count': 1,
-                'primary_sector': 1,
-                'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
-            }
-        ],
-        'society_name': 'society-name-fyhrevbLpEFRWgadrWaQLYcgnHYayMHWrFEWvMBvxRvupxQzyN',
-        'target_total': 0
-    },
-    {
-        'budget_amount_total': 4740000,
-        'id': 9,
-        'iso3': 'RTM',
-        'name': 'country-XrUUrqOGvAQqwfagTZFpLFoLBQrgXTFJMKyMHQycMgLYPgKghW',
         'ongoing_projects': 1,
         'operation_types': [
             0
@@ -103,7 +81,29 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = [
                 'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
             }
         ],
-        'society_name': 'society-name-AzTVcwPYCDKHczZOVXBQbnKlbOvgsAZbUDqwRwwprCYduDSOqX',
+        'society_name': 'society-name-fyhrevbLpEFRWgadrWaQLYcgnHYayMHWrFEWvMBvxRvupxQzyN',
+        'target_total': 0
+    },
+    {
+        'budget_amount_total': 4740000,
+        'id': 9,
+        'iso3': 'hWp',
+        'name': 'country-BAdOgXrUUrqOGvAQqwfagTZFpLFoLBQrgXTFJMKyMHQycMgLYP',
+        'ongoing_projects': 1,
+        'operation_types': [
+            0
+        ],
+        'operation_types_display': [
+            'Programme'
+        ],
+        'projects_per_sector': [
+            {
+                'count': 1,
+                'primary_sector': 1,
+                'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
+            }
+        ],
+        'society_name': 'society-name-xLRTMAzTVcwPYCDKHczZOVXBQbnKlbOvgsAZbUDqwRwwprCYdu',
         'target_total': 0
     },
     {

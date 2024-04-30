@@ -1,11 +1,18 @@
 import json
-from rest_framework.serializers import ModelSerializer, SerializerMethodField
+from rest_framework import serializers
 
-from .models import LocalUnit, LocalUnitType, LocalUnitLevel, DelegationOffice, DelegationOfficeType
+from .models import (
+    HealthData,
+    LocalUnit,
+    LocalUnitType,
+    LocalUnitLevel,
+    DelegationOffice,
+    DelegationOfficeType,
+)
 from api.models import Country
 
 
-class LocalUnitCountrySerializer(ModelSerializer):
+class LocalUnitCountrySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Country
@@ -14,38 +21,49 @@ class LocalUnitCountrySerializer(ModelSerializer):
         )
 
 
-class LocalUnitTypeSerializer(ModelSerializer):
+class LocalUnitTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LocalUnitType
         fields = (
-            'name', 'code'
+            'name', 'code', 'id'
         )
 
 
-class LocalUnitLevelSerializer(ModelSerializer):
+class LocalUnitLevelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LocalUnitLevel
         fields = (
-            'name', 'level'
+            'name', 'level', 'id'
         )
 
 
-class LocalUnitSerializer(ModelSerializer):
-    location = SerializerMethodField()
+class HealthDataSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = HealthData
+        fields = ('__all__')
+
+
+class LocalUnitSerializer(serializers.ModelSerializer):
+    location = serializers.SerializerMethodField()
     country = LocalUnitCountrySerializer()
     type = LocalUnitTypeSerializer()
+    coverage = LocalUnitLevelSerializer(source='level')  # renaming level to coverage
+    health = HealthDataSerializer()
+
     class Meta:
         model = LocalUnit
         fields = [
             'local_branch_name', 'english_branch_name', 'type', 'country',
             'created_at', 'modified_at', 'draft', 'validated', 'postcode',
             'address_loc', 'address_en', 'city_loc', 'city_en', 'link',
-            'location', 'focal_person_loc', 'focal_person_en',
-            'source_loc', 'source_en', 'subtype', 'level', 'date_of_data'
-            # 'email', 'phone',
-            ]
+            'location', 'source_loc', 'source_en', 'subtype', 'date_of_data',
+            'coverage', 'health'
+        ]
+        # Hiding following fields for now
+        # ['focal_person_loc', 'focal_person_en', 'email', 'phone',]
 
     def get_location(self, unit):
         return json.loads(unit.location.geojson)
@@ -56,7 +74,8 @@ class LocalUnitSerializer(ModelSerializer):
     def get_type(self, unit):
         return {'type'}
 
-class DelegationOfficeCountrySerializer(ModelSerializer):
+
+class DelegationOfficeCountrySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Country
@@ -65,7 +84,7 @@ class DelegationOfficeCountrySerializer(ModelSerializer):
         )
 
 
-class DelegationOfficeTypeSerializer(ModelSerializer):
+class DelegationOfficeTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DelegationOfficeType
@@ -74,8 +93,8 @@ class DelegationOfficeTypeSerializer(ModelSerializer):
         )
 
 
-class DelegationOfficeSerializer(ModelSerializer):
-    location = SerializerMethodField()
+class DelegationOfficeSerializer(serializers.ModelSerializer):
+    location = serializers.SerializerMethodField()
     country = DelegationOfficeCountrySerializer()
     dotype = DelegationOfficeTypeSerializer()
 
@@ -97,7 +116,7 @@ class DelegationOfficeSerializer(ModelSerializer):
             'assistant_email',
             'is_ns_same_location',
             'is_multiple_ifrc_offices',
-            'is_public',
+            'visibility',
             'created_at',
             'modified_at',
             'date_of_data',
@@ -112,3 +131,19 @@ class DelegationOfficeSerializer(ModelSerializer):
 
     def get_type(self, office):
         return {'type'}
+
+
+class LocalUnitOptionsSerializer(serializers.Serializer):
+    type = LocalUnitTypeSerializer(many=True)
+    coverage = LocalUnitLevelSerializer(many=True, source='level')  # renaming level to coverage
+
+
+class MiniDelegationOfficeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DelegationOffice
+        fields = (
+            'hod_first_name',
+            'hod_last_name',
+            'hod_mobile_number',
+            'hod_email',
+        )

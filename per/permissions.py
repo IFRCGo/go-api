@@ -1,3 +1,5 @@
+from django.contrib.auth.models import Permission
+
 from rest_framework import permissions
 
 from api.models import Region
@@ -55,6 +57,10 @@ class PerPermission(permissions.BasePermission):
         return region and region.id
 
 
+class PerDocumentUploadPermission(PerPermission):
+    message = "You don't have permission to Upload Document"
+
+
 class OpsLearningPermission(permissions.BasePermission):
     message = "You don't have permission for Ops Learning records"
 
@@ -63,5 +69,38 @@ class OpsLearningPermission(permissions.BasePermission):
             request.method in permissions.SAFE_METHODS or
             OpsLearning.is_user_admin(request.user)
         ):
+            return True
+        return False
+
+
+class PerGeneralPermission(permissions.BasePermission):
+    message = "You don't have permission"
+
+    def has_object_permission(self, request, view, obj):
+        user = request.user
+        if user.is_superuser or user.has_perm("api.per_core_admin"):
+            return True
+        country_id = obj.overview.country_id
+        # also get region from the country
+        region_id = obj.overview.country.region_id
+
+        # Check if country admin
+        per_admin_country_id = [
+            codename.replace('per_country_admin_', '')
+            for codename in Permission.objects.filter(
+                group__user=user,
+                codename__startswith='per_country_admin_',
+            ).values_list('codename', flat=True)
+        ]
+        per_admin_country_id = list(map(int, per_admin_country_id))
+        per_admin_region_id = [
+            codename.replace('per_region_admin_', '')
+            for codename in Permission.objects.filter(
+                group__user=user,
+                codename__startswith='per_region_admin_',
+            ).values_list('codename', flat=True)
+        ]
+        per_admin_region_id = list(map(int, per_admin_region_id))
+        if country_id in per_admin_country_id or region_id in per_admin_region_id:
             return True
         return False

@@ -1232,7 +1232,7 @@ class DrefTestCase(APITestCase):
             created_by=self.root_user
         )
         # some dref final report
-        DrefFinalReportFactory.create(
+        dref_final_report = DrefFinalReportFactory.create(
             is_published=False,
             country=country_1,
             type_of_dref=Dref.DrefType.ASSESSMENT,
@@ -1263,7 +1263,7 @@ class DrefTestCase(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['results']), 1)
-        self.assertEqual(len(response.data['results'][0]['final_report_details']), 1)
+        self.assertEqual(response.data['results'][0]['final_report_details']["id"], dref_final_report.id)
 
     def test_dref_share_users(self):
         user1 = UserFactory.create(

@@ -6,6 +6,48 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.499
+
+### Added
+ - Fix comma seperated country import
+ - Fix local unit import job
+ - Remove unused Per FormQuestions
+ - Add custom ordering filter
+ - Handle KeyError in data import
+ - Update Model and script for ingest document
+ - Health Data reader job
+ - Remove duplication of Local Unit Table B reference
+ - Add data_source_id / visibility handling
+ - Fix one-id query of OpsLearning CSV
+ - OpsLearning CSV output change
+ - Add serializer for HealthData
+ - set closes even when set later on Molnix, set archived status correctly
+ - Add logging for processed open-position id-s
+ - LocalUnits + HealthData
+ - Add per filter in per-document-upload
+ - Add filter fix in ActiveDrefSerializer
+ - Add type_of_dref for final report in active dref serializer
+ - Add latest-per-overview api
+ - Add atype as a filter to ops-learning Admin page
+
+## 1.1.498
+
+### Added
+ - List_display and list_filter to SurgeAlertAdmin
+ - Use worldbank for climate data
+ - Remove GDACs-events api
+ - Add supported_by_organization_type in custom workplan actions
+ - Rename api from per-overview to per-stats
+ - Add has_question_group in Component
+ - Add base permission module
+ - Rename latest_country_overview api
+ - Add component_letter in excel export for per forms
+ - Add question_group in question serializers
+ - Add per_country id for per pdf export
+ - Add district population data
+ - Add missing NS_INITIATIVES_API_TOKEN
+ - Add missing environment config for country pages
+
 ## 1.1.497
 
 ### Added
@@ -2362,7 +2404,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.497...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.499...HEAD
+[1.1.499]: https://github.com/IFRCGo/go-api/compare/1.1.498...1.1.499
+[1.1.498]: https://github.com/IFRCGo/go-api/compare/1.1.497...1.1.498
 [1.1.497]: https://github.com/IFRCGo/go-api/compare/1.1.496...1.1.497
 [1.1.496]: https://github.com/IFRCGo/go-api/compare/1.1.495...1.1.496
 [1.1.495]: https://github.com/IFRCGo/go-api/compare/1.1.494...1.1.495

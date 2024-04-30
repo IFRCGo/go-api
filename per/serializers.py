@@ -1,10 +1,11 @@
 import typing
 from rest_framework import serializers
-
+from django.utils.translation import gettext
 from django.contrib.auth.models import User
 from django.db import models
+from django.contrib.auth.models import Permission
 
-from api.models import Region, Appeal
+from api.models import Region, Appeal, Country
 from api.serializers import RegoCountrySerializer, UserNameSerializer
 from .models import (
     Form,
@@ -31,6 +32,8 @@ from .models import (
     CustomPerWorkPlanComponent,
     PerFile,
     PerComponentRating,
+    PerDocumentUpload,
+    FormQuestionGroup
 )
 from api.serializers import (
     MiniCountrySerializer,
@@ -40,6 +43,7 @@ from api.serializers import (
 from main.writable_nested_serializers import NestedUpdateMixin, NestedCreateMixin
 from drf_spectacular.utils import extend_schema_field
 from main.settings import SEP
+from utils.file_check import validate_file_type
 
 
 def check_draft_change(
@@ -86,6 +90,8 @@ class FormComponentSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.
             "description",
             "area",
             "component_letter",
+            "is_parent",
+            "has_question_group"
         )
 
 
@@ -103,7 +109,7 @@ class MiniFormComponentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FormComponent
-        fields = ("id", "component_num", "title", "area", "description", "component_letter")
+        fields = ("id", "component_num", "title", "area", "description", "component_letter", "is_parent")
 
 
 class FormQuestionSerializer(serializers.ModelSerializer):
@@ -119,6 +125,18 @@ class FormQuestionSerializer(serializers.ModelSerializer):
             "answers",
             "description",
             "id",
+            "question_group"
+        )
+
+
+class MiniFormQuestionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FormQuestion
+        fields = (
+            "component",
+            "question",
+            "id",
+            "question_group"
         )
 
 
@@ -203,6 +221,17 @@ class ListNiceDocSerializer(serializers.ModelSerializer):
     class Meta:
         model = NiceDocument
         fields = ("name", "country", "document", "document_url", "visibility", "visibility_display")
+
+
+class NiceDocumentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = NiceDocument
+        fields = "__all__"
+
+    def validate_document(self, document):
+        validate_file_type(document)
+        return document
 
 
 class ShortFormSerializer(serializers.ModelSerializer):
@@ -302,6 +331,7 @@ class LatestCountryOverviewInputSerializer(serializers.Serializer):
 class LatestCountryOverviewSerializer(serializers.ModelSerializer):
     type_of_assessment = AssessmentTypeSerializer()
     assessment_ratings = serializers.SerializerMethodField()
+    phase_display = serializers.CharField(source="get_phase_display", read_only=True)
 
     class Meta:
         model = Overview
@@ -314,6 +344,8 @@ class LatestCountryOverviewSerializer(serializers.ModelSerializer):
             "ns_focal_point_name",
             "ns_focal_point_email",
             "assessment_ratings",
+            "phase",
+            "phase_display",
         )
 
     @extend_schema_field(AssessmentRatingSerializer(many=True))
@@ -322,7 +354,28 @@ class LatestCountryOverviewSerializer(serializers.ModelSerializer):
         if not user.is_authenticated:
             return None
         country_id = overview.country_id
-        if country_id:
+        # also get region from the country
+        region_id = overview.country.region_id
+
+        # Check if country admin
+        per_admin_country_id = [
+            codename.replace('per_country_admin_', '')
+            for codename in Permission.objects.filter(
+                group__user=user,
+                codename__startswith='per_country_admin_',
+            ).values_list('codename', flat=True)
+        ]
+        per_admin_country_id = list(map(int, per_admin_country_id))
+        per_admin_region_id = [
+            codename.replace('per_region_admin_', '')
+            for codename in Permission.objects.filter(
+                group__user=user,
+                codename__startswith='per_region_admin_',
+            ).values_list('codename', flat=True)
+        ]
+        per_admin_region_id = list(map(int, per_admin_region_id))
+
+        if country_id  in per_admin_country_id or region_id in per_admin_region_id or user.is_superuser or user.has_perm("api.per_core_admin"):
             # NOTE: rating_id=1 means Not Reviewed as defined in per/fixtures/componentratings.json
             filters = ~models.Q(
                 models.Q(area_responses__component_response__rating__isnull=True) |
@@ -348,6 +401,10 @@ class PerWorkPlanComponentSerializer(NestedCreateMixin, NestedUpdateMixin, seria
     component_details = FormComponentSerializer(source="component", read_only=True)
     status_display = serializers.CharField(source="get_status_display", read_only=True)
     supported_by_details = MiniCountrySerializer(source="supported_by", read_only=True)
+    supported_by_organization_type_details = serializers.CharField(
+        source="get_supported_by_organization_type_display",
+        read_only=True
+    )
 
     class Meta:
         model = PerWorkPlanComponent
@@ -361,10 +418,17 @@ class PerWorkPlanComponentSerializer(NestedCreateMixin, NestedUpdateMixin, seria
             "status_display",
             "component_details",
             "supported_by_details",
+            "supported_by_organization_type",
+            "supported_by_organization_type_details"
         )
 
 
 class CustomPerWorkPlanComponentSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
+    supported_by_organization_type_details = serializers.CharField(
+        source="get_supported_by_organization_type_display",
+        read_only=True
+    )
+
     class Meta:
         model = CustomPerWorkPlanComponent
         fields = "__all__"
@@ -444,7 +508,7 @@ class FormPrioritizationComponentSerializer(NestedCreateMixin, NestedUpdateMixin
 
     class Meta:
         model = FormPrioritizationComponent
-        fields = ("id", "component", "is_prioritized", "justification_text", "component_details")
+        fields = ("id", "component", "justification_text", "component_details")
 
 
 class FormPrioritizationSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
@@ -488,6 +552,10 @@ class PerFileSerializer(serializers.ModelSerializer):
         fields = "__all__"
         read_only_fields = ("created_by",)
 
+    def validate_file(self, file):
+        validate_file_type(file)
+        return file
+
     def create(self, validated_data):
         validated_data["created_by"] = self.context["request"].user
         return super().create(validated_data)
@@ -530,6 +598,7 @@ class PerProcessSerializer(serializers.ModelSerializer):
     prioritization = serializers.SerializerMethodField()
     workplan = serializers.SerializerMethodField()
     phase_display = serializers.CharField(source="get_phase_display", read_only=True)
+    type_of_assessment_details = AssessmentTypeSerializer(source="type_of_assessment", read_only=True)
 
     class Meta:
         model = Overview
@@ -546,6 +615,10 @@ class PerProcessSerializer(serializers.ModelSerializer):
             "updated_at",
             "phase",
             "phase_display",
+            "type_of_assessment",
+            "type_of_assessment_details",
+            "ns_focal_point_name",
+            "ns_focal_point_email",
         )
 
     def get_assessment(self, obj) -> typing.Optional[int]:
@@ -568,9 +641,12 @@ class PerProcessSerializer(serializers.ModelSerializer):
 
 
 class PublicPerProcessSerializer(serializers.ModelSerializer):
+    country_details = MiniCountrySerializer(source="country", read_only=True)
     assessment = serializers.SerializerMethodField()
     prioritization = serializers.SerializerMethodField()
     workplan = serializers.SerializerMethodField()
+    phase_display = serializers.CharField(source="get_phase_display", read_only=True)
+    type_of_assessment_details = AssessmentTypeSerializer(source="type_of_assessment", read_only=True)
 
     class Meta:
         model = Overview
@@ -578,9 +654,19 @@ class PublicPerProcessSerializer(serializers.ModelSerializer):
             "id",
             "assessment_number",
             "date_of_assessment",
+            "country",
+            "country_details",
             "assessment",
             "prioritization",
             "workplan",
+            "created_at",
+            "updated_at",
+            "phase",
+            "phase_display",
+            "type_of_assessment",
+            "type_of_assessment_details",
+            "ns_focal_point_name",
+            "ns_focal_point_email",
         )
 
     def get_assessment(self, obj) -> typing.Optional[int]:
@@ -603,6 +689,8 @@ class PublicPerProcessSerializer(serializers.ModelSerializer):
 
 
 class QuestionResponsesSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
+    question_details = MiniFormQuestionSerializer(source='question', read_only=True)
+
     class Meta:
         model = FormComponentQuestionAndAnswer
         fields = (
@@ -610,6 +698,7 @@ class QuestionResponsesSerializer(NestedCreateMixin, NestedUpdateMixin, serializ
             "question",
             "answer",
             "notes",
+            "question_details",
         )
 
 
@@ -621,7 +710,7 @@ class PerComponentRatingSerializer(serializers.ModelSerializer):
 
 class FormComponentResponseSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
     question_responses = QuestionResponsesSerializer(required=False, many=True)
-    rating_details = PerComponentRatingSerializer(source="rating", read_only=True)
+    rating_details = PerComponentRatingSerializer(source="rating", read_only=True, allow_null=True, required=False)
     component_details = FormComponentSerializer(source="component", read_only=True)
 
     class Meta:
@@ -772,7 +861,7 @@ class PublicPerAssessmentSerializer(serializers.ModelSerializer):
         fields = ("id", "area_responses")
 
 
-#class OrganizationField(serializers.Field):
+# class OrganizationField(serializers.Field):
 #    def to_representation(self, value):
 #        if value and instance.is_validated:
 #            return value
@@ -780,10 +869,17 @@ class PublicPerAssessmentSerializer(serializers.ModelSerializer):
 
 
 class MiniAppealSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
     start_date = serializers.SerializerMethodField()
     dtype = serializers.SerializerMethodField()
     country = serializers.SerializerMethodField()
     region = serializers.SerializerMethodField()
+    country_name = serializers.SerializerMethodField()
+    region_name = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_name(obj):
+        return obj.name
 
     @staticmethod
     def get_start_date(obj):
@@ -795,15 +891,24 @@ class MiniAppealSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_country(obj):
-        return obj.country and obj.country.name_en
+        return obj.country and obj.country.id
 
     @staticmethod
     def get_region(obj):
+        return obj.region and obj.region.id
+
+    @staticmethod
+    def get_country_name(obj):
+        return obj.country and obj.country.name_en
+
+    @staticmethod
+    def get_region_name(obj):
         return obj.region and obj.region.label
 
     class Meta:
         model = Appeal
-        fields = ('code', 'country', 'region', 'dtype', 'start_date', 'num_beneficiaries')
+        fields = ('code', 'name', 'country', 'region',
+            'country_name', 'region_name', 'dtype', 'start_date', 'num_beneficiaries')
 
 
 class FullAppealSerializer(serializers.ModelSerializer):
@@ -864,14 +969,14 @@ class OpsLearningCSVSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
         data['finding'] = data.pop('type')
-        del(data['learning_validated'])
-        del(data['type_validated'])
-        del(data['organization_validated'])
-        del(data['sector_validated'])
-        del(data['per_component_validated'])
-        del(data['appeal_document_id'])
-        del(data['created_at'])
-        del(data['is_validated'])
+        del (data['learning_validated'])
+        del (data['type_validated'])
+        del (data['organization_validated'])
+        del (data['sector_validated'])
+        del (data['per_component_validated'])
+        del (data['appeal_document_id'])
+        del (data['created_at'])
+        del (data['is_validated'])
         return data
 
     class Meta:
@@ -909,3 +1014,84 @@ class PublicOpsLearningSerializer(serializers.ModelSerializer):
         model = OpsLearning
         read_only_fields = ("created_at", "modified_at")
         exclude = ("learning", "type", "organization", "sector", "per_component")
+
+
+class PerDocumentUploadSerializer(serializers.ModelSerializer):
+    MAX_NUMBER_OF_DOCUMENTS = 10
+
+    class Meta:
+        model = PerDocumentUpload
+        fields = "__all__"
+
+    def validate(self, data):
+        country = data['country']
+        per = data.get('per')
+        if per:
+            user_document_count = PerDocumentUpload.objects.filter(
+                country=country,
+                created_by=self.context["request"].user,
+                per=per
+            ).count()
+            if user_document_count > self.MAX_NUMBER_OF_DOCUMENTS:
+                raise serializers.ValidationError(
+                    {
+                        "file": gettext("Can add utmost %s documents" % self.MAX_NUMBER_OF_DOCUMENTS)
+                    }
+                )
+        return data
+
+    def validate_per(self, per):
+        if per is None:
+            raise serializers.ValidationError("This field is required")
+        country_per_qs = Country.objects.filter(
+            id=self.initial_data['country'],
+            per_overviews=per,
+        )
+        if not country_per_qs.exists():
+            raise serializers.ValidationError(
+                gettext(
+                    "Per %(per)s doesn't match country %(country)s"
+                    % {'per': per.id, 'country': self.initial_data['country']}
+                )
+            )
+        return per
+
+    def validate_file(self, file):
+        validate_file_type(file)
+        return file
+
+    def create(self, validated_data):
+        validated_data["created_by"] = self.context["request"].user
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        raise serializers.ValidationError("Update is not allowed")
+
+
+class ExportPerViewSerializer(serializers.Serializer):
+    status = serializers.CharField()
+    url = serializers.CharField(allow_null=True)
+
+
+class FormQuestionGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FormQuestionGroup
+        fields = "__all__"
+
+
+class CountryLatestOverviewSerializer(serializers.ModelSerializer):
+    phase_display = serializers.CharField(source="get_phase_display", read_only=True)
+    type_of_assessment = AssessmentTypeSerializer(read_only=True)
+
+    class Meta:
+        model = Overview
+        fields = (
+            "id",
+            "date_of_assessment",
+            "phase",
+            "assessment_number",
+            "ns_focal_point_name",
+            "ns_focal_point_email",
+            "type_of_assessment",
+            "phase_display",
+        )

@@ -204,6 +204,51 @@ class Country(models.Model):
         null=True, blank=True,
         max_digits=5, decimal_places=2
     )
+    address_1 = models.CharField(
+        verbose_name=_('Address 1'),
+        null=True, blank=True,
+        max_length=255
+    )
+    address_2 = models.CharField(
+        verbose_name=_('Address 2'),
+        null=True, blank=True,
+        max_length=255
+    )
+    city_code = models.CharField(
+        verbose_name=_('City Code'),
+        null=True, blank=True,
+        max_length=255
+    )
+    phone = models.CharField(
+        verbose_name=_('Phone'),
+        null=True, blank=True,
+        max_length=255
+    )
+    website = models.CharField(
+        verbose_name=_('Website'),
+        null=True, blank=True,
+        max_length=255
+    )
+    emails = ArrayField(
+        models.CharField(
+            verbose_name=_('Email'),
+            null=True, blank=True,
+            max_length=255,
+        ),
+        default=list,
+        null=True, blank=True
+    )
+    founded_date = models.DateField(
+        verbose_name=_('Found date'),
+        null=True, blank=True
+    )
+
+    # disaster law url
+    disaster_law_url = models.CharField(
+        verbose_name=_('Disaster law url'),
+        null=True, blank=True,
+        max_length=255
+    )
 
     def indexing(self):
         return {
@@ -264,6 +309,238 @@ class District(models.Model):
         country_name = self.country.name if self.country else ''
         suffix = ' ⚡' if self.is_deprecated else ''
         return f'{country_name} - {self.name}{suffix}'
+
+
+class CountryDirectory(models.Model):
+    country = models.ForeignKey(
+        Country,
+        verbose_name=_('Country'),
+        on_delete=models.CASCADE
+    )
+    first_name = models.CharField(
+        verbose_name=_('First Name'),
+        max_length=255,
+        null=True, blank=True
+    )
+    last_name = models.CharField(
+        verbose_name=_('Last Name'),
+        max_length=255,
+        null=True, blank=True
+    )
+    position = models.CharField(
+        verbose_name=_('Position'),
+        max_length=255,
+        null=True, blank=True
+    )
+
+    def __str__(self):
+        return f'{self.country.name} - {self.first_name}'
+
+
+class CountrySupportingPartner(models.Model):
+    class SupportingPartnerType(models.IntegerChoices):
+        IFRC = 0, _('Ifrc')
+        INTERNATIONAL_PARTNERS = 1, _('International Partners')
+
+    country = models.ForeignKey(
+        Country,
+        verbose_name=_('Country'),
+        on_delete=models.CASCADE
+    )
+    first_name = models.CharField(
+        verbose_name=_('First Name'),
+        max_length=255,
+        null=True, blank=True
+    )
+    last_name = models.CharField(
+        verbose_name=_('Last Name'),
+        max_length=255,
+        null=True, blank=True
+    )
+    position = models.CharField(
+        verbose_name=_('Position'),
+        max_length=255,
+        null=True, blank=True
+    )
+    email = models.CharField(
+        verbose_name=_('Email'),
+        max_length=255,
+        null=True, blank=True
+    )
+    supporting_type = models.IntegerField(
+        choices=SupportingPartnerType.choices,
+        verbose_name=_('Supporting Type'),
+        null=True, blank=True
+    )
+
+    def __str__(self):
+        return f'{self.country.name} - {self.first_name} - {self.last_name}'
+
+
+class CountryKeyDocument(models.Model):
+    country = models.ForeignKey(
+        Country,
+        verbose_name=_('Country'),
+        on_delete=models.CASCADE
+    )
+    name = models.CharField(
+        verbose_name=_('Name'),
+        max_length=255,
+    )
+    url = models.CharField(
+        verbose_name=_('Url'),
+        max_length=255
+    )
+    thumbnail = models.CharField(
+        verbose_name=_('Thumbnail'),
+        max_length=255
+    )
+    document_type = models.CharField(
+        verbose_name=_('Document Type'),
+        max_length=255
+    )
+    year = models.DateField(
+        verbose_name=_('Year')
+    )
+    end_year = models.DateField(
+        verbose_name=_('End Year'),
+        null=True, blank=True
+    )
+    year_text = models.CharField(
+        verbose_name=_('Year Text'),
+        max_length=255,
+        null=True, blank=True
+    )
+
+    def __str__(self):
+        return f'{self.country.name} - {self.name}'
+
+
+class CountryCapacityStrengthening(models.Model):
+    class AssessmentType(models.IntegerChoices):
+        OCAC = 0, _('Ocac')
+        BOCA = 1, _('Boca')
+
+    country = models.ForeignKey(
+        Country,
+        verbose_name=_('Country'),
+        on_delete=models.CASCADE
+    )
+    assessment_code = models.CharField(
+        verbose_name=_('Assessment Code'),
+        max_length=255
+    )
+    year = models.CharField(
+        verbose_name=_('Year of Assessment'),
+        max_length=25
+    )
+    submission_date = models.DateTimeField(
+        verbose_name=_('Submission Date')
+    )
+    url = models.CharField(
+        verbose_name=_('Url'),
+        max_length=255,
+    )
+    assessment_type = models.IntegerField(
+        verbose_name=_('Country Assessment Type'),
+        choices=AssessmentType.choices
+    )
+    branch_name = models.CharField(
+        verbose_name=_('Branch Name'),
+        max_length=255,
+        null=True,
+        blank=True
+    )
+
+    def __str__(self):
+        return f'{self.country.name} - {self.assessment_code} - {self.year}'
+
+
+class CountryOrganizationalCapacity(models.Model):
+
+    country = models.OneToOneField(
+        Country,
+        verbose_name=_('Country'),
+        on_delete=models.CASCADE
+    )
+    leadership_capacity = models.TextField(
+        verbose_name=_('Leadership Capacity'),
+        null=True, blank=True
+    )
+    youth_capacity = models.TextField(
+        verbose_name=_('Youth Capacity'),
+        null=True, blank=True
+    )
+    volunteer_capacity = models.TextField(
+        verbose_name=_('Volunteer Capacity'),
+        null=True, blank=True
+    )
+    financial_capacity = models.TextField(
+        verbose_name=_('Financial Capacity'),
+        null=True, blank=True
+    )
+
+
+class NSDInitiatives(models.Model):
+    country = models.ForeignKey(
+        Country,
+        verbose_name=_('Country'),
+        on_delete=models.CASCADE
+    )
+    title = models.CharField(
+        verbose_name=_('Title'),
+        max_length=255
+    )
+    fund_type = models.CharField(
+        verbose_name=_('Fund Type'),
+        max_length=255
+    )
+    allocation = models.IntegerField(
+        verbose_name=_('Allocation in CHF')
+    )
+    year = models.CharField(
+        verbose_name=_('Year'),
+        max_length=20
+    )
+    funding_period = models.IntegerField(
+        verbose_name=_('Funding Period in Month')
+    )
+    categories = ArrayField(
+        models.CharField(max_length=255),
+        verbose_name=_('Funding categories'), default=list,
+        null=True
+    )
+
+    def __str__(self):
+        return f'{self.country.name} - {self.title}'
+
+
+class CountryICRCPresence(models.Model):
+    country = models.OneToOneField(
+        Country,
+        verbose_name=_('Country'),
+        on_delete=models.CASCADE
+    )
+    icrc_presence = models.BooleanField(
+        verbose_name=_('ICRC Presence'),
+        null=True, blank=True
+    )
+    url = models.CharField(
+        verbose_name=_('Url'),
+        null=True, blank=True,
+        max_length=255
+    )
+    key_operation = models.BooleanField(
+        verbose_name=_('Key Operations'),
+        null=True, blank=True
+    )
+    description = models.TextField(
+        verbose_name=_('Description'),
+        null=True, blank=True
+    )
+
+    def __str__(self):
+        return f'{self.country.name} - {self.url}'
 
 
 class Admin2(models.Model):
@@ -384,7 +661,13 @@ class RegionSnippet(models.Model):
         verbose_name_plural = _('region snippets')
 
     def __str__(self):
-        return self.snippet
+        return (
+            self.snippet[:80] if self.snippet else None
+        ) or (
+            self.image.url
+            if getattr(self, 'image', None) and self.image.url
+            else ''
+        )
 
 
 @reversion.register(follow=('region',))
@@ -401,7 +684,7 @@ class RegionEmergencySnippet(models.Model):
         verbose_name_plural = _('region emergencies snippets')
 
     def __str__(self):
-        return self.snippet
+        return (self.snippet[:80] if self.snippet else None) or self.title or ''
 
 
 @reversion.register(follow=('region',))
@@ -418,7 +701,7 @@ class RegionPreparednessSnippet(models.Model):
         verbose_name_plural = _('region preparedness snippets')
 
     def __str__(self):
-        return self.snippet
+        return (self.snippet[:80] if self.snippet else None) or self.title or ''
 
 
 @reversion.register(follow=('region',))
@@ -435,7 +718,7 @@ class RegionProfileSnippet(models.Model):
         verbose_name_plural = _('region profile snippets')
 
     def __str__(self):
-        return self.snippet
+        return (self.snippet[:80] if self.snippet else None) or self.title or ''
 
 # class RegionAdditionalLink(models.Model):
 #     region = models.ForeignKey(Region, related_name='additional_links', on_delete=models.CASCADE)
@@ -461,7 +744,13 @@ class CountrySnippet(models.Model):
         verbose_name_plural = _('country snippets')
 
     def __str__(self):
-        return self.snippet
+        return (
+            self.snippet[:80] if self.snippet else None
+        ) or (
+            self.image.url
+            if getattr(self, 'image', None) and self.image.url
+            else ''
+        )
 
 
 @reversion.register()
@@ -757,7 +1046,13 @@ class Snippet(models.Model):
         verbose_name_plural = _('snippets')
 
     def __str__(self):
-        return self.snippet if self.snippet else ''
+        return (
+            self.snippet[:80] if self.snippet else None
+        ) or (
+            self.image.url
+            if getattr(self, 'image', None) and self.image.url
+            else ''
+        )
 
 
 class SituationReportType(models.Model):
@@ -814,10 +1109,12 @@ class GDACSEvent(models.Model):
     year = models.IntegerField(verbose_name=_('year'))
     lat = models.FloatField(verbose_name=_('latitude'))
     lon = models.FloatField(verbose_name=_('longitude'))
+    # TODO: Remove `event_type`
     event_type = models.CharField(verbose_name=_('event type'), max_length=16)
+    disaster_type = models.ForeignKey(DisasterType, verbose_name=('disaster type'), on_delete=models.PROTECT, null=True)
     alert_level = models.IntegerField(choices=AlertLevel.choices, verbose_name=_('alert level'), default=0)
     alert_score = models.CharField(verbose_name=_('alert score'), max_length=16, null=True)
-    severity = models.TextField(verbose_name=_('severity'))
+    severity = models.TextField(verbose_name=_('severity'), null=True, blank=True)
     severity_unit = models.CharField(verbose_name=_('severity unit'), max_length=16)
     severity_value = models.CharField(verbose_name=_('severity value'), max_length=16)
     population_unit = models.CharField(verbose_name=_('population unit'), max_length=16)
@@ -2189,6 +2486,7 @@ class Export(models.Model):
         DREF = 'dref-applications', _('Dref Applications')
         OPS_UPDATE = 'dref-operational-updates', _('Dref Operational Updates')
         FINAL_REPORT = 'dref-final-reports', _('Dref Final Reports')
+        PER = 'per', _('Per')
 
     export_id = models.IntegerField(verbose_name=_('Export Id'))
     export_type = models.CharField(
@@ -2221,15 +2519,15 @@ class Export(models.Model):
         null=True, blank=True,
         upload_to="pdf-export/",
     )
-    selector = models.CharField(
-        verbose_name=_('Selector'),
-        max_length=255,
-        null=True, blank=True
-    )
     requested_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name=_('user'),
         null=True, blank=True,
         on_delete=models.SET_NULL,
+    )
+    per_country = models.IntegerField(
+        verbose_name=_('Per Country Id'),
+        null=True,
+        blank=True
     )
 
     def __str__(self):

@@ -96,6 +96,14 @@ env = environ.Env(
     DJANGO_READ_ONLY=(bool, False),
     # Misc
     DISABLE_API_CACHE=(bool, False),
+
+    # Country page
+    NS_CONTACT_USERNAME=(str, None),
+    NS_CONTACT_PASSWORD=(str, None),
+    ACAPS_API_TOKEN=(str, None),
+    NS_DOCUMENT_API_KEY=(str, None),
+    NS_INITIATIVES_API_KEY=(str, None),
+    NS_INITIATIVES_API_TOKEN=(str, None)
 )
 
 
@@ -226,9 +234,9 @@ MIDDLEWARE = [
     'django.middleware.locale.LocaleMiddleware',
     # 'middlewares.middlewares.LocaleMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'middlewares.cache.UpdateCacheForUserMiddleware',
+    # 'middlewares.cache.UpdateCacheForUserMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'middlewares.cache.FetchFromCacheForUserMiddleware',
+    # 'middlewares.cache.FetchFromCacheForUserMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -511,6 +519,13 @@ GO_DBPASS = env('GO_DBPASS')
 # MISC
 FRONTEND_URL = env('FRONTEND_URL')
 
+# COUNTRY PAGE
+NS_CONTACT_USERNAME = env('NS_CONTACT_USERNAME')
+NS_CONTACT_PASSWORD = env('NS_CONTACT_PASSWORD')
+ACAPS_API_TOKEN = env('ACAPS_API_TOKEN')
+NS_DOCUMENT_API_KEY = env('NS_DOCUMENT_API_KEY')
+NS_INITIATIVES_API_KEY = env('NS_INITIATIVES_API_KEY')
+NS_INITIATIVES_API_TOKEN = env('NS_INITIATIVES_API_TOKEN')
 
 DREF_OP_UPDATE_FINAL_REPORT_UPDATE_ERROR_MESSAGE = "OBSOLETE_PAYLOAD"
 
@@ -529,6 +544,7 @@ SENTRY_CONFIG = {
     'dsn': SENTRY_DSN,
     'send_default_pii': True,
     'traces_sample_rate': SENTRY_SAMPLE_RATE,
+    'enable_tracing': True,
     'release': sentry.fetch_git_sha(BASE_DIR),
     'environment': GO_ENVIRONMENT,
     'debug': DEBUG,
@@ -577,6 +593,9 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'Please see the <a href="https://go-wiki.ifrc.org/en/go-api/api-overview" target="_blank">GO Wiki</a> for an overview of API usage, or the interactive <a href="/api-docs/swagger-ui/" target="_blank">Swagger page</a>.',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+    'ENUM_ADD_EXPLICIT_BLANK_NULL_CHOICE': False,
+    'ENUM_NAME_OVERRIDES': {},
+    # 'POSTPROCESSING_HOOKS': []
 }
 
 # A character which is rarely used in strings – for separator:

@@ -94,13 +94,30 @@ class FormComponent(models.Model):
     area = models.ForeignKey(FormArea, verbose_name=_("area"), on_delete=models.PROTECT)
     title = models.CharField(verbose_name=_("title"), max_length=250)
     component_num = models.IntegerField(verbose_name=_("component number"), default=1)
-    component_letter = models.CharField(verbose_name=_("component letter"), max_length=3, null=True, blank=True)
+    component_letter = models.CharField(
+        verbose_name=_("component letter"),
+        max_length=3,
+        null=True, blank=True
+    )
     description = models.TextField(verbose_name=_("description"), null=True, blank=True)
     status = models.CharField(
-        verbose_name=_("status"), max_length=100, choices=FormComponentStatus.choices, null=True, blank=True
+        verbose_name=_("status"),
+        max_length=100,
+        choices=FormComponentStatus.choices,
+        null=True, blank=True
     )
     question_responses = models.ManyToManyField(
-        FormComponentQuestionAndAnswer, verbose_name=_("Question responses"), blank=True
+        FormComponentQuestionAndAnswer,
+        verbose_name=_("Question responses"),
+        blank=True
+    )
+    is_parent = models.BooleanField(
+        verbose_name=_('Is parent'),
+        null=True, blank=True
+    )
+    has_question_group = models.BooleanField(
+        verbose_name=_('Has Question Group'),
+        null=True, blank=True
     )
 
     def __str__(self):
@@ -139,7 +156,11 @@ class FormComponentResponse(models.Model):
 
 @reversion.register()
 class AreaResponse(models.Model):
-    area = models.ForeignKey(FormArea, verbose_name=_("Area"), on_delete=models.CASCADE)
+    area = models.ForeignKey(
+        FormArea,
+        verbose_name=_("Area"),
+        on_delete=models.CASCADE
+    )
     component_response = models.ManyToManyField(
         FormComponentResponse,
         verbose_name=_("Component Response"),
@@ -157,7 +178,10 @@ class PerAssessment(models.Model):
         null=True,
     )
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, verbose_name=_("user"), null=True, blank=True, on_delete=models.SET_NULL
+        settings.AUTH_USER_MODEL,
+        verbose_name=_("user"),
+        null=True, blank=True,
+        on_delete=models.SET_NULL
     )
     area_responses = models.ManyToManyField(
         AreaResponse,
@@ -187,10 +211,25 @@ class FormAnswer(models.Model):
 
 
 @reversion.register()
+class FormQuestionGroup(models.Model):
+    component = models.ForeignKey(FormComponent, verbose_name=_("component"), on_delete=models.PROTECT)
+    title = models.CharField(verbose_name=_("title"), max_length=250)
+    description = models.TextField(verbose_name=_('description'), null=True, blank=True)
+
+    def __str__(self):
+        return self.title
+
+
+@reversion.register()
 class FormQuestion(models.Model):
     """PER Form individual questions inside Components"""
 
     component = models.ForeignKey(FormComponent, verbose_name=_("component"), on_delete=models.PROTECT)
+    question_group = models.ForeignKey(
+        FormQuestionGroup,
+        null=True, blank=True,
+        on_delete=models.SET_NULL
+    )
     question = models.CharField(verbose_name=_("question"), max_length=500)
     description = HTMLField(verbose_name=_("description"), null=True, blank=True)
     question_num = models.IntegerField(verbose_name=_("question number"), null=True, blank=True)
@@ -254,7 +293,7 @@ class Overview(models.Model):
         ASSESSMENT = 2, _("Assessment")
         PRIORITIZATION = 3, _("Prioritisation")
         WORKPLAN = 4, _("WorkPlan")
-        ACTION_AND_ACCOUNTABILITY = 5, _("Action And Accoutability")
+        ACTION_AND_ACCOUNTABILITY = 5, _("Action And Accountability")
 
     class AssessmentMethod(models.TextChoices):
         PER = "per", _("PER")
@@ -262,12 +301,21 @@ class Overview(models.Model):
         WPNS = "wpns", _("WPNS")
 
     country = models.ForeignKey(
-        Country, verbose_name=_("country"), related_name="per_overviews", null=True, blank=True, on_delete=models.SET_NULL
+        Country,
+        verbose_name=_("country"),
+        related_name="per_overviews",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL
     )
     created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
     updated_at = models.DateTimeField(verbose_name=_("updated at"), auto_now=True)
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, verbose_name=_("user"), null=True, blank=True, on_delete=models.SET_NULL
+        settings.AUTH_USER_MODEL,
+        verbose_name=_("user"),
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL
     )
 
     # Orientation
@@ -365,6 +413,19 @@ class Overview(models.Model):
         verbose_name=_("is draft"),
         default=True,
     )
+
+    # Used to keep track of per export
+    # exported_file = models.FileField(
+    #     verbose_name=_('exported file'),
+    #     upload_to='per/excel-export/',
+    #     blank=True,
+    #     null=True
+    # )
+    # exported_at = models.DateTimeField(
+    #     verbose_name=_('exported at'),
+    #     blank=True,
+    #     null=True
+    # )
 
     class Meta:
         ordering = ("country",)
@@ -566,6 +627,12 @@ class PerWorkPlanStatus(models.IntegerChoices):
 
 
 class PerWorkPlanComponent(models.Model):
+    class SupportedByOrganizationType(models.IntegerChoices):
+        UN_ORGANIZATION = 0, _('UN Organization')
+        PRIVATE_SECTOR = 1, _('Private Sector')
+        GOVERNMENT = 2, _('Government')
+        NATIONAL_SOCIETY = 3, _('National Society')
+
     component = models.ForeignKey(
         FormComponent,
         verbose_name=_("Component"),
@@ -575,6 +642,12 @@ class PerWorkPlanComponent(models.Model):
     due_date = models.DateField(verbose_name=_("Due date"), null=True, blank=True)
     status = models.IntegerField(choices=PerWorkPlanStatus.choices, default=0, verbose_name=_("status"))
     supported_by = models.ForeignKey(Country, on_delete=models.CASCADE, null=True, blank=True)
+    supported_by_organization_type = models.IntegerField(
+        choices=SupportedByOrganizationType.choices,
+        verbose_name=_("Supported By Organization Type"),
+        null=True,
+        blank=True,
+    )
 
 
 class CustomPerWorkPlanComponent(models.Model):
@@ -582,6 +655,12 @@ class CustomPerWorkPlanComponent(models.Model):
     due_date = models.DateField(verbose_name=_("Due date"), null=True, blank=True)
     status = models.IntegerField(choices=PerWorkPlanStatus.choices, default=0, verbose_name=_("status"))
     supported_by = models.ForeignKey(Country, on_delete=models.CASCADE, null=True, blank=True)
+    supported_by_organization_type = models.IntegerField(
+        choices=PerWorkPlanComponent.SupportedByOrganizationType.choices,
+        verbose_name=_("Supported By Organization Type"),
+        null=True,
+        blank=True,
+    )
 
 
 class PerWorkPlan(models.Model):
@@ -624,20 +703,49 @@ class LearningType(models.IntegerChoices):
     CHALLENGE = 2, _('Challenge')
 
 
-@reversion.register(follow=('appeal_code', 'organization', 'sector', 'per_component', 'organization_validated', 'sector_validated', 'per_component_validated'))
+@reversion.register(
+    follow=(
+        'appeal_code',
+        'organization',
+        'sector',
+        'per_component',
+        'organization_validated',
+        'sector_validated',
+        'per_component_validated'
+    )
+)
 class OpsLearning(models.Model):
     learning = models.TextField(verbose_name=_("learning"), null=True, blank=True)
     learning_validated = models.TextField(verbose_name=_("learning (validated)"), null=True, blank=True)
-    appeal_code = models.ForeignKey(Appeal, to_field="code", db_column="appeal_code", verbose_name=_('appeal (MDR) code'), null=True, blank=True, on_delete=models.SET_NULL)
+    appeal_code = models.ForeignKey(
+        Appeal, to_field="code", db_column="appeal_code",
+        verbose_name=_('appeal (MDR) code'), null=True, blank=True,
+        on_delete=models.SET_NULL
+    )
     appeal_document_id = models.IntegerField(verbose_name=_("Appeal document ID"), null=True, blank=True)
     type = models.IntegerField(verbose_name=_("type"), choices=LearningType.choices, default=LearningType.LESSON_LEARNED)
-    type_validated = models.IntegerField(verbose_name=_("type (validated)"), choices=LearningType.choices, default=LearningType.LESSON_LEARNED)
-    organization = models.ManyToManyField(OrganizationTypes, related_name="organizations", verbose_name=_("Organizations"), blank=True)
-    organization_validated = models.ManyToManyField(OrganizationTypes, related_name="validated_organizations", verbose_name=_("Organizations (validated)"), blank=True)
+    type_validated = models.IntegerField(
+        verbose_name=_("type (validated)"), choices=LearningType.choices,
+        default=LearningType.LESSON_LEARNED
+    )
+    organization = models.ManyToManyField(
+        OrganizationTypes, related_name="organizations",
+        verbose_name=_("Organizations"), blank=True
+    )
+    organization_validated = models.ManyToManyField(
+        OrganizationTypes, related_name="validated_organizations",
+        verbose_name=_("Organizations (validated)"), blank=True
+    )
     sector = models.ManyToManyField(SectorTag, related_name="sectors", verbose_name=_("Sectors"), blank=True)
-    sector_validated = models.ManyToManyField(SectorTag, related_name="validated_sectors", verbose_name=_("Sectors (validated)"), blank=True)
+    sector_validated = models.ManyToManyField(
+        SectorTag, related_name="validated_sectors",
+        verbose_name=_("Sectors (validated)"), blank=True
+    )
     per_component = models.ManyToManyField(FormComponent, related_name="components", verbose_name=_("PER Components"), blank=True)
-    per_component_validated = models.ManyToManyField(FormComponent, related_name="validated_components", verbose_name=_("PER Components (validated)"), blank=True)
+    per_component_validated = models.ManyToManyField(
+        FormComponent, related_name="validated_components",
+        verbose_name=_("PER Components (validated)"), blank=True
+    )
     is_validated = models.BooleanField(verbose_name=_("is validated?"), default=False)
     modified_at = models.DateTimeField(verbose_name=_('modified_at'), auto_now=True)
     created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
@@ -678,3 +786,35 @@ class OpsLearning(models.Model):
                 self.per_component_validated.add(*[x[0] for x in self.per_component.values_list()])
 
         return super(OpsLearning, self).save(*args, **kwargs)
+
+
+class PerDocumentUpload(models.Model):
+    file = models.FileField(
+        verbose_name=_("file"),
+        upload_to="per/documents/",
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_("created_by"),
+        on_delete=models.SET_NULL,
+        null=True,
+    )
+    country = models.ForeignKey(
+        Country,
+        verbose_name=_('country'),
+        on_delete=models.CASCADE
+    )
+    created_at = models.DateTimeField(
+        verbose_name=_("created at"),
+        auto_now_add=True
+    )
+    per = models.ForeignKey(
+        Overview,
+        verbose_name=_('Per'),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    def __str__(self):
+        return f'{self.country.name} - {self.created_by} - {self.per_id}'

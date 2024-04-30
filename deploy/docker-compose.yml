@@ -39,7 +39,6 @@ services:
         - TF_VAR_MOLNIX_PASSWORD=${MOLNIX_PASSWORD}
         - TF_VAR_ERP_API_ENDPOINT=${ERP_API_ENDPOINT}
         - TF_VAR_ERP_API_SUBSCRIPTION_KEY=${ERP_API_SUBSCRIPTION_KEY}
-        - TF_VAR_FDRS_APIKEY=${FDRS_APIKEY}
         - TF_VAR_FDRS_CREDENTIAL=${FDRS_CREDENTIAL}
         - TF_VAR_HPC_CREDENTIAL=${HPC_CREDENTIAL}
         - TF_VAR_APPLICATION_INSIGHTS_INSTRUMENTATION_KEY=${APPLICATION_INSIGHTS_INSTRUMENTATION_KEY}
@@ -69,6 +68,14 @@ services:
         # Sentry
         - TF_VAR_SENTRY_DSN=${SENTRY_DSN}
         - TF_VAR_SENTRY_SAMPLE_RATE=${SENTRY_SAMPLE_RATE}
+        # Country Page
+        - TF_VAR_FDRS_APIKEY=${FDRS_APIKEY}
+        - TF_VAR_NS_CONTACT_USERNAME=${NS_CONTACT_USERNAME}
+        - TF_VAR_NS_CONTACT_PASSWORD=${NS_CONTACT_PASSWORD}
+        - TF_VAR_ACAPS_API_TOKEN=${ACAPS_API_TOKEN}
+        - TF_VAR_NS_DOCUMENT_API_KEY=${NS_DOCUMENT_API_KEY}
+        - TF_VAR_NS_INITIATIVES_API_KEY=${NS_INITIATIVES_API_KEY}
+        - TF_VAR_NS_INITIATIVES_API_TOKEN=${NS_INITIATIVES_API_TOKEN}
         # Maintenance mode
         - TF_VAR_DJANGO_READ_ONLY=${DJANGO_READ_ONLY}
         # IFRC dynamic translation
@@ -81,12 +88,12 @@ services:
         - ARM_CLIENT_ID=${servicePrincipalId}
         - ARM_CLIENT_SECRET=${servicePrincipalKey}
         - ARM_ACCESS_KEY=${storageAccessKey}
-  
+
         # For Azure CLI
         - AZURE_TENANT_ID=${tenantId}
         - AZURE_CLIENT_ID=${servicePrincipalId}
         - AZURE_CLIENT_SECRET=${servicePrincipalKey}
-  
+
         # For deployment
       volumes:
         - ./:/opt/src

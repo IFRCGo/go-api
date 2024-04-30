@@ -2,7 +2,256 @@ from django.contrib.gis.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils.translation import gettext_lazy as _
 
-from api.models import Country
+from api.models import Country, VisibilityChoices
+
+
+class Affiliation(models.Model):
+    code = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(99)])
+    name = models.CharField(
+        max_length=100, verbose_name=_('Name'))
+
+    def __str__(self):
+        return f'{self.name} ({self.code})'
+
+
+class Functionality(models.Model):
+    code = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(99)])
+    name = models.CharField(
+        max_length=100, verbose_name=_('Name'))
+
+    def __str__(self):
+        return f'{self.name} ({self.code})'
+
+    class Meta:
+        verbose_name = 'Functionality'
+        verbose_name_plural = 'Functionalities'
+
+
+class FacilityType(models.Model):
+    code = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(99)])
+    name = models.CharField(
+        max_length=100, verbose_name=_('Name'))
+
+    def __str__(self):
+        return f'{self.name} ({self.code})'
+
+
+class PrimaryHCC(models.Model):
+    code = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(99)])
+    name = models.CharField(
+        max_length=100, verbose_name=_('Name'))
+
+    def __str__(self):
+        return f'{self.name} ({self.code})'
+
+    class Meta:
+        verbose_name = 'Primary Health Care Center'
+        verbose_name_plural = 'Primary Health Care Centers'
+
+
+class HospitalType(models.Model):
+    code = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(99)])
+    name = models.CharField(
+        max_length=100, verbose_name=_('Name'))
+
+    def __str__(self):
+        return f'{self.name} ({self.code})'
+
+
+class GeneralMedicalService(models.Model):
+    code = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(99)])
+    name = models.CharField(
+        max_length=100, verbose_name=_('Name'))
+
+    def __str__(self):
+        return f'{self.name} ({self.code})'
+
+
+class SpecializedMedicalService(models.Model):
+    code = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(99)])
+    name = models.CharField(
+        max_length=100, verbose_name=_('Name'))
+
+    def __str__(self):
+        return f'{self.name} ({self.code})'
+
+
+class BloodService(models.Model):
+    code = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(99)])
+    name = models.CharField(
+        max_length=100, verbose_name=_('Name'))
+
+    def __str__(self):
+        return f'{self.name} ({self.code})'
+
+
+class ProfessionalTrainingFacility(models.Model):
+    code = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(99)])
+    name = models.CharField(
+        max_length=100, verbose_name=_('Name'))
+
+    def __str__(self):
+        return f'{self.name} ({self.code})'
+
+    class Meta:
+        verbose_name = 'Professional Training Facility'
+        verbose_name_plural = 'Professional Training Facilities'
+
+
+class HealthData(models.Model):
+    affiliation = models.ForeignKey(
+        Affiliation,
+        on_delete=models.SET_NULL,
+        verbose_name=_('Affiliation'),
+        related_name='health_affiliation',
+        null=True,
+    )
+    other_affiliation = models.CharField(
+        max_length=300, verbose_name=_('Other Affiliation'), blank=True, null=True
+    )
+    functionality = models.ForeignKey(
+        Functionality,
+        on_delete=models.SET_NULL,
+        verbose_name=_('Functionality'),
+        related_name='health_functionality',
+        null=True,
+    )
+    focal_point_email = models.EmailField(
+        max_length=90, verbose_name=_('Focal point email'), blank=True, null=True
+    )
+    focal_point_phone_number = models.CharField(
+        max_length=90, verbose_name=_('Focal point phone number'), blank=True, null=True
+    )
+    focal_point_position = models.CharField(
+        max_length=90, verbose_name=_('Focal point position'), blank=True, null=True
+    )
+    health_facility_type = models.ForeignKey(
+        FacilityType,
+        on_delete=models.SET_NULL,
+        verbose_name=_('Health facility type'),
+        related_name='health_facility_type',
+        null=True,
+    )
+    other_facility_type = models.CharField(
+        max_length=300, verbose_name=_('Other facility type'), blank=True, null=True
+    )
+    primary_health_care_center = models.ForeignKey(
+        PrimaryHCC,
+        on_delete=models.SET_NULL,
+        verbose_name=_('Primary Health Care Center'),
+        related_name='primary_health_care_center',
+        null=True,
+    )
+    speciality = models.CharField(
+        max_length=200, verbose_name=_('Speciality'), blank=True, null=True
+    )
+    hospital_type = models.ForeignKey(
+        HospitalType,
+        on_delete=models.SET_NULL,
+        verbose_name=_('Hospital type'),
+        related_name='hospital_type',
+        null=True,
+    )
+    is_teaching_hospital = models.BooleanField(
+        verbose_name=_('Is teaching hospital?'), default=False
+    )
+    is_in_patient_capacity = models.BooleanField(
+        verbose_name=_('Has in-patient capacity?'), default=False
+    )
+    is_isolation_rooms_wards = models.BooleanField(
+        verbose_name=_('Has isolation rooms wards?'), default=False
+    )
+    maximum_capacity = models.IntegerField(
+        verbose_name=_('Maximum Capacity'), blank=True, null=True
+    )
+    number_of_isolation_rooms = models.IntegerField(
+        verbose_name=_('Number of isolation rooms'), blank=True, null=True
+    )
+    is_warehousing = models.BooleanField(
+        verbose_name=_('Has warehousing?'), default=False
+    )
+    is_cold_chain = models.BooleanField(
+        verbose_name=_('Has cold chain?'), default=False
+    )
+    ambulance_type_a = models.IntegerField(
+        verbose_name=_('Ambulance Type A'), blank=True, null=True
+    )
+    ambulance_type_b = models.IntegerField(
+        verbose_name=_('Ambulance Type B'), blank=True, null=True
+    )
+    ambulance_type_c = models.IntegerField(
+        verbose_name=_('Ambulance Type C'), blank=True, null=True
+    )
+    general_medical_services = models.ManyToManyField(
+        GeneralMedicalService,
+        related_name='general_medical_services',
+        verbose_name=_('General medical services'),
+        blank=True,
+    )
+    specialized_medical_beyond_primary_level = models.ManyToManyField(
+        SpecializedMedicalService,
+        related_name='specialized_medical_beyond_primary_level',
+        verbose_name=_('Specialized medical beyond primary level'),
+        blank=True,
+    )
+    other_services = models.CharField(
+        max_length=300, verbose_name=_('Other Services'), blank=True, null=True
+    )
+    blood_services = models.ManyToManyField(
+        BloodService,
+        related_name='blood_services',
+        verbose_name=_('Blood Services'),
+        blank=True,
+    )
+    professional_training_facilities = models.ManyToManyField(
+        ProfessionalTrainingFacility,
+        related_name='professional_training_facilities',
+        verbose_name=_('Professional Training Facilities'),
+        blank=True,
+    )
+    total_number_of_human_resource = models.IntegerField(
+        verbose_name=_('Total number of Human Resource'), blank=True, null=True
+    )
+    general_practitioner = models.IntegerField(
+        verbose_name=_('General Practitioner'), blank=True, null=True
+    )
+    specialist = models.IntegerField(
+        verbose_name=_('Specialist'), blank=True, null=True
+    )
+    residents_doctor = models.IntegerField(
+        verbose_name=_('Residents Doctor'), blank=True, null=True
+    )
+    nurse = models.IntegerField(verbose_name=_('Nurse'), blank=True, null=True)
+    dentist = models.IntegerField(verbose_name=_('Dentist'), blank=True, null=True)
+    nursing_aid = models.IntegerField(
+        verbose_name=_('Nursing Aid'), blank=True, null=True
+    )
+    midwife = models.IntegerField(verbose_name=_('Midwife'), blank=True, null=True)
+    other_medical_heal = models.BooleanField(
+        verbose_name=_('Other medical heal'), default=False
+    )
+    other_profiles = models.CharField(
+        max_length=200, verbose_name=_('Other Profiles'), blank=True, null=True
+    )
+    feedback = models.CharField(
+        max_length=500, verbose_name=_('Feedback'), blank=True, null=True
+    )
+
+    def __str__(self):
+        return f'{self.affiliation} – {self.id}'
+
+    class Meta:
+        verbose_name = 'Health Data'
+        verbose_name_plural = 'Health Data'
 
 
 class LocalUnitType(models.Model):
@@ -24,7 +273,7 @@ class LocalUnitType(models.Model):
 
 class LocalUnitLevel(models.Model):
     level = models.IntegerField(
-        verbose_name=_('Level'),
+        verbose_name=_('Coverage'),
         validators=[
             MaxValueValidator(10),
             MinValueValidator(0)
@@ -35,11 +284,20 @@ class LocalUnitLevel(models.Model):
         verbose_name=_('Name')
     )
 
+    class Meta:
+        verbose_name = _("Local unit coverage")
+        verbose_name_plural = _("Local unit coverages")
+
     def __str__(self):
         return f'{self.name} ({self.level})'
 
 
 class LocalUnit(models.Model):
+    # added to track health local unit data (Table B)
+    health = models.ForeignKey(
+        HealthData, on_delete=models.SET_NULL, verbose_name=_('Health Data'),
+        related_name='health_data', null=True
+    )
     country = models.ForeignKey(
         Country, on_delete=models.SET_NULL, verbose_name=_('Country'),
         related_name='local_unit_country', null=True
@@ -55,7 +313,7 @@ class LocalUnit(models.Model):
         verbose_name=_('Subtype')
     )
     level = models.ForeignKey(
-        LocalUnitLevel, on_delete=models.SET_NULL, verbose_name=_('Level'),
+        LocalUnitLevel, on_delete=models.SET_NULL, verbose_name=_('Coverage'),
         related_name='local_unit_level', null=True
     )
     local_branch_name = models.CharField(
@@ -82,7 +340,9 @@ class LocalUnit(models.Model):
     )
     draft = models.BooleanField(default=False, verbose_name=_('Draft'))
     validated = models.BooleanField(default=False, verbose_name=_('Validated'))
-    is_public = models.BooleanField(default=False, verbose_name=_('Is public?'))
+    visibility = models.IntegerField(
+        choices=VisibilityChoices.choices, verbose_name=_('visibility'),
+        default=2)  # 2:IFRC
     source_en = models.CharField(
         max_length=500,
         blank=True,
@@ -107,8 +367,18 @@ class LocalUnit(models.Model):
         null=True,
         verbose_name=_('Address in English')
     )
-    city_loc = models.CharField(max_length=255, verbose_name=_('City in local language'))
-    city_en = models.CharField(max_length=255, verbose_name=_('City in English'))
+    city_loc = models.CharField(
+        max_length=255,
+        verbose_name=_('City in local language'),
+        null=True,
+        blank=True,
+    )
+    city_en = models.CharField(
+        max_length=255,
+        verbose_name=_('City in English'),
+        null=True,
+        blank=True,
+    )
     focal_person_loc = models.CharField(
         max_length=255,
         blank=True,
@@ -246,7 +516,9 @@ class DelegationOffice(models.Model):
     )
     is_ns_same_location = models.BooleanField(default=False, verbose_name=_('NS on same location?'))
     is_multiple_ifrc_offices = models.BooleanField(default=False, verbose_name=_('Multiple IFRC offices?'))
-    is_public = models.BooleanField(default=False, verbose_name=_('Is public?'))
+    visibility = models.IntegerField(
+        choices=VisibilityChoices.choices, verbose_name=_('visibility'),
+        default=2)  # 2:IFRC
     created_at = models.DateTimeField(
         verbose_name=_('Created at'),
         auto_now=True

@@ -1,3 +1,4 @@
+from django.conf import settings
 from rest_framework import serializers
 
 from dref import enums as dref_enums
@@ -6,6 +7,7 @@ from flash_update import enums as flash_update_enums
 from deployments import enums as deployments_enums
 from per import enums as per_enums
 from notifications import enums as notifications_enums
+from databank import enums as databank_enums
 
 
 apps_enum_register = [
@@ -15,6 +17,7 @@ apps_enum_register = [
     ('deployments', deployments_enums.enum_register),
     ('per', per_enums.enum_register),
     ('notifications', notifications_enums.enum_register),
+    ('databank', databank_enums.enum_register),
 ]
 
 
@@ -42,6 +45,8 @@ global_enum_registers = generate_global_enum_register()
 
 def generate_enum_global_serializer(name):
     def _get_enum_key_value_serializer(enum, enum_name):
+        _enum_name = enum_name.replace('EnumSerializer', 'EnumKey')
+        settings.SPECTACULAR_SETTINGS['ENUM_NAME_OVERRIDES'][_enum_name] = enum
         return type(
             enum_name,
             (serializers.Serializer,),
