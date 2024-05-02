@@ -50,6 +50,7 @@ class Command(BaseCommand):
                     health_id = None
                 validated = True
                 local_branch_name = row['NAME_LOC']
+                english_branch_name = row['NAME_EN']
                 address_loc = row['ADDRESS_LOC']
                 focal_person_loc = row['FOCAL_PERSON_LOC']
                 location = Point(float(row['LONGITUDE']), float(row['LATITUDE']))
@@ -62,6 +63,7 @@ class Command(BaseCommand):
                     visibility=visibility,
                     validated=validated,
                     local_branch_name=local_branch_name,
+                    english_branch_name=english_branch_name,
                     address_loc=address_loc,
                     focal_person_loc=focal_person_loc,
                     location=location,
