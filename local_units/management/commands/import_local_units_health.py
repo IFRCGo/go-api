@@ -44,29 +44,54 @@ class Command(BaseCommand):
 
                 country = country_name_id_map[row['COUNTRY'].lower()]
                 type = local_unit_id_map[int(row['TYPE CODE'])]
+                subtype = row['SUBTYPE']  # FIXME just a text field
                 visibility = 3 if row['VISIBILITY'].lower() == 'public' else 1
                 health_id = row['DATA SOURCE ID']
                 if not health_id.isdigit():
                     health_id = None
                 validated = True
+                level_id = int(row['COVERAGECODE']) + 1
                 local_branch_name = row['NAME_LOC']
                 english_branch_name = row['NAME_EN']
+                postcode = row['POSTCODE']
                 address_loc = row['ADDRESS_LOC']
+                address_en = row['ADDRESS_EN']
+                city_loc = row['CITY_LOC']
+                city_en = row['CITY_EN']
                 focal_person_loc = row['FOCAL_PERSON_LOC']
+                focal_person_en = row['FOCAL_PERSON_EN']
+                telephone = row['TELEPHONE'][:30]
+                email = row['EMAIL']
+                website = row['WEBSITE']
+                source_en = row['SOURCE_EN']
+                source_loc = row['SOURCE_LOC']
                 location = Point(float(row['LONGITUDE']), float(row['LATITUDE']))
-                date_of_data = None
+                date_of_data = row['DATE OF UPDATE']
+
                 if row['DATE OF UPDATE']:
                     date_of_data = datetime.strptime(row['DATE OF UPDATE'], '%Y-%m-%d').strftime("%Y-%m-%d")  # sometimes it was in '%m/%d/%Y
                 local_unit = LocalUnit(
+                    level_id = level_id,
                     country_id=country,
                     type_id=type,
+                    subtype = subtype,
                     visibility=visibility,
                     validated=validated,
                     local_branch_name=local_branch_name,
                     english_branch_name=english_branch_name,
-                    address_loc=address_loc,
                     focal_person_loc=focal_person_loc,
+                    focal_person_en = focal_person_en,
                     location=location,
+                    postcode = postcode,
+                    address_loc=address_loc,
+                    address_en = address_en,
+                    city_loc = city_loc,
+                    city_en = city_en,
+                    phone = telephone,
+                    email = email,
+                    link = website,
+                    source_loc = source_loc,
+                    source_en = source_en,
                     date_of_data=date_of_data,
                     health_id=health_id
                 )
