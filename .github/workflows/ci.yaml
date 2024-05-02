@@ -1,0 +1,23 @@
+name: Python check
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+
+
+jobs:
+  pre_commit_checks:
+    name: 🚴 Pre-Commit checks 🚴
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@main
+      - name: Install poetry
+        run: pipx install poetry
+      - uses: actions/setup-python@main
+        with:
+          cache: 'poetry'
+      - run: poetry install
+      - uses: pre-commit/action@main
