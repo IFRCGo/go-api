@@ -1,9 +1,10 @@
+import jwt
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.db.models.functions import Lower
 
 from api.models import Country, Profile, UserRegion
 from .models import DomainWhitelist
-from notifications.notification import send_notification
 
 
 def is_valid_domain(email):
@@ -45,3 +46,19 @@ def getRegionalAdmins(userId):
 
     admins = UserRegion.objects.filter(region_id=regionId).values_list('user__email', flat=True)
     return admins
+
+
+def jwt_encode_handler(payload):
+    return jwt.encode(
+        payload,
+        settings.JWT_PRIVATE_KEY,
+        algorithm='ES256',
+    )
+
+
+def jwt_decode_handler(token):
+    return jwt.decode(
+        token,
+        settings.JWT_PUBLIC_KEY,
+        algorithms=['ES256'],
+    )

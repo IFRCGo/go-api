@@ -96,6 +96,10 @@ env = environ.Env(
     DJANGO_READ_ONLY=(bool, False),
     # Misc
     DISABLE_API_CACHE=(bool, False),
+    # jwt private and public key
+    JWT_PRIVATE_KEY=(str, None),
+    JWT_PUBLIC_KEY=(str, None),
+    JWT_EXPIRE_TIMESTAMP_DAYS=(int, 365),
 
     # Country page
     NS_CONTACT_USERNAME=(str, None),
@@ -593,13 +597,15 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'Please see the <a href="https://go-wiki.ifrc.org/en/go-api/api-overview" target="_blank">GO Wiki</a> for an overview of API usage, or the interactive <a href="/api-docs/swagger-ui/" target="_blank">Swagger page</a>.',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
-    'ENUM_ADD_EXPLICIT_BLANK_NULL_CHOICE': False,
     'ENUM_NAME_OVERRIDES': {},
-    # 'POSTPROCESSING_HOOKS': []
 }
 
 # A character which is rarely used in strings – for separator:
 SEP = '¤'
+
+JWT_PRIVATE_KEY = env('JWT_PRIVATE_KEY')
+JWT_PUBLIC_KEY = env('JWT_PUBLIC_KEY')
+JWT_EXPIRE_TIMESTAMP_DAYS = env('JWT_EXPIRE_TIMESTAMP_DAYS')
 
 # Need to load this to overwrite modeltranslation module
 import main.translation  # noqa: F401 E402
