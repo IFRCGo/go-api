@@ -245,4 +245,19 @@ resource "helm_release" "ifrcgo" {
     name = "env.NS_INITIATIVES_API_TOKEN"
     value = var.NS_INITIATIVES_API_TOKEN
   }
+
+  set {
+    name = "env.JWT_PRIVATE_KEY"
+    value = var.JWT_PRIVATE_KEY
+  }
+
+  set {
+    name = "env.JWT_PUBLIC_KEY"
+    value = var.JWT_PUBLIC_KEY
+  }
+
+  set {
+    name = "env.JWT_EXPIRE_TIMESTAMP_DAYS"
+    value = var.JWT_EXPIRE_TIMESTAMP_DAYS
+  }
 }

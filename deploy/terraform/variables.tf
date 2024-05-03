@@ -290,3 +290,18 @@ variable "NS_INITIATIVES_API_TOKEN" {
   type = string
   default = ""
 }
+
+variable "JWT_PRIVATE_KEY" {
+  type = string
+  default = ""
+}
+
+variable "JWT_PUBLIC_KEY" {
+  type = string
+  default = ""
+}
+
+variable "JWT_EXPIRE_TIMESTAMP_DAYS" {
+  type = string
+  default = ""
+}

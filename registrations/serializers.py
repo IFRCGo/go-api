@@ -171,7 +171,7 @@ class UserExternalTokenSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserExternalToken
-        fields = ['title', 'token', 'expire_timestamp']
+        fields = ['title', 'token', 'expire_timestamp', 'created_at']
 
     def validate_expire_timestamp(self, date):
         now = timezone.now()
