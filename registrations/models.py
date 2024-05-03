@@ -73,6 +73,7 @@ class DomainWhitelist(models.Model):
     def __str__(self):
         return self.domain_name
 
+
 class UserExternalToken(models.Model):
     """ External token for user """
 
@@ -80,22 +81,19 @@ class UserExternalToken(models.Model):
         verbose_name=_('title'),
         max_length=255,
     )
-
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         verbose_name=_('user'),
         on_delete=models.CASCADE,
     )
-
     jti = models.UUIDField(
         default=uuid.uuid4,
         editable=False,
         unique=True,
         help_text=_('Unique identifier for the token')
     )
-
     created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
-    expire_timestamp = models.DateTimeField(verbose_name=_('expire timestamp'), null=True, blank=True)
+    expire_timestamp = models.DateTimeField(verbose_name=_('expire timestamp'))
     # @Note: Currently not used, but could be utilized for a blacklist feature.
     # is_disabled = models.BooleanField(verbose_name=_('is disabled?'), default=False)
 
@@ -105,11 +103,11 @@ class UserExternalToken(models.Model):
 
     def __str__(self):
         return f'{self.title}-{self.expire_timestamp.strftime("%Y-%m-%d")}'
-    
+
     def get_payload(self) -> dict:
         return {
             'jti': str(self.jti),
-            'userId': self.user.id,
+            'userId': self.user_id,
             'exp': self.expire_timestamp,
             'inMovement': True
         }

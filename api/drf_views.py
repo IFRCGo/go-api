@@ -875,7 +875,7 @@ class UserViewset(viewsets.ModelViewSet):
     )
     def get_authenticated_user_info(self, request, *args, **kwargs):
         return Response(self.get_serializer_class()(request.user).data)
-    
+
     @action(
         detail=True,
         methods=['post'],

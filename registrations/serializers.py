@@ -3,21 +3,22 @@ from django.contrib.auth.password_validation import validate_password
 from django.conf import settings
 
 from rest_framework import serializers
-from .models import DomainWhitelist, Recovery, UserExternalToken
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.db import transaction
 
-from rest_framework import serializers
-
-from .models import DomainWhitelist, Pending
 from .utils import (
     is_valid_domain,
     jwt_encode_handler
 )
+from .models import (
+    DomainWhitelist,
+    Recovery,
+    UserExternalToken,
+    Pending,
+)
 from registrations.tasks import send_notification_create
-
 from api.models import Country
 
 
@@ -163,9 +164,11 @@ class RegistrationSerializer(serializers.Serializer):
             )
         )
 
+
 class UserExternalTokenSerializer(serializers.ModelSerializer):
     token = serializers.CharField(read_only=True)
     expire_timestamp = serializers.DateTimeField(required=False)
+
     class Meta:
         model = UserExternalToken
         fields = ['title', 'token', 'expire_timestamp']
@@ -187,15 +190,14 @@ class UserExternalTokenSerializer(serializers.ModelSerializer):
 
         if not validated_data.get('expire_timestamp'):
             validated_data['expire_timestamp'] = timezone.now() + timedelta(days=settings.JWT_EXPIRE_TIMESTAMP_DAYS)
-        
+
         # Check if private and public key exists
-        if not(settings.JWT_PRIVATE_KEY and settings.JWT_PUBLIC_KEY):
+        if not (settings.JWT_PRIVATE_KEY and settings.JWT_PUBLIC_KEY):
             raise serializers.ValidationError('Please contact system adminstrators to configurate private and public key.')
 
         instance = super().create(validated_data)
         validated_data["token"] = jwt_encode_handler(instance.get_payload())
         return validated_data
-    
 
     def update(self, instance, validated_data):
         raise serializers.ValidationError("Update is not allowed")

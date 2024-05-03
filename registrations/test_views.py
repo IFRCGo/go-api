@@ -8,16 +8,15 @@
 
 from unittest import mock
 
-from rest_framework.test import APITestCase
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec
-from main.test_case import APITestCase as Apitestcase
 
 from django.contrib.auth.models import User
-from django.conf import settings
 from django.test import override_settings
+from rest_framework.test import APITestCase
 
+from main.test_case import APITestCase as GoAPITestCase
 from .models import Pending
 from api.models import Country, Profile
 
@@ -172,7 +171,7 @@ class TwoGatekeepersTest(APITestCase):
         self.assertTrue(send_notification_create.is_called())
 
 
-class UserExternalTokenTest(Apitestcase):
+class UserExternalTokenTest(GoAPITestCase):
 
     def setUp(self):
         super().setUp()
