@@ -7,7 +7,7 @@ from django.db import transaction
 
 
 from api.models import Country
-from ...models import LocalUnit, LocalUnitType
+from ...models import LocalUnit, LocalUnitType, LocalUnitLevel
 from main.managers import BulkCreateManager
 
 
@@ -17,6 +17,17 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('filename', nargs='+', type=str)
+
+    def parse_date(self, date):
+        if not date:
+            return
+
+        possible_date_format = ('%d-%b-%y', '%m/%d/%Y')
+        for date_format in possible_date_format:
+            try:
+                return datetime.strptime(date, date_format).strftime("%Y-%m-%d")
+            except ValueError:
+                pass
 
     @transaction.atomic
     def handle(self, *args, **options):
@@ -29,9 +40,19 @@ class Command(BaseCommand):
                 country_name.lower(): _id
                 for _id, country_name in Country.objects.values_list('id', 'name')
             }
+# not used still now:
+            country_iso3_id_map = {
+                iso3.lower(): _id
+                for _id, iso3 in Country.objects.filter(iso3__isnull=False).values_list('id', 'iso3')
+            }
             local_unit_id_map = {
                 code: _id
                 for _id, code in LocalUnitType.objects.values_list('id', 'code')
+            }
+# not used still now:
+            local_unit_level_id_map = {
+                level: _id
+                for _id, level in LocalUnitLevel.objects.values_list('id', 'level')
             }
 
             for i, row in enumerate(reader, start=2):
@@ -60,16 +81,16 @@ class Command(BaseCommand):
                 city_en = row['CITY_EN']
                 focal_person_loc = row['FOCAL_PERSON_LOC']
                 focal_person_en = row['FOCAL_PERSON_EN']
-                telephone = row['TELEPHONE'][:30]
+                phone = row['TELEPHONE'].strip()[:30]
                 email = row['EMAIL']
-                website = row['WEBSITE']
+                link = row['WEBSITE']
                 source_en = row['SOURCE_EN']
                 source_loc = row['SOURCE_LOC']
                 location = Point(float(row['LONGITUDE']), float(row['LATITUDE']))
                 date_of_data = row['DATE OF UPDATE']
 
                 if row['DATE OF UPDATE']:
-                    date_of_data = datetime.strptime(row['DATE OF UPDATE'], '%Y-%m-%d').strftime("%Y-%m-%d")  # sometimes it was in '%m/%d/%Y
+                    date_of_data = self.parse_date(row['DATEOFUPDATE'])
                 local_unit = LocalUnit(
                     level_id = level_id,
                     country_id=country,
@@ -87,9 +108,9 @@ class Command(BaseCommand):
                     address_en = address_en,
                     city_loc = city_loc,
                     city_en = city_en,
-                    phone = telephone,
+                    phone = phone,
                     email = email,
-                    link = website,
+                    link = link,
                     source_loc = source_loc,
                     source_en = source_en,
                     date_of_data=date_of_data,
