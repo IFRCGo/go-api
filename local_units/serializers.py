@@ -70,6 +70,20 @@ class BloodServiceSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class MiniHealthDataSerializer(
+    serializers.ModelSerializer
+):
+    health_facility_type_details = FacilityTypeSerializer(source='health_facility_type', read_only=True)
+
+    class Meta:
+        model = HealthData
+        fields = (
+            'id',
+            'health_facility_type',
+            'health_facility_type_details',
+        )
+
+
 class HealthDataSerializer(
     NestedCreateMixin,
     NestedUpdateMixin,
@@ -148,6 +162,7 @@ class LocalUnitSerializer(
     location_details = serializers.SerializerMethodField()
     country_details = LocalUnitCountrySerializer(source='country', read_only=True)
     type_details = LocalUnitTypeSerializer(source='type', read_only=True)
+    health_details = MiniHealthDataSerializer(read_only=True, source='health')
 
     class Meta:
         model = LocalUnit
@@ -163,6 +178,8 @@ class LocalUnitSerializer(
             'address_en',
             'country_details',
             'type_details',
+            'health',
+            'health_details',
         )
         # Hiding following fields for now
         # ['focal_person_loc', 'focal_person_en', 'email', 'phone',]
