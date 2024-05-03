@@ -133,3 +133,13 @@ class ProfessionalTrainingFacilityAdmin(admin.ModelAdmin):
 @admin.register(HealthData)
 class HealthDataAdmin(admin.ModelAdmin):
     search_fields = ('affiliation',)
+    list_filter = (
+        AutocompleteFilterFactory('Affiliation', 'affiliation'),
+        AutocompleteFilterFactory('Functionality', 'functionality'),
+        AutocompleteFilterFactory('FacilityType', 'health_facility_type'),
+        AutocompleteFilterFactory('PrimaryHCC', 'primary_health_care_center'),
+        AutocompleteFilterFactory('GeneralMedicalService', 'general_medical_services'),
+        AutocompleteFilterFactory('SpecializedMedicalService', 'specialized_medical_beyond_primary_level'),
+        AutocompleteFilterFactory('BloodService', 'blood_services'),
+        AutocompleteFilterFactory('ProfessionalTrainingFacility', 'professional_training_facilities'),
+    )

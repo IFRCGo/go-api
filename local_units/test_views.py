@@ -52,11 +52,11 @@ class TestLocalUnitsListView(APITestCase):
         response = self.client.get('/api/v2/local-units/')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 10)
-        self.assertEqual(response.data['results'][0]['location']['coordinates'], [12, 38])
-        self.assertEqual(response.data['results'][0]['country']['name'], 'Nepal')
-        self.assertEqual(response.data['results'][0]['country']['iso3'], 'NLP')
-        self.assertEqual(response.data['results'][0]['type']['name'], 'Code 0')
-        self.assertEqual(response.data['results'][0]['type']['code'], 0)
+        self.assertEqual(response.data['results'][0]['location_details']['coordinates'], [12, 38])
+        self.assertEqual(response.data['results'][0]['country_details']['name'], 'Nepal')
+        self.assertEqual(response.data['results'][0]['country_details']['iso3'], 'NLP')
+        self.assertEqual(response.data['results'][0]['type_details']['name'], 'Code 0')
+        self.assertEqual(response.data['results'][0]['type_details']['code'], 0)
 
     def test_filter(self):
         self.authenticate()
@@ -130,11 +130,11 @@ class TestLocalUnitsDetailView(APITestCase):
         self.authenticate()
         response = self.client.get(f'/api/v2/local-units/{local_unit.id}/')
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['location']['coordinates'], [12, 38])
-        self.assertEqual(response.data['country']['name'], 'Nepal')
-        self.assertEqual(response.data['country']['iso3'], 'NLP')
-        self.assertEqual(response.data['type']['name'], 'Code 0')
-        self.assertEqual(response.data['type']['code'], 0)
+        self.assertEqual(response.data['location_details']['coordinates'], [12, 38])
+        self.assertEqual(response.data['country_details']['name'], 'Nepal')
+        self.assertEqual(response.data['country_details']['iso3'], 'NLP')
+        self.assertEqual(response.data['type_details']['name'], 'Code 0')
+        self.assertEqual(response.data['type_details']['code'], 0)
 
     def test_validate_local_units(self):
         local_unit = LocalUnit.objects.all().first()

@@ -11,8 +11,6 @@ from django.db import transaction
 from rest_framework.decorators import action
 from drf_spectacular.utils import extend_schema
 
-from .models import LocalUnit, DelegationOffice
-from .serializers import LocalUnitSerializer, DelegationOfficeSerializer
 from local_units.filterset import LocalUnitFilters, DelegationOfficeFilters
 from local_units.models import (
     LocalUnit,
@@ -28,11 +26,13 @@ from local_units.models import (
     VisibilityChoices,
     GeneralMedicalService,
     SpecializedMedicalService,
+    DelegationOffice,
 )
 from local_units.serializers import (
     LocalUnitSerializer,
     LocalUnitOptionsSerializer,
-    LocalUnitDetailSerializer
+    LocalUnitDetailSerializer,
+    DelegationOfficeSerializer
 )
 from local_units.permissions import (
     ValidateLocalUnitPermission,
@@ -41,7 +41,12 @@ from local_units.permissions import (
 
 
 class LocalUnitViewSet(viewsets.ModelViewSet):
-    queryset = LocalUnit.objects.all()
+    queryset = LocalUnit.objects.select_related(
+        'health',
+        'country',
+        'type',
+        'level',
+    )
     serializer_class = LocalUnitSerializer
     filterset_class = LocalUnitFilters
     search_fields = ('local_branch_name', 'english_branch_name',)

@@ -116,6 +116,7 @@ class Command(BaseCommand):
                     date_of_data=date_of_data,
                     health_id=health_id,
                     visibility=visibility,
+                    subtype=subtype,
                 )
                 bulk_mgr.add(local_unit)
             bulk_mgr.done()

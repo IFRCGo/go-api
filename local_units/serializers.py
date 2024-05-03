@@ -132,7 +132,8 @@ class LocalUnitDetailSerializer(
             'created_at', 'modified_at', 'draft', 'validated', 'postcode',
             'address_loc', 'address_en', 'city_loc', 'city_en', 'link',
             'location', 'source_loc', 'source_en', 'subtype', 'date_of_data',
-            'coverage', 'health'
+            'level', 'health', 'visibility_display', 'location_details', 'type_details',
+            'level_details', 'country_details'
         ]
         # Hiding following fields for now
         # ['focal_person_loc', 'focal_person_en', 'email', 'phone',]
@@ -157,16 +158,14 @@ class LocalUnitSerializer(
             'english_branch_name',
             'location_details',
             'type',
-            'focal_person_en',
-            'phone',
-            'focal_person_loc',
-            'email',
             'validated',
             'address_loc',
             'address_en',
             'country_details',
             'type_details',
         )
+        # Hiding following fields for now
+        # ['focal_person_loc', 'focal_person_en', 'email', 'phone',]
 
     def get_location_details(self, unit) -> dict:
         return json.loads(unit.location.geojson)
