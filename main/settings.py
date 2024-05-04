@@ -102,6 +102,7 @@ env = environ.Env(
     DISABLE_API_CACHE=(bool, False),
     # jwt private and public key
     JWT_PRIVATE_KEY_BASE64_ENCODED=(str, None),
+    JWT_PUBLIC_KEY_BASE64_ENCODED=(str, None),
     JWT_PRIVATE_KEY=(str, None),
     JWT_PUBLIC_KEY=(str, None),
     JWT_EXPIRE_TIMESTAMP_DAYS=(int, 365),
@@ -608,15 +609,17 @@ SPECTACULAR_SETTINGS = {
 # A character which is rarely used in strings – for separator:
 SEP = '¤'
 
-JWT_PRIVATE_KEY = env('JWT_PRIVATE_KEY')
-if env('JWT_PRIVATE_KEY_BASE64_ENCODED'):
-    # TODO: Instead use docker/k8 secrets file mount?
-    try:
-        JWT_PRIVATE_KEY = base64.b64decode(env('JWT_PRIVATE_KEY_BASE64_ENCODED'))
-    except Exception:
-        logger.error('Failed to decode JWT_PRIVATE_KEY_BASE64_ENCODED', exc_info=True)
+def decode_base64(env_key, fallback_env_key):
+    if encoded_value := env(env_key):
+        # TODO: Instead use docker/k8 secrets file mount?
+        try:
+            return base64.b64decode(encoded_value)
+        except Exception:
+            logger.error(f'Failed to decode {env_key}', exc_info=True)
+    return env(fallback_env_key)
 
-JWT_PUBLIC_KEY = env('JWT_PUBLIC_KEY')
+JWT_PRIVATE_KEY = decode_base64('JWT_PRIVATE_KEY_BASE64_ENCODED', 'JWT_PRIVATE_KEY')
+JWT_PUBLIC_KEY = decode_base64('JWT_PUBLIC_KEY_BASE64_ENCODED', 'JWT_PUBLIC_KEY')
 JWT_EXPIRE_TIMESTAMP_DAYS = env('JWT_EXPIRE_TIMESTAMP_DAYS')
 
 # Need to load this to overwrite modeltranslation module

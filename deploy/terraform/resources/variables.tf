@@ -291,7 +291,7 @@ variable "JWT_PRIVATE_KEY_BASE64_ENCODED" {
   default = ""
 }
 
-variable "JWT_PUBLIC_KEY" {
+variable "JWT_PUBLIC_KEY_BASE64_ENCODED" {
   type = string
   default = ""
 }

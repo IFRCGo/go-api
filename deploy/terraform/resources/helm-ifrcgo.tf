@@ -252,8 +252,8 @@ resource "helm_release" "ifrcgo" {
   }
 
   set {
-    name = "env.JWT_PUBLIC_KEY"
-    value = var.JWT_PUBLIC_KEY
+    name = "env.JWT_PUBLIC_KEY_BASE64_ENCODED"
+    value = var.JWT_PUBLIC_KEY_BASE64_ENCODED
   }
 
   set {
