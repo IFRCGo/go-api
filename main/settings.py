@@ -1,14 +1,18 @@
 import os
 import sys
 import pytz
-from datetime import datetime
+import logging
+import base64
 import environ
+from datetime import datetime
 
 from django.utils.translation import gettext_lazy as _
 from urllib3.util.retry import Retry
 from corsheaders.defaults import default_headers
 
 from main import sentry
+
+logger = logging.getLogger(__name__)
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
@@ -97,6 +101,7 @@ env = environ.Env(
     # Misc
     DISABLE_API_CACHE=(bool, False),
     # jwt private and public key
+    JWT_PRIVATE_KEY_BASE64_ENCODED=(str, None),
     JWT_PRIVATE_KEY=(str, None),
     JWT_PUBLIC_KEY=(str, None),
     JWT_EXPIRE_TIMESTAMP_DAYS=(int, 365),
@@ -604,6 +609,13 @@ SPECTACULAR_SETTINGS = {
 SEP = '¤'
 
 JWT_PRIVATE_KEY = env('JWT_PRIVATE_KEY')
+if env('JWT_PRIVATE_KEY_BASE64_ENCODED'):
+    # TODO: Instead use docker/k8 secrets file mount?
+    try:
+        JWT_PRIVATE_KEY = base64.b64decode(env('JWT_PRIVATE_KEY_BASE64_ENCODED'))
+    except Exception:
+        logger.error('Failed to decode JWT_PRIVATE_KEY_BASE64_ENCODED', exc_info=True)
+
 JWT_PUBLIC_KEY = env('JWT_PUBLIC_KEY')
 JWT_EXPIRE_TIMESTAMP_DAYS = env('JWT_EXPIRE_TIMESTAMP_DAYS')
 

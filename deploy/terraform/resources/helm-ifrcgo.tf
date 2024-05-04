@@ -247,8 +247,8 @@ resource "helm_release" "ifrcgo" {
   }
 
   set {
-    name = "env.JWT_PRIVATE_KEY"
-    value = var.JWT_PRIVATE_KEY
+    name = "env.JWT_PRIVATE_KEY_BASE64_ENCODED"
+    value = var.JWT_PRIVATE_KEY_BASE64_ENCODED
   }
 
   set {
