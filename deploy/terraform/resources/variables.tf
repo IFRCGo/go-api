@@ -286,6 +286,21 @@ variable "NS_DOCUMENT_API_TOKEN" {
   default = ""
 }
 
+variable "JWT_PRIVATE_KEY_BASE64_ENCODED" {
+  type = string
+  default = ""
+}
+
+variable "JWT_PUBLIC_KEY_BASE64_ENCODED" {
+  type = string
+  default = ""
+}
+
+variable "JWT_EXPIRE_TIMESTAMP_DAYS" {
+  type = string
+  default = ""
+}
+
 # -----------------
 # Attach ACR
 # Defaults to common resources

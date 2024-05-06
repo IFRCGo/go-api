@@ -54,6 +54,7 @@ from api.views import (
 from registrations.views import (
     VerifyEmail,
     ValidateUser,
+    UserExternalTokenViewset,
 )
 from registrations.drf_views import RegistrationView
 from databank.views import CountryOverviewViewSet
@@ -158,6 +159,7 @@ router.register(r'donor-group', flash_views.DonorGroupViewSet, basename='donor_g
 router.register(r'donor', flash_views.DonorsViewSet, basename='donor')
 router.register(r'share-flash-update', flash_views.ShareFlashUpdateViewSet, basename='share_flash_update')
 router.register(r'users', api_views.UsersViewset, basename='users')
+router.register(r"external-token", UserExternalTokenViewset, basename="user_external_token")
 # Dref apis
 router.register(r"dref", dref_views.DrefViewSet, basename="dref")
 router.register(r"dref-files", dref_views.DrefFileViewSet, basename="dref_files")

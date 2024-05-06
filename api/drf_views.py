@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
-from rest_framework import viewsets, mixins
+from rest_framework import viewsets, mixins, serializers
 from rest_framework.decorators import action
 from django_filters import rest_framework as rest_filters
 from rest_framework import filters
@@ -876,6 +876,18 @@ class UserViewset(viewsets.ModelViewSet):
     def get_authenticated_user_info(self, request, *args, **kwargs):
         return Response(self.get_serializer_class()(request.user).data)
 
+    @action(
+        detail=True,
+        methods=['post'],
+        url_path="accepted_license_terms",
+    )
+    def accepted_license_terms(self, request, *args, **kwargs):
+        user = request.user
+        if user.profile.accepted_montandon_license_terms is True:
+            raise serializers.ValidationError("User has already accepted the license terms")
+        user.profile.accepted_montandon_license_terms = True
+        user.profile.save(update_fields=["accepted_montandon_license_terms"])
+        return Response(self.get_serializer_class()(user).data)
 
 @extend_schema_view(
     retrieve=extend_schema(

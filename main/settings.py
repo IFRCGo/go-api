@@ -1,14 +1,18 @@
 import os
 import sys
 import pytz
-from datetime import datetime
+import logging
+import base64
 import environ
+from datetime import datetime
 
 from django.utils.translation import gettext_lazy as _
 from urllib3.util.retry import Retry
 from corsheaders.defaults import default_headers
 
 from main import sentry
+
+logger = logging.getLogger(__name__)
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
@@ -96,6 +100,12 @@ env = environ.Env(
     DJANGO_READ_ONLY=(bool, False),
     # Misc
     DISABLE_API_CACHE=(bool, False),
+    # jwt private and public key
+    JWT_PRIVATE_KEY_BASE64_ENCODED=(str, None),
+    JWT_PUBLIC_KEY_BASE64_ENCODED=(str, None),
+    JWT_PRIVATE_KEY=(str, None),
+    JWT_PUBLIC_KEY=(str, None),
+    JWT_EXPIRE_TIMESTAMP_DAYS=(int, 365),
 
     # Country page
     NS_CONTACT_USERNAME=(str, None),
@@ -593,13 +603,24 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'Please see the <a href="https://go-wiki.ifrc.org/en/go-api/api-overview" target="_blank">GO Wiki</a> for an overview of API usage, or the interactive <a href="/api-docs/swagger-ui/" target="_blank">Swagger page</a>.',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
-    'ENUM_ADD_EXPLICIT_BLANK_NULL_CHOICE': False,
     'ENUM_NAME_OVERRIDES': {},
-    # 'POSTPROCESSING_HOOKS': []
 }
 
 # A character which is rarely used in strings – for separator:
 SEP = '¤'
+
+def decode_base64(env_key, fallback_env_key):
+    if encoded_value := env(env_key):
+        # TODO: Instead use docker/k8 secrets file mount?
+        try:
+            return base64.b64decode(encoded_value)
+        except Exception:
+            logger.error(f'Failed to decode {env_key}', exc_info=True)
+    return env(fallback_env_key)
+
+JWT_PRIVATE_KEY = decode_base64('JWT_PRIVATE_KEY_BASE64_ENCODED', 'JWT_PRIVATE_KEY')
+JWT_PUBLIC_KEY = decode_base64('JWT_PUBLIC_KEY_BASE64_ENCODED', 'JWT_PUBLIC_KEY')
+JWT_EXPIRE_TIMESTAMP_DAYS = env('JWT_EXPIRE_TIMESTAMP_DAYS')
 
 # Need to load this to overwrite modeltranslation module
 import main.translation  # noqa: F401 E402
