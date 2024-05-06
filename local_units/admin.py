@@ -39,8 +39,7 @@ class LocalUnitAdmin(admin.OSMGeoAdmin):
         'local_branch_name',
         'city_loc',
         'city_en',
-        'country',
-        'country__name'
+        'country__name',
     )
     autocomplete_fields = (
         'country',
@@ -132,8 +131,9 @@ class ProfessionalTrainingFacilityAdmin(admin.ModelAdmin):
 
 @admin.register(HealthData)
 class HealthDataAdmin(admin.ModelAdmin):
-    search_fields = ('affiliation',)
+    search_fields = ('affiliation__name',)
     list_filter = (
+        AutocompleteFilterFactory('Country', 'health_data__country'),
         AutocompleteFilterFactory('Affiliation', 'affiliation'),
         AutocompleteFilterFactory('Functionality', 'functionality'),
         AutocompleteFilterFactory('FacilityType', 'health_facility_type'),

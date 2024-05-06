@@ -40,19 +40,9 @@ class Command(BaseCommand):
                 country_name.lower(): _id
                 for _id, country_name in Country.objects.values_list('id', 'name')
             }
-# not used still now:
-            country_iso3_id_map = {
-                iso3.lower(): _id
-                for _id, iso3 in Country.objects.filter(iso3__isnull=False).values_list('id', 'iso3')
-            }
             local_unit_id_map = {
                 code: _id
                 for _id, code in LocalUnitType.objects.values_list('id', 'code')
-            }
-# not used still now:
-            local_unit_level_id_map = {
-                level: _id
-                for _id, level in LocalUnitLevel.objects.values_list('id', 'level')
             }
 
             for i, row in enumerate(reader, start=2):
@@ -60,6 +50,11 @@ class Command(BaseCommand):
                 if not row['LONGITUDE'] or not row['LATITUDE']:
                     self.stdout.write(
                         self.style.WARNING(f'Skipping row {i}: Empty locations point')
+                    )
+                    continue
+                if not row['NAME_LOC'] or not ['NAME_EN']:
+                    self.stdout.write(
+                        self.style.WARNING(f'Skipping row {i}: Empty brach name combination')
                     )
                     continue
 
@@ -88,10 +83,7 @@ class Command(BaseCommand):
                 source_loc = row['SOURCE_LOC']
                 location = Point(float(row['LONGITUDE']), float(row['LATITUDE']))
                 visibility = 3 if row['VISIBILITY'].lower() == 'public' else 1
-                # health_id = row['DATA SOURCE ID']
-                date_of_data = None
-                if row['DATE OF UPDATE']:
-                    date_of_data = self.parse_date(row['DATEOFUPDATE'])
+                date_of_data = row['DATE OF UPDATE']
                 local_unit = LocalUnit(
                     level_id=level_id,
                     country_id=country,

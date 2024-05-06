@@ -1,4 +1,6 @@
 import factory
+import datetime
+
 from django.contrib.gis.geos import Point
 
 from .models import LocalUnit, LocalUnitType, DelegationOffice, DelegationOfficeType
@@ -8,10 +10,10 @@ from main.test_case import APITestCase
 
 class LocalUnitFactory(factory.django.DjangoModelFactory):
     location = Point(12, 38)
+    date_of_data = factory.fuzzy.FuzzyDate(datetime.date(2024, 1, 2))
 
     class Meta:
         model = LocalUnit
-    location = Point(12, 38)
 
 
 class TestLocalUnitsListView(APITestCase):
@@ -37,14 +39,16 @@ class TestLocalUnitsListView(APITestCase):
             country=country,
             type=type,
             draft=True,
-            validated=False
+            validated=False,
+            date_of_data='2023-09-09'
         )
         LocalUnitFactory.create_batch(
             5,
             country=country_1,
             type=type_1,
             draft=False,
-            validated=True
+            validated=True,
+            date_of_data='2023-08-08'
         )
 
     def test_list(self):

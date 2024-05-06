@@ -1,7 +1,5 @@
 from rest_framework import permissions
 
-from django.contrib.auth.models import Permission
-
 
 class ValidateLocalUnitPermission(permissions.BasePermission):
     message = "You need to be super user to validate local unit"
@@ -14,9 +12,9 @@ class ValidateLocalUnitPermission(permissions.BasePermission):
 
 
 class IsAuthenticatedForLocalUnit(permissions.BasePermission):
-    message = "Only Authenticated users allowed to create/update/delete Local Units"
+    message = "Only Authenticated users allowed to create/update Local Units"
 
     def has_permission(self, request, view):
-        if request.method in ["POST", "PUT", "PATCH", "DELETE"]:
+        if request.method in ["POST", "PUT", "PATCH"]:
             return request.user and request.user.is_authenticated
         return True

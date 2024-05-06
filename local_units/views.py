@@ -7,7 +7,6 @@ from rest_framework.generics import (
     ListAPIView,
     RetrieveAPIView
 )
-from django.db import transaction
 from rest_framework.decorators import action
 from drf_spectacular.utils import extend_schema
 
@@ -32,12 +31,15 @@ from local_units.serializers import (
     LocalUnitSerializer,
     LocalUnitOptionsSerializer,
     LocalUnitDetailSerializer,
-    DelegationOfficeSerializer
+    DelegationOfficeSerializer,
+    PrivateLocalUnitSerializer,
+    PrivateLocalUnitDetailSerializer
 )
 from local_units.permissions import (
     ValidateLocalUnitPermission,
     IsAuthenticatedForLocalUnit
 )
+from api.utils import bad_request
 
 
 class LocalUnitViewSet(viewsets.ModelViewSet):
@@ -47,7 +49,6 @@ class LocalUnitViewSet(viewsets.ModelViewSet):
         'type',
         'level',
     )
-    serializer_class = LocalUnitSerializer
     filterset_class = LocalUnitFilters
     search_fields = ('local_branch_name', 'english_branch_name',)
     permission_classes = [IsAuthenticatedForLocalUnit]
@@ -59,14 +60,17 @@ class LocalUnitViewSet(viewsets.ModelViewSet):
         return qs
 
     def get_serializer_class(self):
-        if self.action == "list":
+        if self.action == "list" and self.request.user.id:
+            return PrivateLocalUnitSerializer
+            print
+        elif self.action == "list":
             return LocalUnitSerializer
+        elif self.action in ['create', 'retrieve', 'update', 'destroy'] and self.request.user.is_authenticated:
+            return PrivateLocalUnitDetailSerializer
         return LocalUnitDetailSerializer
 
-    def create(self, request, *args, **kwargs):
-        with transaction.atomic():
-            response = super().create(request, *args, **kwargs)
-            return response
+    def destroy(self, request, *args, **kwargs):
+        return bad_request('Delete method not allowed')
 
     @extend_schema(
         request=None,
@@ -97,18 +101,21 @@ class LocalUnitViewSet(viewsets.ModelViewSet):
             ).data
         )
 
+    @extend_schema(
+        responses=LocalUnitDetailSerializer
+    )
     @action(
         detail=True,
         url_path="validate",
         methods=["post"],
-        serializer_class=LocalUnitSerializer,
+        serializer_class=LocalUnitDetailSerializer,
         permission_classes=[permissions.IsAuthenticated, ValidateLocalUnitPermission]
     )
     def get_validate(self, request, pk=None, version=None):
         local_unit = self.get_object()
         local_unit.validated = True
         local_unit.save(update_fields=["validated"])
-        serializer = LocalUnitSerializer(local_unit, context={"request": request})
+        serializer = LocalUnitDetailSerializer(local_unit, context={"request": request})
         return response.Response(serializer.data)
 
 

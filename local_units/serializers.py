@@ -1,5 +1,7 @@
 import json
+
 from rest_framework import serializers
+from django.utils.translation import gettext
 
 from .models import (
     HealthData,
@@ -129,8 +131,7 @@ class LocalUnitLevelSerializer(serializers.ModelSerializer):
 
 class LocalUnitDetailSerializer(
     NestedCreateMixin,
-    NestedUpdateMixin,
-    #serializers.ModelSerializer
+    NestedUpdateMixin
 ):
     country_details = LocalUnitCountrySerializer(source='country', read_only=True)
     type_details = LocalUnitTypeSerializer(source='type', read_only=True)
@@ -141,19 +142,34 @@ class LocalUnitDetailSerializer(
 
     class Meta:
         model = LocalUnit
-        fields = [
+        fields = (
             'local_branch_name', 'english_branch_name', 'type', 'country',
             'created_at', 'modified_at', 'draft', 'validated', 'postcode',
             'address_loc', 'address_en', 'city_loc', 'city_en', 'link',
             'location', 'source_loc', 'source_en', 'subtype', 'date_of_data',
             'level', 'health', 'visibility_display', 'location_details', 'type_details',
             'level_details', 'country_details'
-        ]
-        # Hiding following fields for now
-        # ['focal_person_loc', 'focal_person_en', 'email', 'phone',]
+        )
 
     def get_location_details(self, unit) -> dict:
         return json.loads(unit.location.geojson)
+
+    def validate(self, data):
+        local_branch_name = data.get('local_branch_name')
+        english_branch_name = data.get('english_branch_name')
+        if not local_branch_name or not english_branch_name:
+            raise serializers.ValidationError(
+                gettext('Branch Name Combination is required !')
+            )
+        return data
+
+
+class PrivateLocalUnitDetailSerializer(
+    LocalUnitDetailSerializer
+):
+    class Meta(LocalUnitDetailSerializer.Meta):
+        model = LocalUnit
+        fields = LocalUnitDetailSerializer.Meta.fields + ('focal_person_loc', 'focal_person_en', 'email', 'phone',)
 
 
 class LocalUnitSerializer(
@@ -181,11 +197,17 @@ class LocalUnitSerializer(
             'health',
             'health_details',
         )
-        # Hiding following fields for now
-        # ['focal_person_loc', 'focal_person_en', 'email', 'phone',]
 
     def get_location_details(self, unit) -> dict:
         return json.loads(unit.location.geojson)
+
+
+class PrivateLocalUnitSerializer(
+    LocalUnitSerializer
+):
+    class Meta(LocalUnitSerializer.Meta):
+        model = LocalUnit
+        fields = LocalUnitSerializer.Meta.fields + ('focal_person_loc', 'focal_person_en', 'email', 'phone',)
 
 
 class DelegationOfficeCountrySerializer(serializers.ModelSerializer):

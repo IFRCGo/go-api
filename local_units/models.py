@@ -110,20 +110,19 @@ class ProfessionalTrainingFacility(models.Model):
 class HealthData(models.Model):
     affiliation = models.ForeignKey(
         Affiliation,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         verbose_name=_('Affiliation'),
-        related_name='health_affiliation',
-        null=True,
+        related_name='health_affiliation'
     )
     other_affiliation = models.CharField(
-        max_length=300, verbose_name=_('Other Affiliation'), blank=True, null=True
+        max_length=300, verbose_name=_('Other Affiliation'),
+        null=True, blank=True
     )
     functionality = models.ForeignKey(
         Functionality,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         verbose_name=_('Functionality'),
         related_name='health_functionality',
-        null=True,
     )
     focal_point_email = models.EmailField(
         max_length=90, verbose_name=_('Focal point email'), blank=True, null=True
@@ -136,10 +135,9 @@ class HealthData(models.Model):
     )
     health_facility_type = models.ForeignKey(
         FacilityType,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         verbose_name=_('Health facility type'),
-        related_name='health_facility_type',
-        null=True,
+        related_name='health_facility_type'
     )
     other_facility_type = models.CharField(
         max_length=300, verbose_name=_('Other facility type'), blank=True, null=True
@@ -296,15 +294,15 @@ class LocalUnit(models.Model):
     # added to track health local unit data (Table B)
     health = models.ForeignKey(
         HealthData, on_delete=models.SET_NULL, verbose_name=_('Health Data'),
-        related_name='health_data', null=True
+        related_name='health_data', null=True, blank=True
     )
     country = models.ForeignKey(
-        Country, on_delete=models.SET_NULL, verbose_name=_('Country'),
-        related_name='local_unit_country', null=True
+        Country, on_delete=models.CASCADE, verbose_name=_('Country'),
+        related_name='local_unit_country',
     )
     type = models.ForeignKey(
-        LocalUnitType, on_delete=models.SET_NULL, verbose_name=_('Type'),
-        related_name='local_unit_type', null=True
+        LocalUnitType, on_delete=models.CASCADE, verbose_name=_('Type'),
+        related_name='local_unit_type'
     )
     subtype = models.CharField(
         max_length=200,
@@ -318,10 +316,14 @@ class LocalUnit(models.Model):
     )
     local_branch_name = models.CharField(
         max_length=255,
+        null=True,
+        blank=True,
         verbose_name=_('Branch name in local language')
     )
     english_branch_name = models.CharField(
         max_length=255,
+        null=True,
+        blank=True,
         verbose_name=_('Branch name in English')
     )
     created_at = models.DateTimeField(
@@ -335,8 +337,6 @@ class LocalUnit(models.Model):
     date_of_data = models.DateField(
         verbose_name=_('Date of data collection'),
         auto_now=False,
-        blank=True,
-        null=True,
     )
     draft = models.BooleanField(default=False, verbose_name=_('Draft'))
     validated = models.BooleanField(default=False, verbose_name=_('Validated'))
@@ -391,7 +391,12 @@ class LocalUnit(models.Model):
         null=True,
         verbose_name=_('Focal person for English')
     )
-    postcode = models.CharField(max_length=10, null=True, verbose_name=_('Postal code'))
+    postcode = models.CharField(
+        max_length=10,
+        null=True,
+        verbose_name=_('Postal code'),
+        blank=True
+    )
     phone = models.CharField(
         max_length=30,
         blank=True,
