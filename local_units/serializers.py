@@ -49,9 +49,18 @@ class FunctionalitySerializer(serializers.ModelSerializer):
 
 
 class FacilityTypeSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+
     class Meta:
         model = FacilityType
         fields = "__all__"
+
+    def get_image_url(self, facility_type):
+        code = facility_type.code
+        if code and self.context and "request" in self.context:
+            request = self.context["request"]
+            return FacilityType.get_image_map(code, request)
+        return None
 
 
 class PrimaryHCCSerializer(serializers.ModelSerializer):

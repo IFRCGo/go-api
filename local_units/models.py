@@ -1,6 +1,10 @@
+import os
+
 from django.contrib.gis.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils.translation import gettext_lazy as _
+from django.templatetags.static import static
+
 
 from api.models import Country, VisibilityChoices
 
@@ -31,12 +35,30 @@ class Functionality(models.Model):
 
 class FacilityType(models.Model):
     code = models.IntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(99)])
+        validators=[MinValueValidator(0), MaxValueValidator(99)]
+    )
     name = models.CharField(
-        max_length=100, verbose_name=_('Name'))
+        max_length=100,
+        verbose_name=_('Name')
+    )
 
     def __str__(self):
         return f'{self.name} ({self.code})'
+
+    @staticmethod
+    def get_image_map(code, request):
+        code_static_map = {
+            1: "ambulance.png",
+            2: "blood-center.png",
+            3: "hospital.png",
+            4: "pharmacy.png",
+            5: "primary-health-care.png",
+            6: "residential-facility.png",
+            7: "training-facility.png",
+            8: "specialized-services.png",
+            9: "other.png",
+        }
+        return request.build_absolute_uri(static(os.path.join("images/local_units", code_static_map.get(code, "favicon.png"))))
 
 
 class PrimaryHCC(models.Model):
