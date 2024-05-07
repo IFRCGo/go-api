@@ -97,7 +97,7 @@ class LocalUnitViewSet(viewsets.ModelViewSet):
                     professional_training_facilities=ProfessionalTrainingFacility.objects.all(),
                     general_medical_services=GeneralMedicalService.objects.all(),
                     specialized_medical_services=SpecializedMedicalService.objects.all(),
-                )
+                ), context={'request': request}
             ).data
         )
 

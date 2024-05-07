@@ -121,12 +121,24 @@ class LocalUnitCountrySerializer(serializers.ModelSerializer):
 
 
 class LocalUnitTypeSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = LocalUnitType
         fields = (
-            'name', 'code', 'id'
+            'name',
+            'code',
+            'id',
+            'colour',
+            'image_url',
         )
+
+    def get_image_url(self, facility_type):
+        code = facility_type.code
+        if code and self.context and "request" in self.context:
+            request = self.context["request"]
+            return LocalUnitType.get_image_map(code, request)
+        return None
 
 
 class LocalUnitLevelSerializer(serializers.ModelSerializer):

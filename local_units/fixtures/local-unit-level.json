@@ -36,7 +36,8 @@
         "pk": "1",
         "fields": {
             "code": 1,
-            "name": "Administrative"
+            "name": "Administrative",
+            "colour": "#f5333f"
         }
     },
     {
@@ -44,7 +45,8 @@
         "pk": "2",
         "fields": {
             "code": 2,
-            "name": "Health Care"
+            "name": "Health Care",
+            "colour": "#011e41"
         }
     },
     {
@@ -52,7 +54,8 @@
         "pk": "3",
         "fields": {
             "code": 3,
-            "name": "Emergency Response"
+            "name": "Emergency Response",
+            "colour": "#ff8000"
         }
     },
     {
@@ -60,7 +63,8 @@
         "pk": "4",
         "fields": {
             "code": 4,
-            "name": "Humanitarian Assistance Centres"
+            "name": "Humanitarian Assistance Centres",
+            "colour": "#b68fba"
         }
     },
     {
@@ -68,7 +72,8 @@
         "pk": "5",
         "fields": {
             "code": 5,
-            "name": "Training and Education"
+            "name": "Training and Education",
+            "colour": "#97b8c2"
         }
     },
     {
@@ -76,7 +81,8 @@
         "pk": "6",
         "fields": {
             "code": 6,
-            "name": "Other"
+            "name": "Other",
+            "colour": "#a5a5a5"
         }
     }
 ]

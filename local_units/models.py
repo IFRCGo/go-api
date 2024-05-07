@@ -58,7 +58,7 @@ class FacilityType(models.Model):
             8: "specialized-services.png",
             9: "other.png",
         }
-        return request.build_absolute_uri(static(os.path.join("images/local_units", code_static_map.get(code, "favicon.png"))))
+        return request.build_absolute_uri(static(os.path.join("images/local_units/health_facility_type", code_static_map.get(code, "favicon.png"))))
 
 
 class PrimaryHCC(models.Model):
@@ -286,9 +286,26 @@ class LocalUnitType(models.Model):
         max_length=100,
         verbose_name=_('Name')
     )
+    colour = models.CharField(
+        verbose_name=_('Local Unit Colour'),
+        null=True, blank=True,
+        max_length=50
+    )
 
     def __str__(self):
         return f'{self.name} ({self.code})'
+
+    @staticmethod
+    def get_image_map(code, request):
+        code_static_map = {
+            1: "Admin.png",
+            2: "Healthcare.png",
+            3: "Emergency response.png",
+            4: "Hum Assistance Centres.png",
+            5: "Training & Education.png",
+            6: "Other.png",
+        }
+        return request.build_absolute_uri(static(os.path.join("images/local_units/local_unit_type", code_static_map.get(code, "favicon.png"))))
 
 
 class LocalUnitLevel(models.Model):
