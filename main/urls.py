@@ -176,7 +176,8 @@ router.register(r"pdf-export", api_views.ExportViewSet, basename="export")
 router.register(r"country-plan", country_plan_views.CountryPlanViewset, basename="country_plan")
 
 # local units apis
-router.register(r"local-units", local_units_views.LocalUnitViewSet, basename="local_units")
+router.register(r"local-units", local_units_views.PrivateLocalUnitViewSet, basename="local_units")
+router.register(r"public-local-units", local_units_views.LocalUnitViewSet, basename="public_local_units")
 
 # databank
 router.register(r"country-income", data_bank_views.FDRSIncomeViewSet, basename="country_income")
@@ -227,6 +228,8 @@ urlpatterns = [
     # PER options
     url(r"^api/v2/per-options/", per_views.PerOptionsView.as_view()),
     url(r"^api/v2/export-per/(?P<pk>\d+)/", per_views.ExportPerView.as_view()),
+
+    url(r"^api/v2/local-units-options/", local_units_views.LocalUnitOptionsView.as_view()),
 
     url(r"^api/v2/event/(?P<pk>\d+)", api_views.EventViewset.as_view({"get": "retrieve"})),
     url(r"^api/v2/event/(?P<slug>[-\w]+)", api_views.EventViewset.as_view({"get": "retrieve"}, lookup_field="slug")),

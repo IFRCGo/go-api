@@ -1,7 +1,8 @@
 from rest_framework import (
     viewsets,
     permissions,
-    response
+    response,
+    views
 )
 from rest_framework.generics import (
     ListAPIView,
@@ -42,7 +43,7 @@ from local_units.permissions import (
 from api.utils import bad_request
 
 
-class LocalUnitViewSet(viewsets.ModelViewSet):
+class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
     queryset = LocalUnit.objects.select_related(
         'health',
         'country',
@@ -51,41 +52,66 @@ class LocalUnitViewSet(viewsets.ModelViewSet):
     )
     filterset_class = LocalUnitFilters
     search_fields = ('local_branch_name', 'english_branch_name',)
-    permission_classes = [IsAuthenticatedForLocalUnit]
-
-    def get_queryset(self):
-        qs = super().get_queryset()
-        if not self.request.user.is_authenticated:
-            return qs.filter(visibility=VisibilityChoices.PUBLIC)
-        return qs
+    permission_classes = [permissions.IsAuthenticated, IsAuthenticatedForLocalUnit]
 
     def get_serializer_class(self):
-        if self.action == "list" and self.request.user.id:
+        if self.action == "list":
             return PrivateLocalUnitSerializer
-            print
-        elif self.action == "list":
-            return LocalUnitSerializer
-        elif self.action in ['create', 'retrieve', 'update', 'destroy'] and self.request.user.is_authenticated:
-            return PrivateLocalUnitDetailSerializer
-        return LocalUnitDetailSerializer
+        return PrivateLocalUnitDetailSerializer
 
     def destroy(self, request, *args, **kwargs):
         return bad_request('Delete method not allowed')
 
     @extend_schema(
-        request=None,
-        responses=LocalUnitOptionsSerializer
+        responses=PrivateLocalUnitSerializer
     )
     @action(
-        detail=False,
-        url_path="options",
-        methods=("get",),
-        serializer_class=LocalUnitOptionsSerializer,
+        detail=True,
+        url_path="validate",
+        methods=["post"],
+        serializer_class=PrivateLocalUnitSerializer,
+        permission_classes=[permissions.IsAuthenticated, ValidateLocalUnitPermission]
     )
-    def get_options(self, request, pk=None):
+    def get_validate(self, request, pk=None, version=None):
+        local_unit = self.get_object()
+        local_unit.validated = True
+        local_unit.save(update_fields=["validated"])
+        serializer = PrivateLocalUnitSerializer(local_unit, context={"request": request})
+        return response.Response(serializer.data)
+
+
+class LocalUnitViewSet(viewsets.ModelViewSet):
+    queryset = LocalUnit.objects.select_related(
+        'health',
+        'country',
+        'type',
+        'level',
+    ).filter(visibility=VisibilityChoices.PUBLIC)
+    filterset_class = LocalUnitFilters
+    search_fields = ('local_branch_name', 'english_branch_name',)
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return LocalUnitSerializer
+        return LocalUnitDetailSerializer
+
+    def create(self, request, *args, **kwargs):
+        return bad_request('Create method not allowed')
+
+    def update(self, request, *args, **kwargs):
+        return bad_request('Update method not allowed')
+
+    def destroy(self, request, *args, **kwargs):
+        return bad_request('Delete method not allowed')
+
+
+class LocalUnitOptionsView(views.APIView):
+
+    @extend_schema(request=None, responses=LocalUnitOptionsSerializer)
+    def get(self, request, version=None):
         return response.Response(
             LocalUnitOptionsSerializer(
-                instance=dict(
+                dict(
                     type=LocalUnitType.objects.all(),
                     level=LocalUnitLevel.objects.all(),
                     affiliation=Affiliation.objects.all(),
@@ -100,23 +126,6 @@ class LocalUnitViewSet(viewsets.ModelViewSet):
                 ), context={'request': request}
             ).data
         )
-
-    @extend_schema(
-        responses=LocalUnitDetailSerializer
-    )
-    @action(
-        detail=True,
-        url_path="validate",
-        methods=["post"],
-        serializer_class=LocalUnitDetailSerializer,
-        permission_classes=[permissions.IsAuthenticated, ValidateLocalUnitPermission]
-    )
-    def get_validate(self, request, pk=None, version=None):
-        local_unit = self.get_object()
-        local_unit.validated = True
-        local_unit.save(update_fields=["validated"])
-        serializer = LocalUnitDetailSerializer(local_unit, context={"request": request})
-        return response.Response(serializer.data)
 
 
 class DelegationOfficeListAPIView(ListAPIView):
