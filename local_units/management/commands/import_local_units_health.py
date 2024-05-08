@@ -7,7 +7,7 @@ from django.db import transaction
 
 
 from api.models import Country
-from ...models import LocalUnit, LocalUnitType, LocalUnitLevel
+from local_units.models import LocalUnit, LocalUnitType
 from main.managers import BulkCreateManager
 
 
