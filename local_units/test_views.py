@@ -1,4 +1,6 @@
 import factory
+import datetime
+
 from django.contrib.gis.geos import Point
 
 from .models import LocalUnit, LocalUnitType, DelegationOffice, DelegationOfficeType
@@ -8,32 +10,57 @@ from main.test_case import APITestCase
 
 class LocalUnitFactory(factory.django.DjangoModelFactory):
     location = Point(12, 38)
+    date_of_data = factory.fuzzy.FuzzyDate(datetime.date(2024, 1, 2))
 
     class Meta:
         model = LocalUnit
-    location = Point(12, 38)
 
 
 class TestLocalUnitsListView(APITestCase):
     def setUp(self):
+        super().setUp()
         region = Region.objects.create(name=2)
-        country = Country.objects.create(name='Nepal', iso3='NLP', iso='NP', region=region)
-        country_1 = Country.objects.create(name='Philippines', iso3='PHL', iso='PH', region=region)
+        country = Country.objects.create(
+            name='Nepal',
+            iso3='NLP',
+            iso='NP',
+            region=region
+        )
+        country_1 = Country.objects.create(
+            name='Philippines',
+            iso3='PHL',
+            iso='PH',
+            region=region
+        )
         type = LocalUnitType.objects.create(code=0, name='Code 0')
         type_1 = LocalUnitType.objects.create(code=1, name='Code 1')
-        LocalUnitFactory.create_batch(5, country=country, type=type, draft=True, validated=False)
-        LocalUnitFactory.create_batch(5, country=country_1, type=type_1, draft=False, validated=True)
+        LocalUnitFactory.create_batch(
+            5,
+            country=country,
+            type=type,
+            draft=True,
+            validated=False,
+            date_of_data='2023-09-09'
+        )
+        LocalUnitFactory.create_batch(
+            5,
+            country=country_1,
+            type=type_1,
+            draft=False,
+            validated=True,
+            date_of_data='2023-08-08'
+        )
 
     def test_list(self):
         self.authenticate()
         response = self.client.get('/api/v2/local-units/')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 10)
-        self.assertEqual(response.data['results'][0]['location']['coordinates'], [12, 38])
-        self.assertEqual(response.data['results'][0]['country']['name'], 'Nepal')
-        self.assertEqual(response.data['results'][0]['country']['iso3'], 'NLP')
-        self.assertEqual(response.data['results'][0]['type']['name'], 'Code 0')
-        self.assertEqual(response.data['results'][0]['type']['code'], 0)
+        self.assertEqual(response.data['results'][0]['location_details']['coordinates'], [12, 38])
+        self.assertEqual(response.data['results'][0]['country_details']['name'], 'Nepal')
+        self.assertEqual(response.data['results'][0]['country_details']['iso3'], 'NLP')
+        self.assertEqual(response.data['results'][0]['type_details']['name'], 'Code 0')
+        self.assertEqual(response.data['results'][0]['type_details']['code'], 0)
 
     def test_filter(self):
         self.authenticate()
@@ -96,6 +123,7 @@ class TestLocalUnitsListView(APITestCase):
 
 class TestLocalUnitsDetailView(APITestCase):
     def setUp(self):
+        super().setUp()
         region = Region.objects.create(name=2)
         country = Country.objects.create(name='Nepal', iso3='NLP', region=region)
         type = LocalUnitType.objects.create(code=0, name='Code 0')
@@ -106,11 +134,24 @@ class TestLocalUnitsDetailView(APITestCase):
         self.authenticate()
         response = self.client.get(f'/api/v2/local-units/{local_unit.id}/')
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['location']['coordinates'], [12, 38])
-        self.assertEqual(response.data['country']['name'], 'Nepal')
-        self.assertEqual(response.data['country']['iso3'], 'NLP')
-        self.assertEqual(response.data['type']['name'], 'Code 0')
-        self.assertEqual(response.data['type']['code'], 0)
+        self.assertEqual(response.data['location_details']['coordinates'], [12, 38])
+        self.assertEqual(response.data['country_details']['name'], 'Nepal')
+        self.assertEqual(response.data['country_details']['iso3'], 'NLP')
+        self.assertEqual(response.data['type_details']['name'], 'Code 0')
+        self.assertEqual(response.data['type_details']['code'], 0)
+
+    def test_validate_local_units(self):
+        local_unit = LocalUnit.objects.all().first()
+        self.authenticate()
+        url = f'/api/v2/local-units/{local_unit.id}/validate/'
+        data = {}
+        response = self.client.post(url, data=data)
+        self.assert_403(response)
+
+        # authenticate with super user
+        self.client.force_authenticate(self.root_user)
+        response = self.client.post(url, data=data)
+        self.assert_200(response)
 
 
 class DelegationOfficeFactory(factory.django.DjangoModelFactory):

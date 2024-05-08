@@ -1,6 +1,10 @@
+import os
+
 from django.contrib.gis.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils.translation import gettext_lazy as _
+from django.templatetags.static import static
+
 
 from api.models import Country, VisibilityChoices
 
@@ -31,12 +35,30 @@ class Functionality(models.Model):
 
 class FacilityType(models.Model):
     code = models.IntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(99)])
+        validators=[MinValueValidator(0), MaxValueValidator(99)]
+    )
     name = models.CharField(
-        max_length=100, verbose_name=_('Name'))
+        max_length=100,
+        verbose_name=_('Name')
+    )
 
     def __str__(self):
         return f'{self.name} ({self.code})'
+
+    @staticmethod
+    def get_image_map(code, request):
+        code_static_map = {
+            1: "ambulance.png",
+            2: "blood-center.png",
+            3: "hospital.png",
+            4: "pharmacy.png",
+            5: "primary-health-care.png",
+            6: "residential-facility.png",
+            7: "training-facility.png",
+            8: "specialized-services.png",
+            9: "other.png",
+        }
+        return request.build_absolute_uri(static(os.path.join("images/local_units/health_facility_type", code_static_map.get(code, "favicon.png"))))
 
 
 class PrimaryHCC(models.Model):
@@ -110,20 +132,19 @@ class ProfessionalTrainingFacility(models.Model):
 class HealthData(models.Model):
     affiliation = models.ForeignKey(
         Affiliation,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         verbose_name=_('Affiliation'),
-        related_name='health_affiliation',
-        null=True,
+        related_name='health_affiliation'
     )
     other_affiliation = models.CharField(
-        max_length=300, verbose_name=_('Other Affiliation'), blank=True, null=True
+        max_length=300, verbose_name=_('Other Affiliation'),
+        null=True, blank=True
     )
     functionality = models.ForeignKey(
         Functionality,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         verbose_name=_('Functionality'),
         related_name='health_functionality',
-        null=True,
     )
     focal_point_email = models.EmailField(
         max_length=90, verbose_name=_('Focal point email'), blank=True, null=True
@@ -136,10 +157,9 @@ class HealthData(models.Model):
     )
     health_facility_type = models.ForeignKey(
         FacilityType,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         verbose_name=_('Health facility type'),
-        related_name='health_facility_type',
-        null=True,
+        related_name='health_facility_type'
     )
     other_facility_type = models.CharField(
         max_length=300, verbose_name=_('Other facility type'), blank=True, null=True
@@ -266,9 +286,26 @@ class LocalUnitType(models.Model):
         max_length=100,
         verbose_name=_('Name')
     )
+    colour = models.CharField(
+        verbose_name=_('Local Unit Colour'),
+        null=True, blank=True,
+        max_length=50
+    )
 
     def __str__(self):
         return f'{self.name} ({self.code})'
+
+    @staticmethod
+    def get_image_map(code, request):
+        code_static_map = {
+            1: "Admin.png",
+            2: "Healthcare.png",
+            3: "Emergency response.png",
+            4: "Hum Assistance Centres.png",
+            5: "Training & Education.png",
+            6: "Other.png",
+        }
+        return request.build_absolute_uri(static(os.path.join("images/local_units/local_unit_type", code_static_map.get(code, "favicon.png"))))
 
 
 class LocalUnitLevel(models.Model):
@@ -296,15 +333,15 @@ class LocalUnit(models.Model):
     # added to track health local unit data (Table B)
     health = models.ForeignKey(
         HealthData, on_delete=models.SET_NULL, verbose_name=_('Health Data'),
-        related_name='health_data', null=True
+        related_name='health_data', null=True, blank=True
     )
     country = models.ForeignKey(
-        Country, on_delete=models.SET_NULL, verbose_name=_('Country'),
-        related_name='local_unit_country', null=True
+        Country, on_delete=models.CASCADE, verbose_name=_('Country'),
+        related_name='local_unit_country',
     )
     type = models.ForeignKey(
-        LocalUnitType, on_delete=models.SET_NULL, verbose_name=_('Type'),
-        related_name='local_unit_type', null=True
+        LocalUnitType, on_delete=models.CASCADE, verbose_name=_('Type'),
+        related_name='local_unit_type'
     )
     subtype = models.CharField(
         max_length=200,
@@ -318,10 +355,14 @@ class LocalUnit(models.Model):
     )
     local_branch_name = models.CharField(
         max_length=255,
+        null=True,
+        blank=True,
         verbose_name=_('Branch name in local language')
     )
     english_branch_name = models.CharField(
         max_length=255,
+        null=True,
+        blank=True,
         verbose_name=_('Branch name in English')
     )
     created_at = models.DateTimeField(
@@ -335,8 +376,6 @@ class LocalUnit(models.Model):
     date_of_data = models.DateField(
         verbose_name=_('Date of data collection'),
         auto_now=False,
-        blank=True,
-        null=True,
     )
     draft = models.BooleanField(default=False, verbose_name=_('Draft'))
     validated = models.BooleanField(default=False, verbose_name=_('Validated'))
@@ -391,7 +430,12 @@ class LocalUnit(models.Model):
         null=True,
         verbose_name=_('Focal person for English')
     )
-    postcode = models.CharField(max_length=10, null=True, verbose_name=_('Postal code'))
+    postcode = models.CharField(
+        max_length=10,
+        null=True,
+        verbose_name=_('Postal code'),
+        blank=True
+    )
     phone = models.CharField(
         max_length=30,
         blank=True,
@@ -410,7 +454,7 @@ class LocalUnit(models.Model):
         null=True,
         verbose_name=_('Social link')
     )
-    location = models.PointField()
+    location = models.PointField(srid=4326, help_text="Local Unit Location")
 
     def __str__(self):
         branch_name = self.local_branch_name or self.english_branch_name

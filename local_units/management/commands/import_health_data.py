@@ -1,7 +1,9 @@
 # The many-to-many fields should be filled in with values separated by space (or be empty or use none)
 import csv
+
 from django.core.management.base import BaseCommand
 from django.db import transaction
+
 import local_units.models as models
 from main.managers import BulkCreateManager
 
@@ -24,7 +26,7 @@ class Command(BaseCommand):
 
         filename = options["filename"][0]
         with open(filename) as csvfile:
-            reader = csv.DictReader(csvfile, delimiter="\t")
+            reader = csv.DictReader(csvfile)
             bulk_mgr = BulkCreateManager(chunk_size=1000)
 
             # Prefetch
