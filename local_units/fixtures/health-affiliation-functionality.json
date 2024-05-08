@@ -36,6 +36,14 @@
       "pk": 5,
       "fields": {
         "code": 5,
+        "name": "Organizational Facility"
+      }
+    },
+    {
+      "model": "local_units.Affiliation",
+      "pk": 9,
+      "fields": {
+        "code": 9,
         "name": "Other"
       }
     },
@@ -180,6 +188,14 @@
       "pk": 2,
       "fields": {
         "code": 2,
+        "name": "Mental Health Hospital"
+      }
+    },
+    {
+      "model": "local_units.HospitalType",
+      "pk": 9,
+      "fields": {
+        "code": 9,
         "name": "General Hospital"
       }
     },
@@ -385,6 +401,30 @@
     },
     {
       "model": "local_units.SpecializedMedicalService",
+      "pk": 21,
+      "fields": {
+        "code": 21,
+        "name": "Forensics Services"
+      }
+    },
+    {
+      "model": "local_units.SpecializedMedicalService",
+      "pk": 22,
+      "fields": {
+        "code": 22,
+        "name": "SRH"
+      }
+    },
+    {
+      "model": "local_units.SpecializedMedicalService",
+      "pk": 23,
+      "fields": {
+        "code": 23,
+        "name": "Transplantation Services"
+      }
+    },
+    {
+      "model": "local_units.SpecializedMedicalService",
       "pk": 99,
       "fields": {
         "code": 99,
@@ -429,6 +469,14 @@
       "fields": {
         "code": 5,
         "name": "Blood Transfusion"
+      }
+    },
+    {
+      "model": "local_units.BloodService",
+      "pk": 6,
+      "fields": {
+        "code": 6,
+        "name": "Hemopurification, hemofiltration"
       }
     },
     {
