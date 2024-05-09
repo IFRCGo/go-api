@@ -84,6 +84,7 @@ class Command(BaseCommand):
                                 'bloodcenter']
             specializedmedicalservice_id_map['surgicalspecialties'] = specializedmedicalservice_id_map[
                                              'surgicalspecialities']
+
             primaryhcc_id_map[''] = None
             hospitaltype_id_map[''] = None
             generalmedicalservice_id_map[''] = None
@@ -105,15 +106,15 @@ class Command(BaseCommand):
 
                 # field order is the same as in the example CSV:
                 f_id = row["DATA SOURCE ID"]
-                f_fpe = row["Focal point email"][:90]
-                f_fpf = row["Focal point phone number"][:90]
-                f_fpp = row["Focal point position"][:90]
+                f_fpe = row["Focal point email"]
+                f_fpf = row["Focal point phone number"]
+                f_fpp = row["Focal point position"]
                 f_hft = wash(row["Health facility type"])
-                f_oft = row["Other facility type"][:300]
+                f_oft = row["Other facility type"]
                 f_aff = wash(row["Affilation"])
                 f_fun = wash(row["Functionality"])
                 f_phc = wash(row["Primary Health Care Centre"])
-                f_spc = row["Speciality"][:200]
+                f_spc = row["Speciality"]
                 f_hst = wash(row["Hospital type"])
                 f_ths = row["Teaching hospital"]
                 f_ipc = row["In-patient Capacity"]
@@ -124,7 +125,7 @@ class Command(BaseCommand):
                 f_cch = row["Cold chain"]
                 f_gms = wash_leave_space(row["General medical services"])  # m2m
                 f_spm = wash_leave_space(row["Specialized medical beyond primary level"])  # m2m
-                f_ots = row["Other Services"][:300]
+                f_ots = row["Other Services"]
                 f_bls = wash_leave_space(row["Blood Services"])  # m2m
                 f_tnh = numerize(row["Total number of Human Resource"])
                 f_gpr = numerize(row["General Practitioner"])
@@ -135,9 +136,9 @@ class Command(BaseCommand):
                 f_nur = numerize(row["Nursing Aid"])
                 f_mid = numerize(row["Midwife"])
                 f_omh = row["Other medical health workers"]
-                f_opr = row["Other Profiles"][:200]
-                f_fbk = row["Feedback"][:500]
-                f_oaf = row["Other Affiliation"][:300]
+                f_opr = row["Other Profiles"]
+                f_fbk = row["Feedback"]
+                f_oaf = row["Other Affiliation"]
                 f_ptf = wash_leave_space(row["Professional Training Facilities"])  # m2m
                 f_ata = row["Ambulance Type A"]
                 f_atb = row["Ambulance Type B"]
