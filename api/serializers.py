@@ -6,6 +6,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.db import transaction
+from django.db import models
 from django.contrib.auth.models import Permission
 from django.utils.translation import get_language as django_get_language
 
@@ -775,18 +776,19 @@ class CountryRelationSerializer(ModelSerializer):
         return country.centroid and json.loads(country.centroid.geojson)
 
     @extend_schema_field(
-        MiniDelegationOfficeSerializer
+        MiniDelegationOfficeSerializer(many=True)
     )
     def get_country_delegation(self, country):
         return DelegationOffice.objects.filter(
-            dotype__name="Country Delegation",
             country=country,
         ).values(
             'hod_first_name',
             'hod_last_name',
             'hod_mobile_number',
             'hod_email',
-        ).first()
+        ).annotate(
+            dotype_name=models.F('dotype__name')
+        ).distinct()
 
 
 class CountryKeyDocumentSerializer(ModelSerializer):

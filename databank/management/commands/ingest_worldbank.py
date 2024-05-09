@@ -109,6 +109,6 @@ class Command(BaseCommand):
                         'world_bank_life_expectancy',
                         'world_bank_literacy_rate',
                         'world_bank_poverty_rate',
-                        'world_bank_gni_capita'
+                        'world_bank_gni_capita',
                     ]
                 )
