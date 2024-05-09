@@ -18,19 +18,22 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('filename', nargs='+', type=str)
 
-    def parse_date(self, date):
-        if not date:
-            return
-
-        possible_date_format = ('%d-%b-%y', '%m/%d/%Y')
-        for date_format in possible_date_format:
-            try:
-                return datetime.strptime(date, date_format).strftime("%Y-%m-%d")
-            except ValueError:
-                pass
-
     @transaction.atomic
     def handle(self, *args, **options):
+
+        def parse_date(date):
+            today = datetime.today()
+            if not date:
+                return today.strftime("%Y-%m-%d")
+                # date_of_data is a non-nullable field, so we need at least this ^
+
+            possible_date_format = ('%d-%b-%y', '%m/%d/%Y', '%Y-%m-%d')
+            for date_format in possible_date_format:
+                try:
+                    return datetime.strptime(date, date_format).strftime("%Y-%m-%d")
+                except ValueError:
+                    return today.strftime("%Y-%m-%d")
+
         filename = options['filename'][0]
         with open(filename) as csvfile:
             reader = csv.DictReader(csvfile)
@@ -83,7 +86,7 @@ class Command(BaseCommand):
                 source_loc = row['SOURCE_LOC']
                 location = Point(float(row['LONGITUDE']), float(row['LATITUDE']))
                 visibility = 3 if row['VISIBILITY'].lower() == 'public' else 1
-                date_of_data = row['DATE OF UPDATE']
+                date_of_data = parse_date(row['DATE OF UPDATE'])
                 local_unit = LocalUnit(
                     level_id=level_id,
                     country_id=country,
