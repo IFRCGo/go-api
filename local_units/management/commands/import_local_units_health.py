@@ -55,7 +55,7 @@ class Command(BaseCommand):
                         self.style.WARNING(f'Skipping row {i}: Empty locations point')
                     )
                     continue
-                if not row['NAME_LOC'] or not ['NAME_EN']:
+                if not row['NAME_LOC'] and not ['NAME_EN']:
                     self.stdout.write(
                         self.style.WARNING(f'Skipping row {i}: Empty brach name combination')
                     )
