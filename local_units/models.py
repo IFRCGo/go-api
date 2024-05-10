@@ -136,8 +136,8 @@ class HealthData(models.Model):
         verbose_name=_('Affiliation'),
         related_name='health_affiliation'
     )
-    other_affiliation = models.CharField(
-        max_length=300, verbose_name=_('Other Affiliation'),
+    other_affiliation = models.TextField(
+        verbose_name=_('Other Affiliation'),
         null=True, blank=True
     )
     functionality = models.ForeignKey(
@@ -147,13 +147,13 @@ class HealthData(models.Model):
         related_name='health_functionality',
     )
     focal_point_email = models.EmailField(
-        max_length=90, verbose_name=_('Focal point email'), blank=True, null=True
+        max_length=255, verbose_name=_('Focal point email'), blank=True, null=True
     )
     focal_point_phone_number = models.CharField(
-        max_length=90, verbose_name=_('Focal point phone number'), blank=True, null=True
+        max_length=255, verbose_name=_('Focal point phone number'), blank=True, null=True
     )
     focal_point_position = models.CharField(
-        max_length=90, verbose_name=_('Focal point position'), blank=True, null=True
+        max_length=255, verbose_name=_('Focal point position'), blank=True, null=True
     )
     health_facility_type = models.ForeignKey(
         FacilityType,
@@ -161,8 +161,8 @@ class HealthData(models.Model):
         verbose_name=_('Health facility type'),
         related_name='health_facility_type'
     )
-    other_facility_type = models.CharField(
-        max_length=300, verbose_name=_('Other facility type'), blank=True, null=True
+    other_facility_type = models.TextField(
+        verbose_name=_('Other facility type'), blank=True, null=True
     )
     primary_health_care_center = models.ForeignKey(
         PrimaryHCC,
@@ -172,7 +172,7 @@ class HealthData(models.Model):
         null=True,
     )
     speciality = models.CharField(
-        max_length=200, verbose_name=_('Speciality'), blank=True, null=True
+        max_length=255, verbose_name=_('Speciality'), blank=True, null=True
     )
     hospital_type = models.ForeignKey(
         HospitalType,
@@ -223,8 +223,8 @@ class HealthData(models.Model):
         verbose_name=_('Specialized medical beyond primary level'),
         blank=True,
     )
-    other_services = models.CharField(
-        max_length=300, verbose_name=_('Other Services'), blank=True, null=True
+    other_services = models.TextField(
+        verbose_name=_('Other Services'), blank=True, null=True
     )
     blood_services = models.ManyToManyField(
         BloodService,
@@ -262,8 +262,8 @@ class HealthData(models.Model):
     other_profiles = models.CharField(
         max_length=200, verbose_name=_('Other Profiles'), blank=True, null=True
     )
-    feedback = models.CharField(
-        max_length=500, verbose_name=_('Feedback'), blank=True, null=True
+    feedback = models.TextField(
+        verbose_name=_('Feedback'), blank=True, null=True
     )
 
     def __str__(self):

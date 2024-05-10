@@ -44,7 +44,8 @@ class LocalUnitAdmin(admin.OSMGeoAdmin):
     autocomplete_fields = (
         'country',
         'type',
-        'level'
+        'level',
+        'health',
     )
     list_filter = (
         AutocompleteFilterFactory('Country', 'country'),
@@ -131,7 +132,19 @@ class ProfessionalTrainingFacilityAdmin(admin.ModelAdmin):
 
 @admin.register(HealthData)
 class HealthDataAdmin(admin.ModelAdmin):
-    search_fields = ('affiliation__name',)
+    autocomplete_fields = [
+        'affiliation',
+        'functionality',
+        'health_facility_type',
+        'primary_health_care_center',
+        'hospital_type',
+        'general_medical_services',
+        'specialized_medical_beyond_primary_level',
+        'blood_services',
+        'professional_training_facilities',
+    ]
+
+    search_fields = ('affiliation__name', 'health_facility_type__name')
     list_filter = (
         AutocompleteFilterFactory('Country', 'health_data__country'),
         AutocompleteFilterFactory('Affiliation', 'affiliation'),
