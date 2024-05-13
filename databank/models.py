@@ -523,6 +523,10 @@ class CountryOverview(models.Model):
         verbose_name=_('world bank poverty rate'),
         null=True, blank=True
     )
+    world_bank_gni_capita = models.IntegerField(
+        verbose_name=_('world bank GNI Per Capita'),
+        null=True, blank=True
+    )
 
     # fetched from unicef
     unicef_population_under_18 = models.IntegerField(

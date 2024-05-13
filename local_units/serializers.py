@@ -352,6 +352,8 @@ class LocalUnitOptionsSerializer(serializers.Serializer):
 
 
 class MiniDelegationOfficeSerializer(serializers.ModelSerializer):
+    dotype_name = serializers.CharField(source='dotype.name', read_only=True)
+
     class Meta:
         model = DelegationOffice
         fields = (
@@ -359,4 +361,5 @@ class MiniDelegationOfficeSerializer(serializers.ModelSerializer):
             'hod_last_name',
             'hod_mobile_number',
             'hod_email',
+            'dotype_name'
         )
