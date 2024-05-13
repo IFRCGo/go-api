@@ -1,7 +1,9 @@
 # The many-to-many fields should be filled in with values separated by space (or be empty or use none)
 import csv
+
 from django.core.management.base import BaseCommand
 from django.db import transaction
+
 import local_units.models as models
 from main.managers import BulkCreateManager
 
@@ -17,14 +19,17 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
 
         def wash(string):
-            return string.lower().replace("/", "").replace("_", "").replace(" ", "")
+            return string.lower().replace("/", "").replace("_", "").replace(",", "").replace(" ", "")
 
         def wash_leave_space(string):
-            return string.lower().replace("/", "").replace("_", "")
+            return string.lower().replace("/", "").replace("_", "").replace(",", "")
+
+        def numerize(value):
+            return value if value.isdigit() else 0
 
         filename = options["filename"][0]
         with open(filename) as csvfile:
-            reader = csv.DictReader(csvfile, delimiter="\t")
+            reader = csv.DictReader(csvfile)
             bulk_mgr = BulkCreateManager(chunk_size=1000)
 
             # Prefetch
@@ -79,6 +84,7 @@ class Command(BaseCommand):
                                 'bloodcenter']
             specializedmedicalservice_id_map['surgicalspecialties'] = specializedmedicalservice_id_map[
                                              'surgicalspecialities']
+
             primaryhcc_id_map[''] = None
             hospitaltype_id_map[''] = None
             generalmedicalservice_id_map[''] = None
@@ -121,14 +127,14 @@ class Command(BaseCommand):
                 f_spm = wash_leave_space(row["Specialized medical beyond primary level"])  # m2m
                 f_ots = row["Other Services"]
                 f_bls = wash_leave_space(row["Blood Services"])  # m2m
-                f_tnh = row["Total number of Human Resource"]
-                f_gpr = row["General Practitioner"]
-                f_spt = row["Specialist"]
-                f_rdr = row["Residents Doctor"]
-                f_nrs = row["Nurse"]
-                f_dts = row["Dentist"]
-                f_nur = row["Nursing Aid"]
-                f_mid = row["Midwife"]
+                f_tnh = numerize(row["Total number of Human Resource"])
+                f_gpr = numerize(row["General Practitioner"])
+                f_spt = numerize(row["Specialist"])
+                f_rdr = numerize(row["Residents Doctor"])
+                f_nrs = numerize(row["Nurse"])
+                f_dts = numerize(row["Dentist"])
+                f_nur = numerize(row["Nursing Aid"])
+                f_mid = numerize(row["Midwife"])
                 f_omh = row["Other medical health workers"]
                 f_opr = row["Other Profiles"]
                 f_fbk = row["Feedback"]

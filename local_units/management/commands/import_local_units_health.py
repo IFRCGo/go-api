@@ -7,7 +7,7 @@ from django.db import transaction
 
 
 from api.models import Country
-from ...models import LocalUnit, LocalUnitType, LocalUnitLevel
+from local_units.models import LocalUnit, LocalUnitType
 from main.managers import BulkCreateManager
 
 
@@ -18,19 +18,22 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('filename', nargs='+', type=str)
 
-    def parse_date(self, date):
-        if not date:
-            return
-
-        possible_date_format = ('%d-%b-%y', '%m/%d/%Y')
-        for date_format in possible_date_format:
-            try:
-                return datetime.strptime(date, date_format).strftime("%Y-%m-%d")
-            except ValueError:
-                pass
-
     @transaction.atomic
     def handle(self, *args, **options):
+
+        def parse_date(date):
+            today = datetime.today()
+            if not date:
+                return today.strftime("%Y-%m-%d")
+                # date_of_data is a non-nullable field, so we need at least this ^
+
+            possible_date_format = ('%d-%b-%y', '%m/%d/%Y', '%Y-%m-%d')
+            for date_format in possible_date_format:
+                try:
+                    return datetime.strptime(date, date_format).strftime("%Y-%m-%d")
+                except ValueError:
+                    return today.strftime("%Y-%m-%d")
+
         filename = options['filename'][0]
         with open(filename) as csvfile:
             reader = csv.DictReader(csvfile)
@@ -40,19 +43,9 @@ class Command(BaseCommand):
                 country_name.lower(): _id
                 for _id, country_name in Country.objects.values_list('id', 'name')
             }
-# not used still now:
-            country_iso3_id_map = {
-                iso3.lower(): _id
-                for _id, iso3 in Country.objects.filter(iso3__isnull=False).values_list('id', 'iso3')
-            }
             local_unit_id_map = {
                 code: _id
                 for _id, code in LocalUnitType.objects.values_list('id', 'code')
-            }
-# not used still now:
-            local_unit_level_id_map = {
-                level: _id
-                for _id, level in LocalUnitLevel.objects.values_list('id', 'level')
             }
 
             for i, row in enumerate(reader, start=2):
@@ -60,6 +53,11 @@ class Command(BaseCommand):
                 if not row['LONGITUDE'] or not row['LATITUDE']:
                     self.stdout.write(
                         self.style.WARNING(f'Skipping row {i}: Empty locations point')
+                    )
+                    continue
+                if not row['NAME_LOC'] and not ['NAME_EN']:
+                    self.stdout.write(
+                        self.style.WARNING(f'Skipping row {i}: Empty brach name combination')
                     )
                     continue
 
@@ -87,34 +85,33 @@ class Command(BaseCommand):
                 source_en = row['SOURCE_EN']
                 source_loc = row['SOURCE_LOC']
                 location = Point(float(row['LONGITUDE']), float(row['LATITUDE']))
-                date_of_data = row['DATE OF UPDATE']
-
-                if row['DATE OF UPDATE']:
-                    date_of_data = self.parse_date(row['DATEOFUPDATE'])
+                visibility = 3 if row['VISIBILITY'].lower() == 'public' else 1
+                date_of_data = parse_date(row['DATE OF UPDATE'])
                 local_unit = LocalUnit(
-                    level_id = level_id,
+                    level_id=level_id,
                     country_id=country,
                     type_id=type,
-                    subtype = subtype,
-                    visibility=visibility,
+                    # is_public=is_public,
                     validated=validated,
                     local_branch_name=local_branch_name,
                     english_branch_name=english_branch_name,
                     focal_person_loc=focal_person_loc,
-                    focal_person_en = focal_person_en,
+                    focal_person_en=focal_person_en,
                     location=location,
-                    postcode = postcode,
+                    postcode=postcode,
                     address_loc=address_loc,
-                    address_en = address_en,
-                    city_loc = city_loc,
-                    city_en = city_en,
-                    phone = phone,
-                    email = email,
-                    link = link,
-                    source_loc = source_loc,
-                    source_en = source_en,
+                    address_en=address_en,
+                    city_loc=city_loc,
+                    city_en=city_en,
+                    phone=phone,
+                    email=email,
+                    link=link,
+                    source_loc=source_loc,
+                    source_en=source_en,
                     date_of_data=date_of_data,
-                    health_id=health_id
+                    health_id=health_id,
+                    visibility=visibility,
+                    subtype=subtype,
                 )
                 bulk_mgr.add(local_unit)
             bulk_mgr.done()

@@ -1,67 +1,506 @@
 [
-    {"model": "local_units.Affiliation", "pk": 1, "fields": {"code": 1, "name": "Red Cross / Red Crescent Facility"}},
-    {"model": "local_units.Affiliation", "pk": 2, "fields": {"code": 2, "name": "Public Government Facility"}},
-    {"model": "local_units.Affiliation", "pk": 3, "fields": {"code": 3, "name": "Governmental Facility"}},
-    {"model": "local_units.Affiliation", "pk": 4, "fields": {"code": 4, "name": "Private Facility"}},
-    {"model": "local_units.Affiliation", "pk": 5, "fields": {"code": 5, "name": "Other"}},
-
-    {"model": "local_units.Functionality", "pk": 1, "fields": {"code": 1, "name": "Fully Functional"}},
-    {"model": "local_units.Functionality", "pk": 2, "fields": {"code": 2, "name": "Partially Functional"}},
-    {"model": "local_units.Functionality", "pk": 3, "fields": {"code": 3, "name": "Not Functional"}},
-    {"model": "local_units.Functionality", "pk": 4, "fields": {"code": 4, "name": "No information"}},
-
-    {"model": "local_units.FacilityType", "pk": 1, "fields": {"code": 1, "name": "Ambulance Station"}},
-    {"model": "local_units.FacilityType", "pk": 2, "fields": {"code": 2, "name": "Blood Center"}},
-    {"model": "local_units.FacilityType", "pk": 3, "fields": {"code": 3, "name": "Hospital"}},
-    {"model": "local_units.FacilityType", "pk": 4, "fields": {"code": 4, "name": "Pharmacy"}},
-    {"model": "local_units.FacilityType", "pk": 5, "fields": {"code": 5, "name": "Primary Health Care Center"}},
-    {"model": "local_units.FacilityType", "pk": 6, "fields": {"code": 6, "name": "Residential Facility"}},
-    {"model": "local_units.FacilityType", "pk": 7, "fields": {"code": 7, "name": "Training Facility"}},
-    {"model": "local_units.FacilityType", "pk": 8, "fields": {"code": 8, "name": "Specialized Services"}},
-    {"model": "local_units.FacilityType", "pk": 9, "fields": {"code": 9, "name": "Other"}},
-
-    {"model": "local_units.PrimaryHCC", "pk": 1, "fields": {"code": 1, "name": "Medical Practices"}},
-    {"model": "local_units.PrimaryHCC", "pk": 2, "fields": {"code": 2, "name": "Dental Practices"}},
-    {"model": "local_units.PrimaryHCC", "pk": 3, "fields": {"code": 3, "name": "Other Health Care Practitioner"}},
-
-    {"model": "local_units.HospitalType", "pk": 1, "fields": {"code": 1, "name": "Specialised Hospital Non Mh"}},
-    {"model": "local_units.HospitalType", "pk": 2, "fields": {"code": 2, "name": "General Hospital"}},
-
-    {"model": "local_units.GeneralMedicalService", "pk": 1, "fields": {"code": 1, "name": "Minor Trauma"}},
-    {"model": "local_units.GeneralMedicalService", "pk": 2, "fields": {"code": 2, "name": "Outpatient Services"}},
-    {"model": "local_units.GeneralMedicalService", "pk": 3, "fields": {"code": 3, "name": "Basic Lab Services"}},
-    {"model": "local_units.GeneralMedicalService", "pk": 4, "fields": {"code": 4, "name": "Basic Life Support"}},
-    {"model": "local_units.GeneralMedicalService", "pk": 5, "fields": {"code": 5, "name": "Referral Capacity"}},
-
-    {"model": "local_units.SpecializedMedicalService", "pk": 1,  "fields": {"code": 1,  "name": "Anaesthesiology"}},
-    {"model": "local_units.SpecializedMedicalService", "pk": 2,  "fields": {"code": 2,  "name": "Blood Transfusion"}},
-    {"model": "local_units.SpecializedMedicalService", "pk": 3,  "fields": {"code": 3,  "name": "Dentistry and Oral Surgery"}},
-    {"model": "local_units.SpecializedMedicalService", "pk": 4,  "fields": {"code": 4,  "name": "Emergency pre hospital care"}},
-    {"model": "local_units.SpecializedMedicalService", "pk": 5,  "fields": {"code": 5,  "name": "Gynaecology Obstetrics"}},
-    {"model": "local_units.SpecializedMedicalService", "pk": 6,  "fields": {"code": 6,  "name": "Intensive Care Medicine"}},
-    {"model": "local_units.SpecializedMedicalService", "pk": 7,  "fields": {"code": 7,  "name": "Internal Medicine"}},
-    {"model": "local_units.SpecializedMedicalService", "pk": 8,  "fields": {"code": 8,  "name": "Laboratory services advanced"}},
-    {"model": "local_units.SpecializedMedicalService", "pk": 9,  "fields": {"code": 9,  "name": "Malnutrition Services"}},
-    {"model": "local_units.SpecializedMedicalService", "pk": 10, "fields": {"code": 10, "name": "Mental Health"}},
-    {"model": "local_units.SpecializedMedicalService", "pk": 11, "fields": {"code": 11, "name": "Neonatalogy"}},
-    {"model": "local_units.SpecializedMedicalService", "pk": 12, "fields": {"code": 12, "name": "Oncology"}},
-    {"model": "local_units.SpecializedMedicalService", "pk": 13, "fields": {"code": 13, "name": "Ophthalmology"}},
-    {"model": "local_units.SpecializedMedicalService", "pk": 14, "fields": {"code": 14, "name": "Orthopaedics"}},
-    {"model": "local_units.SpecializedMedicalService", "pk": 15, "fields": {"code": 15, "name": "Otorhinolaryngology"}},
-    {"model": "local_units.SpecializedMedicalService", "pk": 16, "fields": {"code": 16, "name": "Paediatrics"}},
-    {"model": "local_units.SpecializedMedicalService", "pk": 17, "fields": {"code": 17, "name": "Radiology"}},
-    {"model": "local_units.SpecializedMedicalService", "pk": 18, "fields": {"code": 18, "name": "Rehabilitation"}},
-    {"model": "local_units.SpecializedMedicalService", "pk": 19, "fields": {"code": 19, "name": "Research"}},
-    {"model": "local_units.SpecializedMedicalService", "pk": 20, "fields": {"code": 20, "name": "Surgical Specialities"}},
-    {"model": "local_units.SpecializedMedicalService", "pk": 99, "fields": {"code": 99, "name": "Other"}},
-
-    {"model": "local_units.BloodService", "pk": 1, "fields": {"code": 1, "name": "Blood Collection"}},
-    {"model": "local_units.BloodService", "pk": 2, "fields": {"code": 2, "name": "Blood Testing"}},
-    {"model": "local_units.BloodService", "pk": 3, "fields": {"code": 3, "name": "Blood Component Preparation"}},
-    {"model": "local_units.BloodService", "pk": 4, "fields": {"code": 4, "name": "Blood Product Distribution"}},
-    {"model": "local_units.BloodService", "pk": 5, "fields": {"code": 5, "name": "Blood Transfusion"}},
-
-    {"model": "local_units.ProfessionalTrainingFacility", "pk": 1, "fields": {"code": 1, "name": "Nurses"}},
-    {"model": "local_units.ProfessionalTrainingFacility", "pk": 2, "fields": {"code": 2, "name": "Paramedics / EMT"}},
-    {"model": "local_units.ProfessionalTrainingFacility", "pk": 9, "fields": {"code": 9, "name": "Other"}}
-]
+    {
+      "model": "local_units.Affiliation",
+      "pk": 1,
+      "fields": {
+        "code": 1,
+        "name": "Red Cross / Red Crescent Facility"
+      }
+    },
+    {
+      "model": "local_units.Affiliation",
+      "pk": 2,
+      "fields": {
+        "code": 2,
+        "name": "Public Government Facility"
+      }
+    },
+    {
+      "model": "local_units.Affiliation",
+      "pk": 3,
+      "fields": {
+        "code": 3,
+        "name": "Governmental Facility"
+      }
+    },
+    {
+      "model": "local_units.Affiliation",
+      "pk": 4,
+      "fields": {
+        "code": 4,
+        "name": "Private Facility"
+      }
+    },
+    {
+      "model": "local_units.Affiliation",
+      "pk": 5,
+      "fields": {
+        "code": 5,
+        "name": "Organizational Facility"
+      }
+    },
+    {
+      "model": "local_units.Affiliation",
+      "pk": 9,
+      "fields": {
+        "code": 9,
+        "name": "Other"
+      }
+    },
+    {
+      "model": "local_units.Functionality",
+      "pk": 1,
+      "fields": {
+        "code": 1,
+        "name": "Fully Functional"
+      }
+    },
+    {
+      "model": "local_units.Functionality",
+      "pk": 2,
+      "fields": {
+        "code": 2,
+        "name": "Partially Functional"
+      }
+    },
+    {
+      "model": "local_units.Functionality",
+      "pk": 3,
+      "fields": {
+        "code": 3,
+        "name": "Not Functional"
+      }
+    },
+    {
+      "model": "local_units.Functionality",
+      "pk": 4,
+      "fields": {
+        "code": 4,
+        "name": "No information"
+      }
+    },
+    {
+      "model": "local_units.FacilityType",
+      "pk": 1,
+      "fields": {
+        "code": 1,
+        "name": "Ambulance Station"
+      }
+    },
+    {
+      "model": "local_units.FacilityType",
+      "pk": 2,
+      "fields": {
+        "code": 2,
+        "name": "Blood Center"
+      }
+    },
+    {
+      "model": "local_units.FacilityType",
+      "pk": 3,
+      "fields": {
+        "code": 3,
+        "name": "Hospital"
+      }
+    },
+    {
+      "model": "local_units.FacilityType",
+      "pk": 4,
+      "fields": {
+        "code": 4,
+        "name": "Pharmacy"
+      }
+    },
+    {
+      "model": "local_units.FacilityType",
+      "pk": 5,
+      "fields": {
+        "code": 5,
+        "name": "Primary Health Care Center"
+      }
+    },
+    {
+      "model": "local_units.FacilityType",
+      "pk": 6,
+      "fields": {
+        "code": 6,
+        "name": "Residential Facility"
+      }
+    },
+    {
+      "model": "local_units.FacilityType",
+      "pk": 7,
+      "fields": {
+        "code": 7,
+        "name": "Training Facility"
+      }
+    },
+    {
+      "model": "local_units.FacilityType",
+      "pk": 8,
+      "fields": {
+        "code": 8,
+        "name": "Specialized Services"
+      }
+    },
+    {
+      "model": "local_units.FacilityType",
+      "pk": 9,
+      "fields": {
+        "code": 9,
+        "name": "Other"
+      }
+    },
+    {
+      "model": "local_units.PrimaryHCC",
+      "pk": 1,
+      "fields": {
+        "code": 1,
+        "name": "Medical Practices"
+      }
+    },
+    {
+      "model": "local_units.PrimaryHCC",
+      "pk": 2,
+      "fields": {
+        "code": 2,
+        "name": "Dental Practices"
+      }
+    },
+    {
+      "model": "local_units.PrimaryHCC",
+      "pk": 3,
+      "fields": {
+        "code": 3,
+        "name": "Other Health Care Practitioner"
+      }
+    },
+    {
+      "model": "local_units.HospitalType",
+      "pk": 1,
+      "fields": {
+        "code": 1,
+        "name": "Specialised Hospital Non Mh"
+      }
+    },
+    {
+      "model": "local_units.HospitalType",
+      "pk": 2,
+      "fields": {
+        "code": 2,
+        "name": "Mental Health Hospital"
+      }
+    },
+    {
+      "model": "local_units.HospitalType",
+      "pk": 9,
+      "fields": {
+        "code": 9,
+        "name": "General Hospital"
+      }
+    },
+    {
+      "model": "local_units.GeneralMedicalService",
+      "pk": 1,
+      "fields": {
+        "code": 1,
+        "name": "Minor Trauma"
+      }
+    },
+    {
+      "model": "local_units.GeneralMedicalService",
+      "pk": 2,
+      "fields": {
+        "code": 2,
+        "name": "Outpatient Services"
+      }
+    },
+    {
+      "model": "local_units.GeneralMedicalService",
+      "pk": 3,
+      "fields": {
+        "code": 3,
+        "name": "Basic Lab Services"
+      }
+    },
+    {
+      "model": "local_units.GeneralMedicalService",
+      "pk": 4,
+      "fields": {
+        "code": 4,
+        "name": "Basic Life Support"
+      }
+    },
+    {
+      "model": "local_units.GeneralMedicalService",
+      "pk": 5,
+      "fields": {
+        "code": 5,
+        "name": "Referral Capacity"
+      }
+    },
+    {
+      "model": "local_units.SpecializedMedicalService",
+      "pk": 1,
+      "fields": {
+        "code": 1,
+        "name": "Anaesthesiology"
+      }
+    },
+    {
+      "model": "local_units.SpecializedMedicalService",
+      "pk": 2,
+      "fields": {
+        "code": 2,
+        "name": "Blood Transfusion"
+      }
+    },
+    {
+      "model": "local_units.SpecializedMedicalService",
+      "pk": 3,
+      "fields": {
+        "code": 3,
+        "name": "Dentistry and Oral Surgery"
+      }
+    },
+    {
+      "model": "local_units.SpecializedMedicalService",
+      "pk": 4,
+      "fields": {
+        "code": 4,
+        "name": "Emergency pre hospital care"
+      }
+    },
+    {
+      "model": "local_units.SpecializedMedicalService",
+      "pk": 5,
+      "fields": {
+        "code": 5,
+        "name": "Gynaecology Obstetrics"
+      }
+    },
+    {
+      "model": "local_units.SpecializedMedicalService",
+      "pk": 6,
+      "fields": {
+        "code": 6,
+        "name": "Intensive Care Medicine"
+      }
+    },
+    {
+      "model": "local_units.SpecializedMedicalService",
+      "pk": 7,
+      "fields": {
+        "code": 7,
+        "name": "Internal Medicine"
+      }
+    },
+    {
+      "model": "local_units.SpecializedMedicalService",
+      "pk": 8,
+      "fields": {
+        "code": 8,
+        "name": "Laboratory services advanced"
+      }
+    },
+    {
+      "model": "local_units.SpecializedMedicalService",
+      "pk": 9,
+      "fields": {
+        "code": 9,
+        "name": "Malnutrition Services"
+      }
+    },
+    {
+      "model": "local_units.SpecializedMedicalService",
+      "pk": 10,
+      "fields": {
+        "code": 10,
+        "name": "Mental Health"
+      }
+    },
+    {
+      "model": "local_units.SpecializedMedicalService",
+      "pk": 11,
+      "fields": {
+        "code": 11,
+        "name": "Neonatalogy"
+      }
+    },
+    {
+      "model": "local_units.SpecializedMedicalService",
+      "pk": 12,
+      "fields": {
+        "code": 12,
+        "name": "Oncology"
+      }
+    },
+    {
+      "model": "local_units.SpecializedMedicalService",
+      "pk": 13,
+      "fields": {
+        "code": 13,
+        "name": "Ophthalmology"
+      }
+    },
+    {
+      "model": "local_units.SpecializedMedicalService",
+      "pk": 14,
+      "fields": {
+        "code": 14,
+        "name": "Orthopaedics"
+      }
+    },
+    {
+      "model": "local_units.SpecializedMedicalService",
+      "pk": 15,
+      "fields": {
+        "code": 15,
+        "name": "Otorhinolaryngology"
+      }
+    },
+    {
+      "model": "local_units.SpecializedMedicalService",
+      "pk": 16,
+      "fields": {
+        "code": 16,
+        "name": "Paediatrics"
+      }
+    },
+    {
+      "model": "local_units.SpecializedMedicalService",
+      "pk": 17,
+      "fields": {
+        "code": 17,
+        "name": "Radiology"
+      }
+    },
+    {
+      "model": "local_units.SpecializedMedicalService",
+      "pk": 18,
+      "fields": {
+        "code": 18,
+        "name": "Rehabilitation"
+      }
+    },
+    {
+      "model": "local_units.SpecializedMedicalService",
+      "pk": 19,
+      "fields": {
+        "code": 19,
+        "name": "Research"
+      }
+    },
+    {
+      "model": "local_units.SpecializedMedicalService",
+      "pk": 20,
+      "fields": {
+        "code": 20,
+        "name": "Surgical Specialities"
+      }
+    },
+    {
+      "model": "local_units.SpecializedMedicalService",
+      "pk": 21,
+      "fields": {
+        "code": 21,
+        "name": "Forensics Services"
+      }
+    },
+    {
+      "model": "local_units.SpecializedMedicalService",
+      "pk": 22,
+      "fields": {
+        "code": 22,
+        "name": "SRH"
+      }
+    },
+    {
+      "model": "local_units.SpecializedMedicalService",
+      "pk": 23,
+      "fields": {
+        "code": 23,
+        "name": "Transplantation Services"
+      }
+    },
+    {
+      "model": "local_units.SpecializedMedicalService",
+      "pk": 99,
+      "fields": {
+        "code": 99,
+        "name": "Other"
+      }
+    },
+    {
+      "model": "local_units.BloodService",
+      "pk": 1,
+      "fields": {
+        "code": 1,
+        "name": "Blood Collection"
+      }
+    },
+    {
+      "model": "local_units.BloodService",
+      "pk": 2,
+      "fields": {
+        "code": 2,
+        "name": "Blood Testing"
+      }
+    },
+    {
+      "model": "local_units.BloodService",
+      "pk": 3,
+      "fields": {
+        "code": 3,
+        "name": "Blood Component Preparation"
+      }
+    },
+    {
+      "model": "local_units.BloodService",
+      "pk": 4,
+      "fields": {
+        "code": 4,
+        "name": "Blood Product Distribution"
+      }
+    },
+    {
+      "model": "local_units.BloodService",
+      "pk": 5,
+      "fields": {
+        "code": 5,
+        "name": "Blood Transfusion"
+      }
+    },
+    {
+      "model": "local_units.BloodService",
+      "pk": 6,
+      "fields": {
+        "code": 6,
+        "name": "Hemopurification, hemofiltration"
+      }
+    },
+    {
+      "model": "local_units.ProfessionalTrainingFacility",
+      "pk": 1,
+      "fields": {
+        "code": 1,
+        "name": "Nurses"
+      }
+    },
+    {
+      "model": "local_units.ProfessionalTrainingFacility",
+      "pk": 2,
+      "fields": {
+        "code": 2,
+        "name": "Paramedics / EMT"
+      }
+    },
+    {
+      "model": "local_units.ProfessionalTrainingFacility",
+      "pk": 9,
+      "fields": {
+        "code": 9,
+        "name": "Other"
+      }
+    }
+  ]

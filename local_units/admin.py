@@ -39,16 +39,18 @@ class LocalUnitAdmin(admin.OSMGeoAdmin):
         'local_branch_name',
         'city_loc',
         'city_en',
-        'country',
-        'country__name'
+        'country__name',
     )
     autocomplete_fields = (
         'country',
         'type',
-        'level'
+        'level',
+        'health',
     )
     list_filter = (
         AutocompleteFilterFactory('Country', 'country'),
+        AutocompleteFilterFactory('Type', 'type'),
+        AutocompleteFilterFactory('Level', 'level'),
     )
 
 
@@ -130,4 +132,27 @@ class ProfessionalTrainingFacilityAdmin(admin.ModelAdmin):
 
 @admin.register(HealthData)
 class HealthDataAdmin(admin.ModelAdmin):
-    search_fields = ('affiliation',)
+    autocomplete_fields = [
+        'affiliation',
+        'functionality',
+        'health_facility_type',
+        'primary_health_care_center',
+        'hospital_type',
+        'general_medical_services',
+        'specialized_medical_beyond_primary_level',
+        'blood_services',
+        'professional_training_facilities',
+    ]
+
+    search_fields = ('affiliation__name', 'health_facility_type__name')
+    list_filter = (
+        AutocompleteFilterFactory('Country', 'health_data__country'),
+        AutocompleteFilterFactory('Affiliation', 'affiliation'),
+        AutocompleteFilterFactory('Functionality', 'functionality'),
+        AutocompleteFilterFactory('FacilityType', 'health_facility_type'),
+        AutocompleteFilterFactory('PrimaryHCC', 'primary_health_care_center'),
+        AutocompleteFilterFactory('GeneralMedicalService', 'general_medical_services'),
+        AutocompleteFilterFactory('SpecializedMedicalService', 'specialized_medical_beyond_primary_level'),
+        AutocompleteFilterFactory('BloodService', 'blood_services'),
+        AutocompleteFilterFactory('ProfessionalTrainingFacility', 'professional_training_facilities'),
+    )
