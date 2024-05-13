@@ -8,14 +8,16 @@ class ValidateLocalUnitPermission(permissions.BasePermission):
 
     def has_object_permission(self, request, view, object):
         user = request.user
+        if user.is_superuser:
+            return True
         country_admin_ids = [
-            codename.replace('country_admin_', '')
+            int(codename.replace('country_admin_', ''))
             for codename in Permission.objects.filter(
                 group__user=user,
                 codename__startswith='country_admin_',
             ).values_list('codename', flat=True)
         ]
-        if user.is_superuser or object.country_id in country_admin_ids:
+        if object.country_id in country_admin_ids:
             return True
         return False
 
