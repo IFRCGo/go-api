@@ -24,7 +24,8 @@ class Command(BaseCommand):
             ('IQ.CPA.GNDR.XQ', CO.world_bank_gender_inequality_index),
             ('SP.DYN.LE00.IN', CO.world_bank_life_expectancy),
             ('SE.ADT.LITR.ZS', CO.world_bank_literacy_rate),
-            ('SI.POV.NAHC', CO.world_bank_poverty_rate)
+            ('SI.POV.NAHC', CO.world_bank_poverty_rate),
+            ('NY.GNP.PCAP.CD', CO.world_bank_gni_capita)
         )
 
         world_bank_indicators = [indicator for indicator, _ in world_bank_indicator_map]
@@ -95,6 +96,7 @@ class Command(BaseCommand):
                 overview.world_bank_life_expectancy = indicators[7][0]
                 overview.world_bank_literacy_rate = indicators[8][0]
                 overview.world_bank_poverty_rate = indicators[9][0]
+                overview.world_bank_gni_capita = indicators[10][0]
                 overview.save(
                     update_fields=[
                         'world_bank_population',
@@ -106,6 +108,7 @@ class Command(BaseCommand):
                         'world_bank_gender_inequality_index',
                         'world_bank_life_expectancy',
                         'world_bank_literacy_rate',
-                        'world_bank_poverty_rate'
+                        'world_bank_poverty_rate',
+                        'world_bank_gni_capita',
                     ]
                 )
