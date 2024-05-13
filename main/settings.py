@@ -603,11 +603,13 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'Please see the <a href="https://go-wiki.ifrc.org/en/go-api/api-overview" target="_blank">GO Wiki</a> for an overview of API usage, or the interactive <a href="/api-docs/swagger-ui/" target="_blank">Swagger page</a>.',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+    'ENUM_ADD_EXPLICIT_BLANK_NULL_CHOICE': False,
     'ENUM_NAME_OVERRIDES': {},
 }
 
 # A character which is rarely used in strings – for separator:
 SEP = '¤'
+
 
 def decode_base64(env_key, fallback_env_key):
     if encoded_value := env(env_key):
@@ -617,6 +619,7 @@ def decode_base64(env_key, fallback_env_key):
         except Exception:
             logger.error(f'Failed to decode {env_key}', exc_info=True)
     return env(fallback_env_key)
+
 
 JWT_PRIVATE_KEY = decode_base64('JWT_PRIVATE_KEY_BASE64_ENCODED', 'JWT_PRIVATE_KEY')
 JWT_PUBLIC_KEY = decode_base64('JWT_PUBLIC_KEY_BASE64_ENCODED', 'JWT_PUBLIC_KEY')
