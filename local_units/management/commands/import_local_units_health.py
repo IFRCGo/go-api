@@ -7,7 +7,7 @@ from django.db import transaction
 
 
 from api.models import Country
-from local_units.models import LocalUnit, LocalUnitType
+from local_units.models import LocalUnit, LocalUnitType, HealthData
 from main.managers import BulkCreateManager
 
 
@@ -65,9 +65,14 @@ class Command(BaseCommand):
                 type = local_unit_id_map[int(row['TYPE CODE'])]
                 subtype = row['SUBTYPE']  # FIXME just a text field
                 visibility = 3 if row['VISIBILITY'].lower() == 'public' else 1
-                health_id = row['DATA SOURCE ID']
-                if not health_id.isdigit():
-                    health_id = None
+                health_id = None
+                if row['DATA SOURCE ID']:
+                    try:
+                        health_queryset = HealthData.objects.filter(id=row['DATA SOURCE ID'])
+                        if existing_health_data := health_queryset.first():
+                            health_id = existing_health_data.pk
+                    except ValueError:
+                        pass
                 validated = True
                 level_id = int(row['COVERAGECODE']) + 1
                 local_branch_name = row['NAME_LOC']
