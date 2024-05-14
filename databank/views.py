@@ -24,4 +24,4 @@ class FDRSIncomeViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_class = FDRSIncomeFilter
 
     def get_queryset(self):
-        return FDRSIncome.objects.select_related('overview')
+        return FDRSIncome.objects.select_related('overview', 'indicator')
