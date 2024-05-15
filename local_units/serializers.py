@@ -485,5 +485,7 @@ class MiniDelegationOfficeSerializer(serializers.ModelSerializer):
             'hod_last_name',
             'hod_mobile_number',
             'hod_email',
-            'dotype_name'
+            'dotype_name',
+            'city',
+            'address',
         )

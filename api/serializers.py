@@ -786,6 +786,8 @@ class CountryRelationSerializer(ModelSerializer):
             'hod_last_name',
             'hod_mobile_number',
             'hod_email',
+            'city',
+            'address',
         ).annotate(
             dotype_name=models.F('dotype__name')
         ).distinct()

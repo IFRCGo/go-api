@@ -194,8 +194,8 @@ class UserExternalTokenSerializer(serializers.ModelSerializer):
         # Check if private and public key exists
         if not (settings.JWT_PRIVATE_KEY and settings.JWT_PUBLIC_KEY):
             raise serializers.ValidationError('Please contact system adminstrators to configurate private and public key.')
-        validated_data['created_at'] = timezone.now()
         instance = super().create(validated_data)
+        validated_data['created_at'] = instance.created_at
         validated_data["token"] = jwt_encode_handler(instance.get_payload())
         return validated_data
 
