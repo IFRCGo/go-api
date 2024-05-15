@@ -3,7 +3,17 @@ import datetime
 
 from django.contrib.gis.geos import Point
 
-from .models import LocalUnit, LocalUnitType, DelegationOffice, DelegationOfficeType
+from .models import (
+    LocalUnit,
+    LocalUnitType,
+    LocalUnitLevel,
+    DelegationOffice,
+    DelegationOfficeType,
+    Affiliation,
+    Functionality,
+    FacilityType,
+    PrimaryHCC,
+)
 from api.models import Country, Region
 from main.test_case import APITestCase
 
@@ -241,3 +251,156 @@ class TestDelegationOfficesDetailView(APITestCase):
         self.assertEqual(response.data['country']['iso3'], 'NLP')
         self.assertEqual(response.data['dotype']['name'], 'Code 0')
         self.assertEqual(response.data['dotype']['code'], 0)
+
+
+class TestLocalUnitCreate(APITestCase):
+
+    def test_create_local_unit_administrative(self):
+        region = Region.objects.create(name=2)
+        country = Country.objects.create(
+            name='Philippines',
+            iso3='PHL',
+            iso='PH',
+            region=region
+        )
+        type = LocalUnitType.objects.create(code=1, name='Code 0')
+        level = LocalUnitLevel.objects.create(level=1, name='Code 1')
+
+        data = {
+            "local_branch_name": "teststst",
+            "english_branch_name": None,
+            "type": type.id,
+            "country": country.id,
+            "draft": False,
+            "validated": True,
+            "postcode": "4407",
+            "address_loc": "4407",
+            "address_en": "",
+            "city_loc": "",
+            "city_en": "Pukë",
+            "link": "",
+            "location_json": {
+                'lat': 42.066667,
+                'lon': 19.983333,
+            },
+            "source_loc": "",
+            "source_en": "",
+            "subtype": "District Office",
+            "date_of_data": "2024-05-13",
+            "level": level.id,
+            "focal_person_loc": "Test Name",
+            "focal_person_en": "Test Name",
+            "email": "",
+            "phone": "",
+            # "health": {}
+        }
+        self.client.force_authenticate(self.root_user)
+        response = self.client.post('/api/v2/local-units/', data=data, format='json')
+        self.assertEqual(response.status_code, 400)
+
+        # add `english branch_name`
+        data['english_branch_name'] = 'Test branch name'
+        response = self.client.post('/api/v2/local-units/', data=data, format='json')
+        print(response.content)
+        self.assertEqual(response.status_code, 201)
+
+    def test_create_local_unit_health(self):
+        region = Region.objects.create(name=2)
+        country = Country.objects.create(
+            name='Philippines',
+            iso3='PHL',
+            iso='PH',
+            region=region
+        )
+        type = LocalUnitType.objects.create(code=2, name='Code 0')
+        level = LocalUnitLevel.objects.create(level=1, name='Code 1')
+        affiliation = Affiliation.objects.create(code=1, name='Code 1')
+        functionality = Functionality.objects.create(code=1, name='Code 1')
+        health_facility_type = FacilityType.objects.create(code=1, name='Code 1')
+        primary_health_care_center = PrimaryHCC.objects.create(code=1, name='Code 1')
+
+        data = {
+            "local_branch_name": "Silele Red Cross Clinic, Sigombeni Red Cross Clinic & Mahwalala Red Cross Clinic",
+            "english_branch_name": "Test Name",
+            "type": type.id,
+            "country": country.id,
+            "created_at": "2024-05-13T06:53:14.978083Z",
+            "modified_at": "2024-05-13T06:53:14.978099Z",
+            "draft": False,
+            "validated": True,
+            "postcode": "",
+            "address_loc": "Silele Clinic is is in Hosea Inkhundla under the Shiselweni, Sigombeni is in Nkom'iyahlaba Inkhundla under the Manzini region and Mahwalala is in the Mbabane West Inkhundla under the Hhohho region.",
+            "address_en": "",
+            "city_loc": "",
+            "city_en": "",
+            "link": "",
+            "location": "SRID=4326;POINT (31.567837 -27.226852)",
+            "source_loc": "",
+            "source_en": "",
+            "subtype": "",
+            "date_of_data": "2024-05-13",
+            "level": level.id,
+            "location_json": {
+                'lat': 42.066667,
+                'lon': 19.983333,
+            },
+            "health": {
+                "other_affiliation": None,
+                "focal_point_email": "jele@redcross.org.sz",
+                "focal_point_phone_number": "26876088546",
+                "focal_point_position": "Programmes Manager",
+                "other_facility_type": None,
+                "speciality": "Initiate TB treatment, Cervical Cancer Screening and testing and diagnostic and treatment for people living with HIV and follow up care through the ART programme which the government supports very well",
+                "is_teaching_hospital": False,
+                "is_in_patient_capacity": False,
+                "is_isolation_rooms_wards": False,
+                "maximum_capacity": None,
+                "number_of_isolation_rooms": None,
+                "is_warehousing": True,
+                "is_cold_chain": True,
+                "ambulance_type_a": None,
+                "ambulance_type_b": None,
+                "ambulance_type_c": None,
+                "other_services": None,
+                "total_number_of_human_resource": 32,
+                "general_practitioner": 0,
+                "specialist": 0,
+                "residents_doctor": 0,
+                "nurse": 3,
+                "dentist": 0,
+                "nursing_aid": 0,
+                "midwife": 9,
+                "other_medical_heal": True,
+                "other_profiles": None,
+                "feedback": "first question of initial question did not provide for the option to write the name of the NS. It is written LRC yet it should allow Baphalali Eswatini Red Cross Society (BERCS) to be inscribed in the box.",
+                "affiliation": affiliation.id,
+                "functionality": functionality.id,
+                "health_facility_type": health_facility_type.id,
+                "primary_health_care_center": primary_health_care_center.id,
+                "hospital_type": None,
+                "general_medical_services": [
+                    1,
+                    2,
+                    3,
+                    4,
+                    5
+                ],
+                "specialized_medical_beyond_primary_level": [
+                    4,
+                    10,
+                    22
+                ],
+                "blood_services": [
+                    2
+                ],
+                "professional_training_facilities": []
+            },
+            "visibility_display": "RCRC Movement",
+            "focal_person_loc": "Elliot Jele",
+            "focal_person_en": "",
+            "email": "",
+            "phone": ""
+        }
+        self.client.force_authenticate(self.root_user)
+        response = self.client.post('/api/v2/local-units/', data=data, format='json')
+        self.assertEqual(response.status_code, 201)

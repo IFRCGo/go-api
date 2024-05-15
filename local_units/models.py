@@ -5,7 +5,6 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils.translation import gettext_lazy as _
 from django.templatetags.static import static
 
-
 from api.models import Country, VisibilityChoices
 
 
