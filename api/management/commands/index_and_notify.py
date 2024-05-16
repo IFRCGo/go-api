@@ -1,6 +1,7 @@
 import html
 from datetime import datetime, timezone, timedelta
-
+from main.sentry import SentryMonitor
+from sentry_sdk.crons import monitor
 from django.db.models import Q, F, ExpressionWrapper, DurationField, Sum
 from django.db.models.query import QuerySet
 from django.core.management.base import BaseCommand
@@ -56,7 +57,7 @@ RTYPE_NAMES = {
     14: "General Announcement",
 }
 
-
+@monitor(monitor_slug=SentryMonitor.INDEX_AND_NOTIFY)
 class Command(BaseCommand):
     help = "Index and send notifications about new/changed records"
 
