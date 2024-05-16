@@ -8,8 +8,6 @@ from modeltranslation import settings as mt_settings
 from django.apps import apps as django_apps
 from django.db.models.functions import Length
 from django.db import models
-from django.db.models import Sum
-from django.db.models import Q
 from django.conf import settings
 from functools import reduce
 
@@ -59,8 +57,8 @@ class ModelTranslator():
     def _get_filter(translation_fields):
         def _get_not_empty_query(field, lang):
             return (
-                Q(**{f"{build_localized_fieldname(field, lang)}__isnull": True}) |
-                Q(**{f"{build_localized_fieldname(field, lang)}__exact": ""})
+                models.Q(**{f"{build_localized_fieldname(field, lang)}__isnull": True}) |
+                models.Q(**{f"{build_localized_fieldname(field, lang)}__exact": ""})
             )
         # Generate filters to fetch only rows with missing translations
         return reduce(
@@ -68,7 +66,7 @@ class ModelTranslator():
             [
                 (
                     # All field shouldn't be empty
-                    ~Q(reduce(
+                    ~models.Q(reduce(
                         lambda acc, f: acc & f,
                         [_get_not_empty_query(field, lang) for lang in AVAILABLE_LANGUAGES]
                     )) &
@@ -135,11 +133,11 @@ class ModelTranslator():
 
             for field in translatable_fields:
                 count = qs.annotate(text_length=Length(field))\
-                    .aggregate(total_text_length=Sum('text_length'))['total_text_length'] or 0
+                    .aggregate(total_text_length=models.Sum('text_length'))['total_text_length'] or 0
                 total_count += count
                 logger.info(f'\t\t {field} - {count}')
         logger.info(f'Total Count: {total_count}')
-        logger.info(f'Estimated Cost (AWS): {(len(AVAILABLE_LANGUAGES) -1) * total_count * 0.000015}')
+        logger.info(f'Estimated Cost (AWS): {(len(AVAILABLE_LANGUAGES) - 1) * total_count * 0.000015}')
 
     def run(self, batch_size=None, only_models: typing.Optional[typing.List[models.Model]] = None):
         """
