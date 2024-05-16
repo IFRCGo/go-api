@@ -197,6 +197,12 @@ For updating the index
 ```(bash)
 docker-compose exec serve bash python manage.py update_index
 ```
+## Sentry
+
+For updating the cron monitored tasks
+```(bash)
+docker-compose exec serve bash ./manage.py cron_job_monitor
+```
 
 ## See logs from Kubernetes
 There are a few different ways to see logs in the new Kubernetes based stack. Both of the options require `kubectl`, access to the cluster. Once the cluster is added to your local kubernetes context, follow the steps below:
