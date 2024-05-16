@@ -1,5 +1,9 @@
 import os
+import typing
+import yaml
+import logging
 import sentry_sdk
+from difflib import context_diff
 from sentry_sdk.integrations.logging import ignore_logger
 from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
@@ -7,7 +11,7 @@ from sentry_sdk.integrations.redis import RedisIntegration
 from celery.exceptions import Retry as CeleryRetry
 
 from django.db import models
-from django.utils.translation import gettext_lazy as _
+from django.conf import settings
 from django.core.exceptions import PermissionDenied
 
 # Celery Terminated Exception: The worker processing a job has been terminated by user request.
@@ -21,6 +25,8 @@ IGNORED_ERRORS = [
 IGNORED_LOGGERS = [
     'django.core.exceptions.ObjectDoesNotExist',
 ]
+
+logger = logging.getLogger(__name__)
 
 for _logger in IGNORED_LOGGERS:
     ignore_logger(_logger)
@@ -103,12 +109,46 @@ class SentryMonitor(models.TextChoices):
     This class is used to create Sentry monitor of cron jobs
     @Note: Before adding the jobs to this class, make sure to add the job to the `Values.yaml` file
     '''
-    INDEX_AND_NOTIFY = 'index_and_notify', _('*/5 * * * *')
-    SYNC_MOLNIX = 'sync_molnix', _('*/10 * * * *')
-    INGEST_APPEALS = 'ingest_appeals', _('45 */2 * * *')
-    SYNC_APPEALDOCS = 'sync_appealdocs', _('15 * * * *')
-    REVOKE_STAFF_STATUS = 'revoke_staff_status', _('51 * * * *')
-    UPDATE_PROJECT_STATUS = 'update_project_status', _('1 3 * * *')
-    USER_REGISTRATION_REMINDER = 'user_registration_reminder', _('0 9 * * *')
-    INGEST_COUNTRY_PLAN_FILE = 'ingest_country_plan_file', _('1 0 * * *')
-    UPDATE_SURGE_ALERT_STATUS = 'update_surge_alert_status', _('1 */12 * * *')
+    INDEX_AND_NOTIFY = 'index_and_notify', '*/5 * * * *'
+    SYNC_MOLNIX = 'sync_molnix', '*/10 * * * *'
+    INGEST_APPEALS = 'ingest_appeals', '45 */2 * * *'
+    SYNC_APPEALDOCS = 'sync_appealdocs', '15 * * * *'
+    REVOKE_STAFF_STATUS = 'revoke_staff_status', '51 * * * *'
+    UPDATE_PROJECT_STATUS = 'update_project_status', '1 3 * * *'
+    USER_REGISTRATION_REMINDER = 'user_registration_reminder', '0 9 * * *'
+    INGEST_COUNTRY_PLAN_FILE = 'ingest_country_plan_file', '1 0 * * *'
+    UPDATE_SURGE_ALERT_STATUS = 'update_surge_alert_status', '1 */12 * * *'
+
+    @staticmethod
+    def load_cron_data() -> typing.List[typing.Tuple[str, str]]:
+        with open(os.path.join(settings.BASE_DIR, 'deploy/helm/ifrcgo-helm/values.yaml')) as fp:
+            try:
+                return [
+                    (metadata['command'], metadata['schedule'])
+                    for metadata in yaml.safe_load(fp)["cronjobs"]
+                ]
+            except yaml.YAMLError as e:
+                logger.error('Failed to load cronjob data from helm', exc_info=True)
+                raise e
+
+    @classmethod
+    def validate_config(cls):
+        """
+        Validate SentryMonitor task list with Helm
+        """
+        current_helm_crons = cls.load_cron_data()
+        assert set(cls.choices) == set(current_helm_crons), (
+            # Show a simple diff for correction
+            'SentryMonitor needs update\n\n' + (
+                '\n'.join(
+                    list(
+                        context_diff(
+                            [f"{c} {s}" for c, s in set(cls.choices)],
+                            [f"{c} {s}" for c, s in set(current_helm_crons)],
+                            fromfile='SentryMonitor',
+                            tofile='Values.yml'
+                        )
+                    )
+                )
+            )
+        )
