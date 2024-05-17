@@ -29,6 +29,7 @@ from django.db.models.functions import TruncMonth, Coalesce
 from django.db.models.fields import IntegerField
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema, extend_schema_view
+from django.shortcuts import get_object_or_404
 
 from main.utils import is_tableau
 from main.enums import GlobalEnumSerializer, get_enum_values
@@ -226,16 +227,11 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
     search_fields = ("name",)  # for /docs
 
     def get_object(self):
+        # NOTE: kwargs is accepting pk for now
+        # TODO: Can kwargs be other than pk??
         pk = self.kwargs["pk"]
-        qs = self.get_queryset()
-        try:
-            return qs.get(pk=int(pk))
-        except ValueError:
-            # NOTE: If pk is not integer try searching for name or iso
-            country = qs.filter(models.Q(name__iexact=str(pk)) | models.Q(iso__iexact=str(pk)))
-            if country.exists():
-                return country.first()
-            raise Country.DoesNotExist("Country matching query does not exist.")
+        country = get_object_or_404(Country, pk=int(pk))
+        return self.get_queryset().filter(id=country.id).first()
 
     def get_serializer_class(self):
         if self.request.GET.get("mini", "false").lower() == "true":
@@ -276,51 +272,52 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
     def get_country_figure(self, request, pk):
         country = self.get_object()
         end_date = timezone.now()
-        start_date = end_date + timedelta(days=-2*365)
+        start_date = end_date + timedelta(days=-2 * 365)
         start_date = request.GET.get("start_date", start_date)
         end_date = request.GET.get("end_date", end_date)
         appeal_conditions = (
-            (Q(atype=AppealType.APPEAL) | Q(atype=AppealType.INTL)) & Q(end_date__lte=end_date) & Q(start_date__gte=start_date)
+            (Q(atype=AppealType.APPEAL))
         )
 
         all_appealhistory = AppealHistory.objects.select_related("appeal").filter(appeal__code__isnull=False)
+        all_appealhistory = all_appealhistory.filter(country=country)
         if start_date and end_date:
             all_appealhistory = all_appealhistory.filter(
                 start_date__lte=end_date, end_date__gte=start_date
             )
-
-        all_appealhistory = all_appealhistory.filter(country__id=country.id)
         appeals_aggregated = all_appealhistory.annotate(
             appeal_with_dref=Count(
                 Case(
-                    When(Q(atype=AppealType.DREF) & Q(end_date__gte=start_date) & Q(start_date__lte=end_date), then=1),
+                    When(Q(atype=AppealType.DREF), then=1),
                     output_field=IntegerField(),
                 )
             ),
-            appeal_without_dref=Count(Case(When(appeal_conditions, then=1), output_field=IntegerField())),
-            total_appeals_without_dref=Count(
-                Case(When(Q(atype=AppealType.APPEAL) | Q(atype=AppealType.INTL), then=1), output_field=IntegerField())
-            ),
-            total_population=Sum(
+            appeal_without_dref=Count(Case(When(Q(atype=AppealType.APPEAL), then=1), output_field=IntegerField()), distinct=True),
+            total_population=(
                 Case(
-                    When(Q(end_date__gte=start_date) & Q(start_date__lte=end_date), then=F("num_beneficiaries")),
+                    When(appeal_conditions | Q(atype=AppealType.DREF), then=F("num_beneficiaries")),
                     output_field=IntegerField(),
                 )
             ),
-            amount_requested_without_dref=Case(When(appeal_conditions, then=F("amount_requested")), output_field=IntegerField()),
-            amount_requested_dref=Case(
-                When(Q(end_date__gte=start_date) & Q(start_date__lte=end_date), then=F("amount_requested")), output_field=IntegerField()
+            amount_requested_all=(
+                Case(
+                    When(appeal_conditions | Q(atype=AppealType.DREF), then=F("amount_requested")),
+                    output_field=IntegerField(),
+                )
             ),
-            amount_funded_without_dref=Case(When(appeal_conditions, then=F("amount_funded")), output_field=IntegerField()),
-            emergencies_count=Count(F("appeal__event"), distinct=True)
+            amount_funded_all=(
+                Case(
+                    When(appeal_conditions | Q(atype=AppealType.DREF), then=F("amount_funded")),
+                    output_field=IntegerField(),
+                )
+            ),
+            emergencies_count=Count(F("appeal__event_id"), distinct=True)
         ).aggregate(
             active_drefs=Sum("appeal_with_dref"),
             active_appeals=Sum("appeal_without_dref"),
-            total_appeals=Sum("total_appeals_without_dref"),
             target_population=Sum("total_population"),
-            amount_requested=Sum("amount_requested_without_dref"),
-            amount_requested_dref_included=Sum("amount_requested_dref"),
-            amount_funded=Sum("amount_funded_without_dref"),
+            total_amount_requested=Sum("amount_requested_all"),
+            total_amount_funded=Sum("amount_funded_all"),
             emergencies=Sum("emergencies_count"),
         )
         return Response(

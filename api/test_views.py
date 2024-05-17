@@ -1,7 +1,6 @@
 import json
 
 from django.contrib.auth.models import User
-from django.conf import settings
 
 from main.test_case import APITestCase, SnapshotTestCase
 import api.models as models
@@ -10,7 +9,9 @@ from api.factories.event import (
     EventFactory,
     EventFeaturedDocumentFactory,
     EventLinkFactory,
-    AppealFactory
+    AppealFactory,
+    AppealHistoryFactory,
+    AppealType,
 )
 
 
@@ -572,3 +573,106 @@ class GlobalEnumEndpointTest(APITestCase):
         response = self.client.get('/api/v2/global-enums/')
         self.assert_200(response)
         self.assertIsNotNone(response.json())
+
+
+class AppealTest(APITestCase):
+    fixtures = ['DisasterTypes']
+
+    def test_appeal_key_figure(self):
+        region1 = models.Region.objects.create(name=1)
+        region2 = models.Region.objects.create(name=2)
+        country1 = models.Country.objects.create(name='Nepal', iso3='NPL', region=region1)
+        country2 = models.Country.objects.create(name='India', iso3='IND', region=region2)
+        dtype1 = models.DisasterType.objects.get(pk=1)
+        dtype2 = models.DisasterType.objects.get(pk=2)
+        event1 = EventFactory.create(
+            name='test1',
+            dtype=dtype1,
+        )
+        event2 = EventFactory.create(
+            name='test0',
+            dtype=dtype1,
+            num_affected=10000,
+            countries=[country1]
+        )
+        event3 = EventFactory.create(
+            name='test2',
+            dtype=dtype2,
+            num_affected=99999,
+            countries=[country2]
+        )
+        appeal1 = AppealFactory.create(
+            event=event1,
+            dtype=dtype1,
+            num_beneficiaries=9000,
+            amount_requested=10000,
+            amount_funded=1899999,
+            code=12
+        )
+        appeal2 = AppealFactory.create(
+            event=event2,
+            dtype=dtype2,
+            num_beneficiaries=90023,
+            amount_requested=100440,
+            amount_funded=12299999,
+            code=123
+        )
+        appeal3 = AppealFactory.create(
+            event=event3,
+            dtype=dtype2,
+            num_beneficiaries=91000,
+            amount_requested=10000888,
+            amount_funded=678888,
+            code=1234
+        )
+        AppealHistoryFactory.create(
+            appeal=appeal1,
+            dtype=dtype1,
+            num_beneficiaries=9000,
+            amount_requested=10000,
+            amount_funded=1899999,
+            country=country1,
+            atype=AppealType.APPEAL,
+            start_date='2024-1-1',
+            end_date='2024-1-1',
+        )
+        AppealHistoryFactory.create(
+            appeal=appeal2,
+            dtype=dtype2,
+            num_beneficiaries=1,
+            amount_requested=1,
+            amount_funded=1,
+            country=country1,
+            atype=AppealType.DREF,
+            start_date='2024-2-2',
+            end_date='2024-2-2',
+        )
+        AppealHistoryFactory.create(
+            appeal=appeal3,
+            dtype=dtype2,
+            num_beneficiaries=1,
+            amount_requested=1,
+            amount_funded=1,
+            country=country1,
+            atype=AppealType.APPEAL,
+            start_date='2024-3-3',
+            end_date='2024-3-3',
+        )
+        AppealHistoryFactory.create(
+            appeal=appeal3,
+            dtype=dtype2,
+            num_beneficiaries=1,
+            amount_requested=1,
+            amount_funded=1,
+            country=country1,
+            atype=AppealType.APPEAL,
+            start_date='2024-4-4',
+            end_date='2024-4-4',
+        )
+        url = f'/api/v2/country/{country1.id}/figure/'
+        self.client.force_authenticate(self.user)
+        response = self.client.get(url)
+        self.assert_200(response)
+        self.assertIsNotNone(response.json())
+        self.assertEqual(response.data['active_drefs'], 1)
+        self.assertEqual(response.data['active_appeals'], 3)

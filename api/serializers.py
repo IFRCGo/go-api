@@ -2347,11 +2347,9 @@ class CountryKeyClimateInputSerializer(serializers.Serializer):
 class CountryKeyFigureSerializer(serializers.Serializer):
     active_drefs = serializers.IntegerField()
     active_appeals = serializers.IntegerField()
-    total_appeals = serializers.IntegerField()
     target_population = serializers.IntegerField()
-    amount_requested = serializers.IntegerField()
-    amount_requested_dref_included = serializers.IntegerField()
-    amount_funded = serializers.IntegerField()
+    total_amount_requested = serializers.IntegerField()
+    total_amount_funded = serializers.IntegerField()
     emergencies = serializers.IntegerField()
 
 

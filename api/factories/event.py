@@ -5,11 +5,12 @@ import pytz
 
 from ..models import (
     AlertLevel,
-
+    AppealType,
     Event,
     EventFeaturedDocument,
     EventLink,
     Appeal,
+    AppealHistory,
 )
 from .disaster_type import DisasterTypeFactory
 from api.factories.country import CountryFactory
@@ -115,5 +116,24 @@ class AppealFactory(factory.django.DjangoModelFactory):
     amount_funded = fuzzy.FuzzyInteger(0)
     event = factory.SubFactory(EventFactory)
     country = factory.SubFactory(CountryFactory)
+
     class Meta:
         model = Appeal
+
+
+class AppealTypeFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = AppealType
+
+
+class AppealHistoryFactory(factory.django.DjangoModelFactory):
+    dtype = factory.SubFactory(DisasterTypeFactory)
+    num_beneficiaries = fuzzy.FuzzyInteger(0)
+    amount_requested = fuzzy.FuzzyInteger(0)
+    amount_funded = fuzzy.FuzzyInteger(0)
+    appeal = factory.SubFactory(AppealFactory)
+    country = factory.SubFactory(CountryFactory)
+    atype = factory.SubFactory(AppealTypeFactory)
+
+    class Meta:
+        model = AppealHistory
