@@ -2,7 +2,7 @@ import json
 
 from rest_framework import serializers
 from django.utils.translation import gettext
-from django.contrib.gis.geos import Point
+from django.contrib.gis.geos import GEOSGeometry
 
 from .models import (
     HealthData,
@@ -243,7 +243,7 @@ class PrivateLocalUnitDetailSerializer(
     def validate(self, data):
         local_branch_name = data.get('local_branch_name')
         english_branch_name = data.get('english_branch_name')
-        if (not local_branch_name) or (not english_branch_name):
+        if (not local_branch_name) and (not english_branch_name):
             raise serializers.ValidationError(
                 gettext('Branch Name Combination is required !')
             )
@@ -258,12 +258,12 @@ class PrivateLocalUnitDetailSerializer(
     def create(self, validated_data):
         location_json = validated_data.pop('location_json')
         lat = location_json.get('lat')
-        lon = location_json.get('lon')
-        if not lat and not lon:
+        lng = location_json.get('lng')
+        if not lat and not lng:
             raise serializers.ValidationError(
                 gettext('Combination of lat/lon is required')
             )
-        validated_data['location'] = Point(lon, lat)
+        validated_data['location'] = GEOSGeometry('POINT(%f %f)' % (lng, lat))
         return super().create(validated_data)
 
 
