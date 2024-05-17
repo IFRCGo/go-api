@@ -1,5 +1,6 @@
 from django.contrib.gis import admin
 from admin_auto_filters.filters import AutocompleteFilterFactory
+from django.core.exceptions import ValidationError
 
 from .models import (
     LocalUnit,
@@ -52,6 +53,13 @@ class LocalUnitAdmin(admin.OSMGeoAdmin):
         AutocompleteFilterFactory('Type', 'type'),
         AutocompleteFilterFactory('Level', 'level'),
     )
+
+    def save_model(self, request, obj, form, change):
+        if obj.type.code == 1 and obj.health:
+            raise ValidationError({
+                'Can\'t have health data for type %s' % obj.type.code
+            })
+        super().save_model(request, obj, form, change)
 
 
 @admin.register(DelegationOffice)

@@ -2,6 +2,7 @@ import json
 
 from rest_framework import serializers
 from django.utils.translation import gettext
+from django.contrib.gis.geos import Point
 
 from .models import (
     HealthData,
@@ -81,6 +82,12 @@ class BloodServiceSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class ProfessionalTrainingFacilitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProfessionalTrainingFacility
+        fields = ('__all__')
+
+
 class MiniHealthDataSerializer(
     serializers.ModelSerializer
 ):
@@ -100,14 +107,39 @@ class HealthDataSerializer(
     NestedUpdateMixin,
 ):
     health_facility_type_details = FacilityTypeSerializer(source='health_facility_type', read_only=True)
+    affiliation_details = AffiliationSerializer(source='affiliation', read_only=True)
+    functionality_details = FunctionalitySerializer(source='functionality', read_only=True)
+    primary_health_care_center_details = PrimaryHCCSerializer(
+        source='primary_health_care_center',
+        read_only=True
+    )
+    hospital_type_details = HospitalTypeSerializer(
+        source='hospital_type',
+        read_only=True
+    )
+    general_medical_services_details = GeneralMedicalServiceSerializer(
+        source='general_medical_services',
+        read_only=True,
+        many=True
+    )
+    specialized_medical_beyond_primary_level_details = SpecializedMedicalServiceSerializer(
+        source='specialized_medical_beyond_primary_level',
+        read_only=True,
+        many=True
+    )
+    blood_services_details = BloodServiceSerializer(
+        source='blood_services',
+        read_only=True,
+        many=True,
+    )
+    professional_training_facilities_details = ProfessionalTrainingFacilitySerializer(
+        source='professional_training_facilities',
+        many=True,
+        read_only=True
+    )
+
     class Meta:
         model = HealthData
-        fields = ('__all__')
-
-
-class ProfessionalTrainingFacilitySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ProfessionalTrainingFacility
         fields = ('__all__')
 
 
@@ -187,6 +219,11 @@ class PrivateLocalUnitDetailSerializer(
     location_details = serializers.SerializerMethodField()
     visibility_display = serializers.CharField(source='get_visibility_display', read_only=True)
     validated = serializers.BooleanField(read_only=True)
+    location_json = serializers.JSONField(
+        required=True,
+        write_only=True
+    )
+    location = serializers.CharField(required=False)
 
     class Meta:
         model = LocalUnit
@@ -197,7 +234,7 @@ class PrivateLocalUnitDetailSerializer(
             'location', 'source_loc', 'source_en', 'subtype', 'date_of_data',
             'level', 'health', 'visibility_display', 'location_details', 'type_details',
             'level_details', 'country_details', 'focal_person_loc', 'focal_person_en',
-            'email', 'phone',
+            'email', 'phone', 'location_json', 'visibility',
         )
 
     def get_location_details(self, unit) -> dict:
@@ -206,11 +243,28 @@ class PrivateLocalUnitDetailSerializer(
     def validate(self, data):
         local_branch_name = data.get('local_branch_name')
         english_branch_name = data.get('english_branch_name')
-        if not local_branch_name or not english_branch_name:
+        if (not local_branch_name) or (not english_branch_name):
             raise serializers.ValidationError(
                 gettext('Branch Name Combination is required !')
             )
+        type = data.get('type')
+        health = data.get('health')
+        if type.code == 1 and health:
+            raise serializers.ValidationError({
+                'Can\'t have health data for type %s' % type.code
+            })
         return data
+
+    def create(self, validated_data):
+        location_json = validated_data.pop('location_json')
+        lat = location_json.get('lat')
+        lon = location_json.get('lon')
+        if not lat and not lon:
+            raise serializers.ValidationError(
+                gettext('Combination of lat/lon is required')
+            )
+        validated_data['location'] = Point(lon, lat)
+        return super().create(validated_data)
 
 
 class LocalUnitSerializer(
