@@ -40,7 +40,7 @@ class TestLocalUnitsListView(APITestCase):
             name='Philippines',
             iso3='PHL',
             iso='PH',
-            region=region
+            region=region,
         )
         type = LocalUnitType.objects.create(code=0, name='Code 0')
         type_1 = LocalUnitType.objects.create(code=1, name='Code 1')
@@ -261,7 +261,7 @@ class TestLocalUnitCreate(APITestCase):
             name='Philippines',
             iso3='PHL',
             iso='PH',
-            region=region
+            region=region,
         )
         type = LocalUnitType.objects.create(code=1, name='Code 0')
         level = LocalUnitLevel.objects.create(level=1, name='Code 1')

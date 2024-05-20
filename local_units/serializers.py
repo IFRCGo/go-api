@@ -1,4 +1,6 @@
 import json
+from shapely.geometry import Point
+from shapely.geometry.polygon import Polygon
 
 from rest_framework import serializers
 from django.utils.translation import gettext
@@ -256,6 +258,7 @@ class PrivateLocalUnitDetailSerializer(
         return data
 
     def create(self, validated_data):
+        country = validated_data.get('country')
         location_json = validated_data.pop('location_json')
         lat = location_json.get('lat')
         lng = location_json.get('lng')
@@ -263,6 +266,17 @@ class PrivateLocalUnitDetailSerializer(
             raise serializers.ValidationError(
                 gettext('Combination of lat/lon is required')
             )
+        input_point = Point(lng, lat)
+        if country.bbox:
+            country_json = json.loads(country.bbox.geojson)
+            polygon_co = Polygon([tuple(value) for value in country_json['coordinates'][0]])
+            polygon = Polygon(polygon_co)
+            if not input_point.within(polygon):
+                raise serializers.ValidationError(
+                    {
+                        'location': gettext('Input coordinates is outside country %s bbox' % country.name)
+                    }
+                )
         validated_data['location'] = GEOSGeometry('POINT(%f %f)' % (lng, lat))
         return super().create(validated_data)
 
