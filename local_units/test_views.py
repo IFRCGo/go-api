@@ -40,7 +40,7 @@ class TestLocalUnitsListView(APITestCase):
             name='Philippines',
             iso3='PHL',
             iso='PH',
-            region=region
+            region=region,
         )
         type = LocalUnitType.objects.create(code=0, name='Code 0')
         type_1 = LocalUnitType.objects.create(code=1, name='Code 1')
@@ -261,13 +261,13 @@ class TestLocalUnitCreate(APITestCase):
             name='Philippines',
             iso3='PHL',
             iso='PH',
-            region=region
+            region=region,
         )
         type = LocalUnitType.objects.create(code=1, name='Code 0')
         level = LocalUnitLevel.objects.create(level=1, name='Code 1')
 
         data = {
-            "local_branch_name": "teststst",
+            "local_branch_name": None,
             "english_branch_name": None,
             "type": type.id,
             "country": country.id,
@@ -281,7 +281,7 @@ class TestLocalUnitCreate(APITestCase):
             "link": "",
             "location_json": {
                 'lat': 42.066667,
-                'lon': 19.983333,
+                'lng': 19.983333,
             },
             "source_loc": "",
             "source_en": "",
@@ -301,7 +301,6 @@ class TestLocalUnitCreate(APITestCase):
         # add `english branch_name`
         data['english_branch_name'] = 'Test branch name'
         response = self.client.post('/api/v2/local-units/', data=data, format='json')
-        print(response.content)
         self.assertEqual(response.status_code, 201)
 
     def test_create_local_unit_health(self):
@@ -321,7 +320,7 @@ class TestLocalUnitCreate(APITestCase):
 
         data = {
             "local_branch_name": "Silele Red Cross Clinic, Sigombeni Red Cross Clinic & Mahwalala Red Cross Clinic",
-            "english_branch_name": "Test Name",
+            "english_branch_name": None,
             "type": type.id,
             "country": country.id,
             "created_at": "2024-05-13T06:53:14.978083Z",
@@ -342,7 +341,7 @@ class TestLocalUnitCreate(APITestCase):
             "level": level.id,
             "location_json": {
                 'lat': 42.066667,
-                'lon': 19.983333,
+                'lng': 19.983333,
             },
             "health": {
                 "other_affiliation": None,

@@ -1,8 +1,10 @@
 import json
+from shapely.geometry import Point
+from shapely.geometry.polygon import Polygon
 
 from rest_framework import serializers
 from django.utils.translation import gettext
-from django.contrib.gis.geos import Point
+from django.contrib.gis.geos import GEOSGeometry
 
 from .models import (
     HealthData,
@@ -243,7 +245,7 @@ class PrivateLocalUnitDetailSerializer(
     def validate(self, data):
         local_branch_name = data.get('local_branch_name')
         english_branch_name = data.get('english_branch_name')
-        if (not local_branch_name) or (not english_branch_name):
+        if (not local_branch_name) and (not english_branch_name):
             raise serializers.ValidationError(
                 gettext('Branch Name Combination is required !')
             )
@@ -256,14 +258,26 @@ class PrivateLocalUnitDetailSerializer(
         return data
 
     def create(self, validated_data):
+        country = validated_data.get('country')
         location_json = validated_data.pop('location_json')
         lat = location_json.get('lat')
-        lon = location_json.get('lon')
-        if not lat and not lon:
+        lng = location_json.get('lng')
+        if not lat and not lng:
             raise serializers.ValidationError(
                 gettext('Combination of lat/lon is required')
             )
-        validated_data['location'] = Point(lon, lat)
+        input_point = Point(lng, lat)
+        if country.bbox:
+            country_json = json.loads(country.bbox.geojson)
+            polygon_co = Polygon([tuple(value) for value in country_json['coordinates'][0]])
+            polygon = Polygon(polygon_co)
+            if not input_point.within(polygon):
+                raise serializers.ValidationError(
+                    {
+                        'location': gettext('Input coordinates is outside country %s bbox' % country.name)
+                    }
+                )
+        validated_data['location'] = GEOSGeometry('POINT(%f %f)' % (lng, lat))
         return super().create(validated_data)
 
 
