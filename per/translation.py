@@ -7,6 +7,10 @@ from .models import (
     FormData,
     AssessmentType,
     FormQuestionGroup,
+    Overview,
+    FormComponentResponse,
+    PerComponentRating,
+    FormComponentQuestionAndAnswer
 )
 
 
@@ -43,3 +47,33 @@ class AssessmentTypeTO(TranslationOptions):
 @register(FormQuestionGroup)
 class FormQuestionGroup(TranslationOptions):
     fields = ("title", "description")
+
+
+@register(Overview)
+class OverviewTO(TranslationOptions):
+    pass
+
+
+@register(FormComponentResponse)
+class FormComponentResponseTO(TranslationOptions):
+    fields = (
+        'urban_considerations',
+        'epi_considerations',
+        'climate_environmental_considerations',
+        'notes'
+    )
+
+
+@register(PerComponentRating)
+class PerComponentRatingTO(TranslationOptions):
+    fields = (
+        'title',
+        'value',
+    )
+
+
+@register(FormComponentQuestionAndAnswer)
+class FormComponentQuestionAndAnswerTO(TranslationOptions):
+    fields = (
+        'notes',
+    )

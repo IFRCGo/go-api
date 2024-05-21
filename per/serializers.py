@@ -619,6 +619,8 @@ class PerProcessSerializer(serializers.ModelSerializer):
             "type_of_assessment_details",
             "ns_focal_point_name",
             "ns_focal_point_email",
+            "translation_module_original_language",
+            "translation_module_skip_auto_translation",
         )
 
     def get_assessment(self, obj) -> typing.Optional[int]:
