@@ -10,7 +10,9 @@ from .models import (
     Overview,
     FormComponentResponse,
     PerComponentRating,
-    FormComponentQuestionAndAnswer
+    FormComponentQuestionAndAnswer,
+    PerAssessment,
+    AreaResponse,
 )
 
 
@@ -64,16 +66,18 @@ class FormComponentResponseTO(TranslationOptions):
     )
 
 
-@register(PerComponentRating)
-class PerComponentRatingTO(TranslationOptions):
-    fields = (
-        'title',
-        'value',
-    )
-
-
 @register(FormComponentQuestionAndAnswer)
 class FormComponentQuestionAndAnswerTO(TranslationOptions):
     fields = (
         'notes',
     )
+
+
+@register(PerAssessment)
+class PerAssessmentTO(TranslationOptions):
+    pass
+
+
+@register(AreaResponse)
+class AreaResponseTO(TranslationOptions):
+    pass

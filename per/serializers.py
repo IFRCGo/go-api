@@ -7,6 +7,7 @@ from django.contrib.auth.models import Permission
 
 from api.models import Region, Appeal, Country
 from api.serializers import RegoCountrySerializer, UserNameSerializer
+from lang.serializers import ModelSerializer
 from .models import (
     Form,
     FormArea,
@@ -561,7 +562,11 @@ class PerFileSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
-class PerOverviewSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
+class PerOverviewSerializer(
+    NestedCreateMixin,
+    NestedUpdateMixin,
+    ModelSerializer,
+):
     type_of_assessment_details = AssessmentTypeSerializer(source="type_of_assessment", read_only=True)
     country_details = MiniCountrySerializer(source="country", read_only=True)
     user_details = UserNameSerializer(source="user", read_only=True)
@@ -690,7 +695,11 @@ class PublicPerProcessSerializer(serializers.ModelSerializer):
         return None
 
 
-class QuestionResponsesSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
+class QuestionResponsesSerializer(
+    NestedCreateMixin,
+    NestedUpdateMixin,
+    ModelSerializer,
+):
     question_details = MiniFormQuestionSerializer(source='question', read_only=True)
 
     class Meta:
@@ -704,13 +713,13 @@ class QuestionResponsesSerializer(NestedCreateMixin, NestedUpdateMixin, serializ
         )
 
 
-class PerComponentRatingSerializer(serializers.ModelSerializer):
+class PerComponentRatingSerializer(ModelSerializer):
     class Meta:
         model = PerComponentRating
         fields = "__all__"
 
 
-class FormComponentResponseSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
+class FormComponentResponseSerializer(NestedCreateMixin, NestedUpdateMixin, ModelSerializer):
     question_responses = QuestionResponsesSerializer(required=False, many=True)
     rating_details = PerComponentRatingSerializer(source="rating", read_only=True, allow_null=True, required=False)
     component_details = FormComponentSerializer(source="component", read_only=True)
@@ -765,7 +774,11 @@ class PublicAreaResponseSerializer(serializers.ModelSerializer):
         )
 
 
-class PerAssessmentSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
+class PerAssessmentSerializer(
+    NestedCreateMixin,
+    NestedUpdateMixin,
+    ModelSerializer,
+):
     area_responses = AreaResponseSerializer(many=True, required=False)
 
     class Meta:
