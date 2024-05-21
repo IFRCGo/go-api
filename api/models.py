@@ -10,7 +10,7 @@ from django.contrib.auth.signals import user_logged_in, user_logged_out, user_lo
 from django.dispatch import receiver
 from django.utils import timezone
 from django.db.models import Q
-from tinymce import HTMLField
+from tinymce.models import HTMLField
 from django.core.validators import FileExtensionValidator, validate_slug, RegexValidator
 from django.contrib.postgres.fields import ArrayField
 from datetime import datetime, timedelta
