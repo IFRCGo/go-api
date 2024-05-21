@@ -294,7 +294,7 @@ class TestLocalUnitCreate(APITestCase):
             "phone": "",
             # "health": {}
         }
-        self.client.force_authenticate(self.root_user)
+        self.authenticate()
         response = self.client.post('/api/v2/local-units/', data=data, format='json')
         self.assertEqual(response.status_code, 400)
 
@@ -355,8 +355,8 @@ class TestLocalUnitCreate(APITestCase):
                 "is_isolation_rooms_wards": False,
                 "maximum_capacity": None,
                 "number_of_isolation_rooms": None,
-                "is_warehousing": True,
-                "is_cold_chain": True,
+                "is_warehousing": None,
+                "is_cold_chain": None,
                 "ambulance_type_a": None,
                 "ambulance_type_b": None,
                 "ambulance_type_c": None,
