@@ -1,6 +1,7 @@
 from django.contrib.gis import admin
 from admin_auto_filters.filters import AutocompleteFilterFactory
 from django.core.exceptions import ValidationError
+from reversion_compare.admin import CompareVersionAdmin
 
 from .models import (
     LocalUnit,
@@ -34,7 +35,7 @@ class LocalUnitLevelAdmin(admin.ModelAdmin):
 
 
 @admin.register(LocalUnit)
-class LocalUnitAdmin(admin.OSMGeoAdmin):
+class LocalUnitAdmin(CompareVersionAdmin, admin.OSMGeoAdmin):
     search_fields = (
         'english_branch_name',
         'local_branch_name',
@@ -139,7 +140,7 @@ class ProfessionalTrainingFacilityAdmin(admin.ModelAdmin):
 
 
 @admin.register(HealthData)
-class HealthDataAdmin(admin.ModelAdmin):
+class HealthDataAdmin(CompareVersionAdmin, admin.ModelAdmin):
     autocomplete_fields = [
         'affiliation',
         'functionality',

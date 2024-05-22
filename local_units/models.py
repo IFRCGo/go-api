@@ -359,7 +359,7 @@ class LocalUnitLevel(models.Model):
         return f'{self.name} ({self.level})'
 
 
-@reversion.register()
+@reversion.register(follow=('health',))
 class LocalUnit(models.Model):
     # added to track health local unit data (Table B)
     health = models.ForeignKey(
