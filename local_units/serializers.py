@@ -331,6 +331,35 @@ class PrivateLocalUnitDetailSerializer(
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
+        country = instance.country
+        location_json = validated_data.pop('location_json')
+        lat = location_json.get('lat')
+        lng = location_json.get('lng')
+        if not lat and not lng:
+            raise serializers.ValidationError(
+                gettext('Combination of lat/lon is required')
+            )
+        input_point = Point(lng, lat)
+        if country.bbox:
+            country_json = json.loads(country.countrygeoms.geom.geojson)
+            coordinates = country_json["coordinates"]
+            # Convert to Shapely Polygons
+            polygons = []
+            for polygon_coords in coordinates:
+                exterior = polygon_coords[0]
+                interiors = polygon_coords[1:] if len(polygon_coords) > 1 else []
+                polygon = Polygon(exterior, interiors)
+                polygons.append(polygon)
+
+            # Create a Shapely MultiPolygon
+            shapely_multipolygon = MultiPolygon(polygons)
+            if not input_point.within(shapely_multipolygon):
+                raise serializers.ValidationError(
+                    {
+                        'location_json': gettext('Input coordinates is outside country %s boundary' % country.name)
+                    }
+                )
+        validated_data['location'] = GEOSGeometry('POINT(%f %f)' % (lng, lat))
         validated_data["modified_by"] = self.context["request"].user
         # NOTE: Each time form is updated change validated status to `False`
         validated_data["validated"] = False
