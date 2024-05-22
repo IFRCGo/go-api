@@ -1,9 +1,11 @@
 import os
+import reversion
 
 from django.contrib.gis.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils.translation import gettext_lazy as _
 from django.templatetags.static import static
+from django.conf import settings
 
 from api.models import Country, VisibilityChoices
 
@@ -128,7 +130,30 @@ class ProfessionalTrainingFacility(models.Model):
         verbose_name_plural = 'Professional Training Facilities'
 
 
+@reversion.register()
 class HealthData(models.Model):
+    created_at = models.DateTimeField(
+        verbose_name=_('Created at'),
+        auto_now=True
+    )
+    modified_at = models.DateTimeField(
+        verbose_name=_('Modified at'),
+        auto_now=True
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_("created by"),
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="created_by_health_data",
+    )
+    modified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_("modified by"),
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="modified_by_health_data",
+    )
     affiliation = models.ForeignKey(
         Affiliation,
         on_delete=models.CASCADE,
@@ -181,13 +206,16 @@ class HealthData(models.Model):
         null=True,
     )
     is_teaching_hospital = models.BooleanField(
-        verbose_name=_('Is teaching hospital?'), default=False
+        verbose_name=_('Is teaching hospital?'),
+        null=True, blank=True,
     )
     is_in_patient_capacity = models.BooleanField(
-        verbose_name=_('Has in-patient capacity?'), default=False
+        verbose_name=_('Has in-patient capacity?'),
+        null=True, blank=True,
     )
     is_isolation_rooms_wards = models.BooleanField(
-        verbose_name=_('Has isolation rooms wards?'), default=False
+        verbose_name=_('Has isolation rooms wards?'),
+        null=True, blank=True,
     )
     maximum_capacity = models.IntegerField(
         verbose_name=_('Maximum Capacity'), blank=True, null=True
@@ -196,10 +224,12 @@ class HealthData(models.Model):
         verbose_name=_('Number of isolation rooms'), blank=True, null=True
     )
     is_warehousing = models.BooleanField(
-        verbose_name=_('Has warehousing?'), default=False
+        verbose_name=_('Has warehousing?'),
+        null=True, blank=True,
     )
     is_cold_chain = models.BooleanField(
-        verbose_name=_('Has cold chain?'), default=False
+        verbose_name=_('Has cold chain?'),
+        null=True, blank=True,
     )
     ambulance_type_a = models.IntegerField(
         verbose_name=_('Ambulance Type A'), blank=True, null=True
@@ -256,7 +286,8 @@ class HealthData(models.Model):
     )
     midwife = models.IntegerField(verbose_name=_('Midwife'), blank=True, null=True)
     other_medical_heal = models.BooleanField(
-        verbose_name=_('Other medical heal'), default=False
+        verbose_name=_('Other medical heal'),
+        null=True, blank=True,
     )
     other_profiles = models.CharField(
         max_length=200, verbose_name=_('Other Profiles'), blank=True, null=True
@@ -328,6 +359,7 @@ class LocalUnitLevel(models.Model):
         return f'{self.name} ({self.level})'
 
 
+@reversion.register(follow=('health',))
 class LocalUnit(models.Model):
     # added to track health local unit data (Table B)
     health = models.ForeignKey(
@@ -371,6 +403,20 @@ class LocalUnit(models.Model):
     modified_at = models.DateTimeField(
         verbose_name=_('Modified at'),
         auto_now=True
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_("created by"),
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="created_by_local_unit",
+    )
+    modified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_("modified by"),
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="modified_by_local_unit",
     )
     date_of_data = models.DateField(
         verbose_name=_('Date of data collection'),

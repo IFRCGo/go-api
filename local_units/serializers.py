@@ -1,10 +1,12 @@
 import json
-from shapely.geometry import Point
-from shapely.geometry.polygon import Polygon
+from shapely.geometry import Polygon, MultiPolygon, Point
+from reversion.models import Version
+import reversion
 
 from rest_framework import serializers
 from django.utils.translation import gettext
 from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.auth.models import User
 
 from .models import (
     HealthData,
@@ -104,6 +106,18 @@ class MiniHealthDataSerializer(
         )
 
 
+class LocalUnitMiniUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "username",
+            "email",
+            "first_name",
+            "last_name"
+        )
+
+
 class HealthDataSerializer(
     NestedCreateMixin,
     NestedUpdateMixin,
@@ -139,10 +153,20 @@ class HealthDataSerializer(
         many=True,
         read_only=True
     )
+    modified_by_details = LocalUnitMiniUserSerializer(source="modified_by", read_only=True)
+    created_by_details = LocalUnitMiniUserSerializer(source="created_by", read_only=True)
 
     class Meta:
         model = HealthData
         fields = ('__all__')
+
+    def create(self, validated_data):
+        validated_data['created_by'] = self.context["request"].user
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        validated_data["modified_by"] = self.context["request"].user
+        return super().update(instance, validated_data)
 
 
 class LocalUnitCountrySerializer(serializers.ModelSerializer):
@@ -218,7 +242,7 @@ class PrivateLocalUnitDetailSerializer(
     type_details = LocalUnitTypeSerializer(source='type', read_only=True)
     level_details = LocalUnitLevelSerializer(source='level', read_only=True)
     health = HealthDataSerializer(required=False, allow_null=True)
-    location_details = serializers.SerializerMethodField()
+    location_details = serializers.SerializerMethodField(read_only=True)
     visibility_display = serializers.CharField(source='get_visibility_display', read_only=True)
     validated = serializers.BooleanField(read_only=True)
     location_json = serializers.JSONField(
@@ -226,6 +250,9 @@ class PrivateLocalUnitDetailSerializer(
         write_only=True
     )
     location = serializers.CharField(required=False)
+    modified_by_details = LocalUnitMiniUserSerializer(source="modified_by", read_only=True)
+    created_by_details = LocalUnitMiniUserSerializer(source="created_by", read_only=True)
+    version_id = serializers.SerializerMethodField()
 
     class Meta:
         model = LocalUnit
@@ -236,11 +263,24 @@ class PrivateLocalUnitDetailSerializer(
             'location', 'source_loc', 'source_en', 'subtype', 'date_of_data',
             'level', 'health', 'visibility_display', 'location_details', 'type_details',
             'level_details', 'country_details', 'focal_person_loc', 'focal_person_en',
-            'email', 'phone', 'location_json', 'visibility',
+            'email', 'phone', 'location_json', 'visibility', 'modified_by_details',
+            'created_by_details', 'version_id'
         )
 
     def get_location_details(self, unit) -> dict:
         return json.loads(unit.location.geojson)
+
+    def get_version_id(self, resource):
+        # TODO: Add this as global method
+        if not reversion.is_registered(resource.__class__):
+            return None
+        version_id = Version.objects.get_for_object(resource).count()
+
+        request = self.context['request']
+        if request.method in ['POST', 'PUT', 'PATCH']:
+            if not (request.method == 'POST' and self.context.get('post_is_used_for_filter', False)):
+                version_id += 1
+        return version_id
 
     def validate(self, data):
         local_branch_name = data.get('local_branch_name')
@@ -268,17 +308,33 @@ class PrivateLocalUnitDetailSerializer(
             )
         input_point = Point(lng, lat)
         if country.bbox:
-            country_json = json.loads(country.bbox.geojson)
-            polygon_co = Polygon([tuple(value) for value in country_json['coordinates'][0]])
-            polygon = Polygon(polygon_co)
-            if not input_point.within(polygon):
+            country_json = json.loads(country.countrygeoms.geom.geojson)
+            coordinates = country_json["coordinates"]
+            # Convert to Shapely Polygons
+            polygons = []
+            for polygon_coords in coordinates:
+                exterior = polygon_coords[0]
+                interiors = polygon_coords[1:] if len(polygon_coords) > 1 else []
+                polygon = Polygon(exterior, interiors)
+                polygons.append(polygon)
+
+            # Create a Shapely MultiPolygon
+            shapely_multipolygon = MultiPolygon(polygons)
+            if not input_point.within(shapely_multipolygon):
                 raise serializers.ValidationError(
                     {
-                        'location': gettext('Input coordinates is outside country %s bbox' % country.name)
+                        'location_json': gettext('Input coordinates is outside country %s boundary' % country.name)
                     }
                 )
         validated_data['location'] = GEOSGeometry('POINT(%f %f)' % (lng, lat))
+        validated_data['created_by'] = self.context["request"].user
         return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        validated_data["modified_by"] = self.context["request"].user
+        # NOTE: Each time form is updated change validated status to `False`
+        validated_data["validated"] = False
+        return super().update(instance, validated_data)
 
 
 class LocalUnitSerializer(
