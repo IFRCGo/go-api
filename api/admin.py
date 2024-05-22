@@ -59,8 +59,8 @@ class GoTokenAdmin(TokenAdmin):
     search_fields = ('user__username', 'user__email',)
 
 
-admin.site.unregister(Token)
-admin.site.register(Token, GoTokenAdmin)
+# admin.site.unregister(Token)
+# admin.site.register(Token, GoTokenAdmin)
 
 
 class HasRelatedEventFilter(admin.SimpleListFilter):
