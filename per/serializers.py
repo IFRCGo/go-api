@@ -73,13 +73,13 @@ class IsFinalOverviewSerializer(serializers.ModelSerializer):
         fields = ("id", "is_finalized")
 
 
-class FormAreaSerializer(serializers.ModelSerializer):
+class FormAreaSerializer(ModelSerializer):
     class Meta:
         model = FormArea
         fields = ("id", "title", "area_num")
 
 
-class FormComponentSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
+class FormComponentSerializer(NestedCreateMixin, NestedUpdateMixin, ModelSerializer):
     # area = FormAreaSerializer()
 
     class Meta:
@@ -96,7 +96,7 @@ class FormComponentSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.
         )
 
 
-class FormAnswerSerializer(serializers.ModelSerializer):
+class FormAnswerSerializer(ModelSerializer):
     class Meta:
         model = FormAnswer
         fields = (
@@ -113,7 +113,7 @@ class MiniFormComponentSerializer(serializers.ModelSerializer):
         fields = ("id", "component_num", "title", "area", "description", "component_letter", "is_parent")
 
 
-class FormQuestionSerializer(serializers.ModelSerializer):
+class FormQuestionSerializer(ModelSerializer):
     component = MiniFormComponentSerializer()
     answers = FormAnswerSerializer(many=True)
 
@@ -398,7 +398,11 @@ class LatestCountryOverviewSerializer(serializers.ModelSerializer):
         return None
 
 
-class PerWorkPlanComponentSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
+class PerWorkPlanComponentSerializer(
+    NestedCreateMixin,
+    NestedUpdateMixin,
+    ModelSerializer
+):
     component_details = FormComponentSerializer(source="component", read_only=True)
     status_display = serializers.CharField(source="get_status_display", read_only=True)
     supported_by_details = MiniCountrySerializer(source="supported_by", read_only=True)
@@ -424,7 +428,11 @@ class PerWorkPlanComponentSerializer(NestedCreateMixin, NestedUpdateMixin, seria
         )
 
 
-class CustomPerWorkPlanComponentSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
+class CustomPerWorkPlanComponentSerializer(
+    NestedCreateMixin,
+    NestedUpdateMixin,
+    ModelSerializer
+):
     supported_by_organization_type_details = serializers.CharField(
         source="get_supported_by_organization_type_display",
         read_only=True
@@ -450,7 +458,11 @@ class MiniOverviewSerializer(serializers.ModelSerializer):
         )
 
 
-class PerWorkPlanSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
+class PerWorkPlanSerializer(
+    NestedCreateMixin,
+    NestedUpdateMixin,
+    ModelSerializer
+):
     prioritized_action_responses = PerWorkPlanComponentSerializer(many=True, required=False)
     additional_action_responses = CustomPerWorkPlanComponentSerializer(many=True, required=False)
     overview_details = MiniOverviewSerializer(source="overview", read_only=True)
@@ -504,7 +516,11 @@ class FormComponentQuestionSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class FormPrioritizationComponentSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
+class FormPrioritizationComponentSerializer(
+    NestedCreateMixin,
+    NestedUpdateMixin,
+    ModelSerializer
+):
     component_details = MiniFormComponentSerializer(source="component", read_only=True)
 
     class Meta:
@@ -512,7 +528,11 @@ class FormPrioritizationComponentSerializer(NestedCreateMixin, NestedUpdateMixin
         fields = ("id", "component", "justification_text", "component_details")
 
 
-class FormPrioritizationSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
+class FormPrioritizationSerializer(
+    NestedCreateMixin,
+    NestedUpdateMixin,
+    ModelSerializer
+):
     prioritized_action_responses = FormPrioritizationComponentSerializer(many=True, required=False)
 
     class Meta:
@@ -741,7 +761,7 @@ class FormComponentResponseSerializer(NestedCreateMixin, NestedUpdateMixin, Mode
         )
 
 
-class AreaResponseSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
+class AreaResponseSerializer(NestedCreateMixin, NestedUpdateMixin, ModelSerializer):
     area_details = FormAreaSerializer(source="area", read_only=True)
     component_responses = FormComponentResponseSerializer(
         many=True,
