@@ -128,6 +128,9 @@ class PerComponentRating(models.Model):
     title = models.CharField(verbose_name=_("title"), max_length=250)
     value = models.IntegerField(verbose_name=_("value"))
 
+    def __str__(self):
+        return f"{self.title} - {self.value}"
+
 
 @reversion.register()
 class FormComponentResponse(models.Model):

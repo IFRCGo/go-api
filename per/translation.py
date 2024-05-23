@@ -66,6 +66,11 @@ class FormComponentResponseTO(TranslationOptions):
     )
 
 
+@register(PerComponentRating)
+class PerComponentRatingTO(TranslationOptions):
+    fields = ("title",)
+
+
 @register(FormComponentQuestionAndAnswer)
 class FormComponentQuestionAndAnswerTO(TranslationOptions):
     fields = (

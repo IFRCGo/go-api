@@ -128,6 +128,11 @@ class AssessmentTypeAdmin(CompareVersionAdmin, TranslationAdmin):
     search_fields = ("name",)
 
 
+class PerComponentRatingAdmin(CompareVersionAdmin, TranslationAdmin):
+    ordering = ("value",)
+    search_fields = ("title",)
+
+
 class PerWorkPlanComponentAdmin(admin.ModelAdmin):
     pass
 
@@ -306,6 +311,7 @@ admin.site.register(models.WorkPlan, WorkPlanAdmin)
 admin.site.register(models.Overview, OverviewAdmin)
 admin.site.register(models.NiceDocument, NiceDocumentAdmin)
 admin.site.register(models.AssessmentType, AssessmentTypeAdmin)
+admin.site.register(models.PerComponentRating, PerComponentRatingAdmin)
 admin.site.register(models.PerWorkPlan, PerWorkPlanAdmin)
 admin.site.register(models.PerWorkPlanComponent, PerWorkPlanComponentAdmin)
 admin.site.register(models.FormPrioritization, FormPrioritizationAdmin)
