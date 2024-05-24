@@ -14,7 +14,8 @@ from .models import (
     AreaResponse,
     FormPrioritizationComponent,
     PerWorkPlanComponent,
-    CustomPerWorkPlanComponent
+    CustomPerWorkPlanComponent,
+    PerComponentRating,
 )
 
 
