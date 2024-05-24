@@ -103,6 +103,8 @@ class MiniHealthDataSerializer(
             'id',
             'health_facility_type',
             'health_facility_type_details',
+            'focal_point_phone_number',
+            'focal_point_email',
         )
 
 
