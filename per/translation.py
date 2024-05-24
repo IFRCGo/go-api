@@ -9,10 +9,13 @@ from .models import (
     FormQuestionGroup,
     Overview,
     FormComponentResponse,
-    PerComponentRating,
     FormComponentQuestionAndAnswer,
     PerAssessment,
     AreaResponse,
+    FormPrioritizationComponent,
+    PerWorkPlanComponent,
+    CustomPerWorkPlanComponent,
+    PerComponentRating,
 )
 
 
@@ -86,3 +89,24 @@ class PerAssessmentTO(TranslationOptions):
 @register(AreaResponse)
 class AreaResponseTO(TranslationOptions):
     pass
+
+
+@register(FormPrioritizationComponent)
+class FormPrioritizationComponentTO(TranslationOptions):
+    fields = (
+        'justification_text',
+    )
+
+
+@register(PerWorkPlanComponent)
+class PerWorkPlanComponentTo(TranslationOptions):
+    fields = (
+        'actions',
+    )
+
+
+@register(CustomPerWorkPlanComponent)
+class CustomPerWorkPlanComponentTO(TranslationOptions):
+    fields = (
+        'actions',
+    )

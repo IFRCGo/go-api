@@ -133,7 +133,7 @@ class PerComponentRatingAdmin(CompareVersionAdmin, TranslationAdmin):
     search_fields = ("title",)
 
 
-class PerWorkPlanComponentAdmin(admin.ModelAdmin):
+class PerWorkPlanComponentAdmin(TranslationAdmin):
     pass
 
 
@@ -145,23 +145,23 @@ class FormPrioritizationAdmin(admin.ModelAdmin):
     pass
 
 
-class FormPrioritizationComponentAdmin(admin.ModelAdmin):
+class FormPrioritizationComponentAdmin(TranslationAdmin):
     pass
 
 
-class FormAssessmentAdmin(admin.ModelAdmin):
+class FormAssessmentAdmin(TranslationAdmin):
     pass
 
 
-class FormAreaResponseAdmin(admin.ModelAdmin):
+class FormAreaResponseAdmin(TranslationAdmin):
     pass
 
 
-class FormComponentResponseAdmin(admin.ModelAdmin):
+class FormComponentResponseAdmin(TranslationAdmin):
     pass
 
 
-class FormComponentQuestionAndAnswerAdmin(admin.ModelAdmin):
+class FormComponentQuestionAndAnswerAdmin(TranslationAdmin):
     pass
 
 
@@ -175,7 +175,7 @@ class PerDocumentUploadAdmin(admin.ModelAdmin):
     pass
 
 
-class FormQuestionGroupAdmin(admin.ModelAdmin):
+class FormQuestionGroupAdmin(TranslationAdmin):
     pass
 
 
