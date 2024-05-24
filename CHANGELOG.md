@@ -6,6 +6,51 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.500
+
+### Added
+ - Fix .xlsx export
+ - Add Admin page and translation fields to PerComponentRating
+ - Update dependencies: requests
+ - Fix version conflicts with chartpress - pin requests and docker versions
+ - Add location validation on update
+ - Add countrygeoms to validate input coordinates
+ - Add scripts to translate specific models
+ - Add reversion in local units
+ - Add fields for Assessment translation
+ - Add validation for input point
+ - Refactor key figure calculation
+ - Fix validation on local units
+ - Add cron_job_monitor in README
+ - Add CI check for SentryMonitor
+ - Add test case for local-units
+ - Add city and address in country delegation
+ - Fix missing created_at in TokenGeneration
+ - Fix validate local_units permissions
+ - Fix blank enum in swagger
+ - Allow OPTIONS for static files
+ - Allow missing one of name_loc/name_en in LU
+ - Normalize all local unit icons
+ - Health importer changes
+ - Allow all Delegation in Country
+ - Add country admin permissions to validate local units
+ - Add autocomplete_fields in HealthData
+ - Health – new choices
+ - Add GNI Per Capita for WB
+ - Create public and private api for local-units
+ - Add static image for healthfacility type
+ - Add static file for localunit level
+ - Bump jinja2 from 3.1.3 to 3.1.4
+ - Wrap JWT env with double quote
+ - Add JWT_..._KEY_BASE64_ENCODED
+ - Use only one job for local unit imports
+ - Refactor delegation data ingest
+ - Make expire_timestamp not nullable
+ - Add MiniHealthDataSerializer
+ - Add name_en field to localunit reader
+ - Add more missing fields to localunit reader
+ - Follow field name changes in delegation offices
+
 ## 1.1.499
 
 ### Added
@@ -2404,7 +2449,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.499...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.500...HEAD
+[1.1.500]: https://github.com/IFRCGo/go-api/compare/1.1.499...1.1.500
 [1.1.499]: https://github.com/IFRCGo/go-api/compare/1.1.498...1.1.499
 [1.1.498]: https://github.com/IFRCGo/go-api/compare/1.1.497...1.1.498
 [1.1.497]: https://github.com/IFRCGo/go-api/compare/1.1.496...1.1.497
