@@ -83,7 +83,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(forwards_func, reverse_func, elidable=False),
+        # migrations.RunPython(forwards_func, reverse_func, elidable=False),
         migrations.RunPython(
             migrate_data,
             reverse_code=migrations.RunPython.noop
