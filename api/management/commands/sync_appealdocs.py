@@ -11,8 +11,8 @@ from collections import defaultdict
 from django.conf import settings
 
 CRON_NAME = "sync_appealdocs"
-PUBLIC_SOURCE = "https://go-api.ifrc.org/api/publicsiteappeals?Hidden=false&Appealnumber="
-FEDNET_SOURCE = "https://go-api.ifrc.org/Api/FedNetAppeals?Hidden=false&Appealnumber="
+PUBLIC_SOURCE = "https://go-api.ifrc.org/api/publicsiteappeals?Hidden=false&BaseAppealnumber="
+FEDNET_SOURCE = "https://go-api.ifrc.org/Api/FedNetAppeals?Hidden=false&BaseAppealnumber="
 
 @monitor(monitor_slug=SentryMonitor.SYNC_APPEALDOCS)
 class Command(BaseCommand):
