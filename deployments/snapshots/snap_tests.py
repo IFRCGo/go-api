@@ -11,12 +11,12 @@ snapshots['TestProjectAPI::test_global_project_api 1'] = {
     'ns_with_ongoing_activities': 16,
     'projects_per_programme_type': [
         {
-            'count': 5,
+            'count': 6,
             'programme_type': 0,
             'programme_type_display': 'Bilateral'
         },
         {
-            'count': 4,
+            'count': 3,
             'programme_type': 1,
             'programme_type_display': 'Multilateral'
         },
@@ -63,16 +63,16 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = [
         'target_total': 0
     },
     {
-        'budget_amount_total': 2310000,
+        'budget_amount_total': 720000,
         'id': 7,
         'iso3': 'kfs',
         'name': 'country-ZwjrVnVzStakFageXSAHAPsUBklxlTimFlGhCKnlmdVlZWmqAC',
         'ongoing_projects': 1,
         'operation_types': [
-            0
+            1
         ],
         'operation_types_display': [
-            'Programme'
+            'Emergency Operation'
         ],
         'projects_per_sector': [
             {
@@ -88,7 +88,7 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = [
         'budget_amount_total': 4740000,
         'id': 9,
         'iso3': 'hWp',
-        'name': 'country-BAdOgXrUUrqOGvAQqwfagTZFpLFoLBQrgXTFJMKyMHQycMgLYP',
+        'name': 'country-FSBAdOgXrUUrqOGvAQqwfagTZFpLFoLBQrgXTFJMKyMHQycMgL',
         'ongoing_projects': 1,
         'operation_types': [
             0

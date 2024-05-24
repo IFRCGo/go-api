@@ -240,6 +240,14 @@
       }
     },
     {
+      "model": "local_units.GeneralMedicalService",
+      "pk": 6,
+      "fields": {
+        "code": 6,
+        "name": "None"
+      }
+    },
+    {
       "model": "local_units.SpecializedMedicalService",
       "pk": 1,
       "fields": {
@@ -432,6 +440,14 @@
       }
     },
     {
+      "model": "local_units.SpecializedMedicalService",
+      "pk": 100,
+      "fields": {
+        "code": 100,
+        "name": "None"
+      }
+    },
+    {
       "model": "local_units.BloodService",
       "pk": 1,
       "fields": {
@@ -477,6 +493,14 @@
       "fields": {
         "code": 6,
         "name": "Hemopurification, hemofiltration"
+      }
+    },
+    {
+      "model": "local_units.BloodService",
+      "pk": 7,
+      "fields": {
+        "code": 7,
+        "name": "None"
       }
     },
     {

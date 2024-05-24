@@ -7,6 +7,15 @@ from .models import (
     FormData,
     AssessmentType,
     FormQuestionGroup,
+    Overview,
+    FormComponentResponse,
+    FormComponentQuestionAndAnswer,
+    PerAssessment,
+    AreaResponse,
+    FormPrioritizationComponent,
+    PerWorkPlanComponent,
+    CustomPerWorkPlanComponent,
+    PerComponentRating,
 )
 
 
@@ -43,3 +52,61 @@ class AssessmentTypeTO(TranslationOptions):
 @register(FormQuestionGroup)
 class FormQuestionGroup(TranslationOptions):
     fields = ("title", "description")
+
+
+@register(Overview)
+class OverviewTO(TranslationOptions):
+    pass
+
+
+@register(FormComponentResponse)
+class FormComponentResponseTO(TranslationOptions):
+    fields = (
+        'urban_considerations',
+        'epi_considerations',
+        'climate_environmental_considerations',
+        'notes'
+    )
+
+
+@register(PerComponentRating)
+class PerComponentRatingTO(TranslationOptions):
+    fields = ("title",)
+
+
+@register(FormComponentQuestionAndAnswer)
+class FormComponentQuestionAndAnswerTO(TranslationOptions):
+    fields = (
+        'notes',
+    )
+
+
+@register(PerAssessment)
+class PerAssessmentTO(TranslationOptions):
+    pass
+
+
+@register(AreaResponse)
+class AreaResponseTO(TranslationOptions):
+    pass
+
+
+@register(FormPrioritizationComponent)
+class FormPrioritizationComponentTO(TranslationOptions):
+    fields = (
+        'justification_text',
+    )
+
+
+@register(PerWorkPlanComponent)
+class PerWorkPlanComponentTo(TranslationOptions):
+    fields = (
+        'actions',
+    )
+
+
+@register(CustomPerWorkPlanComponent)
+class CustomPerWorkPlanComponentTO(TranslationOptions):
+    fields = (
+        'actions',
+    )

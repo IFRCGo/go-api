@@ -786,6 +786,8 @@ class CountryRelationSerializer(ModelSerializer):
             'hod_last_name',
             'hod_mobile_number',
             'hod_email',
+            'city',
+            'address',
         ).annotate(
             dotype_name=models.F('dotype__name')
         ).distinct()
@@ -2199,8 +2201,8 @@ class SearchEmergencySerializer(serializers.Serializer):
     funding_coverage = serializers.CharField()
     start_date = serializers.DateTimeField()
     countries = SearchMiniCountrySerializer(many=True)
-    # countries_id = serializers.ListField(serializers.IntegerField())
-    # iso3 = serializers.ListField(serializers.CharField())
+    # countries_id = serializers.ListField(child=serializers.IntegerField())
+    # iso3 = serializers.ListField(child=serializers.CharField())
     severity_level_display = serializers.CharField()
     appeal_type = serializers.CharField()
     score = serializers.FloatField()
@@ -2210,7 +2212,7 @@ class SearchEmergencySerializer(serializers.Serializer):
 class SearchSurgeAlertSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     name = serializers.CharField()
-    keywords = serializers.ListField(serializers.CharField())
+    keywords = serializers.ListField(child=serializers.CharField())
     event_name = serializers.CharField()
     country = serializers.CharField()
     start_date = serializers.DateTimeField()
@@ -2228,11 +2230,11 @@ class SearchProjectsSerializer(serializers.Serializer):
     name = serializers.CharField()
     event_name = serializers.CharField()
     national_society = serializers.CharField()
-    tags = serializers.ListField(serializers.CharField())
+    tags = serializers.ListField(child=serializers.CharField())
     sector = serializers.CharField()
     start_date = serializers.DateTimeField()
     end_date = serializers.DateTimeField()
-    regions = serializers.ListField(serializers.CharField())
+    regions = serializers.ListField(child=serializers.CharField())
     people_targeted = serializers.IntegerField()
     event_id = serializers.IntegerField()
     national_society_id = serializers.IntegerField()
@@ -2345,11 +2347,9 @@ class CountryKeyClimateInputSerializer(serializers.Serializer):
 class CountryKeyFigureSerializer(serializers.Serializer):
     active_drefs = serializers.IntegerField()
     active_appeals = serializers.IntegerField()
-    total_appeals = serializers.IntegerField()
     target_population = serializers.IntegerField()
-    amount_requested = serializers.IntegerField()
-    amount_requested_dref_included = serializers.IntegerField()
-    amount_funded = serializers.IntegerField()
+    total_amount_requested = serializers.IntegerField()
+    total_amount_funded = serializers.IntegerField()
     emergencies = serializers.IntegerField()
 
 

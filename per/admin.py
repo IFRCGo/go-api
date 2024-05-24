@@ -128,7 +128,12 @@ class AssessmentTypeAdmin(CompareVersionAdmin, TranslationAdmin):
     search_fields = ("name",)
 
 
-class PerWorkPlanComponentAdmin(admin.ModelAdmin):
+class PerComponentRatingAdmin(CompareVersionAdmin, TranslationAdmin):
+    ordering = ("value",)
+    search_fields = ("title",)
+
+
+class PerWorkPlanComponentAdmin(TranslationAdmin):
     pass
 
 
@@ -140,23 +145,23 @@ class FormPrioritizationAdmin(admin.ModelAdmin):
     pass
 
 
-class FormPrioritizationComponentAdmin(admin.ModelAdmin):
+class FormPrioritizationComponentAdmin(TranslationAdmin):
     pass
 
 
-class FormAssessmentAdmin(admin.ModelAdmin):
+class FormAssessmentAdmin(TranslationAdmin):
     pass
 
 
-class FormAreaResponseAdmin(admin.ModelAdmin):
+class FormAreaResponseAdmin(TranslationAdmin):
     pass
 
 
-class FormComponentResponseAdmin(admin.ModelAdmin):
+class FormComponentResponseAdmin(TranslationAdmin):
     pass
 
 
-class FormComponentQuestionAndAnswerAdmin(admin.ModelAdmin):
+class FormComponentQuestionAndAnswerAdmin(TranslationAdmin):
     pass
 
 
@@ -170,7 +175,7 @@ class PerDocumentUploadAdmin(admin.ModelAdmin):
     pass
 
 
-class FormQuestionGroupAdmin(admin.ModelAdmin):
+class FormQuestionGroupAdmin(TranslationAdmin):
     pass
 
 
@@ -306,6 +311,7 @@ admin.site.register(models.WorkPlan, WorkPlanAdmin)
 admin.site.register(models.Overview, OverviewAdmin)
 admin.site.register(models.NiceDocument, NiceDocumentAdmin)
 admin.site.register(models.AssessmentType, AssessmentTypeAdmin)
+admin.site.register(models.PerComponentRating, PerComponentRatingAdmin)
 admin.site.register(models.PerWorkPlan, PerWorkPlanAdmin)
 admin.site.register(models.PerWorkPlanComponent, PerWorkPlanComponentAdmin)
 admin.site.register(models.FormPrioritization, FormPrioritizationAdmin)

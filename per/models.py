@@ -3,7 +3,7 @@ from api.models import Country, Appeal
 from django.db import models
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
-from tinymce import HTMLField
+from tinymce.models import HTMLField
 from deployments.models import SectorTag
 
 
@@ -127,6 +127,9 @@ class FormComponent(models.Model):
 class PerComponentRating(models.Model):
     title = models.CharField(verbose_name=_("title"), max_length=250)
     value = models.IntegerField(verbose_name=_("value"))
+
+    def __str__(self):
+        return f"{self.title} - {self.value}"
 
 
 @reversion.register()

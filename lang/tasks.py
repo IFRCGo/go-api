@@ -1,10 +1,13 @@
 import logging
+import typing
+
 from celery import shared_task
 from modeltranslation.translator import translator
 from modeltranslation.utils import build_localized_fieldname
 from modeltranslation import settings as mt_settings
 from django.apps import apps as django_apps
 from django.db.models.functions import Length
+from django.db import models
 from django.db.models import Sum
 from django.db.models import Q
 from django.conf import settings
@@ -80,12 +83,18 @@ class ModelTranslator():
         )
 
     @classmethod
-    def get_translatable_models(cls):
+    def get_translatable_models(cls, only_models: typing.Optional[typing.List[models.Model]] = None):
         # return all models excluding proxy- and not managed models
-        return [
+        all_translatable_models = [
             m for m in translator.get_registered_models(abstract=False)
             if not m._meta.proxy and m._meta.managed
         ]
+        if only_models:
+            translatable_models = list(set(only_models).intersection(set(all_translatable_models)))
+            assert len(only_models) == len(translatable_models), \
+                f"Translation is not set for this models: {set(only_models).difference(set(translatable_models))}"
+            return translatable_models
+        return all_translatable_models
 
     @classmethod
     def get_translatable_fields(cls, model):
@@ -103,11 +112,11 @@ class ModelTranslator():
         obj.save(update_fields=update_fields)
 
     @classmethod
-    def show_characters_counts(cls):
+    def show_characters_counts(cls, only_models: typing.Optional[typing.List[models.Model]] = None):
         """
         Retrive and search for fields to be translated and show total character count
         """
-        translatable_models = cls.get_translatable_models()
+        translatable_models = cls.get_translatable_models(only_models=only_models)
         logger.info(f'Languages: {AVAILABLE_LANGUAGES}')
         logger.info(f'Default language: {mt_settings.DEFAULT_LANGUAGE}')
         logger.info(f'Number of models: {len(translatable_models)}')
@@ -132,12 +141,12 @@ class ModelTranslator():
         logger.info(f'Total Count: {total_count}')
         logger.info(f'Estimated Cost (AWS): {(len(AVAILABLE_LANGUAGES) -1) * total_count * 0.000015}')
 
-    def run(self, batch_size=None):
+    def run(self, batch_size=None, only_models: typing.Optional[typing.List[models.Model]] = None):
         """
         Retrive and search for fields to be translated
         batch_size: how many instances to translate for each model. None will be all
         """
-        translatable_models = self.get_translatable_models()
+        translatable_models = self.get_translatable_models(only_models=only_models)
         logger.info(f'Languages: {AVAILABLE_LANGUAGES}')
         logger.info(f'Default language: {mt_settings.DEFAULT_LANGUAGE}')
         logger.info(f'Number of models: {len(translatable_models)}')
