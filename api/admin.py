@@ -12,7 +12,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.conf import settings
 from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
 from rest_framework.authtoken.admin import TokenAdmin
-from rest_framework.authtoken.models import Token
+from rest_framework.authtoken.models import Token, TokenProxy
 from reversion_compare.admin import CompareVersionAdmin
 # from reversion.models import Revision
 
@@ -58,9 +58,8 @@ admin.site.register(User, GoUserAdmin)
 class GoTokenAdmin(TokenAdmin):
     search_fields = ('user__username', 'user__email',)
 
-
-# admin.site.unregister(Token)
-# admin.site.register(Token, GoTokenAdmin)
+admin.site.unregister(TokenProxy)
+admin.site.register(TokenProxy, GoTokenAdmin)
 
 
 class HasRelatedEventFilter(admin.SimpleListFilter):
