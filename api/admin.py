@@ -12,7 +12,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.conf import settings
 from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
 from rest_framework.authtoken.admin import TokenAdmin
-from rest_framework.authtoken.models import Token, TokenProxy
+from rest_framework.authtoken.models import TokenProxy
 from reversion_compare.admin import CompareVersionAdmin
 # from reversion.models import Revision
 
