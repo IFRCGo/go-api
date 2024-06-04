@@ -6,33 +6,33 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0098_auto_20201125_1156'),
+        ("api", "0098_auto_20201125_1156"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='country',
-            name='additional_tab_name',
-            field=models.CharField(blank=True, max_length=100, verbose_name='Label for Additional Tab'),
+            model_name="country",
+            name="additional_tab_name",
+            field=models.CharField(blank=True, max_length=100, verbose_name="Label for Additional Tab"),
         ),
         migrations.AlterField(
-            model_name='country',
-            name='additional_tab_name_ar',
-            field=models.CharField(blank=True, max_length=100, null=True, verbose_name='Label for Additional Tab'),
+            model_name="country",
+            name="additional_tab_name_ar",
+            field=models.CharField(blank=True, max_length=100, null=True, verbose_name="Label for Additional Tab"),
         ),
         migrations.AlterField(
-            model_name='country',
-            name='additional_tab_name_en',
-            field=models.CharField(blank=True, max_length=100, null=True, verbose_name='Label for Additional Tab'),
+            model_name="country",
+            name="additional_tab_name_en",
+            field=models.CharField(blank=True, max_length=100, null=True, verbose_name="Label for Additional Tab"),
         ),
         migrations.AlterField(
-            model_name='country',
-            name='additional_tab_name_es',
-            field=models.CharField(blank=True, max_length=100, null=True, verbose_name='Label for Additional Tab'),
+            model_name="country",
+            name="additional_tab_name_es",
+            field=models.CharField(blank=True, max_length=100, null=True, verbose_name="Label for Additional Tab"),
         ),
         migrations.AlterField(
-            model_name='country',
-            name='additional_tab_name_fr',
-            field=models.CharField(blank=True, max_length=100, null=True, verbose_name='Label for Additional Tab'),
+            model_name="country",
+            name="additional_tab_name_fr",
+            field=models.CharField(blank=True, max_length=100, null=True, verbose_name="Label for Additional Tab"),
         ),
     ]

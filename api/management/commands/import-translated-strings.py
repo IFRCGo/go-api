@@ -1,9 +1,11 @@
-import os
 import csv
+import os
+
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from api.models import Action, Country, DisasterType, SituationReportType
+
 from api.logger import logger
+from api.models import Action, Country, DisasterType, SituationReportType
 
 
 class Command(BaseCommand):

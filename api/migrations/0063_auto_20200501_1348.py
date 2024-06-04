@@ -7,23 +7,40 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0062_auto_20200501_1335'),
+        ("api", "0062_auto_20200501_1335"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='action',
-            name='category',
-            field=models.CharField(choices=[('General', 'General'), ('Health', 'Health'), ('NS Institutional Strengthening', 'NS Institutional Strengthening'), ('Socio-economic Impacts', 'Socio-economic Impacts')], default='General', max_length=255),
+            model_name="action",
+            name="category",
+            field=models.CharField(
+                choices=[
+                    ("General", "General"),
+                    ("Health", "Health"),
+                    ("NS Institutional Strengthening", "NS Institutional Strengthening"),
+                    ("Socio-economic Impacts", "Socio-economic Impacts"),
+                ],
+                default="General",
+                max_length=255,
+            ),
         ),
         migrations.AlterField(
-            model_name='action',
-            name='field_report_types',
-            field=django.contrib.postgres.fields.ArrayField(base_field=models.CharField(choices=[('EVT', 'Event'), ('EW', 'Early Warning'), ('EPI', 'Epidemic'), ('COVID', 'COVID-19')], max_length=16), default=list, size=None),
+            model_name="action",
+            name="field_report_types",
+            field=django.contrib.postgres.fields.ArrayField(
+                base_field=models.CharField(
+                    choices=[("EVT", "Event"), ("EW", "Early Warning"), ("EPI", "Epidemic"), ("COVID", "COVID-19")], max_length=16
+                ),
+                default=list,
+                size=None,
+            ),
         ),
         migrations.AlterField(
-            model_name='actionstaken',
-            name='organization',
-            field=models.CharField(choices=[('NTLS', 'National Society'), ('PNS', 'Foreign Society'), ('FDRN', 'Federation')], max_length=16),
+            model_name="actionstaken",
+            name="organization",
+            field=models.CharField(
+                choices=[("NTLS", "National Society"), ("PNS", "Foreign Society"), ("FDRN", "Federation")], max_length=16
+            ),
         ),
     ]

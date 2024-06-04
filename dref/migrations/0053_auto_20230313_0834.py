@@ -6,60 +6,60 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dref', '0052_dreffinalreport_type_of_dref'),
+        ("dref", "0052_dreffinalreport_type_of_dref"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='dref',
-            old_name='affect_same_area',
-            new_name='did_it_affect_same_area',
+            model_name="dref",
+            old_name="affect_same_area",
+            new_name="did_it_affect_same_area",
         ),
         migrations.RenameField(
-            model_name='dref',
-            old_name='affect_same_population',
-            new_name='did_it_affect_same_population',
+            model_name="dref",
+            old_name="affect_same_population",
+            new_name="did_it_affect_same_population",
         ),
         migrations.RenameField(
-            model_name='dref',
-            old_name='ns_request_fund',
-            new_name='did_ns_request_fund',
+            model_name="dref",
+            old_name="ns_request_fund",
+            new_name="did_ns_request_fund",
         ),
         migrations.RenameField(
-            model_name='dref',
-            old_name='ns_respond',
-            new_name='did_ns_respond',
+            model_name="dref",
+            old_name="ns_respond",
+            new_name="did_ns_respond",
         ),
         migrations.RenameField(
-            model_name='drefoperationalupdate',
-            old_name='ns_respond',
-            new_name='did_ns_respond',
+            model_name="drefoperationalupdate",
+            old_name="ns_respond",
+            new_name="did_ns_respond",
         ),
         migrations.RemoveField(
-            model_name='dref',
-            name='is_assessment_report',
+            model_name="dref",
+            name="is_assessment_report",
         ),
         migrations.RemoveField(
-            model_name='dreffinalreport',
-            name='is_assessment_report',
+            model_name="dreffinalreport",
+            name="is_assessment_report",
         ),
         migrations.RemoveField(
-            model_name='drefoperationalupdate',
-            name='is_assessment_report',
+            model_name="drefoperationalupdate",
+            name="is_assessment_report",
         ),
         migrations.AlterField(
-            model_name='dref',
-            name='type_of_onset',
-            field=models.IntegerField(blank=True, choices=[(1, 'Slow'), (2, 'Sudden')], null=True, verbose_name='onset type'),
+            model_name="dref",
+            name="type_of_onset",
+            field=models.IntegerField(blank=True, choices=[(1, "Slow"), (2, "Sudden")], null=True, verbose_name="onset type"),
         ),
         migrations.AlterField(
-            model_name='dreffinalreport',
-            name='type_of_onset',
-            field=models.IntegerField(blank=True, choices=[(1, 'Slow'), (2, 'Sudden')], null=True, verbose_name='onset type'),
+            model_name="dreffinalreport",
+            name="type_of_onset",
+            field=models.IntegerField(blank=True, choices=[(1, "Slow"), (2, "Sudden")], null=True, verbose_name="onset type"),
         ),
         migrations.AlterField(
-            model_name='drefoperationalupdate',
-            name='type_of_onset',
-            field=models.IntegerField(blank=True, choices=[(1, 'Slow'), (2, 'Sudden')], null=True, verbose_name='onset type'),
+            model_name="drefoperationalupdate",
+            name="type_of_onset",
+            field=models.IntegerField(blank=True, choices=[(1, "Slow"), (2, "Sudden")], null=True, verbose_name="onset type"),
         ),
     ]

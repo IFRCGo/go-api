@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0058_overview_orientation_document'),
+        ("per", "0058_overview_orientation_document"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='overview',
-            name='is_epi',
-            field=models.BooleanField(blank=True, default=False, null=True, verbose_name='is epi'),
+            model_name="overview",
+            name="is_epi",
+            field=models.BooleanField(blank=True, default=False, null=True, verbose_name="is epi"),
         ),
         migrations.AlterField(
-            model_name='overview',
-            name='is_finalized',
-            field=models.BooleanField(blank=True, default=False, null=True, verbose_name='is finalized'),
+            model_name="overview",
+            name="is_finalized",
+            field=models.BooleanField(blank=True, default=False, null=True, verbose_name="is finalized"),
         ),
     ]

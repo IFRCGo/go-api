@@ -6,28 +6,28 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('databank', '0012_auto_20231228_0623'),
+        ("databank", "0012_auto_20231228_0623"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='countryoverview',
-            name='staff_age_18_29',
-            field=models.IntegerField(blank=True, null=True, verbose_name='staff age 18 to 29'),
+            model_name="countryoverview",
+            name="staff_age_18_29",
+            field=models.IntegerField(blank=True, null=True, verbose_name="staff age 18 to 29"),
         ),
         migrations.AddField(
-            model_name='countryoverview',
-            name='volunteer_age_13_17',
-            field=models.IntegerField(blank=True, null=True, verbose_name='volunteer age 13 to 17'),
+            model_name="countryoverview",
+            name="volunteer_age_13_17",
+            field=models.IntegerField(blank=True, null=True, verbose_name="volunteer age 13 to 17"),
         ),
         migrations.AddField(
-            model_name='countryoverview',
-            name='volunteer_age_18_29',
-            field=models.IntegerField(blank=True, null=True, verbose_name='volunteer age 18 to 29'),
+            model_name="countryoverview",
+            name="volunteer_age_18_29",
+            field=models.IntegerField(blank=True, null=True, verbose_name="volunteer age 18 to 29"),
         ),
         migrations.AddField(
-            model_name='countryoverview',
-            name='volunteer_age_6_12',
-            field=models.IntegerField(blank=True, null=True, verbose_name='volunteer age 6 to 12'),
+            model_name="countryoverview",
+            name="volunteer_age_6_12",
+            field=models.IntegerField(blank=True, null=True, verbose_name="volunteer age 6 to 12"),
         ),
     ]

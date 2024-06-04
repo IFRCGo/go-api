@@ -7,13 +7,13 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('local_units', '0008_remove_localunit_data_source_id'),
+        ("local_units", "0008_remove_localunit_data_source_id"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='localunit',
-            name='location',
-            field=django.contrib.gis.db.models.fields.PointField(help_text='Local Unit Location', srid=4326),
+            model_name="localunit",
+            name="location",
+            field=django.contrib.gis.db.models.fields.PointField(help_text="Local Unit Location", srid=4326),
         ),
     ]

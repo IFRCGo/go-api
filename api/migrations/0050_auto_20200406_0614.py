@@ -6,78 +6,78 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0049_auto_20200403_0857'),
+        ("api", "0049_auto_20200403_0857"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='fieldreport',
-            name='health_min_cases',
+            model_name="fieldreport",
+            name="health_min_cases",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='fieldreport',
-            name='health_min_confirmed_cases',
+            model_name="fieldreport",
+            name="health_min_confirmed_cases",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='fieldreport',
-            name='health_min_num_dead',
+            model_name="fieldreport",
+            name="health_min_num_dead",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='fieldreport',
-            name='health_min_probable_cases',
+            model_name="fieldreport",
+            name="health_min_probable_cases",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='fieldreport',
-            name='health_min_suspected_cases',
+            model_name="fieldreport",
+            name="health_min_suspected_cases",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='fieldreport',
-            name='other_cases',
+            model_name="fieldreport",
+            name="other_cases",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='fieldreport',
-            name='other_confirmed_cases',
+            model_name="fieldreport",
+            name="other_confirmed_cases",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='fieldreport',
-            name='other_probable_cases',
+            model_name="fieldreport",
+            name="other_probable_cases",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='fieldreport',
-            name='other_suspected_cases',
+            model_name="fieldreport",
+            name="other_suspected_cases",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='fieldreport',
-            name='who_cases',
+            model_name="fieldreport",
+            name="who_cases",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='fieldreport',
-            name='who_confirmed_cases',
+            model_name="fieldreport",
+            name="who_confirmed_cases",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='fieldreport',
-            name='who_num_dead',
+            model_name="fieldreport",
+            name="who_num_dead",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='fieldreport',
-            name='who_probable_cases',
+            model_name="fieldreport",
+            name="who_probable_cases",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='fieldreport',
-            name='who_suspected_cases',
+            model_name="fieldreport",
+            name="who_suspected_cases",
             field=models.IntegerField(blank=True, null=True),
         ),
     ]

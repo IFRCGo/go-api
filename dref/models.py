@@ -1,16 +1,15 @@
-import reversion
-import os
 import copy
+import os
 
-from pdf2image import convert_from_bytes
-
-from django.db import models
+import reversion
 from django.conf import settings
-from django.utils.translation import gettext_lazy as _
-from django.templatetags.static import static
-from django.core.exceptions import ValidationError
 from django.contrib.postgres.aggregates import ArrayAgg
+from django.core.exceptions import ValidationError
+from django.db import models
+from django.templatetags.static import static
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+from pdf2image import convert_from_bytes
 
 from api.models import Country, DisasterType, District, FieldReport
 
@@ -191,7 +190,7 @@ class PlannedIntervention(models.Model):
             PlannedIntervention.Title.MULTI_PURPOSE_CASH: "cash.png",
             PlannedIntervention.Title.ENVIRONMENTAL_SUSTAINABILITY: "environment.png",
             PlannedIntervention.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY: "participation_team.png",
-            PlannedIntervention.Title.COORDINATION_AND_PARTNERSHIPS: "coordination.png"
+            PlannedIntervention.Title.COORDINATION_AND_PARTNERSHIPS: "coordination.png",
         }
         return request.build_absolute_uri(static(os.path.join("images/dref", title_static_map.get(title, "favicon.png"))))
 
@@ -277,7 +276,7 @@ class Dref(models.Model):
         null=True,
         blank=True,
         verbose_name=_("If available please upload Disaster categorization Analysis"),
-        related_name="dref_disaster_category_file"
+        related_name="dref_disaster_category_file",
     )
     targeting_strategy_support_file = models.ForeignKey(
         "DrefFile",
@@ -285,7 +284,7 @@ class Dref(models.Model):
         null=True,
         blank=True,
         verbose_name=_("If available please upload additional support documentation for targeting strategy"),
-        related_name="dref_targeting_strategy_support_file"
+        related_name="dref_targeting_strategy_support_file",
     )
     status = models.IntegerField(choices=Status.choices, verbose_name=_("status"), null=True, blank=True)
     num_assisted = models.IntegerField(verbose_name=_("number of assisted"), blank=True, null=True)
@@ -319,9 +318,7 @@ class Dref(models.Model):
         verbose_name=_("anticipatory actions"),
         help_text=_("Description of anticipatory actions or imminent disaster"),
     )
-    event_scope = models.TextField(
-        blank=True, null=True, verbose_name=_("event scope"), help_text=_("Scope and scale of event")
-    )
+    event_scope = models.TextField(blank=True, null=True, verbose_name=_("event scope"), help_text=_("Scope and scale of event"))
     national_society_actions = models.ManyToManyField(
         NationalSocietyAction, verbose_name=_("national society actions"), blank=True
     )
@@ -428,9 +425,7 @@ class Dref(models.Model):
     operation_timeframe = models.IntegerField(verbose_name=_("operation timeframe"), null=True, blank=True)
     appeal_code = models.CharField(verbose_name=_("appeal code"), max_length=255, null=True, blank=True)
     glide_code = models.CharField(verbose_name=_("glide number"), max_length=255, null=True, blank=True)
-    ifrc_appeal_manager_name = models.CharField(
-        verbose_name=_("ifrc appeal manager name"), max_length=255, null=True, blank=True
-    )
+    ifrc_appeal_manager_name = models.CharField(verbose_name=_("ifrc appeal manager name"), max_length=255, null=True, blank=True)
     ifrc_appeal_manager_email = models.CharField(
         verbose_name=_("ifrc appeal manager email"), max_length=255, null=True, blank=True
     )
@@ -479,9 +474,7 @@ class Dref(models.Model):
     originator_name = models.CharField(verbose_name=_("originator name"), max_length=255, null=True, blank=True)
     originator_email = models.CharField(verbose_name=_("originator email"), max_length=255, null=True, blank=True)
     originator_title = models.CharField(verbose_name=_("originator title"), max_length=255, null=True, blank=True)
-    originator_phone_number = models.CharField(
-        verbose_name=_("originator phone number"), max_length=100, null=True, blank=True
-    )
+    originator_phone_number = models.CharField(verbose_name=_("originator phone number"), max_length=100, null=True, blank=True)
     regional_focal_point_name = models.CharField(
         verbose_name=_("regional focal point name"), max_length=255, null=True, blank=True
     )
@@ -543,9 +536,7 @@ class Dref(models.Model):
         verbose_name=_("budget file"),
         related_name="budget_file_dref",
     )
-    budget_file_preview = models.FileField(
-        verbose_name=_("budget file preview"), null=True, blank=True, upload_to="dref/images/"
-    )
+    budget_file_preview = models.FileField(verbose_name=_("budget file preview"), null=True, blank=True, upload_to="dref/images/")
     assessment_report = models.ForeignKey(
         "DrefFile",
         on_delete=models.SET_NULL,
@@ -590,8 +581,7 @@ class Dref(models.Model):
     district = models.ManyToManyField(District, blank=True, verbose_name=_("district"))
     risk_security = models.ManyToManyField(RiskSecurity, blank=True, verbose_name=_("Risk Security"))
     has_child_safeguarding_risk_analysis_assessment = models.BooleanField(
-        verbose_name=_("Has the child safeguarding risk analysis assessment been completed?"),
-        null=True, blank=True
+        verbose_name=_("Has the child safeguarding risk analysis assessment been completed?"), null=True, blank=True
     )
     risk_security_concern = models.TextField(blank=True, null=True, verbose_name=_("Risk Security Concern"))
     is_man_made_event = models.BooleanField(verbose_name=_("Is Man-made Event"), null=True, blank=True)
@@ -628,29 +618,33 @@ class Dref(models.Model):
         user_id = user.id
         current_user_list = []
         current_user_list.append(user_id)
-        return Dref.objects.annotate(
-            created_user_list=models.F("created_by"),
-            users_list=ArrayAgg("users", filter=models.Q(users__isnull=False)),
-            op_users=models.Subquery(
-                DrefOperationalUpdate.objects.filter(dref=models.OuterRef("id"))
-                .order_by()
-                .values("id")
-                .annotate(c=ArrayAgg("users", filter=models.Q(users__isnull=False)))
-                .values("c")[:1]
-            ),
-            fr_users=models.Subquery(
-                DrefFinalReport.objects.filter(dref=models.OuterRef("id"))
-                .order_by()
-                .values("id")
-                .annotate(c=ArrayAgg("users", filter=models.Q(users__isnull=False)))
-                .values("c")[:1],
-            ),
-        ).filter(
-            models.Q(created_user_list=user_id) |
-            models.Q(users_list__contains=current_user_list) |
-            models.Q(op_users__contains=current_user_list) |
-            models.Q(fr_users__contains=current_user_list)
-        ).distinct()
+        return (
+            Dref.objects.annotate(
+                created_user_list=models.F("created_by"),
+                users_list=ArrayAgg("users", filter=models.Q(users__isnull=False)),
+                op_users=models.Subquery(
+                    DrefOperationalUpdate.objects.filter(dref=models.OuterRef("id"))
+                    .order_by()
+                    .values("id")
+                    .annotate(c=ArrayAgg("users", filter=models.Q(users__isnull=False)))
+                    .values("c")[:1]
+                ),
+                fr_users=models.Subquery(
+                    DrefFinalReport.objects.filter(dref=models.OuterRef("id"))
+                    .order_by()
+                    .values("id")
+                    .annotate(c=ArrayAgg("users", filter=models.Q(users__isnull=False)))
+                    .values("c")[:1],
+                ),
+            )
+            .filter(
+                models.Q(created_user_list=user_id)
+                | models.Q(users_list__contains=current_user_list)
+                | models.Q(op_users__contains=current_user_list)
+                | models.Q(fr_users__contains=current_user_list)
+            )
+            .distinct()
+        )
 
 
 class DrefFile(models.Model):
@@ -785,9 +779,7 @@ class DrefOperationalUpdate(models.Model):
     total_operation_timeframe = models.IntegerField(verbose_name=_("Total Operation Timeframe"), null=True, blank=True)
     appeal_code = models.CharField(verbose_name=_("appeal code"), max_length=255, null=True, blank=True)
     glide_code = models.CharField(verbose_name=_("glide number"), max_length=255, null=True, blank=True)
-    ifrc_appeal_manager_name = models.CharField(
-        verbose_name=_("ifrc appeal manager name"), max_length=255, null=True, blank=True
-    )
+    ifrc_appeal_manager_name = models.CharField(verbose_name=_("ifrc appeal manager name"), max_length=255, null=True, blank=True)
     ifrc_appeal_manager_email = models.CharField(
         verbose_name=_("ifrc appeal manager email"), max_length=255, null=True, blank=True
     )
@@ -852,9 +844,7 @@ class DrefOperationalUpdate(models.Model):
     )
     changing_geographic_location = models.BooleanField(null=True, blank=True, verbose_name=_("Changing geographic location"))
     changing_budget = models.BooleanField(null=True, blank=True, verbose_name=_("Changing budget"))
-    request_for_second_allocation = models.BooleanField(
-        null=True, blank=True, verbose_name=_("Request for second allocation")
-    )
+    request_for_second_allocation = models.BooleanField(null=True, blank=True, verbose_name=_("Request for second allocation"))
     summary_of_change = models.TextField(verbose_name=_("Summary of change"), null=True, blank=True)
     has_change_since_request = models.BooleanField(verbose_name=_("Has change since request"), null=True, blank=True)
     event_description = models.TextField(verbose_name=_("Event description"), null=True, blank=True)
@@ -954,8 +944,7 @@ class DrefOperationalUpdate(models.Model):
     risk_security = models.ManyToManyField(RiskSecurity, blank=True, verbose_name=_("Risk Security"))
     risk_security_concern = models.TextField(blank=True, null=True, verbose_name=_("Risk Security Concern"))
     has_child_safeguarding_risk_analysis_assessment = models.BooleanField(
-        verbose_name=_("Has the child safeguarding risk analysis assessment been completed?"),
-        null=True, blank=True
+        verbose_name=_("Has the child safeguarding risk analysis assessment been completed?"), null=True, blank=True
     )
 
     has_forecasted_event_materialize = models.BooleanField(
@@ -1126,9 +1115,7 @@ class DrefFinalReport(models.Model):
     operation_start_date = models.DateField(verbose_name=_("Operation Start Date"), null=True, blank=True)
     appeal_code = models.CharField(verbose_name=_("appeal code"), max_length=255, null=True, blank=True)
     glide_code = models.CharField(verbose_name=_("glide number"), max_length=255, null=True, blank=True)
-    ifrc_appeal_manager_name = models.CharField(
-        verbose_name=_("ifrc appeal manager name"), max_length=255, null=True, blank=True
-    )
+    ifrc_appeal_manager_name = models.CharField(verbose_name=_("ifrc appeal manager name"), max_length=255, null=True, blank=True)
     ifrc_appeal_manager_email = models.CharField(
         verbose_name=_("ifrc appeal manager email"), max_length=255, null=True, blank=True
     )
@@ -1194,9 +1181,7 @@ class DrefFinalReport(models.Model):
         verbose_name=_("event map"),
         related_name="event_map_dref_final_report",
     )
-    photos = models.ManyToManyField(
-        "DrefFile", blank=True, verbose_name=_("images"), related_name="photos_dref_final_report"
-    )
+    photos = models.ManyToManyField("DrefFile", blank=True, verbose_name=_("images"), related_name="photos_dref_final_report")
     assessment_report = models.ForeignKey(
         "DrefFile",
         on_delete=models.SET_NULL,
@@ -1249,18 +1234,9 @@ class DrefFinalReport(models.Model):
     men = models.IntegerField(verbose_name=_("men"), blank=True, null=True)
     girls = models.IntegerField(verbose_name=_("girls"), help_text=_("Girls under 18"), blank=True, null=True)
     boys = models.IntegerField(verbose_name=_("boys"), help_text=_("Boys under 18"), blank=True, null=True)
-    disability_people_per = models.FloatField(
-        verbose_name=_("disability people per"),
-        blank=True, null=True
-    )
-    people_per_urban = models.FloatField(
-        verbose_name=_("people per urban"),
-        blank=True, null=True
-    )
-    people_per_local = models.FloatField(
-        verbose_name=_("people per local"),
-        blank=True, null=True
-    )
+    disability_people_per = models.FloatField(verbose_name=_("disability people per"), blank=True, null=True)
+    people_per_urban = models.FloatField(verbose_name=_("people per urban"), blank=True, null=True)
+    people_per_local = models.FloatField(verbose_name=_("people per local"), blank=True, null=True)
     people_targeted_with_early_actions = models.IntegerField(
         verbose_name=_("people targeted with early actions"), blank=True, null=True
     )
@@ -1317,8 +1293,7 @@ class DrefFinalReport(models.Model):
     total_targeted_population = models.IntegerField(verbose_name=_("total targeted population"), blank=True, null=True)
     risk_security = models.ManyToManyField(RiskSecurity, blank=True, verbose_name=_("Risk Security"))
     has_child_safeguarding_risk_analysis_assessment = models.BooleanField(
-        verbose_name=_("Has the child safeguarding risk analysis assessment been completed?"),
-        null=True, blank=True
+        verbose_name=_("Has the child safeguarding risk analysis assessment been completed?"), null=True, blank=True
     )
     risk_security_concern = models.TextField(blank=True, null=True, verbose_name=_("Risk Security Concern"))
     event_date = models.DateField(
@@ -1357,15 +1332,8 @@ class DrefFinalReport(models.Model):
         null=True,
         blank=True,
     )
-    main_donors = models.TextField(
-        verbose_name=_("Main Donors"),
-        null=True,
-        blank=True
-    )
-    operation_end_date = models.DateField(
-        verbose_name=_("Operation End Date"),
-        null=True, blank=True
-    )
+    main_donors = models.TextField(verbose_name=_("Main Donors"), null=True, blank=True)
+    operation_end_date = models.DateField(verbose_name=_("Operation End Date"), null=True, blank=True)
     source_information = models.ManyToManyField(SourceInformation, blank=True, verbose_name=_("Source Information"))
     __financial_report_id = None
 

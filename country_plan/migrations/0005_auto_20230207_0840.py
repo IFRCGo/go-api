@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('country_plan', '0004_countryplan_appeal_api_inserted_date'),
+        ("country_plan", "0004_countryplan_appeal_api_inserted_date"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='countryplan',
-            old_name='appeal_api_inserted_date',
-            new_name='public_plan_inserted_date',
+            model_name="countryplan",
+            old_name="appeal_api_inserted_date",
+            new_name="public_plan_inserted_date",
         ),
         migrations.AddField(
-            model_name='countryplan',
-            name='internal_plan_inserted_date',
+            model_name="countryplan",
+            name="internal_plan_inserted_date",
             field=models.DateTimeField(blank=True, null=True),
         ),
     ]

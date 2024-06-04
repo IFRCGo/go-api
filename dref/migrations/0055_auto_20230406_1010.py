@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dref', '0054_auto_20230329_1409'),
+        ("dref", "0054_auto_20230329_1409"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='drefoperationalupdate',
-            name='date_of_approval',
-            field=models.DateField(blank=True, null=True, verbose_name='Date of Approval'),
+            model_name="drefoperationalupdate",
+            name="date_of_approval",
+            field=models.DateField(blank=True, null=True, verbose_name="Date of Approval"),
         ),
         migrations.AddField(
-            model_name='drefoperationalupdate',
-            name='ns_request_date',
-            field=models.DateField(blank=True, null=True, verbose_name='Ns request date'),
+            model_name="drefoperationalupdate",
+            name="ns_request_date",
+            field=models.DateField(blank=True, null=True, verbose_name="Ns request date"),
         ),
     ]

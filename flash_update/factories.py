@@ -1,21 +1,16 @@
 import factory
+from django.core.files.base import ContentFile
 from factory import fuzzy
 
 from api.factories import disaster_type
-from api.models import (
-    ActionOrg,
-    ActionType,
-    ActionCategory
-)
+from api.models import ActionCategory, ActionOrg, ActionType
 from flash_update.models import (
-    FlashUpdate,
-    FlashGraphicMap,
-    FlashAction,
-    Donors,
     DonorGroup,
+    Donors,
+    FlashAction,
+    FlashGraphicMap,
+    FlashUpdate,
 )
-
-from django.core.files.base import ContentFile
 
 
 class FlashGraphicMapFactory(factory.django.DjangoModelFactory):
@@ -23,11 +18,7 @@ class FlashGraphicMapFactory(factory.django.DjangoModelFactory):
         model = FlashGraphicMap
 
     file = factory.LazyAttribute(
-        lambda _: ContentFile(
-            factory.django.ImageField()._make_data(
-                {'width': 1024, 'height': 768}
-            ), 'flash_update.jpg'
-        )
+        lambda _: ContentFile(factory.django.ImageField()._make_data({"width": 1024, "height": 768}), "flash_update.jpg")
     )
 
 

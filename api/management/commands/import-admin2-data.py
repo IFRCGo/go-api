@@ -1,17 +1,12 @@
 import csv
 
-from django.core.management.base import BaseCommand, CommandError
 from django.contrib.gis.gdal import DataSource
 from django.contrib.gis.geos import GEOSGeometry
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import IntegrityError
-from django.db import transaction
+from django.core.management.base import BaseCommand, CommandError
+from django.db import IntegrityError, transaction
 
-from api.models import Country
-from api.models import District
-from api.models import DistrictGeoms
-from api.models import Admin2
-from api.models import Admin2Geoms
+from api.models import Admin2, Admin2Geoms, Country, District, DistrictGeoms
 
 
 class Command(BaseCommand):

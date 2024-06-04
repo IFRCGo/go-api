@@ -1,34 +1,33 @@
-import requests
-import pytz
-from itertools import chain
 from datetime import datetime
-from api.models import RequestChoices, ERPGUID
-from api.logger import logger
+from itertools import chain
+
+import pytz
+import requests
 from django.conf import settings
 
+from api.logger import logger
+from api.models import ERPGUID, RequestChoices
 
 ERP_API_ENDPOINT = settings.ERP_API_ENDPOINT
 ERP_API_SUBSCRIPTION_KEY = settings.ERP_API_SUBSCRIPTION_KEY
 
 
 def push_fr_data(data, retired=False):
-    if ERP_API_ENDPOINT == 'x':
+    if ERP_API_ENDPOINT == "x":
         return
     # Contacts
     c_ifrc_names = ",".join(
-        data.contacts.filter(ctype__iexact='Federation').values_list('name', flat=True)
+        data.contacts.filter(ctype__iexact="Federation").values_list("name", flat=True)
     )  # normally there is only 1
     c_ns_names = ",".join(
-        data.contacts.filter(ctype__iexact='NationalSociety').values_list('name', flat=True)
+        data.contacts.filter(ctype__iexact="NationalSociety").values_list("name", flat=True)
     )  # normally there is only 1
 
-    requestTitle = data.event.name if data.event else '-'  # Emergency name
+    requestTitle = data.event.name if data.event else "-"  # Emergency name
 
     try:
         countryNamesSet = set(
-            country.iso for country in chain(
-                data.event.countries.all() if data.event else [],
-                data.countries.all())
+            country.iso for country in chain(data.event.countries.all() if data.event else [], data.countries.all())
         )  # Country ISO2 codes in emergency
         countryNames = list(countryNamesSet)
     except AttributeError:
@@ -47,13 +46,13 @@ def push_fr_data(data, retired=False):
             else pytz.timezone("UTC").localize(datetime(1900, 1, 1, 1, 1, 1, 1)).strftime("%Y-%m-%d, %H:%M:%S")
         )
 
-        '''
+        """
         InitialRequestType:
             If “Appeal” <> “No”, then “EA”.
             Else if “DREF” <> “No”, then “DREF”
             Else “Empty”
             (if both DREF and Appeal, then the type must be EA)
-        '''
+        """
 
     if data.appeal != RequestChoices.NO:
         InitialRequestType, InitialRequestValue = "EA", data.appeal_amount
@@ -71,7 +70,8 @@ def push_fr_data(data, retired=False):
         data.other_num_affected,
         data.num_potentially_affected,
         data.gov_num_potentially_affected,
-        data.other_num_potentially_affected][index]
+        data.other_num_potentially_affected,
+    ][index]
 
     # index == 0 means undefined. So we estimate it:
     MaxNumberOfPeopleAffected = max(
@@ -80,7 +80,8 @@ def push_fr_data(data, retired=False):
         data.other_num_affected or 0,
         data.num_potentially_affected or 0,
         data.gov_num_potentially_affected or 0,
-        data.other_num_potentially_affected or 0)
+        data.other_num_potentially_affected or 0,
+    )
 
     if index == 0 and 0 < MaxNumberOfPeopleAffected:
         NumberOfPeopleAffected = MaxNumberOfPeopleAffected
@@ -107,31 +108,30 @@ def push_fr_data(data, retired=False):
                     "CurrencyCode": "CHF",
                 },  # Value: Field Report Appeal amount OR Field Report DREF amount (so not from Appeal table)
                 # ^ CurrencyCode can be different?
-            }
+            },
         }
     }
 
-    headers = {'Content-Type': 'application/json', 'Ocp-Apim-Trace': 'true', 'Ocp-Apim-Subscription-Key': ERP_API_SUBSCRIPTION_KEY}
+    headers = {
+        "Content-Type": "application/json",
+        "Ocp-Apim-Trace": "true",
+        "Ocp-Apim-Subscription-Key": ERP_API_SUBSCRIPTION_KEY,
+    }
     # The response contains the GUID (res.text)
     res = requests.post(ERP_API_ENDPOINT, json=payload, headers=headers)
 
     if res.status_code == 200:
-        res_text = res.text.replace('"', '')
-        logger.info('Successfully posted to ERP')
-        logger.info('GUID: {}'.format(res_text))
+        res_text = res.text.replace('"', "")
+        logger.info("Successfully posted to ERP")
+        logger.info("GUID: {}".format(res_text))
         # Saving GUID into a table so that the API can be queried with it to get info about
         # if the actual sending has failed or not.
-        ERPGUID.objects.create(
-            api_guid=res_text,
-            field_report=data
-        )
+        ERPGUID.objects.create(api_guid=res_text, field_report=data)
 
-        logger.info('E-mails were sent successfully.')
+        logger.info("E-mails were sent successfully.")
     elif res.status_code == 401 or res.status_code == 403:
         logger.error(
-            f'Authorization/authentication failed with status code ({res.status_code}) to the ERP API. Field Report ID: {data.id}'
+            f"Authorization/authentication failed with status code ({res.status_code}) to the ERP API. Field Report ID: {data.id}"
         )
     else:
-        logger.error(
-            f'Failed to post to the ERP API with status code ({res.status_code}). Field Report ID: {data.id}'
-        )
+        logger.error(f"Failed to post to the ERP API with status code ({res.status_code}). Field Report ID: {data.id}")

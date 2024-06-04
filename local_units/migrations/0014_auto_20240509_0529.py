@@ -6,48 +6,48 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('local_units', '0013_localunittype_colour'),
+        ("local_units", "0013_localunittype_colour"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='healthdata',
-            name='feedback',
-            field=models.TextField(blank=True, null=True, verbose_name='Feedback'),
+            model_name="healthdata",
+            name="feedback",
+            field=models.TextField(blank=True, null=True, verbose_name="Feedback"),
         ),
         migrations.AlterField(
-            model_name='healthdata',
-            name='focal_point_email',
-            field=models.EmailField(blank=True, max_length=255, null=True, verbose_name='Focal point email'),
+            model_name="healthdata",
+            name="focal_point_email",
+            field=models.EmailField(blank=True, max_length=255, null=True, verbose_name="Focal point email"),
         ),
         migrations.AlterField(
-            model_name='healthdata',
-            name='focal_point_phone_number',
-            field=models.CharField(blank=True, max_length=255, null=True, verbose_name='Focal point phone number'),
+            model_name="healthdata",
+            name="focal_point_phone_number",
+            field=models.CharField(blank=True, max_length=255, null=True, verbose_name="Focal point phone number"),
         ),
         migrations.AlterField(
-            model_name='healthdata',
-            name='focal_point_position',
-            field=models.CharField(blank=True, max_length=255, null=True, verbose_name='Focal point position'),
+            model_name="healthdata",
+            name="focal_point_position",
+            field=models.CharField(blank=True, max_length=255, null=True, verbose_name="Focal point position"),
         ),
         migrations.AlterField(
-            model_name='healthdata',
-            name='other_affiliation',
-            field=models.TextField(blank=True, null=True, verbose_name='Other Affiliation'),
+            model_name="healthdata",
+            name="other_affiliation",
+            field=models.TextField(blank=True, null=True, verbose_name="Other Affiliation"),
         ),
         migrations.AlterField(
-            model_name='healthdata',
-            name='other_facility_type',
-            field=models.TextField(blank=True, null=True, verbose_name='Other facility type'),
+            model_name="healthdata",
+            name="other_facility_type",
+            field=models.TextField(blank=True, null=True, verbose_name="Other facility type"),
         ),
         migrations.AlterField(
-            model_name='healthdata',
-            name='other_services',
-            field=models.TextField(blank=True, null=True, verbose_name='Other Services'),
+            model_name="healthdata",
+            name="other_services",
+            field=models.TextField(blank=True, null=True, verbose_name="Other Services"),
         ),
         migrations.AlterField(
-            model_name='healthdata',
-            name='speciality',
-            field=models.CharField(blank=True, max_length=255, null=True, verbose_name='Speciality'),
+            model_name="healthdata",
+            name="speciality",
+            field=models.CharField(blank=True, max_length=255, null=True, verbose_name="Speciality"),
         ),
     ]

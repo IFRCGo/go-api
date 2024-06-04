@@ -1,48 +1,43 @@
 from itertools import chain
 from operator import attrgetter
 
-from django.utils.translation import gettext
 import django.utils.timezone as timezone
-from reversion.views import RevisionMixin
 from django.contrib.auth.models import Permission
 from django.db import models
-
-from drf_spectacular.utils import extend_schema_view, extend_schema
+from django.utils.translation import gettext
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import (
+    mixins,
+    permissions,
+    response,
+    serializers,
+    status,
     views,
     viewsets,
-    response,
-    permissions,
-    status,
-    mixins,
-    serializers,
 )
 from rest_framework.decorators import action
-from dref.models import (
-    Dref,
-    DrefFile,
-    DrefOperationalUpdate,
-    DrefFinalReport,
-)
-from dref.serializers import (
-    DrefSerializer,
-    DrefFileSerializer,
-    DrefOperationalUpdateSerializer,
-    DrefFinalReportSerializer,
-    CompletedDrefOperationsSerializer,
-    MiniDrefSerializer,
-    AddDrefUserSerializer,
-    DrefShareUserSerializer,
-    DrefFileInputSerializer
-)
+from reversion.views import RevisionMixin
+
 from dref.filter_set import (
+    ActiveDrefFilterSet,
+    CompletedDrefOperationsFilterSet,
     DrefFilter,
     DrefOperationalUpdateFilter,
-    CompletedDrefOperationsFilterSet,
-    ActiveDrefFilterSet,
     DrefShareUserFilterSet,
 )
+from dref.models import Dref, DrefFile, DrefFinalReport, DrefOperationalUpdate
 from dref.permissions import PublishDrefPermission
+from dref.serializers import (
+    AddDrefUserSerializer,
+    CompletedDrefOperationsSerializer,
+    DrefFileInputSerializer,
+    DrefFileSerializer,
+    DrefFinalReportSerializer,
+    DrefOperationalUpdateSerializer,
+    DrefSerializer,
+    DrefShareUserSerializer,
+    MiniDrefSerializer,
+)
 
 
 def filter_dref_queryset_by_user_access(user, queryset):
@@ -50,17 +45,15 @@ def filter_dref_queryset_by_user_access(user, queryset):
         return queryset
     # Check if regional admin
     dref_admin_regions_id = [
-        codename.replace('dref_region_admin_', '')
+        codename.replace("dref_region_admin_", "")
         for codename in Permission.objects.filter(
             group__user=user,
-            codename__startswith='dref_region_admin_',
-        ).values_list('codename', flat=True)
+            codename__startswith="dref_region_admin_",
+        ).values_list("codename", flat=True)
     ]
     if len(dref_admin_regions_id):
         return queryset.filter(
-            models.Q(created_by=user) |
-            models.Q(country__region__in=dref_admin_regions_id) |
-            models.Q(users=user)
+            models.Q(created_by=user) | models.Q(country__region__in=dref_admin_regions_id) | models.Q(users=user)
         ).distinct()
     # Normal access
     return queryset.model.get_for(user)
@@ -189,10 +182,7 @@ class DrefFileViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.G
             return DrefFile.objects.none()
         return DrefFile.objects.filter(created_by=self.request.user)
 
-    @extend_schema(
-        request=DrefFileInputSerializer,
-        responses=DrefFileSerializer(many=True)
-    )
+    @extend_schema(request=DrefFileInputSerializer, responses=DrefFileSerializer(many=True))
     @action(
         detail=False,
         url_path="multiple",
@@ -201,10 +191,7 @@ class DrefFileViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.G
     )
     def multiple_file(self, request, pk=None, version=None):
         # converts querydict to original dict
-        files = [
-            files[0]
-            for files in dict((request.data).lists()).values()
-        ]
+        files = [files[0] for files in dict((request.data).lists()).values()]
         data = [{"file": file} for file in files]
         file_serializer = DrefFileSerializer(data=data, context={"request": request}, many=True)
         if file_serializer.is_valid():
@@ -229,26 +216,21 @@ class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     filterset_class = ActiveDrefFilterSet
     queryset = (
-        Dref.objects.prefetch_related(
-            "planned_interventions",
-            "needs_identified",
-            "national_society_actions",
-            "users"
-        ).order_by("-created_at").filter(is_active=True).distinct()
+        Dref.objects.prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
+        .order_by("-created_at")
+        .filter(is_active=True)
+        .distinct()
     )
 
     def get_queryset(self):
         # user = self.request.user
-        return filter_dref_queryset_by_user_access(self.request.user, super().get_queryset()).order_by('-created_at')
+        return filter_dref_queryset_by_user_access(self.request.user, super().get_queryset()).order_by("-created_at")
 
 
 class DrefShareView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    @extend_schema(
-        request=AddDrefUserSerializer,
-        responses=None
-    )
+    @extend_schema(request=AddDrefUserSerializer, responses=None)
     def post(self, request):
         serializer = AddDrefUserSerializer(
             data=request.data,
@@ -265,10 +247,7 @@ class DrefShareUserViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return (
-            Dref.objects.prefetch_related(
-                "planned_interventions",
-                "needs_identified",
-                "national_society_actions",
-                "users"
-            ).order_by("-created_at").distinct()
+            Dref.objects.prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
+            .order_by("-created_at")
+            .distinct()
         )

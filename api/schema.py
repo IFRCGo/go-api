@@ -1,13 +1,7 @@
 import graphene
 from graphene_django.types import DjangoObjectType
-from .models import (
-    Country,
-    DisasterType,
-    ActionsTaken,
-    Event,
-    Appeal,
-    FieldReport,
-)
+
+from .models import ActionsTaken, Appeal, Country, DisasterType, Event, FieldReport
 
 
 # GraphQL Schemas
@@ -53,13 +47,13 @@ class Query(graphene.ObjectType):
         return DisasterType.objects.all()
 
     def resolve_all_events(self, info, **kwargs):
-        return Event.objects.select_related('dtype').all()
+        return Event.objects.select_related("dtype").all()
 
     def resolve_all_appeals(self, info, **kwargs):
-        return Appeal.objects.select_related('event').select_related('country').all()
+        return Appeal.objects.select_related("event").select_related("country").all()
 
     def resolve_all_fieldreports(self, info, **kwargs):
-        return FieldReport.objects.select_related('dtype').select_related('event').all()
+        return FieldReport.objects.select_related("dtype").select_related("event").all()
 
 
 schema = graphene.Schema(query=Query)

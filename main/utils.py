@@ -1,28 +1,27 @@
-import requests
-import typing
-import json
 import datetime
-
-from tempfile import NamedTemporaryFile, _TemporaryFileWrapper
+import json
+import typing
 from collections import defaultdict
+from tempfile import NamedTemporaryFile, _TemporaryFileWrapper
 
+import requests
+from django.contrib.contenttypes.models import ContentType
+from django.db import models, router
+from django.utils.dateparse import parse_date, parse_datetime
+from rest_framework import exceptions
+from rest_framework.negotiation import DefaultContentNegotiation
 from reversion.models import Version
 from reversion.revisions import _get_options
-from django.utils.dateparse import parse_datetime, parse_date
-from django.db import models, router
-from django.contrib.contenttypes.models import ContentType
-from rest_framework.negotiation import DefaultContentNegotiation
-from rest_framework import exceptions
 
 
 def is_tableau(request):
-    """ Checking the request for the 'tableau' parameter
-        (used mostly for switching to the *TableauSerializers)
+    """Checking the request for the 'tableau' parameter
+    (used mostly for switching to the *TableauSerializers)
     """
-    return request.GET.get('tableau', 'false').lower() == 'true'
+    return request.GET.get("tableau", "false").lower() == "true"
 
 
-def get_merged_items_by_fields(items, fields, seperator=', '):
+def get_merged_items_by_fields(items, fields, seperator=", "):
     """
     For given array and fields:
     input: [{'name': 'name 1', 'age': 2}, {'name': 'name 2', 'height': 32}], ['name', 'age']
@@ -34,13 +33,10 @@ def get_merged_items_by_fields(items, fields, seperator=', '):
             value = getattr(item, field, None)
             if value is not None:
                 data[field].append(str(value))
-    return {
-        field: seperator.join(data[field])
-        for field in fields
-    }
+    return {field: seperator.join(data[field]) for field in fields}
 
 
-class DownloadFileManager():
+class DownloadFileManager:
     """
     Convert Appeal API datetime into django datetime
     Parameters
@@ -49,12 +45,13 @@ class DownloadFileManager():
     Return: TemporaryFile
     On close: Close and Delete the file
     """
-    def __init__(self, url, dir='/tmp/', **kwargs):
+
+    def __init__(self, url, dir="/tmp/", **kwargs):
         self.url = url
         self.downloaded_file = None
         # NamedTemporaryFile attributes
         self.named_temporary_file_args = {
-            'dir': dir,
+            "dir": dir,
             **kwargs,
         }
 
@@ -75,11 +72,7 @@ class DownloadFileManager():
 
 class DjangoReversionDataFixHelper:
     @staticmethod
-    def _get_content_type(
-        content_type_model: typing.Type[ContentType],
-        model: typing.Type[models.Model],
-        using
-    ):
+    def _get_content_type(content_type_model: typing.Type[ContentType], model: typing.Type[models.Model], using):
         version_options = _get_options(model)
         return content_type_model.objects.db_manager(using).get_for_model(
             model,
@@ -115,20 +108,20 @@ class DjangoReversionDataFixHelper:
             updated_serialized_data = json.loads(version.serialized_data)
             has_changed = False
             for field in fields:
-                _value = updated_serialized_data[0]['fields'].get(field)
+                _value = updated_serialized_data[0]["fields"].get(field)
                 if _value is None:
                     continue
                 updated_value = parser(_value)
                 if updated_value is None:
                     # For other format, parser should return None
                     continue
-                updated_serialized_data[0]['fields'][field] = renderer(updated_value)
+                updated_serialized_data[0]["fields"][field] = renderer(updated_value)
                 has_changed = True
             if has_changed:
                 version.serialized_data = json.dumps(updated_serialized_data)
                 updated_versions.append(version)
 
-        version_model.objects.bulk_update(updated_versions, fields=('serialized_data',))
+        version_model.objects.bulk_update(updated_versions, fields=("serialized_data",))
 
     @classmethod
     def date_fields_to_datetime(
@@ -167,8 +160,8 @@ class DjangoReversionDataFixHelper:
 
 class SpreadSheetContentNegotiation(DefaultContentNegotiation):
     MEDIA_TYPES = [
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'text/html',  # To allow download from browser
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "text/html",  # To allow download from browser
     ]
 
     def select_renderer(self, request, renderers, format_suffix):

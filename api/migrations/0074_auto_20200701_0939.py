@@ -6,23 +6,23 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0073_auto_20200624_1538'),
+        ("api", "0073_auto_20200624_1538"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='countrysnippet',
-            name='snippet',
-            field=models.TextField(blank=True, null=True, verbose_name='snippet'),
+            model_name="countrysnippet",
+            name="snippet",
+            field=models.TextField(blank=True, null=True, verbose_name="snippet"),
         ),
         migrations.AlterField(
-            model_name='regionsnippet',
-            name='snippet',
-            field=models.TextField(blank=True, null=True, verbose_name='snippet'),
+            model_name="regionsnippet",
+            name="snippet",
+            field=models.TextField(blank=True, null=True, verbose_name="snippet"),
         ),
         migrations.AlterField(
-            model_name='snippet',
-            name='snippet',
-            field=models.TextField(blank=True, null=True, verbose_name='snippet'),
+            model_name="snippet",
+            name="snippet",
+            field=models.TextField(blank=True, null=True, verbose_name="snippet"),
         ),
     ]

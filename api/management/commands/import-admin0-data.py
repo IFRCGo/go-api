@@ -1,17 +1,16 @@
-import sys
-import os
-import json
 import csv
-from django.core.management.base import BaseCommand, CommandError
-from django.contrib.gis.utils import LayerMapping
+import json
+import os
+import sys
+
 from django.contrib.gis.gdal import DataSource
-from django.contrib.gis.geos import GEOSGeometry
-from django.contrib.gis.geos import MultiPolygon, Point
-from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+from django.contrib.gis.geos import GEOSGeometry, MultiPolygon, Point
+from django.contrib.gis.utils import LayerMapping
+from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
+from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
-from api.models import Country
-from api.models import Region
-from api.models import CountryGeoms
+
+from api.models import Country, CountryGeoms, Region
 
 
 class Command(BaseCommand):

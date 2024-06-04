@@ -6,38 +6,38 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0188_auto_20231130_0900'),
+        ("api", "0188_auto_20231130_0900"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='country',
-            name='address_1',
-            field=models.CharField(blank=True, max_length=255, null=True, verbose_name='Address 1'),
+            model_name="country",
+            name="address_1",
+            field=models.CharField(blank=True, max_length=255, null=True, verbose_name="Address 1"),
         ),
         migrations.AddField(
-            model_name='country',
-            name='address_2',
-            field=models.CharField(blank=True, max_length=255, null=True, verbose_name='Address 2'),
+            model_name="country",
+            name="address_2",
+            field=models.CharField(blank=True, max_length=255, null=True, verbose_name="Address 2"),
         ),
         migrations.AddField(
-            model_name='country',
-            name='city_code',
-            field=models.CharField(blank=True, max_length=255, null=True, verbose_name='City Code'),
+            model_name="country",
+            name="city_code",
+            field=models.CharField(blank=True, max_length=255, null=True, verbose_name="City Code"),
         ),
         migrations.AddField(
-            model_name='country',
-            name='email',
-            field=models.CharField(blank=True, max_length=255, null=True, verbose_name='Email'),
+            model_name="country",
+            name="email",
+            field=models.CharField(blank=True, max_length=255, null=True, verbose_name="Email"),
         ),
         migrations.AddField(
-            model_name='country',
-            name='phone',
-            field=models.CharField(blank=True, max_length=255, null=True, verbose_name='Phone'),
+            model_name="country",
+            name="phone",
+            field=models.CharField(blank=True, max_length=255, null=True, verbose_name="Phone"),
         ),
         migrations.AddField(
-            model_name='country',
-            name='website',
-            field=models.CharField(blank=True, max_length=255, null=True, verbose_name='Website'),
+            model_name="country",
+            name="website",
+            field=models.CharField(blank=True, max_length=255, null=True, verbose_name="Website"),
         ),
     ]

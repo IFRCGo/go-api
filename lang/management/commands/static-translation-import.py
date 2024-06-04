@@ -1,25 +1,22 @@
 import csv
-import polib
 from collections import defaultdict
 from pathlib import Path
+
+import polib
 from django.conf import settings
 from django.core.management import BaseCommand
 
 
 class Command(BaseCommand):
-    help = 'Import from csv and update django po files'
+    help = "Import from csv and update django po files"
 
     def add_arguments(self, parser):
         parser.add_argument("csv_file", type=Path)
-        parser.add_argument(
-            '--partial-update',
-            action='store_true',
-            help='Don\'t enforce all languages'
-        )
+        parser.add_argument("--partial-update", action="store_true", help="Don't enforce all languages")
 
     def handle(self, *args, **options):
-        csv_file_path = options['csv_file']
-        partial_update = options['partial_update']
+        csv_file_path = options["csv_file"]
+        partial_update = options["partial_update"]
 
         # Collect all data from csv
         translation_data = defaultdict(lambda: defaultdict(dict))
@@ -27,13 +24,9 @@ class Command(BaseCommand):
             reader = csv.DictReader(fp)
             for row in reader:
                 # Default language po file path eg: api/locale/{language}/LC_MESSAGES/django.po
-                path_pattern = row['file']
-                msgid = row['msgid']
-                values = {
-                    lang: row[lang]
-                    for lang, _ in settings.LANGUAGES
-                    if row.get(lang) or not partial_update
-                }
+                path_pattern = row["file"]
+                msgid = row["msgid"]
+                values = {lang: row[lang] for lang, _ in settings.LANGUAGES if row.get(lang) or not partial_update}
                 translation_data[path_pattern][msgid] = values
 
         # Write to po

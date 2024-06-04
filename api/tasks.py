@@ -1,20 +1,20 @@
-from datetime import datetime
-import time
+import json
 import pathlib
 import tempfile
-import json
+import time
+from datetime import datetime
 
 from celery import shared_task
-from playwright.sync_api import sync_playwright
-
+from django.conf import settings
+from django.contrib.auth.models import User
 from django.core.files.base import ContentFile
 from django.utils import timezone
-from django.contrib.auth.models import User
-from django.conf import settings
+from playwright.sync_api import sync_playwright
+from rest_framework.authtoken.models import Token
 
 from api.models import Export
+
 from .logger import logger
-from rest_framework.authtoken.models import Token
 
 
 def build_storage_state(tmp_dir, user, token):

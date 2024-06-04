@@ -6,33 +6,39 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0067_auto_20230621_1003'),
+        ("per", "0067_auto_20230621_1003"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='overview',
-            name='date_of_mid_term_review',
+            model_name="overview",
+            name="date_of_mid_term_review",
         ),
         migrations.RemoveField(
-            model_name='overview',
-            name='date_of_next_asmt',
+            model_name="overview",
+            name="date_of_next_asmt",
         ),
         migrations.RemoveField(
-            model_name='overview',
-            name='is_epi',
+            model_name="overview",
+            name="is_epi",
         ),
         migrations.RemoveField(
-            model_name='overview',
-            name='is_finalized',
+            model_name="overview",
+            name="is_finalized",
         ),
         migrations.RemoveField(
-            model_name='overview',
-            name='other_consideration',
+            model_name="overview",
+            name="other_consideration",
         ),
         migrations.AlterField(
-            model_name='overview',
-            name='method_asmt_used',
-            field=models.CharField(blank=True, choices=[('per', 'Per'), ('drce', 'Drce'), ('wpns', 'WPNS')], max_length=90, null=True, verbose_name='what method has this assessment used'),
+            model_name="overview",
+            name="method_asmt_used",
+            field=models.CharField(
+                blank=True,
+                choices=[("per", "Per"), ("drce", "Drce"), ("wpns", "WPNS")],
+                max_length=90,
+                null=True,
+                verbose_name="what method has this assessment used",
+            ),
         ),
     ]

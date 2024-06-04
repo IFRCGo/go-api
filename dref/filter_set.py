@@ -1,15 +1,8 @@
 import django_filters as filters
 from django.db import models
 
-from dref.models import (
-    Dref,
-    DrefOperationalUpdate,
-    DrefFinalReport,
-)
-from api.models import (
-    Country,
-    DisasterType,
-)
+from api.models import Country, DisasterType
+from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
 
 
 class DrefFilter(filters.FilterSet):
@@ -46,18 +39,15 @@ class BaseDrefFilterSet(filters.FilterSet):
         field_name="disaster_type",
         queryset=DisasterType.objects.all(),
     )
-    appeal_code = filters.CharFilter(
-        field_name="appeal_code",
-        lookup_expr="icontains"
-    )
+    appeal_code = filters.CharFilter(field_name="appeal_code", lookup_expr="icontains")
 
 
 class CompletedDrefOperationsFilterSet(BaseDrefFilterSet):
 
     class Type(models.TextChoices):
-        DREF = 'dref', 'Dref'
-        OPERATIONAL_UPDATE = 'operational_update', 'Operational Update'
-        FINAL_REPORT = 'final_report', 'Final Report'
+        DREF = "dref", "Dref"
+        OPERATIONAL_UPDATE = "operational_update", "Operational Update"
+        FINAL_REPORT = "final_report", "Final Report"
 
     # type = filters.ChoiceFilter(
     #     label='Tyoe choice',
@@ -81,7 +71,7 @@ class ActiveDrefFilterSet(BaseDrefFilterSet):
 
 
 class DrefShareUserFilterSet(filters.FilterSet):
-    id = filters.NumberFilter(field_name='id', lookup_expr='exact')
+    id = filters.NumberFilter(field_name="id", lookup_expr="exact")
 
     class Meta:
         model = Dref

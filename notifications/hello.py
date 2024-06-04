@@ -1,7 +1,9 @@
 import random
+
 hellos = [
-    'Hello,',
+    "Hello,",
 ]
+
 
 def get_hello():
     return random.choice(hellos)

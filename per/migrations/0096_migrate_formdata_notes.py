@@ -9,12 +9,9 @@ class Migration(migrations.Migration):
         pass
 
     dependencies = [
-        ('per', '0095_perdocumentupload'),
+        ("per", "0095_perdocumentupload"),
     ]
 
     operations = [
-        migrations.RunPython(
-            migrate_formdata_notes,
-            reverse_code=migrations.RunPython.noop
-        ),
+        migrations.RunPython(migrate_formdata_notes, reverse_code=migrations.RunPython.noop),
     ]

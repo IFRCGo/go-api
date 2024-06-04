@@ -6,18 +6,36 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0158_fieldreport_recent_affected'),
+        ("api", "0158_fieldreport_recent_affected"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='fieldreport',
-            name='recent_affected',
-            field=models.IntegerField(choices=[(0, 'Unknown'), (1, 'Red Cross / Red Crescent'), (2, 'Government'), (3, 'Other'), (4, 'Red Cross / Red Crescent, potentially'), (5, 'Government, potentially'), (6, 'Other, potentially')], default=0, help_text='<a target="_blank" href="/api/v2/recentaffected">Key/value pairs</a>', verbose_name='recent source of affected people'),
+            model_name="fieldreport",
+            name="recent_affected",
+            field=models.IntegerField(
+                choices=[
+                    (0, "Unknown"),
+                    (1, "Red Cross / Red Crescent"),
+                    (2, "Government"),
+                    (3, "Other"),
+                    (4, "Red Cross / Red Crescent, potentially"),
+                    (5, "Government, potentially"),
+                    (6, "Other, potentially"),
+                ],
+                default=0,
+                help_text='<a target="_blank" href="/api/v2/recentaffected">Key/value pairs</a>',
+                verbose_name="recent source of affected people",
+            ),
         ),
         migrations.AlterField(
-            model_name='fieldreport',
-            name='status',
-            field=models.IntegerField(choices=[(0, 'Unknown'), (2, 'Two'), (3, 'Three'), (8, 'Early Warning'), (9, 'Event-related'), (10, 'Ten')], default=0, help_text='<a target="_blank" href="/api/v2/fieldreportstatus">Key/value pairs</a>', verbose_name='type'),
+            model_name="fieldreport",
+            name="status",
+            field=models.IntegerField(
+                choices=[(0, "Unknown"), (2, "Two"), (3, "Three"), (8, "Early Warning"), (9, "Event-related"), (10, "Ten")],
+                default=0,
+                help_text='<a target="_blank" href="/api/v2/fieldreportstatus">Key/value pairs</a>',
+                verbose_name="type",
+            ),
         ),
     ]

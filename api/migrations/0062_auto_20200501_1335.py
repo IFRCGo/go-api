@@ -7,13 +7,19 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0061_action_is_disabled'),
+        ("api", "0061_action_is_disabled"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='action',
-            name='field_report_types',
-            field=django.contrib.postgres.fields.ArrayField(base_field=models.CharField(choices=[('EVT', 'Event'), ('EW', 'Early Warning'), ('EPI', 'Epidemic'), ('COVID', 'COVID-19')], max_length=4), default=list, size=None),
+            model_name="action",
+            name="field_report_types",
+            field=django.contrib.postgres.fields.ArrayField(
+                base_field=models.CharField(
+                    choices=[("EVT", "Event"), ("EW", "Early Warning"), ("EPI", "Epidemic"), ("COVID", "COVID-19")], max_length=4
+                ),
+                default=list,
+                size=None,
+            ),
         ),
     ]

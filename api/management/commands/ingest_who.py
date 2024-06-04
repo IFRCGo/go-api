@@ -1,11 +1,13 @@
-import requests
 import datetime as dt
+
+import requests
 import xmltodict
 from dateutil.parser import parse
 from django.core.management.base import BaseCommand
-from api.models import Country, Region, Event, CronJob, CronJobStatus
+
 from api.event_sources import SOURCES
 from api.logger import logger
+from api.models import Country, CronJob, CronJobStatus, Event, Region
 
 
 class Command(BaseCommand):

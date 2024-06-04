@@ -1,6 +1,5 @@
-
 # Attention! deployments/PersonnelViewset CSV output does not use this:
-class CsvListMixin():
+class CsvListMixin:
     def get_csv_serializer_class(self):
         return self.csv_serializer_class
 
@@ -10,8 +9,8 @@ class CsvListMixin():
         This means that views will not be instantiated with a request instance.
         i.e. Inside the view self.request will be None.
         """
-        if self.action == 'list' and self.request is not None:
-            format = self.request.GET.get('format', 'json')
-            if format == 'csv':
+        if self.action == "list" and self.request is not None:
+            format = self.request.GET.get("format", "json")
+            if format == "csv":
                 return self.get_csv_serializer_class()
         return super().get_serializer_class()

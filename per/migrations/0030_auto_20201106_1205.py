@@ -6,23 +6,23 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0029_auto_20201105_1529'),
+        ("per", "0029_auto_20201105_1529"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='overview',
-            name='approximate_date_next_capacity_assmt',
-            field=models.DateTimeField(blank=True, null=True, verbose_name='approximate date next capacity assessment'),
+            model_name="overview",
+            name="approximate_date_next_capacity_assmt",
+            field=models.DateTimeField(blank=True, null=True, verbose_name="approximate date next capacity assessment"),
         ),
         migrations.AlterField(
-            model_name='overview',
-            name='date_of_current_capacity_assessment',
-            field=models.DateTimeField(blank=True, null=True, verbose_name='date of current capacity assessment'),
+            model_name="overview",
+            name="date_of_current_capacity_assessment",
+            field=models.DateTimeField(blank=True, null=True, verbose_name="date of current capacity assessment"),
         ),
         migrations.AlterField(
-            model_name='overview',
-            name='date_of_mid_term_review',
-            field=models.DateTimeField(blank=True, null=True, verbose_name='date of mid term review'),
+            model_name="overview",
+            name="date_of_mid_term_review",
+            field=models.DateTimeField(blank=True, null=True, verbose_name="date of mid term review"),
         ),
     ]

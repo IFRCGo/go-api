@@ -1,17 +1,18 @@
 import csv
-import io
 import datetime
+import io
+
 import requests
+
+from .utils import catch_error, get_country_by_iso2
 
 # from django.conf import settings
 # from api.utils import base64_encode
 
-from .utils import catch_error, get_country_by_iso2
 
-
-FTS_URL = 'https://api.hpc.tools/v1/public/fts/flow?countryISO3={0}&groupby=year&report=3'
-EMERGENCY_URL = 'https://api.hpc.tools/v1/public/emergency/country/{0}'
-GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1MArQSVdbLXLaQ8ixUKo9jIjifTCVDDxTJYbGoRuw3Vw/gviz/tq?tqx=out:csv'
+FTS_URL = "https://api.hpc.tools/v1/public/fts/flow?countryISO3={0}&groupby=year&report=3"
+EMERGENCY_URL = "https://api.hpc.tools/v1/public/emergency/country/{0}"
+GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1MArQSVdbLXLaQ8ixUKo9jIjifTCVDDxTJYbGoRuw3Vw/gviz/tq?tqx=out:csv"
 
 HEADERS = {
     # TODO: USE Crendentils here
@@ -28,10 +29,10 @@ def prefetch():
 
     gho_data = {
         f"{d['Country #country+code'].upper()}-{d['Year #date+year']}": {
-            'people_in_need': d['PIN #inneed'],
-            'people_targeted': d['PT #targeted'],
-            'funding_total_usd': d['Funding #value+funding+total+usd'],
-            'funding_required_usd': d['Requirements #value+funding+required+usd'],
+            "people_in_need": d["PIN #inneed"],
+            "people_targeted": d["PT #targeted"],
+            "funding_total_usd": d["Funding #value+funding+total+usd"],
+            "funding_required_usd": d["Requirements #value+funding+required+usd"],
         }
         for d in g_sheet_data
     }
@@ -58,13 +59,13 @@ def load(country, overview, gho_data):
     c_data = {}
 
     # fundingTotals, pledgeTotals
-    for fund_area, fund_area_s in [('fundingTotals', 'funding_totals'), ('pledgeTotals', 'pledge_totals')]:
-        fund_area_data = fts_data['data']['report3'][fund_area]['objects']
+    for fund_area, fund_area_s in [("fundingTotals", "funding_totals"), ("pledgeTotals", "pledge_totals")]:
+        fund_area_data = fts_data["data"]["report3"][fund_area]["objects"]
         if len(fund_area_data) > 0:
-            for v in fund_area_data[0]['objectsBreakdown']:
+            for v in fund_area_data[0]["objectsBreakdown"]:
                 try:
-                    year = int(v['name'])
-                    totalFunding = v['totalFunding']
+                    year = int(v["name"])
+                    totalFunding = v["totalFunding"]
                 except ValueError:
                     continue
                 if year not in c_data:
@@ -74,23 +75,23 @@ def load(country, overview, gho_data):
 
     # numActivations
     CronJobSum = 0
-    for v in emg_data['data']:
+    for v in emg_data["data"]:
         try:
             year = datetime.datetime.strptime(
-                v['date'].split('T')[0],
-                '%Y-%m-%d',
+                v["date"].split("T")[0],
+                "%Y-%m-%d",
             ).year
         except ValueError:
             continue
         if year not in c_data:
-            c_data[year] = {'numActivations': 1}
+            c_data[year] = {"numActivations": 1}
         else:
-            c_data[year]['numActivations'] = c_data[year].get('numActivations', 0) + 1
-        CronJobSum += c_data[year]['numActivations']
+            c_data[year]["numActivations"] = c_data[year].get("numActivations", 0) + 1
+        CronJobSum += c_data[year]["numActivations"]
 
     overview.fts_data = [
         {
-            'year': year,
+            "year": year,
             **values,
             **gho_data.get(f"{pcountry.alpha_3.upper()}-{year}", {}),
         }

@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0105_auto_20201211_0758'),
+        ("api", "0105_auto_20201211_0758"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='fieldreport',
-            name='ns_request_assistance',
-            field=models.BooleanField(verbose_name='NS request assistance'),
+            model_name="fieldreport",
+            name="ns_request_assistance",
+            field=models.BooleanField(verbose_name="NS request assistance"),
         ),
         migrations.AlterField(
-            model_name='fieldreport',
-            name='request_assistance',
-            field=models.BooleanField(verbose_name='request assistance'),
+            model_name="fieldreport",
+            name="request_assistance",
+            field=models.BooleanField(verbose_name="request assistance"),
         ),
     ]

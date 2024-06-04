@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0023_auto_20201012_1241'),
+        ("per", "0023_auto_20201012_1241"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='formcomponent',
-            name='component_letter',
-            field=models.CharField(blank=True, max_length=3, null=True, verbose_name='component letter'),
+            model_name="formcomponent",
+            name="component_letter",
+            field=models.CharField(blank=True, max_length=3, null=True, verbose_name="component letter"),
         ),
     ]

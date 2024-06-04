@@ -6,28 +6,28 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dref', '0024_auto_20220728_0418'),
+        ("dref", "0024_auto_20220728_0418"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='dref',
-            name='title_prefix',
-            field=models.CharField(blank=True, max_length=255, null=True, verbose_name='title prefix'),
+            model_name="dref",
+            name="title_prefix",
+            field=models.CharField(blank=True, max_length=255, null=True, verbose_name="title prefix"),
         ),
         migrations.AddField(
-            model_name='dreffinalreport',
-            name='title_prefix',
-            field=models.CharField(blank=True, max_length=255, null=True, verbose_name='title prefix'),
+            model_name="dreffinalreport",
+            name="title_prefix",
+            field=models.CharField(blank=True, max_length=255, null=True, verbose_name="title prefix"),
         ),
         migrations.AddField(
-            model_name='drefoperationalupdate',
-            name='title_prefix',
-            field=models.CharField(blank=True, max_length=255, null=True, verbose_name='title prefix'),
+            model_name="drefoperationalupdate",
+            name="title_prefix",
+            field=models.CharField(blank=True, max_length=255, null=True, verbose_name="title prefix"),
         ),
         migrations.AlterField(
-            model_name='dref',
-            name='risk_security_concern',
-            field=models.TextField(blank=True, null=True, verbose_name='Risk Security Concern'),
+            model_name="dref",
+            name="risk_security_concern",
+            field=models.TextField(blank=True, null=True, verbose_name="Risk Security Concern"),
         ),
     ]

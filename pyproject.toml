@@ -112,13 +112,14 @@ reportMissingTypeStubs = false
 
 [tool.black]
 line-length = 130
-py36 = true
+target-version = ['py39']
 include = '\.pyi?$'
 exclude = '''
 /(
     \.git
   | \.tox
   | \.venv
+  | \.db
   | _build
   | buck-out
   | build

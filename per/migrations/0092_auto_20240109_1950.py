@@ -6,18 +6,22 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0091_opslearning'),
+        ("per", "0091_opslearning"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='opslearning',
-            name='organization',
-            field=models.IntegerField(choices=[(1, 'Secretariat'), (2, 'National Society')], default=1, verbose_name='organization'),
+            model_name="opslearning",
+            name="organization",
+            field=models.IntegerField(
+                choices=[(1, "Secretariat"), (2, "National Society")], default=1, verbose_name="organization"
+            ),
         ),
         migrations.AddField(
-            model_name='opslearning',
-            name='organization_validated',
-            field=models.IntegerField(choices=[(1, 'Secretariat'), (2, 'National Society')], default=1, verbose_name='organization (validated)'),
+            model_name="opslearning",
+            name="organization_validated",
+            field=models.IntegerField(
+                choices=[(1, "Secretariat"), (2, "National Society")], default=1, verbose_name="organization (validated)"
+            ),
         ),
     ]

@@ -3,56 +3,56 @@ from datetime import datetime
 
 from django.db import transaction
 from django.db.models import Q
-from django.db.models.signals import pre_delete, pre_save, post_save, post_delete
+from django.db.models.signals import post_delete, post_save, pre_delete, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
-
 from reversion.models import Version
 from reversion.signals import post_revision_commit
-from api.models import ReversionDifferenceLog, Event, Country, FieldReport
-from middlewares.middlewares import get_username
-from utils.elasticsearch import create_es_index, update_es_index, delete_es_index
-from utils.erp import push_fr_data
-from api.logger import logger
-from .models import Appeal, AppealHistory, AppealFilter
-from main.suspend_receivers import suspendingreceiver
 
+from api.logger import logger
+from api.models import Country, Event, FieldReport, ReversionDifferenceLog
+from main.suspend_receivers import suspendingreceiver
+from middlewares.middlewares import get_username
+from utils.elasticsearch import create_es_index, delete_es_index, update_es_index
+from utils.erp import push_fr_data
+
+from .models import Appeal, AppealFilter, AppealHistory
 
 MODEL_TYPES = {
-    'api.action': 'Action',
-    'api.appeal': 'Appeal',
-    'api.appealdocument': 'Appeal Document',
-    'api.country': 'Country',
-    'api.cronjob': 'CronJob',
-    'api.district': 'District',
-    'api.emergencyoperationsdataset': 'Emergency Operations Dataset',
-    'api.emergencyoperationsea': 'Emergency Operations Emergency Appeals',
-    'api.emergencyoperationsfr': 'Emergency Operations Final Reports',
-    'api.emergencyoperationspeoplereached': 'Emergency Operations People Reached',
-    'api.event': 'Emergency',
-    'api.fieldreport': 'Field Report',
-    'api.gdacsevent': 'GDACS Event',
-    'api.profile': 'User Profile',
-    'api.region': 'Region',
-    'api.situationreport': 'Situation Report',
-    'api.situationreporttype': 'Situation Report Type',
-    'deployments.eruowner': 'ERU Owner',
-    'deployments.erureadiness': 'ERU Readiness',
-    'deployments.partnersocietyactivities': 'Partner society activity',
-    'deployments.partnersocietydeployment': 'Partner society deployment',
-    'deployments.personnel': 'Personnel',
-    'deployments.personneldeployment': 'Personnel Deployment',
-    'deployments.project': 'Project',
-    'deployments.regionalproject': 'Regional project',
-    'notifications.subscription': 'Subscription',
-    'notifications.surgealert': 'Surge alert',
-    'per.form': 'PER Form',
-    'per.formdata': 'PER Form Data',
-    'per.nicedocument': 'PER Document',
-    'per.nsphase': 'PER NS Phase',
-    'per.overview': 'PER General Overview',
-    'per.workplan': 'PER Work Plan',
-    'registrations.pending': 'Pending registration',
+    "api.action": "Action",
+    "api.appeal": "Appeal",
+    "api.appealdocument": "Appeal Document",
+    "api.country": "Country",
+    "api.cronjob": "CronJob",
+    "api.district": "District",
+    "api.emergencyoperationsdataset": "Emergency Operations Dataset",
+    "api.emergencyoperationsea": "Emergency Operations Emergency Appeals",
+    "api.emergencyoperationsfr": "Emergency Operations Final Reports",
+    "api.emergencyoperationspeoplereached": "Emergency Operations People Reached",
+    "api.event": "Emergency",
+    "api.fieldreport": "Field Report",
+    "api.gdacsevent": "GDACS Event",
+    "api.profile": "User Profile",
+    "api.region": "Region",
+    "api.situationreport": "Situation Report",
+    "api.situationreporttype": "Situation Report Type",
+    "deployments.eruowner": "ERU Owner",
+    "deployments.erureadiness": "ERU Readiness",
+    "deployments.partnersocietyactivities": "Partner society activity",
+    "deployments.partnersocietydeployment": "Partner society deployment",
+    "deployments.personnel": "Personnel",
+    "deployments.personneldeployment": "Personnel Deployment",
+    "deployments.project": "Project",
+    "deployments.regionalproject": "Regional project",
+    "notifications.subscription": "Subscription",
+    "notifications.surgealert": "Surge alert",
+    "per.form": "PER Form",
+    "per.formdata": "PER Form Data",
+    "per.nicedocument": "PER Document",
+    "per.nsphase": "PER NS Phase",
+    "per.overview": "PER General Overview",
+    "per.workplan": "PER Work Plan",
+    "registrations.pending": "Pending registration",
 }
 
 
@@ -60,8 +60,8 @@ def create_global_reversion_log(versions, revision):
     for version in versions:
         ver_data = json.loads(version.serialized_data)
         # try to map model name coming from Reversion to more readable model names (dict above)
-        model_name = MODEL_TYPES.get(ver_data[0]['model'], ver_data[0]['model'])
-        action_happened = 'Added' if 'Added' in revision.comment else 'Changed'
+        model_name = MODEL_TYPES.get(ver_data[0]["model"], ver_data[0]["model"])
+        action_happened = "Added" if "Added" in revision.comment else "Changed"
 
         previous_version = Version.objects.filter(
             object_id=version.object_id,
@@ -70,41 +70,41 @@ def create_global_reversion_log(versions, revision):
         ).first()
 
         # if the record already existed in the DB but didn't have an initial/previous reversion record
-        if not previous_version and action_happened == 'Added':
+        if not previous_version and action_happened == "Added":
             ReversionDifferenceLog.objects.create(
                 action=action_happened,
-                username=revision.user.username if revision.user else '',
+                username=revision.user.username if revision.user else "",
                 object_id=version.object_id,
-                object_name=str(version) if len(str(version)) <= 200 else str(version)[:200] + '...',
-                object_type=model_name
+                object_name=str(version) if len(str(version)) <= 200 else str(version)[:200] + "...",
+                object_type=model_name,
             )
         elif not previous_version:
             ReversionDifferenceLog.objects.create(
                 action=action_happened,
-                username=revision.user.username if revision.user else '',
+                username=revision.user.username if revision.user else "",
                 object_id=version.object_id,
-                object_name=str(version) if len(str(version)) <= 200 else str(version)[:200] + '...',
+                object_name=str(version) if len(str(version)) <= 200 else str(version)[:200] + "...",
                 object_type=model_name,
-                changed_to=revision.comment.replace('Changed ', '').replace('.', '').split(' and ')
+                changed_to=revision.comment.replace("Changed ", "").replace(".", "").split(" and "),
             )
         elif previous_version._local_field_dict != version._local_field_dict:
             changes_from = []
             changes_to = []
             for key, value in version._local_field_dict.items():
                 if key not in previous_version._local_field_dict:
-                    previous_version._local_field_dict[key] = ''
+                    previous_version._local_field_dict[key] = ""
                 if previous_version._local_field_dict[key] != value:
-                    changes_from.append('{}: {}'.format(key, previous_version._local_field_dict[key]))
-                    changes_to.append('{}: {}'.format(key, value))
+                    changes_from.append("{}: {}".format(key, previous_version._local_field_dict[key]))
+                    changes_to.append("{}: {}".format(key, value))
 
             ReversionDifferenceLog.objects.create(
                 action=action_happened,
-                username=revision.user.username if revision.user else '',
+                username=revision.user.username if revision.user else "",
                 object_id=version.object_id,
-                object_name=str(version) if len(str(version)) <= 200 else str(version)[:200] + '...',
+                object_name=str(version) if len(str(version)) <= 200 else str(version)[:200] + "...",
                 object_type=model_name,
                 changed_from=changes_from,
-                changed_to=changes_to
+                changed_to=changes_to,
             )
 
 
@@ -127,11 +127,11 @@ def log_deletion(sender, instance, using, **kwargs):
 
     # Creates a ReversionDifferenceLog record which is used for the "global" log
     ReversionDifferenceLog.objects.create(
-        action='Deleted',
+        action="Deleted",
         username=usr,
         object_id=instance.pk,
-        object_name=str(instance) if len(str(instance)) <= 200 else str(instance)[:200] + '...',
-        object_type=MODEL_TYPES.get(model_name, instance_type) if model_name else instance_type
+        object_name=str(instance) if len(str(instance)) <= 200 else str(instance)[:200] + "...",
+        object_type=MODEL_TYPES.get(model_name, instance_type) if model_name else instance_type,
     )
 
     # ElasticSearch to also delete the index if a record was deleted
@@ -141,10 +141,10 @@ def log_deletion(sender, instance, using, **kwargs):
 # NOTE: Adding this to disable indexing in testcases
 @suspendingreceiver(pre_save)
 def remove_child_events_from_es(sender, instance, using, **kwargs):
-    ''' Handle Emergency Elasticsearch indexes '''
+    """Handle Emergency Elasticsearch indexes"""
     model = instance.__class__.__name__
     try:
-        if model == 'Event':
+        if model == "Event":
             curr_record = Event.objects.filter(id=instance.id).first()
             # If new record, do nothing, index_and_notify should handle it
             if curr_record is None:
@@ -156,7 +156,7 @@ def remove_child_events_from_es(sender, instance, using, **kwargs):
             elif curr_record.parent_event and instance.parent_event is None:
                 # Add back ES record if Emergency became a parent (index_elasticsearch.py)
                 create_es_index(instance)
-        elif model == 'Country':
+        elif model == "Country":
             curr_record = Country.objects.filter(id=instance.id).first()
             if instance.in_search:
                 if not curr_record:
@@ -171,17 +171,17 @@ def remove_child_events_from_es(sender, instance, using, **kwargs):
             else:
                 delete_es_index(instance)
     except Exception as ex:
-        logger.error(f'Failed to index a Country, error: {str(ex)[:512]}')
+        logger.error(f"Failed to index a Country, error: {str(ex)[:512]}")
 
 
 # Needs post_save because if a new Field Report is not mapped to an Emergency it will create one
 @receiver(post_save)
 def handle_fr_for_erp(sender, instance, using, **kwargs):
-    '''
+    """
     If a Field Report is created/updated and Request for International
     Assisstance is checked for any of the Event's Field Reports then
     update ERP with the data, calling a middleware microservice
-    '''
+    """
 
     if isinstance(instance, FieldReport):
         # TODO: maybe add a check, and only send request if anything has changed
@@ -189,9 +189,7 @@ def handle_fr_for_erp(sender, instance, using, **kwargs):
             push_fr_data(instance)
             return
 
-        req_ass_exists = FieldReport.objects.filter(
-            Q(event_id=instance.event_id) & Q(ns_request_assistance=True)
-        ).exists()
+        req_ass_exists = FieldReport.objects.filter(Q(event_id=instance.event_id) & Q(ns_request_assistance=True)).exists()
         if not instance.ns_request_assistance and req_ass_exists:
             # If assistance request was dropped, set retired to yes
             push_fr_data(instance, retired=True)
@@ -201,8 +199,9 @@ def handle_fr_for_erp(sender, instance, using, **kwargs):
 @receiver(post_save, sender=Appeal)
 def add_update_appeal_history(sender, instance, created, **kwargs):
     fields_watched = [
-        field.name for field in AppealHistory._meta.get_fields()
-        if field.name not in ['id', 'appeal', 'valid_from', 'valid_to', 'aid', 'amount_funded']
+        field.name
+        for field in AppealHistory._meta.get_fields()
+        if field.name not in ["id", "appeal", "valid_from", "valid_to", "aid", "amount_funded"]
     ]
     now = timezone.now()
     changed = False
@@ -226,13 +225,13 @@ def add_update_appeal_history(sender, instance, created, **kwargs):
             needs_confirmation=instance.needs_confirmation,
             status=instance.status,
             code=instance.code,
-            triggering_amount=instance.triggering_amount
+            triggering_amount=instance.triggering_amount,
         )
 
     else:
         # Appeal Update
         appeal = Appeal.objects.get(code=instance.code)
-        appeal_history = AppealHistory.objects.filter(aid=instance.aid).order_by('id').last()
+        appeal_history = AppealHistory.objects.filter(aid=instance.aid).order_by("id").last()
         for field in fields_watched:
             if appeal_history and getattr(appeal, field) != getattr(appeal_history, field):
                 # Watched fields are not changed
@@ -264,13 +263,13 @@ def add_update_appeal_history(sender, instance, created, **kwargs):
             needs_confirmation=instance.needs_confirmation,
             status=instance.status,
             code=instance.code,
-            triggering_amount=instance.triggering_amount
+            triggering_amount=instance.triggering_amount,
         )
 
 
 @receiver(post_delete, sender=Appeal)
 def remove_appeal_filter(sender, instance, using, **kwargs):
-    appealFilter = AppealFilter.objects.get(name='ingestAppealFilter')
+    appealFilter = AppealFilter.objects.get(name="ingestAppealFilter")
     lstCodesToSkip = appealFilter.value.split(",")
     if instance.code not in lstCodesToSkip:
         lstCodesToSkip.append(instance.code)

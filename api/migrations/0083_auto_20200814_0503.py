@@ -6,32 +6,32 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0082_auto_20200806_0635'),
+        ("api", "0082_auto_20200806_0635"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='fieldreportcontact',
-            options={'verbose_name': 'field report contacts', 'verbose_name_plural': 'field report contacts'},
+            name="fieldreportcontact",
+            options={"verbose_name": "field report contacts", "verbose_name_plural": "field report contacts"},
         ),
         migrations.AddField(
-            model_name='country',
-            name='society_name_ar',
-            field=models.TextField(blank=True, null=True, verbose_name='society name'),
+            model_name="country",
+            name="society_name_ar",
+            field=models.TextField(blank=True, null=True, verbose_name="society name"),
         ),
         migrations.AddField(
-            model_name='country',
-            name='society_name_en',
-            field=models.TextField(blank=True, null=True, verbose_name='society name'),
+            model_name="country",
+            name="society_name_en",
+            field=models.TextField(blank=True, null=True, verbose_name="society name"),
         ),
         migrations.AddField(
-            model_name='country',
-            name='society_name_es',
-            field=models.TextField(blank=True, null=True, verbose_name='society name'),
+            model_name="country",
+            name="society_name_es",
+            field=models.TextField(blank=True, null=True, verbose_name="society name"),
         ),
         migrations.AddField(
-            model_name='country',
-            name='society_name_fr',
-            field=models.TextField(blank=True, null=True, verbose_name='society name'),
+            model_name="country",
+            name="society_name_fr",
+            field=models.TextField(blank=True, null=True, verbose_name="society name"),
         ),
     ]

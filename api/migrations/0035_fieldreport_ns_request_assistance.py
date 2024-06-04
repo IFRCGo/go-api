@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0034_auto_20191128_0846'),
+        ("api", "0034_auto_20191128_0846"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='fieldreport',
-            name='ns_request_assistance',
+            model_name="fieldreport",
+            name="ns_request_assistance",
             field=models.BooleanField(default=False),
         ),
     ]

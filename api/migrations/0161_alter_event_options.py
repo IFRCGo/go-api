@@ -6,12 +6,16 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0160_merge_0159_auto_20221022_1542_0159_auto_20221028_0940'),
+        ("api", "0160_merge_0159_auto_20221022_1542_0159_auto_20221028_0940"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='event',
-            options={'ordering': ('-disaster_start_date', 'id'), 'verbose_name': 'emergency', 'verbose_name_plural': 'emergencies'},
+            name="event",
+            options={
+                "ordering": ("-disaster_start_date", "id"),
+                "verbose_name": "emergency",
+                "verbose_name_plural": "emergencies",
+            },
         ),
     ]

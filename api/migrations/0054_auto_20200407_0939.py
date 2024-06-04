@@ -7,18 +7,24 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0053_merge_20200406_1343'),
+        ("api", "0053_merge_20200406_1343"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='action',
-            name='category',
-            field=models.CharField(choices=[('General', 'General'), ('Health', 'Health')], default='General', max_length=12),
+            model_name="action",
+            name="category",
+            field=models.CharField(choices=[("General", "General"), ("Health", "Health")], default="General", max_length=12),
         ),
         migrations.AlterField(
-            model_name='action',
-            name='field_report_types',
-            field=django.contrib.postgres.fields.ArrayField(base_field=models.CharField(choices=[('EVT', 'Event'), ('EW', 'Early Warning'), ('EPI', 'Epidemic')], max_length=4), default=list, size=None),
+            model_name="action",
+            name="field_report_types",
+            field=django.contrib.postgres.fields.ArrayField(
+                base_field=models.CharField(
+                    choices=[("EVT", "Event"), ("EW", "Early Warning"), ("EPI", "Epidemic")], max_length=4
+                ),
+                default=list,
+                size=None,
+            ),
         ),
     ]

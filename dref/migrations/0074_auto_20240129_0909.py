@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dref', '0073_auto_20231214_0358'),
+        ("dref", "0073_auto_20231214_0358"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='dreffinalreport',
-            name='source_information',
-            field=models.ManyToManyField(blank=True, to='dref.SourceInformation', verbose_name='Source Information'),
+            model_name="dreffinalreport",
+            name="source_information",
+            field=models.ManyToManyField(blank=True, to="dref.SourceInformation", verbose_name="Source Information"),
         ),
         migrations.AddField(
-            model_name='drefoperationalupdate',
-            name='source_information',
-            field=models.ManyToManyField(blank=True, to='dref.SourceInformation', verbose_name='Source Information'),
+            model_name="drefoperationalupdate",
+            name="source_information",
+            field=models.ManyToManyField(blank=True, to="dref.SourceInformation", verbose_name="Source Information"),
         ),
     ]

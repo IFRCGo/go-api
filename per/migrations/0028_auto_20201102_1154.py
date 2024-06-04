@@ -6,28 +6,28 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0027_auto_20201030_1539'),
+        ("per", "0027_auto_20201030_1539"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='formcomponent',
-            name='title_ar',
-            field=models.CharField(max_length=250, null=True, verbose_name='title'),
+            model_name="formcomponent",
+            name="title_ar",
+            field=models.CharField(max_length=250, null=True, verbose_name="title"),
         ),
         migrations.AddField(
-            model_name='formcomponent',
-            name='title_en',
-            field=models.CharField(max_length=250, null=True, verbose_name='title'),
+            model_name="formcomponent",
+            name="title_en",
+            field=models.CharField(max_length=250, null=True, verbose_name="title"),
         ),
         migrations.AddField(
-            model_name='formcomponent',
-            name='title_es',
-            field=models.CharField(max_length=250, null=True, verbose_name='title'),
+            model_name="formcomponent",
+            name="title_es",
+            field=models.CharField(max_length=250, null=True, verbose_name="title"),
         ),
         migrations.AddField(
-            model_name='formcomponent',
-            name='title_fr',
-            field=models.CharField(max_length=250, null=True, verbose_name='title'),
+            model_name="formcomponent",
+            name="title_fr",
+            field=models.CharField(max_length=250, null=True, verbose_name="title"),
         ),
     ]

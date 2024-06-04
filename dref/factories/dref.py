@@ -1,17 +1,16 @@
-from django.core.files.base import ContentFile
-
 import factory
+from django.core.files.base import ContentFile
 from factory import fuzzy
 
 from api.factories.country import CountryFactory
 from dref.models import (
     Dref,
-    PlannedIntervention,
+    DrefFile,
+    DrefFinalReport,
+    DrefOperationalUpdate,
     IdentifiedNeed,
     NationalSocietyAction,
-    DrefFile,
-    DrefOperationalUpdate,
-    DrefFinalReport,
+    PlannedIntervention,
     PlannedInterventionIndicators,
 )
 

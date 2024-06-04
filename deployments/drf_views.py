@@ -1,38 +1,37 @@
-from collections import defaultdict
 import datetime
+from collections import defaultdict
 from datetime import date
-from django.utils import timezone
-from django.utils.translation import override as translation_override
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import action
-from rest_framework import viewsets
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from drf_spectacular.utils import extend_schema
 
-from django_filters import rest_framework as filters
+from django.contrib.postgres.aggregates.general import ArrayAgg
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import Count
 from django.db.models.functions import Coalesce
-from django.contrib.postgres.aggregates.general import ArrayAgg
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from django.utils.translation import override as translation_override
+from django_filters import rest_framework as filters
+from drf_spectacular.utils import extend_schema
+from rest_framework import viewsets
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from reversion.views import RevisionMixin
-from main.utils import is_tableau
 
-from main.serializers import CsvListMixin
-from api.models import (
-    Country,
-    Region,
-)
+from api.models import Country, Region
 from api.view_filters import ListFilter
 from api.visibility_class import ReadOnlyVisibilityViewsetMixin
+from main.serializers import CsvListMixin
+from main.utils import is_tableau
 
-from .filters import ProjectFilter, EmergencyProjectFilter, ERUOwnerFilter
-from .utils import get_previous_months
+from .filters import EmergencyProjectFilter, ERUOwnerFilter, ProjectFilter
 from .models import (
     ERU,
+    EmergencyProject,
+    EmergencyProjectActivityAction,
+    EmergencyProjectActivitySector,
     ERUOwner,
     OperationTypes,
     PartnerSocietyDeployment,
@@ -43,33 +42,31 @@ from .models import (
     RegionalProject,
     Sector,
     Statuses,
-    EmergencyProject,
-    EmergencyProjectActivitySector,
-    EmergencyProjectActivityAction,
 )
 from .serializers import (
+    AggregateDeploymentsSerializer,
+    DeploymentByNSSerializer,
+    DeploymentsByMonthSerializer,
+    EmergencyProjectOptionsSerializer,
+    EmergencyProjectSerializer,
     ERUOwnerSerializer,
     ERUSerializer,
-    PersonnelDeploymentSerializer,
-    PersonnelSerializer,
+    GlobalProjectNSOngoingProjectsStatsSerializer,
+    GlobalProjectOverviewSerializer,
+    PartnerDeploymentSerializer,
+    PartnerDeploymentTableauSerializer,
     PersonnelCsvSerializer,
     PersonnelCsvSerializerAnon,
     PersonnelCsvSerializerSuper,
-    PartnerDeploymentSerializer,
-    PartnerDeploymentTableauSerializer,
-    RegionalProjectSerializer,
-    ProjectSerializer,
+    PersonnelDeploymentSerializer,
+    PersonnelSerializer,
     ProjectCsvSerializer,
-    EmergencyProjectSerializer,
-    EmergencyProjectOptionsSerializer,
-    AggregateDeploymentsSerializer,
-    GlobalProjectNSOngoingProjectsStatsSerializer,
-    GlobalProjectOverviewSerializer,
-    DeploymentByNSSerializer,
-    DeploymentsByMonthSerializer,
-    ProjectRegionOverviewSerializer,
     ProjectRegionMovementActivitiesSerializer,
+    ProjectRegionOverviewSerializer,
+    ProjectSerializer,
+    RegionalProjectSerializer,
 )
+from .utils import get_previous_months
 
 
 class ERUOwnerViewset(viewsets.ReadOnlyModelViewSet):
@@ -181,18 +178,23 @@ class PersonnelViewset(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         qs = super().get_queryset()
-        return qs.filter(is_active=True).select_related(
-            "deployment__country_deployed_to",
-            "deployment__event_deployed_to",
-            "deployment__event_deployed_to__dtype",
-            "country_from",
-            "country_to",
-        ).prefetch_related(
-            "deployment__event_deployed_to__countries",
-            "deployment__event_deployed_to__appeals",
-            "molnix_tags",
-            "molnix_tags__groups"
-        ).all()
+        return (
+            qs.filter(is_active=True)
+            .select_related(
+                "deployment__country_deployed_to",
+                "deployment__event_deployed_to",
+                "deployment__event_deployed_to__dtype",
+                "country_from",
+                "country_to",
+            )
+            .prefetch_related(
+                "deployment__event_deployed_to__countries",
+                "deployment__event_deployed_to__appeals",
+                "molnix_tags",
+                "molnix_tags__groups",
+            )
+            .all()
+        )
 
     def get_serializer_class(self):
         request_format_type = self.request.GET.get("format", "json")
@@ -245,9 +247,9 @@ class PersonnelViewset(viewsets.ReadOnlyModelViewSet):
             "ongoing",
             "is_active",
             "name",
-            "molnix_status"
+            "molnix_status",
         ]
-        context['request'] = self.request
+        context["request"] = self.request
         context["header"] += [
             "molnix_id",
             "molnix_sector",
@@ -345,22 +347,14 @@ class DeploymentsByMonth(APIView):
             month_string = month[0]
             first_day = month[1]
             last_day = month[2]
-            count = Personnel.objects.filter(
-                start_date__date__lte=last_day,
-                end_date__date__gte=first_day
-            ).count()
+            count = Personnel.objects.filter(start_date__date__lte=last_day, end_date__date__gte=first_day).count()
             deployment_counts.append(dict(date=month_string, count=count))
-        return Response(
-            DeploymentsByMonthSerializer(deployment_counts, many=True).data
-        )
+        return Response(DeploymentsByMonthSerializer(deployment_counts, many=True).data)
 
 
 class DeploymentsByNS(APIView):
     @classmethod
-    @extend_schema(
-        request=None,
-        responses=DeploymentByNSSerializer(many=True)
-    )
+    @extend_schema(request=None, responses=DeploymentByNSSerializer(many=True))
     def get(cls, request):
         """Returns count of Personnel Deployments
         by National Society, for the current year.
@@ -379,9 +373,7 @@ class DeploymentsByNS(APIView):
             .order_by("-deployments_count")
             .values("id", "society_name", "deployments_count")[0:limit]
         )
-        return Response(
-            DeploymentByNSSerializer(societies, many=True).data
-        )
+        return Response(DeploymentByNSSerializer(societies, many=True).data)
 
 
 class PartnerDeploymentFilterset(filters.FilterSet):
@@ -433,7 +425,8 @@ class ProjectViewset(
             "user", "modified_by", "project_country", "reporting_ns", "dtype", "regional_project", "primary_sector"
         )
         .prefetch_related("project_districts", "event", "annual_splits", "secondary_sectors", "project_admin2")
-        .order_by("-modified_at").all()
+        .order_by("-modified_at")
+        .all()
     )
 
     def get_permissions(self):
@@ -464,10 +457,7 @@ class RegionProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
         # Filter by GET params
         return ProjectFilter(self.request.query_params, queryset=qs).qs
 
-    @extend_schema(
-        request=None,
-        responses=ProjectRegionOverviewSerializer
-    )
+    @extend_schema(request=None, responses=ProjectRegionOverviewSerializer)
     @action(detail=True, url_path="overview", methods=("get",))
     def overview(self, request, pk=None):
         projects = self.get_projects()
@@ -491,14 +481,9 @@ class RegionProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
             .annotate(count=models.Count("id", distinct=True))
             .values("status", "count"),
         }
-        return Response(
-            data
-        )
+        return Response(data)
 
-    @extend_schema(
-        request=None,
-        responses=ProjectRegionMovementActivitiesSerializer
-    )
+    @extend_schema(request=None, responses=ProjectRegionMovementActivitiesSerializer)
     @action(detail=True, url_path="movement-activities", methods=("get",))
     def movement_activities(self, request, pk=None):
         projects = self.get_projects()
@@ -556,7 +541,7 @@ class RegionProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
         countries = Country.objects.filter(region=region)
 
         # Using english label for now
-        with translation_override('en'):
+        with translation_override("en"):
             country_annotate = {
                 f"{status_label.lower()}_projects_count": Coalesce(
                     models.Subquery(
@@ -595,9 +580,7 @@ class RegionProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
                 .values_list("reporting_ns", "reporting_ns__name", "count")
             ],
         }
-        return Response(
-            ProjectRegionMovementActivitiesSerializer(data).data
-        )
+        return Response(ProjectRegionMovementActivitiesSerializer(data).data)
 
     @action(detail=True, url_path="national-society-activities", methods=("get",))
     def national_society_activities(self, request, pk=None):
@@ -705,11 +688,7 @@ class GlobalProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
             status=Statuses.ONGOING,
         )
 
-    @extend_schema(
-        methods=['GET'],
-        request=None,
-        responses=GlobalProjectOverviewSerializer
-    )
+    @extend_schema(methods=["GET"], request=None, responses=GlobalProjectOverviewSerializer)
     @action(detail=False, url_path="overview", methods=("get",))
     def overview(self, request, pk=None):
         def _get_projects_per_enum_field(EnumType, enum_field):
@@ -764,28 +743,16 @@ class GlobalProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
         response_data = {
             "total_ongoing_projects": projects.filter(status=Statuses.ONGOING).count(),
             "ns_with_ongoing_activities": (
-                projects.filter(status=Statuses.ONGOING)
-                .order_by("reporting_ns")
-                .values("reporting_ns")
-                .distinct()
-                .count()
+                projects.filter(status=Statuses.ONGOING).order_by("reporting_ns").values("reporting_ns").distinct().count()
             ),
             "target_total": target_total,
             "projects_per_sector": _get_projects_per_foreign_field("primary_sector", "primary_sector__title"),
             "projects_per_programme_type": _get_projects_per_enum_field(ProgrammeTypes, "programme_type"),
-            "projects_per_secondary_sectors": _get_projects_per_foreign_field(
-                "secondary_sectors", "secondary_sectors__title"
-            ),
+            "projects_per_secondary_sectors": _get_projects_per_foreign_field("secondary_sectors", "secondary_sectors__title"),
         }
-        return Response(
-            GlobalProjectOverviewSerializer(response_data).data
-        )
+        return Response(GlobalProjectOverviewSerializer(response_data).data)
 
-    @extend_schema(
-        methods=['GET'],
-        request=None,
-        responses=GlobalProjectNSOngoingProjectsStatsSerializer(many=True)
-    )
+    @extend_schema(methods=["GET"], request=None, responses=GlobalProjectNSOngoingProjectsStatsSerializer(many=True))
     @action(detail=False, url_path="ns-ongoing-projects-stats", methods=("get",))
     def ns_ongoing_projects_stats(self, request, pk=None):
         projects = self.get_projects()
@@ -863,11 +830,7 @@ class GlobalProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
                 "operation_types",
             )
         ]
-        return Response(
-            GlobalProjectNSOngoingProjectsStatsSerializer(
-                response_data, many=True
-            ).data
-        )
+        return Response(GlobalProjectNSOngoingProjectsStatsSerializer(response_data, many=True).data)
 
 
 class EmergencyProjectViewSet(
@@ -876,9 +839,7 @@ class EmergencyProjectViewSet(
     viewsets.ModelViewSet,
 ):
     queryset = (
-        EmergencyProject.objects.select_related(
-            "created_by", "reporting_ns", "event", "country", "deployed_eru", "modified_by"
-        )
+        EmergencyProject.objects.select_related("created_by", "reporting_ns", "event", "country", "deployed_eru", "modified_by")
         .prefetch_related("districts", "activities", "admin2")
         .order_by("-modified_at")
         .all()

@@ -1,24 +1,33 @@
 import html
-from datetime import datetime, timezone, timedelta
-from main.sentry import SentryMonitor
-from sentry_sdk.crons import monitor
-from django.db.models import Q, F, ExpressionWrapper, DurationField, Sum
-from django.db.models.query import QuerySet
-from django.core.management.base import BaseCommand
-from django.contrib.auth.models import User
+from datetime import datetime, timedelta, timezone
+
 from django.conf import settings
+from django.contrib.auth.models import User
+from django.core.management.base import BaseCommand
+from django.db.models import DurationField, ExpressionWrapper, F, Q, Sum
+from django.db.models.query import QuerySet
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
-
 from elasticsearch.helpers import bulk
-from utils.elasticsearch import construct_es_data
+from sentry_sdk.crons import monitor
+
 from api.esconnection import ES_CLIENT
-from api.models import Country, Appeal, Event, FieldReport, ActionsTaken, CronJob, CronJobStatus
 from api.logger import logger
-from notifications.models import RecordType, SubscriptionType, Subscription, SurgeAlert
+from api.models import (
+    ActionsTaken,
+    Appeal,
+    Country,
+    CronJob,
+    CronJobStatus,
+    Event,
+    FieldReport,
+)
+from deployments.models import ERU, Personnel, PersonnelDeployment
+from main.sentry import SentryMonitor
 from notifications.hello import get_hello
+from notifications.models import RecordType, Subscription, SubscriptionType, SurgeAlert
 from notifications.notification import send_notification
-from deployments.models import PersonnelDeployment, ERU, Personnel
+from utils.elasticsearch import construct_es_data
 
 time_5_minutes = timedelta(minutes=5)
 time_1_day = timedelta(days=1)
@@ -56,6 +65,7 @@ RTYPE_NAMES = {
     13: "New Operation",
     14: "General Announcement",
 }
+
 
 @monitor(monitor_slug=SentryMonitor.INDEX_AND_NOTIFY)
 class Command(BaseCommand):
@@ -288,15 +298,11 @@ class Command(BaseCommand):
             percent = float(round(amount_fund / amount_req, 3) * 100) if amount_req != 0 else 0
             return percent
         elif field == "budget":
-            amount = (
-                Appeal.objects.filter(end_date__gt=today).aggregate(Sum("amount_requested"))["amount_requested__sum"] or 0
-            )
+            amount = Appeal.objects.filter(end_date__gt=today).aggregate(Sum("amount_requested"))["amount_requested__sum"] or 0
             rounded_amount = round(amount / 1000000, 2)
             return rounded_amount
         elif field == "pop":
-            people = (
-                Appeal.objects.filter(end_date__gt=today).aggregate(Sum("num_beneficiaries"))["num_beneficiaries__sum"] or 0
-            )
+            people = Appeal.objects.filter(end_date__gt=today).aggregate(Sum("num_beneficiaries"))["num_beneficiaries__sum"] or 0
             rounded_people = round(people / 1000000, 2)
             return rounded_people
 
@@ -343,11 +349,7 @@ class Command(BaseCommand):
         personnel_list = Personnel.objects.filter(start_date__gte=dig_time).order_by("start_date")
         for pers in personnel_list:
             deployment = PersonnelDeployment.objects.get(id=pers.deployment_id)
-            event = (
-                Event.objects.get(id=deployment.event_deployed_to_id)
-                if deployment.event_deployed_to_id is not None
-                else None
-            )
+            event = Event.objects.get(id=deployment.event_deployed_to_id) if deployment.event_deployed_to_id is not None else None
             country_from = Country.objects.get(id=pers.country_from_id) if pers.country_from_id is not None else None
             dep_to_add = {
                 "operation": event.name if event else "",
@@ -372,9 +374,7 @@ class Command(BaseCommand):
             amount_requested = (
                 Appeal.objects.filter(event_id=ev.id).aggregate(Sum("amount_requested"))["amount_requested__sum"] or "--"
             )
-            amount_funded = (
-                Appeal.objects.filter(event_id=ev.id).aggregate(Sum("amount_funded"))["amount_funded__sum"] or "--"
-            )
+            amount_funded = Appeal.objects.filter(event_id=ev.id).aggregate(Sum("amount_funded"))["amount_funded__sum"] or "--"
             coverage = "--"
 
             if amount_funded != "--" and amount_requested != "--":
@@ -385,8 +385,7 @@ class Command(BaseCommand):
                 "hl_name": ev.name,
                 "hl_last_update": ev.updated_at,
                 "hl_people": (
-                    Appeal.objects.filter(event_id=ev.id).aggregate(Sum("num_beneficiaries"))["num_beneficiaries__sum"]
-                    or "--"
+                    Appeal.objects.filter(event_id=ev.id).aggregate(Sum("num_beneficiaries"))["num_beneficiaries__sum"] or "--"
                 ),
                 "hl_funding": amount_requested,
                 "hl_deployed_eru": ERU.objects.filter(event_id=ev.id).aggregate(Sum("units"))["units__sum"] or "--",
@@ -456,9 +455,7 @@ class Command(BaseCommand):
             shortened = self.get_record_content(record, rtype)
             if len(shortened) > max_length:
                 shortened = strip_tags(shortened)
-                shortened = (
-                    shortened[:max_length] + shortened[max_length:].split(" ", 1)[0] + "..."
-                )  # look for the first space
+                shortened = shortened[:max_length] + shortened[max_length:].split(" ", 1)[0] + "..."  # look for the first space
 
         if rtype == RecordType.FIELD_REPORT:
             rec_obj = {
@@ -514,9 +511,9 @@ class Command(BaseCommand):
                     "dref_amount": record.dref_amount,
                     "epi_cases_since_last_fr": record.epi_cases_since_last_fr,
                     "epi_deaths_since_last_fr": record.epi_deaths_since_last_fr,
-                    "epi_notes_since_last_fr": record.epi_notes_since_last_fr.split("\n")
-                    if record.epi_notes_since_last_fr
-                    else None,
+                    "epi_notes_since_last_fr": (
+                        record.epi_notes_since_last_fr.split("\n") if record.epi_notes_since_last_fr else None
+                    ),
                     "eru_base_camp": record.get_eru_base_camp_display(),
                     "eru_base_camp_units": record.eru_base_camp_units,
                     "eru_basic_health_care": record.get_eru_basic_health_care_display(),
@@ -592,9 +589,7 @@ class Command(BaseCommand):
             }
             # If you augment these lists ^, do not forget about api/models.py - AppealType
             local_staff = volunteers = delegates = None
-            field_reports = (
-                list(FieldReport.objects.filter(event_id=record.event_id)) if record.event_id is not None else None
-            )
+            field_reports = list(FieldReport.objects.filter(event_id=record.event_id)) if record.event_id is not None else None
             if field_reports:
                 local_staff = volunteers = delegates = 0
                 for f in field_reports:
@@ -613,9 +608,7 @@ class Command(BaseCommand):
                 "admin_uri": self.get_admin_uri(record, rtype),
                 "title": self.get_record_title(record, rtype),
                 "situation_overview": (
-                    Event.objects.values_list("summary", flat=True).get(id=record.event_id)
-                    if record.event_id is not None
-                    else ""
+                    Event.objects.values_list("summary", flat=True).get(id=record.event_id) if record.event_id is not None else ""
                 ),
                 "key_figures": {
                     "people_targeted": float(record.num_beneficiaries),
@@ -822,12 +815,8 @@ class Command(BaseCommand):
 
                 # record_type has its possible plural thanks to get_record_display()
                 plural = "" if len(emails) == 1 else "s"
-                logger.info(
-                    "Notifying %s subscriber%s about %s %s %s" % (len(emails), plural, record_count, adj, record_type)
-                )
-                send_notification(
-                    subject, ifrc_recipients, ifrc_html, RTYPE_NAMES[rtype] + " notification (ifrc) - " + subject
-                )
+                logger.info("Notifying %s subscriber%s about %s %s %s" % (len(emails), plural, record_count, adj, record_type))
+                send_notification(subject, ifrc_recipients, ifrc_html, RTYPE_NAMES[rtype] + " notification (ifrc) - " + subject)
             else:
                 if record_count == 1:
                     # On purpose after rendering – the subject changes only, not email body
@@ -844,12 +833,8 @@ class Command(BaseCommand):
                         if email_list_to_add:
                             events_sent_to[i] = list(filter(None, email_list_to_add))  # filter to skip empty elements
 
-                plural = (
-                    "" if len(emails) == 1 else "s"
-                )  # record_type has its possible plural thanks to get_record_display()
-                logger.info(
-                    "Notifying %s subscriber%s about %s %s %s" % (len(emails), plural, record_count, adj, record_type)
-                )
+                plural = "" if len(emails) == 1 else "s"  # record_type has its possible plural thanks to get_record_display()
+                logger.info("Notifying %s subscriber%s about %s %s %s" % (len(emails), plural, record_count, adj, record_type))
                 send_notification(subject, recipients, html, RTYPE_NAMES[rtype] + " notification - " + subject)
         else:
             if len(recipients):
@@ -872,8 +857,7 @@ class Command(BaseCommand):
                     send_notification(subject, recipients, html, RTYPE_NAMES[rtype] + " notification - " + subject)
                 else:
                     logger.info(
-                        "Silent about a one-by-one subscribed %s – user already notified via generic subscription"
-                        % (record_type)
+                        "Silent about a one-by-one subscribed %s – user already notified via generic subscription" % (record_type)
                     )
 
     def index_records(self, records, to_create=True):
@@ -988,9 +972,7 @@ class Command(BaseCommand):
         # Followed Events
         if self.is_daily_checkup_time():
             condU = Q(updated_at__gte=time_diff_1_day)
-            cond2 = Q(
-                previous_update__gte=time_diff_1_day
-            )  # not negated, we collect those, who had 2 changes in the last 1 day
+            cond2 = Q(previous_update__gte=time_diff_1_day)  # not negated, we collect those, who had 2 changes in the last 1 day
 
         fe_subs = Subscription.objects.filter(event_id__isnull=False)  # subscriptions of FEs
         subscribers = fe_subs.values_list("user_id", flat=True).distinct()

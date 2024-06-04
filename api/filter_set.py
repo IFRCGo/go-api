@@ -1,35 +1,33 @@
 import django_filters as filters
-
 from django.contrib.auth.models import User
 from django.db import models
 
+from api.event_sources import SOURCES
 from api.models import (
+    Admin2,
+    Appeal,
+    AppealDocument,
+    AppealHistory,
     Country,
+    CountryKeyDocument,
+    CountryKeyFigure,
+    CountrySnippet,
+    CountrySupportingPartner,
     District,
+    Event,
+    FieldReport,
     Region,
     RegionKeyFigure,
-    CountryKeyFigure,
     RegionSnippet,
-    CountrySnippet,
-    Admin2,
-    Event,
-    Snippet,
     SituationReport,
-    Appeal,
-    AppealHistory,
-    AppealDocument,
-    FieldReport,
-    CountryKeyDocument,
-    CountrySupportingPartner
-
+    Snippet,
 )
 from api.view_filters import ListFilter
-from api.event_sources import SOURCES
 
 
 class UserFilterSet(filters.FilterSet):
-    name = filters.CharFilter(field_name='username', lookup_expr='icontains')
-    email = filters.CharFilter(field_name='email', lookup_expr='icontains')
+    name = filters.CharFilter(field_name="username", lookup_expr="icontains")
+    email = filters.CharFilter(field_name="email", lookup_expr="icontains")
 
     class Meta:
         model = User
@@ -39,20 +37,9 @@ class UserFilterSet(filters.FilterSet):
 class CountryFilter(filters.FilterSet):
     region = filters.NumberFilter(field_name="region", lookup_expr="exact")
     record_type = filters.NumberFilter(field_name="record_type", lookup_expr="exact")
-    is_independent = filters.BooleanFilter(
-        field_name="independent",
-        label="is_independent",
-        lookup_expr="exact"
-    )
-    is_deprecated = filters.BooleanFilter(
-        field_name="is_deprecated",
-        label="is_deprecated",
-        lookup_expr="exact"
-    )
-    is_nationalsociety = filters.BooleanFilter(
-        label="is_nationalsociety",
-        method="filter_national_society"
-    )
+    is_independent = filters.BooleanFilter(field_name="independent", label="is_independent", lookup_expr="exact")
+    is_deprecated = filters.BooleanFilter(field_name="is_deprecated", label="is_deprecated", lookup_expr="exact")
+    is_nationalsociety = filters.BooleanFilter(label="is_nationalsociety", method="filter_national_society")
 
     class Meta:
         model = Country
@@ -66,13 +53,8 @@ class CountryFilter(filters.FilterSet):
         if not value:
             return qs
         return qs.filter(
-            (
-                models.Q(independent=True) &
-                models.Q(society_name__isnull=False)
-            ) |
-            (
-                (models.Q(name__icontains="RC")) | models.Q(iso="BX")
-            )
+            (models.Q(independent=True) & models.Q(society_name__isnull=False))
+            | ((models.Q(name__icontains="RC")) | models.Q(iso="BX"))
         )
 
 
@@ -96,7 +78,7 @@ class CountryKeyDocumentFilter(filters.FilterSet):
 
     class Meta:
         model = CountryKeyDocument
-        fields= ()
+        fields = ()
 
 
 class DistrictRMDFilter(filters.FilterSet):
@@ -178,10 +160,7 @@ class EventFilter(filters.FilterSet):
         label="Auto generated source choices",
         choices=[(v, v) for v in SOURCES.values()],
     )
-    is_subscribed = filters.BooleanFilter(
-        label="is_subscribed",
-        method='get_is_subcribed_event'
-    )
+    is_subscribed = filters.BooleanFilter(label="is_subscribed", method="get_is_subcribed_event")
 
     class Meta:
         model = Event
@@ -237,27 +216,18 @@ class AppealFilter(filters.FilterSet):
 class AppealHistoryFilter(filters.FilterSet):
     atype = filters.NumberFilter(field_name="atype", lookup_expr="exact")
     dtype = filters.NumberFilter(field_name="dtype", lookup_expr="exact")
-    country = filters.ModelMultipleChoiceFilter(
-        field_name='country',
-        queryset=Country.objects.all()
-    )
-    region = filters.ModelMultipleChoiceFilter(
-        field_name='region',
-        queryset=Region.objects.all()
-    )
+    country = filters.ModelMultipleChoiceFilter(field_name="country", queryset=Country.objects.all())
+    region = filters.ModelMultipleChoiceFilter(field_name="region", queryset=Region.objects.all())
     code = filters.CharFilter(field_name="code", lookup_expr="exact")
     status = filters.NumberFilter(field_name="status", lookup_expr="exact")
     # Do not use, misleading: id = filters.NumberFilter(field_name='id', lookup_expr='exact')
     appeal_id = filters.NumberFilter(
         field_name="appeal_id", lookup_expr="exact", help_text="Use this (or code) for appeal identification."
     )
-    district = filters.ModelMultipleChoiceFilter (
-        field_name="country__district",
-        queryset=District.objects.all(),
-        label="district",
-        method="get_country_district"
+    district = filters.ModelMultipleChoiceFilter(
+        field_name="country__district", queryset=District.objects.all(), label="district", method="get_country_district"
     )
-    admin2 =  filters.ModelMultipleChoiceFilter(
+    admin2 = filters.ModelMultipleChoiceFilter(
         field_name="country__district__admin2",
         queryset=Admin2.objects.all(),
         label="admin2",
@@ -285,9 +255,10 @@ class AppealHistoryFilter(filters.FilterSet):
             return qs.filter(country__district__admin2=value).distinct()
         return qs
 
+
 class AppealDocumentFilter(filters.FilterSet):
     appeal = filters.ModelMultipleChoiceFilter(
-        method='get_appeal_filter',
+        method="get_appeal_filter",
         widget=filters.widgets.CSVWidget,
         queryset=Appeal.objects.all(),
     )

@@ -1,7 +1,9 @@
 import csv
-from django.db import transaction
+
 from django.core.management.base import BaseCommand
-from per.models import AssessmentType, FormArea, FormComponent, FormQuestion, FormAnswer
+from django.db import transaction
+
+from per.models import AssessmentType, FormAnswer, FormArea, FormComponent, FormQuestion
 
 
 class Command(BaseCommand):
@@ -130,9 +132,7 @@ class Command(BaseCommand):
                             elif question_num <= 17:
                                 comp = FormComponent.objects.filter(title__iexact="PROCUREMENT").first()
                             elif question_num <= 28:
-                                comp = FormComponent.objects.filter(
-                                    title__iexact="FLEET AND TRANSPORTATION MANAGEMENT"
-                                ).first()
+                                comp = FormComponent.objects.filter(title__iexact="FLEET AND TRANSPORTATION MANAGEMENT").first()
                             else:
                                 comp = FormComponent.objects.filter(title__iexact="WAREHOUSE AND STOCK MANAGEMENT").first()
 

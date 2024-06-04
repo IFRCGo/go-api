@@ -1,7 +1,9 @@
-from rest_framework_csv.renderers import PaginatedCSVRenderer
-from rest_framework.utils.serializer_helpers import ReturnDict
-from main.settings import SEP
 from collections import OrderedDict
+
+from rest_framework.utils.serializer_helpers import ReturnDict
+from rest_framework_csv.renderers import PaginatedCSVRenderer
+
+from main.settings import SEP
 
 
 class NarrowCSVRenderer(PaginatedCSVRenderer):
@@ -23,16 +25,16 @@ class NarrowCSVRenderer(PaginatedCSVRenderer):
                 data = data.get(self.results_field, [])
             data2 = []
             for i, d in enumerate(data):
-                for orgn in d['organization'].split(SEP):
-                    for sect in d['sector'].split(SEP):
-                        for pcom in d['per_component'].split(SEP):
+                for orgn in d["organization"].split(SEP):
+                    for sect in d["sector"].split(SEP):
+                        for pcom in d["per_component"].split(SEP):
                             row = OrderedDict()
                             for k, v in d.items():
-                                if k == 'organization':
+                                if k == "organization":
                                     row[k] = orgn
-                                elif k == 'sector':
+                                elif k == "sector":
                                     row[k] = sect
-                                elif k == 'per_component':
+                                elif k == "per_component":
                                     row[k] = pcom
                                 else:
                                     row[k] = v

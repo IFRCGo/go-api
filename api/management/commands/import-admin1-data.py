@@ -1,16 +1,15 @@
-import sys
-import os
 import csv
-from django.core.management.base import BaseCommand, CommandError
-from django.contrib.gis.utils import LayerMapping
+import os
+import sys
+
 from django.contrib.gis.gdal import DataSource
-from django.contrib.gis.geos import GEOSGeometry
-from django.contrib.gis.geos import MultiPolygon
+from django.contrib.gis.geos import GEOSGeometry, MultiPolygon
+from django.contrib.gis.utils import LayerMapping
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
-from api.models import Country
-from api.models import District
-from api.models import DistrictGeoms
+
+from api.models import Country, District, DistrictGeoms
 
 
 class Command(BaseCommand):

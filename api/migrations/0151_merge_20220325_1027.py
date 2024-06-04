@@ -6,9 +6,8 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0150_event_emergency_response_contact_email'),
-        ('api', '0150_admin2_admin2geoms'),
+        ("api", "0150_event_emergency_response_contact_email"),
+        ("api", "0150_admin2_admin2geoms"),
     ]
 
-    operations = [
-    ]
+    operations = []

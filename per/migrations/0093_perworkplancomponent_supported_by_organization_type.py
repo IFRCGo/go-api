@@ -6,13 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0092_auto_20240109_1950'),
+        ("per", "0092_auto_20240109_1950"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='perworkplancomponent',
-            name='supported_by_organization_type',
-            field=models.IntegerField(blank=True, choices=[(0, 'UN Organization'), (1, 'Private Sector'), (2, 'Government'), (3, 'National Society')], null=True, verbose_name='Supported By Organization Type'),
+            model_name="perworkplancomponent",
+            name="supported_by_organization_type",
+            field=models.IntegerField(
+                blank=True,
+                choices=[(0, "UN Organization"), (1, "Private Sector"), (2, "Government"), (3, "National Society")],
+                null=True,
+                verbose_name="Supported By Organization Type",
+            ),
         ),
     ]

@@ -6,17 +6,21 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('deployments', '0021_projectimport'),
+        ("deployments", "0021_projectimport"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='project',
-            name='is_private',
+            model_name="project",
+            name="is_private",
         ),
         migrations.AddField(
-            model_name='project',
-            name='visibility',
-            field=models.CharField(choices=[('public', 'Public'), ('logged_in_user', 'Logged in user'), ('ifrc_only', 'IFRC only')], default='public', max_length=32),
+            model_name="project",
+            name="visibility",
+            field=models.CharField(
+                choices=[("public", "Public"), ("logged_in_user", "Logged in user"), ("ifrc_only", "IFRC only")],
+                default="public",
+                max_length=32,
+            ),
         ),
     ]

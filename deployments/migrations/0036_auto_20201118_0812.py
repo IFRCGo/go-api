@@ -6,38 +6,38 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('deployments', '0035_personnel_molnix_tags'),
+        ("deployments", "0035_personnel_molnix_tags"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='deployedperson',
-            name='name',
-            field=models.CharField(blank=True, max_length=255, null=True, verbose_name='name'),
+            model_name="deployedperson",
+            name="name",
+            field=models.CharField(blank=True, max_length=255, null=True, verbose_name="name"),
         ),
         migrations.AlterField(
-            model_name='deployedperson',
-            name='role',
-            field=models.CharField(blank=True, max_length=512, null=True, verbose_name='role'),
+            model_name="deployedperson",
+            name="role",
+            field=models.CharField(blank=True, max_length=512, null=True, verbose_name="role"),
         ),
         migrations.AlterField(
-            model_name='deployedperson',
-            name='role_ar',
-            field=models.CharField(blank=True, max_length=512, null=True, verbose_name='role'),
+            model_name="deployedperson",
+            name="role_ar",
+            field=models.CharField(blank=True, max_length=512, null=True, verbose_name="role"),
         ),
         migrations.AlterField(
-            model_name='deployedperson',
-            name='role_en',
-            field=models.CharField(blank=True, max_length=512, null=True, verbose_name='role'),
+            model_name="deployedperson",
+            name="role_en",
+            field=models.CharField(blank=True, max_length=512, null=True, verbose_name="role"),
         ),
         migrations.AlterField(
-            model_name='deployedperson',
-            name='role_es',
-            field=models.CharField(blank=True, max_length=512, null=True, verbose_name='role'),
+            model_name="deployedperson",
+            name="role_es",
+            field=models.CharField(blank=True, max_length=512, null=True, verbose_name="role"),
         ),
         migrations.AlterField(
-            model_name='deployedperson',
-            name='role_fr',
-            field=models.CharField(blank=True, max_length=512, null=True, verbose_name='role'),
+            model_name="deployedperson",
+            name="role_fr",
+            field=models.CharField(blank=True, max_length=512, null=True, verbose_name="role"),
         ),
     ]

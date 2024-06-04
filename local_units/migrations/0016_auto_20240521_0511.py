@@ -6,33 +6,33 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('local_units', '0015_auto_20240521_0434'),
+        ("local_units", "0015_auto_20240521_0434"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='healthdata',
-            name='is_cold_chain',
-            field=models.BooleanField(blank=True, null=True, verbose_name='Has cold chain?'),
+            model_name="healthdata",
+            name="is_cold_chain",
+            field=models.BooleanField(blank=True, null=True, verbose_name="Has cold chain?"),
         ),
         migrations.AlterField(
-            model_name='healthdata',
-            name='is_in_patient_capacity',
-            field=models.BooleanField(blank=True, null=True, verbose_name='Has in-patient capacity?'),
+            model_name="healthdata",
+            name="is_in_patient_capacity",
+            field=models.BooleanField(blank=True, null=True, verbose_name="Has in-patient capacity?"),
         ),
         migrations.AlterField(
-            model_name='healthdata',
-            name='is_isolation_rooms_wards',
-            field=models.BooleanField(blank=True, null=True, verbose_name='Has isolation rooms wards?'),
+            model_name="healthdata",
+            name="is_isolation_rooms_wards",
+            field=models.BooleanField(blank=True, null=True, verbose_name="Has isolation rooms wards?"),
         ),
         migrations.AlterField(
-            model_name='healthdata',
-            name='is_teaching_hospital',
-            field=models.BooleanField(blank=True, null=True, verbose_name='Is teaching hospital?'),
+            model_name="healthdata",
+            name="is_teaching_hospital",
+            field=models.BooleanField(blank=True, null=True, verbose_name="Is teaching hospital?"),
         ),
         migrations.AlterField(
-            model_name='healthdata',
-            name='is_warehousing',
-            field=models.BooleanField(blank=True, null=True, verbose_name='Has warehousing?'),
+            model_name="healthdata",
+            name="is_warehousing",
+            field=models.BooleanField(blank=True, null=True, verbose_name="Has warehousing?"),
         ),
     ]

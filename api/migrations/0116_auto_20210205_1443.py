@@ -6,15 +6,15 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0115_merge_20210204_1319'),
+        ("api", "0115_merge_20210204_1319"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='fieldreport',
-            name='external_partner_categories',
+            model_name="fieldreport",
+            name="external_partner_categories",
         ),
         migrations.DeleteModel(
-            name='ExternalPartnerCategory',
+            name="ExternalPartnerCategory",
         ),
     ]

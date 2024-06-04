@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0173_export'),
+        ("api", "0173_export"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='export',
-            name='pdf_file',
-            field=models.FileField(blank=True, max_length=255, null=True, upload_to='pdf-export/', verbose_name='Pdf File'),
+            model_name="export",
+            name="pdf_file",
+            field=models.FileField(blank=True, max_length=255, null=True, upload_to="pdf-export/", verbose_name="Pdf File"),
         ),
     ]

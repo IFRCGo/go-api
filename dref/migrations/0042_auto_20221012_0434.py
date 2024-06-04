@@ -6,17 +6,17 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dref', '0041_auto_20221010_0650'),
+        ("dref", "0041_auto_20221010_0650"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='drefoperationalupdate',
-            name='has_event_occured',
+            model_name="drefoperationalupdate",
+            name="has_event_occured",
         ),
         migrations.AddField(
-            model_name='drefoperationalupdate',
-            name='has_event_occurred',
-            field=models.BooleanField(blank=True, help_text='Has Event occurred', null=True),
+            model_name="drefoperationalupdate",
+            name="has_event_occurred",
+            field=models.BooleanField(blank=True, help_text="Has Event occurred", null=True),
         ),
     ]

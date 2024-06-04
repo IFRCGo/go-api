@@ -89,7 +89,7 @@ class GotoNextModelAdmin(admin.ModelAdmin):
         Returns the primary key of the next object in the query (considering filters and ordering).
         Returns None if the object is not in the queryset.
         """
-        querystring = request.GET.get('_changelist_filters')
+        querystring = request.GET.get("_changelist_filters")
         if querystring:
             # Alters the HttpRequest object to make it function as a list request
             original_get = request.GET
@@ -99,7 +99,9 @@ class GotoNextModelAdmin(admin.ModelAdmin):
                 ChangeList = self.get_changelist(request)
                 list_display = self.get_list_display(request)
                 changelist = ChangeList(
-                    request, self.model, list_display,
+                    request,
+                    self.model,
+                    list_display,
                     self.get_list_display_links(request, list_display),
                     self.get_list_filter(request),
                     self.date_hierarchy,
@@ -109,7 +111,8 @@ class GotoNextModelAdmin(admin.ModelAdmin):
                     self.list_max_show_all,
                     self.list_editable,
                     self,
-                    self.sortable_by)  # New in Django 2.0
+                    self.sortable_by,
+                )  # New in Django 2.0
                 queryset = changelist.get_queryset(request)
             finally:
                 request.GET = original_get
@@ -117,7 +120,7 @@ class GotoNextModelAdmin(admin.ModelAdmin):
             queryset = self.get_queryset(request)
 
         # Try to find pk in this list:
-        iterator = queryset.values_list('pk', flat=True).iterator()
+        iterator = queryset.values_list("pk", flat=True).iterator()
         try:
             while next(iterator) != current.pk:
                 continue
@@ -129,21 +132,21 @@ class GotoNextModelAdmin(admin.ModelAdmin):
         """Determines the HttpResponse for the change_view stage."""
         app_label = obj._meta.app_label
         model_name = obj._meta.model_name
-        if '_save_next' in request.POST:
+        if "_save_next" in request.POST:
             next_pk = self.get_next_instance_pk(request, obj)
             if next_pk:
-                response = redirect(f'admin:{app_label}_{model_name}_change', next_pk)
+                response = redirect(f"admin:{app_label}_{model_name}_change", next_pk)
                 qs = request.GET.urlencode()  # keeps _changelist_filters
             else:
                 # Last item (or no longer in list) - go back to list in the same position
-                response = redirect(f'admin:{app_label}_{model_name}_changelist')
-                qs = request.GET.get('_changelist_filters')
+                response = redirect(f"admin:{app_label}_{model_name}_changelist")
+                qs = request.GET.get("_changelist_filters")
             if qs:
-                response['Location'] += '?' + qs
+                response["Location"] += "?" + qs
             return response
         return super().response_change(request, obj)
 
     # stackoverflow.com/questions/49560378/cannot-hide-save-and-add-another-button-in-django-admin
-    def render_change_form(self, request, context, add=False, change=False, form_url='', obj=None):
-        context.update({'show_save_and_next': True})
+    def render_change_form(self, request, context, add=False, change=False, form_url="", obj=None):
+        context.update({"show_save_and_next": True})
         return super().render_change_form(request, context, add, change, form_url, obj)

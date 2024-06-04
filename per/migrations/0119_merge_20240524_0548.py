@@ -6,9 +6,8 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0118_customperworkplancomponent_actions_ar_and_more'),
-        ('per', '0118_percomponentrating_title_ar_and_more'),
+        ("per", "0118_customperworkplancomponent_actions_ar_and_more"),
+        ("per", "0118_percomponentrating_title_ar_and_more"),
     ]
 
-    operations = [
-    ]
+    operations = []

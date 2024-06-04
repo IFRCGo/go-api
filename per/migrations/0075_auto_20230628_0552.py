@@ -6,34 +6,34 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0074_auto_20230628_0541'),
+        ("per", "0074_auto_20230628_0541"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='formcomponent',
-            name='consideration_responses',
+            model_name="formcomponent",
+            name="consideration_responses",
         ),
         migrations.RemoveField(
-            model_name='formcomponentresponse',
-            name='consideration_responses',
+            model_name="formcomponentresponse",
+            name="consideration_responses",
         ),
         migrations.AddField(
-            model_name='formcomponentresponse',
-            name='climate_environmental_considerations',
-            field=models.TextField(blank=True, null=True, verbose_name='Climate Environmental Considerations'),
+            model_name="formcomponentresponse",
+            name="climate_environmental_considerations",
+            field=models.TextField(blank=True, null=True, verbose_name="Climate Environmental Considerations"),
         ),
         migrations.AddField(
-            model_name='formcomponentresponse',
-            name='epi_considerations',
-            field=models.TextField(blank=True, null=True, verbose_name='Epi Considerations'),
+            model_name="formcomponentresponse",
+            name="epi_considerations",
+            field=models.TextField(blank=True, null=True, verbose_name="Epi Considerations"),
         ),
         migrations.AddField(
-            model_name='formcomponentresponse',
-            name='urban_considerations',
-            field=models.TextField(blank=True, null=True, verbose_name='Urban Considerations'),
+            model_name="formcomponentresponse",
+            name="urban_considerations",
+            field=models.TextField(blank=True, null=True, verbose_name="Urban Considerations"),
         ),
         migrations.DeleteModel(
-            name='FormComponentConsiderations',
+            name="FormComponentConsiderations",
         ),
     ]

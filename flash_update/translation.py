@@ -1,8 +1,11 @@
-from modeltranslation.translator import register, TranslationOptions
+from modeltranslation.translator import TranslationOptions, register
 
 from .models import FlashUpdate
 
 
 @register(FlashUpdate)
 class FlashUpdateTO(TranslationOptions):
-    fields = ('title', 'situational_overview',)
+    fields = (
+        "title",
+        "situational_overview",
+    )

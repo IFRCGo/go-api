@@ -1,23 +1,30 @@
-import requests
 import json
-import pandas as pd
-import numpy as np
 
-from django.core.management.base import BaseCommand
+import numpy as np
+import pandas as pd
+import requests
 from django.conf import settings
+from django.core.management.base import BaseCommand
 
 from api.logger import logger
-from api.models import Country, CountryDirectory, CronJob, CronJobStatus, CountryKeyDocument
+from api.models import (
+    Country,
+    CountryDirectory,
+    CountryKeyDocument,
+    CronJob,
+    CronJobStatus,
+)
+
 
 class Command(BaseCommand):
     help = "Add ns documents"
 
     def handle(self, *args, **kwargs):
-        logger.info('Starting NS Key Documents')
+        logger.info("Starting NS Key Documents")
 
         # Fetch country codes
         country_code_url = "https://go-api.ifrc.org/api/NationalSocietiesContacts/"
-        headers = {'Authorization': f'Basic {settings.NS_INITIATIVES_API_TOKEN}'}
+        headers = {"Authorization": f"Basic {settings.NS_INITIATIVES_API_TOKEN}"}
         country_code_response = requests.get(url=country_code_url, headers=headers)
 
         if country_code_response.status_code != 200:
@@ -52,30 +59,32 @@ class Command(BaseCommand):
     def extract_country_data(self, data):
         country_list = []
         for country_data in data:
-            country_code = [country_data['Don_Code'].strip(), country_data['CON_country']]
+            country_code = [country_data["Don_Code"].strip(), country_data["CON_country"]]
             country_list.append(country_code)
 
-        country_table = pd.DataFrame(country_list, columns=['Country Code', 'Country']).drop_duplicates(subset=['Country Code'], keep='last')
-        country_table = country_table.replace(to_replace='None', value=np.nan).dropna()
+        country_table = pd.DataFrame(country_list, columns=["Country Code", "Country"]).drop_duplicates(
+            subset=["Country Code"], keep="last"
+        )
+        country_table = country_table.replace(to_replace="None", value=np.nan).dropna()
         return country_table
 
     def fetch_country_documents(self, api_key, country_ns_code):
-        url = f'https://data-api.ifrc.org/api/documents?apiKey={api_key}&ns={country_ns_code}'
+        url = f"https://data-api.ifrc.org/api/documents?apiKey={api_key}&ns={country_ns_code}"
         response = requests.get(url)
         data = json.loads(response.text)
         if not data:
             return None
         documents = []
-        for item in data['documents']:
+        for item in data["documents"]:
             document_info = {
-                'name': item['name'],
-                'url': item['url'],
-                'thumbnail': item['thumbnail'],
-                'year': str(item['year']) + '-01-01',
-                'end_year': str(item['EndYear']) + '-01-01' if 'EndYear' in item else None,
-                'year_text': item['YearText'],
-                'document_type': item['document_type'],
-                'country_code': country_ns_code
+                "name": item["name"],
+                "url": item["url"],
+                "thumbnail": item["thumbnail"],
+                "year": str(item["year"]) + "-01-01",
+                "end_year": str(item["EndYear"]) + "-01-01" if "EndYear" in item else None,
+                "year_text": item["YearText"],
+                "document_type": item["document_type"],
+                "country_code": country_ns_code,
             }
             documents.append(document_info)
         return documents
@@ -93,27 +102,22 @@ class Command(BaseCommand):
     def save_documents_to_database(self, result):
         added = 0
         for document in result:
-            country = Country.objects.filter(fdrs=document['country_code']).first()
+            country = Country.objects.filter(fdrs=document["country_code"]).first()
             if country:
                 added += 1
                 data = {
-                    'country': country,
-                    'name': document['name'],
-                    'url': document['url'],
-                    'thumbnail': document['thumbnail'],
-                    'document_type': document['document_type'],
-                    'year': document['year'],
-                    'end_year': document['end_year'],
-                    'year_text': document['year_text']
+                    "country": country,
+                    "name": document["name"],
+                    "url": document["url"],
+                    "thumbnail": document["thumbnail"],
+                    "document_type": document["document_type"],
+                    "year": document["year"],
+                    "end_year": document["end_year"],
+                    "year_text": document["year_text"],
                 }
                 CountryKeyDocument.objects.create(**data)
         return added
 
     def sync_cron_success(self, text_to_log, added):
-        body = {
-            "name": "ingest_ns_document",
-            "message": text_to_log,
-            "num_result": added,
-            "status": CronJobStatus.SUCCESSFUL
-        }
+        body = {"name": "ingest_ns_document", "message": text_to_log, "num_result": added, "status": CronJobStatus.SUCCESSFUL}
         CronJob.sync_cron(body)

@@ -6,23 +6,23 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0041_cronjob'),
+        ("api", "0041_cronjob"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='cronjob',
-            name='backend_side',
+            model_name="cronjob",
+            name="backend_side",
             field=models.BooleanField(default=True),
         ),
         migrations.AddField(
-            model_name='cronjob',
-            name='num_result',
+            model_name="cronjob",
+            name="num_result",
             field=models.IntegerField(default=0),
         ),
         migrations.AddField(
-            model_name='cronjob',
-            name='storing_days',
+            model_name="cronjob",
+            name="storing_days",
             field=models.IntegerField(default=3),
         ),
     ]

@@ -6,23 +6,23 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0041_auto_20230417_0402'),
+        ("per", "0041_auto_20230417_0402"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='formcomponent',
-            name='urban_considerations',
-            field=models.TextField(blank=True, null=True, verbose_name='Urban Considerations'),
+            model_name="formcomponent",
+            name="urban_considerations",
+            field=models.TextField(blank=True, null=True, verbose_name="Urban Considerations"),
         ),
         migrations.AddField(
-            model_name='overview',
-            name='workplan_development_date',
-            field=models.DateTimeField(blank=True, null=True, verbose_name='Workplan Development Date'),
+            model_name="overview",
+            name="workplan_development_date",
+            field=models.DateTimeField(blank=True, null=True, verbose_name="Workplan Development Date"),
         ),
         migrations.AddField(
-            model_name='overview',
-            name='workplan_revision_date',
-            field=models.DateTimeField(blank=True, null=True, verbose_name='Workplan Revision Date'),
+            model_name="overview",
+            name="workplan_revision_date",
+            field=models.DateTimeField(blank=True, null=True, verbose_name="Workplan Revision Date"),
         ),
     ]

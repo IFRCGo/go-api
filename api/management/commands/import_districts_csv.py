@@ -1,6 +1,8 @@
-from django.db import transaction
 import csv
+
 from django.core.management.base import BaseCommand, CommandError
+from django.db import transaction
+
 from api.models import Country, District
 
 

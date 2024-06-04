@@ -6,68 +6,68 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0088_auto_20201119_0809'),
+        ("api", "0088_auto_20201119_0809"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='regionemergencysnippet',
-            name='title_ar',
+            model_name="regionemergencysnippet",
+            name="title_ar",
             field=models.CharField(blank=True, max_length=255, null=True),
         ),
         migrations.AddField(
-            model_name='regionemergencysnippet',
-            name='title_en',
+            model_name="regionemergencysnippet",
+            name="title_en",
             field=models.CharField(blank=True, max_length=255, null=True),
         ),
         migrations.AddField(
-            model_name='regionemergencysnippet',
-            name='title_es',
+            model_name="regionemergencysnippet",
+            name="title_es",
             field=models.CharField(blank=True, max_length=255, null=True),
         ),
         migrations.AddField(
-            model_name='regionemergencysnippet',
-            name='title_fr',
+            model_name="regionemergencysnippet",
+            name="title_fr",
             field=models.CharField(blank=True, max_length=255, null=True),
         ),
         migrations.AddField(
-            model_name='regionpreparednesssnippet',
-            name='title_ar',
+            model_name="regionpreparednesssnippet",
+            name="title_ar",
             field=models.CharField(blank=True, max_length=255, null=True),
         ),
         migrations.AddField(
-            model_name='regionpreparednesssnippet',
-            name='title_en',
+            model_name="regionpreparednesssnippet",
+            name="title_en",
             field=models.CharField(blank=True, max_length=255, null=True),
         ),
         migrations.AddField(
-            model_name='regionpreparednesssnippet',
-            name='title_es',
+            model_name="regionpreparednesssnippet",
+            name="title_es",
             field=models.CharField(blank=True, max_length=255, null=True),
         ),
         migrations.AddField(
-            model_name='regionpreparednesssnippet',
-            name='title_fr',
+            model_name="regionpreparednesssnippet",
+            name="title_fr",
             field=models.CharField(blank=True, max_length=255, null=True),
         ),
         migrations.AddField(
-            model_name='regionprofilesnippet',
-            name='title_ar',
+            model_name="regionprofilesnippet",
+            name="title_ar",
             field=models.CharField(blank=True, max_length=255, null=True),
         ),
         migrations.AddField(
-            model_name='regionprofilesnippet',
-            name='title_en',
+            model_name="regionprofilesnippet",
+            name="title_en",
             field=models.CharField(blank=True, max_length=255, null=True),
         ),
         migrations.AddField(
-            model_name='regionprofilesnippet',
-            name='title_es',
+            model_name="regionprofilesnippet",
+            name="title_es",
             field=models.CharField(blank=True, max_length=255, null=True),
         ),
         migrations.AddField(
-            model_name='regionprofilesnippet',
-            name='title_fr',
+            model_name="regionprofilesnippet",
+            name="title_fr",
             field=models.CharField(blank=True, max_length=255, null=True),
         ),
     ]

@@ -1,40 +1,42 @@
-import logging
 import datetime
 import json
+import logging
+
 import requests
 
-from databank.models import PastCrisesEvent, PastEpidemic, Month
+from databank.models import Month, PastCrisesEvent, PastEpidemic
+
 from .utils import catch_error, get_country_by_iso3
 
 logger = logging.getLogger(__name__)
 
-DISASTER_API = 'https://api.reliefweb.int/v1/disasters/'
-RELIEFWEB_DATETIME_FORMAT = '%Y-%m-%d'
+DISASTER_API = "https://api.reliefweb.int/v1/disasters/"
+RELIEFWEB_DATETIME_FORMAT = "%Y-%m-%d"
 
 
 def parse_date(date):
     # Only works for reliefweb dates
     # For python >= 3.7 RELIEFWEB_DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S%z'
-    return datetime.datetime.strptime(date.split('T')[0], RELIEFWEB_DATETIME_FORMAT)
+    return datetime.datetime.strptime(date.split("T")[0], RELIEFWEB_DATETIME_FORMAT)
 
 
 def _crises_event_prefetch():
-    query_params = json.dumps({
-        'limit': 1000,
-        'filter': {
-            'operator': 'AND',
-            'conditions': [
-                {
-                    'field': 'primary_type.code',
-                    'value': [type_code for type_code, _ in PastCrisesEvent.CHOICES],
-                    'operator': 'OR'
-                }
-            ]
-        },
-        'fields': {
-            'include': ['date.created', 'primary_country.iso3', 'primary_type.code']
+    query_params = json.dumps(
+        {
+            "limit": 1000,
+            "filter": {
+                "operator": "AND",
+                "conditions": [
+                    {
+                        "field": "primary_type.code",
+                        "value": [type_code for type_code, _ in PastCrisesEvent.CHOICES],
+                        "operator": "OR",
+                    }
+                ],
+            },
+            "fields": {"include": ["date.created", "primary_country.iso3", "primary_type.code"]},
         }
-    })
+    )
 
     url = DISASTER_API
     data = {}
@@ -43,46 +45,46 @@ def _crises_event_prefetch():
         response.raise_for_status()
         response = response.json()
 
-        for disaster in response['data']:
-            disaster = disaster['fields']
-            iso3 = disaster['primary_country']['iso3'].upper()
+        for disaster in response["data"]:
+            disaster = disaster["fields"]
+            iso3 = disaster["primary_country"]["iso3"].upper()
             pcountry = get_country_by_iso3(iso3)
             if pcountry is None:
                 continue
             iso2 = pcountry.alpha_2
-            dt = parse_date(disaster['date']['created'])
+            dt = parse_date(disaster["date"]["created"])
             disaster_data = {
-                'event': disaster['primary_type']['code'],
-                'year': dt.year,
-                'month': dt.month,
+                "event": disaster["primary_type"]["code"],
+                "year": dt.year,
+                "month": dt.month,
             }
             if data.get(iso2) is None:
                 data[iso2] = [disaster_data]
             else:
                 data[iso2].append(disaster_data)
 
-        if 'next' not in response['links']:
+        if "next" not in response["links"]:
             break
-        url = response['links']['next']['href']
+        url = response["links"]["next"]["href"]
     return data
 
 
 def _epidemics_prefetch():
-    query_params = json.dumps({
-        'limit': 1000,
-        'filter': {
-            'operator': 'AND',
-            'conditions': [
-                {
-                    'field': 'primary_type.code',
-                    'value': ['EP'],
-                },
-            ]
-        },
-        'fields': {
-            'include': ['name', 'date.created', 'primary_country.iso3']
+    query_params = json.dumps(
+        {
+            "limit": 1000,
+            "filter": {
+                "operator": "AND",
+                "conditions": [
+                    {
+                        "field": "primary_type.code",
+                        "value": ["EP"],
+                    },
+                ],
+            },
+            "fields": {"include": ["name", "date.created", "primary_country.iso3"]},
         }
-    })
+    )
 
     url = DISASTER_API
     data = {}
@@ -91,15 +93,15 @@ def _epidemics_prefetch():
         response.raise_for_status()
         response = response.json()
 
-        for epidemic in response['data']:
-            epidemic = epidemic['fields']
-            iso3 = epidemic['primary_country']['iso3'].upper()
+        for epidemic in response["data"]:
+            epidemic = epidemic["fields"]
+            iso3 = epidemic["primary_country"]["iso3"].upper()
             pcountry = get_country_by_iso3(iso3)
             if pcountry is None:
                 continue
             iso2 = pcountry.alpha_2
-            dt = parse_date(epidemic['date']['created'])
-            name = epidemic['name']
+            dt = parse_date(epidemic["date"]["created"])
+            name = epidemic["name"]
             selected_epidemic_type = None
 
             # Simple Text Search
@@ -110,9 +112,9 @@ def _epidemics_prefetch():
                 continue
 
             epidemic_data = {
-                'epidemic': selected_epidemic_type,
-                'year': dt.year,
-                'month': dt.month,
+                "epidemic": selected_epidemic_type,
+                "year": dt.year,
+                "month": dt.month,
             }
 
             if data.get(iso2) is None:
@@ -120,9 +122,9 @@ def _epidemics_prefetch():
             else:
                 data[iso2].append(epidemic_data)
 
-        if 'next' not in response['links']:
+        if "next" not in response["links"]:
             break
-        url = response['links']['next']
+        url = response["links"]["next"]
     return data
 
 
@@ -131,10 +133,14 @@ def prefetch():
     crises_event = _crises_event_prefetch()
     epidemics = _epidemics_prefetch()
 
-    return {
-        'crises_event': crises_event,
-        'epidemics': epidemics,
-    }, len(crises_event) + len(epidemics), DISASTER_API
+    return (
+        {
+            "crises_event": crises_event,
+            "epidemics": epidemics,
+        },
+        len(crises_event) + len(epidemics),
+        DISASTER_API,
+    )
 
 
 @catch_error()
@@ -146,25 +152,25 @@ def load(country, overview, relief_data):
 
     overview.past_crises_events = [
         {
-            'id': index + 1,
-            'event': data['event'],
-            'year': data['year'],
-            'month': data['month'],
-
-            'month_display': str(Month.LABEL_MAP.get(data['month'])),
-            'event_display': str(PastCrisesEvent.LABEL_MAP.get(data['event'])),
-        } for index, data in enumerate(relief_data['crises_event'].get(iso2) or [])
+            "id": index + 1,
+            "event": data["event"],
+            "year": data["year"],
+            "month": data["month"],
+            "month_display": str(Month.LABEL_MAP.get(data["month"])),
+            "event_display": str(PastCrisesEvent.LABEL_MAP.get(data["event"])),
+        }
+        for index, data in enumerate(relief_data["crises_event"].get(iso2) or [])
     ]
 
     overview.past_epidemics = [
         {
-            'id': index + 1,
-            'epidemic': data['epidemic'],
-            'year': data['year'],
-            'month': data['month'],
-
-            'month_display': str(Month.LABEL_MAP.get(data['month'])),
-            'event_display': str(PastEpidemic.LABEL_MAP.get(data['epidemic'])),
-        } for index, data in enumerate(relief_data['epidemics'].get(iso2) or [])
+            "id": index + 1,
+            "epidemic": data["epidemic"],
+            "year": data["year"],
+            "month": data["month"],
+            "month_display": str(Month.LABEL_MAP.get(data["month"])),
+            "event_display": str(PastEpidemic.LABEL_MAP.get(data["epidemic"])),
+        }
+        for index, data in enumerate(relief_data["epidemics"].get(iso2) or [])
     ]
     overview.save()

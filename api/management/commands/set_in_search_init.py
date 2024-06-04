@@ -1,8 +1,9 @@
 from django.core.management.base import BaseCommand
-from api.models import Country
 from django.db import transaction
 from django.db.models import Q
+
 from api.logger import logger
+from api.models import Country
 
 
 class Command(BaseCommand):

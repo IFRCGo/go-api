@@ -1,4 +1,4 @@
-from modeltranslation.translator import register, TranslationOptions
+from modeltranslation.translator import TranslationOptions, register
 
 from dref.models import (
     Dref,
@@ -47,9 +47,7 @@ class DrefTO(TranslationOptions):
 
 @register(DrefFile)
 class DrefFileTO(TranslationOptions):
-    fields = (
-        "caption",
-    )
+    fields = ("caption",)
 
 
 @register(DrefFinalReport)
@@ -114,9 +112,7 @@ class IdentifiedNeedTO(TranslationOptions):
 
 @register(NationalSocietyAction)
 class NationalSocietyActionTO(TranslationOptions):
-    fields = (
-        "description",
-    )
+    fields = ("description",)
 
 
 @register(PlannedIntervention)
@@ -133,9 +129,7 @@ class PlannedInterventionTO(TranslationOptions):
 
 @register(PlannedInterventionIndicators)
 class PlannedInterventionIndicatorsTO(TranslationOptions):
-    fields = (
-        "title",
-    )
+    fields = ("title",)
 
 
 @register(RiskSecurity)

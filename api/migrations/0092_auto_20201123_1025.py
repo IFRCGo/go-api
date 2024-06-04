@@ -6,60 +6,60 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0091_auto_20201120_1118'),
+        ("api", "0091_auto_20201120_1118"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='country',
-            name='nsi_annual_fdrs_reporting',
+            model_name="country",
+            name="nsi_annual_fdrs_reporting",
         ),
         migrations.RemoveField(
-            model_name='country',
-            name='nsi_branches',
+            model_name="country",
+            name="nsi_branches",
         ),
         migrations.RemoveField(
-            model_name='country',
-            name='nsi_cmc_dashboard_compliance',
+            model_name="country",
+            name="nsi_cmc_dashboard_compliance",
         ),
         migrations.RemoveField(
-            model_name='country',
-            name='nsi_domestically_generated_income',
+            model_name="country",
+            name="nsi_domestically_generated_income",
         ),
         migrations.RemoveField(
-            model_name='country',
-            name='nsi_expenditures',
+            model_name="country",
+            name="nsi_expenditures",
         ),
         migrations.RemoveField(
-            model_name='country',
-            name='nsi_gov_financial_support',
+            model_name="country",
+            name="nsi_gov_financial_support",
         ),
         migrations.RemoveField(
-            model_name='country',
-            name='nsi_income',
+            model_name="country",
+            name="nsi_income",
         ),
         migrations.RemoveField(
-            model_name='country',
-            name='nsi_policy_implementation',
+            model_name="country",
+            name="nsi_policy_implementation",
         ),
         migrations.RemoveField(
-            model_name='country',
-            name='nsi_risk_management_framework',
+            model_name="country",
+            name="nsi_risk_management_framework",
         ),
         migrations.RemoveField(
-            model_name='country',
-            name='nsi_staff',
+            model_name="country",
+            name="nsi_staff",
         ),
         migrations.RemoveField(
-            model_name='country',
-            name='nsi_trained_in_first_aid',
+            model_name="country",
+            name="nsi_trained_in_first_aid",
         ),
         migrations.RemoveField(
-            model_name='country',
-            name='nsi_volunteers',
+            model_name="country",
+            name="nsi_volunteers",
         ),
         migrations.RemoveField(
-            model_name='country',
-            name='nsi_youth',
+            model_name="country",
+            name="nsi_youth",
         ),
     ]

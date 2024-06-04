@@ -1,16 +1,18 @@
-from dateutil import parser as date_parser
 import json
-from sentry_sdk.crons import monitor
-from django.db import transaction
-from django.core.management.base import BaseCommand, CommandError
+
+from dateutil import parser as date_parser
 from django.conf import settings
-from api.molnix_utils import MolnixApi
-from api.logger import logger
-from deployments.models import MolnixTag, MolnixTagGroup, PersonnelDeployment, Personnel
-from main.sentry import SentryMonitor
-from notifications.models import SurgeAlert, SurgeAlertType, SurgeAlertCategory
-from api.models import Event, Country, CronJobStatus
+from django.core.management.base import BaseCommand, CommandError
+from django.db import transaction
+from sentry_sdk.crons import monitor
+
 from api.create_cron import create_cron_record
+from api.logger import logger
+from api.models import Country, CronJobStatus, Event
+from api.molnix_utils import MolnixApi
+from deployments.models import MolnixTag, MolnixTagGroup, Personnel, PersonnelDeployment
+from main.sentry import SentryMonitor
+from notifications.models import SurgeAlert, SurgeAlertCategory, SurgeAlertType
 
 CRON_NAME = "sync_molnix"
 
@@ -41,7 +43,7 @@ NS_MATCHING_OVERRIDES = {  # NS -> country
 }
 
 
-def prt(message_text, molnix_id, position_or_event_id=0, organization=''):
+def prt(message_text, molnix_id, position_or_event_id=0, organization=""):
     warning_type = 0
     if message_text == "Position does not have a valid Emergency tag":
         warning_type = 1
@@ -62,7 +64,7 @@ def prt(message_text, molnix_id, position_or_event_id=0, organization=''):
     # named tag has no description
     # tag is not a valid OP- tag
 
-    logger.warning('*** ' + str(warning_type) + '|' + str(molnix_id) + '|' + str(position_or_event_id) + '|' + organization)
+    logger.warning("*** " + str(warning_type) + "|" + str(molnix_id) + "|" + str(position_or_event_id) + "|" + organization)
 
 
 def get_unique_tags(deployments, open_positions):
@@ -141,19 +143,23 @@ def add_tags(molnix_tags, api):
         tag.tag_category = (
             "molnix_language"
             if n.startswith("L-")
-            else "molnix_operation"
-            if n.startswith("OP-")
-            else "molnix_modality"
-            if n in modality
-            else "molnix_region"
-            if n in region
-            else "molnix_scope"
-            if n in scope
-            else "molnix_sector"
-            if n in sector
-            else "molnix_status"
-            if n in status
-            else "molnix_role_profile"
+            else (
+                "molnix_operation"
+                if n.startswith("OP-")
+                else (
+                    "molnix_modality"
+                    if n in modality
+                    else (
+                        "molnix_region"
+                        if n in region
+                        else (
+                            "molnix_scope"
+                            if n in scope
+                            else "molnix_sector" if n in sector else "molnix_status" if n in status else "molnix_role_profile"
+                        )
+                    )
+                )
+            )
         )
         tag.save()
 
@@ -163,7 +169,7 @@ def skip_this(tags):
     Skip the No GO tagged positions or deployments
     """
     for tag in tags:
-        if tag["name"] == 'No GO':
+        if tag["name"] == "No GO":
             return True
     return False
 
@@ -312,9 +318,7 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
             if md["position_id"]:
                 surge_alert = SurgeAlert.objects.get(molnix_id=md["position_id"])
         except:
-            logger.warning(
-                "%d deployment did not find SurgeAlert with Molnix position_id %d." % (md["id"], md["position_id"])
-            )
+            logger.warning("%d deployment did not find SurgeAlert with Molnix position_id %d." % (md["id"], md["position_id"]))
             prt("Deployment did not find SurgeAlert", md["id"], md["position_id"])
             continue
 
@@ -441,7 +445,7 @@ def sync_open_positions(molnix_positions, molnix_api, countries):
     successful_updates = 0
 
     for position in molnix_positions:
-        logger.warning('× ' + str(position["id"]))
+        logger.warning("× " + str(position["id"]))
         if skip_this(position["tags"]):
             warning = "Position id %d skipped due to No-GO" % position["id"]
             logger.warning(warning)
@@ -498,10 +502,10 @@ def sync_open_positions(molnix_positions, molnix_api, countries):
             warnings.append("Position id %d not found in Molnix API" % alert.molnix_id)
         if position and position["status"] == "unfilled":
             alert.molnix_status = position["status"]
-        if position and position['closes']:
+        if position and position["closes"]:
             alert.closes = get_datetime(position["closes"])
-        if position and position['status'] == 'archived':
-            alert.molnix_status = position['status']
+        if position and position["status"] == "archived":
+            alert.molnix_status = position["status"]
             alert.is_active = False
         else:
             alert.is_active = False
@@ -516,6 +520,7 @@ def sync_open_positions(molnix_positions, molnix_api, countries):
     ]
     return messages, warnings, successful_creates
 
+
 @monitor(monitor_slug=SentryMonitor.SYNC_MOLNIX)
 class Command(BaseCommand):
     help = "Sync data from Molnix API to GO db"
@@ -523,9 +528,7 @@ class Command(BaseCommand):
     @transaction.atomic
     def handle(self, *args, **options):
         logger.info("Starting Sync Molnix job")
-        molnix = MolnixApi(
-            url=settings.MOLNIX_API_BASE, username=settings.MOLNIX_USERNAME, password=settings.MOLNIX_PASSWORD
-        )
+        molnix = MolnixApi(url=settings.MOLNIX_API_BASE, username=settings.MOLNIX_USERNAME, password=settings.MOLNIX_PASSWORD)
         try:
             molnix.login()
             logger.info("Logged into Molnix")
@@ -553,13 +556,9 @@ class Command(BaseCommand):
             used_tags = get_unique_tags(deployments, open_positions)
             add_tags(used_tags, molnix)  # FIXME 2nd arg: a workaround to be able to get the group details inside.
             logger.info("Processed tags, syncing positions")
-            positions_messages, positions_warnings, positions_created = sync_open_positions(
-                open_positions, molnix, countries
-            )
+            positions_messages, positions_warnings, positions_created = sync_open_positions(open_positions, molnix, countries)
             logger.info("Synced positions, syncing deployments")
-            deployments_messages, deployments_warnings, deployments_created = sync_deployments(
-                deployments, molnix, countries
-            )
+            deployments_messages, deployments_warnings, deployments_created = sync_deployments(deployments, molnix, countries)
             logger.info("Synced deployments)")
         except Exception as ex:
             msg = "Unknown Error occurred: %s" % str(ex)

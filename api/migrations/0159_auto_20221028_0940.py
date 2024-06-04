@@ -6,28 +6,28 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0158_alter_admin2geoms_geom'),
+        ("api", "0158_alter_admin2geoms_geom"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='admin2',
-            name='alternate_name',
-            field=models.CharField(blank=True, max_length=100, null=True, verbose_name='Alternate Name'),
+            model_name="admin2",
+            name="alternate_name",
+            field=models.CharField(blank=True, max_length=100, null=True, verbose_name="Alternate Name"),
         ),
         migrations.AddField(
-            model_name='admin2',
-            name='alternate_name_code',
-            field=models.CharField(blank=True, max_length=10, null=True, verbose_name='Alternate Name Language Code'),
+            model_name="admin2",
+            name="alternate_name_code",
+            field=models.CharField(blank=True, max_length=10, null=True, verbose_name="Alternate Name Language Code"),
         ),
         migrations.AddField(
-            model_name='admin2',
-            name='local_name',
-            field=models.CharField(blank=True, max_length=100, null=True, verbose_name='Local Name'),
+            model_name="admin2",
+            name="local_name",
+            field=models.CharField(blank=True, max_length=100, null=True, verbose_name="Local Name"),
         ),
         migrations.AddField(
-            model_name='admin2',
-            name='local_name_code',
-            field=models.CharField(blank=True, max_length=10, null=True, verbose_name='Local Name Language Code'),
+            model_name="admin2",
+            name="local_name_code",
+            field=models.CharField(blank=True, max_length=10, null=True, verbose_name="Local Name Language Code"),
         ),
     ]

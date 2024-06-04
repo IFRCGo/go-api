@@ -1,21 +1,22 @@
-import factory
 import datetime
 
+import factory
 from django.contrib.gis.geos import Point
 
-from .models import (
-    LocalUnit,
-    LocalUnitType,
-    LocalUnitLevel,
-    DelegationOffice,
-    DelegationOfficeType,
-    Affiliation,
-    Functionality,
-    FacilityType,
-    PrimaryHCC,
-)
 from api.models import Country, Region
 from main.test_case import APITestCase
+
+from .models import (
+    Affiliation,
+    DelegationOffice,
+    DelegationOfficeType,
+    FacilityType,
+    Functionality,
+    LocalUnit,
+    LocalUnitLevel,
+    LocalUnitType,
+    PrimaryHCC,
+)
 
 
 class LocalUnitFactory(factory.django.DjangoModelFactory):
@@ -30,42 +31,23 @@ class TestLocalUnitsListView(APITestCase):
     def setUp(self):
         super().setUp()
         region = Region.objects.create(name=2)
-        country = Country.objects.create(
-            name='Nepal',
-            iso3='NLP',
-            iso='NP',
-            region=region
-        )
+        country = Country.objects.create(name="Nepal", iso3="NLP", iso="NP", region=region)
         country_1 = Country.objects.create(
-            name='Philippines',
-            iso3='PHL',
-            iso='PH',
+            name="Philippines",
+            iso3="PHL",
+            iso="PH",
             region=region,
         )
-        type = LocalUnitType.objects.create(code=0, name='Code 0')
-        type_1 = LocalUnitType.objects.create(code=1, name='Code 1')
-        LocalUnitFactory.create_batch(
-            5,
-            country=country,
-            type=type,
-            draft=True,
-            validated=False,
-            date_of_data='2023-09-09'
-        )
-        LocalUnitFactory.create_batch(
-            5,
-            country=country_1,
-            type=type_1,
-            draft=False,
-            validated=True,
-            date_of_data='2023-08-08'
-        )
+        type = LocalUnitType.objects.create(code=0, name="Code 0")
+        type_1 = LocalUnitType.objects.create(code=1, name="Code 1")
+        LocalUnitFactory.create_batch(5, country=country, type=type, draft=True, validated=False, date_of_data="2023-09-09")
+        LocalUnitFactory.create_batch(5, country=country_1, type=type_1, draft=False, validated=True, date_of_data="2023-08-08")
 
     def test_list(self):
         self.authenticate()
-        response = self.client.get('/api/v2/local-units/')
+        response = self.client.get("/api/v2/local-units/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 10)
+        self.assertEqual(response.data["count"], 10)
         # TODO: fix these asaywltdi
         # self.assertEqual(response.data['results'][0]['location_details']['coordinates'], [12, 38])
         # self.assertEqual(response.data['results'][0]['country_details']['name'], 'Nepal')
@@ -75,86 +57,86 @@ class TestLocalUnitsListView(APITestCase):
 
     def test_filter(self):
         self.authenticate()
-        response = self.client.get('/api/v2/local-units/?country__name=Nepal')
+        response = self.client.get("/api/v2/local-units/?country__name=Nepal")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 5)
+        self.assertEqual(response.data["count"], 5)
 
-        response = self.client.get('/api/v2/local-units/?country__name=Philippines')
+        response = self.client.get("/api/v2/local-units/?country__name=Philippines")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 5)
+        self.assertEqual(response.data["count"], 5)
 
-        response = self.client.get('/api/v2/local-units/?country__name=Belgium')
+        response = self.client.get("/api/v2/local-units/?country__name=Belgium")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 0)
+        self.assertEqual(response.data["count"], 0)
 
-        response = self.client.get('/api/v2/local-units/?country__iso=BE')
+        response = self.client.get("/api/v2/local-units/?country__iso=BE")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 0)
+        self.assertEqual(response.data["count"], 0)
 
-        response = self.client.get('/api/v2/local-units/?country__iso3=BEL')
+        response = self.client.get("/api/v2/local-units/?country__iso3=BEL")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 0)
+        self.assertEqual(response.data["count"], 0)
 
-        response = self.client.get('/api/v2/local-units/?country__iso=BE')
+        response = self.client.get("/api/v2/local-units/?country__iso=BE")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 0)
+        self.assertEqual(response.data["count"], 0)
 
-        response = self.client.get('/api/v2/local-units/?country__iso3=PHL')
+        response = self.client.get("/api/v2/local-units/?country__iso3=PHL")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 5)
+        self.assertEqual(response.data["count"], 5)
 
-        response = self.client.get('/api/v2/local-units/?country__iso=NP')
+        response = self.client.get("/api/v2/local-units/?country__iso=NP")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 5)
+        self.assertEqual(response.data["count"], 5)
 
-        response = self.client.get('/api/v2/local-units/?type__code=0')
+        response = self.client.get("/api/v2/local-units/?type__code=0")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 5)
+        self.assertEqual(response.data["count"], 5)
 
-        response = self.client.get('/api/v2/local-units/?type__code=4')
+        response = self.client.get("/api/v2/local-units/?type__code=4")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 0)
+        self.assertEqual(response.data["count"], 0)
 
-        response = self.client.get('/api/v2/local-units/?draft=true')
+        response = self.client.get("/api/v2/local-units/?draft=true")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 5)
+        self.assertEqual(response.data["count"], 5)
 
-        response = self.client.get('/api/v2/local-units/?draft=false')
+        response = self.client.get("/api/v2/local-units/?draft=false")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 5)
+        self.assertEqual(response.data["count"], 5)
 
-        response = self.client.get('/api/v2/local-units/?validated=true')
+        response = self.client.get("/api/v2/local-units/?validated=true")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 5)
+        self.assertEqual(response.data["count"], 5)
 
-        response = self.client.get('/api/v2/local-units/?validated=false')
+        response = self.client.get("/api/v2/local-units/?validated=false")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 5)
+        self.assertEqual(response.data["count"], 5)
 
 
 class TestLocalUnitsDetailView(APITestCase):
     def setUp(self):
         super().setUp()
         region = Region.objects.create(name=2)
-        country = Country.objects.create(name='Nepal', iso3='NLP', region=region)
-        type = LocalUnitType.objects.create(code=0, name='Code 0')
+        country = Country.objects.create(name="Nepal", iso3="NLP", region=region)
+        type = LocalUnitType.objects.create(code=0, name="Code 0")
         LocalUnitFactory.create_batch(2, country=country, type=type)
 
     def test_detail(self):
         local_unit = LocalUnit.objects.all().first()
         self.authenticate()
-        response = self.client.get(f'/api/v2/local-units/{local_unit.id}/')
+        response = self.client.get(f"/api/v2/local-units/{local_unit.id}/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['location_details']['coordinates'], [12, 38])
-        self.assertEqual(response.data['country_details']['name'], 'Nepal')
-        self.assertEqual(response.data['country_details']['iso3'], 'NLP')
-        self.assertEqual(response.data['type_details']['name'], 'Code 0')
-        self.assertEqual(response.data['type_details']['code'], 0)
+        self.assertEqual(response.data["location_details"]["coordinates"], [12, 38])
+        self.assertEqual(response.data["country_details"]["name"], "Nepal")
+        self.assertEqual(response.data["country_details"]["iso3"], "NLP")
+        self.assertEqual(response.data["type_details"]["name"], "Code 0")
+        self.assertEqual(response.data["type_details"]["code"], 0)
 
     def test_validate_local_units(self):
         local_unit = LocalUnit.objects.all().first()
         self.authenticate()
-        url = f'/api/v2/local-units/{local_unit.id}/validate/'
+        url = f"/api/v2/local-units/{local_unit.id}/validate/"
         data = {}
         response = self.client.post(url, data=data)
         self.assert_403(response)
@@ -175,82 +157,82 @@ class DelegationOfficeFactory(factory.django.DjangoModelFactory):
 class TestDelegationOfficesListView(APITestCase):
     def setUp(self):
         region = Region.objects.create(name=2)
-        country = Country.objects.create(name='Nepal', iso3='NLP', iso='NP', region=region)
-        country_1 = Country.objects.create(name='Philippines', iso3='PHL', iso='PH', region=region)
-        type = DelegationOfficeType.objects.create(code=0, name='Code 0')
-        type_1 = DelegationOfficeType.objects.create(code=1, name='Code 1')
+        country = Country.objects.create(name="Nepal", iso3="NLP", iso="NP", region=region)
+        country_1 = Country.objects.create(name="Philippines", iso3="PHL", iso="PH", region=region)
+        type = DelegationOfficeType.objects.create(code=0, name="Code 0")
+        type_1 = DelegationOfficeType.objects.create(code=1, name="Code 1")
         DelegationOfficeFactory.create_batch(5, country=country, dotype=type)
         DelegationOfficeFactory.create_batch(5, country=country_1, dotype=type_1)
 
     def test_list(self):
-        response = self.client.get('/api/v2/delegation-office/')
+        response = self.client.get("/api/v2/delegation-office/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 10)
-        self.assertEqual(response.data['results'][0]['location']['coordinates'], [2.2, 3.3])
-        self.assertEqual(response.data['results'][0]['country']['name'], 'Nepal')
-        self.assertEqual(response.data['results'][0]['country']['iso3'], 'NLP')
-        self.assertEqual(response.data['results'][0]['dotype']['name'], 'Code 0')
-        self.assertEqual(response.data['results'][0]['dotype']['code'], 0)
+        self.assertEqual(response.data["count"], 10)
+        self.assertEqual(response.data["results"][0]["location"]["coordinates"], [2.2, 3.3])
+        self.assertEqual(response.data["results"][0]["country"]["name"], "Nepal")
+        self.assertEqual(response.data["results"][0]["country"]["iso3"], "NLP")
+        self.assertEqual(response.data["results"][0]["dotype"]["name"], "Code 0")
+        self.assertEqual(response.data["results"][0]["dotype"]["code"], 0)
 
     def test_filter(self):
-        response = self.client.get('/api/v2/delegation-office/?country__name=Nepal')
+        response = self.client.get("/api/v2/delegation-office/?country__name=Nepal")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 5)
+        self.assertEqual(response.data["count"], 5)
 
-        response = self.client.get('/api/v2/delegation-office/?country__name=Philippines')
+        response = self.client.get("/api/v2/delegation-office/?country__name=Philippines")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 5)
+        self.assertEqual(response.data["count"], 5)
 
-        response = self.client.get('/api/v2/delegation-office/?country__name=Belgium')
+        response = self.client.get("/api/v2/delegation-office/?country__name=Belgium")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 0)
+        self.assertEqual(response.data["count"], 0)
 
-        response = self.client.get('/api/v2/delegation-office/?country__iso=BE')
+        response = self.client.get("/api/v2/delegation-office/?country__iso=BE")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 0)
+        self.assertEqual(response.data["count"], 0)
 
-        response = self.client.get('/api/v2/delegation-office/?country__iso3=BEL')
+        response = self.client.get("/api/v2/delegation-office/?country__iso3=BEL")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 0)
+        self.assertEqual(response.data["count"], 0)
 
-        response = self.client.get('/api/v2/delegation-office/?country__iso=BE')
+        response = self.client.get("/api/v2/delegation-office/?country__iso=BE")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 0)
+        self.assertEqual(response.data["count"], 0)
 
-        response = self.client.get('/api/v2/delegation-office/?country__iso3=PHL')
+        response = self.client.get("/api/v2/delegation-office/?country__iso3=PHL")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 5)
+        self.assertEqual(response.data["count"], 5)
 
-        response = self.client.get('/api/v2/delegation-office/?country__iso=NP')
+        response = self.client.get("/api/v2/delegation-office/?country__iso=NP")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 5)
+        self.assertEqual(response.data["count"], 5)
 
-        response = self.client.get('/api/v2/delegation-office/?dotype__code=0')
+        response = self.client.get("/api/v2/delegation-office/?dotype__code=0")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 5)
+        self.assertEqual(response.data["count"], 5)
 
-        response = self.client.get('/api/v2/delegation-office/?dotype__code=4')
+        response = self.client.get("/api/v2/delegation-office/?dotype__code=4")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 0)
+        self.assertEqual(response.data["count"], 0)
 
 
 class TestDelegationOfficesDetailView(APITestCase):
     def setUp(self):
         region = Region.objects.create(name=2)
-        country = Country.objects.create(name='Nepal', iso3='NLP', region=region)
-        type = DelegationOfficeType.objects.create(code=0, name='Code 0')
+        country = Country.objects.create(name="Nepal", iso3="NLP", region=region)
+        type = DelegationOfficeType.objects.create(code=0, name="Code 0")
         DelegationOfficeFactory.create_batch(2, country=country, dotype=type)
 
     def test_detail(self):
         local_unit = DelegationOffice.objects.all().first()
         self.authenticate()
-        response = self.client.get(f'/api/v2/delegation-office/{local_unit.id}/')
+        response = self.client.get(f"/api/v2/delegation-office/{local_unit.id}/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['location']['coordinates'], [2.2, 3.3])
-        self.assertEqual(response.data['country']['name'], 'Nepal')
-        self.assertEqual(response.data['country']['iso3'], 'NLP')
-        self.assertEqual(response.data['dotype']['name'], 'Code 0')
-        self.assertEqual(response.data['dotype']['code'], 0)
+        self.assertEqual(response.data["location"]["coordinates"], [2.2, 3.3])
+        self.assertEqual(response.data["country"]["name"], "Nepal")
+        self.assertEqual(response.data["country"]["iso3"], "NLP")
+        self.assertEqual(response.data["dotype"]["name"], "Code 0")
+        self.assertEqual(response.data["dotype"]["code"], 0)
 
 
 class TestLocalUnitCreate(APITestCase):
@@ -258,13 +240,13 @@ class TestLocalUnitCreate(APITestCase):
     def test_create_local_unit_administrative(self):
         region = Region.objects.create(name=2)
         country = Country.objects.create(
-            name='Philippines',
-            iso3='PHL',
-            iso='PH',
+            name="Philippines",
+            iso3="PHL",
+            iso="PH",
             region=region,
         )
-        type = LocalUnitType.objects.create(code=1, name='Code 0')
-        level = LocalUnitLevel.objects.create(level=1, name='Code 1')
+        type = LocalUnitType.objects.create(code=1, name="Code 0")
+        level = LocalUnitLevel.objects.create(level=1, name="Code 1")
 
         data = {
             "local_branch_name": None,
@@ -280,8 +262,8 @@ class TestLocalUnitCreate(APITestCase):
             "city_en": "Pukë",
             "link": "",
             "location_json": {
-                'lat': 42.066667,
-                'lng': 19.983333,
+                "lat": 42.066667,
+                "lng": 19.983333,
             },
             "source_loc": "",
             "source_en": "",
@@ -295,28 +277,23 @@ class TestLocalUnitCreate(APITestCase):
             # "health": {}
         }
         self.authenticate()
-        response = self.client.post('/api/v2/local-units/', data=data, format='json')
+        response = self.client.post("/api/v2/local-units/", data=data, format="json")
         self.assertEqual(response.status_code, 400)
 
         # add `english branch_name`
-        data['english_branch_name'] = 'Test branch name'
-        response = self.client.post('/api/v2/local-units/', data=data, format='json')
+        data["english_branch_name"] = "Test branch name"
+        response = self.client.post("/api/v2/local-units/", data=data, format="json")
         self.assertEqual(response.status_code, 201)
 
     def test_create_local_unit_health(self):
         region = Region.objects.create(name=2)
-        country = Country.objects.create(
-            name='Philippines',
-            iso3='PHL',
-            iso='PH',
-            region=region
-        )
-        type = LocalUnitType.objects.create(code=2, name='Code 0')
-        level = LocalUnitLevel.objects.create(level=1, name='Code 1')
-        affiliation = Affiliation.objects.create(code=1, name='Code 1')
-        functionality = Functionality.objects.create(code=1, name='Code 1')
-        health_facility_type = FacilityType.objects.create(code=1, name='Code 1')
-        primary_health_care_center = PrimaryHCC.objects.create(code=1, name='Code 1')
+        country = Country.objects.create(name="Philippines", iso3="PHL", iso="PH", region=region)
+        type = LocalUnitType.objects.create(code=2, name="Code 0")
+        level = LocalUnitLevel.objects.create(level=1, name="Code 1")
+        affiliation = Affiliation.objects.create(code=1, name="Code 1")
+        functionality = Functionality.objects.create(code=1, name="Code 1")
+        health_facility_type = FacilityType.objects.create(code=1, name="Code 1")
+        primary_health_care_center = PrimaryHCC.objects.create(code=1, name="Code 1")
 
         data = {
             "local_branch_name": "Silele Red Cross Clinic, Sigombeni Red Cross Clinic & Mahwalala Red Cross Clinic",
@@ -340,8 +317,8 @@ class TestLocalUnitCreate(APITestCase):
             "date_of_data": "2024-05-13",
             "level": level.id,
             "location_json": {
-                'lat': 42.066667,
-                'lng': 19.983333,
+                "lat": 42.066667,
+                "lng": 19.983333,
             },
             "health": {
                 "other_affiliation": None,
@@ -377,29 +354,17 @@ class TestLocalUnitCreate(APITestCase):
                 "health_facility_type": health_facility_type.id,
                 "primary_health_care_center": primary_health_care_center.id,
                 "hospital_type": None,
-                "general_medical_services": [
-                    1,
-                    2,
-                    3,
-                    4,
-                    5
-                ],
-                "specialized_medical_beyond_primary_level": [
-                    4,
-                    10,
-                    22
-                ],
-                "blood_services": [
-                    2
-                ],
-                "professional_training_facilities": []
+                "general_medical_services": [1, 2, 3, 4, 5],
+                "specialized_medical_beyond_primary_level": [4, 10, 22],
+                "blood_services": [2],
+                "professional_training_facilities": [],
             },
             "visibility_display": "RCRC Movement",
             "focal_person_loc": "Elliot Jele",
             "focal_person_en": "",
             "email": "",
-            "phone": ""
+            "phone": "",
         }
         self.client.force_authenticate(self.root_user)
-        response = self.client.post('/api/v2/local-units/', data=data, format='json')
+        response = self.client.post("/api/v2/local-units/", data=data, format="json")
         self.assertEqual(response.status_code, 201)

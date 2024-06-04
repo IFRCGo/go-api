@@ -6,53 +6,53 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0026_auto_20191120_1026'),
+        ("api", "0026_auto_20191120_1026"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='fieldreport',
-            name='affected_pop_centres',
+            model_name="fieldreport",
+            name="affected_pop_centres",
             field=models.CharField(blank=True, max_length=512, null=True),
         ),
         migrations.AddField(
-            model_name='fieldreport',
-            name='gov_affected_pop_centres',
+            model_name="fieldreport",
+            name="gov_affected_pop_centres",
             field=models.CharField(blank=True, max_length=512, null=True),
         ),
         migrations.AddField(
-            model_name='fieldreport',
-            name='gov_num_highest_risk',
+            model_name="fieldreport",
+            name="gov_num_highest_risk",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='fieldreport',
-            name='gov_potentially_affected',
+            model_name="fieldreport",
+            name="gov_potentially_affected",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='fieldreport',
-            name='num_highest_risk',
+            model_name="fieldreport",
+            name="num_highest_risk",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='fieldreport',
-            name='num_potentially_affected',
+            model_name="fieldreport",
+            name="num_potentially_affected",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='fieldreport',
-            name='other_affected_pop_centres',
+            model_name="fieldreport",
+            name="other_affected_pop_centres",
             field=models.CharField(blank=True, max_length=512, null=True),
         ),
         migrations.AddField(
-            model_name='fieldreport',
-            name='other_num_highest_risk',
+            model_name="fieldreport",
+            name="other_num_highest_risk",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='fieldreport',
-            name='other_potentially_affected',
+            model_name="fieldreport",
+            name="other_potentially_affected",
             field=models.IntegerField(blank=True, null=True),
         ),
     ]

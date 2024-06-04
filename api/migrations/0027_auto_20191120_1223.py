@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0026_auto_20191120_1026'),
+        ("api", "0026_auto_20191120_1026"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='action',
-            name='field_report_type',
-            field=models.CharField(blank=True, choices=[('EVT', 'Event'), ('EW', 'Early Warning')], default='EVT', max_length=4),
+            model_name="action",
+            name="field_report_type",
+            field=models.CharField(blank=True, choices=[("EVT", "Event"), ("EW", "Early Warning")], default="EVT", max_length=4),
         ),
     ]

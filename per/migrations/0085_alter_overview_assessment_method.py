@@ -6,13 +6,19 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0084_alter_overview_date_of_assessment'),
+        ("per", "0084_alter_overview_date_of_assessment"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='overview',
-            name='assessment_method',
-            field=models.CharField(blank=True, choices=[('per', 'PER'), ('drce', 'DRCE'), ('wpns', 'WPNS')], max_length=90, null=True, verbose_name='what method has this assessment used'),
+            model_name="overview",
+            name="assessment_method",
+            field=models.CharField(
+                blank=True,
+                choices=[("per", "PER"), ("drce", "DRCE"), ("wpns", "WPNS")],
+                max_length=90,
+                null=True,
+                verbose_name="what method has this assessment used",
+            ),
         ),
     ]

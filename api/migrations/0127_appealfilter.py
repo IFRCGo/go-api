@@ -6,20 +6,20 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0126_auto_20210418_1357'),
+        ("api", "0126_auto_20210418_1357"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='AppealFilter',
+            name="AppealFilter",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100, verbose_name='name')),
-                ('value', models.CharField(max_length=1000, verbose_name='value')),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("name", models.CharField(max_length=100, verbose_name="name")),
+                ("value", models.CharField(max_length=1000, verbose_name="value")),
             ],
             options={
-                'verbose_name': 'appeal filter',
-                'verbose_name_plural': 'appeal filters',
+                "verbose_name": "appeal filter",
+                "verbose_name_plural": "appeal filters",
             },
         ),
     ]

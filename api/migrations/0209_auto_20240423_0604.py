@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0208_auto_20240404_0518'),
+        ("api", "0208_auto_20240404_0518"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='countrykeydocument',
-            name='end_year',
-            field=models.DateField(blank=True, null=True, verbose_name='End Year'),
+            model_name="countrykeydocument",
+            name="end_year",
+            field=models.DateField(blank=True, null=True, verbose_name="End Year"),
         ),
         migrations.AddField(
-            model_name='countrykeydocument',
-            name='year_text',
-            field=models.CharField(blank=True, max_length=255, null=True, verbose_name='Year Text'),
+            model_name="countrykeydocument",
+            name="year_text",
+            field=models.CharField(blank=True, max_length=255, null=True, verbose_name="Year Text"),
         ),
     ]

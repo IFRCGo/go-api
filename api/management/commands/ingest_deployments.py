@@ -1,10 +1,12 @@
-import requests
 from datetime import datetime, timezone
-from django.core.management.base import BaseCommand
+
+import requests
 from django.core.exceptions import ObjectDoesNotExist
-from api.models import Appeal, AppealDocument
-from deployments.models import ERU, PersonnelDeployment, Personnel, DeployedPerson
+from django.core.management.base import BaseCommand
+
 from api.logger import logger
+from api.models import Appeal, AppealDocument
+from deployments.models import ERU, DeployedPerson, Personnel, PersonnelDeployment
 
 
 class Command(BaseCommand):

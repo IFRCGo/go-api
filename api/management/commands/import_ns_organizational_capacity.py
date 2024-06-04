@@ -1,6 +1,6 @@
 import csv
-import pandas as pd
 
+import pandas as pd
 from django.core.management.base import BaseCommand, CommandError
 
 from api.models import Country, CountryOrganizationalCapacity
@@ -18,9 +18,7 @@ class Command(BaseCommand):
 
         for data in CAP.itertuples(index=False):
             country_name = data.Country.strip()
-            country = CountryOrganizationalCapacity.objects.filter(
-                country__name__icontains=country_name
-            ).first()
+            country = CountryOrganizationalCapacity.objects.filter(country__name__icontains=country_name).first()
 
             if country:
                 for excel_field, model_field in field_mapping.items():
@@ -29,11 +27,10 @@ class Command(BaseCommand):
             else:
                 country_id = Country.objects.filter(name__icontains=country_name).first()
                 if country_id:
-                    fields_to_create = {model_field: data._asdict()[excel_field] for excel_field, model_field in field_mapping.items()}
-                    CountryOrganizationalCapacity.objects.create(
-                        country=country_id,
-                        **fields_to_create
-                    )
+                    fields_to_create = {
+                        model_field: data._asdict()[excel_field] for excel_field, model_field in field_mapping.items()
+                    }
+                    CountryOrganizationalCapacity.objects.create(country=country_id, **fields_to_create)
 
     def handle(self, *args, **options):
         leadership_mapping = {"LD_CAP": "leadership_capacity"}
@@ -45,4 +42,3 @@ class Command(BaseCommand):
         self.update_or_create_capacity("Youth_CAP", youth_mapping, options["filename"][0])
         self.update_or_create_capacity("FD_CAP", fd_mapping, options["filename"][0])
         self.update_or_create_capacity("Volunteer_CAP", volunteer_mapping, options["filename"][0])
-

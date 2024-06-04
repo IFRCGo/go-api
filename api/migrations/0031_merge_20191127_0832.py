@@ -6,9 +6,8 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0028_event_is_featured_region'),
-        ('api', '0030_fieldreport_other_sources'),
+        ("api", "0028_event_is_featured_region"),
+        ("api", "0030_fieldreport_other_sources"),
     ]
 
-    operations = [
-    ]
+    operations = []

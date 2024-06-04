@@ -1,8 +1,10 @@
 import csv
+
+from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.management.base import BaseCommand
-from api.models import Country, District
 from django.db import transaction
-from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+
+from api.models import Country, District
 
 
 class Command(BaseCommand):

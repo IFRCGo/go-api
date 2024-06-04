@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0108_fieldreport_epi_notes_since_last_fr'),
+        ("api", "0108_fieldreport_epi_notes_since_last_fr"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='fieldreport',
-            name='notes_health',
-            field=models.TextField(blank=True, null=True, verbose_name=''),
+            model_name="fieldreport",
+            name="notes_health",
+            field=models.TextField(blank=True, null=True, verbose_name=""),
         ),
         migrations.AddField(
-            model_name='fieldreport',
-            name='notes_ns',
-            field=models.TextField(blank=True, null=True, verbose_name=''),
+            model_name="fieldreport",
+            name="notes_ns",
+            field=models.TextField(blank=True, null=True, verbose_name=""),
         ),
     ]

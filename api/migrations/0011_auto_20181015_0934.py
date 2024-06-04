@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0010_auto_20181008_0950'),
+        ("api", "0010_auto_20181008_0950"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='gdacsevent',
-            name='vulnerability',
+            model_name="gdacsevent",
+            name="vulnerability",
             field=models.FloatField(),
         ),
     ]

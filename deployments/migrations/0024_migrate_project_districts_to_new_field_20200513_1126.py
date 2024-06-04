@@ -5,24 +5,22 @@ from django.db import migrations
 
 def make_many_districts(apps, schema_editor):
     """
-        Adds the District object in Project.project_district to the
-        many-to-many relationship in Project.project_districts
+    Adds the District object in Project.project_district to the
+    many-to-many relationship in Project.project_districts
     """
-    Project = apps.get_model('deployments', 'Project')
+    Project = apps.get_model("deployments", "Project")
 
     for project in Project.objects.all():
         if project.project_district:
             project.project_districts.add(project.project_district)
         elif project.project_country:
-            project.project_districts.set(
-                project.project_country.district_set.all()
-            )
+            project.project_districts.set(project.project_country.district_set.all())
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('deployments', '0023_project_multiple_districts_20200513_1125'),
+        ("deployments", "0023_project_multiple_districts_20200513_1125"),
     ]
 
     operations = [

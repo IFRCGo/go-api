@@ -3,7 +3,7 @@ import csv
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from api.models import District, Admin2
+from api.models import Admin2, District
 
 
 class Command(BaseCommand):

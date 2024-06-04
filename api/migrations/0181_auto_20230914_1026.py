@@ -6,43 +6,72 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0180_auto_20230913_0433'),
+        ("api", "0180_auto_20230913_0433"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='fieldreport',
-            name='appeal',
-            field=models.IntegerField(choices=[(0, 'No'), (1, 'Requested'), (2, 'Planned'), (3, 'Completed')], default=0, null=True, verbose_name='appeal'),
+            model_name="fieldreport",
+            name="appeal",
+            field=models.IntegerField(
+                choices=[(0, "No"), (1, "Requested"), (2, "Planned"), (3, "Completed")],
+                default=0,
+                null=True,
+                verbose_name="appeal",
+            ),
         ),
         migrations.AlterField(
-            model_name='fieldreport',
-            name='bulletin',
-            field=models.IntegerField(choices=[(0, 'No'), (1, 'Requested'), (2, 'Planned'), (3, 'Completed')], default=0, null=True, verbose_name='bulletin'),
+            model_name="fieldreport",
+            name="bulletin",
+            field=models.IntegerField(
+                choices=[(0, "No"), (1, "Requested"), (2, "Planned"), (3, "Completed")],
+                default=0,
+                null=True,
+                verbose_name="bulletin",
+            ),
         ),
         migrations.AlterField(
-            model_name='fieldreport',
-            name='dref',
-            field=models.IntegerField(choices=[(0, 'No'), (1, 'Requested'), (2, 'Planned'), (3, 'Completed')], default=0, null=True, verbose_name='DREF'),
+            model_name="fieldreport",
+            name="dref",
+            field=models.IntegerField(
+                choices=[(0, "No"), (1, "Requested"), (2, "Planned"), (3, "Completed")], default=0, null=True, verbose_name="DREF"
+            ),
         ),
         migrations.AlterField(
-            model_name='fieldreport',
-            name='fact',
-            field=models.IntegerField(choices=[(0, 'No'), (1, 'Requested'), (2, 'Planned'), (3, 'Completed')], default=0, null=True, verbose_name='fact'),
+            model_name="fieldreport",
+            name="fact",
+            field=models.IntegerField(
+                choices=[(0, "No"), (1, "Requested"), (2, "Planned"), (3, "Completed")], default=0, null=True, verbose_name="fact"
+            ),
         ),
         migrations.AlterField(
-            model_name='fieldreport',
-            name='forecast_based_action',
-            field=models.IntegerField(choices=[(0, 'No'), (1, 'Requested'), (2, 'Planned'), (3, 'Completed')], default=0, null=True, verbose_name='forecast based action'),
+            model_name="fieldreport",
+            name="forecast_based_action",
+            field=models.IntegerField(
+                choices=[(0, "No"), (1, "Requested"), (2, "Planned"), (3, "Completed")],
+                default=0,
+                null=True,
+                verbose_name="forecast based action",
+            ),
         ),
         migrations.AlterField(
-            model_name='fieldreport',
-            name='ifrc_staff',
-            field=models.IntegerField(choices=[(0, 'No'), (1, 'Requested'), (2, 'Planned'), (3, 'Completed')], default=0, null=True, verbose_name='IFRC staff'),
+            model_name="fieldreport",
+            name="ifrc_staff",
+            field=models.IntegerField(
+                choices=[(0, "No"), (1, "Requested"), (2, "Planned"), (3, "Completed")],
+                default=0,
+                null=True,
+                verbose_name="IFRC staff",
+            ),
         ),
         migrations.AlterField(
-            model_name='fieldreport',
-            name='imminent_dref',
-            field=models.IntegerField(choices=[(0, 'No'), (1, 'Requested'), (2, 'Planned'), (3, 'Completed')], default=0, null=True, verbose_name='imminent dref'),
+            model_name="fieldreport",
+            name="imminent_dref",
+            field=models.IntegerField(
+                choices=[(0, "No"), (1, "Requested"), (2, "Planned"), (3, "Completed")],
+                default=0,
+                null=True,
+                verbose_name="imminent dref",
+            ),
         ),
     ]

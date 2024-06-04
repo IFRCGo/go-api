@@ -2,24 +2,26 @@
 
 from django.db import migrations, models
 
+
 def update_stood_down(self, schema_editor):
     "Set is_stood_down value depending on molnix_status for existing records"
-    SurgeAlert = self.get_model('notifications', 'surgealert')
+    SurgeAlert = self.get_model("notifications", "surgealert")
     for record in SurgeAlert.objects.all():
-        record.is_stood_down = True if record.molnix_status == 'unfilled' else False
-        record.save(update_fields=['is_stood_down'])
+        record.is_stood_down = True if record.molnix_status == "unfilled" else False
+        record.save(update_fields=["is_stood_down"])
+
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('notifications', '0011_surgealert_country'),
+        ("notifications", "0011_surgealert_country"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='surgealert',
-            name='is_stood_down',
-            field=models.BooleanField(default=False, verbose_name='is stood down?'),
+            model_name="surgealert",
+            name="is_stood_down",
+            field=models.BooleanField(default=False, verbose_name="is stood down?"),
         ),
         migrations.RunPython(update_stood_down, reverse_code=migrations.RunPython.noop),
     ]

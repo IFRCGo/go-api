@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0027_auto_20191120_1223'),
+        ("api", "0027_auto_20191120_1223"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='event',
-            name='is_featured_region',
+            model_name="event",
+            name="is_featured_region",
             field=models.BooleanField(default=False),
         ),
     ]

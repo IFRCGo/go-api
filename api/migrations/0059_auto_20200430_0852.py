@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0058_auto_20200415_1606'),
+        ("api", "0058_auto_20200415_1606"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='reversiondifferencelog',
-            name='object_name',
+            model_name="reversiondifferencelog",
+            name="object_name",
             field=models.TextField(blank=True, null=True),
         ),
     ]

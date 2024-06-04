@@ -1,8 +1,9 @@
-import subprocess
-from django.core.management.base import BaseCommand, CommandError
-from django.conf import settings
-import time
 import os
+import subprocess
+import time
+
+from django.conf import settings
+from django.core.management.base import BaseCommand, CommandError
 
 
 class Command(BaseCommand):
@@ -24,9 +25,7 @@ class Command(BaseCommand):
     DB_USER = db["USER"]
     DB_PASSWORD = db["PASSWORD"]
     DB_PORT = 5432
-    connection_string = "PG:host={} dbname={} user={} password={} port={}".format(
-        DB_HOST, DB_NAME, DB_USER, DB_PASSWORD, DB_PORT
-    )
+    connection_string = "PG:host={} dbname={} user={} password={} port={}".format(DB_HOST, DB_NAME, DB_USER, DB_PASSWORD, DB_PORT)
 
     def handle(self, *args, **options):
         try:

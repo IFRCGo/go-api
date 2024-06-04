@@ -6,13 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dref', '0006_auto_20220415_0544'),
+        ("dref", "0006_auto_20220415_0544"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='drefoperationalupdate',
-            name='entity_affected',
-            field=models.TextField(blank=True, help_text='Protection, gender, Inclusion affected in this process', null=True, verbose_name='entity affected'),
+            model_name="drefoperationalupdate",
+            name="entity_affected",
+            field=models.TextField(
+                blank=True,
+                help_text="Protection, gender, Inclusion affected in this process",
+                null=True,
+                verbose_name="entity affected",
+            ),
         ),
     ]

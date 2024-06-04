@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0063_perworkplancomponent_supported_by'),
+        ("per", "0063_perworkplancomponent_supported_by"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='overview',
-            name='is_draft',
-            field=models.BooleanField(blank=True, null=True, verbose_name='is draft'),
+            model_name="overview",
+            name="is_draft",
+            field=models.BooleanField(blank=True, null=True, verbose_name="is draft"),
         ),
     ]

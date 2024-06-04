@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('registrations', '0005_domainwhitelist'),
+        ("registrations", "0005_domainwhitelist"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='domainwhitelist',
-            name='description',
+            model_name="domainwhitelist",
+            name="description",
             field=models.TextField(blank=True, null=True),
         ),
     ]

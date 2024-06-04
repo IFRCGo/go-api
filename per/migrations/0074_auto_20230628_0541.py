@@ -6,28 +6,28 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0073_overview_orientation_documents'),
+        ("per", "0073_overview_orientation_documents"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='formprioritization',
-            name='is_draft',
-            field=models.BooleanField(default=True, verbose_name='is draft'),
+            model_name="formprioritization",
+            name="is_draft",
+            field=models.BooleanField(default=True, verbose_name="is draft"),
         ),
         migrations.AddField(
-            model_name='perworkplan',
-            name='is_draft',
-            field=models.BooleanField(default=True, verbose_name='is draft'),
+            model_name="perworkplan",
+            name="is_draft",
+            field=models.BooleanField(default=True, verbose_name="is draft"),
         ),
         migrations.AlterField(
-            model_name='overview',
-            name='is_draft',
-            field=models.BooleanField(default=True, verbose_name='is draft'),
+            model_name="overview",
+            name="is_draft",
+            field=models.BooleanField(default=True, verbose_name="is draft"),
         ),
         migrations.AlterField(
-            model_name='perassessment',
-            name='is_draft',
-            field=models.BooleanField(default=True, verbose_name='is draft'),
+            model_name="perassessment",
+            name="is_draft",
+            field=models.BooleanField(default=True, verbose_name="is draft"),
         ),
     ]

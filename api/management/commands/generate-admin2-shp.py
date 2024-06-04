@@ -1,6 +1,6 @@
+import geopandas as gpd
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
-import geopandas as gpd
 
 
 class Command(BaseCommand):

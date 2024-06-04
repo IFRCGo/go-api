@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('deployments', '0058_auto_20220322_1056'),
+        ("deployments", "0058_auto_20220322_1056"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='emergencyprojectactivity',
-            name='is_disaggregated_for_disabled',
-            field=models.BooleanField(verbose_name='is_disaggregated_for_disabled'),
+            model_name="emergencyprojectactivity",
+            name="is_disaggregated_for_disabled",
+            field=models.BooleanField(verbose_name="is_disaggregated_for_disabled"),
         ),
     ]

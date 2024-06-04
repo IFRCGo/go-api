@@ -1,6 +1,6 @@
-from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 
 class String(models.Model):
@@ -31,6 +31,5 @@ class String(models.Model):
     @classmethod
     def get_user_permissions_per_language(cls, user):
         return {
-            lang_code: user.has_perm(cls._get_permission_per_language_codename(lang_code))
-            for lang_code, _ in settings.LANGUAGES
+            lang_code: user.has_perm(cls._get_permission_per_language_codename(lang_code)) for lang_code, _ in settings.LANGUAGES
         }

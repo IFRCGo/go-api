@@ -6,28 +6,28 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0096_auto_20201124_0855'),
+        ("api", "0096_auto_20201124_0855"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='country',
-            name='additional_tab_name_ar',
-            field=models.CharField(blank=True, max_length=100, null=True, verbose_name='Label for Extra Tab'),
+            model_name="country",
+            name="additional_tab_name_ar",
+            field=models.CharField(blank=True, max_length=100, null=True, verbose_name="Label for Extra Tab"),
         ),
         migrations.AddField(
-            model_name='country',
-            name='additional_tab_name_en',
-            field=models.CharField(blank=True, max_length=100, null=True, verbose_name='Label for Extra Tab'),
+            model_name="country",
+            name="additional_tab_name_en",
+            field=models.CharField(blank=True, max_length=100, null=True, verbose_name="Label for Extra Tab"),
         ),
         migrations.AddField(
-            model_name='country',
-            name='additional_tab_name_es',
-            field=models.CharField(blank=True, max_length=100, null=True, verbose_name='Label for Extra Tab'),
+            model_name="country",
+            name="additional_tab_name_es",
+            field=models.CharField(blank=True, max_length=100, null=True, verbose_name="Label for Extra Tab"),
         ),
         migrations.AddField(
-            model_name='country',
-            name='additional_tab_name_fr',
-            field=models.CharField(blank=True, max_length=100, null=True, verbose_name='Label for Extra Tab'),
+            model_name="country",
+            name="additional_tab_name_fr",
+            field=models.CharField(blank=True, max_length=100, null=True, verbose_name="Label for Extra Tab"),
         ),
     ]

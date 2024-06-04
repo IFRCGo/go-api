@@ -1,13 +1,15 @@
-from datetime import datetime, timezone
-from dateutil.relativedelta import relativedelta
-from urllib3 import PoolManager
-from bs4 import BeautifulSoup
-from django.core.management.base import BaseCommand
-from django.core.exceptions import ObjectDoesNotExist
-from api.models import Appeal, AppealDocument, CronJob, CronJobStatus
-from api.logger import logger
 from collections import defaultdict
+from datetime import datetime, timezone
+
 import brotli
+from bs4 import BeautifulSoup
+from dateutil.relativedelta import relativedelta
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.management.base import BaseCommand
+from urllib3 import PoolManager
+
+from api.logger import logger
+from api.models import Appeal, AppealDocument, CronJob, CronJobStatus
 
 
 class Command(BaseCommand):
@@ -52,11 +54,15 @@ class Command(BaseCommand):
 
         # v smoke test
         baseurl = "https://www.ifrc.org/appeals/"  # no more ...en/publications-and-reports...
-        http = (
-            PoolManager()
-        )  # stackoverflow.com/questions/36516183/what-should-i-use-to-open-a-url-instead-of-urlopen-in-urllib3
-        smoke_response = http.request("GET", baseurl,
-        headers={'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:121.0) Gecko/20100101 Firefox/121.0', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8'})
+        http = PoolManager()  # stackoverflow.com/questions/36516183/what-should-i-use-to-open-a-url-instead-of-urlopen-in-urllib3
+        smoke_response = http.request(
+            "GET",
+            baseurl,
+            headers={
+                "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:121.0) Gecko/20100101 Firefox/121.0",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+            },
+        )
         joy_to_the_world = False
         if smoke_response.status == 200:
             joy_to_the_world = True  # We log the success later, when we know the numeric results.
@@ -94,8 +100,14 @@ class Command(BaseCommand):
             docs_url = f"{baseurl}?appeal_code={code}"  # no more ac={code}&at=0&c=&co=&dt=1&f=&re=&t=&ti=&zo=
             try:
                 http = PoolManager()
-                response = http.request("GET", docs_url,
-                headers={'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:121.0) Gecko/20100101 Firefox/121.0', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8'})
+                response = http.request(
+                    "GET",
+                    docs_url,
+                    headers={
+                        "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:121.0) Gecko/20100101 Firefox/121.0",
+                        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+                    },
+                )
             except Exception:  # if we get an error fetching page for an appeal, we ignore it
                 page_not_found.append(code)
                 continue

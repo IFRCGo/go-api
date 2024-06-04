@@ -6,11 +6,11 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dref', '0042_auto_20221012_0434'),
+        ("dref", "0042_auto_20221012_0434"),
     ]
 
     operations = [
         migrations.DeleteModel(
-            name='DrefFileUpload',
+            name="DrefFileUpload",
         ),
     ]

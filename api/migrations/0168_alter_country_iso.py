@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0167_alter_appealdocument_iso3'),
+        ("api", "0167_alter_appealdocument_iso3"),
     ]
 
     operations = [
@@ -16,8 +16,15 @@ class Migration(migrations.Migration):
             reverse_sql=[("update api_country set iso=null where iso='';")],
         ),
         migrations.AlterField(
-            model_name='country',
-            name='iso',
-            field=models.CharField(blank=True, max_length=2, null=True, unique=True, validators=[django.core.validators.RegexValidator('^[A-Z]*$', 'ISO must be uppercase')], verbose_name='ISO'),
+            model_name="country",
+            name="iso",
+            field=models.CharField(
+                blank=True,
+                max_length=2,
+                null=True,
+                unique=True,
+                validators=[django.core.validators.RegexValidator("^[A-Z]*$", "ISO must be uppercase")],
+                verbose_name="ISO",
+            ),
         ),
     ]

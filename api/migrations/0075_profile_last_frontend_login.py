@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0074_auto_20200701_0939'),
+        ("api", "0074_auto_20200701_0939"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='profile',
-            name='last_frontend_login',
-            field=models.DateTimeField(blank=True, null=True, verbose_name='last frontend login'),
+            model_name="profile",
+            name="last_frontend_login",
+            field=models.DateTimeField(blank=True, null=True, verbose_name="last frontend login"),
         ),
     ]

@@ -1,14 +1,13 @@
 from django.core.management.base import BaseCommand
-
+from elasticsearch import Elasticsearch
 from elasticsearch.client import IndicesClient
 from elasticsearch.helpers import bulk
-from elasticsearch import Elasticsearch
 
-from utils.elasticsearch import construct_es_data
 from api.esconnection import ES_CLIENT
-from api.indexes import GenericMapping, GenericSetting, ES_PAGE_NAME
-from api.models import Region, Country, Event, Appeal, FieldReport
+from api.indexes import ES_PAGE_NAME, GenericMapping, GenericSetting
 from api.logger import logger
+from api.models import Appeal, Country, Event, FieldReport, Region
+from utils.elasticsearch import construct_es_data
 
 
 class Command(BaseCommand):

@@ -6,21 +6,21 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0163_admin2_is_deprecated'),
+        ("api", "0163_admin2_is_deprecated"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='AppealDocumentType',
+            name="AppealDocumentType",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100, verbose_name='name')),
-                ('public_site_or_fednet', models.BooleanField(default=False, verbose_name='Sourced by FedNet?')),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("name", models.CharField(max_length=100, verbose_name="name")),
+                ("public_site_or_fednet", models.BooleanField(default=False, verbose_name="Sourced by FedNet?")),
             ],
             options={
-                'verbose_name': 'appeal document type',
-                'verbose_name_plural': 'appeal document types',
-                'ordering': ('name',),
+                "verbose_name": "appeal document type",
+                "verbose_name_plural": "appeal document types",
+                "ordering": ("name",),
             },
         ),
     ]

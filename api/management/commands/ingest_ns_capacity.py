@@ -1,25 +1,20 @@
-import requests
-from requests.auth import HTTPBasicAuth
-import xmltodict
 import json
 
-from django.core.management.base import BaseCommand
+import requests
+import xmltodict
 from django.conf import settings
+from django.core.management.base import BaseCommand
+from requests.auth import HTTPBasicAuth
 
 from api.logger import logger
-from api.models import (
-    Country,
-    CronJob,
-    CronJobStatus,
-    CountryCapacityStrengthening
-)
+from api.models import Country, CountryCapacityStrengthening, CronJob, CronJobStatus
 
 
 class Command(BaseCommand):
     help = "Add ns contact details"
 
     def handle(self, *args, **kwargs):
-        logger.info('Starting NS Contacts')
+        logger.info("Starting NS Contacts")
 
         # OCAC Assessment
         OCAC_DATA_API = f"https://data-api.ifrc.org/api/ocacpublic?apiKey={settings.FDRS_APIKEY}"
@@ -42,12 +37,12 @@ class Command(BaseCommand):
         for item in resp_ocac_data:
             ocaa_count += 1
             data = {
-                'assessment_code': item['AssementCode'],
-                'year': item['YearOfAssesment'],
-                'submission_date': item['SubmissionDate'],
-                'url': item['URL'],
-                'country': Country.objects.filter(fdrs=item['NsId']).first(),
-                'assessment_type': CountryCapacityStrengthening.AssessmentType.OCAC
+                "assessment_code": item["AssementCode"],
+                "year": item["YearOfAssesment"],
+                "submission_date": item["SubmissionDate"],
+                "url": item["URL"],
+                "country": Country.objects.filter(fdrs=item["NsId"]).first(),
+                "assessment_type": CountryCapacityStrengthening.AssessmentType.OCAC,
             }
             CountryCapacityStrengthening.objects.create(**data)
 
@@ -57,7 +52,7 @@ class Command(BaseCommand):
             "name": "ingest_ns_capaciity",
             "message": text_to_log,
             "num_result": ocaa_count,
-            "status": CronJobStatus.SUCCESSFUL
+            "status": CronJobStatus.SUCCESSFUL,
         }
         CronJob.sync_cron(body)
 
@@ -66,15 +61,15 @@ class Command(BaseCommand):
         resp_boca = requests.get(BOCA_DATA_API)
         resp_boca_data = resp_boca.json()
         for item in resp_boca_data:
-            country = Country.objects.filter(fdrs=item['NsId']).first()
-            if country and 'BranchName' in item:
+            country = Country.objects.filter(fdrs=item["NsId"]).first()
+            if country and "BranchName" in item:
                 data = {
-                    'assessment_code': item['AssementCode'],
-                    'year': item['YearOfAssesment'],
-                    'submission_date': item['SubmissionDate'],
-                    'url': item['URL'],
-                    'country': Country.objects.filter(fdrs=item['NsId']).first(),
-                    'assessment_type': CountryCapacityStrengthening.AssessmentType.BOCA,
-                    'branch_name': item['BranchName']
+                    "assessment_code": item["AssementCode"],
+                    "year": item["YearOfAssesment"],
+                    "submission_date": item["SubmissionDate"],
+                    "url": item["URL"],
+                    "country": Country.objects.filter(fdrs=item["NsId"]).first(),
+                    "assessment_type": CountryCapacityStrengthening.AssessmentType.BOCA,
+                    "branch_name": item["BranchName"],
                 }
                 CountryCapacityStrengthening.objects.create(**data)

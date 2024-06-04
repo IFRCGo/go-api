@@ -1,6 +1,5 @@
-from rest_framework import permissions
-
 from django.contrib.auth.models import Permission
+from rest_framework import permissions
 
 
 class ValidateLocalUnitPermission(permissions.BasePermission):
@@ -11,11 +10,11 @@ class ValidateLocalUnitPermission(permissions.BasePermission):
         if user.is_superuser:
             return True
         country_admin_ids = [
-            int(codename.replace('country_admin_', ''))
+            int(codename.replace("country_admin_", ""))
             for codename in Permission.objects.filter(
                 group__user=user,
-                codename__startswith='country_admin_',
-            ).values_list('codename', flat=True)
+                codename__startswith="country_admin_",
+            ).values_list("codename", flat=True)
         ]
         if object.country_id in country_admin_ids:
             return True

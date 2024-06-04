@@ -3,21 +3,22 @@ from datetime import datetime, timezone
 
 from django.db import transaction
 from django.http import JsonResponse
-
 from rest_framework import authentication, permissions
 from rest_framework.views import APIView
+
+from api.models import Country
+from api.views import bad_request
+
+from .admin_classes import RegionRestrictedAdmin
 from .models import (
     Form,
-    FormData,
-    WorkPlan,
-    Overview,
     FormArea,
+    FormData,
     FormQuestion,
-    LearningType
+    LearningType,
+    Overview,
+    WorkPlan,
 )
-from .admin_classes import RegionRestrictedAdmin
-from api.views import bad_request
-from api.models import Country
 
 logger = logging.getLogger(__name__)
 
@@ -87,7 +88,7 @@ class UpdatePerForm(APIView):
                                 form=form,
                                 question_id=qid,
                                 selected_answer_id=questions[qid]["selected_answer"],
-                                notes=questions[qid]["notes"]
+                                notes=questions[qid]["notes"],
                                 # TODO: just as in the CreatePerForm
                             )
                         except Exception:
@@ -166,9 +167,7 @@ class UpdatePerForms(APIView):
 
                         if not db_fd:
                             # Missing question
-                            FormData.objects.create(
-                                form_id=fid, question_id=qid, selected_answer_id=selected_answer, notes=notes
-                            )
+                            FormData.objects.create(form_id=fid, question_id=qid, selected_answer_id=selected_answer, notes=notes)
                         else:
                             if db_fd.selected_answer_id == selected_answer and db_fd.notes == notes:
                                 continue

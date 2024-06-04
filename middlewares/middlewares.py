@@ -42,7 +42,7 @@ class RequestMiddleware:
         # # the view is called.
 
         # workaround for safelink check:
-        if request.method == 'HEAD':
+        if request.method == "HEAD":
             return
         # return response
         setattr(_threadlocal, "request", request)
