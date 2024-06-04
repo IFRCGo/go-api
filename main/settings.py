@@ -319,16 +319,16 @@ TINYMCE_DEFAULT_CONFIG = {
     'width': 1120,
     'cleanup_on_startup': True,
     'custom_undo_redo_levels': 20,
-    'selector': 'textarea',
+    'selector': 'textarea:not(.vWKTField)',
     'plugins': '''
-        anchor autolink charmap code codesample contextmenu directionality
-        fullscreen hr image insertdatetime link lists media nonbreaking
-        pagebreak preview print save searchreplace table textcolor
+        anchor autolink charmap code codesample directionality
+        fullscreen image insertdatetime link lists media
+        nonbreaking pagebreak preview save searchreplace table
         visualblocks visualchars
         ''',
     'toolbar1': '''
         bold italic underline superscript subscript fontsizeselect
-        | forecolor | alignleft alignright | aligncenter alignjustify
+        | alignleft alignright | aligncenter alignjustify
         | indent outdent | bullist numlist |
         | link visualchars charmap hr nonbreaking | code preview fullscreen
         ''',
@@ -356,6 +356,9 @@ TINYMCE_DEFAULT_CONFIG = {
     # charmap hr pagebreak nonbreaking anchor |  code |
     # ''',
 }
+
+# Languages using BiDi (right-to-left) layout
+LANGUAGES_BIDI = ["he", "ar", "ar-dz", "ckb", "fa", "ug", "ur"]
 
 LANGUAGE_CODE = 'en'
 TIME_ZONE = 'UTC'
