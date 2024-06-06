@@ -4,10 +4,8 @@ from dateutil.relativedelta import relativedelta
 from main.sentry import SentryMonitor
 from sentry_sdk.crons import monitor
 from django.core.management.base import BaseCommand
-from django.core.exceptions import ObjectDoesNotExist
-from api.models import Appeal, AppealDocument, CronJob, CronJobStatus
+from api.models import Appeal, AppealDocument, AppealDocumentType, CronJob, CronJobStatus
 from api.logger import logger
-from collections import defaultdict
 from django.conf import settings
 
 CRON_NAME = "sync_appealdocs"
@@ -34,7 +32,8 @@ class Command(BaseCommand):
         logger.info("Starting appeal document ingest")
 
         if options["fullscan"]:
-            # If the `--fullscan` option is passed (at the end of command), check ALL appeals. Runs an hour!
+            # TODO: should be inserted to cron jobs, 4 monthly or so. Or create a calendar note for maintainer.
+            # If the `--fullscan` option is passed (at the end of command), check ALL appeals. Runs 20 mins!
             print("Doing a full scan of all Appeals")
             qset = Appeal.objects.all()
         else:
@@ -71,6 +70,16 @@ class Command(BaseCommand):
                         existing.append(document_url)
                     else:
                         try:
+                            iso = result["LocationCountryCode"]
+                            if not iso:
+                                iso = Appeal.objects.get(pk=appeal_id).country.iso
+                                if not iso:
+                                    logger.warning("Wrong AppealDocument data – unknown country.")
+                                    continue
+                            appealtype_id = result["AppealsTypeId"]
+                            if not appealtype_id or not AppealDocumentType.objects.filter(id=appealtype_id):  # not pk=...!
+                                logger.warning("Wrong AppealDocument data – unknown type_id: %s", appealtype_id)
+                                continue
                             created_at = None
                             if "AppealsDate" in result:
                                 created_at = self.parse_date(result["AppealsDate"])
@@ -79,10 +88,10 @@ class Command(BaseCommand):
                             AppealDocument.objects.create(
                                 document_url=document_url,
                                 appeal_id=appeal_id,
-                                name=result["AppealsName"],
+                                name=result["AppealsName"][:100],
                                 description=result["AppealOrigType"],
-                                type_id=result["AppealsTypeId"],
-                                iso_id=result["LocationCountryCode"],
+                                type_id=appealtype_id,
+                                iso_id=iso,
                                 created_at=created_at
                             )
                             created.append(document_url)
