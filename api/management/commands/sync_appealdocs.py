@@ -32,8 +32,8 @@ class Command(BaseCommand):
         logger.info("Starting appeal document ingest")
 
         if options["fullscan"]:
-            # FIXME: should be inserted to cron jobs, 4 monthly or so. Or create a calendar note for maintainer.
-            # If the `--fullscan` option is passed (at the end of command), check ALL appeals. Runs an hour!
+            # TODO: should be inserted to cron jobs, 4 monthly or so. Or create a calendar note for maintainer.
+            # If the `--fullscan` option is passed (at the end of command), check ALL appeals. Runs 20 mins!
             print("Doing a full scan of all Appeals")
             qset = Appeal.objects.all()
         else:
@@ -88,7 +88,7 @@ class Command(BaseCommand):
                             AppealDocument.objects.create(
                                 document_url=document_url,
                                 appeal_id=appeal_id,
-                                name=result["AppealsName"],
+                                name=result["AppealsName"][:100],
                                 description=result["AppealOrigType"],
                                 type_id=appealtype_id,
                                 iso_id=iso,
