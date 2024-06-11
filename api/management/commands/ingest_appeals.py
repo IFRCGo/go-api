@@ -231,7 +231,7 @@ class Command(BaseCommand):
         # if there is more than one detail, the start date should be the *earliest
         # end date should be the *latest
         details = sorted(r["Details"], key=lambda x: self.parse_date(x["APD_startDate"]))
-        detail0 = details[0]  # first
+        # detail0 = details[0]  # first
         detail1 = details[-1]  # last
         start_date = self.parse_date(r["APP_startDate"])  # not self.parse_date(detail0['APD_startDate'])
         end_date = self.parse_date(r["APP_endDate"])  # not self.parse_date(detail1['APD_endDate'])

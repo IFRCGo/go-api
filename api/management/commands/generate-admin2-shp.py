@@ -4,7 +4,7 @@ from django.db import transaction
 
 
 class Command(BaseCommand):
-    help = "Converting Shapefiles from different sources to custom file for go-api. To run, python manage.py generate-admin2-shp input.shp output.shp --source=fews"
+    help = "Converting Shapefiles from different sources to custom file for go-api. To run, python manage.py generate-admin2-shp input.shp output.shp --source=fews"  # noqa: E501
 
     missing_args_message = "Filename is missing. A shapefile with valid admin polygons is required."
 
@@ -18,7 +18,7 @@ class Command(BaseCommand):
         output_filename = options["filename"][1]
         try:
             gdf = gpd.read_file(input_filename)
-        except:
+        except Exception:
             raise CommandError("Could not open file")
         if options["source"] == "fews":
             gdf.rename(columns={"shapeName": "name"}, inplace=True)

@@ -7,7 +7,13 @@ from django.core.management.base import BaseCommand
 from sentry_sdk.crons import monitor
 
 from api.logger import logger
-from api.models import Appeal, AppealDocument, CronJob, CronJobStatus
+from api.models import (
+    Appeal,
+    AppealDocument,
+    AppealDocumentType,
+    CronJob,
+    CronJobStatus,
+)
 from main.sentry import SentryMonitor
 
 CRON_NAME = "sync_appealdocs"

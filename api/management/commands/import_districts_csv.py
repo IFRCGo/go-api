@@ -1,9 +1,9 @@
 import csv
 
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from api.models import Country, District
+from api.models import District
 
 
 def get_bool(value):
@@ -45,7 +45,7 @@ class Command(BaseCommand):
                 all_ids.append(id)
                 try:
                     district = District.objects.get(pk=id)
-                except:
+                except Exception:
                     district = District()
                 for key in row.keys():
                     # print(key)
@@ -60,7 +60,7 @@ class Command(BaseCommand):
                 try:
                     district.save()
                     print("SUCCESS", district.name)
-                except:
+                except Exception:
                     print("FAILED", district.name)
                     failures += 1
         print("done importing districts, with %d failures" % failures)

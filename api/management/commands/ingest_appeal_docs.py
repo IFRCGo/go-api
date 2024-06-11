@@ -1,7 +1,6 @@
 from collections import defaultdict
 from datetime import datetime, timezone
 
-import brotli
 from bs4 import BeautifulSoup
 from dateutil.relativedelta import relativedelta
 from django.core.exceptions import ObjectDoesNotExist
@@ -69,7 +68,7 @@ class Command(BaseCommand):
         else:
             body = {
                 "name": "ingest_appeal_docs",
-                "message": f"Error ingesting appeals_docs on url: {baseurl}, error_code: {smoke_response.status} – {smoke_response.reason}",
+                "message": f"Error ingesting appeals_docs on url: {baseurl}, error_code: {smoke_response.status} – {smoke_response.reason}",  # noqa: E501
                 "status": CronJobStatus.ERRONEOUS,
             }
             CronJob.sync_cron(body)

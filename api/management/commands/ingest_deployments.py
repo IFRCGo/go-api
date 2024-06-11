@@ -1,12 +1,13 @@
 from datetime import datetime, timezone
 
 import requests
-from django.core.exceptions import ObjectDoesNotExist
+
+# from django.core.exceptions import ObjectDoesNotExist
 from django.core.management.base import BaseCommand
 
 from api.logger import logger
-from api.models import Appeal, AppealDocument
-from deployments.models import ERU, DeployedPerson, Personnel, PersonnelDeployment
+
+# from api.models import Appeal, AppealDocument
 
 
 class Command(BaseCommand):
@@ -20,7 +21,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         logger.info("Starting Deployment ingest")
 
-        # url = 'https://proxy.hxlstandard.org/data.json?url=https%3A%2F%2Fdocs.google.com%2Fspreadsheets%2Fd%2F1CBvledFYc_uwlvHTvJE0SYS7_mPGU2L-zhrqbB4KNIA%2Fedit%23gid%3D0&header-row=1' # not enough.
+        # url = 'https://proxy.hxlstandard.org/data.json?url=https%3A%2F%2Fdocs.google.com%2Fspreadsheets%2Fd%2F1CBvledFYc_uwlvHTvJE0SYS7_mPGU2L-zhrqbB4KNIA%2Fedit%23gid%3D0&header-row=1' # not enough.  # noqa: E501
         url = (
             "https://proxy.hxlstandard.org/data.json?tagger-match-all=on&"
             + "tagger-01-header=year&"
@@ -73,7 +74,7 @@ class Command(BaseCommand):
             + "tagger-24-tag=%23c6&"
             + "tagger-25-header=comments&"
             + "tagger-25-tag=%23c7&"
-            + "url=https%3A%2F%2Fdocs.google.com%2Fspreadsheets%2Fd%2F1CBvledFYc_uwlvHTvJE0SYS7_mPGU2L-zhrqbB4KNIA%2Fedit%23gid%3D0&"
+            + "url=https%3A%2F%2Fdocs.google.com%2Fspreadsheets%2Fd%2F1CBvledFYc_uwlvHTvJE0SYS7_mPGU2L-zhrqbB4KNIA%2Fedit%23gid%3D0&"  # noqa: E501
             + "header-row=1"
         )
 
@@ -81,16 +82,16 @@ class Command(BaseCommand):
         if response.status_code != 200:
             logger.error("Error querying Deployment HXL API")
             raise Exception("Error querying Deployment HXL API")
-        records = response.json()
+        # records = response.json()
 
         # some logging variables
         not_found = []
         existing = []
         created = []
 
-        columns = [a.replace("*", "").replace(" ", "") for a in records[0]]
-        # ['Year', 'AppealCode', 'Region', 'Country', 'Location', 'Disastertype', 'Disastername', 'Name', 'DeployingNS/IFRCOffice', 'Gender', 'Language', 'Position', 'Type', 'SupportedbyNS', 'Availability', 'Expstartdate', 'expduration', 'Alert', 'Deploymentmessage', 'Startofmission', 'Endofmission', 'DeploymentDuration', 'Deployed', 'Rotation', 'Comments']
-        #     0          1          2          3          4          5                    6          7          8                       9          10          11          12          13             14            15              16          17          18                    19                    20                21          22          23          24
+        # columns = [a.replace("*", "").replace(" ", "") for a in records[0]]
+        # ['Year', 'AppealCode', 'Region', 'Country', 'Location', 'Disastertype', 'Disastername', 'Name', 'DeployingNS/IFRCOffice', 'Gender', 'Language', 'Position', 'Type', 'SupportedbyNS', 'Availability', 'Expstartdate', 'expduration', 'Alert', 'Deploymentmessage', 'Startofmission', 'Endofmission', 'DeploymentDuration', 'Deployed', 'Rotation', 'Comments']  # noqa: E501
+        #     0          1          2          3          4          5                    6          7          8                       9          10          11          12          13             14            15              16          17          18                    19                    20                21          22          23          24  # noqa: E501
 
         # if empty name -> Alert, otherwise -> Deployment
 

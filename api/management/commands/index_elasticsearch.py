@@ -1,5 +1,4 @@
 from django.core.management.base import BaseCommand
-from elasticsearch import Elasticsearch
 from elasticsearch.client import IndicesClient
 from elasticsearch.helpers import bulk
 

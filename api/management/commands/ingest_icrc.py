@@ -1,11 +1,5 @@
-import datetime as dt
-import json
-
-import pandas as pd
 import requests
-import xmltodict
 from bs4 import BeautifulSoup
-from dateutil.parser import parse
 from django.core.management.base import BaseCommand
 
 from api.logger import logger
@@ -19,7 +13,7 @@ class Command(BaseCommand):
         logger.info("Strating ICRC data ingest")
         response = requests.get(url="https://www.icrc.org/en/where-we-work", headers={"User-Agent": ""})
         if response.status_code != 200:
-            text_to_log = "Error querying ICRC feed at " + url
+            text_to_log = "Error querying ICRC feed at https://www.icrc.org/en/where-we-work"
             logger.error(text_to_log)
             logger.error(response.content)
             body = {
@@ -51,7 +45,7 @@ class Command(BaseCommand):
                         country_page.raise_for_status()
                         country_soup = BeautifulSoup(country_page.content, "html.parser")
                         description = country_soup.find("div", {"class": "block-introduction"}).find_all()[2].text.strip()
-                    except Exception as err:
+                    except Exception:
                         pass
                 # Append all the information to the list
                 country_list.append(

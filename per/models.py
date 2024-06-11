@@ -708,7 +708,8 @@ class OpsLearning(models.Model):
         return (
             user is not None
             and not user.is_anonymous
-            and (user.is_superuser or user.groups.filter(name="OpsLearning Admin").exists())
+            and user.is_superuser
+            or user.groups.filter(name="OpsLearning Admin").exists()
         )
 
     def save(self, *args, **kwargs):

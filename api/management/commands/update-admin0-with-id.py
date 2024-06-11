@@ -8,7 +8,7 @@ from api.models import Country, CountryGeoms
 
 
 class Command(BaseCommand):
-    help = "update admin0 geometries from a shapefile that has ICRC column headers along with ids from Go database. To run, python manage.py update-admin0-with-id input.shp"
+    help = "update admin0 geometries from a shapefile that has ICRC column headers along with ids from Go database. To run, python manage.py update-admin0-with-id input.shp"  # noqa: E501
 
     missing_args_message = "Filename is missing."
 
@@ -21,7 +21,7 @@ class Command(BaseCommand):
 
         try:
             data = DataSource(filename)
-        except:
+        except Exception:
             raise CommandError("Could not open file")
 
         for feature in data[0]:

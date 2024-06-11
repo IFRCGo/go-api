@@ -98,7 +98,7 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
         cleared = False
         for field, current_lang_field in included_fields_lang.items():
             old_value = getattr(instance, current_lang_field) or ""
-            if type(validated_data) == dict:
+            if isinstance(validated_data, dict):
                 new_value = validated_data.get(current_lang_field) or validated_data.get(field) or ""
             else:  # NOTE: Assuming it's model instance
                 new_value = getattr(validated_data, current_lang_field, getattr(validated_data, field, None)) or ""
@@ -108,7 +108,7 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
                 lang_field = build_localized_fieldname(field, lang)
                 if lang_field == current_lang_field:
                     continue
-                if type(validated_data) == dict:
+                if isinstance(validated_data, dict):
                     validated_data[lang_field] = ""
                 else:  # NOTE: Assuming it's model instance
                     setattr(validated_data, lang_field, "")

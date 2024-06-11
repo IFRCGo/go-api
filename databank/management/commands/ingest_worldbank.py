@@ -8,7 +8,7 @@ from django.core.management.base import BaseCommand
 from api.models import Country, CountryType
 from databank.models import CountryOverview as CO
 
-from .sources.utils import catch_error, get_country_by_iso3
+from .sources.utils import get_country_by_iso3
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +55,7 @@ class Command(BaseCommand):
                                 "page": page,
                             },
                         )
-                    except requests.exceptions.HTTPError as err:
+                    except requests.exceptions.HTTPError:
                         continue
                     try:
                         data_list = response.json()[1]

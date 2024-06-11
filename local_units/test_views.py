@@ -305,7 +305,7 @@ class TestLocalUnitCreate(APITestCase):
             "draft": False,
             "validated": True,
             "postcode": "",
-            "address_loc": "Silele Clinic is is in Hosea Inkhundla under the Shiselweni, Sigombeni is in Nkom'iyahlaba Inkhundla under the Manzini region and Mahwalala is in the Mbabane West Inkhundla under the Hhohho region.",
+            "address_loc": "Silele Clinic is is in Hosea Inkhundla under the Shiselweni, Sigombeni is in Nkom'iyahlaba Inkhundla under the Manzini region and Mahwalala is in the Mbabane West Inkhundla under the Hhohho region.",  # noqa: E501
             "address_en": "",
             "city_loc": "",
             "city_en": "",
@@ -326,7 +326,7 @@ class TestLocalUnitCreate(APITestCase):
                 "focal_point_phone_number": "26876088546",
                 "focal_point_position": "Programmes Manager",
                 "other_facility_type": None,
-                "speciality": "Initiate TB treatment, Cervical Cancer Screening and testing and diagnostic and treatment for people living with HIV and follow up care through the ART programme which the government supports very well",
+                "speciality": "Initiate TB treatment, Cervical Cancer Screening and testing and diagnostic and treatment for people living with HIV and follow up care through the ART programme which the government supports very well",  # noqa: E501
                 "is_teaching_hospital": False,
                 "is_in_patient_capacity": False,
                 "is_isolation_rooms_wards": False,
@@ -348,7 +348,7 @@ class TestLocalUnitCreate(APITestCase):
                 "midwife": 9,
                 "other_medical_heal": True,
                 "other_profiles": None,
-                "feedback": "first question of initial question did not provide for the option to write the name of the NS. It is written LRC yet it should allow Baphalali Eswatini Red Cross Society (BERCS) to be inscribed in the box.",
+                "feedback": "first question of initial question did not provide for the option to write the name of the NS. It is written LRC yet it should allow Baphalali Eswatini Red Cross Society (BERCS) to be inscribed in the box.",  # noqa: E501
                 "affiliation": affiliation.id,
                 "functionality": functionality.id,
                 "health_facility_type": health_facility_type.id,

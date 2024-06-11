@@ -97,7 +97,7 @@ M_KEYS = {
         "Operation manager:",
         "National Society Focal Point:",
         "Amount requested for the appeal:",
-        "IFRC Project Manager \(responsible for implementation, compliances, monitoring and reporting\):",  # noqa
+        r"IFRC Project Manager \(responsible for implementation, compliances, monitoring and reporting\):",  # noqa
         "Period covered by this update:",
     ],
 }

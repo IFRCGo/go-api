@@ -2,7 +2,6 @@ import datetime
 import logging
 
 import requests
-from django.conf import settings
 
 from api.models import Country
 from databank.models import CountryOverview as CO
@@ -33,7 +32,6 @@ WORLD_BANK_API = ""
 def prefetch():
     data = {}
 
-    url = WORLD_BANK_API
     page = 1
     now = datetime.datetime.now()
     daterange = f"{now.year - 1}:{now.year}"

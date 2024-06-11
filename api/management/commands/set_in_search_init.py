@@ -13,12 +13,10 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         try:
             # Update countries which should appear in search
-            inc_c = Country.objects.filter(independent=True, is_deprecated=False, record_type=1).update(in_search=True)
+            Country.objects.filter(independent=True, is_deprecated=False, record_type=1).update(in_search=True)
             # Update countries which should NOT appear in search
             # independent can be null too thus why negated check
-            exc_c = Country.objects.filter(~Q(independent=True) | Q(is_deprecated=True) | ~Q(record_type=1)).update(
-                in_search=False
-            )
+            Country.objects.filter(~Q(independent=True) | Q(is_deprecated=True) | ~Q(record_type=1)).update(in_search=False)
             logger.info("Successfully set in_search for Countries")
         except Exception as ex:
             logger.error(f"Failed to set in_search for Countries. Error: {str(ex)}")

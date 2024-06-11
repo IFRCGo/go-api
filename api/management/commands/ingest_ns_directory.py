@@ -1,5 +1,3 @@
-import json
-
 import requests
 import xmltodict
 from django.conf import settings
@@ -37,7 +35,7 @@ class Command(BaseCommand):
         added = 0
         dict_data = xmltodict.parse(response.content)
         for data in dict_data["ArrayOfNationalSocietiesContacts"]["NationalSocietiesContacts"]:
-            country_name = data["CON_country"] if type(data["CON_country"]) == str else None
+            country_name = data["CON_country"] if isinstance(data["CON_country"], str) else None
             if country_name is not None:
                 country = Country.objects.filter(name__icontains=country_name).first()
                 if country:
@@ -45,11 +43,13 @@ class Command(BaseCommand):
                     data = {
                         "first_name": (
                             data["CON_firstName"]
-                            if type(data["CON_firstName"]) == str and data["CON_firstName"] != None
+                            if isinstance(data["CON_firstName"], str) and data["CON_firstName"] is not None
                             else None
                         ),
                         "last_name": (
-                            data["CON_lastName"] if type(data["CON_lastName"]) == str and data["CON_lastName"] != None else None
+                            data["CON_lastName"]
+                            if isinstance(data["CON_lastName"], str) and data["CON_lastName"] is not None
+                            else None
                         ),
                         "position": data["CON_title"],
                         "country": country,

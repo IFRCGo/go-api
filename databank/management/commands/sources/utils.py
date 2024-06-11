@@ -19,7 +19,7 @@ def catch_error(error_message=None):
             try:
                 with transaction.atomic():
                     return func(*args, **kwargs)
-            except Exception as e:
+            except Exception:
                 # Log error to cronjob
                 CronJob.sync_cron(
                     {
@@ -27,7 +27,7 @@ def catch_error(error_message=None):
                         "message": (
                             f"Error querying {source_name}."
                             + (f" For Country: {country}." if country else "")
-                            + f"\n\n"
+                            + "\n\n"
                             + traceback.format_exc()
                         ),
                         "status": CronJobStatus.ERRONEOUS,

@@ -78,7 +78,7 @@ def generate_url(url, export_id, user, title):
              </svg>
         </div>
         </div>
-    """
+    """  # noqa: E501
     try:
         with tempfile.TemporaryDirectory() as tmp_dir:
             with sync_playwright() as p:

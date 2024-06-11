@@ -4,10 +4,9 @@ from datetime import datetime, timedelta
 from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
-from django.db import models
-from django.db.models import Avg, Case, Count, F, OuterRef, Q, Subquery, Sum, When
+from django.db.models import Case, Count, F, Q, Sum, When
 from django.db.models.fields import IntegerField
-from django.db.models.functions import Coalesce, TruncMonth, TruncYear
+from django.db.models.functions import TruncMonth, TruncYear
 from django.http import HttpResponse, JsonResponse
 from django.template.loader import render_to_string
 from django.utils import timezone
@@ -28,10 +27,6 @@ from api.serializers import (
     AggregateHeaderFiguresInputSerializer,
     AggregateHeaderFiguresSerializer,
     AreaAggregateSerializer,
-    CountryDisasterTypeCountSerializer,
-    CountryDisasterTypeMonthlySerializer,
-    CountryKeyFigureInputSerializer,
-    CountryKeyFigureSerializer,
     ProjectPrimarySectorsSerializer,
     ProjectSecondarySectorsSerializer,
     SearchInputSerializer,

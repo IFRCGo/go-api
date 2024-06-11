@@ -7,7 +7,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 
 class Command(BaseCommand):
-    help = "This command produces a countries.geojson and districts.geojson, and uploads them to Mapbox. It is the source for all GO Maps."
+    help = "This command produces a countries.geojson and districts.geojson, and uploads them to Mapbox. It is the source for all GO Maps."  # noqa: E501
 
     missing_args_message = "Argument missing. Specify --update-countries, --update-districts or --update-all."
 
@@ -58,8 +58,8 @@ class Command(BaseCommand):
             print("Exporting countries...")
 
             try:
-                os.remove(f"/tmp/countries.geojson")
-            except FileNotFoundError as e:
+                os.remove("/tmp/countries.geojson")
+            except FileNotFoundError:
                 pass
 
             subprocess.check_call(
@@ -70,7 +70,7 @@ class Command(BaseCommand):
                     "/tmp/countries.geojson",
                     self.connection_string,
                     "-sql",
-                    "select cd.country_id, cd.geom, c.name, c.name_es, c.name_fr, c.name_ar, c.iso, c.region_id, c.iso3, c.independent, c.is_deprecated, c.disputed, c.fdrs, c.record_type from api_countrygeoms cd, api_country c where cd.country_id = c.id and c.record_type=1",
+                    "select cd.country_id, cd.geom, c.name, c.name_es, c.name_fr, c.name_ar, c.iso, c.region_id, c.iso3, c.independent, c.is_deprecated, c.disputed, c.fdrs, c.record_type from api_countrygeoms cd, api_country c where cd.country_id = c.id and c.record_type=1",  # noqa: E501
                 ]
             )
             print("Countries written to /tmp/countries.geojson")
@@ -82,8 +82,8 @@ class Command(BaseCommand):
             print("Exporting country centroids...")
 
             try:
-                os.remove(f"/tmp/country-centroids.geojson")
-            except FileNotFoundError as e:
+                os.remove("/tmp/country-centroids.geojson")
+            except FileNotFoundError:
                 pass
 
             subprocess.check_call(
@@ -96,7 +96,7 @@ class Command(BaseCommand):
                     "/tmp/country-centroids.geojson",
                     self.connection_string,
                     "-sql",
-                    "select id as country_id, name_en as name, name_ar, name_es, name_fr, independent, disputed, is_deprecated, iso, iso3, record_type, fdrs, region_id, centroid from api_country where centroid is not null",
+                    "select id as country_id, name_en as name, name_ar, name_es, name_fr, independent, disputed, is_deprecated, iso, iso3, record_type, fdrs, region_id, centroid from api_country where centroid is not null",  # noqa: E501
                 ]
             )
         except Exception as e:
@@ -105,7 +105,7 @@ class Command(BaseCommand):
 
         try:
             print("Update Mapbox tileset source for countries...")
-            tileset_source_name = f"go-countries-src-staging" if staging else f"go-countries-src"
+            tileset_source_name = "go-countries-src-staging" if staging else "go-countries-src"
             subprocess.check_call(
                 ["tilesets", "upload-source", "--replace", "go-ifrc", tileset_source_name, "/tmp/countries.geojson"]
             )
@@ -115,7 +115,7 @@ class Command(BaseCommand):
 
         try:
             print("Update Mapbox tileset for countries... and sleeping a minute")
-            tileset_name = f"go-ifrc.go-countries-staging" if staging else f"go-ifrc.go-countries"
+            tileset_name = "go-ifrc.go-countries-staging" if staging else "go-ifrc.go-countries"
             subprocess.check_call(["tilesets", "publish", tileset_name])
             time.sleep(60)
         except Exception as e:
@@ -124,7 +124,7 @@ class Command(BaseCommand):
 
         try:
             print("Update Mapbox tileset source for country centroids...")
-            tileset_source_name = f"go-country-centroids-staging" if staging else f"go-country-centroids"
+            tileset_source_name = "go-country-centroids-staging" if staging else "go-country-centroids"
             subprocess.check_call(
                 [
                     "tilesets",
@@ -135,16 +135,16 @@ class Command(BaseCommand):
                     "/tmp/country-centroids.geojson",
                 ]
             )
-        except Exception as e:
+        except Exception:
             print("Failed to update tileset source for country centroids")
             raise
 
         try:
             print("Update Mapbox tileset for country centroids... and sleeping a minute")
-            tileset_name = f"go-ifrc.go-country-centroids-staging" if staging else f"go-ifrc.go-country-centroids"
+            tileset_name = "go-ifrc.go-country-centroids-staging" if staging else "go-ifrc.go-country-centroids"
             subprocess.check_call(["tilesets", "publish", tileset_name])
             time.sleep(60)
-        except Exception as e:
+        except Exception:
             print("Failed to update tileset for country centroids")
             raise
 
@@ -153,8 +153,8 @@ class Command(BaseCommand):
             print("Exporting districts...")
 
             try:
-                os.remove(f"/tmp/distrcits.geojson")
-            except FileNotFoundError as e:
+                os.remove("/tmp/distrcits.geojson")
+            except FileNotFoundError:
                 pass
 
             # FIXME eventually should be name_en, name_es etc.
@@ -168,7 +168,7 @@ class Command(BaseCommand):
                     "/tmp/districts.geojson",
                     self.connection_string,
                     "-sql",
-                    "select cd.district_id, cd.geom, c.name, c.code, c.country_id, c.is_enclave, c.is_deprecated, country.iso as country_iso, country.iso3 as country_iso3, country.name as country_name, country.name_es as country_name_es, country.name_fr as country_name_fr, country.name_ar as country_name_ar from api_districtgeoms cd, api_district c, api_country country where cd.district_id = c.id and cd.geom is not null and country.id=c.country_id",
+                    "select cd.district_id, cd.geom, c.name, c.code, c.country_id, c.is_enclave, c.is_deprecated, country.iso as country_iso, country.iso3 as country_iso3, country.name as country_name, country.name_es as country_name_es, country.name_fr as country_name_fr, country.name_ar as country_name_ar from api_districtgeoms cd, api_district c, api_country country where cd.district_id = c.id and cd.geom is not null and country.id=c.country_id",  # noqa: E501
                 ]
             )
             print("Districts written to /tmp/districts.geojson")
@@ -180,8 +180,8 @@ class Command(BaseCommand):
             print("Exporting district centroids...")
 
             try:
-                os.remove(f"/tmp/district-centroids.geojson")
-            except FileNotFoundError as e:
+                os.remove("/tmp/district-centroids.geojson")
+            except FileNotFoundError:
                 pass
 
             # FIXME eventually should be name_en, name_es etc.
@@ -195,7 +195,7 @@ class Command(BaseCommand):
                     "/tmp/district-centroids.geojson",
                     self.connection_string,
                     "-sql",
-                    "select d.id as district_id, d.country_id as country_id, d.name, d.code, d.is_deprecated, d.is_enclave, c.iso as country_iso, c.iso3 as country_iso3, c.name as country_name, c.name_es as country_name_es, c.name_fr as country_name_fr, c.name_ar as country_name_ar, d.centroid from api_district d join api_country c on d.country_id=c.id where d.centroid is not null",
+                    "select d.id as district_id, d.country_id as country_id, d.name, d.code, d.is_deprecated, d.is_enclave, c.iso as country_iso, c.iso3 as country_iso3, c.name as country_name, c.name_es as country_name_es, c.name_fr as country_name_fr, c.name_ar as country_name_ar, d.centroid from api_district d join api_country c on d.country_id=c.id where d.centroid is not null",  # noqa: E501
                 ]
             )
         except Exception as e:
@@ -204,7 +204,7 @@ class Command(BaseCommand):
 
         try:
             print("Update Mapbox tileset source for districts...")
-            tileset_source_name = f"go-districts-src-staging" if staging else f"go-districts-src-1"
+            tileset_source_name = "go-districts-src-staging" if staging else "go-districts-src-1"
             subprocess.check_call(
                 ["tilesets", "upload-source", "--replace", "go-ifrc", tileset_source_name, "/tmp/districts.geojson"]
             )
@@ -214,27 +214,27 @@ class Command(BaseCommand):
 
         try:
             print("Update Mapbox tileset for districts... and sleeping a minute")
-            tileset_name = f"go-ifrc.go-districts-staging" if staging else f"go-ifrc.go-districts-1"
+            tileset_name = "go-ifrc.go-districts-staging" if staging else "go-ifrc.go-districts-1"
             subprocess.check_call(["tilesets", "publish", tileset_name])
             time.sleep(60)
-        except Exception as e:
+        except Exception:
             print("Failed to update tileset for districts")
             raise
 
         try:
             print("Update Mapbox tileset source for district centroids...")
-            tileset_source_name = f"go-district-centroids-staging" if staging else f"go-district-centroids"
+            tileset_source_name = "go-district-centroids-staging" if staging else "go-district-centroids"
             subprocess.check_call(
                 ["tilesets", "upload-source", "--replace", "go-ifrc", tileset_source_name, "/tmp/district-centroids.geojson"]
             )
-        except Exception as e:
+        except Exception:
             print("Failed to update tileset source for district centroid")
             raise
         try:
             print("Update Mapbox tileset for district centroids... [no sleep]")
-            tileset_name = f"go-ifrc.go-district-centroids-staging" if staging else f"go-ifrc.go-district-centroids"
+            tileset_name = "go-ifrc.go-district-centroids-staging" if staging else "go-ifrc.go-district-centroids"
             subprocess.check_call(["tilesets", "publish", tileset_name])
-        except Exception as e:
+        except Exception:
             print("Failed to update tileset for distrct centroids")
             raise
 
@@ -334,7 +334,7 @@ class Command(BaseCommand):
         # query the database and create geojson
         try:
             os.remove(f"/tmp/{iso}.geojson")
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             pass
 
         status = subprocess.run(
@@ -345,7 +345,7 @@ class Command(BaseCommand):
                 f"/tmp/{iso}.geojson",
                 self.connection_string,
                 "-sql",
-                f"select d.id as admin1_id, d.name as admin1_name, ad.name, ad.id, ad.code, adg.geom from api_country as c, api_district as d, api_admin2 as ad, api_admin2geoms as adg where c.id=d.country_id and c.iso3='{iso}' and ad.admin1_id=d.id and adg.admin2_id = ad.id",
+                f"select d.id as admin1_id, d.name as admin1_name, ad.name, ad.id, ad.code, adg.geom from api_country as c, api_district as d, api_admin2 as ad, api_admin2geoms as adg where c.id=d.country_id and c.iso3='{iso}' and ad.admin1_id=d.id and adg.admin2_id = ad.id",  # noqa: E501
             ]
         )
         if status:
@@ -357,7 +357,7 @@ class Command(BaseCommand):
                     f"/tmp/{iso}-centroids.geojson",
                     self.connection_string,
                     "-sql",
-                    f"select d.id as admin1_id, d.name as admin1_name, ad.name, ad.id, ad.code, ad.centroid from api_country as c, api_district as d, api_admin2 as ad where c.id=d.country_id and c.iso3='{iso}' and ad.admin1_id=d.id",
+                    f"select d.id as admin1_id, d.name as admin1_name, ad.name, ad.id, ad.code, ad.centroid from api_country as c, api_district as d, api_admin2 as ad where c.id=d.country_id and c.iso3='{iso}' and ad.admin1_id=d.id",  # noqa: E501
                 ]
             )
 

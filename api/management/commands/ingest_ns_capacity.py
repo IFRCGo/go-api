@@ -1,10 +1,6 @@
-import json
-
 import requests
-import xmltodict
 from django.conf import settings
 from django.core.management.base import BaseCommand
-from requests.auth import HTTPBasicAuth
 
 from api.logger import logger
 from api.models import Country, CountryCapacityStrengthening, CronJob, CronJobStatus
@@ -20,7 +16,7 @@ class Command(BaseCommand):
         OCAC_DATA_API = f"https://data-api.ifrc.org/api/ocacpublic?apiKey={settings.FDRS_APIKEY}"
         resp_ocac = requests.get(OCAC_DATA_API)
         if resp_ocac.status_code != 200:
-            text_to_log = "Error querying OCAC at " + url
+            text_to_log = "Error querying OCAC at " + OCAC_DATA_API
             logger.error(text_to_log)
             logger.error(resp_ocac.content)
             body = {
@@ -32,7 +28,6 @@ class Command(BaseCommand):
             raise Exception("Error querying OCAC_DATA_API")
 
         resp_ocac_data = resp_ocac.json()
-        final_output = []
         ocaa_count = 0
         for item in resp_ocac_data:
             ocaa_count += 1

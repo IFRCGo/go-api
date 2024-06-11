@@ -13,7 +13,7 @@ from api.factories import country as countryFactory
 from api.factories import disaster_type as dtFactory
 from api.factories import event as eventFactory
 from api.factories import field_report as fieldReportFactory
-from api.models import ERPGUID, Country, DisasterType, Event, FieldReport, Region
+from api.models import ERPGUID
 from main.mock import erp_request_side_effect_mock
 from main.utils import DjangoReversionDataFixHelper
 from per.factories import OverviewFactory as PerOverviewFactory
@@ -29,7 +29,7 @@ class ERPTest(TestCase):
         report = fieldReportFactory.FieldReportFactory.create(rid="test", dtype=dtype, event=event)
         event.countries.set([])
         report.countries.set([])
-        result = erp.push_fr_data(report)
+        erp.push_fr_data(report)
         # self.assertEqual(erp_request_side_effect_mock.called, False)  # this should work, but CircleCI calls this mock
 
     @patch("requests.post", side_effect=erp_request_side_effect_mock)
@@ -41,7 +41,7 @@ class ERPTest(TestCase):
         report = fieldReportFactory.FieldReportFactory.create(rid="test", dtype=dtype, event=event)
         report.countries.add(country1)
         report.countries.add(country2)
-        result = erp.push_fr_data(report)
+        erp.push_fr_data(report)
         ERP = ERPGUID.objects.get(api_guid="FindThisGUID")
         self.assertEqual(ERP.api_guid, "FindThisGUID")
         self.assertEqual(ERP.field_report_id, report.id)

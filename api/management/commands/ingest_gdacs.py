@@ -1,5 +1,3 @@
-import datetime as dt
-
 import requests
 import xmltodict
 from dateutil.parser import parse

@@ -1,15 +1,9 @@
-import datetime as dt
-import json
-
-import pandas as pd
 import requests
-import xmltodict
 from bs4 import BeautifulSoup
-from dateutil.parser import parse
 from django.core.management.base import BaseCommand
 
 from api.logger import logger
-from api.models import Country, CountryICRCPresence, CronJob, CronJobStatus
+from api.models import Country, CronJob, CronJobStatus
 
 
 class Command(BaseCommand):
@@ -25,7 +19,7 @@ class Command(BaseCommand):
             soup = BeautifulSoup(response.content, "html.parser")
             try:
                 country_options = soup.find("select", {"data-drupal-selector": "edit-country"}).find_all("option")
-            except Exception as err:
+            except Exception:
                 continue
 
             # Loop through countries and get information
@@ -44,7 +38,7 @@ class Command(BaseCommand):
                     country_soup = BeautifulSoup(country_page.content, "html.parser")
                     description = country_soup.find("div", {"class": "field--name-field-paragraphs"}).find_all("p")
                     description = "\n".join([para.text for para in description])
-                except Exception as err:
+                except Exception:
                     pass
                 # Add all information to the country list
                 country_list.append({"Country": country_name, "ID": country_id, "URL": country_url, "Description": description})

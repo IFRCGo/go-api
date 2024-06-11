@@ -17,7 +17,7 @@ class Command(BaseCommand):
             country_iso3 = co.country.iso3
             if country_iso3:
                 response = requests.get(
-                    f"https://climateknowledgeportal.worldbank.org/api/v1/cru-x0.5_climatology_tasmin,tas,tasmax,pr_climatology_monthly_1991-2020_mean_historical_cru_ts4.07_mean/{country_iso3}?_format=json"
+                    f"https://climateknowledgeportal.worldbank.org/api/v1/cru-x0.5_climatology_tasmin,tas,tasmax,pr_climatology_monthly_1991-2020_mean_historical_cru_ts4.07_mean/{country_iso3}?_format=json"  # noqa: E501
                 )
                 response.raise_for_status()
             try:
@@ -52,6 +52,6 @@ class Command(BaseCommand):
                                 "precipitation": v[0],
                             }
                             CountryKeyClimate.objects.create(overview=co, **data)
-            except Exception as ex:
+            except Exception:
                 logger.error("Error in ingesting climate data", exc_info=True)
                 continue

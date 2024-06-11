@@ -2,7 +2,7 @@ import pandas as pd
 from django.core.management.base import BaseCommand
 
 from api.logger import logger
-from api.models import Country, District
+from api.models import District
 
 
 class Command(BaseCommand):

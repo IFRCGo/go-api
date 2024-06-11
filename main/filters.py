@@ -1,4 +1,4 @@
-from django.db.models import F, OrderBy
+from django.db.models import F
 from django_filters import rest_framework as filters
 from rest_framework.filters import OrderingFilter
 

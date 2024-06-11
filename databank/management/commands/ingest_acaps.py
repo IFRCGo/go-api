@@ -1,15 +1,12 @@
-import datetime as dt
 import time
 
 import pandas as pd
 import requests
-import xmltodict
-from dateutil.parser import parse
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from api.logger import logger
-from api.models import Country, CountryType, CronJob, CronJobStatus, DisasterType
+from api.models import CountryType
 from databank.models import AcapsSeasonalCalender, CountryOverview
 
 

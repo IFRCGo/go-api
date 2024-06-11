@@ -7,13 +7,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from api.logger import logger
-from api.models import (
-    Country,
-    CountryDirectory,
-    CountryKeyDocument,
-    CronJob,
-    CronJobStatus,
-)
+from api.models import Country, CountryKeyDocument, CronJob, CronJobStatus
 
 
 class Command(BaseCommand):

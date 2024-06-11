@@ -12,7 +12,7 @@ def clean_number(num_in_str):
         try:
             num = int(re.sub(",", "", match.group()))
             return num
-        except:
+        except Exception:
             return None
     else:
         return None
@@ -41,7 +41,7 @@ def clean_date(date_in_str):
         try:
             date = datetime.strptime(match.group(), "%d %B %Y")
             return date
-        except:
+        except Exception:
             return None
     else:
         return None

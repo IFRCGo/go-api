@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 
 class NumberValidator(object):
     def validate(self, password, user=None):
-        if not re.findall("\d", password):
+        if not re.findall(r"\d", password):
             raise ValidationError(
                 _("The password must contain at least 1 digit, 0-9."),
                 code="password_no_number",
@@ -42,11 +42,11 @@ class LowercaseValidator(object):
 
 class SymbolValidator(object):
     def validate(self, password, user=None):
-        if not re.findall("[()[\]{}|\\`~!@#$%^&*_\-+=;:'\",<>./?]", password):
+        if not re.findall(r"[()[\]{}|\\`~!@#$%^&*_\-+=;:'\",<>./?]", password):
             raise ValidationError(
-                _("The password must contain at least 1 symbol: " + "()[]{}|\`~!@#$%^&*_-+=;:'\",<>./?"),
+                _("The password must contain at least 1 symbol: " + r"()[]{}|\`~!@#$%^&*_-+=;:'\",<>./?"),
                 code="password_no_symbol",
             )
 
     def get_help_text(self):
-        return _("Your password must contain at least 1 symbol: " + "()[]{}|\`~!@#$%^&*_-+=;:'\",<>./?")
+        return _("Your password must contain at least 1 symbol: " + r"()[]{}|\`~!@#$%^&*_-+=;:'\",<>./?")

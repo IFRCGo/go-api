@@ -25,7 +25,7 @@ from api.models import (
 from deployments.models import ERU, Personnel, PersonnelDeployment
 from main.sentry import SentryMonitor
 from notifications.hello import get_hello
-from notifications.models import RecordType, Subscription, SubscriptionType, SurgeAlert
+from notifications.models import RecordType, Subscription, SubscriptionType
 from notifications.notification import send_notification
 from utils.elasticsearch import construct_es_data
 
@@ -34,7 +34,7 @@ time_1_day = timedelta(days=1)
 time_1_week = timedelta(days=7)  # for digest mode
 digest_time = int(10314)  # weekday - hour - min for digest timing (5 minutes once a week, Monday dawn)
 daily_retro = int(654)  # hour - min for daily retropective email timing (5 minutes a day) | Should not contain a leading 0!
-max_length = 860  # after this length (at the first space) we cut the sent content. In case of HTML tags we remove tags (to avoid chunked tags)
+max_length = 860  # after this length (at the first space) we cut the sent content. In case of HTML tags we remove tags (to avoid chunked tags)  # noqa: E501
 events_sent_to = {}  # to document sent events before re-sending them via specific following
 template_types = {
     99: "design/generic_notification.html",
@@ -901,13 +901,15 @@ class Command(BaseCommand):
             send_notification(
                 "API monitor – ingest issues!",
                 ["im@ifrc.org"],  # Could be an ENV var
-                "Ingest issue(s) occured, one of them is "
-                + ingestor_name
-                + ", via CronJob log record id: https://"
-                + settings.BASE_URL
-                + "/admin/api/cronjob/"
-                + str(ingest_issue_id)
-                + ". Please fix it ASAP.",
+                (
+                    "Ingest issue(s) occured, one of them is "
+                    + ingestor_name
+                    + ", via CronJob log record id: https://"
+                    + settings.BASE_URL
+                    + "/admin/api/cronjob/"
+                    + str(ingest_issue_id)
+                    + ". Please fix it ASAP."
+                ),
                 "Ingestion error",
             )
             logger.info(
@@ -953,8 +955,8 @@ class Command(BaseCommand):
             diff=ExpressionWrapper(F("updated_at") - F("created_at"), output_field=DurationField())
         ).filter(condU & cond2 & Q(diff__gt=timedelta(minutes=1)))
 
-        new_surgealerts = SurgeAlert.objects.filter(cond1)
-        new_pers_deployments = PersonnelDeployment.objects.filter(cond1)
+        # new_surgealerts = SurgeAlert.objects.filter(cond1)
+        # new_pers_deployments = PersonnelDeployment.objects.filter(cond1)
 
         # Merge Weekly Digest into one mail instead of separate ones
         if self.is_digest_mode():
@@ -966,8 +968,8 @@ class Command(BaseCommand):
             # self.notify(updated_appeals, RecordType.APPEAL, SubscriptionType.EDIT)
             self.notify(new_events, RecordType.EVENT, SubscriptionType.NEW)
             # self.notify(updated_events, RecordType.EVENT, SubscriptionType.EDIT)
-            # temporary switched off while historical data is uploaded: self.notify(new_surgealerts, RecordType.SURGE_ALERT, SubscriptionType.NEW)
-            # temporary switched off while historical data is uploaded: self.notify(new_pers_deployments, RecordType.SURGE_DEPLOYMENT_MESSAGES, SubscriptionType.NEW)
+            # temporary switched off while historical data is uploaded: self.notify(new_surgealerts, RecordType.SURGE_ALERT, SubscriptionType.NEW)  # noqa: E501
+            # temporary switched off while historical data is uploaded: self.notify(new_pers_deployments, RecordType.SURGE_DEPLOYMENT_MESSAGES, SubscriptionType.NEW)  # noqa: E501
 
         # Followed Events
         if self.is_daily_checkup_time():

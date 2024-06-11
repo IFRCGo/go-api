@@ -1,11 +1,7 @@
 import csv
-import json
-import os
-import sys
 
 from django.contrib.gis.gdal import DataSource
 from django.contrib.gis.geos import GEOSGeometry, MultiPolygon, Point
-from django.contrib.gis.utils import LayerMapping
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
@@ -14,7 +10,7 @@ from api.models import Country, CountryGeoms, Region
 
 
 class Command(BaseCommand):
-    help = "import a shapefile of adminstrative boundary level 0 data to the GO database. To run, python manage.py import-admin0-data input.shp"
+    help = "import a shapefile of adminstrative boundary level 0 data to the GO database. To run, python manage.py import-admin0-data input.shp"  # noqa: E501
 
     missing_args_message = "Filename is missing. A shapefile with valid admin polygons is required."
     region_enum = {"Africa": 0, "Americas": 1, "Asia-Pacific": 2, "Europe": 3, "Middle East and North Africa": 4}
@@ -25,11 +21,11 @@ class Command(BaseCommand):
         parser.add_argument(
             "--update-bbox",
             action="store_true",
-            help="Update the bbox of the country geometry. Used if you want to overwrite changes that are made by users via the Django Admin",
+            help="Update the bbox of the country geometry. Used if you want to overwrite changes that are made by users via the Django Admin",  # noqa: E501
         )
         parser.add_argument(
             "--update-centroid",
-            help="Update the centroid of the country using a CSV file provided. If the CSV does not have the country iso, then we use the geometric centroid",
+            help="Update the centroid of the country using a CSV file provided. If the CSV does not have the country iso, then we use the geometric centroid",  # noqa: E501
         )
         parser.add_argument("--import-missing", help="Import missing countries for iso codes mentioned in this file.")
         parser.add_argument("--update-iso3", help="Import missing iso3 codes from this file.")
@@ -73,7 +69,7 @@ class Command(BaseCommand):
 
         try:
             data = DataSource(filename)
-        except:
+        except Exception:
             raise CommandError("Could not open file")
 
         fields = data[0].fields

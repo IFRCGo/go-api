@@ -25,7 +25,7 @@ def custom_exception_handler(exc, context):
     # For 500 errors, we create new response and add extra attributes to sentry
     if not response:
         # Expected ReadOnlyError
-        if type(exc) == DjangoReadOnlyError:
+        if isinstance(exc, DjangoReadOnlyError):
             response_data = {
                 "errors": {"non_field_errors": ["We are in maintenance mode, come back a bit later – site is in read only mode"]},
             }

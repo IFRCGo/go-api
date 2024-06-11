@@ -467,4 +467,4 @@ class CountryKeyClimate(models.Model):
         verbose_name_plural = _("Country Climate")
 
     def __str__(self):
-        return f"{self.overview.country.name} - { self.year} - {self.get_month_display()}"
+        return f"{self.overview.country.name} - {self.year} - {self.get_month_display()}"

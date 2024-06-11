@@ -10,7 +10,7 @@ from api.models import Admin2, Admin2Geoms, Country, District, DistrictGeoms
 
 
 class Command(BaseCommand):
-    help = "import a shapefile of administrative boundary level 2 data to the GO database. To run, python manage.py import-admin2-data input.shp"
+    help = "import a shapefile of administrative boundary level 2 data to the GO database. To run, python manage.py import-admin2-data input.shp"  # noqa: E501
 
     missing_args_message = "Filename is missing. A shapefile with valid admin polygons is required."
 
@@ -20,12 +20,12 @@ class Command(BaseCommand):
         parser.add_argument(
             "--update-bbox",
             action="store_true",
-            help="Update the bbox of the admin2 geometry. Used if you want to overwrite changes that are made by users via the Django Admin",
+            help="Update the bbox of the admin2 geometry. Used if you want to overwrite changes that are made by users via the Django Admin",  # noqa: E501
         )
         parser.add_argument(
             "--update-centroid",
             action="store_true",
-            help="Update the centroid of the admin2 geometry. Used if you want to overwrite changes that are made by users via the Django Admin",
+            help="Update the centroid of the admin2 geometry. Used if you want to overwrite changes that are made by users via the Django Admin",  # noqa: E501
         )
         parser.add_argument("--import-missing", help="Import missing admin2 boundaries for codes mentioned in this file.")
         parser.add_argument(
@@ -54,7 +54,7 @@ class Command(BaseCommand):
 
         try:
             data = DataSource(filename)
-        except:
+        except Exception:
             raise CommandError("Could not open file")
 
         # loop through each feature in the shapefile
@@ -88,7 +88,7 @@ class Command(BaseCommand):
                 # if there are more than one admin2 with the same code, filter also using name
                 if len(admin2_objects) > 1:
                     admins2_names = Admin2.objects.filter(code=code, name__icontains=name)
-                    # if we get a match, update geometry. otherwise consider this as missing because it's possible the names aren't matching.
+                    # if we get a match, update geometry. otherwise consider this as missing because it's possible the names aren't matching.  # noqa: E501
                     if len(admins2_names):
                         # update geom, centroid and bbox
                         self.update_admin2_columns(options, admins2_names[0], geom, centroid, bbox)
@@ -135,7 +135,7 @@ class Command(BaseCommand):
                 admin2.save()
                 if options["update_geom"]:
                     self.update_geom(admin2, geom)
-            except IntegrityError as e:
+            except IntegrityError:
                 print(f"Duplicate object {admin2.name}")
                 pass
 

@@ -82,7 +82,7 @@ class MolnixApi:
     def get_position(self, id):
         try:
             return self.call_api(path="positions/%d" % id)
-        except:
+        except Exception:
             return None
 
     def get_countries(self):

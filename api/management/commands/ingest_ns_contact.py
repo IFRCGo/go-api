@@ -38,13 +38,13 @@ class Command(BaseCommand):
         added = 0
         dict_data = xmltodict.parse(response.content)
         for data in dict_data["ArrayOfNationalSocietiesMain"]["NationalSocietiesMain"]:
-            address_1 = data["ADD_address1"] if type(data["ADD_address1"]) == str else None
-            address_2 = data["ADD_address2"] if type(data["ADD_address2"]) == str else None
-            city_code = data["ADD_city_code"] if type(data["ADD_city_code"]) == str else None
-            phone = data["ADD_phone"] if type(data["ADD_phone"]) == str else None
-            website = data["ADD_webSite"] if type(data["ADD_webSite"]) == str else None
-            emails = data["ADD_email"] if type(data["ADD_email"]) == str and data["ADD_email"] != None else None
-            founded_date = data["ADD_orgCreation"] if type(data["ADD_orgCreation"]) == str else None
+            address_1 = data["ADD_address1"] if isinstance(data["ADD_address1"], str) else None
+            address_2 = data["ADD_address2"] if isinstance(data["ADD_address2"], str) else None
+            city_code = data["ADD_city_code"] if isinstance(data["ADD_city_code"], str) else None
+            phone = data["ADD_phone"] if isinstance(data["ADD_phone"], str) else None
+            website = data["ADD_webSite"] if isinstance(data["ADD_webSite"], str) else None
+            emails = data["ADD_email"] if (isinstance(data["ADD_email"], str) and data["ADD_email"] is not None) else None
+            founded_date = data["ADD_orgCreation"] if isinstance(data["ADD_orgCreation"], str) else None
             iso = data["ADD_country_code"]
             # # get the country and try to update the data for those country
             country = Country.objects.filter(iso=iso.upper()).first()

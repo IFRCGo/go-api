@@ -530,7 +530,7 @@ class Command(BaseCommand):
                     raw_disaster_risk_reduction_people_reached=data["sector"]
                     .get(_s.disaster_Risk_reduction, {})
                     .get(_sfd.people_reached),
-                    # raw_disaster_risk_reduction_people_targeted=data['sector'].get(_s.disaster_Risk_reduction, {}).get(_sfd.people_targeted),
+                    # raw_disaster_risk_reduction_people_targeted=data['sector'].get(_s.disaster_Risk_reduction, {}).get(_sfd.people_targeted),  # noqa: E501
                     raw_disaster_risk_reduction_requirements=data["sector"]
                     .get(_s.disaster_Risk_reduction, {})
                     .get(_sfd.requirements),
@@ -546,7 +546,7 @@ class Command(BaseCommand):
                     raw_livelihoods_and_basic_needs_people_reached=data["sector"]
                     .get(_s.livelihoods_and_basic_needs, {})
                     .get(_sfd.people_reached),
-                    # raw_livelihoods_and_basic_needs_people_targeted=data['sector'].get(_s.livelihoods_and_basic_needs, {}).get(_sfd.people_targeted),
+                    # raw_livelihoods_and_basic_needs_people_targeted=data['sector'].get(_s.livelihoods_and_basic_needs, {}).get(_sfd.people_targeted),  # noqa: E501
                     raw_livelihoods_and_basic_needs_requirements=data["sector"]
                     .get(_s.livelihoods_and_basic_needs, {})
                     .get(_sfd.requirements),
@@ -564,7 +564,7 @@ class Command(BaseCommand):
                     raw_protection_gender_and_inclusion_people_reached=data["sector"]
                     .get(_s.protection_gender_inclusion, {})
                     .get(_sfd.people_reached),
-                    # raw_protection_gender_and_inclusion_people_targeted=data['sector'].get(_s.protection_gender_inclusion, {}).get(_sfd.people_targeted),
+                    # raw_protection_gender_and_inclusion_people_targeted=data['sector'].get(_s.protection_gender_inclusion, {}).get(_sfd.people_targeted),  # noqa: E501
                     raw_protection_gender_and_inclusion_requirements=data["sector"]
                     .get(_s.protection_gender_inclusion, {})
                     .get(_sfd.requirements),
@@ -578,7 +578,7 @@ class Command(BaseCommand):
                     raw_water_sanitation_and_hygiene_people_reached=data["sector"]
                     .get(_s.Water_sanitation_hygiene, {})
                     .get(_sfd.people_reached),
-                    # raw_water_sanitation_and_hygiene_people_targeted=data['sector'].get(_s.Water_sanitation_hygiene, {}).get(_sfd.people_targeted),
+                    # raw_water_sanitation_and_hygiene_people_targeted=data['sector'].get(_s.Water_sanitation_hygiene, {}).get(_sfd.people_targeted),  # noqa: E501
                     raw_water_sanitation_and_hygiene_requirements=data["sector"]
                     .get(_s.Water_sanitation_hygiene, {})
                     .get(_sfd.requirements),
@@ -603,7 +603,7 @@ class Command(BaseCommand):
                     disaster_risk_reduction_people_reached=cleaners.clean_number(
                         data["sector"].get(_s.disaster_Risk_reduction, {}).get(_sfd.people_reached)
                     ),
-                    # disaster_risk_reduction_people_targeted=cleaners.clean_number(data['sector'].get(_s.disaster_Risk_reduction, {}).get(_sfd.people_targeted)),
+                    # disaster_risk_reduction_people_targeted=cleaners.clean_number(data['sector'].get(_s.disaster_Risk_reduction, {}).get(_sfd.people_targeted)),  # noqa: E501
                     disaster_risk_reduction_requirements=cleaners.clean_number(
                         data["sector"].get(_s.disaster_Risk_reduction, {}).get(_sfd.requirements)
                     ),
@@ -621,14 +621,14 @@ class Command(BaseCommand):
                     livelihoods_and_basic_needs_people_reached=cleaners.clean_number(
                         data["sector"].get(_s.livelihoods_and_basic_needs, {}).get(_sfd.people_reached)
                     ),
-                    # livelihoods_and_basic_needs_people_targeted=cleaners.clean_number(data['sector'].get(_s.livelihoods_and_basic_needs, {}).get(_sfd.people_targeted)),
+                    # livelihoods_and_basic_needs_people_targeted=cleaners.clean_number(data['sector'].get(_s.livelihoods_and_basic_needs, {}).get(_sfd.people_targeted)),  # noqa: E501
                     livelihoods_and_basic_needs_requirements=cleaners.clean_number(
                         data["sector"].get(_s.livelihoods_and_basic_needs, {}).get(_sfd.requirements)
                     ),
                     migration_female=cleaners.clean_number(data["sector"].get(_s.migration, {}).get(_sfd.female)),
                     migration_male=cleaners.clean_number(data["sector"].get(_s.migration, {}).get(_sfd.male)),
                     migration_people_reached=cleaners.clean_number(data["sector"].get(_s.migration, {}).get(_sfd.people_reached)),
-                    # migration_people_targeted=cleaners.clean_number(data['sector'].get(_s.migration, {}).get(_sfd.people_targeted)),
+                    # migration_people_targeted=cleaners.clean_number(data['sector'].get(_s.migration, {}).get(_sfd.people_targeted)),  # noqa: E501
                     migration_requirements=cleaners.clean_number(data["sector"].get(_s.migration, {}).get(_sfd.requirements)),
                     protection_gender_and_inclusion_female=cleaners.clean_number(
                         data["sector"].get(_s.protection_gender_inclusion, {}).get(_sfd.female)
@@ -639,7 +639,7 @@ class Command(BaseCommand):
                     protection_gender_and_inclusion_people_reached=cleaners.clean_number(
                         data["sector"].get(_s.protection_gender_inclusion, {}).get(_sfd.people_reached)
                     ),
-                    # protection_gender_and_inclusion_people_targeted=cleaners.clean_number(data['sector'].get(_s.protection_gender_inclusion, {}).get(_sfd.people_targeted)),
+                    # protection_gender_and_inclusion_people_targeted=cleaners.clean_number(data['sector'].get(_s.protection_gender_inclusion, {}).get(_sfd.people_targeted)),  # noqa: E501
                     protection_gender_and_inclusion_requirements=cleaners.clean_number(
                         data["sector"].get(_s.protection_gender_inclusion, {}).get(_sfd.requirements)
                     ),
@@ -657,7 +657,7 @@ class Command(BaseCommand):
                     water_sanitation_and_hygiene_people_reached=cleaners.clean_number(
                         data["sector"].get(_s.Water_sanitation_hygiene, {}).get(_sfd.people_reached)
                     ),
-                    # water_sanitation_and_hygiene_people_targeted=cleaners.clean_number(data['sector'].get(_s.Water_sanitation_hygiene, {}).get(_sfd.people_targeted)),
+                    # water_sanitation_and_hygiene_people_targeted=cleaners.clean_number(data['sector'].get(_s.Water_sanitation_hygiene, {}).get(_sfd.people_targeted)),  # noqa: E501
                     water_sanitation_and_hygiene_requirements=cleaners.clean_number(
                         data["sector"].get(_s.Water_sanitation_hygiene, {}).get(_sfd.requirements)
                     ),
@@ -747,7 +747,7 @@ class Command(BaseCommand):
                     current_operation_budget=cleaners.clean_number(data["meta"].get(_mfd.current_operation_budget)),
                     dref_allocated=cleaners.clean_number(data["meta"].get(_mfd.dref_allocated)),
                     glide_number=(
-                        data["meta"].get(_mfd.glide_number)[:18] if data["meta"].get(_mfd.glide_number) != None else None
+                        data["meta"].get(_mfd.glide_number)[:18] if data["meta"].get(_mfd.glide_number) is not None else None
                     ),
                     num_of_people_to_be_assisted=cleaners.clean_number(data["meta"].get(_mfd.num_of_people_to_be_assisted)),
                     disaster_risk_reduction_female=cleaners.clean_number(
@@ -830,7 +830,7 @@ class Command(BaseCommand):
                 )
                 ea_to_add.append(new_ea)
 
-        ## None of the records get inserted if any of them fails, but it would be faster this way
+        # # None of the records get inserted if any of them fails, but it would be faster this way
         # logger.info('Adding new EPoA records to DB (count: {})'.format(len(epoa_to_add)))
         # EmergencyOperationsDataset.objects.bulk_create(epoa_to_add)
         # logger.info('Adding new OU records to DB (count: {})'.format(len(ou_to_add)))

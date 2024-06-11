@@ -1,8 +1,6 @@
-import json
-
 from dateutil import parser as date_parser
 from django.conf import settings
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.db import transaction
 from sentry_sdk.crons import monitor
 
@@ -185,12 +183,12 @@ def get_go_event(tags):
             event_id = tag["name"].replace("OP-", "").strip()
             try:
                 event_id_int = int(event_id)
-            except:
+            except Exception:
                 logger.warning("%s tag is not a valid OP- tag" % event_id)
                 continue
             try:
                 event = Event.objects.get(id=event_id_int)
-            except:
+            except Exception:
                 logger.warning("Emergency with ID %d not found" % event_id_int)
                 prt("Emergency not found", 0, event_id_int)
                 continue
@@ -202,12 +200,12 @@ def get_go_country(countries, country_id):
     """
     Given a Molnix country ID, returns GO country id
     """
-    if not country_id in countries:
+    if country_id not in countries:
         return None
     iso = countries[country_id]
     try:
         country = Country.objects.get(iso=iso, independent=True)
-    except:
+    except Exception:
         logger.warning("Country with unknown ISO: %s" % iso)
         return None
     return country
@@ -296,7 +294,7 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
         try:
             personnel = Personnel.objects.get(molnix_id=md["id"])
             created = False
-        except:
+        except Exception:
             personnel = Personnel(molnix_id=md["id"])
             created = True
         # print('personnel found', personnel)
@@ -308,7 +306,7 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
             continue
         try:
             deployment = PersonnelDeployment.objects.get(is_molnix=True, event_deployed_to=event)
-        except:
+        except Exception:
             logger.warning("Did not import Deployment with Molnix ID %d. Invalid Event." % md["id"])
             prt("Did not import Deployment. Invalid Event", md["id"])
             continue
@@ -317,7 +315,7 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
         try:
             if md["position_id"]:
                 surge_alert = SurgeAlert.objects.get(molnix_id=md["position_id"])
-        except:
+        except Exception:
             logger.warning("%d deployment did not find SurgeAlert with Molnix position_id %d." % (md["id"], md["position_id"]))
             prt("Deployment did not find SurgeAlert", md["id"], md["position_id"])
             continue
@@ -328,7 +326,7 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
         try:
             if md["person"] and "sex" in md["person"]:
                 gender = md["person"]["sex"]
-        except:
+        except Exception:
             logger.warning("Did not find gender info in %d" % md["id"])
             continue
 
@@ -341,7 +339,7 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
                 and "city" in md["contact"]["addresses"][0]
             ):
                 location = md["contact"]["addresses"][0]["city"]
-        except:
+        except Exception:
             logger.warning("Did not find city info in %d" % md["id"])
             continue
 
@@ -384,7 +382,7 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
                 country_name = NS_MATCHING_OVERRIDES[incoming_name]
                 try:
                     country_from = Country.objects.get(name_en=country_name)
-                except:
+                except Exception:
                     warning = "Mismatch in NS name: %s" % md["incoming"]["name"]
                     logger.warning(warning)
                     warnings.append(warning)
@@ -392,7 +390,7 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
                 try:
                     country_from = Country.objects.get(society_name=incoming_name, independent=True)
                     # maybe somewhen:  .filter(society_name__iexact=incoming_name, independent=True).first()
-                except:
+                except Exception:
                     # FIXME: Catch possibility of .get() returning multiple records
                     # even though that should ideally never happen
                     warning = "NS Name not found for Deployment ID: %d with secondment_incoming %s" % (

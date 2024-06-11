@@ -1,5 +1,4 @@
 import time
-from datetime import timedelta
 
 from django.contrib.auth.models import User
 from django.test import TestCase
@@ -15,7 +14,7 @@ from notifications.models import (
     SubscriptionType,
 )
 
-from .models import Appeal, Event, FieldReport
+from .models import Appeal, FieldReport
 
 
 def get_user():
@@ -196,7 +195,7 @@ class FilterJustCreatedTest(TestCase):
         country1 = Country.objects.create(name="1", region=region)
         country2 = Country.objects.create(name="2", region=region)
         appeal1 = Appeal.objects.create(aid="test1", name="appeal", atype=2, code="1", country=country1)
-        appeal2 = Appeal.objects.create(aid="test2", name="appeal", atype=2, code="2", country=country2)
+        Appeal.objects.create(aid="test2", name="appeal", atype=2, code="2", country=country2)
         time.sleep(1)
         appeal1.name = "something new"
         appeal1.save()

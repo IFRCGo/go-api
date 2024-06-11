@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple
 
 import requests
 from django.conf import settings

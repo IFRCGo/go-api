@@ -1,11 +1,8 @@
-from itertools import chain
-from operator import attrgetter
-
 import django.utils.timezone as timezone
 from django.contrib.auth.models import Permission
 from django.db import models
 from django.utils.translation import gettext
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import extend_schema
 from rest_framework import (
     mixins,
     permissions,

@@ -13,7 +13,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         for overview in CO.objects.all():
-            UNICEF_API = f"https://sdmx.data.unicef.org/ws/public/sdmxapi/rest/data/UNICEF,DM,1.0/{overview.country.iso3}.DM_POP_U18._T._T.?format=sdmx-json"
+            UNICEF_API = f"https://sdmx.data.unicef.org/ws/public/sdmxapi/rest/data/UNICEF,DM,1.0/{overview.country.iso3}.DM_POP_U18._T._T.?format=sdmx-json"  # noqa: E501
             unicef_entities = requests.get(UNICEF_API)
             if unicef_entities.status_code != 200:
                 continue

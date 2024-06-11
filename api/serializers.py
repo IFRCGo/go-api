@@ -38,7 +38,6 @@ from .models import (
     CountryDirectory,
     CountryICRCPresence,
     CountryKeyDocument,
-    CountryKeyFigure,
     CountryLink,
     CountryOfFieldReportToReview,
     CountryOrganizationalCapacity,
@@ -426,19 +425,6 @@ class RegionKeyFigureSerializer(ModelSerializer):
         model = RegionKeyFigure
         fields = (
             "region",
-            "figure",
-            "deck",
-            "source",
-            "visibility",
-            "id",
-        )
-
-
-class CountryKeyFigureSerializer(ModelSerializer):
-    class Meta:
-        model = CountryKeyFigure
-        fields = (
-            "country",
             "figure",
             "deck",
             "source",

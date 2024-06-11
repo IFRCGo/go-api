@@ -333,12 +333,8 @@ class HistoricalEventTest(APITestCase):
         appeal1 = AppealFactory.create(
             event=event1, dtype=dtype1, num_beneficiaries=9000, amount_requested=10000, amount_funded=1899999
         )
-        appeal2 = AppealFactory.create(
-            event=event2, dtype=dtype2, num_beneficiaries=90023, amount_requested=100440, amount_funded=12299999
-        )
-        appeal2 = AppealFactory.create(
-            event=event3, dtype=dtype2, num_beneficiaries=91000, amount_requested=10000888, amount_funded=678888
-        )
+        AppealFactory.create(event=event2, dtype=dtype2, num_beneficiaries=90023, amount_requested=100440, amount_funded=12299999)
+        AppealFactory.create(event=event3, dtype=dtype2, num_beneficiaries=91000, amount_requested=10000888, amount_funded=678888)
         response = self.client.get("/api/v2/go-historical/").json()
         self.assertEqual(response["count"], 3)  # should give event that have appeal associated with and num_affected=null
         self.assertEqual(sorted([event1.id, event2.id, event3.id]), sorted([data["id"] for data in response["results"]]))
@@ -362,8 +358,8 @@ class Admin2Test(APITestCase):
         country = models.Country.objects.create(name="Nepal", iso3="NPL", region=region)
         admin1_1 = models.District.objects.create(name="admin1 1", code="NPL01", country=country)
         admin1_2 = models.District.objects.create(name="admin1 2", code="NPL02", country=country)
-        admin2_1 = models.Admin2.objects.create(name="test 1", admin1=admin1_1, code="1")
-        admin2_2 = models.Admin2.objects.create(name="test 2", admin1=admin1_2, code="2")
+        models.Admin2.objects.create(name="test 1", admin1=admin1_1, code="1")
+        models.Admin2.objects.create(name="test 2", admin1=admin1_2, code="2")
 
         # test fetching all admin2-s
         response = self.client.get("/api/v2/admin2/").json()

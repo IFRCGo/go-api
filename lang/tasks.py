@@ -137,7 +137,7 @@ class ModelTranslator:
                 total_count += count
                 logger.info(f"\t\t {field} - {count}")
         logger.info(f"Total Count: {total_count}")
-        logger.info(f"Estimated Cost (AWS): {(len(AVAILABLE_LANGUAGES) -1) * total_count * 0.000015}")
+        logger.info(f"Estimated Cost (AWS): {(len(AVAILABLE_LANGUAGES) - 1) * total_count * 0.000015}")
 
     def run(self, batch_size=None, only_models: typing.Optional[typing.List[models.Model]] = None):
         """

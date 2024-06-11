@@ -1,5 +1,3 @@
-from functools import reduce
-
 import django_filters as filters
 from django.contrib.auth.models import User
 from django.db.models import F, Q

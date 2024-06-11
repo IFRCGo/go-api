@@ -12,7 +12,7 @@ from main.managers import BulkCreateManager
 from ...models import DelegationOffice, DelegationOfficeType
 
 # Don't use the received header's always changing upperlowercase header, use a row like this:
-# name type    city    address postcode latitude    longitude   iso iso3    country ifrc_region_number  ifrc_region_name    society_name    society_url url_ifrc    ns_same_location    multiple_ifrc_offices   office_tier hod_first_name  hod_last_name   hod_mobile_number   hod_email   assistant_name  assistant_email
+# name type    city    address postcode latitude    longitude   iso iso3    country ifrc_region_number  ifrc_region_name    society_name    society_url url_ifrc    ns_same_location    multiple_ifrc_offices   office_tier hod_first_name  hod_last_name   hod_mobile_number   hod_email   assistant_name  assistant_email  # noqa: E501
 
 
 class Command(BaseCommand):

@@ -18,7 +18,7 @@ def render_to_pdf(template_src, context_dict={}):
         if not pdf.err:
             file = {"filename": "flash_update.pdf", "file": result.getvalue()}
             return file
-    except Exception as e:
+    except Exception:
         logger.error("Error in rendering html to pdf", exc_info=True)
         return None
 
