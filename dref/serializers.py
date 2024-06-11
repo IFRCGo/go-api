@@ -16,6 +16,7 @@ from main.writable_nested_serializers import NestedCreateMixin, NestedUpdateMixi
 from api.serializers import UserNameSerializer, DisasterTypeSerializer, MiniDistrictSerializer, MiniCountrySerializer
 
 from dref.models import (
+    ActivityTimeFrame,
     Dref,
     PlannedIntervention,
     PlannedInterventionIndicators,
@@ -50,6 +51,10 @@ class PlannedInterventionIndicatorsSerializer(ModelSerializer):
         model = PlannedInterventionIndicators
         fields = "__all__"
 
+class ActivityTimeFrameSerializer(ModelSerializer):
+    class Meta:
+        model = ActivityTimeFrame
+        fields = "__all__"
 
 class DrefFileInputSerializer(serializers.Serializer):
     file = serializers.ListField(
@@ -238,6 +243,9 @@ class PlannedInterventionSerializer(ModelSerializer):
     image_url = serializers.SerializerMethodField()
     indicators = PlannedInterventionIndicatorsSerializer(many=True, required=False)
     title_display = serializers.CharField(source="get_title_display", read_only=True)
+    readiness_block = ActivityTimeFrameSerializer(many=True, required=False)
+    early_action_block = ActivityTimeFrameSerializer(many=True, required=False)
+    early_response_block = ActivityTimeFrameSerializer(many=True, required=False)
 
     class Meta:
         model = PlannedIntervention
@@ -245,10 +253,22 @@ class PlannedInterventionSerializer(ModelSerializer):
 
     def create(self, validated_data):
         indicators = validated_data.pop("indicators", [])
+        readiness_block = validated_data.pop("readiness_block", [])
+        early_action_block = validated_data.pop("early_action_block", [])
+        early_response_block = validated_data.pop("early_response_block", [])
         intervention = super().create(validated_data)
         for indicator in indicators:
             ind_object = PlannedInterventionIndicators.objects.create(**indicator)
             intervention.indicators.add(ind_object)
+        for readiness in readiness_block:
+            readiness_object = ActivityTimeFrame.objects.create(**readiness)
+            intervention.readiness_block.add(readiness_object)
+        for early_action in early_action_block:
+            early_action_object = ActivityTimeFrame.objects.create(**early_action)
+            intervention.early_action_block.add(early_action_object)
+        for early_response in early_response_block:
+            early_response_object = ActivityTimeFrame.objects.create(**early_response)
+            intervention.early_response_block.add(early_response_object)
         return intervention
 
     def update(self, instance, validated_data):
@@ -299,6 +319,7 @@ class IdentifiedNeedSerializer(ModelSerializer):
             "description",
             "image_url",
             "title_display",
+            "expected_need",
         )
 
     def get_image_url(self, identifiedneed) -> str:
@@ -373,11 +394,12 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
     modified_at = serializers.DateTimeField(required=False)
     dref_access_user_list = serializers.SerializerMethodField()
     source_information = SourceInformationSerializer(many=True, required=False)
+    other_actor_file_file = DrefFileSerializer(many=True, required=False, allow_null=True, source="other_actor_file")
 
     class Meta:
         model = Dref
         read_only_fields = ("modified_by", "created_by", "budget_file_preview")
-        exclude = ("cover_image", "event_map", "images", "users",)
+        exclude = ("cover_image", "event_map", "images", "users", "other_actor_file")
 
     def get_dref_access_user_list(self, obj) -> List[int]:
         dref_users_list = get_dref_users()
@@ -585,11 +607,12 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
     created_by_details = UserNameSerializer(source="created_by", read_only=True)
     users_details = UserNameSerializer(source="users", many=True, read_only=True)
     source_information = SourceInformationSerializer(many=True, required=False)
+    other_actor_file_file = DrefFileSerializer(many=True, required=False, allow_null=True, source="other_actor_file")
 
     class Meta:
         model = DrefOperationalUpdate
         read_only_fields = ("operational_update_number", "modified_by", "created_by")
-        exclude = ("images", "photos", "event_map", "cover_image", "users")
+        exclude = ("images", "photos", "event_map", "cover_image", "users", "other_actor_file")
 
     def validate(self, data):
         dref = data.get("dref")
@@ -725,6 +748,27 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["is_man_made_event"] = dref.is_man_made_event
             validated_data["event_text"] = dref.event_text
             validated_data["did_national_society"] = dref.did_national_society
+            validated_data["threshold_for_early_action"] = dref.threshold_for_early_action
+            validated_data["lead_time_for_early_action"] = dref.lead_time_for_early_action
+            validated_data["ns_mandate"] = dref.ns_mandate
+            validated_data["ns_eaps"] = dref.ns_eaps
+            validated_data["ns_mitigating_measures"] = dref.ns_mitigating_measures
+            validated_data["ns_disaster_risk_reduction"] = dref.ns_disaster_risk_reduction
+            validated_data["any_other_actor"] = dref.any_other_actor
+            validated_data["ifrc_anticipatory_name"] = dref.ifrc_anticipatory_name
+            validated_data["ifrc_anticipatory_email"] = dref.ifrc_anticipatory_email
+            validated_data["ifrc_anticipatory_title"] = dref.ifrc_anticipatory_title
+            validated_data["ifrc_anticipatory_phone_number"] = dref.ifrc_anticipatory_phone_number
+            validated_data["immediate_women"] = dref.immediate_women
+            validated_data["immediate_men"] = dref.immediate_men
+            validated_data["immediate_girls"] = dref.immediate_girls
+            validated_data["immediate_boys"] = dref.immediate_boys
+            validated_data["immediate_total_targeted_population"] = dref.immediate_total_targeted_population
+            validated_data["immediate_disability_people_per"] = dref.immediate_disability_people_per
+            validated_data["immediate_people_per_urban"] = dref.immediate_people_per_urban
+            validated_data["immediate_people_per_local"] = dref.immediate_people_per_local
+            validated_data["immediate_displaced_people"] = dref.immediate_displaced_people
+            validated_data["immediate_people_targeted_with_early_actions"] = dref.immediate_people_targeted_with_early_actions
 
             operational_update = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
@@ -746,6 +790,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             operational_update.users.add(*dref.users.all())
             operational_update.risk_security.add(*dref.risk_security.all())
             operational_update.source_information.add(*dref.source_information.all())
+            operational_update.other_actor_file.add(*dref.other_actor_file.all())
         else:
             # get the latest dref operational update
             validated_data["title"] = dref_operational_update.title
@@ -841,6 +886,28 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["is_man_made_event"] = dref_operational_update.is_man_made_event
             validated_data["event_text"] = dref_operational_update.event_text
             validated_data["did_national_society"] = dref_operational_update.did_national_society
+            validated_data["threshold_for_early_action"] = dref_operational_update.threshold_for_early_action
+            validated_data["lead_time_for_early_action"] = dref_operational_update.lead_time_for_early_action
+            validated_data["ns_mandate"] = dref_operational_update.ns_mandate
+            validated_data["ns_eaps"] = dref_operational_update.ns_eaps
+            validated_data["ns_mitigating_measures"] = dref_operational_update.ns_mitigating_measures
+            validated_data["ns_disaster_risk_reduction"] = dref_operational_update.ns_disaster_risk_reduction
+            validated_data["any_other_actor"] = dref_operational_update.any_other_actor
+            validated_data["ifrc_anticipatory_name"] = dref_operational_update.ifrc_anticipatory_name
+            validated_data["ifrc_anticipatory_email"] = dref_operational_update.ifrc_anticipatory_email
+            validated_data["ifrc_anticipatory_title"] = dref_operational_update.ifrc_anticipatory_title
+            validated_data["ifrc_anticipatory_phone_number"] = dref_operational_update.ifrc_anticipatory_phone_number
+            validated_data["immediate_women"] = dref_operational_update.immediate_women
+            validated_data["immediate_men"] = dref_operational_update.immediate_men
+            validated_data["immediate_girls"] = dref_operational_update.immediate_girls
+            validated_data["immediate_boys"] = dref_operational_update.immediate_boys
+            validated_data["immediate_total_targeted_population"] = dref_operational_update.immediate_total_targeted_population
+            validated_data["immediate_disability_people_per"] = dref_operational_update.immediate_disability_people_per
+            validated_data["immediate_people_per_urban"] = dref_operational_update.immediate_people_per_urban
+            validated_data["immediate_people_per_local"] = dref_operational_update.immediate_people_per_local
+            validated_data["immediate_displaced_people"] = dref_operational_update.immediate_displaced_people
+            validated_data["immediate_people_targeted_with_early_actions"] = dref_operational_update.immediate_people_targeted_with_early_actions
+
             operational_update = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
             nested_serialized_file_fields = [
@@ -861,6 +928,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             operational_update.users.add(*dref_operational_update.users.all())
             operational_update.risk_security.add(*dref_operational_update.risk_security.all())
             operational_update.source_information.add(*dref_operational_update.source_information.all())
+            operational_update.other_actor_file.add(*dref_operational_update.other_actor_file.all())
         return operational_update
 
     def update(self, instance, validated_data):
