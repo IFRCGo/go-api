@@ -6,33 +6,33 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0035_fieldreport_ns_request_assistance'),
+        ("api", "0035_fieldreport_ns_request_assistance"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='country',
-            name='iso3',
+            model_name="country",
+            name="iso3",
             field=models.CharField(max_length=3, null=True),
         ),
         migrations.AddField(
-            model_name='country',
-            name='wb_population',
-            field=models.PositiveIntegerField(blank=True, help_text='Population data from WB API', null=True),
+            model_name="country",
+            name="wb_population",
+            field=models.PositiveIntegerField(blank=True, help_text="Population data from WB API", null=True),
         ),
         migrations.AddField(
-            model_name='country',
-            name='wb_year',
-            field=models.CharField(blank=True, help_text='Population data year from WB API', max_length=4, null=True),
+            model_name="country",
+            name="wb_year",
+            field=models.CharField(blank=True, help_text="Population data year from WB API", max_length=4, null=True),
         ),
         migrations.AddField(
-            model_name='district',
-            name='wb_population',
-            field=models.PositiveIntegerField(blank=True, help_text='Population data from WB API', null=True),
+            model_name="district",
+            name="wb_population",
+            field=models.PositiveIntegerField(blank=True, help_text="Population data from WB API", null=True),
         ),
         migrations.AddField(
-            model_name='district',
-            name='wb_year',
-            field=models.CharField(blank=True, help_text='Population data year from WB API', max_length=4, null=True),
+            model_name="district",
+            name="wb_year",
+            field=models.CharField(blank=True, help_text="Population data year from WB API", max_length=4, null=True),
         ),
     ]

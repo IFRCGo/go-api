@@ -1,5 +1,5 @@
-from rest_framework import mixins, viewsets
 from django.db import models
+from rest_framework import mixins, viewsets
 
 from .models import CountryPlan, MembershipCoordination
 from .serializers import CountryPlanSerializer
@@ -8,11 +8,11 @@ from .serializers import CountryPlanSerializer
 class CountryPlanViewset(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     serializer_class = CountryPlanSerializer
     queryset = CountryPlan.objects.prefetch_related(
-        'country_plan_sp',
+        "country_plan_sp",
         models.Prefetch(
-            'country_plan_mc',
+            "country_plan_mc",
             queryset=MembershipCoordination.objects.annotate(
-                national_society_name=models.F('national_society__society_name'),
+                national_society_name=models.F("national_society__society_name"),
             ),
         ),
     ).filter(is_publish=True)

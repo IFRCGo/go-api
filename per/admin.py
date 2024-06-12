@@ -1,13 +1,15 @@
 import csv
 import time
 from functools import lru_cache
+
 from django.contrib import admin
-from lang.admin import TranslationAdmin, TranslationInlineModelAdmin
+from django.http import HttpResponse
+from reversion_compare.admin import CompareVersionAdmin
+
 import per.models as models
 from api.models import Appeal
-from per.admin_classes import RegionRestrictedAdmin, GotoNextModelAdmin
-from reversion_compare.admin import CompareVersionAdmin
-from django.http import HttpResponse
+from lang.admin import TranslationAdmin, TranslationInlineModelAdmin
+from per.admin_classes import GotoNextModelAdmin, RegionRestrictedAdmin
 
 
 class FormDataInline(admin.TabularInline, TranslationInlineModelAdmin):
@@ -63,10 +65,7 @@ class FormComponentAdmin(CompareVersionAdmin, TranslationAdmin):
 
     def get_queryset(self, request):
         return (
-            super()
-            .get_queryset(request)
-            .order_by("area__area_num", "component_num", "component_letter")
-            .select_related("area")
+            super().get_queryset(request).order_by("area__area_num", "component_num", "component_letter").select_related("area")
         )
 
 
@@ -181,23 +180,23 @@ class FormQuestionGroupAdmin(TranslationAdmin):
 
 class OpsLearningAdmin(GotoNextModelAdmin):
     ordering = ("-created_at",)
-    ls = ("organization", "organization_validated",
-          "sector", "sector_validated",
-          "per_component", "per_component_validated")
+    ls = ("organization", "organization_validated", "sector", "sector_validated", "per_component", "per_component_validated")
     list_filter = ("is_validated", "appeal_code__atype") + ls
     autocomplete_fields = ("appeal_code",) + ls
     search_fields = ("learning", "learning_validated")
     list_display = ("learning", "appeal_code", "is_validated", "modified_at")
     change_form_template = "admin/opslearning_change_form.html"
-    actions = ['export_selected_records']
+    actions = ["export_selected_records"]
 
     def get_fields(self, request, obj=None):
         if obj and obj.is_validated:
-            if obj.learning_validated is None \
-                and obj.type_validated == models.LearningType.LESSON_LEARNED.value \
-                and obj.organization_validated.count() == 0 \
-                and obj.sector_validated.count() == 0 \
-                and obj.per_component_validated.count() == 0:
+            if (
+                obj.learning_validated is None
+                and obj.type_validated == models.LearningType.LESSON_LEARNED.value
+                and obj.organization_validated.count() == 0
+                and obj.sector_validated.count() == 0
+                and obj.per_component_validated.count() == 0
+            ):
 
                 obj.learning_validated = obj.learning
                 obj.type_validated = obj.type
@@ -205,31 +204,26 @@ class OpsLearningAdmin(GotoNextModelAdmin):
                 obj.sector_validated.add(*[x[0] for x in obj.sector.values_list()])
                 obj.per_component_validated.add(*[x[0] for x in obj.per_component.values_list()])
             return (
-                'learning_validated',
-                'appeal_code',
-                'appeal_document_id',
-                'type_validated',
-                'organization_validated',
-                'sector_validated',
-                'per_component_validated')
+                "learning_validated",
+                "appeal_code",
+                "appeal_document_id",
+                "type_validated",
+                "organization_validated",
+                "sector_validated",
+                "per_component_validated",
+            )
         elif obj:
             return (
-                'learning',
-                'appeal_code',
-                'appeal_document_id',
-                'type',
-                'organization',
-                'sector',
-                'per_component',
-                'is_validated')
-        return (
-            'learning',
-            'appeal_code',
-            'appeal_document_id',
-            'type',
-            'organization',
-            'sector',
-            'per_component')
+                "learning",
+                "appeal_code",
+                "appeal_document_id",
+                "type",
+                "organization",
+                "sector",
+                "per_component",
+                "is_validated",
+            )
+        return ("learning", "appeal_code", "appeal_document_id", "type", "organization", "sector", "per_component")
 
     def export_selected_records(self, request, queryset):
         """
@@ -260,21 +254,30 @@ class OpsLearningAdmin(GotoNextModelAdmin):
                 return [str(x[idx]) for x in many2many_validated.values_list()]
             elif many2many.values_list():
                 return [str(x[idx]) for x in many2many.values_list()]
-            return ['']
+            return [""]
 
         timestr = time.strftime("%Y%m%d-%H%M%S")
-        finding = [''] + [t.label for t in models.LearningType]
+        finding = [""] + [t.label for t in models.LearningType]
 
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename=OpsLearning_export_{}.csv'.format(
-            timestr)
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = "attachment; filename=OpsLearning_export_{}.csv".format(timestr)
         writer = csv.writer(response, quoting=csv.QUOTE_NONNUMERIC)
 
         writer.writerow(
             [
-                'id', 'appeal_code', 'learning', 'finding', 'sector', 'component',
-                'organization', 'country_name', 'region_name', 'dtype_name', 'appeal_year',
-                'appeal_num_beneficiaries', 'modified_at'
+                "id",
+                "appeal_code",
+                "learning",
+                "finding",
+                "sector",
+                "component",
+                "organization",
+                "country_name",
+                "region_name",
+                "dtype_name",
+                "appeal_year",
+                "appeal_num_beneficiaries",
+                "modified_at",
             ]
         )
 
@@ -290,14 +293,12 @@ class OpsLearningAdmin(GotoNextModelAdmin):
                 for sect in break_to_rows(opsl.sector, opsl.sector_validated, v, 1):
                     for pcom in break_to_rows(opsl.per_component, opsl.per_component_validated, v, 2):
 
-                        writer.writerow([
-                            opsl.id, code, lrng, find, sect, pcom,
-                            orgn, ctry, regn, dtyp, year, benf, modf])
+                        writer.writerow([opsl.id, code, lrng, find, sect, pcom, orgn, ctry, regn, dtyp, year, benf, modf])
 
         print("Cache information of Appeal queries:\n", get_appeal_details.cache_info())
         return response
 
-    export_selected_records.short_description = 'Export selected Ops Learning records to CSV'
+    export_selected_records.short_description = "Export selected Ops Learning records to CSV"
 
 
 admin.site.register(models.Form, FormAdmin)

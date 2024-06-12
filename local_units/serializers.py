@@ -1,32 +1,33 @@
 import json
-from shapely.geometry import Polygon, MultiPolygon, Point
-from reversion.models import Version
+
 import reversion
-
-from rest_framework import serializers
-from django.utils.translation import gettext
-from django.contrib.gis.geos import GEOSGeometry
 from django.contrib.auth.models import User
+from django.contrib.gis.geos import GEOSGeometry
+from django.utils.translation import gettext
+from rest_framework import serializers
+from reversion.models import Version
+from shapely.geometry import MultiPolygon, Point, Polygon
 
-from .models import (
-    HealthData,
-    LocalUnit,
-    LocalUnitType,
-    LocalUnitLevel,
-    DelegationOffice,
-    DelegationOfficeType,
-    Affiliation,
-    Functionality,
-    FacilityType,
-    PrimaryHCC,
-    HospitalType,
-    BloodService,
-    ProfessionalTrainingFacility,
-    GeneralMedicalService,
-    SpecializedMedicalService,
-)
 from api.models import Country
 from main.writable_nested_serializers import NestedCreateMixin, NestedUpdateMixin
+
+from .models import (
+    Affiliation,
+    BloodService,
+    DelegationOffice,
+    DelegationOfficeType,
+    FacilityType,
+    Functionality,
+    GeneralMedicalService,
+    HealthData,
+    HospitalType,
+    LocalUnit,
+    LocalUnitLevel,
+    LocalUnitType,
+    PrimaryHCC,
+    ProfessionalTrainingFacility,
+    SpecializedMedicalService,
+)
 
 
 class GeneralMedicalServiceSerializer(serializers.ModelSerializer):
@@ -89,79 +90,59 @@ class BloodServiceSerializer(serializers.ModelSerializer):
 class ProfessionalTrainingFacilitySerializer(serializers.ModelSerializer):
     class Meta:
         model = ProfessionalTrainingFacility
-        fields = ('__all__')
+        fields = "__all__"
 
 
-class MiniHealthDataSerializer(
-    serializers.ModelSerializer
-):
-    health_facility_type_details = FacilityTypeSerializer(source='health_facility_type', read_only=True)
+class MiniHealthDataSerializer(serializers.ModelSerializer):
+    health_facility_type_details = FacilityTypeSerializer(source="health_facility_type", read_only=True)
 
     class Meta:
         model = HealthData
         fields = (
-            'id',
-            'health_facility_type',
-            'health_facility_type_details',
+            "id",
+            "health_facility_type",
+            "health_facility_type_details",
         )
 
 
 class LocalUnitMiniUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = (
-            "id",
-            "username",
-            "email",
-            "first_name",
-            "last_name"
-        )
+        fields = ("id", "username", "email", "first_name", "last_name")
 
 
 class HealthDataSerializer(
     NestedCreateMixin,
     NestedUpdateMixin,
 ):
-    health_facility_type_details = FacilityTypeSerializer(source='health_facility_type', read_only=True)
-    affiliation_details = AffiliationSerializer(source='affiliation', read_only=True)
-    functionality_details = FunctionalitySerializer(source='functionality', read_only=True)
-    primary_health_care_center_details = PrimaryHCCSerializer(
-        source='primary_health_care_center',
-        read_only=True
-    )
-    hospital_type_details = HospitalTypeSerializer(
-        source='hospital_type',
-        read_only=True
-    )
+    health_facility_type_details = FacilityTypeSerializer(source="health_facility_type", read_only=True)
+    affiliation_details = AffiliationSerializer(source="affiliation", read_only=True)
+    functionality_details = FunctionalitySerializer(source="functionality", read_only=True)
+    primary_health_care_center_details = PrimaryHCCSerializer(source="primary_health_care_center", read_only=True)
+    hospital_type_details = HospitalTypeSerializer(source="hospital_type", read_only=True)
     general_medical_services_details = GeneralMedicalServiceSerializer(
-        source='general_medical_services',
-        read_only=True,
-        many=True
+        source="general_medical_services", read_only=True, many=True
     )
     specialized_medical_beyond_primary_level_details = SpecializedMedicalServiceSerializer(
-        source='specialized_medical_beyond_primary_level',
-        read_only=True,
-        many=True
+        source="specialized_medical_beyond_primary_level", read_only=True, many=True
     )
     blood_services_details = BloodServiceSerializer(
-        source='blood_services',
+        source="blood_services",
         read_only=True,
         many=True,
     )
     professional_training_facilities_details = ProfessionalTrainingFacilitySerializer(
-        source='professional_training_facilities',
-        many=True,
-        read_only=True
+        source="professional_training_facilities", many=True, read_only=True
     )
     modified_by_details = LocalUnitMiniUserSerializer(source="modified_by", read_only=True)
     created_by_details = LocalUnitMiniUserSerializer(source="created_by", read_only=True)
 
     class Meta:
         model = HealthData
-        fields = ('__all__')
+        fields = "__all__"
 
     def create(self, validated_data):
-        validated_data['created_by'] = self.context["request"].user
+        validated_data["created_by"] = self.context["request"].user
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
@@ -173,9 +154,7 @@ class LocalUnitCountrySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Country
-        fields = (
-            'name', 'iso3', 'id'
-        )
+        fields = ("name", "iso3", "id")
 
 
 class LocalUnitTypeSerializer(serializers.ModelSerializer):
@@ -184,11 +163,11 @@ class LocalUnitTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = LocalUnitType
         fields = (
-            'name',
-            'code',
-            'id',
-            'colour',
-            'image_url',
+            "name",
+            "code",
+            "id",
+            "colour",
+            "image_url",
         )
 
     def get_image_url(self, facility_type):
@@ -203,52 +182,62 @@ class LocalUnitLevelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LocalUnitLevel
-        fields = (
-            'name', 'level', 'id'
-        )
+        fields = ("name", "level", "id")
 
 
-class LocalUnitDetailSerializer(
-    serializers.ModelSerializer
-):
-    country_details = LocalUnitCountrySerializer(source='country', read_only=True)
-    type_details = LocalUnitTypeSerializer(source='type', read_only=True)
-    level_details = LocalUnitLevelSerializer(source='level', read_only=True)
+class LocalUnitDetailSerializer(serializers.ModelSerializer):
+    country_details = LocalUnitCountrySerializer(source="country", read_only=True)
+    type_details = LocalUnitTypeSerializer(source="type", read_only=True)
+    level_details = LocalUnitLevelSerializer(source="level", read_only=True)
     health = HealthDataSerializer(required=False, allow_null=True)
     location_details = serializers.SerializerMethodField()
-    visibility_display = serializers.CharField(source='get_visibility_display', read_only=True)
+    visibility_display = serializers.CharField(source="get_visibility_display", read_only=True)
     validated = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = LocalUnit
         fields = (
-            'local_branch_name', 'english_branch_name', 'type', 'country',
-            'created_at', 'modified_at', 'draft', 'validated', 'postcode',
-            'address_loc', 'address_en', 'city_loc', 'city_en', 'link',
-            'location', 'source_loc', 'source_en', 'subtype', 'date_of_data',
-            'level', 'health', 'visibility_display', 'location_details', 'type_details',
-            'level_details', 'country_details'
+            "local_branch_name",
+            "english_branch_name",
+            "type",
+            "country",
+            "created_at",
+            "modified_at",
+            "draft",
+            "validated",
+            "postcode",
+            "address_loc",
+            "address_en",
+            "city_loc",
+            "city_en",
+            "link",
+            "location",
+            "source_loc",
+            "source_en",
+            "subtype",
+            "date_of_data",
+            "level",
+            "health",
+            "visibility_display",
+            "location_details",
+            "type_details",
+            "level_details",
+            "country_details",
         )
 
     def get_location_details(self, unit) -> dict:
         return json.loads(unit.location.geojson)
 
 
-class PrivateLocalUnitDetailSerializer(
-    NestedCreateMixin,
-    NestedUpdateMixin
-):
-    country_details = LocalUnitCountrySerializer(source='country', read_only=True)
-    type_details = LocalUnitTypeSerializer(source='type', read_only=True)
-    level_details = LocalUnitLevelSerializer(source='level', read_only=True)
+class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
+    country_details = LocalUnitCountrySerializer(source="country", read_only=True)
+    type_details = LocalUnitTypeSerializer(source="type", read_only=True)
+    level_details = LocalUnitLevelSerializer(source="level", read_only=True)
     health = HealthDataSerializer(required=False, allow_null=True)
     location_details = serializers.SerializerMethodField(read_only=True)
-    visibility_display = serializers.CharField(source='get_visibility_display', read_only=True)
+    visibility_display = serializers.CharField(source="get_visibility_display", read_only=True)
     validated = serializers.BooleanField(read_only=True)
-    location_json = serializers.JSONField(
-        required=True,
-        write_only=True
-    )
+    location_json = serializers.JSONField(required=True, write_only=True)
     location = serializers.CharField(required=False)
     modified_by_details = LocalUnitMiniUserSerializer(source="modified_by", read_only=True)
     created_by_details = LocalUnitMiniUserSerializer(source="created_by", read_only=True)
@@ -257,14 +246,41 @@ class PrivateLocalUnitDetailSerializer(
     class Meta:
         model = LocalUnit
         fields = (
-            'local_branch_name', 'english_branch_name', 'type', 'country',
-            'created_at', 'modified_at', 'draft', 'validated', 'postcode',
-            'address_loc', 'address_en', 'city_loc', 'city_en', 'link',
-            'location', 'source_loc', 'source_en', 'subtype', 'date_of_data',
-            'level', 'health', 'visibility_display', 'location_details', 'type_details',
-            'level_details', 'country_details', 'focal_person_loc', 'focal_person_en',
-            'email', 'phone', 'location_json', 'visibility', 'modified_by_details',
-            'created_by_details', 'version_id'
+            "local_branch_name",
+            "english_branch_name",
+            "type",
+            "country",
+            "created_at",
+            "modified_at",
+            "draft",
+            "validated",
+            "postcode",
+            "address_loc",
+            "address_en",
+            "city_loc",
+            "city_en",
+            "link",
+            "location",
+            "source_loc",
+            "source_en",
+            "subtype",
+            "date_of_data",
+            "level",
+            "health",
+            "visibility_display",
+            "location_details",
+            "type_details",
+            "level_details",
+            "country_details",
+            "focal_person_loc",
+            "focal_person_en",
+            "email",
+            "phone",
+            "location_json",
+            "visibility",
+            "modified_by_details",
+            "created_by_details",
+            "version_id",
         )
 
     def get_location_details(self, unit) -> dict:
@@ -276,36 +292,30 @@ class PrivateLocalUnitDetailSerializer(
             return None
         version_id = Version.objects.get_for_object(resource).count()
 
-        request = self.context['request']
-        if request.method in ['POST', 'PUT', 'PATCH']:
-            if not (request.method == 'POST' and self.context.get('post_is_used_for_filter', False)):
+        request = self.context["request"]
+        if request.method in ["POST", "PUT", "PATCH"]:
+            if not (request.method == "POST" and self.context.get("post_is_used_for_filter", False)):
                 version_id += 1
         return version_id
 
     def validate(self, data):
-        local_branch_name = data.get('local_branch_name')
-        english_branch_name = data.get('english_branch_name')
+        local_branch_name = data.get("local_branch_name")
+        english_branch_name = data.get("english_branch_name")
         if (not local_branch_name) and (not english_branch_name):
-            raise serializers.ValidationError(
-                gettext('Branch Name Combination is required !')
-            )
-        type = data.get('type')
-        health = data.get('health')
+            raise serializers.ValidationError(gettext("Branch Name Combination is required !"))
+        type = data.get("type")
+        health = data.get("health")
         if type.code == 1 and health:
-            raise serializers.ValidationError({
-                'Can\'t have health data for type %s' % type.code
-            })
+            raise serializers.ValidationError({"Can't have health data for type %s" % type.code})
         return data
 
     def create(self, validated_data):
-        country = validated_data.get('country')
-        location_json = validated_data.pop('location_json')
-        lat = location_json.get('lat')
-        lng = location_json.get('lng')
+        country = validated_data.get("country")
+        location_json = validated_data.pop("location_json")
+        lat = location_json.get("lat")
+        lng = location_json.get("lng")
         if not lat and not lng:
-            raise serializers.ValidationError(
-                gettext('Combination of lat/lon is required')
-            )
+            raise serializers.ValidationError(gettext("Combination of lat/lon is required"))
         input_point = Point(lng, lat)
         if country.bbox:
             country_json = json.loads(country.countrygeoms.geom.geojson)
@@ -322,23 +332,19 @@ class PrivateLocalUnitDetailSerializer(
             shapely_multipolygon = MultiPolygon(polygons)
             if not input_point.within(shapely_multipolygon):
                 raise serializers.ValidationError(
-                    {
-                        'location_json': gettext('Input coordinates is outside country %s boundary' % country.name)
-                    }
+                    {"location_json": gettext("Input coordinates is outside country %s boundary" % country.name)}
                 )
-        validated_data['location'] = GEOSGeometry('POINT(%f %f)' % (lng, lat))
-        validated_data['created_by'] = self.context["request"].user
+        validated_data["location"] = GEOSGeometry("POINT(%f %f)" % (lng, lat))
+        validated_data["created_by"] = self.context["request"].user
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
         country = instance.country
-        location_json = validated_data.pop('location_json')
-        lat = location_json.get('lat')
-        lng = location_json.get('lng')
+        location_json = validated_data.pop("location_json")
+        lat = location_json.get("lat")
+        lng = location_json.get("lng")
         if not lat and not lng:
-            raise serializers.ValidationError(
-                gettext('Combination of lat/lon is required')
-            )
+            raise serializers.ValidationError(gettext("Combination of lat/lon is required"))
         input_point = Point(lng, lat)
         if country.bbox:
             country_json = json.loads(country.countrygeoms.geom.geojson)
@@ -355,77 +361,71 @@ class PrivateLocalUnitDetailSerializer(
             shapely_multipolygon = MultiPolygon(polygons)
             if not input_point.within(shapely_multipolygon):
                 raise serializers.ValidationError(
-                    {
-                        'location_json': gettext('Input coordinates is outside country %s boundary' % country.name)
-                    }
+                    {"location_json": gettext("Input coordinates is outside country %s boundary" % country.name)}
                 )
-        validated_data['location'] = GEOSGeometry('POINT(%f %f)' % (lng, lat))
+        validated_data["location"] = GEOSGeometry("POINT(%f %f)" % (lng, lat))
         validated_data["modified_by"] = self.context["request"].user
         # NOTE: Each time form is updated change validated status to `False`
         validated_data["validated"] = False
         return super().update(instance, validated_data)
 
 
-class LocalUnitSerializer(
-    serializers.ModelSerializer
-):
+class LocalUnitSerializer(serializers.ModelSerializer):
     location_details = serializers.SerializerMethodField()
-    country_details = LocalUnitCountrySerializer(source='country', read_only=True)
-    type_details = LocalUnitTypeSerializer(source='type', read_only=True)
-    health_details = MiniHealthDataSerializer(read_only=True, source='health')
+    country_details = LocalUnitCountrySerializer(source="country", read_only=True)
+    type_details = LocalUnitTypeSerializer(source="type", read_only=True)
+    health_details = MiniHealthDataSerializer(read_only=True, source="health")
     validated = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = LocalUnit
         fields = (
-            'id',
-            'country',
-            'local_branch_name',
-            'english_branch_name',
-            'location_details',
-            'type',
-            'validated',
-            'address_loc',
-            'address_en',
-            'country_details',
-            'type_details',
-            'health',
-            'health_details',
+            "id",
+            "country",
+            "local_branch_name",
+            "english_branch_name",
+            "location_details",
+            "type",
+            "validated",
+            "address_loc",
+            "address_en",
+            "country_details",
+            "type_details",
+            "health",
+            "health_details",
         )
 
     def get_location_details(self, unit) -> dict:
         return json.loads(unit.location.geojson)
 
 
-class PrivateLocalUnitSerializer(
-    serializers.ModelSerializer
-):
+class PrivateLocalUnitSerializer(serializers.ModelSerializer):
     location_details = serializers.SerializerMethodField()
-    country_details = LocalUnitCountrySerializer(source='country', read_only=True)
-    type_details = LocalUnitTypeSerializer(source='type', read_only=True)
-    health_details = MiniHealthDataSerializer(read_only=True, source='health')
+    country_details = LocalUnitCountrySerializer(source="country", read_only=True)
+    type_details = LocalUnitTypeSerializer(source="type", read_only=True)
+    health_details = MiniHealthDataSerializer(read_only=True, source="health")
     validated = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = LocalUnit
         fields = (
-            'id',
-            'country',
-            'local_branch_name',
-            'english_branch_name',
-            'location_details',
-            'type',
-            'validated',
-            'address_loc',
-            'address_en',
-            'country_details',
-            'type_details',
-            'health',
-            'health_details',
-            'focal_person_loc',
-            'focal_person_en',
-            'email',
-            'phone',
+            "id",
+            "country",
+            "local_branch_name",
+            "english_branch_name",
+            "location_details",
+            "type",
+            "validated",
+            "address_loc",
+            "address_en",
+            "country_details",
+            "type_details",
+            "health",
+            "health_details",
+            "focal_person_loc",
+            "focal_person_en",
+            "email",
+            "phone",
         )
 
     def get_location_details(self, unit) -> dict:
@@ -436,18 +436,14 @@ class DelegationOfficeCountrySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Country
-        fields = (
-            'name', 'iso3', 'region', 'region'
-        )
+        fields = ("name", "iso3", "region", "region")
 
 
 class DelegationOfficeTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DelegationOfficeType
-        fields = (
-            'name', 'code'
-        )
+        fields = ("name", "code")
 
 
 class DelegationOfficeSerializer(serializers.ModelSerializer):
@@ -458,36 +454,37 @@ class DelegationOfficeSerializer(serializers.ModelSerializer):
     class Meta:
         model = DelegationOffice
         fields = [
-            'name',
-            'city',
-            'address',
-            'postcode',
-            'location',
-            'society_url',
-            'url_ifrc',
-            'hod_first_name',
-            'hod_last_name',
-            'hod_mobile_number',
-            'hod_email',
-            'assistant_name',
-            'assistant_email',
-            'is_ns_same_location',
-            'is_multiple_ifrc_offices',
-            'visibility',
-            'created_at',
-            'modified_at',
-            'date_of_data',
-            'country',
-            'dotype']
+            "name",
+            "city",
+            "address",
+            "postcode",
+            "location",
+            "society_url",
+            "url_ifrc",
+            "hod_first_name",
+            "hod_last_name",
+            "hod_mobile_number",
+            "hod_email",
+            "assistant_name",
+            "assistant_email",
+            "is_ns_same_location",
+            "is_multiple_ifrc_offices",
+            "visibility",
+            "created_at",
+            "modified_at",
+            "date_of_data",
+            "country",
+            "dotype",
+        ]
 
     def get_location(self, office):
         return json.loads(office.location.geojson)
 
     def get_country(self, office):
-        return {'country'}
+        return {"country"}
 
     def get_type(self, office):
-        return {'type'}
+        return {"type"}
 
 
 class LocalUnitOptionsSerializer(serializers.Serializer):
@@ -505,16 +502,16 @@ class LocalUnitOptionsSerializer(serializers.Serializer):
 
 
 class MiniDelegationOfficeSerializer(serializers.ModelSerializer):
-    dotype_name = serializers.CharField(source='dotype.name', read_only=True)
+    dotype_name = serializers.CharField(source="dotype.name", read_only=True)
 
     class Meta:
         model = DelegationOffice
         fields = (
-            'hod_first_name',
-            'hod_last_name',
-            'hod_mobile_number',
-            'hod_email',
-            'dotype_name',
-            'city',
-            'address',
+            "hod_first_name",
+            "hod_last_name",
+            "hod_mobile_number",
+            "hod_email",
+            "dotype_name",
+            "city",
+            "address",
         )

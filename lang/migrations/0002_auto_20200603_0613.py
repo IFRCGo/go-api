@@ -6,16 +6,16 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('lang', '0001_initial'),
+        ("lang", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='language',
-            options={'verbose_name': 'Language', 'verbose_name_plural': 'Languages'},
+            name="language",
+            options={"verbose_name": "Language", "verbose_name_plural": "Languages"},
         ),
         migrations.AlterModelOptions(
-            name='string',
-            options={'verbose_name': 'String', 'verbose_name_plural': 'Strings'},
+            name="string",
+            options={"verbose_name": "String", "verbose_name_plural": "Strings"},
         ),
     ]

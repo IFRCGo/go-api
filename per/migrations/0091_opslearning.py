@@ -6,32 +6,63 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('deployments', '0088_alter_project_visibility'),
-        ('per', '0090_auto_20231030_1505'),
+        ("deployments", "0088_alter_project_visibility"),
+        ("per", "0090_auto_20231030_1505"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='OpsLearning',
+            name="OpsLearning",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('learning', models.TextField(blank=True, null=True, verbose_name='learning')),
-                ('learning_validated', models.TextField(blank=True, null=True, verbose_name='learning (validated)')),
-                ('appeal_code', models.CharField(blank=True, max_length=20, null=True, verbose_name='appeal (MDR) code')),
-                ('type', models.IntegerField(choices=[(1, 'Lesson learned'), (2, 'Challenge')], default=1, verbose_name='type')),
-                ('type_validated', models.IntegerField(choices=[(1, 'Lesson learned'), (2, 'Challenge')], default=1, verbose_name='type (validated)')),
-                ('is_validated', models.BooleanField(default=False, verbose_name='is validated?')),
-                ('modified_at', models.DateTimeField(auto_now=True, verbose_name='modified_at')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='created at')),
-                ('per_component', models.ManyToManyField(blank=True, related_name='components', to='per.FormComponent', verbose_name='PER Components')),
-                ('per_component_validated', models.ManyToManyField(blank=True, related_name='validated_components', to='per.FormComponent', verbose_name='PER Components (validated)')),
-                ('sector', models.ManyToManyField(blank=True, related_name='sectors', to='deployments.SectorTag', verbose_name='Sectors')),
-                ('sector_validated', models.ManyToManyField(blank=True, related_name='validated_sectors', to='deployments.SectorTag', verbose_name='Sectors (validated)')),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("learning", models.TextField(blank=True, null=True, verbose_name="learning")),
+                ("learning_validated", models.TextField(blank=True, null=True, verbose_name="learning (validated)")),
+                ("appeal_code", models.CharField(blank=True, max_length=20, null=True, verbose_name="appeal (MDR) code")),
+                ("type", models.IntegerField(choices=[(1, "Lesson learned"), (2, "Challenge")], default=1, verbose_name="type")),
+                (
+                    "type_validated",
+                    models.IntegerField(
+                        choices=[(1, "Lesson learned"), (2, "Challenge")], default=1, verbose_name="type (validated)"
+                    ),
+                ),
+                ("is_validated", models.BooleanField(default=False, verbose_name="is validated?")),
+                ("modified_at", models.DateTimeField(auto_now=True, verbose_name="modified_at")),
+                ("created_at", models.DateTimeField(auto_now_add=True, verbose_name="created at")),
+                (
+                    "per_component",
+                    models.ManyToManyField(
+                        blank=True, related_name="components", to="per.FormComponent", verbose_name="PER Components"
+                    ),
+                ),
+                (
+                    "per_component_validated",
+                    models.ManyToManyField(
+                        blank=True,
+                        related_name="validated_components",
+                        to="per.FormComponent",
+                        verbose_name="PER Components (validated)",
+                    ),
+                ),
+                (
+                    "sector",
+                    models.ManyToManyField(
+                        blank=True, related_name="sectors", to="deployments.SectorTag", verbose_name="Sectors"
+                    ),
+                ),
+                (
+                    "sector_validated",
+                    models.ManyToManyField(
+                        blank=True,
+                        related_name="validated_sectors",
+                        to="deployments.SectorTag",
+                        verbose_name="Sectors (validated)",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Operational Learning',
-                'verbose_name_plural': 'Operational Learnings',
-                'ordering': ('learning',),
+                "verbose_name": "Operational Learning",
+                "verbose_name_plural": "Operational Learnings",
+                "ordering": ("learning",),
             },
         ),
     ]

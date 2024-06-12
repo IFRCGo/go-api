@@ -6,18 +6,18 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0052_auto_20230608_0837'),
+        ("per", "0052_auto_20230608_0837"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='formprioritization',
-            old_name='form_proritization_component',
-            new_name='component_responses',
+            model_name="formprioritization",
+            old_name="form_proritization_component",
+            new_name="component_responses",
         ),
         migrations.RenameField(
-            model_name='perworkplan',
-            old_name='workplan_component',
-            new_name='component_responses',
+            model_name="perworkplan",
+            old_name="workplan_component",
+            new_name="component_responses",
         ),
     ]

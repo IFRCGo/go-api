@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 
-from per.models import FormQuestion, FormAnswer
+from per.models import FormAnswer, FormQuestion
 
 
 class Command(BaseCommand):

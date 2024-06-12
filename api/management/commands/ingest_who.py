@@ -1,11 +1,10 @@
 import requests
-import datetime as dt
 import xmltodict
 from dateutil.parser import parse
 from django.core.management.base import BaseCommand
-from api.models import Country, Region, Event, CronJob, CronJobStatus
-from api.event_sources import SOURCES
+
 from api.logger import logger
+from api.models import Country, CronJob, CronJobStatus, Event
 
 
 class Command(BaseCommand):
@@ -16,7 +15,6 @@ class Command(BaseCommand):
 
         logger.info("Querying WHO RSS feed for new emergency data")
         # get latest
-        nspace = "{https://www.who.int}"
         ur2 = []
         ur2.append("https://www.who.int/feeds/entity/csr/don/en/rss.xml")
         ur2.append("https://www.who.int/feeds/entity/hac/en/rss.xml")
@@ -183,5 +181,5 @@ class Command(BaseCommand):
 # delete from api_event_regions where event_id in (select id from api_event where auto_generated_source like 'www.who.int%');
 # delete from api_event where auto_generated_source like 'www.who.int%';
 # --
-# select * from api_event_countries a join api_country b on (a.country_id=b.id) where event_id in (select id from api_event where auto_generated_source like 'www.who.int%');
-# select name from api_event a left join api_event_countries b on (a.id=b.event_id) where b.event_id is null and auto_generated_source like 'www.who.int%';  -- what country is not found
+# select * from api_event_countries a join api_country b on (a.country_id=b.id) where event_id in (select id from api_event where auto_generated_source like 'www.who.int%');  # noqa: E501
+# select name from api_event a left join api_event_countries b on (a.id=b.event_id) where b.event_id is null and auto_generated_source like 'www.who.int%';  -- what country is not found  # noqa: E501

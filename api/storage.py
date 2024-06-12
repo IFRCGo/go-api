@@ -1,12 +1,11 @@
-import mimetypes
 import datetime
+import mimetypes
 
 from azure.common import AzureMissingResourceHttpError
 from azure.storage.blob import BlockBlobService
 from azure.storage.blob.models import ContentSettings
-
-from django.core.files.storage import Storage
 from django.conf import settings
+from django.core.files.storage import Storage
 from django.utils.deconstruct import deconstructible
 
 
@@ -24,11 +23,11 @@ class AzureStorage(Storage):
 
     def __init__(
         self,
-        account_name=settings.AZURE_STORAGE['ACCOUNT_NAME'],
-        account_key=settings.AZURE_STORAGE['ACCOUNT_KEY'],
-        container=settings.AZURE_STORAGE['CONTAINER'],
-        use_ssl=settings.AZURE_STORAGE['USE_SSL'],
-        cdn_host=settings.AZURE_STORAGE['CDN_HOST'],
+        account_name=settings.AZURE_STORAGE["ACCOUNT_NAME"],
+        account_key=settings.AZURE_STORAGE["ACCOUNT_KEY"],
+        container=settings.AZURE_STORAGE["CONTAINER"],
+        use_ssl=settings.AZURE_STORAGE["USE_SSL"],
+        cdn_host=settings.AZURE_STORAGE["CDN_HOST"],
     ):
         self.account_name = account_name
         self.account_key = account_key
@@ -42,36 +41,28 @@ class AzureStorage(Storage):
             account_key=self.account_key,
             container=self.container,
             cdn_host=self.cdn_host,
-            use_ssl=self.use_ssl
+            use_ssl=self.use_ssl,
         )
 
     def _get_service(self):
-        if not hasattr(self, '_blob_service'):
+        if not hasattr(self, "_blob_service"):
             self._blob_service = BlockBlobService(
-                account_name=self.account_name,
-                account_key=self.account_key,
-                protocol='https' if self.use_ssl else 'http'
+                account_name=self.account_name, account_key=self.account_key, protocol="https" if self.use_ssl else "http"
             )
 
         return self._blob_service
 
     def _get_properties(self, name):
-        return self._get_service().get_blob_properties(
-            container_name=self.container,
-            blob_name=name
-        )
+        return self._get_service().get_blob_properties(container_name=self.container, blob_name=name)
 
-    def _open(self, name, mode='rb'):
+    def _open(self, name, mode="rb"):
         """
         Return the AzureStorageFile.
         """
 
         from django.core.files.base import ContentFile
 
-        contents = self._get_service().get_blob_to_bytes(
-            container_name=self.container,
-            blob_name=name
-        )
+        contents = self._get_service().get_blob_to_bytes(container_name=self.container, blob_name=name)
 
         return ContentFile(contents.content)
 
@@ -85,16 +76,12 @@ class AzureStorage(Storage):
 
         content_type = None
 
-        if hasattr(content.file, 'content_type'):
+        if hasattr(content.file, "content_type"):
             content_type = content.file.content_type
         else:
             content_type = mimetypes.guess_type(name)[0]
 
-        cache_control = self.get_cache_control(
-            self.container,
-            name,
-            content_type
-        )
+        cache_control = self.get_cache_control(self.container, name, content_type)
 
         self._get_service().create_blob_from_stream(
             container_name=self.container,
@@ -118,8 +105,8 @@ class AzureStorage(Storage):
 
         files = []
 
-        if path and not path.endswith('/'):
-            path = '%s/' % path
+        if path and not path.endswith("/"):
+            path = "%s/" % path
 
         path_len = len(path)
 
@@ -151,7 +138,7 @@ class AzureStorage(Storage):
         """
 
         try:
-            print('in delete', self.container, name)
+            print("in delete", self.container, name)
             self._get_service().delete_blob(self.container, name)
         except AzureMissingResourceHttpError:
             pass
@@ -173,7 +160,7 @@ class AzureStorage(Storage):
         try:
             properties = self._get_properties(name)
 
-            return int(properties['content-length'])
+            return int(properties["content-length"])
         except AzureMissingResourceHttpError:
             pass
 
@@ -183,20 +170,14 @@ class AzureStorage(Storage):
         be accessed.
         """
 
-        blob_url_args = {
-            'container_name': self.container,
-            'blob_name': name,
-            'protocol': 'https'
-        }
+        blob_url_args = {"container_name": self.container, "blob_name": name, "protocol": "https"}
 
         if self.cdn_host:
             # The account name should be built into the cdn hostname
-            blob_url_args['account_name'] = ''
-            blob_url_args['host_base'] = self.cdn_host
+            blob_url_args["account_name"] = ""
+            blob_url_args["host_base"] = self.cdn_host
 
-        return self._get_service().make_blob_url(
-            **blob_url_args
-        )
+        return self._get_service().make_blob_url(**blob_url_args)
 
     def modified_time(self, name):
         """
@@ -206,10 +187,7 @@ class AzureStorage(Storage):
         try:
             properties = self._get_properties(name)
 
-            return datetime.datetime.strptime(
-                properties['last-modified'],
-                '%a, %d %b %Y %H:%M:%S %Z'
-            )
+            return datetime.datetime.strptime(properties["last-modified"], "%a, %d %b %Y %H:%M:%S %Z")
         except AzureMissingResourceHttpError:
             pass
 

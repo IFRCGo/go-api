@@ -1,6 +1,7 @@
-from django.core.management.base import BaseCommand
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
+from django.core.management.base import BaseCommand
+
 from api.models import Country, Region
 
 
@@ -25,9 +26,7 @@ class Command(BaseCommand):
         for region in regions:
             codename = "per_region_admin_%s" % region.id
             name = "PER Admin for %s" % region.name
-            permission, created = Permission.objects.get_or_create(
-                codename=codename, name=name, content_type=region_content_type
-            )
+            permission, created = Permission.objects.get_or_create(codename=codename, name=name, content_type=region_content_type)
             # If it's a new permission, create a group for it
             group, created = Group.objects.get_or_create(name="%s Regional PER Admins" % region.name)
             group.permissions.add(permission)

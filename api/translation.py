@@ -1,165 +1,176 @@
-from modeltranslation.translator import register, TranslationOptions
+from modeltranslation.translator import TranslationOptions, register
+
 from .models import (
     Action,
     ActionsTaken,
+    AdminKeyFigure,
     Appeal,
     AppealDocument,
-    GeneralDocument,
     Country,
+    CountryKeyFigure,
     CountrySnippet,
     DisasterType,
     Event,
+    EventLink,
     ExternalPartner,
     FieldReport,
     GDACSEvent,
+    GeneralDocument,
+    KeyFigure,
     MainContact,
     Region,
-    RegionSnippet,
     RegionEmergencySnippet,
-    RegionProfileSnippet,
+    RegionKeyFigure,
     RegionPreparednessSnippet,
+    RegionProfileSnippet,
+    RegionSnippet,
     SituationReportType,
     Snippet,
-    SupportedActivity,
-    EventLink,
-    FieldReport,
     Source,
-    CountryKeyFigure,
-    RegionKeyFigure,
-    KeyFigure,
-    AdminKeyFigure
+    SupportedActivity,
 )
 
 
 @register(Action)
 class ActionTO(TranslationOptions):
-    fields = ('name', 'tooltip_text')
+    fields = ("name", "tooltip_text")
 
 
 @register(ActionsTaken)
 class ActionsTakenTO(TranslationOptions):
-    fields = ('summary',)
+    fields = ("summary",)
 
 
 @register(Appeal)
 class AppealTO(TranslationOptions):
-    fields = ('name',)
+    fields = ("name",)
 
 
 @register(AppealDocument)
 class AppealDocumentTO(TranslationOptions):
-    fields = ('name',)
+    fields = ("name",)
 
 
 @register(GeneralDocument)
 class GeneralDocumentTO(TranslationOptions):
-    fields = ('name',)
+    fields = ("name",)
 
 
 @register(Country)
 class CountryTO(TranslationOptions):
-    fields = ('name', 'society_name', 'overview', 'additional_tab_name',)
+    fields = (
+        "name",
+        "society_name",
+        "overview",
+        "additional_tab_name",
+    )
 
 
 @register(CountrySnippet)
 class CountrySnippetTO(TranslationOptions):
-    fields = ('snippet',)
+    fields = ("snippet",)
 
 
 @register(DisasterType)
 class DisasterTypeTO(TranslationOptions):
-    fields = ('name', 'summary')
+    fields = ("name", "summary")
 
 
 @register(Event)
 class EventTO(TranslationOptions):
-    fields = ('name', 'summary')
+    fields = ("name", "summary")
 
 
 @register(ExternalPartner)
 class ExternalPartnerTO(TranslationOptions):
-    fields = ('name',)
+    fields = ("name",)
 
 
 @register(FieldReport)
 class FieldReportTO(TranslationOptions):
-    fields = ('summary', 'description', 'actions_others', 'other_sources')
+    fields = ("summary", "description", "actions_others", "other_sources")
 
 
 @register(GDACSEvent)
 class GDACSEventTO(TranslationOptions):
-    fields = ('title', 'description', 'country_text')
+    fields = ("title", "description", "country_text")
 
 
 @register(MainContact)
 class MainContactTO(TranslationOptions):
-    fields = ('extent',)
+    fields = ("extent",)
 
 
 @register(Region)
 class RegionTO(TranslationOptions):
-    fields = ('label', 'additional_tab_name',)
+    fields = (
+        "label",
+        "additional_tab_name",
+    )
 
 
 @register(RegionSnippet)
 class RegionSnippetTO(TranslationOptions):
-    fields = ('snippet',)
+    fields = ("snippet",)
 
 
 @register(RegionEmergencySnippet)
 class RegionEmergencySnippetTO(TranslationOptions):
-    fields = ('title', 'snippet',)
+    fields = (
+        "title",
+        "snippet",
+    )
 
 
 @register(RegionProfileSnippet)
 class RegionProfileSnippetTO(TranslationOptions):
-    fields = ('title', 'snippet',)
+    fields = (
+        "title",
+        "snippet",
+    )
 
 
 @register(RegionPreparednessSnippet)
 class RegionPreparednessSnippetTO(TranslationOptions):
-    fields = ('title', 'snippet',)
+    fields = (
+        "title",
+        "snippet",
+    )
 
 
 @register(SituationReportType)
 class SituationReportTypeTO(TranslationOptions):
-    fields = ('type',)
+    fields = ("type",)
 
 
 @register(Snippet)
 class SnippetTO(TranslationOptions):
-    fields = ('snippet',)
+    fields = ("snippet",)
 
 
 @register(SupportedActivity)
 class SupportedActivityTO(TranslationOptions):
-    fields = ('name',)
+    fields = ("name",)
 
 
 @register(EventLink)
 class EventLinkTO(TranslationOptions):
-    fields = ('title', 'description')
+    fields = ("title", "description")
 
 
 @register(Source)
 class SourceTO(TranslationOptions):
-    fields = (
-        'spec',
-    )
+    fields = ("spec",)
 
 
 @register(KeyFigure)
 class KeyFigureTo(TranslationOptions):
-    fields = (
-        'deck',
-    )
+    fields = ("deck",)
 
 
 @register(AdminKeyFigure)
 class AdminKeyFigureTo(TranslationOptions):
-    fields = (
-        'deck',
-    )
+    fields = ("deck",)
 
 
 @register(CountryKeyFigure)

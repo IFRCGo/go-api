@@ -6,39 +6,39 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('deployments', '0033_molnixtag'),
-        ('notifications', '0007_auto_20200810_1116'),
+        ("deployments", "0033_molnixtag"),
+        ("notifications", "0007_auto_20200810_1116"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='surgealert',
-            name='closes',
+            model_name="surgealert",
+            name="closes",
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='surgealert',
-            name='end',
+            model_name="surgealert",
+            name="end",
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='surgealert',
-            name='molnix_id',
+            model_name="surgealert",
+            name="molnix_id",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='surgealert',
-            name='molnix_tags',
-            field=models.ManyToManyField(blank=True, to='deployments.MolnixTag'),
+            model_name="surgealert",
+            name="molnix_tags",
+            field=models.ManyToManyField(blank=True, to="deployments.MolnixTag"),
         ),
         migrations.AddField(
-            model_name='surgealert',
-            name='opens',
+            model_name="surgealert",
+            name="opens",
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='surgealert',
-            name='start',
+            model_name="surgealert",
+            name="start",
             field=models.DateTimeField(blank=True, null=True),
         ),
     ]

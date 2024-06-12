@@ -1,27 +1,24 @@
-from django.db import transaction
-from django.db.models import Q
 import functools
 import operator
 
+from django.conf import settings
+from django.db import transaction
+from django.db.models import Q
 from drf_spectacular.utils import extend_schema
+from rest_framework import response, viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action as djaction
-from rest_framework import (
-    viewsets,
-    response,
-)
 
-from django.conf import settings
+from .models import String
 from .permissions import LangStringPermission
 from .serializers import (
-    StringSerializer,
+    LanguageBulkActionResponseSerializer,
     LanguageBulkActionSerializer,
     LanguageBulkActionsSerializer,
     LanguageListSerializer,
     LanguageRetriveSerializer,
-    LanguageBulkActionResponseSerializer
+    StringSerializer,
 )
-from .models import String
 
 
 class LanguageViewSet(viewsets.ViewSet):
@@ -30,10 +27,7 @@ class LanguageViewSet(viewsets.ViewSet):
     permission_classes = (LangStringPermission,)
     lookup_url_kwarg = "pk"
 
-    @extend_schema(
-        request=None,
-        responses=LanguageListSerializer
-    )
+    @extend_schema(request=None, responses=LanguageListSerializer)
     def list(self, request, version=None):
         languages = [{"code": code, "title": title} for code, title in settings.LANGUAGES]
         return response.Response(
@@ -43,10 +37,7 @@ class LanguageViewSet(viewsets.ViewSet):
             }
         )
 
-    @extend_schema(
-        request=None,
-        responses=LanguageRetriveSerializer
-    )
+    @extend_schema(request=None, responses=LanguageRetriveSerializer)
     def retrieve(self, request, pk=None, version=None):
         page_name = self.request.query_params.getlist("page_name")
         page_name_list = []
@@ -80,10 +71,7 @@ class LanguageViewSet(viewsets.ViewSet):
         return response.Response(obj)
 
     @transaction.atomic
-    @extend_schema(
-        request=LanguageBulkActionsSerializer,
-        responses=LanguageBulkActionResponseSerializer
-    )
+    @extend_schema(request=LanguageBulkActionsSerializer, responses=LanguageBulkActionResponseSerializer)
     @djaction(
         detail=True,
         url_path="bulk-action",

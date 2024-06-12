@@ -6,13 +6,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0045_auto_20200320_1121'),
+        ("api", "0045_auto_20200320_1121"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='situationreporttype',
-            name='is_primary',
-            field=models.BooleanField(default=False, editable=False, help_text='Ensure this type gets precedence over others that are empty'),
+            model_name="situationreporttype",
+            name="is_primary",
+            field=models.BooleanField(
+                default=False, editable=False, help_text="Ensure this type gets precedence over others that are empty"
+            ),
         ),
     ]

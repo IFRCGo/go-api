@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('notifications', '0008_auto_20201104_0352'),
+        ("notifications", "0008_auto_20201104_0352"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='surgealert',
-            name='is_active',
+            model_name="surgealert",
+            name="is_active",
             field=models.BooleanField(default=True),
         ),
     ]

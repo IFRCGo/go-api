@@ -6,13 +6,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('notifications', '0013_auto_20230410_0720'),
+        ("notifications", "0013_auto_20230410_0720"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='surgealert',
-            name='status',
-            field=models.IntegerField(choices=[(0, 'Open'), (1, 'Stood Down'), (2, 'Closed')], default=0, verbose_name='alert status'),
+            model_name="surgealert",
+            name="status",
+            field=models.IntegerField(
+                choices=[(0, "Open"), (1, "Stood Down"), (2, "Closed")], default=0, verbose_name="alert status"
+            ),
         ),
     ]

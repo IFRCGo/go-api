@@ -1,76 +1,68 @@
-import re
 import logging
-import pandas as pd
 import operator
+import re
 from functools import reduce
 
+import pandas as pd
 from celery import shared_task
-from django.db import transaction, models
+from django.db import models, transaction
 
-from api.models import CountryType
-from .models import (
-    DataImport,
-    CountryPlan,
-    StrategicPriority,
-    MembershipCoordination
-)
-from api.models import Country
+from api.models import Country, CountryType
+
+from .models import CountryPlan, DataImport, MembershipCoordination, StrategicPriority
 
 logger = logging.getLogger(__name__)
 
 
-class CountryPlanImporter():
+class CountryPlanImporter:
     CSV_COLUMN = [
-        'ISO3',
-        'Country',
-        'Ongoing emergency operations',
-        'SP1 - Climate and environmental crisis',
-        'SP2 - Evolving crises and disasters',
-        'SP3 - Growing gaps in health and wellbeing',
-        'SP4 - Migration and identity',
-        'SP5 - Values, power, and inclusion',
-        'Max of people to be reached ',
-        'SP1',
-        'SP2',
-        'SP3',
-        'SP4',
-        'SP5',
-        'EA1',
-        'EA2',
-        'EA3',
-        'TOTAL\nFUNDING REQUIREMENTS',
+        "ISO3",
+        "Country",
+        "Ongoing emergency operations",
+        "SP1 - Climate and environmental crisis",
+        "SP2 - Evolving crises and disasters",
+        "SP3 - Growing gaps in health and wellbeing",
+        "SP4 - Migration and identity",
+        "SP5 - Values, power, and inclusion",
+        "Max of people to be reached ",
+        "SP1",
+        "SP2",
+        "SP3",
+        "SP4",
+        "SP5",
+        "EA1",
+        "EA2",
+        "EA3",
+        "TOTAL\nFUNDING REQUIREMENTS",
     ]
 
     SP_COLUMN = [
-        'SP1',
-        'SP2',
-        'SP3',
-        'SP4',
-        'SP5',
-        'EA1',
-        'EA2',
-        'EA3',
+        "SP1",
+        "SP2",
+        "SP3",
+        "SP4",
+        "SP5",
+        "EA1",
+        "EA2",
+        "EA3",
     ]
 
     @staticmethod
     def _process_number(number):
-        if number in ('', None):
+        if number in ("", None):
             return None
         if type(number) in [float, int]:
             return number
         # Some specific cases using regex
-        value_search = re.search(r'(?P<value>(\d+(?:\.\d+)?))?\s?(?P<expression>[MKB])', number)
-        if value_search is None or (
-            value_search.group('value') is None or
-            value_search.group('expression') is None
-        ):
+        value_search = re.search(r"(?P<value>(\d+(?:\.\d+)?))?\s?(?P<expression>[MKB])", number)
+        if value_search is None or (value_search.group("value") is None or value_search.group("expression") is None):
             return pd.to_numeric(number)
-        value = pd.to_numeric(value_search.group('value'))
-        expression = value_search.group('expression')
+        value = pd.to_numeric(value_search.group("value"))
+        expression = value_search.group("expression")
         EXPRESSION_MULTIPLIER = {
-            'K': 1000,
-            'M': 1000000,
-            'B': 1000000000,
+            "K": 1000,
+            "M": 1000000,
+            "B": 1000000000,
         }
         return value * EXPRESSION_MULTIPLIER[expression]
 
@@ -101,25 +93,18 @@ class CountryPlanImporter():
         sp_column_ns_type_map = dict(zip(cls.SP_COLUMN, MembershipCoordination.Sector))
         membership_coordination_ids = []
         for sp in cls.SP_COLUMN:
-            national_societies_str = set([
-                name.strip()
-                for name in str(sp_column_n_society_map[sp] or '').split(',')
-                if name.strip()
-            ])
+            national_societies_str = set(
+                [name.strip() for name in str(sp_column_n_society_map[sp] or "").split(",") if name.strip()]
+            )
             if not national_societies_str:
                 continue
             countries_qs = Country.objects.filter(
-                reduce(
-                    operator.or_, (
-                        models.Q(society_name__icontains=name)
-                        for name in national_societies_str
-                    )
-                ),
+                reduce(operator.or_, (models.Q(society_name__icontains=name) for name in national_societies_str)),
                 record_type=CountryType.COUNTRY,
                 in_search=True,
             )
             # TODO: Better error handling
-            missing_ns_in_db = set(national_societies_str) - set(countries_qs.values_list('society_name', flat=True))
+            missing_ns_in_db = set(national_societies_str) - set(countries_qs.values_list("society_name", flat=True))
             if missing_ns_in_db:
                 raise Exception(f"Missing NS in the database: {missing_ns_in_db}")
             for country in countries_qs.all():
@@ -132,10 +117,9 @@ class CountryPlanImporter():
                 membership_coordination.save()
                 membership_coordination_ids.append(membership_coordination.id)
         # Update dangling membership coordination
-        MembershipCoordination.objects\
-            .filter(country_plan=country_plan)\
-            .exclude(id__in=membership_coordination_ids)\
-            .update(has_coordination=False)
+        MembershipCoordination.objects.filter(country_plan=country_plan).exclude(id__in=membership_coordination_ids).update(
+            has_coordination=False
+        )
 
     @classmethod
     def process(cls, file):
@@ -148,11 +132,13 @@ class CountryPlanImporter():
                 with transaction.atomic():
                     cls._save_country_plan(row)
             except Exception as e:
-                logger.error(f'Failed to import Country-Plan: iso3:{row.ISO3}', exc_info=True)
-                errors.append(dict(
-                    iso3=row.ISO3,
-                    error=str(e),
-                ))
+                logger.error(f"Failed to import Country-Plan: iso3:{row.ISO3}", exc_info=True)
+                errors.append(
+                    dict(
+                        iso3=row.ISO3,
+                        error=str(e),
+                    )
+                )
         return errors
 
 

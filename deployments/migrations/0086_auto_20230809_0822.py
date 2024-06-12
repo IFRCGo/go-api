@@ -6,22 +6,22 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('deployments', '0085_alter_personnel_location'),
+        ("deployments", "0085_alter_personnel_location"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='personnel',
-            name='appraisal_score',
+            model_name="personnel",
+            name="appraisal_score",
         ),
         migrations.AddField(
-            model_name='personnel',
-            name='appraisal_received',
-            field=models.BooleanField(default=False, verbose_name='appraisal received'),
+            model_name="personnel",
+            name="appraisal_received",
+            field=models.BooleanField(default=False, verbose_name="appraisal received"),
         ),
         migrations.AlterField(
-            model_name='personnel',
-            name='gender',
-            field=models.CharField(blank=True, max_length=15, null=True, verbose_name='gender'),
+            model_name="personnel",
+            name="gender",
+            field=models.CharField(blank=True, max_length=15, null=True, verbose_name="gender"),
         ),
     ]

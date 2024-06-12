@@ -6,9 +6,8 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0088_auto_20201105_0943'),
-        ('api', '0093_auto_20201123_1026'),
+        ("api", "0088_auto_20201105_0943"),
+        ("api", "0093_auto_20201123_1026"),
     ]
 
-    operations = [
-    ]
+    operations = []

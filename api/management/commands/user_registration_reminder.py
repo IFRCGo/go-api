@@ -1,11 +1,14 @@
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
+
 from django.core.management.base import BaseCommand
 from django.template.loader import render_to_string
 from sentry_sdk.crons import monitor
-from api.models import UserRegion, Region
+
+from api.models import Region, UserRegion
 from main.sentry import SentryMonitor
-from registrations.models import Pending
 from notifications.notification import send_notification
+from registrations.models import Pending
+
 
 @monitor(monitor_slug=SentryMonitor.USER_REGISTRATION_REMINDER)
 class Command(BaseCommand):

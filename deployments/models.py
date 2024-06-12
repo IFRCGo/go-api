@@ -1,26 +1,25 @@
-import reversion
 from datetime import datetime
-from tinymce.models import HTMLField
 
+import reversion
+from django.conf import settings
 from django.db import models
+from django.db.models import JSONField, Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from django.conf import settings
-from django.db.models import Q
-from django.db.models import JSONField
+from tinymce.models import HTMLField
 
 from api.models import (
-    District,
-    Country,
-    Region,
     Admin2,
-    Event,
-    DisasterType,
     Appeal,
+    Country,
+    DisasterType,
+    District,
+    Event,
+    GeneralDocument,
     Profile,
+    Region,
     UserCountry,
     VisibilityCharChoices,
-    GeneralDocument,
 )
 
 DATE_FORMAT = "%Y/%m/%d %H:%M"
@@ -122,9 +121,7 @@ class ERU(models.Model):
 @reversion.register()
 class PersonnelDeployment(models.Model):
     country_deployed_to = models.ForeignKey(Country, verbose_name=_("country deployed to"), on_delete=models.CASCADE)
-    region_deployed_to = models.ForeignKey(
-        Region, verbose_name=_("region deployed to"), null=True, on_delete=models.SET_NULL
-    )
+    region_deployed_to = models.ForeignKey(Region, verbose_name=_("region deployed to"), null=True, on_delete=models.SET_NULL)
     event_deployed_to = models.ForeignKey(
         Event, verbose_name=_("event deployed to"), null=True, blank=True, on_delete=models.SET_NULL
     )
@@ -251,7 +248,7 @@ class Personnel(DeployedPerson):
     )
     is_active = models.BooleanField(default=True)  # Active in Molnix API
     surge_alert = models.ForeignKey(  # position_id in Molnix API
-        'notifications.SurgeAlert',  # import as string to avoid circular import (MolnixTag)
+        "notifications.SurgeAlert",  # import as string to avoid circular import (MolnixTag)
         verbose_name=_("surge alert"),
         null=True,
         blank=True,
@@ -453,9 +450,7 @@ class Project(models.Model):
         blank=True,
         on_delete=models.SET_NULL,
     )  # this is the current operation
-    dtype = models.ForeignKey(
-        DisasterType, verbose_name=_("disaster type"), null=True, blank=True, on_delete=models.SET_NULL
-    )
+    dtype = models.ForeignKey(DisasterType, verbose_name=_("disaster type"), null=True, blank=True, on_delete=models.SET_NULL)
     name = models.TextField(verbose_name=_("name"))
     description = HTMLField(verbose_name=_("description"), blank=True, default="")
     document = models.ForeignKey(
@@ -565,14 +560,10 @@ class Project(models.Model):
     @staticmethod
     def get_for(user, queryset=None):
         countries_qs = (
-            UserCountry.objects.filter(user=user)
-            .values("country")
-            .union(Profile.objects.filter(user=user).values("country"))
+            UserCountry.objects.filter(user=user).values("country").union(Profile.objects.filter(user=user).values("country"))
         )
         return queryset.exclude(
-            Q(visibility=VisibilityCharChoices.IFRC_NS) &
-            ~Q(project_country__in=countries_qs) &
-            ~Q(reporting_ns__in=countries_qs)
+            Q(visibility=VisibilityCharChoices.IFRC_NS) & ~Q(project_country__in=countries_qs) & ~Q(reporting_ns__in=countries_qs)
         )
 
 
@@ -584,7 +575,7 @@ class Project(models.Model):
 #        return 'secondary_sectors__title'
 
 
-@reversion.register(follow=('project',))
+@reversion.register(follow=("project",))
 class AnnualSplit(models.Model):
     """Annual split for Project"""
 
@@ -818,7 +809,7 @@ class EmergencyProjectActivityLocation(models.Model):
         return f"{self.latitude} - {self.longitude}"
 
 
-@reversion.register(follow=('project',))
+@reversion.register(follow=("project",))
 class EmergencyProjectActivity(models.Model):
     class PeopleHouseholds(models.TextChoices):
         PEOPLE = "people", _("People")
@@ -843,12 +834,8 @@ class EmergencyProjectActivity(models.Model):
         related_name="activities",
     )
     is_simplified_report = models.BooleanField(verbose_name=_("is_simplified_report"), default=True)
-    is_disaggregated_for_disabled = models.BooleanField(
-        verbose_name=_("Is disaggregated for disabled"), null=True, blank=True
-    )
-    has_no_data_on_people_reached = models.BooleanField(
-        verbose_name=_("Has no data on people reached"), null=True, blank=True
-    )
+    is_disaggregated_for_disabled = models.BooleanField(verbose_name=_("Is disaggregated for disabled"), null=True, blank=True)
+    has_no_data_on_people_reached = models.BooleanField(verbose_name=_("Has no data on people reached"), null=True, blank=True)
     # Metrics
     people_households = models.CharField(
         max_length=50,
@@ -910,12 +897,8 @@ class EmergencyProjectActivity(models.Model):
     disabled_other_18_59_count = models.IntegerField(verbose_name=_("Disabled Others/Unknown 18-29"), null=True, blank=True)
     disabled_other_60_plus_count = models.IntegerField(verbose_name=_("Disabled Others/Unknown 60+"), null=True, blank=True)
     disabled_male_unknown_age_count = models.IntegerField(verbose_name=_("Disabled Male Unknown Age"), null=True, blank=True)
-    disabled_female_unknown_age_count = models.IntegerField(
-        verbose_name=_("Disabled Female Unknown Age"), null=True, blank=True
-    )
-    disabled_other_unknown_age_count = models.IntegerField(
-        verbose_name=_("Disabled Other Unknown Age"), null=True, blank=True
-    )
+    disabled_female_unknown_age_count = models.IntegerField(verbose_name=_("Disabled Female Unknown Age"), null=True, blank=True)
+    disabled_other_unknown_age_count = models.IntegerField(verbose_name=_("Disabled Other Unknown Age"), null=True, blank=True)
 
     # More Details
     details = models.TextField(verbose_name=_("details"), blank=True, null=True)

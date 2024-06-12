@@ -3,7 +3,7 @@ import csv
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from api.models import District, Admin2
+from api.models import Admin2, District
 
 
 class Command(BaseCommand):
@@ -26,7 +26,7 @@ class Command(BaseCommand):
                 adm2_code = row["GOadm2code"]
                 try:
                     adm2 = Admin2.objects.get(code=adm2_code)
-                except:
+                except Exception:
                     adm2 = Admin2()
                 adm2.code = adm2_code
                 adm2.admin1 = district

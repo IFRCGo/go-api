@@ -6,33 +6,33 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0086_auto_20200916_0942'),
+        ("api", "0086_auto_20200916_0942"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='region',
-            name='label_ar',
-            field=models.CharField(blank=True, max_length=250, null=True, verbose_name='name of the region'),
+            model_name="region",
+            name="label_ar",
+            field=models.CharField(blank=True, max_length=250, null=True, verbose_name="name of the region"),
         ),
         migrations.AddField(
-            model_name='region',
-            name='label_en',
-            field=models.CharField(blank=True, max_length=250, null=True, verbose_name='name of the region'),
+            model_name="region",
+            name="label_en",
+            field=models.CharField(blank=True, max_length=250, null=True, verbose_name="name of the region"),
         ),
         migrations.AddField(
-            model_name='region',
-            name='label_es',
-            field=models.CharField(blank=True, max_length=250, null=True, verbose_name='name of the region'),
+            model_name="region",
+            name="label_es",
+            field=models.CharField(blank=True, max_length=250, null=True, verbose_name="name of the region"),
         ),
         migrations.AddField(
-            model_name='region',
-            name='label_fr',
-            field=models.CharField(blank=True, max_length=250, null=True, verbose_name='name of the region'),
+            model_name="region",
+            name="label_fr",
+            field=models.CharField(blank=True, max_length=250, null=True, verbose_name="name of the region"),
         ),
         migrations.AlterField(
-            model_name='region',
-            name='label',
-            field=models.CharField(blank=True, max_length=250, verbose_name='name of the region'),
+            model_name="region",
+            name="label",
+            field=models.CharField(blank=True, max_length=250, verbose_name="name of the region"),
         ),
     ]

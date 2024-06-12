@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('deployments', '0034_auto_20201111_1056'),
+        ("deployments", "0034_auto_20201111_1056"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='personnel',
-            name='molnix_tags',
-            field=models.ManyToManyField(blank=True, to='deployments.MolnixTag'),
+            model_name="personnel",
+            name="molnix_tags",
+            field=models.ManyToManyField(blank=True, to="deployments.MolnixTag"),
         ),
     ]

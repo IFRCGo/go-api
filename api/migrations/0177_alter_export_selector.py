@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0176_auto_20230906_0446'),
+        ("api", "0176_auto_20230906_0446"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='export',
-            name='selector',
-            field=models.CharField(blank=True, max_length=255, null=True, verbose_name='Selector'),
+            model_name="export",
+            name="selector",
+            field=models.CharField(blank=True, max_length=255, null=True, verbose_name="Selector"),
         ),
     ]

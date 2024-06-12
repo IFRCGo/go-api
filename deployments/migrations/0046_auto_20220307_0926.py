@@ -7,18 +7,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('deployments', '0045_remove_emergencyproject_country'),
+        ("deployments", "0045_remove_emergencyproject_country"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='emergencyprojectactivity',
-            name='location_description',
-            field=models.TextField(blank=True, verbose_name='location description'),
+            model_name="emergencyprojectactivity",
+            name="location_description",
+            field=models.TextField(blank=True, verbose_name="location description"),
         ),
         migrations.AddField(
-            model_name='emergencyprojectactivity',
-            name='location_point',
-            field=django.contrib.gis.db.models.fields.PointField(blank=True, null=True, srid=4326, verbose_name='location point'),
+            model_name="emergencyprojectactivity",
+            name="location_point",
+            field=django.contrib.gis.db.models.fields.PointField(blank=True, null=True, srid=4326, verbose_name="location point"),
         ),
     ]

@@ -6,13 +6,25 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0061_overview_phase'),
+        ("per", "0061_overview_phase"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='overview',
-            name='phase',
-            field=models.IntegerField(blank=True, choices=[(1, 'Orientation'), (2, 'Assessment'), (3, 'Prioritisation'), (4, 'WorkPlan'), (5, 'Action And Accoutability')], default=1, null=True, verbose_name='phase'),
+            model_name="overview",
+            name="phase",
+            field=models.IntegerField(
+                blank=True,
+                choices=[
+                    (1, "Orientation"),
+                    (2, "Assessment"),
+                    (3, "Prioritisation"),
+                    (4, "WorkPlan"),
+                    (5, "Action And Accoutability"),
+                ],
+                default=1,
+                null=True,
+                verbose_name="phase",
+            ),
         ),
     ]

@@ -1,21 +1,22 @@
-from modeltranslation.translator import register, TranslationOptions
+from modeltranslation.translator import TranslationOptions, register
+
 from .models import (
+    AreaResponse,
+    AssessmentType,
+    CustomPerWorkPlanComponent,
+    FormAnswer,
     FormArea,
     FormComponent,
-    FormAnswer,
-    FormQuestion,
+    FormComponentQuestionAndAnswer,
+    FormComponentResponse,
     FormData,
-    AssessmentType,
+    FormPrioritizationComponent,
+    FormQuestion,
     FormQuestionGroup,
     Overview,
-    FormComponentResponse,
-    FormComponentQuestionAndAnswer,
     PerAssessment,
-    AreaResponse,
-    FormPrioritizationComponent,
-    PerWorkPlanComponent,
-    CustomPerWorkPlanComponent,
     PerComponentRating,
+    PerWorkPlanComponent,
 )
 
 
@@ -61,12 +62,7 @@ class OverviewTO(TranslationOptions):
 
 @register(FormComponentResponse)
 class FormComponentResponseTO(TranslationOptions):
-    fields = (
-        'urban_considerations',
-        'epi_considerations',
-        'climate_environmental_considerations',
-        'notes'
-    )
+    fields = ("urban_considerations", "epi_considerations", "climate_environmental_considerations", "notes")
 
 
 @register(PerComponentRating)
@@ -76,9 +72,7 @@ class PerComponentRatingTO(TranslationOptions):
 
 @register(FormComponentQuestionAndAnswer)
 class FormComponentQuestionAndAnswerTO(TranslationOptions):
-    fields = (
-        'notes',
-    )
+    fields = ("notes",)
 
 
 @register(PerAssessment)
@@ -93,20 +87,14 @@ class AreaResponseTO(TranslationOptions):
 
 @register(FormPrioritizationComponent)
 class FormPrioritizationComponentTO(TranslationOptions):
-    fields = (
-        'justification_text',
-    )
+    fields = ("justification_text",)
 
 
 @register(PerWorkPlanComponent)
 class PerWorkPlanComponentTo(TranslationOptions):
-    fields = (
-        'actions',
-    )
+    fields = ("actions",)
 
 
 @register(CustomPerWorkPlanComponent)
 class CustomPerWorkPlanComponentTO(TranslationOptions):
-    fields = (
-        'actions',
-    )
+    fields = ("actions",)

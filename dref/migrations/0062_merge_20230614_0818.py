@@ -6,9 +6,8 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dref', '0058_auto_20230425_0428'),
-        ('dref', '0061_merge_20230614_0804'),
+        ("dref", "0058_auto_20230425_0428"),
+        ("dref", "0061_merge_20230614_0804"),
     ]
 
-    operations = [
-    ]
+    operations = []

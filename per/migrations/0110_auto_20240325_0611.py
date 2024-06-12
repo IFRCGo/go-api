@@ -2,8 +2,9 @@
 
 from django.db import migrations
 
+
 def update_description_to_null(apps, schema_editor):
-    FormComponent = apps.get_model('per', 'FormComponent')
+    FormComponent = apps.get_model("per", "FormComponent")
     FormComponent.objects.filter(id__in=[48, 20, 15]).update(
         description=None,
         description_en=None,
@@ -16,12 +17,9 @@ def update_description_to_null(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0109_auto_20240320_0804'),
+        ("per", "0109_auto_20240320_0804"),
     ]
 
     operations = [
-        migrations.RunPython(
-            update_description_to_null,
-            reverse_code=migrations.RunPython.noop
-        ),
+        migrations.RunPython(update_description_to_null, reverse_code=migrations.RunPython.noop),
     ]

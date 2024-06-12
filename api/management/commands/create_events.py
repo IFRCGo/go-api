@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
-from api.models import Appeal, Event
+
 from api.event_sources import SOURCES
+from api.models import Appeal, Event
 
 
 class Command(BaseCommand):

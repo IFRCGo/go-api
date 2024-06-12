@@ -1,7 +1,8 @@
 from django.core.management.base import BaseCommand
-from api.models import MainContact
 from django.db import transaction
+
 from api.logger import logger
+from api.models import MainContact
 
 
 class Command(BaseCommand):

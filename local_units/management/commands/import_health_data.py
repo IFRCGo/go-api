@@ -33,75 +33,45 @@ class Command(BaseCommand):
             bulk_mgr = BulkCreateManager(chunk_size=1000)
 
             # Prefetch
-            affiliation_id_map = {
-                wash(name): code
-                for code, name in models.Affiliation.objects.values_list("code", "name")
-            }
-            functionality_id_map = {
-                wash(name): code
-                for code, name in models.Functionality.objects.values_list("code", "name")
-            }
-            facilitytype_id_map = {
-                wash(name): code
-                for code, name in models.FacilityType.objects.values_list("code", "name")
-            }
-            primaryhcc_id_map = {
-                wash(name): code
-                for code, name in models.PrimaryHCC.objects.values_list("code", "name")
-            }
-            hospitaltype_id_map = {
-                wash(name): code
-                for code, name in models.HospitalType.objects.values_list("code", "name")
-            }
+            affiliation_id_map = {wash(name): code for code, name in models.Affiliation.objects.values_list("code", "name")}
+            functionality_id_map = {wash(name): code for code, name in models.Functionality.objects.values_list("code", "name")}
+            facilitytype_id_map = {wash(name): code for code, name in models.FacilityType.objects.values_list("code", "name")}
+            primaryhcc_id_map = {wash(name): code for code, name in models.PrimaryHCC.objects.values_list("code", "name")}
+            hospitaltype_id_map = {wash(name): code for code, name in models.HospitalType.objects.values_list("code", "name")}
             generalmedicalservice_id_map = {
-                wash(name): code
-                for code, name in models.GeneralMedicalService.objects.values_list("code", "name")
+                wash(name): code for code, name in models.GeneralMedicalService.objects.values_list("code", "name")
             }
             specializedmedicalservice_id_map = {
-                wash(name): code
-                for code, name in models.SpecializedMedicalService.objects.values_list("code", "name")
+                wash(name): code for code, name in models.SpecializedMedicalService.objects.values_list("code", "name")
             }
-            bloodservice_id_map = {
-                wash(name): code
-                for code, name in models.BloodService.objects.values_list("code", "name")
-            }
+            bloodservice_id_map = {wash(name): code for code, name in models.BloodService.objects.values_list("code", "name")}
             professionaltrainingfacility_id_map = {
-                wash(name): code
-                for code, name in models.ProfessionalTrainingFacility.objects.values_list("code", "name")
+                wash(name): code for code, name in models.ProfessionalTrainingFacility.objects.values_list("code", "name")
             }
 
-            facilitytype_id_map['primaryhealthcarecentre'] = facilitytype_id_map[
-                                'primaryhealthcarecenter']
-            facilitytype_id_map['residentialfacilities'] = facilitytype_id_map[
-                                'residentialfacility']
-            facilitytype_id_map['trainingfacilities'] = facilitytype_id_map[
-                                'trainingfacility']
-            facilitytype_id_map['hospitals'] = facilitytype_id_map[
-                                'hospital']
-            facilitytype_id_map['pharmacies'] = facilitytype_id_map[
-                                'pharmacy']
-            facilitytype_id_map['bloodcentres'] = facilitytype_id_map[
-                                'bloodcenter']
-            specializedmedicalservice_id_map['surgicalspecialties'] = specializedmedicalservice_id_map[
-                                             'surgicalspecialities']
+            facilitytype_id_map["primaryhealthcarecentre"] = facilitytype_id_map["primaryhealthcarecenter"]
+            facilitytype_id_map["residentialfacilities"] = facilitytype_id_map["residentialfacility"]
+            facilitytype_id_map["trainingfacilities"] = facilitytype_id_map["trainingfacility"]
+            facilitytype_id_map["hospitals"] = facilitytype_id_map["hospital"]
+            facilitytype_id_map["pharmacies"] = facilitytype_id_map["pharmacy"]
+            facilitytype_id_map["bloodcentres"] = facilitytype_id_map["bloodcenter"]
+            specializedmedicalservice_id_map["surgicalspecialties"] = specializedmedicalservice_id_map["surgicalspecialities"]
 
-            primaryhcc_id_map[''] = None
-            hospitaltype_id_map[''] = None
-            generalmedicalservice_id_map[''] = None
-            generalmedicalservice_id_map['none'] = None
-            specializedmedicalservice_id_map[''] = None
-            specializedmedicalservice_id_map['none'] = None
-            bloodservice_id_map['none'] = None
-            bloodservice_id_map[''] = None
-            professionaltrainingfacility_id_map['none'] = None
-            professionaltrainingfacility_id_map[''] = None
+            primaryhcc_id_map[""] = None
+            hospitaltype_id_map[""] = None
+            generalmedicalservice_id_map[""] = None
+            generalmedicalservice_id_map["none"] = None
+            specializedmedicalservice_id_map[""] = None
+            specializedmedicalservice_id_map["none"] = None
+            bloodservice_id_map["none"] = None
+            bloodservice_id_map[""] = None
+            professionaltrainingfacility_id_map["none"] = None
+            professionaltrainingfacility_id_map[""] = None
 
             for i, row in enumerate(reader, start=2):
                 # Without id and affilation we can't use the row:
                 if not row["DATA SOURCE ID"] or not row["Affilation"]:
-                    self.stdout.write(
-                        self.style.WARNING(f"Skipping row {i + 1}: Empty id or Affilation data")
-                    )
+                    self.stdout.write(self.style.WARNING(f"Skipping row {i + 1}: Empty id or Affilation data"))
                     continue
 
                 # field order is the same as in the example CSV:
@@ -160,13 +130,13 @@ class Command(BaseCommand):
                     primary_health_care_center_id=primaryhcc_id_map[f_phc],
                     speciality=f_spc or None,
                     hospital_type_id=hospitaltype_id_map[f_hst],
-                    is_teaching_hospital=wash(f_ths) == 'yes',  # boolean
-                    is_in_patient_capacity=wash(f_ipc) == 'yes',  # boolean
-                    is_isolation_rooms_wards=wash(f_irw) == 'yes',  # boolean
+                    is_teaching_hospital=wash(f_ths) == "yes",  # boolean
+                    is_in_patient_capacity=wash(f_ipc) == "yes",  # boolean
+                    is_isolation_rooms_wards=wash(f_irw) == "yes",  # boolean
                     maximum_capacity=f_mxc or None,
                     number_of_isolation_rooms=f_nir or None,
-                    is_warehousing=wash(f_wrh) == 'yes',  # boolean
-                    is_cold_chain=wash(f_cch) == 'yes',  # boolean
+                    is_warehousing=wash(f_wrh) == "yes",  # boolean
+                    is_cold_chain=wash(f_cch) == "yes",  # boolean
                     ambulance_type_a=f_ata or None,
                     ambulance_type_b=f_atb or None,
                     ambulance_type_c=f_atc or None,
@@ -179,28 +149,28 @@ class Command(BaseCommand):
                     dentist=f_dts or None,
                     nursing_aid=f_nur or None,
                     midwife=f_mid or None,
-                    other_medical_heal=wash(f_omh) == 'yes',  # boolean
+                    other_medical_heal=wash(f_omh) == "yes",  # boolean
                     other_profiles=f_opr or None,
-                    feedback=f_fbk or None
+                    feedback=f_fbk or None,
                     # Many2Many: general_medical_services: see below in a loop
                     # Many2Many: specialized_medical_beyond_primary_level: also
                     # Many2Many: blood_services: also
                     # Many2Many: professional_training_facilities: also
                 )
                 if f_gms:
-                    for f in f_gms.split(' '):  # Can be None, so:
+                    for f in f_gms.split(" "):  # Can be None, so:
                         if generalmedicalservice_id_map[f]:
                             health.general_medical_services.add(generalmedicalservice_id_map[f])
                 if f_spm:
-                    for f in f_spm.split(' '):
+                    for f in f_spm.split(" "):
                         if specializedmedicalservice_id_map[f]:
                             health.specialized_medical_beyond_primary_level.add(specializedmedicalservice_id_map[f])
                 if f_bls:
-                    for f in f_bls.split(' '):
+                    for f in f_bls.split(" "):
                         if bloodservice_id_map[f]:
                             health.blood_services.add(bloodservice_id_map[f])
                 if f_ptf:
-                    for f in f_ptf.split(' '):
+                    for f in f_ptf.split(" "):
                         if professionaltrainingfacility_id_map[f]:
                             health.professional_training_facilities.add(professionaltrainingfacility_id_map[f])
                 bulk_mgr.add(health)

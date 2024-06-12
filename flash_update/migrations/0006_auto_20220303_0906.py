@@ -6,12 +6,12 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('flash_update', '0005_auto_20220303_0834'),
+        ("flash_update", "0005_auto_20220303_0834"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='flashemailsubscriptions',
-            options={'verbose_name': 'flash email subscription'},
+            name="flashemailsubscriptions",
+            options={"verbose_name": "flash email subscription"},
         ),
     ]

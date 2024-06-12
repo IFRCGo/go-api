@@ -1,6 +1,7 @@
-from django.core.management.base import BaseCommand
 from django.contrib.gis.geos import Polygon
+from django.core.management.base import BaseCommand
 from django.db import transaction
+
 from api.models import Region
 
 

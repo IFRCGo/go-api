@@ -6,33 +6,33 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0015_auto_20190409_1540'),
+        ("api", "0015_auto_20190409_1540"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='event',
-            name='num_dead',
+            model_name="event",
+            name="num_dead",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='event',
-            name='num_displaced',
+            model_name="event",
+            name="num_displaced",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='event',
-            name='num_injured',
+            model_name="event",
+            name="num_injured",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='event',
-            name='num_missing',
+            model_name="event",
+            name="num_missing",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.RenameField(
-            model_name='event',
-            old_name='alert_level',
-            new_name='ifrc_severity_level',
+            model_name="event",
+            old_name="alert_level",
+            new_name="ifrc_severity_level",
         ),
     ]

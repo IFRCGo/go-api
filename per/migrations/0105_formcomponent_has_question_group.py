@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0104_alter_overview_phase'),
+        ("per", "0104_alter_overview_phase"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='formcomponent',
-            name='has_question_group',
-            field=models.BooleanField(blank=True, null=True, verbose_name='Has Question Group'),
+            model_name="formcomponent",
+            name="has_question_group",
+            field=models.BooleanField(blank=True, null=True, verbose_name="Has Question Group"),
         ),
     ]

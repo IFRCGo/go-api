@@ -6,13 +6,17 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0132_auto_20210701_0635'),
+        ("api", "0132_auto_20210701_0635"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='eventfeatureddocument',
-            name='thumbnail',
-            field=models.ImageField(help_text='Image should be portrait (3:4 aspect ratio) and scaled down to as close to 96x128 as the image size', upload_to='event-featured-documents/thumbnail/', verbose_name='thumbnail'),
+            model_name="eventfeatureddocument",
+            name="thumbnail",
+            field=models.ImageField(
+                help_text="Image should be portrait (3:4 aspect ratio) and scaled down to as close to 96x128 as the image size",
+                upload_to="event-featured-documents/thumbnail/",
+                verbose_name="thumbnail",
+            ),
         ),
     ]

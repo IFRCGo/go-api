@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dref', '0060_dreffinalreport_date_of_approval'),
+        ("dref", "0060_dreffinalreport_date_of_approval"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='dref',
-            name='is_active',
-            field=models.BooleanField(blank=True, null=True, verbose_name='Is Active'),
+            model_name="dref",
+            name="is_active",
+            field=models.BooleanField(blank=True, null=True, verbose_name="Is Active"),
         ),
     ]

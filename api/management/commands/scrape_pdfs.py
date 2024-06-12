@@ -1,30 +1,30 @@
 # Officially a work of Navin (toggle-corp/ifrc), modified some parts for Django Admin usage
 import re
+from io import BytesIO
+
+import requests
 import urllib3
 import xmltodict
-import requests
-import api.scrapers.cleaners as cleaners
-from io import BytesIO
 from bs4 import BeautifulSoup as bsoup
+from django.core.management.base import BaseCommand
 from pdfminer.converter import HTMLConverter
-from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.layout import LAParams
+from pdfminer.pdfinterp import PDFPageInterpreter, PDFResourceManager
 from pdfminer.pdfpage import PDFPage
 from tidylib import tidy_document
 
+import api.scrapers.cleaners as cleaners
+from api.logger import logger
 from api.models import (
-    EmergencyOperationsDataset,
-    EmergencyOperationsPeopleReached,
-    EmergencyOperationsEA,
-    EmergencyOperationsFR,
     CronJob,
     CronJobStatus,
+    EmergencyOperationsDataset,
+    EmergencyOperationsEA,
+    EmergencyOperationsFR,
+    EmergencyOperationsPeopleReached,
 )
-from api.logger import logger
-from django.core.management.base import BaseCommand
-from api.scrapers.extractor import MetaFieldExtractor, SectorFieldExtractor
 from api.scrapers.config import _mfd, _s, _sfd
-
+from api.scrapers.extractor import MetaFieldExtractor, SectorFieldExtractor
 
 SECTORS = [
     _s.health,
@@ -222,9 +222,7 @@ class Command(BaseCommand):
                     raw_livelihoods_and_basic_needs_female=data["sector"]
                     .get(_s.livelihoods_and_basic_needs, {})
                     .get(_sfd.female),
-                    raw_livelihoods_and_basic_needs_male=data["sector"]
-                    .get(_s.livelihoods_and_basic_needs, {})
-                    .get(_sfd.male),
+                    raw_livelihoods_and_basic_needs_male=data["sector"].get(_s.livelihoods_and_basic_needs, {}).get(_sfd.male),
                     raw_livelihoods_and_basic_needs_people_reached=data["sector"]
                     .get(_s.livelihoods_and_basic_needs, {})
                     .get(_sfd.people_reached),
@@ -259,9 +257,7 @@ class Command(BaseCommand):
                     raw_shelter_people_reached=data["sector"].get(_s.shelter, {}).get(_sfd.people_reached),
                     raw_shelter_people_targeted=data["sector"].get(_s.shelter, {}).get(_sfd.people_targeted),
                     raw_shelter_requirements=data["sector"].get(_s.shelter, {}).get(_sfd.requirements),
-                    raw_water_sanitation_and_hygiene_female=data["sector"]
-                    .get(_s.Water_sanitation_hygiene, {})
-                    .get(_sfd.female),
+                    raw_water_sanitation_and_hygiene_female=data["sector"].get(_s.Water_sanitation_hygiene, {}).get(_sfd.female),
                     raw_water_sanitation_and_hygiene_male=data["sector"].get(_s.Water_sanitation_hygiene, {}).get(_sfd.male),
                     raw_water_sanitation_and_hygiene_people_reached=data["sector"]
                     .get(_s.Water_sanitation_hygiene, {})
@@ -281,9 +277,9 @@ class Command(BaseCommand):
                     file_name=data["filename"][:200] if data["filename"] else None,
                     appeal_launch_date=cleaners.clean_date(data["meta"].get(_mfd.appeal_launch_date)),
                     appeal_number=cleaners.clean_appeal_code(data["meta"].get(_mfd.appeal_number)),
-                    category_allocated=data["meta"].get(_mfd.category_allocated)[:100]
-                    if data["meta"].get(_mfd.category_allocated)
-                    else None,
+                    category_allocated=(
+                        data["meta"].get(_mfd.category_allocated)[:100] if data["meta"].get(_mfd.category_allocated) else None
+                    ),
                     date_of_issue=cleaners.clean_date(data["meta"].get(_mfd.date_of_issue)),
                     dref_allocated=cleaners.clean_number(data["meta"].get(_mfd.dref_allocated)),
                     expected_end_date=cleaners.clean_date(data["meta"].get(_mfd.expected_end_date)),
@@ -309,9 +305,7 @@ class Command(BaseCommand):
                     health_female=cleaners.clean_number(data["sector"].get(_s.health, {}).get(_sfd.female)),
                     health_male=cleaners.clean_number(data["sector"].get(_s.health, {}).get(_sfd.male)),
                     health_people_reached=cleaners.clean_number(data["sector"].get(_s.health, {}).get(_sfd.people_reached)),
-                    health_people_targeted=cleaners.clean_number(
-                        data["sector"].get(_s.health, {}).get(_sfd.people_targeted)
-                    ),
+                    health_people_targeted=cleaners.clean_number(data["sector"].get(_s.health, {}).get(_sfd.people_targeted)),
                     health_requirements=cleaners.clean_number(data["sector"].get(_s.health, {}).get(_sfd.requirements)),
                     livelihoods_and_basic_needs_female=cleaners.clean_number(
                         data["sector"].get(_s.livelihoods_and_basic_needs, {}).get(_sfd.female)
@@ -330,15 +324,11 @@ class Command(BaseCommand):
                     ),
                     migration_female=cleaners.clean_number(data["sector"].get(_s.migration, {}).get(_sfd.female)),
                     migration_male=cleaners.clean_number(data["sector"].get(_s.migration, {}).get(_sfd.male)),
-                    migration_people_reached=cleaners.clean_number(
-                        data["sector"].get(_s.migration, {}).get(_sfd.people_reached)
-                    ),
+                    migration_people_reached=cleaners.clean_number(data["sector"].get(_s.migration, {}).get(_sfd.people_reached)),
                     migration_people_targeted=cleaners.clean_number(
                         data["sector"].get(_s.migration, {}).get(_sfd.people_targeted)
                     ),
-                    migration_requirements=cleaners.clean_number(
-                        data["sector"].get(_s.migration, {}).get(_sfd.requirements)
-                    ),
+                    migration_requirements=cleaners.clean_number(data["sector"].get(_s.migration, {}).get(_sfd.requirements)),
                     protection_gender_and_inclusion_female=cleaners.clean_number(
                         data["sector"].get(_s.protection_gender_inclusion, {}).get(_sfd.female)
                     ),
@@ -356,12 +346,8 @@ class Command(BaseCommand):
                     ),
                     shelter_female=cleaners.clean_number(data["sector"].get(_s.shelter, {}).get(_sfd.female)),
                     shelter_male=cleaners.clean_number(data["sector"].get(_s.shelter, {}).get(_sfd.male)),
-                    shelter_people_reached=cleaners.clean_number(
-                        data["sector"].get(_s.shelter, {}).get(_sfd.people_reached)
-                    ),
-                    shelter_people_targeted=cleaners.clean_number(
-                        data["sector"].get(_s.shelter, {}).get(_sfd.people_targeted)
-                    ),
+                    shelter_people_reached=cleaners.clean_number(data["sector"].get(_s.shelter, {}).get(_sfd.people_reached)),
+                    shelter_people_targeted=cleaners.clean_number(data["sector"].get(_s.shelter, {}).get(_sfd.people_targeted)),
                     shelter_requirements=cleaners.clean_number(data["sector"].get(_s.shelter, {}).get(_sfd.requirements)),
                     water_sanitation_and_hygiene_female=cleaners.clean_number(
                         data["sector"].get(_s.Water_sanitation_hygiene, {}).get(_sfd.female)
@@ -380,9 +366,7 @@ class Command(BaseCommand):
                     ),
                     education_female=cleaners.clean_number(data["sector"].get("education", {}).get(_sfd.female)),
                     education_male=cleaners.clean_number(data["sector"].get("education", {}).get(_sfd.male)),
-                    education_people_reached=cleaners.clean_number(
-                        data["sector"].get("education", {}).get(_sfd.people_reached)
-                    ),
+                    education_people_reached=cleaners.clean_number(data["sector"].get("education", {}).get(_sfd.people_reached)),
                     education_people_targeted=cleaners.clean_number(
                         data["sector"].get("education", {}).get(_sfd.people_targeted)
                     ),
@@ -415,9 +399,7 @@ class Command(BaseCommand):
                     raw_livelihoods_and_basic_needs_female=data["sector"]
                     .get(_s.livelihoods_and_basic_needs, {})
                     .get(_sfd.female),
-                    raw_livelihoods_and_basic_needs_male=data["sector"]
-                    .get(_s.livelihoods_and_basic_needs, {})
-                    .get(_sfd.male),
+                    raw_livelihoods_and_basic_needs_male=data["sector"].get(_s.livelihoods_and_basic_needs, {}).get(_sfd.male),
                     raw_livelihoods_and_basic_needs_people_reached=data["sector"]
                     .get(_s.livelihoods_and_basic_needs, {})
                     .get(_sfd.people_reached),
@@ -444,9 +426,7 @@ class Command(BaseCommand):
                     raw_shelter_male=data["sector"].get(_s.shelter, {}).get(_sfd.male),
                     raw_shelter_people_reached=data["sector"].get(_s.shelter, {}).get(_sfd.people_reached),
                     raw_shelter_requirements=data["sector"].get(_s.shelter, {}).get(_sfd.requirements),
-                    raw_water_sanitation_and_hygiene_female=data["sector"]
-                    .get(_s.Water_sanitation_hygiene, {})
-                    .get(_sfd.female),
+                    raw_water_sanitation_and_hygiene_female=data["sector"].get(_s.Water_sanitation_hygiene, {}).get(_sfd.female),
                     raw_water_sanitation_and_hygiene_male=data["sector"].get(_s.Water_sanitation_hygiene, {}).get(_sfd.male),
                     raw_water_sanitation_and_hygiene_people_reached=data["sector"]
                     .get(_s.Water_sanitation_hygiene, {})
@@ -461,12 +441,14 @@ class Command(BaseCommand):
                     epoa_update_num=cleaners.clean_number(data["meta"].get(_mfd.epoa_update_num)),
                     glide_number=data["meta"].get(_mfd.glide_number)[:18] if data["meta"].get(_mfd.glide_number) else None,
                     operation_start_date=cleaners.clean_date(data["meta"].get(_mfd.operation_start_date)),
-                    operation_timeframe=data["meta"].get(_mfd.operation_timeframe)[:200]
-                    if data["meta"].get(_mfd.operation_timeframe)
-                    else None,
-                    time_frame_covered_by_update=data["meta"].get(_mfd.time_frame_covered_by_update)[:200]
-                    if data["meta"].get(_mfd.time_frame_covered_by_update)
-                    else None,
+                    operation_timeframe=(
+                        data["meta"].get(_mfd.operation_timeframe)[:200] if data["meta"].get(_mfd.operation_timeframe) else None
+                    ),
+                    time_frame_covered_by_update=(
+                        data["meta"].get(_mfd.time_frame_covered_by_update)[:200]
+                        if data["meta"].get(_mfd.time_frame_covered_by_update)
+                        else None
+                    ),
                     disaster_risk_reduction_female=cleaners.clean_number(
                         data["sector"].get(_s.disaster_Risk_reduction, {}).get(_sfd.female)
                     ),
@@ -497,12 +479,8 @@ class Command(BaseCommand):
                     ),
                     migration_female=cleaners.clean_number(data["sector"].get(_s.migration, {}).get(_sfd.female)),
                     migration_male=cleaners.clean_number(data["sector"].get(_s.migration, {}).get(_sfd.male)),
-                    migration_people_reached=cleaners.clean_number(
-                        data["sector"].get(_s.migration, {}).get(_sfd.people_reached)
-                    ),
-                    migration_requirements=cleaners.clean_number(
-                        data["sector"].get(_s.migration, {}).get(_sfd.requirements)
-                    ),
+                    migration_people_reached=cleaners.clean_number(data["sector"].get(_s.migration, {}).get(_sfd.people_reached)),
+                    migration_requirements=cleaners.clean_number(data["sector"].get(_s.migration, {}).get(_sfd.requirements)),
                     protection_gender_and_inclusion_female=cleaners.clean_number(
                         data["sector"].get(_s.protection_gender_inclusion, {}).get(_sfd.female)
                     ),
@@ -517,9 +495,7 @@ class Command(BaseCommand):
                     ),
                     shelter_female=cleaners.clean_number(data["sector"].get(_s.shelter, {}).get(_sfd.female)),
                     shelter_male=cleaners.clean_number(data["sector"].get(_s.shelter, {}).get(_sfd.male)),
-                    shelter_people_reached=cleaners.clean_number(
-                        data["sector"].get(_s.shelter, {}).get(_sfd.people_reached)
-                    ),
+                    shelter_people_reached=cleaners.clean_number(data["sector"].get(_s.shelter, {}).get(_sfd.people_reached)),
                     shelter_requirements=cleaners.clean_number(data["sector"].get(_s.shelter, {}).get(_sfd.requirements)),
                     water_sanitation_and_hygiene_female=cleaners.clean_number(
                         data["sector"].get(_s.Water_sanitation_hygiene, {}).get(_sfd.female)
@@ -554,7 +530,7 @@ class Command(BaseCommand):
                     raw_disaster_risk_reduction_people_reached=data["sector"]
                     .get(_s.disaster_Risk_reduction, {})
                     .get(_sfd.people_reached),
-                    # raw_disaster_risk_reduction_people_targeted=data['sector'].get(_s.disaster_Risk_reduction, {}).get(_sfd.people_targeted),
+                    # raw_disaster_risk_reduction_people_targeted=data['sector'].get(_s.disaster_Risk_reduction, {}).get(_sfd.people_targeted),  # noqa: E501
                     raw_disaster_risk_reduction_requirements=data["sector"]
                     .get(_s.disaster_Risk_reduction, {})
                     .get(_sfd.requirements),
@@ -566,13 +542,11 @@ class Command(BaseCommand):
                     raw_livelihoods_and_basic_needs_female=data["sector"]
                     .get(_s.livelihoods_and_basic_needs, {})
                     .get(_sfd.female),
-                    raw_livelihoods_and_basic_needs_male=data["sector"]
-                    .get(_s.livelihoods_and_basic_needs, {})
-                    .get(_sfd.male),
+                    raw_livelihoods_and_basic_needs_male=data["sector"].get(_s.livelihoods_and_basic_needs, {}).get(_sfd.male),
                     raw_livelihoods_and_basic_needs_people_reached=data["sector"]
                     .get(_s.livelihoods_and_basic_needs, {})
                     .get(_sfd.people_reached),
-                    # raw_livelihoods_and_basic_needs_people_targeted=data['sector'].get(_s.livelihoods_and_basic_needs, {}).get(_sfd.people_targeted),
+                    # raw_livelihoods_and_basic_needs_people_targeted=data['sector'].get(_s.livelihoods_and_basic_needs, {}).get(_sfd.people_targeted),  # noqa: E501
                     raw_livelihoods_and_basic_needs_requirements=data["sector"]
                     .get(_s.livelihoods_and_basic_needs, {})
                     .get(_sfd.requirements),
@@ -590,7 +564,7 @@ class Command(BaseCommand):
                     raw_protection_gender_and_inclusion_people_reached=data["sector"]
                     .get(_s.protection_gender_inclusion, {})
                     .get(_sfd.people_reached),
-                    # raw_protection_gender_and_inclusion_people_targeted=data['sector'].get(_s.protection_gender_inclusion, {}).get(_sfd.people_targeted),
+                    # raw_protection_gender_and_inclusion_people_targeted=data['sector'].get(_s.protection_gender_inclusion, {}).get(_sfd.people_targeted),  # noqa: E501
                     raw_protection_gender_and_inclusion_requirements=data["sector"]
                     .get(_s.protection_gender_inclusion, {})
                     .get(_sfd.requirements),
@@ -599,14 +573,12 @@ class Command(BaseCommand):
                     raw_shelter_people_reached=data["sector"].get(_s.shelter, {}).get(_sfd.people_reached),
                     # raw_shelter_people_targeted=data['sector'].get(_s.shelter, {}).get(_sfd.people_targeted),
                     raw_shelter_requirements=data["sector"].get(_s.shelter, {}).get(_sfd.requirements),
-                    raw_water_sanitation_and_hygiene_female=data["sector"]
-                    .get(_s.Water_sanitation_hygiene, {})
-                    .get(_sfd.female),
+                    raw_water_sanitation_and_hygiene_female=data["sector"].get(_s.Water_sanitation_hygiene, {}).get(_sfd.female),
                     raw_water_sanitation_and_hygiene_male=data["sector"].get(_s.Water_sanitation_hygiene, {}).get(_sfd.male),
                     raw_water_sanitation_and_hygiene_people_reached=data["sector"]
                     .get(_s.Water_sanitation_hygiene, {})
                     .get(_sfd.people_reached),
-                    # raw_water_sanitation_and_hygiene_people_targeted=data['sector'].get(_s.Water_sanitation_hygiene, {}).get(_sfd.people_targeted),
+                    # raw_water_sanitation_and_hygiene_people_targeted=data['sector'].get(_s.Water_sanitation_hygiene, {}).get(_sfd.people_targeted),  # noqa: E501
                     raw_water_sanitation_and_hygiene_requirements=data["sector"]
                     .get(_s.Water_sanitation_hygiene, {})
                     .get(_sfd.requirements),
@@ -631,7 +603,7 @@ class Command(BaseCommand):
                     disaster_risk_reduction_people_reached=cleaners.clean_number(
                         data["sector"].get(_s.disaster_Risk_reduction, {}).get(_sfd.people_reached)
                     ),
-                    # disaster_risk_reduction_people_targeted=cleaners.clean_number(data['sector'].get(_s.disaster_Risk_reduction, {}).get(_sfd.people_targeted)),
+                    # disaster_risk_reduction_people_targeted=cleaners.clean_number(data['sector'].get(_s.disaster_Risk_reduction, {}).get(_sfd.people_targeted)),  # noqa: E501
                     disaster_risk_reduction_requirements=cleaners.clean_number(
                         data["sector"].get(_s.disaster_Risk_reduction, {}).get(_sfd.requirements)
                     ),
@@ -649,19 +621,15 @@ class Command(BaseCommand):
                     livelihoods_and_basic_needs_people_reached=cleaners.clean_number(
                         data["sector"].get(_s.livelihoods_and_basic_needs, {}).get(_sfd.people_reached)
                     ),
-                    # livelihoods_and_basic_needs_people_targeted=cleaners.clean_number(data['sector'].get(_s.livelihoods_and_basic_needs, {}).get(_sfd.people_targeted)),
+                    # livelihoods_and_basic_needs_people_targeted=cleaners.clean_number(data['sector'].get(_s.livelihoods_and_basic_needs, {}).get(_sfd.people_targeted)),  # noqa: E501
                     livelihoods_and_basic_needs_requirements=cleaners.clean_number(
                         data["sector"].get(_s.livelihoods_and_basic_needs, {}).get(_sfd.requirements)
                     ),
                     migration_female=cleaners.clean_number(data["sector"].get(_s.migration, {}).get(_sfd.female)),
                     migration_male=cleaners.clean_number(data["sector"].get(_s.migration, {}).get(_sfd.male)),
-                    migration_people_reached=cleaners.clean_number(
-                        data["sector"].get(_s.migration, {}).get(_sfd.people_reached)
-                    ),
-                    # migration_people_targeted=cleaners.clean_number(data['sector'].get(_s.migration, {}).get(_sfd.people_targeted)),
-                    migration_requirements=cleaners.clean_number(
-                        data["sector"].get(_s.migration, {}).get(_sfd.requirements)
-                    ),
+                    migration_people_reached=cleaners.clean_number(data["sector"].get(_s.migration, {}).get(_sfd.people_reached)),
+                    # migration_people_targeted=cleaners.clean_number(data['sector'].get(_s.migration, {}).get(_sfd.people_targeted)),  # noqa: E501
+                    migration_requirements=cleaners.clean_number(data["sector"].get(_s.migration, {}).get(_sfd.requirements)),
                     protection_gender_and_inclusion_female=cleaners.clean_number(
                         data["sector"].get(_s.protection_gender_inclusion, {}).get(_sfd.female)
                     ),
@@ -671,15 +639,13 @@ class Command(BaseCommand):
                     protection_gender_and_inclusion_people_reached=cleaners.clean_number(
                         data["sector"].get(_s.protection_gender_inclusion, {}).get(_sfd.people_reached)
                     ),
-                    # protection_gender_and_inclusion_people_targeted=cleaners.clean_number(data['sector'].get(_s.protection_gender_inclusion, {}).get(_sfd.people_targeted)),
+                    # protection_gender_and_inclusion_people_targeted=cleaners.clean_number(data['sector'].get(_s.protection_gender_inclusion, {}).get(_sfd.people_targeted)),  # noqa: E501
                     protection_gender_and_inclusion_requirements=cleaners.clean_number(
                         data["sector"].get(_s.protection_gender_inclusion, {}).get(_sfd.requirements)
                     ),
                     shelter_female=cleaners.clean_number(data["sector"].get(_s.shelter, {}).get(_sfd.female)),
                     shelter_male=cleaners.clean_number(data["sector"].get(_s.shelter, {}).get(_sfd.male)),
-                    shelter_people_reached=cleaners.clean_number(
-                        data["sector"].get(_s.shelter, {}).get(_sfd.people_reached)
-                    ),
+                    shelter_people_reached=cleaners.clean_number(data["sector"].get(_s.shelter, {}).get(_sfd.people_reached)),
                     # shelter_people_targeted=cleaners.clean_number(data['sector'].get(_s.shelter, {}).get(_sfd.people_targeted)),
                     shelter_requirements=cleaners.clean_number(data["sector"].get(_s.shelter, {}).get(_sfd.requirements)),
                     water_sanitation_and_hygiene_female=cleaners.clean_number(
@@ -691,7 +657,7 @@ class Command(BaseCommand):
                     water_sanitation_and_hygiene_people_reached=cleaners.clean_number(
                         data["sector"].get(_s.Water_sanitation_hygiene, {}).get(_sfd.people_reached)
                     ),
-                    # water_sanitation_and_hygiene_people_targeted=cleaners.clean_number(data['sector'].get(_s.Water_sanitation_hygiene, {}).get(_sfd.people_targeted)),
+                    # water_sanitation_and_hygiene_people_targeted=cleaners.clean_number(data['sector'].get(_s.Water_sanitation_hygiene, {}).get(_sfd.people_targeted)),  # noqa: E501
                     water_sanitation_and_hygiene_requirements=cleaners.clean_number(
                         data["sector"].get(_s.Water_sanitation_hygiene, {}).get(_sfd.requirements)
                     ),
@@ -727,9 +693,7 @@ class Command(BaseCommand):
                     raw_livelihoods_and_basic_needs_female=data["sector"]
                     .get(_s.livelihoods_and_basic_needs, {})
                     .get(_sfd.female),
-                    raw_livelihoods_and_basic_needs_male=data["sector"]
-                    .get(_s.livelihoods_and_basic_needs, {})
-                    .get(_sfd.male),
+                    raw_livelihoods_and_basic_needs_male=data["sector"].get(_s.livelihoods_and_basic_needs, {}).get(_sfd.male),
                     raw_livelihoods_and_basic_needs_people_reached=data["sector"]
                     .get(_s.livelihoods_and_basic_needs, {})
                     .get(_sfd.people_reached),
@@ -764,9 +728,7 @@ class Command(BaseCommand):
                     raw_shelter_people_reached=data["sector"].get(_s.shelter, {}).get(_sfd.people_reached),
                     raw_shelter_people_targeted=data["sector"].get(_s.shelter, {}).get(_sfd.people_targeted),
                     raw_shelter_requirements=data["sector"].get(_s.shelter, {}).get(_sfd.requirements),
-                    raw_water_sanitation_and_hygiene_female=data["sector"]
-                    .get(_s.Water_sanitation_hygiene, {})
-                    .get(_sfd.female),
+                    raw_water_sanitation_and_hygiene_female=data["sector"].get(_s.Water_sanitation_hygiene, {}).get(_sfd.female),
                     raw_water_sanitation_and_hygiene_male=data["sector"].get(_s.Water_sanitation_hygiene, {}).get(_sfd.male),
                     raw_water_sanitation_and_hygiene_people_reached=data["sector"]
                     .get(_s.Water_sanitation_hygiene, {})
@@ -784,9 +746,9 @@ class Command(BaseCommand):
                     appeal_number=cleaners.clean_appeal_code(data["meta"].get(_mfd.appeal_number)),
                     current_operation_budget=cleaners.clean_number(data["meta"].get(_mfd.current_operation_budget)),
                     dref_allocated=cleaners.clean_number(data["meta"].get(_mfd.dref_allocated)),
-                    glide_number=data["meta"].get(_mfd.glide_number)[:18]
-                    if data["meta"].get(_mfd.glide_number) != None
-                    else None,
+                    glide_number=(
+                        data["meta"].get(_mfd.glide_number)[:18] if data["meta"].get(_mfd.glide_number) is not None else None
+                    ),
                     num_of_people_to_be_assisted=cleaners.clean_number(data["meta"].get(_mfd.num_of_people_to_be_assisted)),
                     disaster_risk_reduction_female=cleaners.clean_number(
                         data["sector"].get(_s.disaster_Risk_reduction, {}).get(_sfd.female)
@@ -806,9 +768,7 @@ class Command(BaseCommand):
                     health_female=cleaners.clean_number(data["sector"].get(_s.health, {}).get(_sfd.female)),
                     health_male=cleaners.clean_number(data["sector"].get(_s.health, {}).get(_sfd.male)),
                     health_people_reached=cleaners.clean_number(data["sector"].get(_s.health, {}).get(_sfd.people_reached)),
-                    health_people_targeted=cleaners.clean_number(
-                        data["sector"].get(_s.health, {}).get(_sfd.people_targeted)
-                    ),
+                    health_people_targeted=cleaners.clean_number(data["sector"].get(_s.health, {}).get(_sfd.people_targeted)),
                     health_requirements=cleaners.clean_number(data["sector"].get(_s.health, {}).get(_sfd.requirements)),
                     livelihoods_and_basic_needs_female=cleaners.clean_number(
                         data["sector"].get(_s.livelihoods_and_basic_needs, {}).get(_sfd.female)
@@ -827,15 +787,11 @@ class Command(BaseCommand):
                     ),
                     migration_female=cleaners.clean_number(data["sector"].get(_s.migration, {}).get(_sfd.female)),
                     migration_male=cleaners.clean_number(data["sector"].get(_s.migration, {}).get(_sfd.male)),
-                    migration_people_reached=cleaners.clean_number(
-                        data["sector"].get(_s.migration, {}).get(_sfd.people_reached)
-                    ),
+                    migration_people_reached=cleaners.clean_number(data["sector"].get(_s.migration, {}).get(_sfd.people_reached)),
                     migration_people_targeted=cleaners.clean_number(
                         data["sector"].get(_s.migration, {}).get(_sfd.people_targeted)
                     ),
-                    migration_requirements=cleaners.clean_number(
-                        data["sector"].get(_s.migration, {}).get(_sfd.requirements)
-                    ),
+                    migration_requirements=cleaners.clean_number(data["sector"].get(_s.migration, {}).get(_sfd.requirements)),
                     protection_gender_and_inclusion_female=cleaners.clean_number(
                         data["sector"].get(_s.protection_gender_inclusion, {}).get(_sfd.female)
                     ),
@@ -853,12 +809,8 @@ class Command(BaseCommand):
                     ),
                     shelter_female=cleaners.clean_number(data["sector"].get(_s.shelter, {}).get(_sfd.female)),
                     shelter_male=cleaners.clean_number(data["sector"].get(_s.shelter, {}).get(_sfd.male)),
-                    shelter_people_reached=cleaners.clean_number(
-                        data["sector"].get(_s.shelter, {}).get(_sfd.people_reached)
-                    ),
-                    shelter_people_targeted=cleaners.clean_number(
-                        data["sector"].get(_s.shelter, {}).get(_sfd.people_targeted)
-                    ),
+                    shelter_people_reached=cleaners.clean_number(data["sector"].get(_s.shelter, {}).get(_sfd.people_reached)),
+                    shelter_people_targeted=cleaners.clean_number(data["sector"].get(_s.shelter, {}).get(_sfd.people_targeted)),
                     shelter_requirements=cleaners.clean_number(data["sector"].get(_s.shelter, {}).get(_sfd.requirements)),
                     water_sanitation_and_hygiene_female=cleaners.clean_number(
                         data["sector"].get(_s.Water_sanitation_hygiene, {}).get(_sfd.female)
@@ -878,7 +830,7 @@ class Command(BaseCommand):
                 )
                 ea_to_add.append(new_ea)
 
-        ## None of the records get inserted if any of them fails, but it would be faster this way
+        # # None of the records get inserted if any of them fails, but it would be faster this way
         # logger.info('Adding new EPoA records to DB (count: {})'.format(len(epoa_to_add)))
         # EmergencyOperationsDataset.objects.bulk_create(epoa_to_add)
         # logger.info('Adding new OU records to DB (count: {})'.format(len(ou_to_add)))

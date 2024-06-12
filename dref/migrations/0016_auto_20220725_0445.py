@@ -6,49 +6,49 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dref', '0015_auto_20220708_0739'),
+        ("dref", "0015_auto_20220708_0739"),
     ]
 
     operations = [
         migrations.AlterUniqueTogether(
-            name='dreffinalreportcountrydistrict',
+            name="dreffinalreportcountrydistrict",
             unique_together=None,
         ),
         migrations.RemoveField(
-            model_name='dreffinalreportcountrydistrict',
-            name='country',
+            model_name="dreffinalreportcountrydistrict",
+            name="country",
         ),
         migrations.RemoveField(
-            model_name='dreffinalreportcountrydistrict',
-            name='district',
+            model_name="dreffinalreportcountrydistrict",
+            name="district",
         ),
         migrations.RemoveField(
-            model_name='dreffinalreportcountrydistrict',
-            name='dref_final_report',
+            model_name="dreffinalreportcountrydistrict",
+            name="dref_final_report",
         ),
         migrations.AlterUniqueTogether(
-            name='drefoperationalupdatecountrydistrict',
+            name="drefoperationalupdatecountrydistrict",
             unique_together=None,
         ),
         migrations.RemoveField(
-            model_name='drefoperationalupdatecountrydistrict',
-            name='country',
+            model_name="drefoperationalupdatecountrydistrict",
+            name="country",
         ),
         migrations.RemoveField(
-            model_name='drefoperationalupdatecountrydistrict',
-            name='district',
+            model_name="drefoperationalupdatecountrydistrict",
+            name="district",
         ),
         migrations.RemoveField(
-            model_name='drefoperationalupdatecountrydistrict',
-            name='dref_operational_update',
+            model_name="drefoperationalupdatecountrydistrict",
+            name="dref_operational_update",
         ),
         migrations.DeleteModel(
-            name='DrefCountryDistrict',
+            name="DrefCountryDistrict",
         ),
         migrations.DeleteModel(
-            name='DrefFinalReportCountryDistrict',
+            name="DrefFinalReportCountryDistrict",
         ),
         migrations.DeleteModel(
-            name='DrefOperationalUpdateCountryDistrict',
+            name="DrefOperationalUpdateCountryDistrict",
         ),
     ]

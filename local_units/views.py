@@ -1,57 +1,52 @@
-from rest_framework import (
-    viewsets,
-    permissions,
-    response,
-    views
-)
-from rest_framework.generics import (
-    ListAPIView,
-    RetrieveAPIView
-)
-from rest_framework.decorators import action
 from drf_spectacular.utils import extend_schema
+from rest_framework import permissions, response, views, viewsets
+from rest_framework.decorators import action
+from rest_framework.generics import ListAPIView, RetrieveAPIView
 
-from local_units.filterset import LocalUnitFilters, DelegationOfficeFilters
+from api.utils import bad_request
+from local_units.filterset import DelegationOfficeFilters, LocalUnitFilters
 from local_units.models import (
+    Affiliation,
+    BloodService,
+    DelegationOffice,
+    FacilityType,
+    Functionality,
+    GeneralMedicalService,
+    HospitalType,
     LocalUnit,
     LocalUnitLevel,
     LocalUnitType,
-    Affiliation,
-    Functionality,
-    FacilityType,
     PrimaryHCC,
-    HospitalType,
-    BloodService,
     ProfessionalTrainingFacility,
-    VisibilityChoices,
-    GeneralMedicalService,
     SpecializedMedicalService,
-    DelegationOffice,
-)
-from local_units.serializers import (
-    LocalUnitSerializer,
-    LocalUnitOptionsSerializer,
-    LocalUnitDetailSerializer,
-    DelegationOfficeSerializer,
-    PrivateLocalUnitSerializer,
-    PrivateLocalUnitDetailSerializer
+    VisibilityChoices,
 )
 from local_units.permissions import (
+    IsAuthenticatedForLocalUnit,
     ValidateLocalUnitPermission,
-    IsAuthenticatedForLocalUnit
 )
-from api.utils import bad_request
+from local_units.serializers import (
+    DelegationOfficeSerializer,
+    LocalUnitDetailSerializer,
+    LocalUnitOptionsSerializer,
+    LocalUnitSerializer,
+    PrivateLocalUnitDetailSerializer,
+    PrivateLocalUnitSerializer,
+)
 
 
 class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
     queryset = LocalUnit.objects.select_related(
-        'health',
-        'country',
-        'type',
-        'level',
+        "health",
+        "country",
+        "type",
+        "level",
     )
     filterset_class = LocalUnitFilters
-    search_fields = ('local_branch_name', 'english_branch_name',)
+    search_fields = (
+        "local_branch_name",
+        "english_branch_name",
+    )
     permission_classes = [permissions.IsAuthenticated, IsAuthenticatedForLocalUnit]
 
     def get_serializer_class(self):
@@ -60,17 +55,15 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         return PrivateLocalUnitDetailSerializer
 
     def destroy(self, request, *args, **kwargs):
-        return bad_request('Delete method not allowed')
+        return bad_request("Delete method not allowed")
 
-    @extend_schema(
-        responses=PrivateLocalUnitSerializer
-    )
+    @extend_schema(responses=PrivateLocalUnitSerializer)
     @action(
         detail=True,
         url_path="validate",
         methods=["post"],
         serializer_class=PrivateLocalUnitSerializer,
-        permission_classes=[permissions.IsAuthenticated, ValidateLocalUnitPermission]
+        permission_classes=[permissions.IsAuthenticated, ValidateLocalUnitPermission],
     )
     def get_validate(self, request, pk=None, version=None):
         local_unit = self.get_object()
@@ -82,13 +75,16 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
 
 class LocalUnitViewSet(viewsets.ModelViewSet):
     queryset = LocalUnit.objects.select_related(
-        'health',
-        'country',
-        'type',
-        'level',
+        "health",
+        "country",
+        "type",
+        "level",
     ).filter(visibility=VisibilityChoices.PUBLIC)
     filterset_class = LocalUnitFilters
-    search_fields = ('local_branch_name', 'english_branch_name',)
+    search_fields = (
+        "local_branch_name",
+        "english_branch_name",
+    )
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -96,13 +92,13 @@ class LocalUnitViewSet(viewsets.ModelViewSet):
         return LocalUnitDetailSerializer
 
     def create(self, request, *args, **kwargs):
-        return bad_request('Create method not allowed')
+        return bad_request("Create method not allowed")
 
     def update(self, request, *args, **kwargs):
-        return bad_request('Update method not allowed')
+        return bad_request("Update method not allowed")
 
     def destroy(self, request, *args, **kwargs):
-        return bad_request('Delete method not allowed')
+        return bad_request("Delete method not allowed")
 
 
 class LocalUnitOptionsView(views.APIView):
@@ -123,7 +119,8 @@ class LocalUnitOptionsView(views.APIView):
                     professional_training_facilities=ProfessionalTrainingFacility.objects.all(),
                     general_medical_services=GeneralMedicalService.objects.all(),
                     specialized_medical_services=SpecializedMedicalService.objects.all(),
-                ), context={'request': request}
+                ),
+                context={"request": request},
             ).data
         )
 
@@ -132,7 +129,7 @@ class DelegationOfficeListAPIView(ListAPIView):
     queryset = DelegationOffice.objects.all()
     serializer_class = DelegationOfficeSerializer
     filterset_class = DelegationOfficeFilters
-    search_fields = ('name', 'country__name')
+    search_fields = ("name", "country__name")
 
 
 class DelegationOfficeDetailAPIView(RetrieveAPIView):

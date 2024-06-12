@@ -6,7 +6,6 @@ from django.utils.autoreload import run_with_reloader
 
 from main.celery import Queues
 
-
 all_queues = ",".join([q for q in Queues.DEV_QUEUES])
 CMD = f"celery -A main worker -Q {all_queues} --concurrency=2 -l info"
 

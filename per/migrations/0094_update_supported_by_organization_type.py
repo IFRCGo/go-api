@@ -6,16 +6,13 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     def update_suported_by_oragnization_type(apps, schema_editor):
-        PerWorkPlanComponent = apps.get_model('per', 'PerWorkPlanComponent')
+        PerWorkPlanComponent = apps.get_model("per", "PerWorkPlanComponent")
         PerWorkPlanComponent.objects.update(supported_by_organization_type=3)
 
     dependencies = [
-        ('per', '0093_perworkplancomponent_supported_by_organization_type'),
+        ("per", "0093_perworkplancomponent_supported_by_organization_type"),
     ]
 
     operations = [
-        migrations.RunPython(
-            update_suported_by_oragnization_type,
-            reverse_code=migrations.RunPython.noop
-        ),
+        migrations.RunPython(update_suported_by_oragnization_type, reverse_code=migrations.RunPython.noop),
     ]

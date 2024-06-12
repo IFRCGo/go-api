@@ -6,16 +6,16 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('local_units', '0007_auto_20240330_1710'),
+        ("local_units", "0007_auto_20240330_1710"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='localunit',
-            name='data_source_id',
+            model_name="localunit",
+            name="data_source_id",
         ),
         migrations.AlterModelOptions(
-            name='localunitlevel',
-            options={'verbose_name': 'Local unit coverage', 'verbose_name_plural': 'Local unit coverages'},
+            name="localunitlevel",
+            options={"verbose_name": "Local unit coverage", "verbose_name_plural": "Local unit coverages"},
         ),
     ]

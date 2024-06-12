@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('databank', '0016_fdrsincome'),
+        ("databank", "0016_fdrsincome"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='countryoverview',
-            name='world_bank_poverty_rate',
-            field=models.FloatField(blank=True, null=True, verbose_name='world bank poverty rate'),
+            model_name="countryoverview",
+            name="world_bank_poverty_rate",
+            field=models.FloatField(blank=True, null=True, verbose_name="world bank poverty rate"),
         ),
     ]

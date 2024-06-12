@@ -1,24 +1,37 @@
-import os
 import json
-from sentry_sdk.crons import monitor
-from requests import Session, exceptions as reqexc
-from requests.adapters import HTTPAdapter
-from datetime import datetime, timezone, timedelta
+import os
+from datetime import datetime, timedelta, timezone
+
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils import timezone as tz
-from api.models import AppealType, Appeal, AppealFilter, Region, Country, DisasterType, Event, CronJobStatus, GECCode
+from requests import Session
+from requests import exceptions as reqexc
+from requests.adapters import HTTPAdapter
+from sentry_sdk.crons import monitor
+
+from api.create_cron import create_cron_record
 from api.fixtures.dtype_map import DISASTER_TYPE_MAPPING
 from api.logger import logger
-from api.create_cron import create_cron_record
+from api.models import (
+    Appeal,
+    AppealFilter,
+    AppealType,
+    Country,
+    CronJobStatus,
+    DisasterType,
+    Event,
+    GECCode,
+    Region,
+)
 from main.sentry import SentryMonitor
-
 
 CRON_NAME = "ingest_appeals"
 # DANGER! It should be changed when disaster type changes in database:
 DTYPE_KEYS = [a.lower() for a in DISASTER_TYPE_MAPPING.keys()]
 DTYPE_VALS = [a.lower() for a in DISASTER_TYPE_MAPPING.values()]
 GEC_CODES = GECCode.objects.select_related("country").all()
+
 
 @monitor(monitor_slug=SentryMonitor.INGEST_APPEALS)
 class Command(BaseCommand):
@@ -50,9 +63,7 @@ class Command(BaseCommand):
 
             codes = Appeal.objects.values_list("code", flat=True)
             if AppealFilter.objects.values_list("value", flat=True).filter(name="ingestAppealFilter").count() > 0:
-                codes_skip = (
-                    AppealFilter.objects.values_list("value", flat=True).filter(name="ingestAppealFilter")[0].split(",")
-                )
+                codes_skip = AppealFilter.objects.values_list("value", flat=True).filter(name="ingestAppealFilter")[0].split(",")
             else:
                 codes_skip = []
 
@@ -142,9 +153,7 @@ class Command(BaseCommand):
             codes = Appeal.objects.values_list("code", flat=True)
 
             if AppealFilter.objects.values_list("value", flat=True).filter(name="ingestAppealFilter").count() > 0:
-                codes_skip = (
-                    AppealFilter.objects.values_list("value", flat=True).filter(name="ingestAppealFilter")[0].split(",")
-                )
+                codes_skip = AppealFilter.objects.values_list("value", flat=True).filter(name="ingestAppealFilter")[0].split(",")
             else:
                 codes_skip = []
 
@@ -222,7 +231,7 @@ class Command(BaseCommand):
         # if there is more than one detail, the start date should be the *earliest
         # end date should be the *latest
         details = sorted(r["Details"], key=lambda x: self.parse_date(x["APD_startDate"]))
-        detail0 = details[0]  # first
+        # detail0 = details[0]  # first
         detail1 = details[-1]  # last
         start_date = self.parse_date(r["APP_startDate"])  # not self.parse_date(detail0['APD_startDate'])
         end_date = self.parse_date(r["APP_endDate"])  # not self.parse_date(detail1['APD_endDate'])

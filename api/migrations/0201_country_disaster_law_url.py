@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0200_countryicrcpresence'),
+        ("api", "0200_countryicrcpresence"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='country',
-            name='disaster_law_url',
-            field=models.CharField(blank=True, max_length=255, null=True, verbose_name='Disaster law url'),
+            model_name="country",
+            name="disaster_law_url",
+            field=models.CharField(blank=True, max_length=255, null=True, verbose_name="Disaster law url"),
         ),
     ]

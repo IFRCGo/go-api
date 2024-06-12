@@ -1,14 +1,15 @@
 import re
+
 from fuzzywuzzy import fuzz
-from api.scrapers.config import (
-    M_KEYS,
+
+from api.scrapers.config import (  # get_sector_misc_keys,
     M_EXTRACTORS,
+    M_KEYS,
     get_meta_misc_keys,
-    # get_sector_misc_keys,
 )
 
 
-class MetaFieldExtractor():
+class MetaFieldExtractor:
     def __init__(self, texts, fields):
         self.texts = texts
         self.fields = fields
@@ -24,17 +25,17 @@ class MetaFieldExtractor():
             if search:
                 start, end = search.span()
                 if misc:
-                    _field = '{}_misc'.format(key)
+                    _field = "{}_misc".format(key)
                 else:
                     _field = field
                 if self.field_meta.get(_field):
                     continue
                 self.field_meta[_field] = {
-                    'text_index': index,
-                    'text': text,
-                    'start_index': start,
-                    'end_index': end,
-                    'score': 100,
+                    "text_index": index,
+                    "text": text,
+                    "start_index": start,
+                    "end_index": end,
+                    "score": 100,
                 }
                 if not self.text_meta.get(index):
                     self.text_meta[index] = []
@@ -51,23 +52,23 @@ class MetaFieldExtractor():
                 search_text = key.split()
                 search_text_n = len(search_text)
                 for index in range(0, len(texts) - search_text_n):
-                    real_text = texts[index:index+search_text_n]
+                    real_text = texts[index : index + search_text_n]
                     new_ratio = fuzz.partial_ratio(real_text, search_text)
                     if not new_ratio > ratio:
                         continue
                     try:
-                        search = re.search(' '.join(real_text), text)
+                        search = re.search(" ".join(real_text), text)
                         if search:
                             start, end = search.span()
                             ratio = new_ratio
                             field_meta = {
-                                'text_index': text_index,
-                                'text': text,
-                                'start_index': start,
-                                'end_index': end,
-                                'score': ratio,
-                                'real_text': real_text,
-                                'search_text': search_text,
+                                "text_index": text_index,
+                                "text": text,
+                                "start_index": start,
+                                "end_index": end,
+                                "score": ratio,
+                                "real_text": real_text,
+                                "search_text": search_text,
                             }
                     except re.error:
                         pass
@@ -75,7 +76,7 @@ class MetaFieldExtractor():
 
         def search(key, field_meta):
             new_field_meta = _search(key)
-            if new_field_meta['score'] > field_meta.get('score', 0):
+            if new_field_meta["score"] > field_meta.get("score", 0):
                 field_meta = new_field_meta
             return field_meta
 
@@ -86,11 +87,11 @@ class MetaFieldExtractor():
             field_meta = {}
             for key in keys:
                 field_meta = search(key, field_meta)
-            if field_meta.get('score') > 70:
+            if field_meta.get("score") > 70:
                 self.field_meta[field] = field_meta
-                if not self.text_meta.get(field_meta['text_index']):
-                    self.text_meta[field_meta['text_index']] = []
-                self.text_meta[field_meta['text_index']].append(field)
+                if not self.text_meta.get(field_meta["text_index"]):
+                    self.text_meta[field_meta["text_index"]] = []
+                self.text_meta[field_meta["text_index"]].append(field)
 
     def pre_processing(self):
         for index, text in enumerate(self.texts):
@@ -100,15 +101,14 @@ class MetaFieldExtractor():
         self.fuzzy_find_remainig_key()
 
     def text_pre_processing(self, field, meta):
-        text_block = meta['text']
-        text_index = meta['text_index']
-        end_index = meta['end_index']
+        text_block = meta["text"]
+        text_index = meta["text_index"]
+        end_index = meta["end_index"]
         if len(self.text_meta[text_index]) > 1:
             near_end_index = 10000
             for field in self.text_meta[text_index]:
-                field_start_index = self.field_meta[field]['start_index']
-                if (field_start_index > end_index) and\
-                        (field_start_index < near_end_index):
+                field_start_index = self.field_meta[field]["start_index"]
+                if (field_start_index > end_index) and (field_start_index < near_end_index):
                     near_end_index = field_start_index
             text_block = text_block[:near_end_index]
         text = text_block[end_index:].strip()
@@ -119,14 +119,14 @@ class MetaFieldExtractor():
             extractor = M_EXTRACTORS.get(field)
             if extractor:
                 self.extracted[field] = {
-                    'value': extractor(self.text_pre_processing(field, meta)),
-                    'score': meta['score']/100,
+                    "value": extractor(self.text_pre_processing(field, meta)),
+                    "score": meta["score"] / 100,
                 }
 
     def get_extracted_without_score(self):
         extracted = {}
         for field in self.extracted.keys():
-            extracted[field] = self.extracted[field]['value']
+            extracted[field] = self.extracted[field]["value"]
         return extracted
 
     def extract_fields(self):

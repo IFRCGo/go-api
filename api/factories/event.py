@@ -1,26 +1,28 @@
-import factory
-from factory import fuzzy
 import datetime
+
+import factory
 import pytz
+from factory import fuzzy
+
+from api.factories.country import CountryFactory
 
 from ..models import (
     AlertLevel,
+    Appeal,
+    AppealHistory,
     AppealType,
     Event,
     EventFeaturedDocument,
     EventLink,
-    Appeal,
-    AppealHistory,
 )
 from .disaster_type import DisasterTypeFactory
-from api.factories.country import CountryFactory
 
 
 class EventFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Event
 
-    name = fuzzy.FuzzyText(length=50, prefix='event-')
+    name = fuzzy.FuzzyText(length=50, prefix="event-")
     slug = fuzzy.FuzzyText(length=50)
     dtype = factory.SubFactory(DisasterTypeFactory)
 
@@ -51,9 +53,7 @@ class EventFactory(factory.django.DjangoModelFactory):
             for region in extracted:
                 self.regions.add(region)
 
-    parent_event = factory.SubFactory(
-        "api.factories.event.EventFactory", parent_event=None
-    )
+    parent_event = factory.SubFactory("api.factories.event.EventFactory", parent_event=None)
 
     summary = fuzzy.FuzzyText(length=500)
 
@@ -66,14 +66,10 @@ class EventFactory(factory.django.DjangoModelFactory):
     ifrc_severity_level = fuzzy.FuzzyChoice(AlertLevel)
     glide = fuzzy.FuzzyText(length=18)
 
-    disaster_start_date = fuzzy.FuzzyDateTime(
-        datetime.datetime(2008, 1, 1, tzinfo=pytz.utc)
-    )
+    disaster_start_date = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
     created_at = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
     updated_at = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
-    previous_update = fuzzy.FuzzyDateTime(
-        datetime.datetime(2008, 1, 1, tzinfo=pytz.utc)
-    )
+    previous_update = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
 
     auto_generated = fuzzy.FuzzyChoice([True, False])
     auto_generated_source = fuzzy.FuzzyText(length=50)
@@ -95,8 +91,8 @@ class EventFeaturedDocumentFactory(factory.django.DjangoModelFactory):
         model = EventFeaturedDocument
 
     event = factory.SubFactory(Event)
-    title = fuzzy.FuzzyText(length=50, prefix='event-featured-document-title-')
-    description = fuzzy.FuzzyText(length=100, prefix='event-featured-document-description-')
+    title = fuzzy.FuzzyText(length=50, prefix="event-featured-document-title-")
+    description = fuzzy.FuzzyText(length=100, prefix="event-featured-document-description-")
 
 
 class EventLinkFactory(factory.django.DjangoModelFactory):
@@ -104,12 +100,12 @@ class EventLinkFactory(factory.django.DjangoModelFactory):
         model = EventLink
 
     event = factory.SubFactory(Event)
-    title = fuzzy.FuzzyText(length=50, prefix='event-link-title-')
-    description = fuzzy.FuzzyText(length=100, prefix='event-link-description-')
+    title = fuzzy.FuzzyText(length=50, prefix="event-link-title-")
+    description = fuzzy.FuzzyText(length=100, prefix="event-link-description-")
 
 
 class AppealFactory(factory.django.DjangoModelFactory):
-    name = fuzzy.FuzzyText(length=50, prefix='event-')
+    name = fuzzy.FuzzyText(length=50, prefix="event-")
     dtype = factory.SubFactory(DisasterTypeFactory)
     num_beneficiaries = fuzzy.FuzzyInteger(0)
     amount_requested = fuzzy.FuzzyInteger(0)

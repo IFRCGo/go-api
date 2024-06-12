@@ -11,25 +11,25 @@ from unittest import mock
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec
-
 from django.contrib.auth.models import User
 from django.test import override_settings
 from rest_framework.test import APITestCase
 
-from main.test_case import APITestCase as GoAPITestCase
-from .models import Pending
 from api.models import Country, Profile
+from main.test_case import APITestCase as GoAPITestCase
+
+from .models import Pending
 
 
 class TwoGatekeepersTest(APITestCase):
     def setUp(self):
-        user1 = User.objects.create(username='jo', email='jo@arcs.org.af')
-        user1.set_password('12345678')
+        user1 = User.objects.create(username="jo", email="jo@arcs.org.af")
+        user1.set_password("12345678")
         user1.save()
-        user2 = User.objects.create(username='ke', email='ke@arcs.org.af')
-        user2.set_password('12345678')
+        user2 = User.objects.create(username="ke", email="ke@arcs.org.af")
+        user2.set_password("12345678")
         user2.save()
-        Country.objects.create(name='country')
+        Country.objects.create(name="country")
 
     # def test_two_gatekeepers(self):
     #     # 1. Created two users to function as gatekeepers (with checkable email)
@@ -100,23 +100,23 @@ class TwoGatekeepersTest(APITestCase):
 
     def test_official_email(self):
         # 2b. Making a request to views.NewRegistration with new user request
-        country = Country.objects.get(name='country')
+        country = Country.objects.get(name="country")
         # We started to use the email as the username for new registrations
-        newusr = 'pet@voroskereszt.hu'
+        newusr = "pet@voroskereszt.hu"
         body = {
-            'email': newusr,
-            'username': newusr,
-            'password': '87654321',
-            'country': country.pk,
-            'organization_type': 'OTHR',
-            'organization': 'Zoo',
-            'first_name': 'Peter',
-            'last_name': 'Falk',
-            'justification': 'aaaa',
-            'city': 'kathmandu'
+            "email": newusr,
+            "username": newusr,
+            "password": "87654321",
+            "country": country.pk,
+            "organization_type": "OTHR",
+            "organization": "Zoo",
+            "first_name": "Peter",
+            "last_name": "Falk",
+            "justification": "aaaa",
+            "city": "kathmandu",
         }
-        headers = {'CONTENT_TYPE': 'application/json'}
-        resp = self.client.post('/register', data=body, format='json')
+        headers = {"CONTENT_TYPE": "application/json"}
+        resp = self.client.post("/register", data=body, format="json")
         # json.loads(resp.content): 'status': 'ok'
         self.assertEqual(resp.status_code, 200)
 
@@ -125,10 +125,10 @@ class TwoGatekeepersTest(APITestCase):
 
         # 4b. Using the user token and user username to query views.VerifyEmail
         body1 = {
-            'user': newusr,
-            'token': pending_user.token,
+            "user": newusr,
+            "token": pending_user.token,
         }
-        resp = self.client.get('/verify_email', body1, format='json', headers=headers)
+        resp = self.client.get("/verify_email", body1, format="json", headers=headers)
         # resp.content: ...validated your email address and your IFRC Go account is now approved
         self.assertEqual(resp.status_code, 200)
 
@@ -136,36 +136,36 @@ class TwoGatekeepersTest(APITestCase):
         boarded_user = User.objects.get(username=newusr)
         self.assertTrue(boarded_user.is_active)
 
-    @mock.patch('registrations.serializers.send_notification_create')
+    @mock.patch("registrations.serializers.send_notification_create")
     def test_user_registration(self, send_notification_create):
-        country = Country.objects.get(name='country')
-        User.objects.create(username='testuser@gmail.com')
+        country = Country.objects.get(name="country")
+        User.objects.create(username="testuser@gmail.com")
         old_user_count = User.objects.filter(is_active=False).count()
-        newusr = 'testuser@gmail.com'
+        newusr = "testuser@gmail.com"
         data = {
-            'email': newusr,
-            'username': "tetsts",
-            'password': '87654321',
-            'country': country.pk,
-            'organization_type': 'OTHR',
-            'organization': 'Zoo',
-            'first_name': 'Peter',
-            'last_name': 'Falk',
-            'justification': 'aaaa',
-            'city': 'kathmandu'
+            "email": newusr,
+            "username": "tetsts",
+            "password": "87654321",
+            "country": country.pk,
+            "organization_type": "OTHR",
+            "organization": "Zoo",
+            "first_name": "Peter",
+            "last_name": "Falk",
+            "justification": "aaaa",
+            "city": "kathmandu",
         }
-        resp = self.client.post('/register', json=data)
+        resp = self.client.post("/register", json=data)
         self.assertEqual(resp.status_code, 400)
         self.assertEqual(User.objects.filter(is_active=False).count(), old_user_count)  # No new user to be created
 
         # update the email now should create user
-        data['email'] = "test@gmail.com"
-        resp = self.client.post('/register', data=data)
+        data["email"] = "test@gmail.com"
+        resp = self.client.post("/register", data=data)
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(User.objects.filter(is_active=False).count(), old_user_count + 1)
 
         # check profile is created for the user
-        self.assertEqual(Profile.objects.filter(user__email=data['email']).exists(), True)
+        self.assertEqual(Profile.objects.filter(user__email=data["email"]).exists(), True)
 
         # check if the notification is called
         self.assertTrue(send_notification_create.is_called())
@@ -180,17 +180,16 @@ class UserExternalTokenTest(GoAPITestCase):
         private_key_pem = private_key.private_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=serialization.NoEncryption()
+            encryption_algorithm=serialization.NoEncryption(),
         )
 
         # Serialize public key
         public_key_pem = public_key.public_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PublicFormat.SubjectPublicKeyInfo
+            encoding=serialization.Encoding.PEM, format=serialization.PublicFormat.SubjectPublicKeyInfo
         )
 
-        self.JWT_PRIVATE_KEY = private_key_pem.decode('utf-8')
-        self.JWT_PUBLIC_KEY = public_key_pem.decode('utf-8')
+        self.JWT_PRIVATE_KEY = private_key_pem.decode("utf-8")
+        self.JWT_PUBLIC_KEY = public_key_pem.decode("utf-8")
 
     def test_external_token_with_key(self):
         self.client.force_authenticate(self.user)
@@ -203,18 +202,16 @@ class UserExternalTokenTest(GoAPITestCase):
         self.user.refresh_from_db()
         self.assertEqual(self.user.profile.accepted_montandon_license_terms, True)
 
-        data = {
-            "title": "ok"
-        }
+        data = {"title": "ok"}
 
         with override_settings(
             JWT_PRIVATE_KEY=self.JWT_PRIVATE_KEY,
             JWT_PUBLIC_KEY=self.JWT_PUBLIC_KEY,
         ):
-            response = self.client.post('/api/v2/external-token/', data, format='json')
+            response = self.client.post("/api/v2/external-token/", data, format="json")
         self.assertEqual(response.status_code, 201)
 
     def test_external_token_with_no_keys(self):
         self.client.force_authenticate(self.user)
-        response = self.client.post('/api/v2/external-token/')
+        response = self.client.post("/api/v2/external-token/")
         self.assertEqual(response.status_code, 400)

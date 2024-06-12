@@ -2,21 +2,19 @@
 
 from django.db import migrations
 
+
 def delete_form_question(apps, schema_editor):
-    FormQuestion = apps.get_model('per', 'FormQuestion')
-    print(FormQuestion.objects.filter(question__icontains='Component Epidemic Preparedness').delete())
-    print(FormQuestion.objects.filter(question__icontains='Component performance').delete())
+    FormQuestion = apps.get_model("per", "FormQuestion")
+    print(FormQuestion.objects.filter(question__icontains="Component Epidemic Preparedness").delete())
+    print(FormQuestion.objects.filter(question__icontains="Component performance").delete())
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0111_perdocumentupload_per'),
+        ("per", "0111_perdocumentupload_per"),
     ]
 
     operations = [
-        migrations.RunPython(
-            delete_form_question,
-            reverse_code=migrations.RunPython.noop
-        ),
+        migrations.RunPython(delete_form_question, reverse_code=migrations.RunPython.noop),
     ]

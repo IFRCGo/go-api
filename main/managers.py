@@ -1,8 +1,9 @@
 import abc
 import typing
 from collections import defaultdict
-from django.db import models
+
 from django.apps import apps
+from django.db import models
 
 
 class BaseBulkManager(object):
@@ -62,7 +63,7 @@ class BulkCreateManager(BaseBulkManager):
 
     @abc.abstractmethod
     def summary(self):
-        return {'added': dict(self._summary)}
+        return {"added": dict(self._summary)}
 
 
 class BulkUpdateManager(BaseBulkManager):
@@ -72,7 +73,7 @@ class BulkUpdateManager(BaseBulkManager):
 
     def _process_obj(self, obj: models.Model):
         if obj.pk is None:
-            raise Exception(f'Only object with pk is allowed: {obj}')
+            raise Exception(f"Only object with pk is allowed: {obj}")
         return obj
 
     def _commit(self, model_class: typing.Type[models.Model]):
@@ -83,4 +84,4 @@ class BulkUpdateManager(BaseBulkManager):
 
     @abc.abstractmethod
     def summary(self):
-        return {'updated': dict(self._summary)}
+        return {"updated": dict(self._summary)}

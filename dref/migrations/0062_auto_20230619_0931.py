@@ -6,25 +6,22 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     def update_dref(apps, schema_editor):
-        Dref = apps.get_model('dref', 'Dref')
+        Dref = apps.get_model("dref", "Dref")
         drefs = Dref.objects.all()
         for dref in drefs:
-            if hasattr(dref, 'dreffinalreport'):
+            if hasattr(dref, "dreffinalreport"):
                 if dref.dreffinalreport.is_published == True:
                     dref.is_active = False
                 else:
                     dref.is_active = True
             else:
                 dref.is_active = True
-            dref.save(update_fields=['is_active'])
+            dref.save(update_fields=["is_active"])
 
     dependencies = [
-        ('dref', '0061_dref_is_active'),
+        ("dref", "0061_dref_is_active"),
     ]
 
     operations = [
-        migrations.RunPython(
-            update_dref,
-            reverse_code=migrations.RunPython.noop
-        ),
+        migrations.RunPython(update_dref, reverse_code=migrations.RunPython.noop),
     ]

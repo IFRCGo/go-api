@@ -1,1 +1,1 @@
-default_app_config = 'deployments.apps.DeploymentsConfig'
+default_app_config = "deployments.apps.DeploymentsConfig"

@@ -6,13 +6,25 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0184_auto_20231004_0756'),
+        ("api", "0184_auto_20231004_0756"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='fieldreport',
-            name='status',
-            field=models.IntegerField(choices=[(0, 'Unknown'), (2, 'Two'), (3, 'Three'), (8, 'Early Warning / Early Action'), (9, 'Event'), (10, 'Ten')], default=0, help_text='<a target="_blank" href="/api/v2/fieldreportstatus">Key/value pairs</a>', verbose_name='type'),
+            model_name="fieldreport",
+            name="status",
+            field=models.IntegerField(
+                choices=[
+                    (0, "Unknown"),
+                    (2, "Two"),
+                    (3, "Three"),
+                    (8, "Early Warning / Early Action"),
+                    (9, "Event"),
+                    (10, "Ten"),
+                ],
+                default=0,
+                help_text='<a target="_blank" href="/api/v2/fieldreportstatus">Key/value pairs</a>',
+                verbose_name="type",
+            ),
         ),
     ]

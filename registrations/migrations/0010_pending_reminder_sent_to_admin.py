@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('registrations', '0009_auto_20220104_1632'),
+        ("registrations", "0009_auto_20220104_1632"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='pending',
-            name='reminder_sent_to_admin',
-            field=models.BooleanField(default=False, editable=False, verbose_name='reminder sent to admin?'),
+            model_name="pending",
+            name="reminder_sent_to_admin",
+            field=models.BooleanField(default=False, editable=False, verbose_name="reminder sent to admin?"),
         ),
     ]

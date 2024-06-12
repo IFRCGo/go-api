@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('databank', '0024_countryoverview_fdrs_data_fetched_year'),
+        ("databank", "0024_countryoverview_fdrs_data_fetched_year"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='countryoverview',
-            name='world_bank_gni_capita',
-            field=models.IntegerField(blank=True, null=True, verbose_name='world bank GNI Per Capita'),
+            model_name="countryoverview",
+            name="world_bank_gni_capita",
+            field=models.IntegerField(blank=True, null=True, verbose_name="world bank GNI Per Capita"),
         ),
     ]

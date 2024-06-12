@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0044_auto_20200318_0643'),
+        ("api", "0044_auto_20200318_0643"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='situationreport',
-            name='is_pinned',
-            field=models.BooleanField(default=False, help_text='Pin this report at the top'),
+            model_name="situationreport",
+            name="is_pinned",
+            field=models.BooleanField(default=False, help_text="Pin this report at the top"),
         ),
         migrations.AddField(
-            model_name='situationreporttype',
-            name='is_primary',
-            field=models.BooleanField(default=True, help_text='Ensure this type gets precedence over others that are empty'),
+            model_name="situationreporttype",
+            name="is_primary",
+            field=models.BooleanField(default=True, help_text="Ensure this type gets precedence over others that are empty"),
         ),
     ]

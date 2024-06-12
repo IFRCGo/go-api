@@ -6,20 +6,20 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0094_merge_20201123_1340'),
+        ("api", "0094_merge_20201123_1340"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='regionemergencysnippet',
-            name='visibility',
+            model_name="regionemergencysnippet",
+            name="visibility",
         ),
         migrations.RemoveField(
-            model_name='regionpreparednesssnippet',
-            name='visibility',
+            model_name="regionpreparednesssnippet",
+            name="visibility",
         ),
         migrations.RemoveField(
-            model_name='regionprofilesnippet',
-            name='visibility',
+            model_name="regionprofilesnippet",
+            name="visibility",
         ),
     ]

@@ -6,23 +6,25 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dref', '0046_auto_20221202_1030'),
+        ("dref", "0046_auto_20221202_1030"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='dreffinalreport',
-            name='event_date',
-            field=models.DateField(blank=True, help_text='Date of event/Approximate date of impact', null=True, verbose_name='event date'),
+            model_name="dreffinalreport",
+            name="event_date",
+            field=models.DateField(
+                blank=True, help_text="Date of event/Approximate date of impact", null=True, verbose_name="event date"
+            ),
         ),
         migrations.AddField(
-            model_name='dreffinalreport',
-            name='national_society_actions',
-            field=models.ManyToManyField(blank=True, to='dref.NationalSocietyAction', verbose_name='national society actions'),
+            model_name="dreffinalreport",
+            name="national_society_actions",
+            field=models.ManyToManyField(blank=True, to="dref.NationalSocietyAction", verbose_name="national society actions"),
         ),
         migrations.AddField(
-            model_name='dreffinalreport',
-            name='people_in_need',
-            field=models.IntegerField(blank=True, null=True, verbose_name='people in need'),
+            model_name="dreffinalreport",
+            name="people_in_need",
+            field=models.IntegerField(blank=True, null=True, verbose_name="people in need"),
         ),
     ]

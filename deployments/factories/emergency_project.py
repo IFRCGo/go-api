@@ -1,29 +1,32 @@
-import factory
-from factory import fuzzy
 import datetime
-import pytz
 
+import factory
+import pytz
+from factory import fuzzy
+
+from api.factories.country import CountryFactory
+from api.factories.event import AppealFactory, EventFactory
 from deployments.models import (
+    ERU,
     EmergencyProject,
     EmergencyProjectActivity,
-    ERU,
-    ERUOwner,
+    EmergencyProjectActivityAction,
     EmergencyProjectActivitySector,
-    EmergencyProjectActivityAction
+    ERUOwner,
 )
-from api.factories.event import EventFactory, AppealFactory
-from api.factories.country import CountryFactory
 
 
 class ERUOwnerFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = ERUOwner
+
     national_society_country = factory.SubFactory(CountryFactory)
 
 
 class EruFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = ERU
+
     deployed_to = factory.SubFactory(CountryFactory)
     event = factory.SubFactory(EventFactory)
     eru_owner = factory.SubFactory(ERUOwnerFactory)
@@ -33,21 +36,23 @@ class EruFactory(factory.django.DjangoModelFactory):
 class EmergencyProjectActivitySectorFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = EmergencyProjectActivitySector
-    title = fuzzy.FuzzyText(length=50, prefix='title-')
+
+    title = fuzzy.FuzzyText(length=50, prefix="title-")
 
 
 class EmergencyProjectActivityActionFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = EmergencyProjectActivityAction
+
     sector = factory.SubFactory(EmergencyProjectActivitySectorFactory)
-    title = fuzzy.FuzzyText(length=50, prefix='title-')
+    title = fuzzy.FuzzyText(length=50, prefix="title-")
 
 
 class EmergencyProjectFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = EmergencyProject
 
-    title = fuzzy.FuzzyText(length=50, prefix='emergency-project-')
+    title = fuzzy.FuzzyText(length=50, prefix="emergency-project-")
     event = factory.SubFactory(EventFactory)
     reporting_ns = factory.SubFactory(CountryFactory)
     deployed_eru = factory.SubFactory(EruFactory)
@@ -68,6 +73,7 @@ class EmergencyProjectFactory(factory.django.DjangoModelFactory):
 class EmergencyProjectActivityFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = EmergencyProjectActivity
+
     sector = factory.SubFactory(EmergencyProjectActivitySectorFactory)
     action = factory.SubFactory(EmergencyProjectActivityActionFactory)
     project = factory.SubFactory(EmergencyProjectFactory)

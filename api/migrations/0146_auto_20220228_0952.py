@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0145_auto_20220218_1338'),
+        ("api", "0145_auto_20220218_1338"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='generaldocument',
-            name='created_at',
-            field=models.DateTimeField(blank=True, verbose_name='created at'),
+            model_name="generaldocument",
+            name="created_at",
+            field=models.DateTimeField(blank=True, verbose_name="created at"),
         ),
     ]

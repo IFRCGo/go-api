@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('deployments', '0028_auto_20200618_0904'),
+        ("deployments", "0028_auto_20200618_0904"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='project',
-            name='actual_expenditure',
-            field=models.IntegerField(blank=True, null=True, verbose_name='actual expenditure'),
+            model_name="project",
+            name="actual_expenditure",
+            field=models.IntegerField(blank=True, null=True, verbose_name="actual expenditure"),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='budget_amount',
-            field=models.IntegerField(blank=True, null=True, verbose_name='budget amount'),
+            model_name="project",
+            name="budget_amount",
+            field=models.IntegerField(blank=True, null=True, verbose_name="budget amount"),
         ),
     ]

@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('deployments', '0019_auto_20200319_0806'),
+        ("deployments", "0019_auto_20200319_0806"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='project',
-            name='is_private',
-            field=models.BooleanField(default=False, help_text='Private projects are only visible to authenticated users.'),
+            model_name="project",
+            name="is_private",
+            field=models.BooleanField(default=False, help_text="Private projects are only visible to authenticated users."),
         ),
     ]

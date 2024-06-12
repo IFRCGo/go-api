@@ -6,38 +6,38 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('deployments', '0061_auto_20220331_1121'),
+        ("deployments", "0061_auto_20220331_1121"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='emergencyprojectactivity',
-            old_name='female_unknown_age',
-            new_name='female_unknown_age_count',
+            model_name="emergencyprojectactivity",
+            old_name="female_unknown_age",
+            new_name="female_unknown_age_count",
         ),
         migrations.RenameField(
-            model_name='emergencyprojectactivity',
-            old_name='male_unknown_age',
-            new_name='male_unknown_age_count',
+            model_name="emergencyprojectactivity",
+            old_name="male_unknown_age",
+            new_name="male_unknown_age_count",
         ),
         migrations.RenameField(
-            model_name='emergencyprojectactivity',
-            old_name='other_unknown_age',
-            new_name='other_unknown_age_count',
+            model_name="emergencyprojectactivity",
+            old_name="other_unknown_age",
+            new_name="other_unknown_age_count",
         ),
         migrations.AddField(
-            model_name='emergencyprojectactivity',
-            name='disabled_female_unknown_age_count',
-            field=models.IntegerField(blank=True, null=True, verbose_name='Disabled Female Unknown Age'),
+            model_name="emergencyprojectactivity",
+            name="disabled_female_unknown_age_count",
+            field=models.IntegerField(blank=True, null=True, verbose_name="Disabled Female Unknown Age"),
         ),
         migrations.AddField(
-            model_name='emergencyprojectactivity',
-            name='disabled_male_unknown_age_count',
-            field=models.IntegerField(blank=True, null=True, verbose_name='Disabled Male Unknown Age'),
+            model_name="emergencyprojectactivity",
+            name="disabled_male_unknown_age_count",
+            field=models.IntegerField(blank=True, null=True, verbose_name="Disabled Male Unknown Age"),
         ),
         migrations.AddField(
-            model_name='emergencyprojectactivity',
-            name='disabled_other_unknown_age_count',
-            field=models.IntegerField(blank=True, null=True, verbose_name='Disabled Other Unknown Age'),
+            model_name="emergencyprojectactivity",
+            name="disabled_other_unknown_age_count",
+            field=models.IntegerField(blank=True, null=True, verbose_name="Disabled Other Unknown Age"),
         ),
     ]

@@ -1,25 +1,23 @@
-import json
 import datetime
-import pytz
+import json
 from unittest import mock
-from django.core import management
 
-from modeltranslation.utils import build_localized_fieldname
+import pytz
 from django.conf import settings
+from django.core import management
+from modeltranslation.utils import build_localized_fieldname
 
+from api.models import Country, DisasterType, District, Region, VisibilityCharChoices
 from deployments.factories.project import ProjectFactory, SectorFactory
-from api.models import Country, District, Region, DisasterType
 from main.test_case import APITestCase
-from api.models import VisibilityCharChoices
-
 
 from .models import (
     AnnualSplit,
-    Project,
+    OperationTypes,
     ProgrammeTypes,
+    Project,
     Sector,
     SectorTag,
-    OperationTypes,
     Statuses,
 )
 
@@ -619,9 +617,7 @@ class TranslationTest(APITestCase):
                             resp_body["name"] == names[current_language]
                         ), f"Name ({lang}): <{resp_body['name']}> should be <{names[current_language]}>"
                     else:
-                        translated_text = self.aws_translator._fake_translation(
-                            names[current_language], lang, current_language
-                        )
+                        translated_text = self.aws_translator._fake_translation(names[current_language], lang, current_language)
                         assert (
                             resp_body["name"] == translated_text
                         ), f"Name ({lang}): should be <{translated_text}> instead of <{resp_body['name']}>"

@@ -1,19 +1,20 @@
-import factory
 import datetime
+
+import factory
 from factory import fuzzy
 
 from per.models import (
+    AssessmentType,
+    Form,
+    FormAnswer,
+    FormArea,
+    FormComponent,
+    FormData,
+    FormPrioritization,
+    FormQuestion,
     Overview,
     PerWorkPlan,
     PerWorkPlanComponent,
-    FormArea,
-    FormComponent,
-    AssessmentType,
-    FormAnswer,
-    FormQuestion,
-    Form,
-    FormData,
-    FormPrioritization,
 )
 
 

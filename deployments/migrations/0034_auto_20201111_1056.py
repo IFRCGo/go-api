@@ -6,23 +6,23 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('deployments', '0033_molnixtag'),
+        ("deployments", "0033_molnixtag"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='personnel',
-            name='is_active',
+            model_name="personnel",
+            name="is_active",
             field=models.BooleanField(default=True),
         ),
         migrations.AddField(
-            model_name='personnel',
-            name='molnix_id',
+            model_name="personnel",
+            name="molnix_id",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='personneldeployment',
-            name='is_molnix',
+            model_name="personneldeployment",
+            name="is_molnix",
             field=models.BooleanField(default=False),
         ),
     ]

@@ -7,18 +7,30 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0103_merge_20201210_0900'),
+        ("api", "0103_merge_20201210_0900"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='country',
-            name='iso',
-            field=models.CharField(blank=True, max_length=2, null=True, validators=[django.core.validators.RegexValidator('^[A-Z]*$', 'ISO must be uppercase')], verbose_name='ISO'),
+            model_name="country",
+            name="iso",
+            field=models.CharField(
+                blank=True,
+                max_length=2,
+                null=True,
+                validators=[django.core.validators.RegexValidator("^[A-Z]*$", "ISO must be uppercase")],
+                verbose_name="ISO",
+            ),
         ),
         migrations.AlterField(
-            model_name='country',
-            name='iso3',
-            field=models.CharField(blank=True, max_length=3, null=True, validators=[django.core.validators.RegexValidator('^[A-Z]*$', 'ISO must be uppercase')], verbose_name='ISO3'),
+            model_name="country",
+            name="iso3",
+            field=models.CharField(
+                blank=True,
+                max_length=3,
+                null=True,
+                validators=[django.core.validators.RegexValidator("^[A-Z]*$", "ISO must be uppercase")],
+                verbose_name="ISO3",
+            ),
         ),
     ]

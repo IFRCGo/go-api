@@ -1,26 +1,50 @@
 from rest_framework import serializers
 
-from api.serializers import MiniEventSerializer, SurgeEventSerializer, MiniCountrySerializer
+from api.serializers import (
+    MiniCountrySerializer,
+    MiniEventSerializer,
+    SurgeEventSerializer,
+)
+from deployments.serializers import MolnixTagSerializer
 from lang.serializers import ModelSerializer
 
-from .models import SurgeAlert, Subscription
-from deployments.serializers import MolnixTagSerializer
+from .models import Subscription, SurgeAlert
 
 
 class SurgeAlertSerializer(ModelSerializer):
     event = SurgeEventSerializer()
     country = MiniCountrySerializer()
-    atype_display = serializers.CharField(source='get_atype_display', read_only=True)
-    status_display = serializers.CharField(source='get_status_display', read_only=True)
-    category_display = serializers.CharField(source='get_category_display', read_only=True)
+    atype_display = serializers.CharField(source="get_atype_display", read_only=True)
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+    category_display = serializers.CharField(source="get_category_display", read_only=True)
     molnix_tags = MolnixTagSerializer(many=True, read_only=True)
 
     class Meta:
         model = SurgeAlert
         fields = (
-            'operation','country', 'message', 'deployment_needed', 'is_private', 'event', 'created_at', 'id',
-            'atype', 'atype_display', 'category', 'category_display', 'molnix_id', 'molnix_tags',
-            'molnix_status', 'opens', 'closes', 'start', 'end', 'is_active', 'is_stood_down','status', 'status_display'
+            "operation",
+            "country",
+            "message",
+            "deployment_needed",
+            "is_private",
+            "event",
+            "created_at",
+            "id",
+            "atype",
+            "atype_display",
+            "category",
+            "category_display",
+            "molnix_id",
+            "molnix_tags",
+            "molnix_status",
+            "opens",
+            "closes",
+            "start",
+            "end",
+            "is_active",
+            "is_stood_down",
+            "status",
+            "status_display",
         )
 
 
@@ -40,12 +64,20 @@ class SurgeAlertSerializer(ModelSerializer):
 class SubscriptionSerializer(ModelSerializer):
     country = MiniCountrySerializer()
     event = MiniEventSerializer()
-    stype_display = serializers.CharField(source='get_stype_display', read_only=True)
-    rtype_display = serializers.CharField(source='get_rtype_display', read_only=True)
+    stype_display = serializers.CharField(source="get_stype_display", read_only=True)
+    rtype_display = serializers.CharField(source="get_rtype_display", read_only=True)
 
     class Meta:
         model = Subscription
         fields = (
-            'user', 'country', 'region', 'event', 'dtype', 'lookup_id',
-            'stype', 'stype_display', 'rtype', 'rtype_display',
+            "user",
+            "country",
+            "region",
+            "event",
+            "dtype",
+            "lookup_id",
+            "stype",
+            "stype_display",
+            "rtype",
+            "rtype_display",
         )

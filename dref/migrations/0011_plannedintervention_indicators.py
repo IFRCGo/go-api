@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dref', '0010_auto_20220429_0859'),
+        ("dref", "0010_auto_20220429_0859"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='plannedintervention',
-            name='indicators',
-            field=models.ManyToManyField(blank=True, to='dref.PlannedInterventionIndicators', verbose_name='Indicators'),
+            model_name="plannedintervention",
+            name="indicators",
+            field=models.ManyToManyField(blank=True, to="dref.PlannedInterventionIndicators", verbose_name="Indicators"),
         ),
     ]

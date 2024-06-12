@@ -6,18 +6,22 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0155_auto_20220523_0824'),
+        ("api", "0155_auto_20220523_0824"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='fieldreport',
-            name='health_min_num_assisted',
-            field=models.IntegerField(blank=True, help_text='not used any more', null=True, verbose_name='number of assisted (ministry of health)'),
+            model_name="fieldreport",
+            name="health_min_num_assisted",
+            field=models.IntegerField(
+                blank=True, help_text="not used any more", null=True, verbose_name="number of assisted (ministry of health)"
+            ),
         ),
         migrations.AlterField(
-            model_name='fieldreport',
-            name='who_num_assisted',
-            field=models.IntegerField(blank=True, help_text='not used any more', null=True, verbose_name='number of assisted (who)'),
+            model_name="fieldreport",
+            name="who_num_assisted",
+            field=models.IntegerField(
+                blank=True, help_text="not used any more", null=True, verbose_name="number of assisted (who)"
+            ),
         ),
     ]

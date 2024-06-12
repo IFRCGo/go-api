@@ -6,14 +6,14 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0161_alter_event_options'),
-        ('deployments', '0077_project_project_admin2'),
+        ("api", "0161_alter_event_options"),
+        ("deployments", "0077_project_project_admin2"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='emergencyproject',
-            name='admin2',
-            field=models.ManyToManyField(blank=True, to='api.Admin2', verbose_name='admin2'),
+            model_name="emergencyproject",
+            name="admin2",
+            field=models.ManyToManyField(blank=True, to="api.Admin2", verbose_name="admin2"),
         ),
     ]

@@ -1,9 +1,10 @@
 import reversion
-from api.models import Country, Appeal
-from django.db import models
 from django.conf import settings
+from django.db import models
 from django.utils.translation import gettext_lazy as _
 from tinymce.models import HTMLField
+
+from api.models import Appeal, Country
 from deployments.models import SectorTag
 
 
@@ -73,9 +74,7 @@ class FormArea(models.Model):
 
 @reversion.register()
 class FormComponentQuestionAndAnswer(models.Model):
-    question = models.ForeignKey(
-        "FormQuestion", verbose_name=_("question"), null=True, blank=True, on_delete=models.SET_NULL
-    )
+    question = models.ForeignKey("FormQuestion", verbose_name=_("question"), null=True, blank=True, on_delete=models.SET_NULL)
     answer = models.ForeignKey("FormAnswer", verbose_name=_("answer"), null=True, blank=True, on_delete=models.SET_NULL)
     notes = models.TextField(verbose_name=_("notes"), null=True, blank=True)
 
@@ -94,31 +93,14 @@ class FormComponent(models.Model):
     area = models.ForeignKey(FormArea, verbose_name=_("area"), on_delete=models.PROTECT)
     title = models.CharField(verbose_name=_("title"), max_length=250)
     component_num = models.IntegerField(verbose_name=_("component number"), default=1)
-    component_letter = models.CharField(
-        verbose_name=_("component letter"),
-        max_length=3,
-        null=True, blank=True
-    )
+    component_letter = models.CharField(verbose_name=_("component letter"), max_length=3, null=True, blank=True)
     description = models.TextField(verbose_name=_("description"), null=True, blank=True)
     status = models.CharField(
-        verbose_name=_("status"),
-        max_length=100,
-        choices=FormComponentStatus.choices,
-        null=True, blank=True
+        verbose_name=_("status"), max_length=100, choices=FormComponentStatus.choices, null=True, blank=True
     )
-    question_responses = models.ManyToManyField(
-        FormComponentQuestionAndAnswer,
-        verbose_name=_("Question responses"),
-        blank=True
-    )
-    is_parent = models.BooleanField(
-        verbose_name=_('Is parent'),
-        null=True, blank=True
-    )
-    has_question_group = models.BooleanField(
-        verbose_name=_('Has Question Group'),
-        null=True, blank=True
-    )
+    question_responses = models.ManyToManyField(FormComponentQuestionAndAnswer, verbose_name=_("Question responses"), blank=True)
+    is_parent = models.BooleanField(verbose_name=_("Is parent"), null=True, blank=True)
+    has_question_group = models.BooleanField(verbose_name=_("Has Question Group"), null=True, blank=True)
 
     def __str__(self):
         return f"Component {self.component_num} - {self.title}"
@@ -145,9 +127,7 @@ class FormComponentResponse(models.Model):
         null=True,
         blank=True,
     )
-    question_responses = models.ManyToManyField(
-        FormComponentQuestionAndAnswer, verbose_name=_("Question responses"), blank=True
-    )
+    question_responses = models.ManyToManyField(FormComponentQuestionAndAnswer, verbose_name=_("Question responses"), blank=True)
     # consideration_responses fields
     urban_considerations = models.TextField(verbose_name=_("Urban Considerations"), null=True, blank=True)
     epi_considerations = models.TextField(verbose_name=_("Epi Considerations"), null=True, blank=True)
@@ -159,11 +139,7 @@ class FormComponentResponse(models.Model):
 
 @reversion.register()
 class AreaResponse(models.Model):
-    area = models.ForeignKey(
-        FormArea,
-        verbose_name=_("Area"),
-        on_delete=models.CASCADE
-    )
+    area = models.ForeignKey(FormArea, verbose_name=_("Area"), on_delete=models.CASCADE)
     component_response = models.ManyToManyField(
         FormComponentResponse,
         verbose_name=_("Component Response"),
@@ -180,12 +156,7 @@ class PerAssessment(models.Model):
         blank=True,
         null=True,
     )
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        verbose_name=_("user"),
-        null=True, blank=True,
-        on_delete=models.SET_NULL
-    )
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_("user"), null=True, blank=True, on_delete=models.SET_NULL)
     area_responses = models.ManyToManyField(
         AreaResponse,
         verbose_name=_("Area Response"),
@@ -217,7 +188,7 @@ class FormAnswer(models.Model):
 class FormQuestionGroup(models.Model):
     component = models.ForeignKey(FormComponent, verbose_name=_("component"), on_delete=models.PROTECT)
     title = models.CharField(verbose_name=_("title"), max_length=250)
-    description = models.TextField(verbose_name=_('description'), null=True, blank=True)
+    description = models.TextField(verbose_name=_("description"), null=True, blank=True)
 
     def __str__(self):
         return self.title
@@ -228,11 +199,7 @@ class FormQuestion(models.Model):
     """PER Form individual questions inside Components"""
 
     component = models.ForeignKey(FormComponent, verbose_name=_("component"), on_delete=models.PROTECT)
-    question_group = models.ForeignKey(
-        FormQuestionGroup,
-        null=True, blank=True,
-        on_delete=models.SET_NULL
-    )
+    question_group = models.ForeignKey(FormQuestionGroup, null=True, blank=True, on_delete=models.SET_NULL)
     question = models.CharField(verbose_name=_("question"), max_length=500)
     description = HTMLField(verbose_name=_("description"), null=True, blank=True)
     question_num = models.IntegerField(verbose_name=_("question number"), null=True, blank=True)
@@ -304,22 +271,11 @@ class Overview(models.Model):
         WPNS = "wpns", _("WPNS")
 
     country = models.ForeignKey(
-        Country,
-        verbose_name=_("country"),
-        related_name="per_overviews",
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL
+        Country, verbose_name=_("country"), related_name="per_overviews", null=True, blank=True, on_delete=models.SET_NULL
     )
     created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
     updated_at = models.DateTimeField(verbose_name=_("updated at"), auto_now=True)
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        verbose_name=_("user"),
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL
-    )
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_("user"), null=True, blank=True, on_delete=models.SET_NULL)
 
     # Orientation
     date_of_orientation = models.DateField(verbose_name=_("Date of Orientation"), null=True, blank=True)
@@ -378,15 +334,11 @@ class Overview(models.Model):
     facilitator_name = models.CharField(verbose_name=_("facilitator name"), max_length=90, null=True, blank=True)
     facilitator_email = models.CharField(verbose_name=_("facilitator email"), max_length=90, null=True, blank=True)
     facilitator_phone = models.CharField(verbose_name=_("facilitator phone"), max_length=90, null=True, blank=True)
-    facilitator_contact = models.CharField(
-        verbose_name=_("facilitator other contacts"), max_length=90, null=True, blank=True
-    )
+    facilitator_contact = models.CharField(verbose_name=_("facilitator other contacts"), max_length=90, null=True, blank=True)
     ns_focal_point_name = models.CharField(verbose_name=_("ns focal point name"), max_length=90, null=True, blank=True)
     ns_focal_point_email = models.CharField(verbose_name=_("ns focal point email"), max_length=90, null=True, blank=True)
     ns_focal_point_phone = models.CharField(verbose_name=_("ns focal point phone"), max_length=90, null=True, blank=True)
-    partner_focal_point_name = models.CharField(
-        verbose_name=_("partner focal point name"), max_length=90, null=True, blank=True
-    )
+    partner_focal_point_name = models.CharField(verbose_name=_("partner focal point name"), max_length=90, null=True, blank=True)
     partner_focal_point_email = models.CharField(
         verbose_name=_("partner focal point email"), max_length=90, null=True, blank=True
     )
@@ -407,9 +359,7 @@ class Overview(models.Model):
     )
 
     # phase calculation
-    phase = models.IntegerField(
-        verbose_name=_("phase"), choices=Phase.choices, null=True, blank=True, default=Phase.ORIENTATION
-    )
+    phase = models.IntegerField(verbose_name=_("phase"), choices=Phase.choices, null=True, blank=True, default=Phase.ORIENTATION)
 
     # Added to track the draft overview
     is_draft = models.BooleanField(
@@ -490,12 +440,8 @@ class Form(models.Model):
     """Individually submitted PER Forms"""
 
     area = models.ForeignKey(FormArea, verbose_name=_("area"), null=True, on_delete=models.PROTECT)
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, verbose_name=_("user"), null=True, blank=True, on_delete=models.SET_NULL
-    )
-    overview = models.ForeignKey(
-        Overview, verbose_name=_("overview"), related_name="forms", null=True, on_delete=models.CASCADE
-    )
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_("user"), null=True, blank=True, on_delete=models.SET_NULL)
+    overview = models.ForeignKey(Overview, verbose_name=_("overview"), related_name="forms", null=True, on_delete=models.CASCADE)
     created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True, auto_now=False)
     updated_at = models.DateTimeField(verbose_name=_("updated at"), auto_now=True)
     comment = models.TextField(verbose_name=_("comment"), null=True, blank=True)  # form level comment
@@ -569,9 +515,7 @@ class WorkPlan(models.Model):
     country = models.ForeignKey(Country, verbose_name=_("country"), null=True, blank=True, on_delete=models.SET_NULL)
     code = models.CharField(verbose_name=_("code"), max_length=10, null=True, blank=True)
     question_id = models.CharField(verbose_name=_("question id"), max_length=10, null=True, blank=True)
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, verbose_name=_("user"), null=True, blank=True, on_delete=models.SET_NULL
-    )
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_("user"), null=True, blank=True, on_delete=models.SET_NULL)
 
     class Meta:
         ordering = ("prioritization", "country")
@@ -608,9 +552,7 @@ class NiceDocument(models.Model):
     country = models.ForeignKey(
         Country, verbose_name=_("country"), related_name="perdoc_country", null=True, blank=True, on_delete=models.SET_NULL
     )
-    visibility = models.IntegerField(
-        choices=Visibilities.choices, verbose_name=_("visibility"), default=Visibilities.VISIBLE
-    )
+    visibility = models.IntegerField(choices=Visibilities.choices, verbose_name=_("visibility"), default=Visibilities.VISIBLE)
 
     class Meta:
         ordering = ("visibility", "country")
@@ -631,10 +573,10 @@ class PerWorkPlanStatus(models.IntegerChoices):
 
 class PerWorkPlanComponent(models.Model):
     class SupportedByOrganizationType(models.IntegerChoices):
-        UN_ORGANIZATION = 0, _('UN Organization')
-        PRIVATE_SECTOR = 1, _('Private Sector')
-        GOVERNMENT = 2, _('Government')
-        NATIONAL_SOCIETY = 3, _('National Society')
+        UN_ORGANIZATION = 0, _("UN Organization")
+        PRIVATE_SECTOR = 1, _("Private Sector")
+        GOVERNMENT = 2, _("Government")
+        NATIONAL_SOCIETY = 3, _("National Society")
 
     component = models.ForeignKey(
         FormComponent,
@@ -702,55 +644,54 @@ class OrganizationTypes(models.Model):
 
 
 class LearningType(models.IntegerChoices):
-    LESSON_LEARNED = 1, _('Lesson learned')
-    CHALLENGE = 2, _('Challenge')
+    LESSON_LEARNED = 1, _("Lesson learned")
+    CHALLENGE = 2, _("Challenge")
 
 
 @reversion.register(
     follow=(
-        'appeal_code',
-        'organization',
-        'sector',
-        'per_component',
-        'organization_validated',
-        'sector_validated',
-        'per_component_validated'
+        "appeal_code",
+        "organization",
+        "sector",
+        "per_component",
+        "organization_validated",
+        "sector_validated",
+        "per_component_validated",
     )
 )
 class OpsLearning(models.Model):
     learning = models.TextField(verbose_name=_("learning"), null=True, blank=True)
     learning_validated = models.TextField(verbose_name=_("learning (validated)"), null=True, blank=True)
     appeal_code = models.ForeignKey(
-        Appeal, to_field="code", db_column="appeal_code",
-        verbose_name=_('appeal (MDR) code'), null=True, blank=True,
-        on_delete=models.SET_NULL
+        Appeal,
+        to_field="code",
+        db_column="appeal_code",
+        verbose_name=_("appeal (MDR) code"),
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
     )
     appeal_document_id = models.IntegerField(verbose_name=_("Appeal document ID"), null=True, blank=True)
     type = models.IntegerField(verbose_name=_("type"), choices=LearningType.choices, default=LearningType.LESSON_LEARNED)
     type_validated = models.IntegerField(
-        verbose_name=_("type (validated)"), choices=LearningType.choices,
-        default=LearningType.LESSON_LEARNED
+        verbose_name=_("type (validated)"), choices=LearningType.choices, default=LearningType.LESSON_LEARNED
     )
     organization = models.ManyToManyField(
-        OrganizationTypes, related_name="organizations",
-        verbose_name=_("Organizations"), blank=True
+        OrganizationTypes, related_name="organizations", verbose_name=_("Organizations"), blank=True
     )
     organization_validated = models.ManyToManyField(
-        OrganizationTypes, related_name="validated_organizations",
-        verbose_name=_("Organizations (validated)"), blank=True
+        OrganizationTypes, related_name="validated_organizations", verbose_name=_("Organizations (validated)"), blank=True
     )
     sector = models.ManyToManyField(SectorTag, related_name="sectors", verbose_name=_("Sectors"), blank=True)
     sector_validated = models.ManyToManyField(
-        SectorTag, related_name="validated_sectors",
-        verbose_name=_("Sectors (validated)"), blank=True
+        SectorTag, related_name="validated_sectors", verbose_name=_("Sectors (validated)"), blank=True
     )
     per_component = models.ManyToManyField(FormComponent, related_name="components", verbose_name=_("PER Components"), blank=True)
     per_component_validated = models.ManyToManyField(
-        FormComponent, related_name="validated_components",
-        verbose_name=_("PER Components (validated)"), blank=True
+        FormComponent, related_name="validated_components", verbose_name=_("PER Components (validated)"), blank=True
     )
     is_validated = models.BooleanField(verbose_name=_("is validated?"), default=False)
-    modified_at = models.DateTimeField(verbose_name=_('modified_at'), auto_now=True)
+    modified_at = models.DateTimeField(verbose_name=_("modified_at"), auto_now=True)
     created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
 
     class Meta:
@@ -765,22 +706,22 @@ class OpsLearning(models.Model):
     @staticmethod
     def is_user_admin(user):
         return (
-            user is not None and
-            not user.is_anonymous and
-            (
-                user.is_superuser or
-                user.groups.filter(name="OpsLearning Admin").exists()
-            )
+            user is not None
+            and not user.is_anonymous
+            and user.is_superuser
+            or user.groups.filter(name="OpsLearning Admin").exists()
         )
 
     def save(self, *args, **kwargs):
 
         if self.is_validated and self.id:
-            if self.learning_validated is None \
-                and self.type_validated == LearningType.LESSON_LEARNED.value \
-                and self.organization_validated.count() == 0 \
-                and self.sector_validated.count() == 0 \
-                and self.per_component_validated.count() == 0:
+            if (
+                self.learning_validated is None
+                and self.type_validated == LearningType.LESSON_LEARNED.value
+                and self.organization_validated.count() == 0
+                and self.sector_validated.count() == 0
+                and self.per_component_validated.count() == 0
+            ):
 
                 self.learning_validated = self.learning
                 self.type_validated = self.type
@@ -802,22 +743,9 @@ class PerDocumentUpload(models.Model):
         on_delete=models.SET_NULL,
         null=True,
     )
-    country = models.ForeignKey(
-        Country,
-        verbose_name=_('country'),
-        on_delete=models.CASCADE
-    )
-    created_at = models.DateTimeField(
-        verbose_name=_("created at"),
-        auto_now_add=True
-    )
-    per = models.ForeignKey(
-        Overview,
-        verbose_name=_('Per'),
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True
-    )
+    country = models.ForeignKey(Country, verbose_name=_("country"), on_delete=models.CASCADE)
+    created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
+    per = models.ForeignKey(Overview, verbose_name=_("Per"), on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
-        return f'{self.country.name} - {self.created_by} - {self.per_id}'
+        return f"{self.country.name} - {self.created_by} - {self.per_id}"

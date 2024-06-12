@@ -6,13 +6,31 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dref', '0018_dref_is_surge_personnel_deployed'),
+        ("dref", "0018_dref_is_surge_personnel_deployed"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='plannedintervention',
-            name='title',
-            field=models.CharField(choices=[('shelter_housing_and_settlements', 'Shelter Housing And Settlements'), ('livelihoods_and_basic_needs', 'Livelihoods And Basic Needs'), ('health', 'Health'), ('water_sanitation_and_hygiene', 'Water, Sanitation And Hygiene'), ('protection_gender_and_inclusion', 'Protection, Gender And Inclusion'), ('education', 'Education'), ('migration', 'Migration'), ('risk_reduction_climate_adaptation_and_recovery_', 'Risk Reduction, Climate Adaptation And Recovery'), ('secretariat_services', 'Secretariat Services'), ('national_society_strengthening', 'National Society Strengthening'), ('multi-purpose_cash', 'Multi-purpose Cash'), ('environmental_sustainability', 'Environmental Sustainability'), ('community_engagement_and_accountability', 'Community Engagement And Accountability')], max_length=255, verbose_name='title'),
+            model_name="plannedintervention",
+            name="title",
+            field=models.CharField(
+                choices=[
+                    ("shelter_housing_and_settlements", "Shelter Housing And Settlements"),
+                    ("livelihoods_and_basic_needs", "Livelihoods And Basic Needs"),
+                    ("health", "Health"),
+                    ("water_sanitation_and_hygiene", "Water, Sanitation And Hygiene"),
+                    ("protection_gender_and_inclusion", "Protection, Gender And Inclusion"),
+                    ("education", "Education"),
+                    ("migration", "Migration"),
+                    ("risk_reduction_climate_adaptation_and_recovery_", "Risk Reduction, Climate Adaptation And Recovery"),
+                    ("secretariat_services", "Secretariat Services"),
+                    ("national_society_strengthening", "National Society Strengthening"),
+                    ("multi-purpose_cash", "Multi-purpose Cash"),
+                    ("environmental_sustainability", "Environmental Sustainability"),
+                    ("community_engagement_and_accountability", "Community Engagement And Accountability"),
+                ],
+                max_length=255,
+                verbose_name="title",
+            ),
         ),
     ]

@@ -6,12 +6,16 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('deployments', '0069_auto_20221022_1542'),
+        ("deployments", "0069_auto_20221022_1542"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='personnel',
-            options={'ordering': ('deployment', 'country_to', 'country_from', 'molnix_id', 'deployedperson_ptr_id'), 'verbose_name': 'Personnel', 'verbose_name_plural': 'Personnels'},
+            name="personnel",
+            options={
+                "ordering": ("deployment", "country_to", "country_from", "molnix_id", "deployedperson_ptr_id"),
+                "verbose_name": "Personnel",
+                "verbose_name_plural": "Personnels",
+            },
         ),
     ]

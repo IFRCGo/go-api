@@ -1,18 +1,11 @@
 from haystack import indexes
 
-from api.models import (
-    Country,
-    Event,
-    Appeal,
-    FieldReport,
-    Region,
-    District,
-)
+from api.models import Appeal, Country, District, Event, FieldReport, Region
 
 
 class RegionIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.EdgeNgramField(document=True, use_template=True)
-    name = indexes.EdgeNgramField(model_attr='get_name_display')
+    name = indexes.EdgeNgramField(model_attr="get_name_display")
 
     def get_model(self):
         return Region
@@ -23,11 +16,11 @@ class RegionIndex(indexes.SearchIndex, indexes.Indexable):
 
 class CountryIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.EdgeNgramField(document=True, use_template=True)
-    name = indexes.EdgeNgramField(model_attr='name')
-    society_name = indexes.CharField(model_attr='society_name', null=True)
-    independent = indexes.BooleanField(model_attr='independent', null=True)
-    is_deprecated = indexes.BooleanField(model_attr='is_deprecated', null=True)
-    iso3 = indexes.CharField(model_attr='iso3', null=True)
+    name = indexes.EdgeNgramField(model_attr="name")
+    society_name = indexes.CharField(model_attr="society_name", null=True)
+    independent = indexes.BooleanField(model_attr="independent", null=True)
+    is_deprecated = indexes.BooleanField(model_attr="is_deprecated", null=True)
+    iso3 = indexes.CharField(model_attr="iso3", null=True)
 
     def get_model(self):
         return Country
@@ -38,10 +31,10 @@ class CountryIndex(indexes.SearchIndex, indexes.Indexable):
 
 class DistrictIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.EdgeNgramField(document=True, use_template=True)
-    name = indexes.EdgeNgramField(model_attr='name')
-    country_name = indexes.CharField(model_attr='country__name', null=True)
-    country_id = indexes.CharField(model_attr='country__id', null=True)
-    iso3 = indexes.CharField(model_attr='country__iso3', null=True)
+    name = indexes.EdgeNgramField(model_attr="name")
+    country_name = indexes.CharField(model_attr="country__name", null=True)
+    country_id = indexes.CharField(model_attr="country__id", null=True)
+    iso3 = indexes.CharField(model_attr="country__iso3", null=True)
 
     def get_model(self):
         return District
@@ -52,17 +45,17 @@ class DistrictIndex(indexes.SearchIndex, indexes.Indexable):
 
 class AppealIndex(indexes.Indexable, indexes.SearchIndex):
     text = indexes.EdgeNgramField(document=True, use_template=True)
-    name = indexes.EdgeNgramField(model_attr='name')
-    visibility = indexes.CharField(model_attr='event__visibility', null=True)
-    appeal_type = indexes.CharField(model_attr='get_atype_display')
-    code = indexes.CharField(model_attr='code')
-    event_name = indexes.CharField(model_attr='event__name', null=True)
-    country_name = indexes.CharField(model_attr='country__name')
-    start_date = indexes.DateTimeField(model_attr='start_date', null=True)
-    country_id = indexes.IntegerField(model_attr='country__id')
-    event_id = indexes.IntegerField(model_attr='event__id', null=True)
-    iso3 = indexes.CharField(model_attr='country__iso3', null=True)
-    visibility = indexes.CharField(model_attr='event__get_visibility_display', null=True)
+    name = indexes.EdgeNgramField(model_attr="name")
+    visibility = indexes.CharField(model_attr="event__visibility", null=True)
+    appeal_type = indexes.CharField(model_attr="get_atype_display")
+    code = indexes.CharField(model_attr="code")
+    event_name = indexes.CharField(model_attr="event__name", null=True)
+    country_name = indexes.CharField(model_attr="country__name")
+    start_date = indexes.DateTimeField(model_attr="start_date", null=True)
+    country_id = indexes.IntegerField(model_attr="country__id")
+    event_id = indexes.IntegerField(model_attr="event__id", null=True)
+    iso3 = indexes.CharField(model_attr="country__iso3", null=True)
+    visibility = indexes.CharField(model_attr="event__get_visibility_display", null=True)
 
     def get_model(self):
         return Appeal
@@ -73,19 +66,23 @@ class AppealIndex(indexes.Indexable, indexes.SearchIndex):
 
 class EmergenciesIndex(indexes.Indexable, indexes.SearchIndex):
     text = indexes.EdgeNgramField(document=True, use_template=True)
-    name = indexes.EdgeNgramField(model_attr='name')
-    visibility = indexes.CharField(model_attr='visibility', null=True)
-    countries = indexes.MultiValueField(null=True,)
-    disaster_start_date = indexes.DateTimeField(model_attr='disaster_start_date', null=True)
-    amount_requested = indexes.CharField(model_attr='appeals__amount_requested', null=True)
-    amount_funded = indexes.CharField(model_attr='appeals__amount_funded', null=True)
-    disaster_type = indexes.CharField(model_attr='dtype__name', null=True)
-    countries_id = indexes.MultiValueField(null=True,)
-    appeal_type = indexes.CharField(model_attr='appeals__get_atype_display', null=True)
-    crisis_categorization = indexes.CharField(model_attr='get_ifrc_severity_level_display', null=True)
+    name = indexes.EdgeNgramField(model_attr="name")
+    visibility = indexes.CharField(model_attr="visibility", null=True)
+    countries = indexes.MultiValueField(
+        null=True,
+    )
+    disaster_start_date = indexes.DateTimeField(model_attr="disaster_start_date", null=True)
+    amount_requested = indexes.CharField(model_attr="appeals__amount_requested", null=True)
+    amount_funded = indexes.CharField(model_attr="appeals__amount_funded", null=True)
+    disaster_type = indexes.CharField(model_attr="dtype__name", null=True)
+    countries_id = indexes.MultiValueField(
+        null=True,
+    )
+    appeal_type = indexes.CharField(model_attr="appeals__get_atype_display", null=True)
+    crisis_categorization = indexes.CharField(model_attr="get_ifrc_severity_level_display", null=True)
     iso3 = indexes.MultiValueField(null=True)
-    visibility = indexes.CharField(model_attr='get_visibility_display', null=True)
-    severity_level = indexes.IntegerField(model_attr='ifrc_severity_level', null=True)
+    visibility = indexes.CharField(model_attr="get_visibility_display", null=True)
+    severity_level = indexes.IntegerField(model_attr="ifrc_severity_level", null=True)
 
     def get_model(self):
         return Event
@@ -105,15 +102,17 @@ class EmergenciesIndex(indexes.Indexable, indexes.SearchIndex):
 
 class FieldReportIndex(indexes.Indexable, indexes.SearchIndex):
     text = indexes.EdgeNgramField(document=True, use_template=True)
-    name = indexes.EdgeNgramField(model_attr='summary')
-    visibility = indexes.CharField(model_attr='visibility', null=True)
+    name = indexes.EdgeNgramField(model_attr="summary")
+    visibility = indexes.CharField(model_attr="visibility", null=True)
     countries = indexes.MultiValueField(null=True)
-    event_name = indexes.CharField(model_attr='event__name', null=True)
-    created_at = indexes.DateTimeField(model_attr='created_at')
-    event_id = indexes.IntegerField(model_attr='event__id', null=True)
-    countries_id = indexes.MultiValueField(null=True,)
+    event_name = indexes.CharField(model_attr="event__name", null=True)
+    created_at = indexes.DateTimeField(model_attr="created_at")
+    event_id = indexes.IntegerField(model_attr="event__id", null=True)
+    countries_id = indexes.MultiValueField(
+        null=True,
+    )
     iso3 = indexes.MultiValueField(null=True)
-    visibility = indexes.CharField(model_attr='get_visibility_display', null=True)
+    visibility = indexes.CharField(model_attr="get_visibility_display", null=True)
 
     def get_model(self):
         return FieldReport

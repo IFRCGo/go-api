@@ -2,25 +2,28 @@ from django.contrib import admin
 
 from lang.admin import TranslationAdmin
 
+from .forms import ActionForm
 from .models import (
-    FlashUpdate,
-    FlashGraphicMap,
-    FlashReferences,
+    DonorGroup,
+    Donors,
     FlashAction,
     FlashActionsTaken,
     FlashCountryDistrict,
     FlashEmailSubscriptions,
-    Donors,
-    DonorGroup,
+    FlashGraphicMap,
+    FlashReferences,
+    FlashUpdate,
     FlashUpdateShare,
 )
-
-from .forms import ActionForm
 
 
 class FlashActionAdmin(admin.ModelAdmin):
     form = ActionForm
-    list_display = ('__str__', 'organizations', 'category',)
+    list_display = (
+        "__str__",
+        "organizations",
+        "category",
+    )
 
 
 @admin.register(FlashGraphicMap)
@@ -35,7 +38,7 @@ class FlashReferencesAdmin(admin.ModelAdmin):
 
 @admin.register(FlashEmailSubscriptions)
 class FlashEmailSubscriptionsAdmin(admin.ModelAdmin):
-    autocomplete_fields = ('group',)
+    autocomplete_fields = ("group",)
 
     def has_add_permission(self, request, obj=None):
         return False
@@ -64,14 +67,17 @@ class ShareFlashUpdateAdmin(admin.ModelAdmin):
 class FlashCountryDistrictAdminInline(admin.TabularInline):
     model = FlashCountryDistrict
     extra = 0
-    autocomplete_fields = ('country', 'district',)
+    autocomplete_fields = (
+        "country",
+        "district",
+    )
 
 
 @admin.register(FlashUpdate)
 class FlashUpdateAdmin(TranslationAdmin):
     inlines = [FlashCountryDistrictAdminInline, FlashActionTakenAdminInline]
-    search_fields = ('title',)
-    list_filter = ('hazard_type', 'share_with', 'flash_country_district__country')
+    search_fields = ("title",)
+    list_filter = ("hazard_type", "share_with", "flash_country_district__country")
 
 
 admin.site.register(FlashAction, FlashActionAdmin)

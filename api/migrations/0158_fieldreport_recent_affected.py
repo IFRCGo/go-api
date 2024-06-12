@@ -6,22 +6,36 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0157_event_image_and_summary_translations'),
+        ("api", "0157_event_image_and_summary_translations"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='fieldreport',
-            name='recent_affected',
-            field=models.IntegerField(choices=[(0, 'Unknown'), (1, 'Red Cross / Red Crescent'), (2, 'Government'), (3, 'Other'), (4, 'Red Cross / Red Crescent, potentially'), (5, 'Government, potentially'), (6, 'Other, potentially')], default=0, verbose_name='recent source of affected people'),
+            model_name="fieldreport",
+            name="recent_affected",
+            field=models.IntegerField(
+                choices=[
+                    (0, "Unknown"),
+                    (1, "Red Cross / Red Crescent"),
+                    (2, "Government"),
+                    (3, "Other"),
+                    (4, "Red Cross / Red Crescent, potentially"),
+                    (5, "Government, potentially"),
+                    (6, "Other, potentially"),
+                ],
+                default=0,
+                verbose_name="recent source of affected people",
+            ),
         ),
         migrations.RunSQL(
-            sql=[("update api_fieldreport set recent_affected=6 where other_num_potentially_affected>0"),
-                 ("update api_fieldreport set recent_affected=5 where gov_num_potentially_affected>0"),
-                 ("update api_fieldreport set recent_affected=4 where num_potentially_affected>0"),
-                 ("update api_fieldreport set recent_affected=3 where other_num_affected>0"),
-                 ("update api_fieldreport set recent_affected=2 where gov_num_affected>0"),
-                 ("update api_fieldreport set recent_affected=1 where num_affected>0")],
+            sql=[
+                ("update api_fieldreport set recent_affected=6 where other_num_potentially_affected>0"),
+                ("update api_fieldreport set recent_affected=5 where gov_num_potentially_affected>0"),
+                ("update api_fieldreport set recent_affected=4 where num_potentially_affected>0"),
+                ("update api_fieldreport set recent_affected=3 where other_num_affected>0"),
+                ("update api_fieldreport set recent_affected=2 where gov_num_affected>0"),
+                ("update api_fieldreport set recent_affected=1 where num_affected>0"),
+            ],
             reverse_sql=[("update api_fieldreport set recent_affected=0")],
-        )
+        ),
     ]

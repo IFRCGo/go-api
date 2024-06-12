@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0031_merge_20191127_0832'),
+        ("api", "0031_merge_20191127_0832"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='event',
-            name='is_featured',
-            field=models.BooleanField(default=False, verbose_name='Is Featured on Home Page'),
+            model_name="event",
+            name="is_featured",
+            field=models.BooleanField(default=False, verbose_name="Is Featured on Home Page"),
         ),
         migrations.AlterField(
-            model_name='event',
-            name='is_featured_region',
-            field=models.BooleanField(default=False, verbose_name='Is Featured on Region Page'),
+            model_name="event",
+            name="is_featured_region",
+            field=models.BooleanField(default=False, verbose_name="Is Featured on Region Page"),
         ),
     ]

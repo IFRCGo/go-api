@@ -2,20 +2,21 @@ from django.contrib import admin
 from reversion_compare.admin import CompareVersionAdmin
 
 from lang.admin import TranslationAdmin
+
 from .models import (
     Dref,
     DrefFile,
-    DrefOperationalUpdate,
     DrefFinalReport,
-    NationalSocietyAction,
+    DrefOperationalUpdate,
     IdentifiedNeed,
+    NationalSocietyAction,
     PlannedIntervention,
     RiskSecurity,
     SourceInformation,
 )
 
 
-class ReadOnlyMixin():
+class ReadOnlyMixin:
     def has_add_permission(self, *args, **kwargs):
         return False
 
@@ -27,35 +28,23 @@ class ReadOnlyMixin():
 
 
 @admin.register(NationalSocietyAction)
-class NationalSocietyActionAdmin(
-    ReadOnlyMixin,
-    admin.ModelAdmin
-):
-    search_fields = ['title']
+class NationalSocietyActionAdmin(ReadOnlyMixin, admin.ModelAdmin):
+    search_fields = ["title"]
 
 
 @admin.register(RiskSecurity)
-class RiskSecurityAdmin(
-    ReadOnlyMixin,
-    admin.ModelAdmin
-):
-    search_fields = ['risk', 'mitigation']
+class RiskSecurityAdmin(ReadOnlyMixin, admin.ModelAdmin):
+    search_fields = ["risk", "mitigation"]
 
 
 @admin.register(IdentifiedNeed)
-class IdentifiedNeedAdmin(
-    ReadOnlyMixin,
-    admin.ModelAdmin
-):
-    search_fields = ['title']
+class IdentifiedNeedAdmin(ReadOnlyMixin, admin.ModelAdmin):
+    search_fields = ["title"]
 
 
 @admin.register(PlannedIntervention)
-class PlannedInterventionAdmin(
-    ReadOnlyMixin,
-    admin.ModelAdmin
-):
-    search_fields = ['title']
+class PlannedInterventionAdmin(ReadOnlyMixin, admin.ModelAdmin):
+    search_fields = ["title"]
 
 
 @admin.register(DrefFile)
@@ -69,11 +58,7 @@ class SourceInformationAdmin(admin.ModelAdmin):
 
 
 @admin.register(Dref)
-class DrefAdmin(
-    CompareVersionAdmin,
-    TranslationAdmin,
-    admin.ModelAdmin
-):
+class DrefAdmin(CompareVersionAdmin, TranslationAdmin, admin.ModelAdmin):
     search_fields = ("title", "appeal_code")
     list_display = (
         "title",
@@ -116,15 +101,9 @@ class DrefAdmin(
                 "cover_image",
                 "country",
                 "field_report",
-                "supporting_document"
+                "supporting_document",
             )
-            .prefetch_related(
-                "planned_interventions",
-                "needs_identified",
-                "national_society_actions",
-                "users",
-                "risk_security"
-            )
+            .prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users", "risk_security")
         )
 
 
@@ -179,18 +158,13 @@ class DrefOperationalUpdateAdmin(CompareVersionAdmin, TranslationAdmin, admin.Mo
                 "district",
                 "photos",
                 "images",
-                "district"
-
+                "district",
             )
         )
 
 
 @admin.register(DrefFinalReport)
-class DrefFinalReportAdmin(
-    CompareVersionAdmin,
-    TranslationAdmin,
-    admin.ModelAdmin
-):
+class DrefFinalReportAdmin(CompareVersionAdmin, TranslationAdmin, admin.ModelAdmin):
     list_display = ("title", "national_society", "disaster_type")
     autocomplete_fields = (
         "national_society",
@@ -230,7 +204,7 @@ class DrefFinalReportAdmin(
                 "cover_image",
                 "country",
                 "assessment_report",
-                "dref"
+                "dref",
             )
             .prefetch_related(
                 "planned_interventions",

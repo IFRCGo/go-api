@@ -6,12 +6,12 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('flash_update', '0004_auto_20220303_0633'),
+        ("flash_update", "0004_auto_20220303_0633"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='donors',
-            options={'verbose_name': 'donor'},
+            name="donors",
+            options={"verbose_name": "donor"},
         ),
     ]

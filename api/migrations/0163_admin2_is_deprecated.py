@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0162_admin2_created_at'),
+        ("api", "0162_admin2_created_at"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='admin2',
-            name='is_deprecated',
-            field=models.BooleanField(default=False, help_text='Is this a deprecated area?'),
+            model_name="admin2",
+            name="is_deprecated",
+            field=models.BooleanField(default=False, help_text="Is this a deprecated area?"),
         ),
     ]

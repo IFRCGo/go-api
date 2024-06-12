@@ -7,18 +7,31 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0152_countryoffieldreporttoreview'),
+        ("api", "0152_countryoffieldreporttoreview"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='action',
-            name='organizations',
-            field=django.contrib.postgres.fields.ArrayField(base_field=models.CharField(choices=[('NTLS', 'National Society'), ('PNS', 'RCRC'), ('FDRN', 'Federation'), ('GOV', 'Government')], max_length=4), blank=True, default=list, size=None, verbose_name='organizations'),
+            model_name="action",
+            name="organizations",
+            field=django.contrib.postgres.fields.ArrayField(
+                base_field=models.CharField(
+                    choices=[("NTLS", "National Society"), ("PNS", "RCRC"), ("FDRN", "Federation"), ("GOV", "Government")],
+                    max_length=4,
+                ),
+                blank=True,
+                default=list,
+                size=None,
+                verbose_name="organizations",
+            ),
         ),
         migrations.AlterField(
-            model_name='actionstaken',
-            name='organization',
-            field=models.CharField(choices=[('NTLS', 'National Society'), ('PNS', 'RCRC'), ('FDRN', 'Federation'), ('GOV', 'Government')], max_length=16, verbose_name='organization'),
+            model_name="actionstaken",
+            name="organization",
+            field=models.CharField(
+                choices=[("NTLS", "National Society"), ("PNS", "RCRC"), ("FDRN", "Federation"), ("GOV", "Government")],
+                max_length=16,
+                verbose_name="organization",
+            ),
         ),
     ]

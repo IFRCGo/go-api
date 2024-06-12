@@ -6,98 +6,122 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0117_auto_20240522_0529'),
+        ("per", "0117_auto_20240522_0529"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='customperworkplancomponent',
-            name='actions_ar',
-            field=models.TextField(blank=True, max_length=900, null=True, verbose_name='Actions'),
+            model_name="customperworkplancomponent",
+            name="actions_ar",
+            field=models.TextField(blank=True, max_length=900, null=True, verbose_name="Actions"),
         ),
         migrations.AddField(
-            model_name='customperworkplancomponent',
-            name='actions_en',
-            field=models.TextField(blank=True, max_length=900, null=True, verbose_name='Actions'),
+            model_name="customperworkplancomponent",
+            name="actions_en",
+            field=models.TextField(blank=True, max_length=900, null=True, verbose_name="Actions"),
         ),
         migrations.AddField(
-            model_name='customperworkplancomponent',
-            name='actions_es',
-            field=models.TextField(blank=True, max_length=900, null=True, verbose_name='Actions'),
+            model_name="customperworkplancomponent",
+            name="actions_es",
+            field=models.TextField(blank=True, max_length=900, null=True, verbose_name="Actions"),
         ),
         migrations.AddField(
-            model_name='customperworkplancomponent',
-            name='actions_fr',
-            field=models.TextField(blank=True, max_length=900, null=True, verbose_name='Actions'),
+            model_name="customperworkplancomponent",
+            name="actions_fr",
+            field=models.TextField(blank=True, max_length=900, null=True, verbose_name="Actions"),
         ),
         migrations.AddField(
-            model_name='customperworkplancomponent',
-            name='translation_module_original_language',
-            field=models.CharField(choices=[('en', 'English'), ('es', 'Spanish'), ('fr', 'French'), ('ar', 'Arabic')], default='en', help_text='Language used to create this entity', max_length=2, verbose_name='Entity Original language'),
+            model_name="customperworkplancomponent",
+            name="translation_module_original_language",
+            field=models.CharField(
+                choices=[("en", "English"), ("es", "Spanish"), ("fr", "French"), ("ar", "Arabic")],
+                default="en",
+                help_text="Language used to create this entity",
+                max_length=2,
+                verbose_name="Entity Original language",
+            ),
         ),
         migrations.AddField(
-            model_name='customperworkplancomponent',
-            name='translation_module_skip_auto_translation',
-            field=models.BooleanField(default=False, help_text='Skip auto translation operation for this entity?', verbose_name='Skip auto translation'),
+            model_name="customperworkplancomponent",
+            name="translation_module_skip_auto_translation",
+            field=models.BooleanField(
+                default=False, help_text="Skip auto translation operation for this entity?", verbose_name="Skip auto translation"
+            ),
         ),
         migrations.AddField(
-            model_name='formprioritizationcomponent',
-            name='justification_text_ar',
-            field=models.TextField(blank=True, null=True, verbose_name='Justification Text'),
+            model_name="formprioritizationcomponent",
+            name="justification_text_ar",
+            field=models.TextField(blank=True, null=True, verbose_name="Justification Text"),
         ),
         migrations.AddField(
-            model_name='formprioritizationcomponent',
-            name='justification_text_en',
-            field=models.TextField(blank=True, null=True, verbose_name='Justification Text'),
+            model_name="formprioritizationcomponent",
+            name="justification_text_en",
+            field=models.TextField(blank=True, null=True, verbose_name="Justification Text"),
         ),
         migrations.AddField(
-            model_name='formprioritizationcomponent',
-            name='justification_text_es',
-            field=models.TextField(blank=True, null=True, verbose_name='Justification Text'),
+            model_name="formprioritizationcomponent",
+            name="justification_text_es",
+            field=models.TextField(blank=True, null=True, verbose_name="Justification Text"),
         ),
         migrations.AddField(
-            model_name='formprioritizationcomponent',
-            name='justification_text_fr',
-            field=models.TextField(blank=True, null=True, verbose_name='Justification Text'),
+            model_name="formprioritizationcomponent",
+            name="justification_text_fr",
+            field=models.TextField(blank=True, null=True, verbose_name="Justification Text"),
         ),
         migrations.AddField(
-            model_name='formprioritizationcomponent',
-            name='translation_module_original_language',
-            field=models.CharField(choices=[('en', 'English'), ('es', 'Spanish'), ('fr', 'French'), ('ar', 'Arabic')], default='en', help_text='Language used to create this entity', max_length=2, verbose_name='Entity Original language'),
+            model_name="formprioritizationcomponent",
+            name="translation_module_original_language",
+            field=models.CharField(
+                choices=[("en", "English"), ("es", "Spanish"), ("fr", "French"), ("ar", "Arabic")],
+                default="en",
+                help_text="Language used to create this entity",
+                max_length=2,
+                verbose_name="Entity Original language",
+            ),
         ),
         migrations.AddField(
-            model_name='formprioritizationcomponent',
-            name='translation_module_skip_auto_translation',
-            field=models.BooleanField(default=False, help_text='Skip auto translation operation for this entity?', verbose_name='Skip auto translation'),
+            model_name="formprioritizationcomponent",
+            name="translation_module_skip_auto_translation",
+            field=models.BooleanField(
+                default=False, help_text="Skip auto translation operation for this entity?", verbose_name="Skip auto translation"
+            ),
         ),
         migrations.AddField(
-            model_name='perworkplancomponent',
-            name='actions_ar',
-            field=models.TextField(blank=True, max_length=900, null=True, verbose_name='Actions'),
+            model_name="perworkplancomponent",
+            name="actions_ar",
+            field=models.TextField(blank=True, max_length=900, null=True, verbose_name="Actions"),
         ),
         migrations.AddField(
-            model_name='perworkplancomponent',
-            name='actions_en',
-            field=models.TextField(blank=True, max_length=900, null=True, verbose_name='Actions'),
+            model_name="perworkplancomponent",
+            name="actions_en",
+            field=models.TextField(blank=True, max_length=900, null=True, verbose_name="Actions"),
         ),
         migrations.AddField(
-            model_name='perworkplancomponent',
-            name='actions_es',
-            field=models.TextField(blank=True, max_length=900, null=True, verbose_name='Actions'),
+            model_name="perworkplancomponent",
+            name="actions_es",
+            field=models.TextField(blank=True, max_length=900, null=True, verbose_name="Actions"),
         ),
         migrations.AddField(
-            model_name='perworkplancomponent',
-            name='actions_fr',
-            field=models.TextField(blank=True, max_length=900, null=True, verbose_name='Actions'),
+            model_name="perworkplancomponent",
+            name="actions_fr",
+            field=models.TextField(blank=True, max_length=900, null=True, verbose_name="Actions"),
         ),
         migrations.AddField(
-            model_name='perworkplancomponent',
-            name='translation_module_original_language',
-            field=models.CharField(choices=[('en', 'English'), ('es', 'Spanish'), ('fr', 'French'), ('ar', 'Arabic')], default='en', help_text='Language used to create this entity', max_length=2, verbose_name='Entity Original language'),
+            model_name="perworkplancomponent",
+            name="translation_module_original_language",
+            field=models.CharField(
+                choices=[("en", "English"), ("es", "Spanish"), ("fr", "French"), ("ar", "Arabic")],
+                default="en",
+                help_text="Language used to create this entity",
+                max_length=2,
+                verbose_name="Entity Original language",
+            ),
         ),
         migrations.AddField(
-            model_name='perworkplancomponent',
-            name='translation_module_skip_auto_translation',
-            field=models.BooleanField(default=False, help_text='Skip auto translation operation for this entity?', verbose_name='Skip auto translation'),
+            model_name="perworkplancomponent",
+            name="translation_module_skip_auto_translation",
+            field=models.BooleanField(
+                default=False, help_text="Skip auto translation operation for this entity?", verbose_name="Skip auto translation"
+            ),
         ),
     ]

@@ -15,19 +15,19 @@ def remove_rcce_tag(apps, schema_editor):
     HEALTH_PUBLIC = 4
     CEA = 2
 
-    Project = apps.get_model('deployments', 'Project')
+    Project = apps.get_model("deployments", "Project")
     # get only the project that have `RCCE` tag
     projects = Project.objects.filter(secondary_sectors__contains=[RCCE])
     for project in projects:
         project.secondary_sectors.remove(RCCE)
         project.secondary_sectors.extend([HEALTH_PUBLIC, CEA])
-        project.save(update_fields=['secondary_sectors'])
+        project.save(update_fields=["secondary_sectors"])
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('deployments', '0037_project_modified_by'),
+        ("deployments", "0037_project_modified_by"),
     ]
 
     operations = [

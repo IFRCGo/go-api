@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0045_auto_20230508_0839'),
+        ("per", "0045_auto_20230508_0839"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='form',
-            name='is_draft',
-            field=models.BooleanField(blank=True, null=True, verbose_name='is draft'),
+            model_name="form",
+            name="is_draft",
+            field=models.BooleanField(blank=True, null=True, verbose_name="is draft"),
         ),
     ]

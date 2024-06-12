@@ -6,18 +6,53 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dref', '0002_auto_20220208_1025'),
+        ("dref", "0002_auto_20220208_1025"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='identifiedneed',
-            name='title',
-            field=models.CharField(choices=[('shelter_and_basic_household_items', 'Shelter And Basic Household Items'), ('livelihoods_and_basic_needs', 'Livelihoods And Basic Needs'), ('health', 'Health'), ('water_sanitation_and_hygiene', 'Water, Sanitation And Hygiene'), ('protection_gender_and_inclusion', 'Protection, Gender And Inclusion'), ('education', 'Education'), ('migration', 'Migration'), ('risk_reduction_climate_adaptation_and_recovery', 'Risk Reduction, Climate Adaptation And Recovery'), ('community_engagement_and _accountability', 'Community Engagement And Accountability'), ('environment_sustainability ', 'Environment Sustainability'), ('shelter_cluster_coordination', 'Shelter Cluster Coordination'), ('multi-purpose_cash_grants', 'Multi-purpose Cash Grants')], max_length=255, verbose_name='title'),
+            model_name="identifiedneed",
+            name="title",
+            field=models.CharField(
+                choices=[
+                    ("shelter_and_basic_household_items", "Shelter And Basic Household Items"),
+                    ("livelihoods_and_basic_needs", "Livelihoods And Basic Needs"),
+                    ("health", "Health"),
+                    ("water_sanitation_and_hygiene", "Water, Sanitation And Hygiene"),
+                    ("protection_gender_and_inclusion", "Protection, Gender And Inclusion"),
+                    ("education", "Education"),
+                    ("migration", "Migration"),
+                    ("risk_reduction_climate_adaptation_and_recovery", "Risk Reduction, Climate Adaptation And Recovery"),
+                    ("community_engagement_and _accountability", "Community Engagement And Accountability"),
+                    ("environment_sustainability ", "Environment Sustainability"),
+                    ("shelter_cluster_coordination", "Shelter Cluster Coordination"),
+                    ("multi-purpose_cash_grants", "Multi-purpose Cash Grants"),
+                ],
+                max_length=255,
+                verbose_name="title",
+            ),
         ),
         migrations.AlterField(
-            model_name='plannedintervention',
-            name='title',
-            field=models.CharField(choices=[('shelter_and_basic_household_items', 'Shelter And Basic Household Items'), ('livelihoods_and_basic_needs', 'Livelihoods And Basic Needs'), ('health', 'Health'), ('water_sanitation_and_hygiene', 'Water, Sanitation And Hygiene'), ('protection_gender_and_inclusion', 'Protection, Gender And Inclusion'), ('education', 'Education'), ('migration', 'Migration'), ('risk_reduction_climate_adaptation_and_recovery_', 'Risk Reduction, Climate Adaptation And Recovery'), ('secretariat_services', 'Secretariat Services'), ('national_society_strengthening', 'National Society Strengthening'), ('multi-purpose_cash_grants', 'Multi-purpose Cash Grants'), ('environmental_sustainability', 'Environmental Sustainability'), ('community_engagement_and_accountability', 'Community Engagement And Accountability')], max_length=255, verbose_name='title'),
+            model_name="plannedintervention",
+            name="title",
+            field=models.CharField(
+                choices=[
+                    ("shelter_and_basic_household_items", "Shelter And Basic Household Items"),
+                    ("livelihoods_and_basic_needs", "Livelihoods And Basic Needs"),
+                    ("health", "Health"),
+                    ("water_sanitation_and_hygiene", "Water, Sanitation And Hygiene"),
+                    ("protection_gender_and_inclusion", "Protection, Gender And Inclusion"),
+                    ("education", "Education"),
+                    ("migration", "Migration"),
+                    ("risk_reduction_climate_adaptation_and_recovery_", "Risk Reduction, Climate Adaptation And Recovery"),
+                    ("secretariat_services", "Secretariat Services"),
+                    ("national_society_strengthening", "National Society Strengthening"),
+                    ("multi-purpose_cash_grants", "Multi-purpose Cash Grants"),
+                    ("environmental_sustainability", "Environmental Sustainability"),
+                    ("community_engagement_and_accountability", "Community Engagement And Accountability"),
+                ],
+                max_length=255,
+                verbose_name="title",
+            ),
         ),
     ]

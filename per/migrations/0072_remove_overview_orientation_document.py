@@ -6,12 +6,12 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0071_remove_arearesponse_is_draft'),
+        ("per", "0071_remove_arearesponse_is_draft"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='overview',
-            name='orientation_document',
+            model_name="overview",
+            name="orientation_document",
         ),
     ]

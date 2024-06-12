@@ -1,7 +1,8 @@
-import factory
-from factory import fuzzy
 import datetime
+
+import factory
 import pytz
+from factory import fuzzy
 
 from .. import models
 from . import disaster_type, event
@@ -146,6 +147,7 @@ class FieldReportFactory(factory.django.DjangoModelFactory):
     notes_health = fuzzy.FuzzyText(length=50)
     notes_ns = fuzzy.FuzzyText(length=50)
     notes_socioeco = fuzzy.FuzzyText(length=50)
+
 
 # If we use the below ones, double save will occur – breaks tests.
 # See https://github.com/FactoryBoy/factory_boy/issues/316

@@ -6,12 +6,12 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0065_rename_status_formcomponentresponse_rating'),
+        ("per", "0065_rename_status_formcomponentresponse_rating"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='formcomponentresponse',
-            name='rating',
+            model_name="formcomponentresponse",
+            name="rating",
         ),
     ]

@@ -6,33 +6,87 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('deployments', '0068_merge_20220818_1357'),
+        ("deployments", "0068_merge_20220818_1357"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='eru',
-            name='type',
-            field=models.IntegerField(choices=[(0, 'Basecamp'), (1, 'IT & Telecom'), (2, 'Logistics'), (3, 'RCRC Emergency Hospital'), (4, 'RCRC Emergency Clinic'), (5, 'Relief'), (6, 'Wash M15'), (7, 'Wash MSM20'), (8, 'Wash M40'), (9, 'Water Supply and rehabilitation'), (10, 'Household Water Treatment and safe storage'), (11, 'Cholera Case management at Community level'), (12, 'Safe and Dignified Burials'), (13, 'Community Based Surveillance'), (14, 'Base Camp – S'), (15, 'Base Camp – M'), (16, 'Base Camp – L')], default=0, help_text='<a target="_blank" href="/api/v2/erutype">Key/value pairs</a>', verbose_name='type'),
+            model_name="eru",
+            name="type",
+            field=models.IntegerField(
+                choices=[
+                    (0, "Basecamp"),
+                    (1, "IT & Telecom"),
+                    (2, "Logistics"),
+                    (3, "RCRC Emergency Hospital"),
+                    (4, "RCRC Emergency Clinic"),
+                    (5, "Relief"),
+                    (6, "Wash M15"),
+                    (7, "Wash MSM20"),
+                    (8, "Wash M40"),
+                    (9, "Water Supply and rehabilitation"),
+                    (10, "Household Water Treatment and safe storage"),
+                    (11, "Cholera Case management at Community level"),
+                    (12, "Safe and Dignified Burials"),
+                    (13, "Community Based Surveillance"),
+                    (14, "Base Camp – S"),
+                    (15, "Base Camp – M"),
+                    (16, "Base Camp – L"),
+                ],
+                default=0,
+                help_text='<a target="_blank" href="/api/v2/erutype">Key/value pairs</a>',
+                verbose_name="type",
+            ),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='operation_type',
-            field=models.IntegerField(choices=[(0, 'Programme'), (1, 'Emergency Operation')], default=0, help_text='<a target="_blank" href="/api/v2/operationtype">Key/value pairs</a>', verbose_name='operation type'),
+            model_name="project",
+            name="operation_type",
+            field=models.IntegerField(
+                choices=[(0, "Programme"), (1, "Emergency Operation")],
+                default=0,
+                help_text='<a target="_blank" href="/api/v2/operationtype">Key/value pairs</a>',
+                verbose_name="operation type",
+            ),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='primary_sector',
-            field=models.IntegerField(choices=[(0, 'WASH'), (1, 'PGI'), (2, 'CEA'), (3, 'Migration'), (4, 'Health'), (5, 'DRR'), (6, 'Shelter'), (7, 'NS Strengthening'), (8, 'Education'), (9, 'Livelihoods and basic needs')], default=0, help_text='<a target="_blank" href="/api/v2/primarysector">Key/value pairs</a>', verbose_name='sector'),
+            model_name="project",
+            name="primary_sector",
+            field=models.IntegerField(
+                choices=[
+                    (0, "WASH"),
+                    (1, "PGI"),
+                    (2, "CEA"),
+                    (3, "Migration"),
+                    (4, "Health"),
+                    (5, "DRR"),
+                    (6, "Shelter"),
+                    (7, "NS Strengthening"),
+                    (8, "Education"),
+                    (9, "Livelihoods and basic needs"),
+                ],
+                default=0,
+                help_text='<a target="_blank" href="/api/v2/primarysector">Key/value pairs</a>',
+                verbose_name="sector",
+            ),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='programme_type',
-            field=models.IntegerField(choices=[(0, 'Bilateral'), (1, 'Multilateral'), (2, 'Domestic')], default=0, help_text='<a target="_blank" href="/api/v2/programmetype">Key/value pairs</a>', verbose_name='programme type'),
+            model_name="project",
+            name="programme_type",
+            field=models.IntegerField(
+                choices=[(0, "Bilateral"), (1, "Multilateral"), (2, "Domestic")],
+                default=0,
+                help_text='<a target="_blank" href="/api/v2/programmetype">Key/value pairs</a>',
+                verbose_name="programme type",
+            ),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='status',
-            field=models.IntegerField(choices=[(0, 'Planned'), (1, 'Ongoing'), (2, 'Completed')], default=0, help_text='<a target="_blank" href="/api/v2/projectstatus">Key/value pairs</a>', verbose_name='status'),
+            model_name="project",
+            name="status",
+            field=models.IntegerField(
+                choices=[(0, "Planned"), (1, "Ongoing"), (2, "Completed")],
+                default=0,
+                help_text='<a target="_blank" href="/api/v2/projectstatus">Key/value pairs</a>',
+                verbose_name="status",
+            ),
         ),
     ]

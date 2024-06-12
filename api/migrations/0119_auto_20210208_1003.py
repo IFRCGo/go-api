@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0118_country_in_search'),
+        ("api", "0118_country_in_search"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='country',
-            name='in_search',
-            field=models.BooleanField(default=True, verbose_name='Include in Search'),
+            model_name="country",
+            name="in_search",
+            field=models.BooleanField(default=True, verbose_name="Include in Search"),
         ),
     ]

@@ -6,17 +6,17 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('deployments', '0024_migrate_project_districts_to_new_field_20200513_1126'),
+        ("deployments", "0024_migrate_project_districts_to_new_field_20200513_1126"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='project',
-            name='project_district',
+            model_name="project",
+            name="project_district",
         ),
         migrations.AlterField(
-            model_name='project',
-            name='project_districts',
-            field=models.ManyToManyField(blank=True, help_text='No selection will indicate all districts.', to='api.District'),
+            model_name="project",
+            name="project_districts",
+            field=models.ManyToManyField(blank=True, help_text="No selection will indicate all districts.", to="api.District"),
         ),
     ]

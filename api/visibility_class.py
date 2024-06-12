@@ -1,9 +1,10 @@
+from django.db.models import Q
 from rest_framework import viewsets
 
 from deployments.models import Project
-from .models import VisibilityChoices, VisibilityCharChoices, UserCountry, Profile
+
+from .models import Profile, UserCountry, VisibilityCharChoices, VisibilityChoices
 from .utils import is_user_ifrc  # filter_visibility_by_auth (would be better)
-from django.db.models import Q
 
 
 class ReadOnlyVisibilityViewsetMixin:
@@ -40,8 +41,8 @@ class ReadOnlyVisibilityViewset(viewsets.ReadOnlyModelViewSet):
             else:
                 if self.visibility_model_class.__name__ == "FieldReport" or self.visibility_model_class.__name__ == "Event":
                     return self.visibility_model_class.objects.exclude(visibility=VisibilityChoices.IFRC).exclude(
-                        Q(visibility=VisibilityChoices.IFRC_NS) &
-                        ~Q(
+                        Q(visibility=VisibilityChoices.IFRC_NS)
+                        & ~Q(
                             countries__id__in=UserCountry.objects.filter(user=self.request.user.id)
                             .values_list("country", flat=True)
                             .union(Profile.objects.filter(user=self.request.user.id).values_list("country", flat=True))

@@ -1,97 +1,92 @@
-from rest_framework.settings import api_settings
 from datetime import datetime
-import pytz
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
-from rest_framework import (
-    viewsets,
-    views,
-    response,
-    permissions,
-    mixins,
-    status as drf_status,
-)
-from rest_framework.decorators import action
-from django_filters import rest_framework as filters
-from django.db.models import Q
-from django.conf import settings
-from django.shortcuts import get_object_or_404
-from drf_spectacular.utils import extend_schema
-from django.db.models import Prefetch
 
-from main.utils import SpreadSheetContentNegotiation
-from .admin_classes import RegionRestrictedAdmin
+import pytz
+from django.conf import settings
+from django.db.models import Prefetch, Q
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from django_filters import rest_framework as filters
+from django_filters.widgets import CSVWidget
+from drf_spectacular.utils import extend_schema
+from openpyxl import Workbook
+from rest_framework import mixins, permissions, response
+from rest_framework import status as drf_status
+from rest_framework import views, viewsets
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.settings import api_settings
+
 from api.models import Country
 from deployments.models import SectorTag
-from .models import (
-    FormData,
-    FormArea,
-    FormComponent,
-    FormQuestion,
-    FormAnswer,
-    OrganizationTypes,
-    OpsLearning,
-    Overview,
-    NiceDocument,
-    AssessmentType,
-    PerWorkPlan,
-    FormPrioritization,
-    PerAssessment,
-    PerFile,
-    PerComponentRating,
-    PerDocumentUpload,
-    FormQuestionGroup,
-    FormPrioritizationComponent,
-    AreaResponse,
-    FormComponentResponse,
-    FormComponentQuestionAndAnswer
-)
-from .serializers import (
-    LatestCountryOverviewSerializer,
-    ListNiceDocSerializer,
-    NiceDocumentSerializer,
-    FormAreaSerializer,
-    FormComponentSerializer,
-    FormQuestionSerializer,
-    FormAnswerSerializer,
-    PerOverviewSerializer,
-    PerWorkPlanSerializer,
-    PerFormDataSerializer,
-    FormPrioritizationSerializer,
-    PerProcessSerializer,
-    PerAssessmentSerializer,
-    PerFileSerializer,
-    PublicPerCountrySerializer,
-    UserPerCountrySerializer,
-    PerOptionsSerializer,
-    PerFileInputSerializer,
-    PublicPerProcessSerializer,
-    PublicPerAssessmentSerializer,
-    OpsLearningSerializer,
-    OpsLearningInSerializer,
-    OpsLearningCSVSerializer,
-    PublicOpsLearningSerializer,
-    PerDocumentUploadSerializer,
-    FormQuestionGroupSerializer
-)
-from per.permissions import (
-    PerPermission,
-    OpsLearningPermission,
-    PerDocumentUploadPermission,
-    PerGeneralPermission,
-)
+from main.utils import SpreadSheetContentNegotiation
 from per.filter_set import (
     PerDocumentFilter,
     PerOverviewFilter,
     PerPrioritizationFilter,
     PerWorkPlanFilter,
 )
+from per.permissions import (
+    OpsLearningPermission,
+    PerDocumentUploadPermission,
+    PerGeneralPermission,
+    PerPermission,
+)
 from per.utils import filter_per_queryset_by_user_access
-from django_filters.widgets import CSVWidget
-from .custom_renderers import NarrowCSVRenderer
-from openpyxl import Workbook
 
-from django.http import HttpResponse
+from .admin_classes import RegionRestrictedAdmin
+from .custom_renderers import NarrowCSVRenderer
+from .models import (
+    AreaResponse,
+    AssessmentType,
+    FormAnswer,
+    FormArea,
+    FormComponent,
+    FormComponentQuestionAndAnswer,
+    FormComponentResponse,
+    FormData,
+    FormPrioritization,
+    FormPrioritizationComponent,
+    FormQuestion,
+    FormQuestionGroup,
+    NiceDocument,
+    OpsLearning,
+    OrganizationTypes,
+    Overview,
+    PerAssessment,
+    PerComponentRating,
+    PerDocumentUpload,
+    PerFile,
+    PerWorkPlan,
+)
+from .serializers import (
+    FormAnswerSerializer,
+    FormAreaSerializer,
+    FormComponentSerializer,
+    FormPrioritizationSerializer,
+    FormQuestionGroupSerializer,
+    FormQuestionSerializer,
+    LatestCountryOverviewSerializer,
+    ListNiceDocSerializer,
+    NiceDocumentSerializer,
+    OpsLearningCSVSerializer,
+    OpsLearningInSerializer,
+    OpsLearningSerializer,
+    PerAssessmentSerializer,
+    PerDocumentUploadSerializer,
+    PerFileInputSerializer,
+    PerFileSerializer,
+    PerFormDataSerializer,
+    PerOptionsSerializer,
+    PerOverviewSerializer,
+    PerProcessSerializer,
+    PerWorkPlanSerializer,
+    PublicOpsLearningSerializer,
+    PublicPerAssessmentSerializer,
+    PublicPerCountrySerializer,
+    PublicPerProcessSerializer,
+    UserPerCountrySerializer,
+)
 
 
 class PERDocsFilter(filters.FilterSet):
@@ -176,11 +171,7 @@ class FormComponentViewset(viewsets.ReadOnlyModelViewSet):
     filterset_class = FormComponentFilter
 
     def get_queryset(self):
-        return (
-            FormComponent.objects.all()
-            .order_by("area__area_num", "component_num", "component_letter")
-            .select_related("area")
-        )
+        return FormComponent.objects.all().order_by("area__area_num", "component_num", "component_letter").select_related("area")
 
 
 class FormQuestionFilter(filters.FilterSet):
@@ -208,12 +199,12 @@ class FormQuestionViewset(viewsets.ReadOnlyModelViewSet):
 
 
 class FormQuestionGroupViewset(viewsets.ReadOnlyModelViewSet):
-    """ PER From Question Group ViewSet"""
+    """PER From Question Group ViewSet"""
 
     serializer_class = FormQuestionGroupSerializer
 
     def get_queryset(self):
-        return FormQuestionGroup.objects.select_related('component')
+        return FormQuestionGroup.objects.select_related("component")
 
 
 class FormAnswerViewset(viewsets.ReadOnlyModelViewSet):
@@ -224,10 +215,7 @@ class FormAnswerViewset(viewsets.ReadOnlyModelViewSet):
     ordering_fields = "__all__"
 
 
-class CountryPublicPerStatsViewset(
-    mixins.ListModelMixin,
-    viewsets.GenericViewSet
-):
+class CountryPublicPerStatsViewset(mixins.ListModelMixin, viewsets.GenericViewSet):
     serializer_class = LatestCountryOverviewSerializer
     filterset_class = PerOverviewFilter
 
@@ -235,10 +223,7 @@ class CountryPublicPerStatsViewset(
         return Overview.objects.select_related("country", "type_of_assessment").order_by("-created_at")
 
 
-class CountryPerStatsViewset(
-    mixins.ListModelMixin,
-    viewsets.GenericViewSet
-):
+class CountryPerStatsViewset(mixins.ListModelMixin, viewsets.GenericViewSet):
     serializer_class = LatestCountryOverviewSerializer
     filterset_class = PerOverviewFilter
     permission_classes = [IsAuthenticated]
@@ -275,35 +260,35 @@ class ExportPerView(views.APIView):
         # Overview Columns
         ws.row_dimensions[1].height = 70
         overview_columns = [
-            'National Society',
-            'Date of creation (register)',
-            'Date of last update (of the whole process)',
-            'Date of Orientation',
-            'Orientation document uploaded? (Yes/No)',
-            'Date of Current PER Assessment',
-            'Type of Assessment',
-            'Branches involved',
-            'Method',
-            'EPI Considerations',
-            'Urban Considerations',
-            'Climate and env considerations',
-            'PER process cycle',
-            'Work-plan development date planned',
-            'Work-plan revision date planned',
-            'NS FP name',
-            'NS FP email',
-            'NS FP phone number',
-            'NS Second FP name',
-            'NS Second FP email',
-            'NS Second FP phone number',
-            'Partner FP name',
-            'Partner FP email',
-            'Partner FP phone number',
-            'Partner FP organization',
-            'PER facilitator name',
-            'PER facilitator email',
-            'PER facilitator phone number',
-            'PER facilitator other contact'
+            "National Society",
+            "Date of creation (register)",
+            "Date of last update (of the whole process)",
+            "Date of Orientation",
+            "Orientation document uploaded? (Yes/No)",
+            "Date of Current PER Assessment",
+            "Type of Assessment",
+            "Branches involved",
+            "Method",
+            "EPI Considerations",
+            "Urban Considerations",
+            "Climate and env considerations",
+            "PER process cycle",
+            "Work-plan development date planned",
+            "Work-plan revision date planned",
+            "NS FP name",
+            "NS FP email",
+            "NS FP phone number",
+            "NS Second FP name",
+            "NS Second FP email",
+            "NS Second FP phone number",
+            "Partner FP name",
+            "Partner FP email",
+            "Partner FP phone number",
+            "Partner FP organization",
+            "PER facilitator name",
+            "PER facilitator email",
+            "PER facilitator phone number",
+            "PER facilitator other contact",
         ]
         row_num = 1
 
@@ -343,7 +328,7 @@ class ExportPerView(views.APIView):
                 per.facilitator_name,
                 per.facilitator_email,
                 per.facilitator_phone,
-                per.facilitator_contact
+                per.facilitator_contact,
             ]
 
             for col_num, cell_value in enumerate(overview_rows, 1):
@@ -351,21 +336,21 @@ class ExportPerView(views.APIView):
                 cell.value = cell_value
 
         # Assessment
-        ws_assessment = wb.create_sheet('Assessment')
+        ws_assessment = wb.create_sheet("Assessment")
         ws_assessment.row_dimensions[1].height = 70
         assessment_columns = [
-            'Component number',
-            'Component letter',
-            'Component description',
-            'Benchmark number',
-            'Benchmark descprition',
-            'Benchmark answer (Yes/No/Partially)',
-            'Benchmark notes',
-            'Consideration notes epi',
-            'Consideration notes urban',
-            'Consideration notes climate',
-            'Component rating',
-            'Component notes'
+            "Component number",
+            "Component letter",
+            "Component description",
+            "Benchmark number",
+            "Benchmark descprition",
+            "Benchmark answer (Yes/No/Partially)",
+            "Benchmark notes",
+            "Consideration notes epi",
+            "Consideration notes urban",
+            "Consideration notes climate",
+            "Component rating",
+            "Component notes",
         ]
         assessment_num = 1
         for col_num, column_title in enumerate(assessment_columns, 1):
@@ -379,21 +364,19 @@ class ExportPerView(views.APIView):
             .prefetch_related(
                 Prefetch(
                     "area_responses",
-                    queryset=AreaResponse.objects.filter(
-                        perassessment__overview=per.id
-                    ).prefetch_related(
+                    queryset=AreaResponse.objects.filter(perassessment__overview=per.id).prefetch_related(
                         Prefetch(
                             "component_response",
-                            queryset=FormComponentResponse.objects.filter(
-                                arearesponse__perassessment__overview=per.id
-                            ).exclude(component_id=14).prefetch_related(
+                            queryset=FormComponentResponse.objects.filter(arearesponse__perassessment__overview=per.id)
+                            .exclude(component_id=14)
+                            .prefetch_related(
                                 Prefetch(
                                     "question_responses",
                                     queryset=FormComponentQuestionAndAnswer.objects.filter(
                                         formcomponentresponse__arearesponse__perassessment__overview=per.id
                                     ),
                                 )
-                            )
+                            ),
                         )
                     ),
                 )
@@ -408,7 +391,11 @@ class ExportPerView(views.APIView):
                             co.component.component_num,
                             co.component.component_letter,
                             co.component.description_en,
-                            str(question.question.component.component_num) + '.' + str(question.question.question_num) if question.question else None,
+                            (
+                                str(question.question.component.component_num) + "." + str(question.question.question_num)
+                                if question.question
+                                else None
+                            ),
                             question.question.question if question.question else None,
                             question.answer.text if question.answer else None,
                             question.notes,
@@ -416,7 +403,7 @@ class ExportPerView(views.APIView):
                             co.urban_considerations,
                             co.climate_environmental_considerations,
                             co.rating.title if co.rating else None,
-                            co.notes
+                            co.notes,
                         ]
                         assessment_rows.append(assessment_inner)
 
@@ -426,13 +413,13 @@ class ExportPerView(views.APIView):
                 cell.value = cell_value
 
         # Prioritization
-        ws_prioritization = wb.create_sheet('Prioritization')
+        ws_prioritization = wb.create_sheet("Prioritization")
         ws_prioritization.row_dimensions[1].height = 70
         prioritization_columns = [
-            'Prioritized component number',
-            'Prioritized component letter',
-            'Prioritized component description',
-            'Justification'
+            "Prioritized component number",
+            "Prioritized component letter",
+            "Prioritized component description",
+            "Justification",
         ]
         prioritization_rows = []
         prioritization_num = 1
@@ -440,35 +427,37 @@ class ExportPerView(views.APIView):
             cell = ws_prioritization.cell(row=prioritization_num, column=col_num)
             cell.value = column_title
 
-        prioritization_queryset = FormPrioritizationComponent.objects.filter(
-            formprioritization__overview=per.id,
-        ).order_by('component__component_num').exclude(component_id=14)
+        prioritization_queryset = (
+            FormPrioritizationComponent.objects.filter(
+                formprioritization__overview=per.id,
+            )
+            .order_by("component__component_num")
+            .exclude(component_id=14)
+        )
         for prioritization in prioritization_queryset:
             prioritization_inner = [
                 prioritization.component.component_num,
                 prioritization.component.component_letter,
                 prioritization.component.description,
-                prioritization.justification_text
+                prioritization.justification_text,
             ]
-            prioritization_rows.append(
-                prioritization_inner
-            )
+            prioritization_rows.append(prioritization_inner)
         for row_num, row_data in enumerate(prioritization_rows, 2):
             for col_num, cell_value in enumerate(row_data, 1):
                 cell = ws_prioritization.cell(row=row_num, column=col_num)
                 cell.value = cell_value
         # Workplan
-        ws_workplan = wb.create_sheet('Workplan')
+        ws_workplan = wb.create_sheet("Workplan")
         ws_workplan.row_dimensions[1].height = 70
         workplan_columns = [
-            'Actions',
-            'Number of component related',
-            'Letter of component related',
-            'Description of component related',
-            'Due date',
-            'Supported by',
-            'Supporting National Society',
-            'Status',
+            "Actions",
+            "Number of component related",
+            "Letter of component related",
+            "Description of component related",
+            "Due date",
+            "Supported by",
+            "Supporting National Society",
+            "Status",
         ]
         workplan_rows = []
         workplan_num = 1
@@ -487,7 +476,7 @@ class ExportPerView(views.APIView):
                     workplan.due_date,
                     workplan.get_supported_by_organization_type_display(),
                     workplan.supported_by.name if workplan.supported_by else None,
-                    workplan.get_status_display()
+                    workplan.get_status_display(),
                 ]
                 workplan_rows.append(workplan_inner)
         if workplan_queryset.exists():
@@ -500,7 +489,7 @@ class ExportPerView(views.APIView):
                     workplan.due_date,
                     workplan.get_supported_by_organization_type_display(),
                     workplan.supported_by.name if workplan.supported_by else None,
-                    workplan.get_status_display()
+                    workplan.get_status_display(),
                 ]
                 workplan_rows.append(workplan_inner)
         for row_num, row_data in enumerate(workplan_rows, 2):
@@ -656,9 +645,7 @@ class PerAggregatedViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         queryset = Overview.objects.filter(
-            id__in=Overview.objects.order_by(
-                "country_id",
-                "-assessment_number").distinct("country_id").values("id")
+            id__in=Overview.objects.order_by("country_id", "-assessment_number").distinct("country_id").values("id")
         )
         return self.get_filtered_queryset(self.request, queryset, dispatch=0)
 
@@ -718,6 +705,7 @@ class OpsLearningViewset(viewsets.ModelViewSet):
     """
     A simple ViewSet for viewing and editing OpsLearning records.
     """
+
     queryset = OpsLearning.objects.all()
     permission_classes = [OpsLearningPermission]
     filterset_class = OpsLearningFilter
@@ -729,7 +717,7 @@ class OpsLearningViewset(viewsets.ModelViewSet):
         "appeal_code__name_en",
         "appeal_code__name_es",
         "appeal_code__name_fr",
-        "appeal_code__name_ar"
+        "appeal_code__name_ar",
     )
 
     def get_renderers(self):
@@ -741,12 +729,20 @@ class OpsLearningViewset(viewsets.ModelViewSet):
     def get_queryset(self):
         qs = super().get_queryset()
         if OpsLearning.is_user_admin(self.request.user):
-            return qs.select_related("appeal_code",).prefetch_related(
-                "sector", "organization", "per_component", "sector_validated",
-                "organization_validated", "per_component_validated")
-        return qs.filter(is_validated=True).select_related("appeal_code",).prefetch_related(
-            "sector", "organization", "per_component", "sector_validated",
-            "organization_validated", "per_component_validated")
+            return qs.select_related(
+                "appeal_code",
+            ).prefetch_related(
+                "sector", "organization", "per_component", "sector_validated", "organization_validated", "per_component_validated"
+            )
+        return (
+            qs.filter(is_validated=True)
+            .select_related(
+                "appeal_code",
+            )
+            .prefetch_related(
+                "sector", "organization", "per_component", "sector_validated", "organization_validated", "per_component_validated"
+            )
+        )
 
     def get_serializer_class(self):
         if self.request.method == "GET":
@@ -763,20 +759,40 @@ class OpsLearningViewset(viewsets.ModelViewSet):
         # Force the order from the serializer. Otherwise redundant literal list
 
         original = [
-            "id", "appeal_code.code", "appeal_code.name",
-            "learning", "finding", "sector", "per_component", "organization",
-            "appeal_code.country", "appeal_code.country_name",
-            "appeal_code.region", "appeal_code.region_name",
-            "appeal_code.dtype", "appeal_code.start_date",
-            "appeal_code.num_beneficiaries", "modified_at"
+            "id",
+            "appeal_code.code",
+            "appeal_code.name",
+            "learning",
+            "finding",
+            "sector",
+            "per_component",
+            "organization",
+            "appeal_code.country",
+            "appeal_code.country_name",
+            "appeal_code.region",
+            "appeal_code.region_name",
+            "appeal_code.dtype",
+            "appeal_code.start_date",
+            "appeal_code.num_beneficiaries",
+            "modified_at",
         ]
         displayed = [
-            "id", "appeal_code", "appeal_name",
-            "learning", "finding", "sector", "component", "organization",
-            "country_id", "country_name",
-            "region_id", "region_name",
-            "dtype_name", "appeal_year",
-            "appeal_num_beneficiaries", "modified_at"
+            "id",
+            "appeal_code",
+            "appeal_name",
+            "learning",
+            "finding",
+            "sector",
+            "component",
+            "organization",
+            "country_id",
+            "country_name",
+            "region_id",
+            "region_name",
+            "dtype_name",
+            "appeal_year",
+            "appeal_num_beneficiaries",
+            "modified_at",
         ]
 
         context["header"] = original

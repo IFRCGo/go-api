@@ -6,48 +6,48 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0048_merge_20200401_1310'),
+        ("api", "0048_merge_20200401_1310"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='fieldreport',
-            name='cases',
+            model_name="fieldreport",
+            name="cases",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='fieldreport',
-            name='confirmed_cases',
+            model_name="fieldreport",
+            name="confirmed_cases",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='fieldreport',
-            name='health_min_num_assisted',
+            model_name="fieldreport",
+            name="health_min_num_assisted",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='fieldreport',
-            name='probable_cases',
+            model_name="fieldreport",
+            name="probable_cases",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='fieldreport',
-            name='suspected_cases',
+            model_name="fieldreport",
+            name="suspected_cases",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='fieldreport',
-            name='who_num_assisted',
+            model_name="fieldreport",
+            name="who_num_assisted",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='country',
-            name='society_url',
-            field=models.URLField(blank=True, verbose_name='URL - Society'),
+            model_name="country",
+            name="society_url",
+            field=models.URLField(blank=True, verbose_name="URL - Society"),
         ),
         migrations.AlterField(
-            model_name='country',
-            name='url_ifrc',
-            field=models.URLField(blank=True, verbose_name='URL - IFRC'),
+            model_name="country",
+            name="url_ifrc",
+            field=models.URLField(blank=True, verbose_name="URL - IFRC"),
         ),
     ]
