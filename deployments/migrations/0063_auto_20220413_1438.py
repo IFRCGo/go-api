@@ -6,23 +6,23 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('deployments', '0062_auto_20220331_1143'),
+        ("deployments", "0062_auto_20220331_1143"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='project',
-            name='reporting_ns_contact_email',
-            field=models.CharField(blank=True, max_length=255, null=True, verbose_name='NS Contanct Information: Email'),
+            model_name="project",
+            name="reporting_ns_contact_email",
+            field=models.CharField(blank=True, max_length=255, null=True, verbose_name="NS Contanct Information: Email"),
         ),
         migrations.AddField(
-            model_name='project',
-            name='reporting_ns_contact_name',
-            field=models.CharField(blank=True, max_length=255, null=True, verbose_name='NS Contanct Information: Name'),
+            model_name="project",
+            name="reporting_ns_contact_name",
+            field=models.CharField(blank=True, max_length=255, null=True, verbose_name="NS Contanct Information: Name"),
         ),
         migrations.AddField(
-            model_name='project',
-            name='reporting_ns_contact_role',
-            field=models.CharField(blank=True, max_length=255, null=True, verbose_name='NS Contanct Information: Role'),
+            model_name="project",
+            name="reporting_ns_contact_role",
+            field=models.CharField(blank=True, max_length=255, null=True, verbose_name="NS Contanct Information: Role"),
         ),
     ]

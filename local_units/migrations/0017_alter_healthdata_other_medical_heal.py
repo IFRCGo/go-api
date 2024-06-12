@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('local_units', '0016_auto_20240521_0511'),
+        ("local_units", "0016_auto_20240521_0511"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='healthdata',
-            name='other_medical_heal',
-            field=models.BooleanField(blank=True, null=True, verbose_name='Other medical heal'),
+            model_name="healthdata",
+            name="other_medical_heal",
+            field=models.BooleanField(blank=True, null=True, verbose_name="Other medical heal"),
         ),
     ]

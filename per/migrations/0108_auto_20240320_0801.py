@@ -2,20 +2,19 @@
 
 from django.db import migrations
 
+
 def update_suported_by_oragnization_type(apps, schema_editor):
-        # Update all the data with supported_by_organization_type=3
-        CustomPerWorkPlanComponent = apps.get_model('per', 'CustomPerWorkPlanComponent')
-        CustomPerWorkPlanComponent.objects.update(supported_by_organization_type=3)
+    # Update all the data with supported_by_organization_type=3
+    CustomPerWorkPlanComponent = apps.get_model("per", "CustomPerWorkPlanComponent")
+    CustomPerWorkPlanComponent.objects.update(supported_by_organization_type=3)
+
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0107_customperworkplancomponent_supported_by_organization_type'),
+        ("per", "0107_customperworkplancomponent_supported_by_organization_type"),
     ]
 
     operations = [
-        migrations.RunPython(
-            update_suported_by_oragnization_type,
-            reverse_code=migrations.RunPython.noop
-        ),
+        migrations.RunPython(update_suported_by_oragnization_type, reverse_code=migrations.RunPython.noop),
     ]

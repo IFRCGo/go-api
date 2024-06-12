@@ -7,13 +7,13 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0157_event_image_and_summary_translations'),
+        ("api", "0157_event_image_and_summary_translations"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='admin2geoms',
-            name='geom',
+            model_name="admin2geoms",
+            name="geom",
             field=django.contrib.gis.db.models.fields.GeometryField(blank=True, null=True, srid=4326),
         ),
     ]

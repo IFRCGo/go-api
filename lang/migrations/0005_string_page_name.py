@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('lang', '0004_auto_20200616_0713'),
+        ("lang", "0004_auto_20200616_0713"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='string',
-            name='page_name',
-            field=models.CharField(blank=True, max_length=255, null=True, verbose_name='Page name'),
+            model_name="string",
+            name="page_name",
+            field=models.CharField(blank=True, max_length=255, null=True, verbose_name="Page name"),
         ),
     ]

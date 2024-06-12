@@ -1,12 +1,16 @@
 import csv
-from django.core.management.base import BaseCommand, CommandError
-from api.models import Country, GECCode
+
+from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
+from django.core.management.base import BaseCommand
 from django.db import transaction
-from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+
+from api.models import Country, GECCode
 
 
 class Command(BaseCommand):
-    help = "import a CSV file with GEC and country iso code to the GECCode model. To run, python manage.py import-gec-code codes.csv"
+    help = (
+        "import a CSV file with GEC and country iso code to the GECCode model. To run, python manage.py import-gec-code codes.csv"
+    )
     missing_args_message = "Filename is missing. A valid CSV file is required."
 
     def add_arguments(self, parser):

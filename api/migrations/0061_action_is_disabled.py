@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0060_merge_20200501_1230'),
+        ("api", "0060_merge_20200501_1230"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='action',
-            name='is_disabled',
-            field=models.BooleanField(default=False, help_text='Disable in form'),
+            model_name="action",
+            name="is_disabled",
+            field=models.BooleanField(default=False, help_text="Disable in form"),
         ),
     ]

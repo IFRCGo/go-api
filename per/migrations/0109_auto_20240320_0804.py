@@ -2,21 +2,20 @@
 
 from django.db import migrations
 
+
 def update_description_to_null(apps, schema_editor):
     # delete description form component 34 and 14F
-    FormComponent = apps.get_model('per', 'FormComponent')
+    FormComponent = apps.get_model("per", "FormComponent")
     FormComponent.objects.filter(id=48).update(description=None)
     FormComponent.objects.filter(id=20).update(description=None)
+
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0108_auto_20240320_0801'),
+        ("per", "0108_auto_20240320_0801"),
     ]
 
     operations = [
-        migrations.RunPython(
-            update_description_to_null,
-            reverse_code=migrations.RunPython.noop
-        ),
+        migrations.RunPython(update_description_to_null, reverse_code=migrations.RunPython.noop),
     ]

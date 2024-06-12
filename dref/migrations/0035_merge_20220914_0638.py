@@ -6,9 +6,8 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dref', '0034_dreffileupload_dref'),
-        ('dref', '0034_drefoperationalupdate_is_assessment_report'),
+        ("dref", "0034_dreffileupload_dref"),
+        ("dref", "0034_drefoperationalupdate_is_assessment_report"),
     ]
 
-    operations = [
-    ]
+    operations = []

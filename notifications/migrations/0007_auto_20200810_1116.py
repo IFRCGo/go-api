@@ -6,48 +6,48 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('notifications', '0006_auto_20200623_0704'),
+        ("notifications", "0006_auto_20200623_0704"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='surgealert',
-            name='message_ar',
-            field=models.TextField(null=True, verbose_name='message'),
+            model_name="surgealert",
+            name="message_ar",
+            field=models.TextField(null=True, verbose_name="message"),
         ),
         migrations.AddField(
-            model_name='surgealert',
-            name='message_en',
-            field=models.TextField(null=True, verbose_name='message'),
+            model_name="surgealert",
+            name="message_en",
+            field=models.TextField(null=True, verbose_name="message"),
         ),
         migrations.AddField(
-            model_name='surgealert',
-            name='message_es',
-            field=models.TextField(null=True, verbose_name='message'),
+            model_name="surgealert",
+            name="message_es",
+            field=models.TextField(null=True, verbose_name="message"),
         ),
         migrations.AddField(
-            model_name='surgealert',
-            name='message_fr',
-            field=models.TextField(null=True, verbose_name='message'),
+            model_name="surgealert",
+            name="message_fr",
+            field=models.TextField(null=True, verbose_name="message"),
         ),
         migrations.AddField(
-            model_name='surgealert',
-            name='operation_ar',
-            field=models.CharField(max_length=100, null=True, verbose_name='operation'),
+            model_name="surgealert",
+            name="operation_ar",
+            field=models.CharField(max_length=100, null=True, verbose_name="operation"),
         ),
         migrations.AddField(
-            model_name='surgealert',
-            name='operation_en',
-            field=models.CharField(max_length=100, null=True, verbose_name='operation'),
+            model_name="surgealert",
+            name="operation_en",
+            field=models.CharField(max_length=100, null=True, verbose_name="operation"),
         ),
         migrations.AddField(
-            model_name='surgealert',
-            name='operation_es',
-            field=models.CharField(max_length=100, null=True, verbose_name='operation'),
+            model_name="surgealert",
+            name="operation_es",
+            field=models.CharField(max_length=100, null=True, verbose_name="operation"),
         ),
         migrations.AddField(
-            model_name='surgealert',
-            name='operation_fr',
-            field=models.CharField(max_length=100, null=True, verbose_name='operation'),
+            model_name="surgealert",
+            name="operation_fr",
+            field=models.CharField(max_length=100, null=True, verbose_name="operation"),
         ),
     ]

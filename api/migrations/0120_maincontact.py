@@ -6,25 +6,25 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0119_auto_20210208_1003'),
+        ("api", "0119_auto_20210208_1003"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='MainContact',
+            name="MainContact",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('extent', models.CharField(max_length=300, verbose_name='extent')),
-                ('extent_en', models.CharField(max_length=300, null=True, verbose_name='extent')),
-                ('extent_es', models.CharField(max_length=300, null=True, verbose_name='extent')),
-                ('extent_fr', models.CharField(max_length=300, null=True, verbose_name='extent')),
-                ('extent_ar', models.CharField(max_length=300, null=True, verbose_name='extent')),
-                ('name', models.CharField(max_length=300, verbose_name='name')),
-                ('email', models.CharField(max_length=300, verbose_name='email')),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("extent", models.CharField(max_length=300, verbose_name="extent")),
+                ("extent_en", models.CharField(max_length=300, null=True, verbose_name="extent")),
+                ("extent_es", models.CharField(max_length=300, null=True, verbose_name="extent")),
+                ("extent_fr", models.CharField(max_length=300, null=True, verbose_name="extent")),
+                ("extent_ar", models.CharField(max_length=300, null=True, verbose_name="extent")),
+                ("name", models.CharField(max_length=300, verbose_name="name")),
+                ("email", models.CharField(max_length=300, verbose_name="email")),
             ],
             options={
-                'verbose_name': 'main contact',
-                'verbose_name_plural': 'main contacts',
+                "verbose_name": "main contact",
+                "verbose_name_plural": "main contacts",
             },
         ),
     ]

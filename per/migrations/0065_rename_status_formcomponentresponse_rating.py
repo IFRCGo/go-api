@@ -6,13 +6,13 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0064_overview_is_draft'),
+        ("per", "0064_overview_is_draft"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='formcomponentresponse',
-            old_name='status',
-            new_name='rating',
+            model_name="formcomponentresponse",
+            old_name="status",
+            new_name="rating",
         ),
     ]

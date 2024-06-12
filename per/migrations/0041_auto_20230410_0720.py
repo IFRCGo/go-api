@@ -6,68 +6,116 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0040_auto_20201214_1255'),
+        ("per", "0040_auto_20201214_1255"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='assessmenttype',
-            name='translation_module_original_language',
-            field=models.CharField(choices=[('en', 'English'), ('es', 'Spanish'), ('fr', 'French'), ('ar', 'Arabic')], default='en', help_text='Language used to create this entity', max_length=2, verbose_name='Entity Original language'),
+            model_name="assessmenttype",
+            name="translation_module_original_language",
+            field=models.CharField(
+                choices=[("en", "English"), ("es", "Spanish"), ("fr", "French"), ("ar", "Arabic")],
+                default="en",
+                help_text="Language used to create this entity",
+                max_length=2,
+                verbose_name="Entity Original language",
+            ),
         ),
         migrations.AddField(
-            model_name='assessmenttype',
-            name='translation_module_skip_auto_translation',
-            field=models.BooleanField(default=False, help_text='Skip auto translation operation for this entity?', verbose_name='Skip auto translation'),
+            model_name="assessmenttype",
+            name="translation_module_skip_auto_translation",
+            field=models.BooleanField(
+                default=False, help_text="Skip auto translation operation for this entity?", verbose_name="Skip auto translation"
+            ),
         ),
         migrations.AddField(
-            model_name='formanswer',
-            name='translation_module_original_language',
-            field=models.CharField(choices=[('en', 'English'), ('es', 'Spanish'), ('fr', 'French'), ('ar', 'Arabic')], default='en', help_text='Language used to create this entity', max_length=2, verbose_name='Entity Original language'),
+            model_name="formanswer",
+            name="translation_module_original_language",
+            field=models.CharField(
+                choices=[("en", "English"), ("es", "Spanish"), ("fr", "French"), ("ar", "Arabic")],
+                default="en",
+                help_text="Language used to create this entity",
+                max_length=2,
+                verbose_name="Entity Original language",
+            ),
         ),
         migrations.AddField(
-            model_name='formanswer',
-            name='translation_module_skip_auto_translation',
-            field=models.BooleanField(default=False, help_text='Skip auto translation operation for this entity?', verbose_name='Skip auto translation'),
+            model_name="formanswer",
+            name="translation_module_skip_auto_translation",
+            field=models.BooleanField(
+                default=False, help_text="Skip auto translation operation for this entity?", verbose_name="Skip auto translation"
+            ),
         ),
         migrations.AddField(
-            model_name='formarea',
-            name='translation_module_original_language',
-            field=models.CharField(choices=[('en', 'English'), ('es', 'Spanish'), ('fr', 'French'), ('ar', 'Arabic')], default='en', help_text='Language used to create this entity', max_length=2, verbose_name='Entity Original language'),
+            model_name="formarea",
+            name="translation_module_original_language",
+            field=models.CharField(
+                choices=[("en", "English"), ("es", "Spanish"), ("fr", "French"), ("ar", "Arabic")],
+                default="en",
+                help_text="Language used to create this entity",
+                max_length=2,
+                verbose_name="Entity Original language",
+            ),
         ),
         migrations.AddField(
-            model_name='formarea',
-            name='translation_module_skip_auto_translation',
-            field=models.BooleanField(default=False, help_text='Skip auto translation operation for this entity?', verbose_name='Skip auto translation'),
+            model_name="formarea",
+            name="translation_module_skip_auto_translation",
+            field=models.BooleanField(
+                default=False, help_text="Skip auto translation operation for this entity?", verbose_name="Skip auto translation"
+            ),
         ),
         migrations.AddField(
-            model_name='formcomponent',
-            name='translation_module_original_language',
-            field=models.CharField(choices=[('en', 'English'), ('es', 'Spanish'), ('fr', 'French'), ('ar', 'Arabic')], default='en', help_text='Language used to create this entity', max_length=2, verbose_name='Entity Original language'),
+            model_name="formcomponent",
+            name="translation_module_original_language",
+            field=models.CharField(
+                choices=[("en", "English"), ("es", "Spanish"), ("fr", "French"), ("ar", "Arabic")],
+                default="en",
+                help_text="Language used to create this entity",
+                max_length=2,
+                verbose_name="Entity Original language",
+            ),
         ),
         migrations.AddField(
-            model_name='formcomponent',
-            name='translation_module_skip_auto_translation',
-            field=models.BooleanField(default=False, help_text='Skip auto translation operation for this entity?', verbose_name='Skip auto translation'),
+            model_name="formcomponent",
+            name="translation_module_skip_auto_translation",
+            field=models.BooleanField(
+                default=False, help_text="Skip auto translation operation for this entity?", verbose_name="Skip auto translation"
+            ),
         ),
         migrations.AddField(
-            model_name='formdata',
-            name='translation_module_original_language',
-            field=models.CharField(choices=[('en', 'English'), ('es', 'Spanish'), ('fr', 'French'), ('ar', 'Arabic')], default='en', help_text='Language used to create this entity', max_length=2, verbose_name='Entity Original language'),
+            model_name="formdata",
+            name="translation_module_original_language",
+            field=models.CharField(
+                choices=[("en", "English"), ("es", "Spanish"), ("fr", "French"), ("ar", "Arabic")],
+                default="en",
+                help_text="Language used to create this entity",
+                max_length=2,
+                verbose_name="Entity Original language",
+            ),
         ),
         migrations.AddField(
-            model_name='formdata',
-            name='translation_module_skip_auto_translation',
-            field=models.BooleanField(default=False, help_text='Skip auto translation operation for this entity?', verbose_name='Skip auto translation'),
+            model_name="formdata",
+            name="translation_module_skip_auto_translation",
+            field=models.BooleanField(
+                default=False, help_text="Skip auto translation operation for this entity?", verbose_name="Skip auto translation"
+            ),
         ),
         migrations.AddField(
-            model_name='formquestion',
-            name='translation_module_original_language',
-            field=models.CharField(choices=[('en', 'English'), ('es', 'Spanish'), ('fr', 'French'), ('ar', 'Arabic')], default='en', help_text='Language used to create this entity', max_length=2, verbose_name='Entity Original language'),
+            model_name="formquestion",
+            name="translation_module_original_language",
+            field=models.CharField(
+                choices=[("en", "English"), ("es", "Spanish"), ("fr", "French"), ("ar", "Arabic")],
+                default="en",
+                help_text="Language used to create this entity",
+                max_length=2,
+                verbose_name="Entity Original language",
+            ),
         ),
         migrations.AddField(
-            model_name='formquestion',
-            name='translation_module_skip_auto_translation',
-            field=models.BooleanField(default=False, help_text='Skip auto translation operation for this entity?', verbose_name='Skip auto translation'),
+            model_name="formquestion",
+            name="translation_module_skip_auto_translation",
+            field=models.BooleanField(
+                default=False, help_text="Skip auto translation operation for this entity?", verbose_name="Skip auto translation"
+            ),
         ),
     ]

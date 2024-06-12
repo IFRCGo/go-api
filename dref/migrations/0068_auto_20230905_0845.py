@@ -6,38 +6,40 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dref', '0067_merge_20230811_0605'),
+        ("dref", "0067_merge_20230811_0605"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='drefoperationalupdate',
-            name='did_national_society',
-            field=models.BooleanField(blank=True, null=True, verbose_name='Did National Society'),
+            model_name="drefoperationalupdate",
+            name="did_national_society",
+            field=models.BooleanField(blank=True, null=True, verbose_name="Did National Society"),
         ),
         migrations.AddField(
-            model_name='drefoperationalupdate',
-            name='event_text',
-            field=models.TextField(blank=True, null=True, verbose_name='event text'),
+            model_name="drefoperationalupdate",
+            name="event_text",
+            field=models.TextField(blank=True, null=True, verbose_name="event text"),
         ),
         migrations.AddField(
-            model_name='drefoperationalupdate',
-            name='is_man_made_event',
-            field=models.BooleanField(blank=True, null=True, verbose_name='Is Man-made Event'),
+            model_name="drefoperationalupdate",
+            name="is_man_made_event",
+            field=models.BooleanField(blank=True, null=True, verbose_name="Is Man-made Event"),
         ),
         migrations.AlterField(
-            model_name='drefoperationalupdate',
-            name='disability_people_per',
-            field=models.FloatField(blank=True, help_text='Estimated % people disability', null=True, verbose_name='disability people per'),
+            model_name="drefoperationalupdate",
+            name="disability_people_per",
+            field=models.FloatField(
+                blank=True, help_text="Estimated % people disability", null=True, verbose_name="disability people per"
+            ),
         ),
         migrations.AlterField(
-            model_name='drefoperationalupdate',
-            name='people_per_local',
-            field=models.FloatField(blank=True, help_text='Estimated % people Rural', null=True, verbose_name='people per local'),
+            model_name="drefoperationalupdate",
+            name="people_per_local",
+            field=models.FloatField(blank=True, help_text="Estimated % people Rural", null=True, verbose_name="people per local"),
         ),
         migrations.AlterField(
-            model_name='drefoperationalupdate',
-            name='people_per_urban',
-            field=models.FloatField(blank=True, help_text='Estimated % people Urban', null=True, verbose_name='people per urban'),
+            model_name="drefoperationalupdate",
+            name="people_per_urban",
+            field=models.FloatField(blank=True, help_text="Estimated % people Urban", null=True, verbose_name="people per urban"),
         ),
     ]

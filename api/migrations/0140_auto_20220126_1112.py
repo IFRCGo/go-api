@@ -6,18 +6,22 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0139_userregion'),
+        ("api", "0139_userregion"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='appeal',
-            name='triggering_amount',
-            field=models.DecimalField(decimal_places=2, default=0.0, editable=False, max_digits=12, verbose_name='triggering amount'),
+            model_name="appeal",
+            name="triggering_amount",
+            field=models.DecimalField(
+                decimal_places=2, default=0.0, editable=False, max_digits=12, verbose_name="triggering amount"
+            ),
         ),
         migrations.AddField(
-            model_name='appealhistory',
-            name='triggering_amount',
-            field=models.DecimalField(decimal_places=2, default=0.0, editable=False, max_digits=12, verbose_name='triggering amount'),
+            model_name="appealhistory",
+            name="triggering_amount",
+            field=models.DecimalField(
+                decimal_places=2, default=0.0, editable=False, max_digits=12, verbose_name="triggering amount"
+            ),
         ),
     ]

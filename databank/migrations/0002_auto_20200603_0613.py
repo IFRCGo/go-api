@@ -6,24 +6,24 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('databank', '0001_initial'),
+        ("databank", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='countryoverview',
-            options={'verbose_name': 'Country Overview', 'verbose_name_plural': 'Countries Overview'},
+            name="countryoverview",
+            options={"verbose_name": "Country Overview", "verbose_name_plural": "Countries Overview"},
         ),
         migrations.AlterModelOptions(
-            name='keyclimateevent',
-            options={'verbose_name': 'Key Client Event', 'verbose_name_plural': 'Key Client Events'},
+            name="keyclimateevent",
+            options={"verbose_name": "Key Client Event", "verbose_name_plural": "Key Client Events"},
         ),
         migrations.AlterModelOptions(
-            name='seasonalcalender',
-            options={'verbose_name': 'Seasonal Calender Record', 'verbose_name_plural': 'Seasonal Calender Records'},
+            name="seasonalcalender",
+            options={"verbose_name": "Seasonal Calender Record", "verbose_name_plural": "Seasonal Calender Records"},
         ),
         migrations.AlterModelOptions(
-            name='socialevent',
-            options={'verbose_name': 'Social Event', 'verbose_name_plural': 'Social Events'},
+            name="socialevent",
+            options={"verbose_name": "Social Event", "verbose_name_plural": "Social Events"},
         ),
     ]

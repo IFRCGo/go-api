@@ -6,13 +6,21 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0178_auto_20230911_0923'),
+        ("api", "0178_auto_20230911_0923"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='export',
-            name='export_type',
-            field=models.CharField(choices=[('dref-applications', 'Dref Applications'), ('dref-ops-updates', 'Dref Operational Updates'), ('dref-final-reports', 'Dref Final Reports')], max_length=255, verbose_name='Export Type'),
+            model_name="export",
+            name="export_type",
+            field=models.CharField(
+                choices=[
+                    ("dref-applications", "Dref Applications"),
+                    ("dref-ops-updates", "Dref Operational Updates"),
+                    ("dref-final-reports", "Dref Final Reports"),
+                ],
+                max_length=255,
+                verbose_name="Export Type",
+            ),
         ),
     ]

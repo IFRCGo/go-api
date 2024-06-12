@@ -6,18 +6,22 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dref', '0056_auto_20230418_0703'),
+        ("dref", "0056_auto_20230418_0703"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='dreffinalreport',
-            name='status',
-            field=models.IntegerField(blank=True, choices=[(0, 'In Progress'), (1, 'Completed')], null=True, verbose_name='status'),
+            model_name="dreffinalreport",
+            name="status",
+            field=models.IntegerField(
+                blank=True, choices=[(0, "In Progress"), (1, "Completed")], null=True, verbose_name="status"
+            ),
         ),
         migrations.AddField(
-            model_name='drefoperationalupdate',
-            name='status',
-            field=models.IntegerField(blank=True, choices=[(0, 'In Progress'), (1, 'Completed')], null=True, verbose_name='status'),
+            model_name="drefoperationalupdate",
+            name="status",
+            field=models.IntegerField(
+                blank=True, choices=[(0, "In Progress"), (1, "Completed")], null=True, verbose_name="status"
+            ),
         ),
     ]

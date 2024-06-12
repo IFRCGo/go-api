@@ -6,23 +6,38 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dref', '0053_auto_20230313_0834'),
+        ("dref", "0053_auto_20230313_0834"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='dref',
-            name='type_of_dref',
-            field=models.IntegerField(blank=True, choices=[(0, 'Imminent'), (1, 'Assessment'), (2, 'Response'), (3, 'Loan')], null=True, verbose_name='dref type'),
+            model_name="dref",
+            name="type_of_dref",
+            field=models.IntegerField(
+                blank=True,
+                choices=[(0, "Imminent"), (1, "Assessment"), (2, "Response"), (3, "Loan")],
+                null=True,
+                verbose_name="dref type",
+            ),
         ),
         migrations.AlterField(
-            model_name='dreffinalreport',
-            name='type_of_dref',
-            field=models.IntegerField(blank=True, choices=[(0, 'Imminent'), (1, 'Assessment'), (2, 'Response'), (3, 'Loan')], null=True, verbose_name='dref type'),
+            model_name="dreffinalreport",
+            name="type_of_dref",
+            field=models.IntegerField(
+                blank=True,
+                choices=[(0, "Imminent"), (1, "Assessment"), (2, "Response"), (3, "Loan")],
+                null=True,
+                verbose_name="dref type",
+            ),
         ),
         migrations.AlterField(
-            model_name='drefoperationalupdate',
-            name='type_of_dref',
-            field=models.IntegerField(blank=True, choices=[(0, 'Imminent'), (1, 'Assessment'), (2, 'Response'), (3, 'Loan')], null=True, verbose_name='dref type'),
+            model_name="drefoperationalupdate",
+            name="type_of_dref",
+            field=models.IntegerField(
+                blank=True,
+                choices=[(0, "Imminent"), (1, "Assessment"), (2, "Response"), (3, "Loan")],
+                null=True,
+                verbose_name="dref type",
+            ),
         ),
     ]

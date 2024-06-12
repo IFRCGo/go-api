@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0094_auto_20240116_1845'),
+        ("per", "0094_auto_20240116_1845"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='opslearning',
-            name='appeal_document_id',
-            field=models.IntegerField(blank=True, null=True, verbose_name='Appeal document ID'),
+            model_name="opslearning",
+            name="appeal_document_id",
+            field=models.IntegerField(blank=True, null=True, verbose_name="Appeal document ID"),
         ),
     ]

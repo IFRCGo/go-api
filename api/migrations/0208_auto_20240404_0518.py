@@ -7,17 +7,23 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0207_auto_20240311_1044'),
+        ("api", "0207_auto_20240311_1044"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='country',
-            name='email',
+            model_name="country",
+            name="email",
         ),
         migrations.AddField(
-            model_name='country',
-            name='emails',
-            field=django.contrib.postgres.fields.ArrayField(base_field=models.CharField(blank=True, max_length=255, null=True, verbose_name='Email'), blank=True, default=list, null=True, size=None),
+            model_name="country",
+            name="emails",
+            field=django.contrib.postgres.fields.ArrayField(
+                base_field=models.CharField(blank=True, max_length=255, null=True, verbose_name="Email"),
+                blank=True,
+                default=list,
+                null=True,
+                size=None,
+            ),
         ),
     ]

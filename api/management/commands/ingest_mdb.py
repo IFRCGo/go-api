@@ -1,32 +1,32 @@
-import os
 import csv
+import os
 import subprocess
-import pytz
 from datetime import datetime, timedelta
-from glob import glob
 from ftplib import FTP
+from glob import glob
 from zipfile import ZipFile
 
-from django.utils import timezone
-from django.core.management.base import BaseCommand
+import pytz
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
-from django.conf import settings
+from django.core.management.base import BaseCommand
+from django.utils import timezone
 
+from api.event_sources import SOURCES
+from api.fixtures.dtype_map import PK_MAP
+from api.logger import logger
 from api.models import (
-    DisasterType,
-    Country,
-    FieldReport,
     Action,
     ActionsTaken,
-    FieldReportContact,
-    SourceType,
-    Source,
+    Country,
+    DisasterType,
     Event,
+    FieldReport,
+    FieldReportContact,
+    Source,
+    SourceType,
 )
-from api.fixtures.dtype_map import PK_MAP
-from api.event_sources import SOURCES
-from api.logger import logger
 
 REPORT_DATE_FORMAT = "%m/%d/%y %H:%M:%S"
 

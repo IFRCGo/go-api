@@ -2,15 +2,10 @@
 
 from django.db import migrations, models
 
+
 def add_region_labels(apps, schema_editor):
-    Region = apps.get_model('api', 'Region')
-    region_map = {
-        0: 'Africa',
-        1: 'Americas',
-        2: 'Asia Pacific',
-        3: 'Europe',
-        4: 'Middle East & North Africa'
-    }
+    Region = apps.get_model("api", "Region")
+    region_map = {0: "Africa", 1: "Americas", 2: "Asia Pacific", 3: "Europe", 4: "Middle East & North Africa"}
 
     # for each Region, add the label
     regions = Region.objects.all()
@@ -22,14 +17,14 @@ def add_region_labels(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0083_auto_20200814_0503'),
+        ("api", "0083_auto_20200814_0503"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='region',
-            name='label',
-            field=models.CharField(blank=True, max_length=150, verbose_name='name of the region'),
+            model_name="region",
+            name="label",
+            field=models.CharField(blank=True, max_length=150, verbose_name="name of the region"),
         ),
-        migrations.RunPython(add_region_labels)
+        migrations.RunPython(add_region_labels),
     ]

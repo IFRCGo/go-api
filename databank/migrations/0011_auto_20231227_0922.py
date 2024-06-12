@@ -6,48 +6,48 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('databank', '0010_auto_20231227_0445'),
+        ("databank", "0010_auto_20231227_0445"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='countryoverview',
-            name='female_staff_age_other',
-            field=models.IntegerField(blank=True, null=True, verbose_name='female staff other'),
+            model_name="countryoverview",
+            name="female_staff_age_other",
+            field=models.IntegerField(blank=True, null=True, verbose_name="female staff other"),
         ),
         migrations.AddField(
-            model_name='countryoverview',
-            name='female_staff_total',
-            field=models.IntegerField(blank=True, null=True, verbose_name='female staff total'),
+            model_name="countryoverview",
+            name="female_staff_total",
+            field=models.IntegerField(blank=True, null=True, verbose_name="female staff total"),
         ),
         migrations.AddField(
-            model_name='countryoverview',
-            name='female_volunteer_age_other',
-            field=models.IntegerField(blank=True, null=True, verbose_name='female volunteer other'),
+            model_name="countryoverview",
+            name="female_volunteer_age_other",
+            field=models.IntegerField(blank=True, null=True, verbose_name="female volunteer other"),
         ),
         migrations.AddField(
-            model_name='countryoverview',
-            name='female_volunteer_total',
-            field=models.IntegerField(blank=True, null=True, verbose_name='female volunteer total'),
+            model_name="countryoverview",
+            name="female_volunteer_total",
+            field=models.IntegerField(blank=True, null=True, verbose_name="female volunteer total"),
         ),
         migrations.AddField(
-            model_name='countryoverview',
-            name='male_staff_age_other',
-            field=models.IntegerField(blank=True, null=True, verbose_name='male staff other'),
+            model_name="countryoverview",
+            name="male_staff_age_other",
+            field=models.IntegerField(blank=True, null=True, verbose_name="male staff other"),
         ),
         migrations.AddField(
-            model_name='countryoverview',
-            name='male_staff_total',
-            field=models.IntegerField(blank=True, null=True, verbose_name='male staff total'),
+            model_name="countryoverview",
+            name="male_staff_total",
+            field=models.IntegerField(blank=True, null=True, verbose_name="male staff total"),
         ),
         migrations.AddField(
-            model_name='countryoverview',
-            name='male_volunteer_age_other',
-            field=models.IntegerField(blank=True, null=True, verbose_name='male volunteer other'),
+            model_name="countryoverview",
+            name="male_volunteer_age_other",
+            field=models.IntegerField(blank=True, null=True, verbose_name="male volunteer other"),
         ),
         migrations.AddField(
-            model_name='countryoverview',
-            name='male_volunteer_total',
-            field=models.IntegerField(blank=True, null=True, verbose_name='male volunteer total'),
+            model_name="countryoverview",
+            name="male_volunteer_total",
+            field=models.IntegerField(blank=True, null=True, verbose_name="male volunteer total"),
         ),
     ]

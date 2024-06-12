@@ -1,16 +1,16 @@
 import unittest
 from unittest import mock
 
-from django.test import override_settings
 from django.conf import settings
+from django.contrib.auth.models import Permission, User
 from django.core import management
-from django.contrib.auth.models import User, Permission
-from main.test_case import APITestCase
+from django.test import override_settings
 
 from lang.translation import IfrcTranslator
+from main.test_case import APITestCase
 
-from .serializers import LanguageBulkActionSerializer
 from .models import String
+from .serializers import LanguageBulkActionSerializer
 
 
 class LangTest(APITestCase):
@@ -29,9 +29,7 @@ class LangTest(APITestCase):
     def test_list_strings(self):
         language = settings.LANGUAGES[0][0]
         current_strings_count = String.objects.filter(language=language).count()
-        String.objects.create(
-            language=language, key="random-key-for-language-test1", value="Random value", hash="random hash"
-        )
+        String.objects.create(language=language, key="random-key-for-language-test1", value="Random value", hash="random hash")
         self.authenticate(self.user)
         resp = self.client.get(f"/api/v2/language/{language}/")
         j_resp = resp.json()
@@ -228,25 +226,24 @@ class LangTest(APITestCase):
 
 class TranslatorMockTest(unittest.TestCase):
 
-    @mock.patch('lang.translation.requests')
+    @mock.patch("lang.translation.requests")
     def test_ifrc_translator(self, requests_mock):
         # Simple mock test where we define what the expected response is from provider
-        requests_mock.post.return_value.json.return_value = [{
-            "detectedLanguage": {"language": "en", "score": 1},
-            "translations": [{"text": "Hola", "to": "es"}]
-        }]
+        requests_mock.post.return_value.json.return_value = [
+            {"detectedLanguage": {"language": "en", "score": 1}, "translations": [{"text": "Hola", "to": "es"}]}
+        ]
 
         # Without valid settings provided
         for settings_params in [
             dict(),
             dict(
-                IFRC_TRANSLATION_GET_API_KEY='dummy-api-param-key',
-                IFRC_TRANSLATION_HEADER_API_KEY='dummy-api-header-key',
+                IFRC_TRANSLATION_GET_API_KEY="dummy-api-param-key",
+                IFRC_TRANSLATION_HEADER_API_KEY="dummy-api-header-key",
             ),
-            dict(IFRC_TRANSLATION_HEADER_API_KEY='dummy-api-header-key'),
+            dict(IFRC_TRANSLATION_HEADER_API_KEY="dummy-api-header-key"),
         ]:
             with override_settings(
-                AUTO_TRANSLATION_TRANSLATOR='lang.translation.IfrcTranslator',
+                AUTO_TRANSLATION_TRANSLATOR="lang.translation.IfrcTranslator",
                 **settings_params,
             ):
                 with self.assertRaises(Exception):
@@ -254,17 +251,17 @@ class TranslatorMockTest(unittest.TestCase):
 
         # With valid settings provided
         with override_settings(
-            AUTO_TRANSLATION_TRANSLATOR='lang.translation.IfrcTranslator',
-            IFRC_TRANSLATION_DOMAIN='http://example.org',
-            IFRC_TRANSLATION_GET_API_KEY='dummy-api-param-key',
-            IFRC_TRANSLATION_HEADER_API_KEY='dummy-api-header-key',
+            AUTO_TRANSLATION_TRANSLATOR="lang.translation.IfrcTranslator",
+            IFRC_TRANSLATION_DOMAIN="http://example.org",
+            IFRC_TRANSLATION_GET_API_KEY="dummy-api-param-key",
+            IFRC_TRANSLATION_HEADER_API_KEY="dummy-api-header-key",
         ):
             # with settings.TESTING True
             ifrc_translator = IfrcTranslator()
-            assert ifrc_translator.translate_text('hello', 'es') == 'hello translated to "es" using source language "None"'
+            assert ifrc_translator.translate_text("hello", "es") == 'hello translated to "es" using source language "None"'
             # with settings.TESTING False
             with override_settings(TESTING=False):
-                assert ifrc_translator.translate_text('hello', 'es') == "Hola"
+                assert ifrc_translator.translate_text("hello", "es") == "Hola"
 
     def test_ifrc_translator_detect_text_content_type(self):
         valid_htmls = [
@@ -280,9 +277,7 @@ class TranslatorMockTest(unittest.TestCase):
             "Just a simple text",
         ]
         for text in valid_htmls:
-            assert IfrcTranslator.is_text_html(text) is True, \
-            f"<{text}> should be detected as html"
+            assert IfrcTranslator.is_text_html(text) is True, f"<{text}> should be detected as html"
 
         for text in valid_texts:
-            assert IfrcTranslator.is_text_html(text) is False, \
-            f"<{text}> should be detected as text"
+            assert IfrcTranslator.is_text_html(text) is False, f"<{text}> should be detected as text"

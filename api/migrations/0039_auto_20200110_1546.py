@@ -6,48 +6,48 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0038_auto_20200110_1333'),
+        ("api", "0038_auto_20200110_1333"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='emergencyoperationsdataset',
-            name='category_allocated',
+            model_name="emergencyoperationsdataset",
+            name="category_allocated",
             field=models.CharField(blank=True, max_length=100, null=True),
         ),
         migrations.AlterField(
-            model_name='emergencyoperationsdataset',
-            name='expected_time_frame',
+            model_name="emergencyoperationsdataset",
+            name="expected_time_frame",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='emergencyoperationsdataset',
-            name='file_name',
+            model_name="emergencyoperationsdataset",
+            name="file_name",
             field=models.CharField(blank=True, max_length=200, null=True),
         ),
         migrations.AlterField(
-            model_name='emergencyoperationsea',
-            name='file_name',
+            model_name="emergencyoperationsea",
+            name="file_name",
             field=models.CharField(blank=True, max_length=200, null=True),
         ),
         migrations.AlterField(
-            model_name='emergencyoperationsfr',
-            name='file_name',
+            model_name="emergencyoperationsfr",
+            name="file_name",
             field=models.CharField(blank=True, max_length=200, null=True),
         ),
         migrations.AlterField(
-            model_name='emergencyoperationspeoplereached',
-            name='file_name',
+            model_name="emergencyoperationspeoplereached",
+            name="file_name",
             field=models.CharField(blank=True, max_length=200, null=True),
         ),
         migrations.AlterField(
-            model_name='emergencyoperationspeoplereached',
-            name='operation_timeframe',
+            model_name="emergencyoperationspeoplereached",
+            name="operation_timeframe",
             field=models.CharField(blank=True, max_length=200, null=True),
         ),
         migrations.AlterField(
-            model_name='emergencyoperationspeoplereached',
-            name='time_frame_covered_by_update',
+            model_name="emergencyoperationspeoplereached",
+            name="time_frame_covered_by_update",
             field=models.CharField(blank=True, max_length=200, null=True),
         ),
     ]

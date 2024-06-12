@@ -6,16 +6,16 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('eap', '0001_initial'),
+        ("eap", "0001_initial"),
     ]
 
     operations = [
         migrations.RenameModel(
-            old_name='EAPRefrence',
-            new_name='EAPReference',
+            old_name="EAPRefrence",
+            new_name="EAPReference",
         ),
         migrations.AlterModelOptions(
-            name='eapreference',
-            options={'verbose_name': 'EAP Reference', 'verbose_name_plural': 'EAP References'},
+            name="eapreference",
+            options={"verbose_name": "EAP Reference", "verbose_name_plural": "EAP References"},
         ),
     ]

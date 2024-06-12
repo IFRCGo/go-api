@@ -11,7 +11,7 @@ def update_component_question_group(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0105_formcomponent_has_question_group'),
+        ("per", "0105_formcomponent_has_question_group"),
     ]
 
     operations = [

@@ -1,9 +1,10 @@
 from typing import Any
-from jsonschema import validate, ValidationError as JSONValidationError
+
 from django.core.exceptions import ValidationError
+from jsonschema import ValidationError as JSONValidationError
+from jsonschema import validate
 
 from per.models import WorkPlanStatus
-
 
 custom_component_schema = {
     "title": "Custom Component",

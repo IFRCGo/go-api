@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0042_auto_20230502_0611'),
+        ("per", "0042_auto_20230502_0611"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='formcomponent',
-            name='climate_environmental_conisderations',
-            field=models.TextField(blank=True, null=True, verbose_name='Climate Environmental Considerations'),
+            model_name="formcomponent",
+            name="climate_environmental_conisderations",
+            field=models.TextField(blank=True, null=True, verbose_name="Climate Environmental Considerations"),
         ),
         migrations.AddField(
-            model_name='formcomponent',
-            name='epi_considerations',
-            field=models.TextField(blank=True, null=True, verbose_name='Epi Considerations'),
+            model_name="formcomponent",
+            name="epi_considerations",
+            field=models.TextField(blank=True, null=True, verbose_name="Epi Considerations"),
         ),
     ]

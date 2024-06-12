@@ -6,9 +6,8 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0097_alter_opslearning_appeal_code'),
-        ('per', '0100_auto_20240130_0851'),
+        ("per", "0097_alter_opslearning_appeal_code"),
+        ("per", "0100_auto_20240130_0851"),
     ]
 
-    operations = [
-    ]
+    operations = []

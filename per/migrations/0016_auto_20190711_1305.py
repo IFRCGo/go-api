@@ -6,28 +6,28 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0015_auto_20190711_1236'),
+        ("per", "0015_auto_20190711_1236"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='overview',
-            name='approximate_date_next_capacity_assmt',
+            model_name="overview",
+            name="approximate_date_next_capacity_assmt",
             field=models.DateTimeField(),
         ),
         migrations.AlterField(
-            model_name='overview',
-            name='date_of_current_capacity_assessment',
+            model_name="overview",
+            name="date_of_current_capacity_assessment",
             field=models.DateTimeField(),
         ),
         migrations.AlterField(
-            model_name='overview',
-            name='date_of_mid_term_review',
+            model_name="overview",
+            name="date_of_mid_term_review",
             field=models.DateTimeField(),
         ),
         migrations.AlterField(
-            model_name='workplan',
-            name='timeline',
+            model_name="workplan",
+            name="timeline",
             field=models.DateTimeField(),
         ),
     ]

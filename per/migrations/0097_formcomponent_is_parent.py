@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0096_migrate_formdata_notes'),
+        ("per", "0096_migrate_formdata_notes"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='formcomponent',
-            name='is_parent',
-            field=models.BooleanField(blank=True, null=True, verbose_name='Is parent'),
+            model_name="formcomponent",
+            name="is_parent",
+            field=models.BooleanField(blank=True, null=True, verbose_name="Is parent"),
         ),
     ]

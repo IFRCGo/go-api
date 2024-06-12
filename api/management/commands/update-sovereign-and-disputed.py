@@ -1,12 +1,14 @@
 import csv
-from django.core.management.base import BaseCommand, CommandError
-from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.management.base import BaseCommand
 from django.db import transaction
+
 from api.models import Country
 
 
 class Command(BaseCommand):
-    help = "update the sovereign country and disputed status for all the countries from a CSV file. To run, python manage.py update-sovereign-and-disputed file.csv"
+    help = "update the sovereign country and disputed status for all the countries from a CSV file. To run, python manage.py update-sovereign-and-disputed file.csv"  # noqa: E501
     missing_args_message = "Filename is missing. A CSV file is required."
 
     def add_arguments(self, parser):

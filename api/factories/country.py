@@ -1,6 +1,6 @@
 import factory
-from factory import fuzzy
 from django.core.files.base import ContentFile
+from factory import fuzzy
 
 from .. import models
 from . import region
@@ -10,11 +10,11 @@ class CountryFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.Country
 
-    name = fuzzy.FuzzyText(length=50, prefix='country-')
+    name = fuzzy.FuzzyText(length=50, prefix="country-")
     record_type = fuzzy.FuzzyChoice(models.CountryType)
     iso = fuzzy.FuzzyText(length=2)
     iso3 = fuzzy.FuzzyText(length=3)
-    society_name = fuzzy.FuzzyText(length=50, prefix='society-name-')
+    society_name = fuzzy.FuzzyText(length=50, prefix="society-name-")
     society_url = fuzzy.FuzzyText(length=200)
     url_ifrc = fuzzy.FuzzyText(length=200)
     region = factory.SubFactory(region.RegionFactory)

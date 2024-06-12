@@ -1,7 +1,5 @@
-from django.db import connection
 from django.core.management.base import BaseCommand
-from django.conf import settings
-from api.logger import logger
+from django.db import connection
 
 
 class Command(BaseCommand):
@@ -10,7 +8,7 @@ class Command(BaseCommand):
     @staticmethod
     def apply(*_):
         return
-        ################## only one time change ###################
+        # ################# only one time change ###################
         with connection.cursor() as cursor:
             cursor.execute(
                 """

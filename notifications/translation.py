@@ -1,9 +1,8 @@
-from modeltranslation.translator import register, TranslationOptions
-from .models import (
-    SurgeAlert,
-)
+from modeltranslation.translator import TranslationOptions, register
+
+from .models import SurgeAlert
 
 
 @register(SurgeAlert)
 class SurgeAlertTO(TranslationOptions):
-    fields = ('operation', 'message')
+    fields = ("operation", "message")

@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dref', '0059_drefoperationalupdate_identified_gaps'),
+        ("dref", "0059_drefoperationalupdate_identified_gaps"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='dreffinalreport',
-            name='date_of_approval',
-            field=models.DateField(blank=True, null=True, verbose_name='Date of Approval'),
+            model_name="dreffinalreport",
+            name="date_of_approval",
+            field=models.DateField(blank=True, null=True, verbose_name="Date of Approval"),
         ),
     ]

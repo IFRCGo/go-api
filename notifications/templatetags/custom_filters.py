@@ -5,7 +5,7 @@ register = Library()
 
 @register.tag
 def lineless(parser, token):
-    nodelist = parser.parse(('endlineless',))
+    nodelist = parser.parse(("endlineless",))
     parser.delete_first_token()
     return LinelessNode(nodelist)
 
@@ -16,10 +16,10 @@ class LinelessNode(Node):
 
     def render(self, context):
         input_str = self.nodelist.render(context)
-        output_str = ''
+        output_str = ""
         for line in input_str.splitlines():
             if line.strip():
-                output_str = '\n'.join((output_str, line))
+                output_str = "\n".join((output_str, line))
         return output_str
 
 

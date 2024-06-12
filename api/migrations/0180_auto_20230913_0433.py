@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0179_alter_export_export_type'),
+        ("api", "0179_alter_export_export_type"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='appealhistory',
-            name='amount_funded',
-            field=models.FloatField(default=0.0, verbose_name='amount funded'),
+            model_name="appealhistory",
+            name="amount_funded",
+            field=models.FloatField(default=0.0, verbose_name="amount funded"),
         ),
         migrations.AlterField(
-            model_name='appealhistory',
-            name='amount_requested',
-            field=models.FloatField(default=0.0, verbose_name='amount requested'),
+            model_name="appealhistory",
+            name="amount_requested",
+            field=models.FloatField(default=0.0, verbose_name="amount requested"),
         ),
     ]

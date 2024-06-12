@@ -6,32 +6,32 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0024_formcomponent_component_letter'),
+        ("per", "0024_formcomponent_component_letter"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='form',
-            name='language',
+            model_name="form",
+            name="language",
         ),
         migrations.AddField(
-            model_name='form',
-            name='saved_at',
-            field=models.DateTimeField(blank=True, null=True, verbose_name='saved at'),
+            model_name="form",
+            name="saved_at",
+            field=models.DateTimeField(blank=True, null=True, verbose_name="saved at"),
         ),
         migrations.AddField(
-            model_name='form',
-            name='started_at',
-            field=models.DateTimeField(blank=True, null=True, verbose_name='started at'),
+            model_name="form",
+            name="started_at",
+            field=models.DateTimeField(blank=True, null=True, verbose_name="started at"),
         ),
         migrations.AddField(
-            model_name='form',
-            name='submitted_at',
-            field=models.DateTimeField(blank=True, null=True, verbose_name='updated at'),
+            model_name="form",
+            name="submitted_at",
+            field=models.DateTimeField(blank=True, null=True, verbose_name="updated at"),
         ),
         migrations.AddField(
-            model_name='overview',
-            name='is_draft',
-            field=models.BooleanField(default=True, verbose_name='is draft'),
+            model_name="overview",
+            name="is_draft",
+            field=models.BooleanField(default=True, verbose_name="is draft"),
         ),
     ]

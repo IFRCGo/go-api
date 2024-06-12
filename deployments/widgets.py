@@ -22,9 +22,9 @@ class EnumArrayWidget(forms.Widget):
         html = f'<select id="id_{name}" name="{name}" multiple="">'
         for v, label in self.choices:
             checked = v in value
-            html += f'''
+            html += f"""
                 <option value="{v}" {"selected" if checked else ""}>{label}</option>
-            '''
-        html += '</select>'
+            """
+        html += "</select>"
 
         return html

@@ -1,11 +1,11 @@
 import requests
-import datetime as dt
 import xmltodict
 from dateutil.parser import parse
 from django.core.management.base import BaseCommand
-from api.models import Country, Event, GDACSEvent, CronJob, CronJobStatus, DisasterType
+
 from api.event_sources import SOURCES
 from api.logger import logger
+from api.models import Country, CronJob, CronJobStatus, DisasterType, Event, GDACSEvent
 
 
 class Command(BaseCommand):
@@ -17,7 +17,7 @@ class Command(BaseCommand):
             "TC": DisasterType.objects.get(name="Cyclone"),
             "FL": DisasterType.objects.get(name="Flood"),
             "DR": DisasterType.objects.get(name="Drought"),
-            "WF": DisasterType.objects.get(name="Fire")
+            "WF": DisasterType.objects.get(name="Fire"),
         }
         return event_type_map.get(event_type)
 
@@ -67,7 +67,7 @@ class Command(BaseCommand):
                 "population_value": alert[nspace + "population"]["@value"],
                 "vulnerability": alert[nspace + "vulnerability"]["@value"],
                 "country_text": alert.pop(nspace + "country"),
-                "disaster_type": self.get_disaster_type(alert.pop(nspace + "eventtype"))
+                "disaster_type": self.get_disaster_type(alert.pop(nspace + "eventtype")),
             }
 
             for key in [

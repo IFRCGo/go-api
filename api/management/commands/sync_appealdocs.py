@@ -1,16 +1,25 @@
-import requests
 from datetime import datetime, timezone
+
+import requests
 from dateutil.relativedelta import relativedelta
-from main.sentry import SentryMonitor
-from sentry_sdk.crons import monitor
-from django.core.management.base import BaseCommand
-from api.models import Appeal, AppealDocument, AppealDocumentType, CronJob, CronJobStatus
-from api.logger import logger
 from django.conf import settings
+from django.core.management.base import BaseCommand
+from sentry_sdk.crons import monitor
+
+from api.logger import logger
+from api.models import (
+    Appeal,
+    AppealDocument,
+    AppealDocumentType,
+    CronJob,
+    CronJobStatus,
+)
+from main.sentry import SentryMonitor
 
 CRON_NAME = "sync_appealdocs"
 PUBLIC_SOURCE = "https://go-api.ifrc.org/api/publicsiteappeals?Hidden=false&BaseAppealnumber="
 FEDNET_SOURCE = "https://go-api.ifrc.org/Api/FedNetAppeals?Hidden=false&BaseAppealnumber="
+
 
 @monitor(monitor_slug=SentryMonitor.SYNC_APPEALDOCS)
 class Command(BaseCommand):
@@ -92,7 +101,7 @@ class Command(BaseCommand):
                                 description=result["AppealOrigType"],
                                 type_id=appealtype_id,
                                 iso_id=iso,
-                                created_at=created_at
+                                created_at=created_at,
                             )
                             created.append(document_url)
                         except Exception:

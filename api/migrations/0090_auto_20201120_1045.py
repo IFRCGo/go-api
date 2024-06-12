@@ -6,16 +6,16 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0089_auto_20201119_0818'),
+        ("api", "0089_auto_20201119_0818"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='regionlink',
-            name='show_in_go',
-            field=models.BooleanField(default=False, help_text='Show link contents within GO'),
+            model_name="regionlink",
+            name="show_in_go",
+            field=models.BooleanField(default=False, help_text="Show link contents within GO"),
         ),
         migrations.DeleteModel(
-            name='RegionAdditionalLink',
+            name="RegionAdditionalLink",
         ),
     ]

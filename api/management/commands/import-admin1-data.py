@@ -1,20 +1,16 @@
-import sys
-import os
 import csv
-from django.core.management.base import BaseCommand, CommandError
-from django.contrib.gis.utils import LayerMapping
+
 from django.contrib.gis.gdal import DataSource
-from django.contrib.gis.geos import GEOSGeometry
-from django.contrib.gis.geos import MultiPolygon
+from django.contrib.gis.geos import GEOSGeometry, MultiPolygon
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
-from api.models import Country
-from api.models import District
-from api.models import DistrictGeoms
+
+from api.models import Country, District, DistrictGeoms
 
 
 class Command(BaseCommand):
-    help = "import a shapefile of administrative boundary level 1 data to the GO database. To run, python manage.py import-admin1-data input.shp"
+    help = "import a shapefile of administrative boundary level 1 data to the GO database. To run, python manage.py import-admin1-data input.shp"  # noqa: E501
 
     missing_args_message = "Filename is missing. A shapefile with valid admin polygons is required."
 
@@ -24,12 +20,12 @@ class Command(BaseCommand):
         parser.add_argument(
             "--update-bbox",
             action="store_true",
-            help="Update the bbox of the district geometry. Used if you want to overwrite changes that are made by users via the Django Admin",
+            help="Update the bbox of the district geometry. Used if you want to overwrite changes that are made by users via the Django Admin",  # noqa: E501
         )
         parser.add_argument(
             "--update-centroid",
             action="store_true",
-            help="Update the centroid of the district geometry. Used if you want to overwrite changes that are made by users via the Django Admin",
+            help="Update the centroid of the district geometry. Used if you want to overwrite changes that are made by users via the Django Admin",  # noqa: E501
         )
         parser.add_argument("--import-missing", help="Import missing districts for codes mentioned in this file.")
         parser.add_argument("--import-all", action="store_true", help="Import all districts in the shapefile, if possible.")
@@ -56,15 +52,13 @@ class Command(BaseCommand):
 
         try:
             data = DataSource(filename)
-        except:
+        except Exception:
             raise CommandError("Could not open file")
 
         # loop through each feature in the shapefile
         for feature in data[0]:
             code = feature.get("ADMIN01COD")
             name = feature.get("ADMIN01NAM")
-            country_iso2 = feature.get("ISO2")
-            country_name = feature.get("COUNTRY")
 
             geom_wkt = feature.geom.wkt
             geom = GEOSGeometry(geom_wkt, srid=4326)
@@ -92,7 +86,7 @@ class Command(BaseCommand):
                 # if there are more than one district with the same code, filter also using name
                 if len(districts) > 1:
                     district = District.objects.filter(code=code, name__icontains=name)
-                    # if we get a match, update geometry. otherwise consider this as missing because it's possible the names aren't matching.
+                    # if we get a match, update geometry. otherwise consider this as missing because it's possible the names aren't matching.  # noqa: E501
                     if len(district):
                         # update geom, centroid and bbox
                         d = district[0]

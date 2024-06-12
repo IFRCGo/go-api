@@ -1,12 +1,11 @@
-import typing
+import argparse
 import shlex
 import subprocess
-import argparse
+import typing
 
 from django.core.management.base import BaseCommand
 
 from main.celery import Queues
-
 
 all_queues = ",".join([q for q in Queues.DEV_QUEUES])
 
@@ -26,21 +25,21 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            '--queues',
+            "--queues",
             type=str,
             default=all_queues,
-            help=f'Name of the queues seperated by comma: Default is {all_queues}',
+            help=f"Name of the queues seperated by comma: Default is {all_queues}",
         )
         parser.add_argument(
-            '--celery-args',
-            help='All the argument after this are passed to celery',
+            "--celery-args",
+            help="All the argument after this are passed to celery",
             nargs=argparse.REMAINDER,
             default=None,
         )
 
     def handle(self, *_, **options):
-        queues = options['queues']
-        celery_args = options['celery_args']
+        queues = options["queues"]
+        celery_args = options["celery_args"]
         cmd = get_celery_cmd(queues, celery_args)
         self.stdout.write(f"Starting celery worker... {cmd}")
         subprocess.call(shlex.split(cmd))

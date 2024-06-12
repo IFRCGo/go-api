@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.middleware.cache import FetchFromCacheMiddleware, UpdateCacheMiddleware
-
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.views import APIView
 
@@ -21,7 +20,7 @@ def get_cache_key_prefix(request):
     drf_request = APIView().initialize_request(request)
 
     if check_if_user_is_anonymous(drf_request):
-        return f'{cache_prefix}_anonymous'
+        return f"{cache_prefix}_anonymous"
 
 
 class UpdateCacheForUserMiddleware(UpdateCacheMiddleware):

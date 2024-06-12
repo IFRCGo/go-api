@@ -1,20 +1,19 @@
-from django.utils.translation import gettext_lazy as _
-from django.core.validators import MaxValueValidator, MinValueValidator
-from django.db.models import JSONField
 from django.contrib.postgres.fields import ArrayField
-
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models import JSONField
+from django.utils.translation import gettext_lazy as _
 
-from api.models import Country, Appeal
+from api.models import Appeal, Country
 
 
 class Status:
-    ACTIVE = 'active'
-    NOT_ACTIVE = 'not_active'
+    ACTIVE = "active"
+    NOT_ACTIVE = "not_active"
 
     CHOICES = (
-        (ACTIVE, _('Active')),
-        (NOT_ACTIVE, _('Not Active')),
+        (ACTIVE, _("Active")),
+        (NOT_ACTIVE, _("Not Active")),
     )
 
 
@@ -33,152 +32,137 @@ class Month:
     DECEMBER = 12
 
     CHOICES = (
-        (JANUARY, _('January')),
-        (FEBRUARY, _('February')),
-        (MARCH, _('March')),
-        (APRIL, _('April')),
-        (MAY, _('May')),
-        (JUNE, _('June')),
-        (JULY, _('July')),
-        (AUGUST, _('August')),
-        (SEPTEMBER, _('September')),
-        (OCTOBER, _('October')),
-        (NOVEMBER, _('November')),
-        (DECEMBER, _('December')),
+        (JANUARY, _("January")),
+        (FEBRUARY, _("February")),
+        (MARCH, _("March")),
+        (APRIL, _("April")),
+        (MAY, _("May")),
+        (JUNE, _("June")),
+        (JULY, _("July")),
+        (AUGUST, _("August")),
+        (SEPTEMBER, _("September")),
+        (OCTOBER, _("October")),
+        (NOVEMBER, _("November")),
+        (DECEMBER, _("December")),
     )
-    LABEL_MAP = {
-        value: label
-        for value, label in CHOICES
-    }
+    LABEL_MAP = {value: label for value, label in CHOICES}
 
 
-class PastCrisesEvent():
-    COLD_WAVE = 'CW'
-    HEAT_WAVE = 'HT'
-    DROUGHT = 'DR'
-    EARTHQUAKE = 'EQ'
-    LAND_SLIDE = 'LS'
-    TSUNAMI = 'TS'
-    VOLCANO = 'VO'
-    EXTRATROPICAL_CYCLONE = 'EC'
-    TROPICAL_CYCLONE = 'TC'
-    STORM_SURGE = 'SS'
-    FLOOD = 'FL'
-    FLASH_FLOOD = 'FF'
-    COMPLEX_EMERGENCY = 'CE'
-    FIRE = 'FR'
-    OTHER = 'OT'
+class PastCrisesEvent:
+    COLD_WAVE = "CW"
+    HEAT_WAVE = "HT"
+    DROUGHT = "DR"
+    EARTHQUAKE = "EQ"
+    LAND_SLIDE = "LS"
+    TSUNAMI = "TS"
+    VOLCANO = "VO"
+    EXTRATROPICAL_CYCLONE = "EC"
+    TROPICAL_CYCLONE = "TC"
+    STORM_SURGE = "SS"
+    FLOOD = "FL"
+    FLASH_FLOOD = "FF"
+    COMPLEX_EMERGENCY = "CE"
+    FIRE = "FR"
+    OTHER = "OT"
 
     CHOICES = (
-        (COLD_WAVE, _('Cold Wave')),
-        (HEAT_WAVE, _('Heat Wave')),
-        (DROUGHT, _('Drought')),
-        (EARTHQUAKE, _('Earthquake')),
-        (LAND_SLIDE, _('Land Slide')),
-        (TSUNAMI, _('Tsunami')),
-        (VOLCANO, _('Volcano')),
-        (EXTRATROPICAL_CYCLONE, _('Extratropical Cyclone')),
-        (TROPICAL_CYCLONE, _('Tropical Cyclone')),
-        (STORM_SURGE, _('Storm Surge')),
-        (FLOOD, _('Flood')),
-        (FLASH_FLOOD, _('Flash Flood')),
-        (COMPLEX_EMERGENCY, _('Complex Emergency')),
-        (FIRE, _('Fire')),
-        (OTHER, _('Other')),
+        (COLD_WAVE, _("Cold Wave")),
+        (HEAT_WAVE, _("Heat Wave")),
+        (DROUGHT, _("Drought")),
+        (EARTHQUAKE, _("Earthquake")),
+        (LAND_SLIDE, _("Land Slide")),
+        (TSUNAMI, _("Tsunami")),
+        (VOLCANO, _("Volcano")),
+        (EXTRATROPICAL_CYCLONE, _("Extratropical Cyclone")),
+        (TROPICAL_CYCLONE, _("Tropical Cyclone")),
+        (STORM_SURGE, _("Storm Surge")),
+        (FLOOD, _("Flood")),
+        (FLASH_FLOOD, _("Flash Flood")),
+        (COMPLEX_EMERGENCY, _("Complex Emergency")),
+        (FIRE, _("Fire")),
+        (OTHER, _("Other")),
     )
-    LABEL_MAP = {
-        value: label
-        for value, label in CHOICES
-    }
+    LABEL_MAP = {value: label for value, label in CHOICES}
 
 
-class PastEpidemic():
+class PastEpidemic:
     # Value are used to search in Reliefweb
-    CHOLERA = 'cholera'
-    MENINGITIS = 'meningitis'
-    RIFT_VALLEY_FEVER = 'rift valley fever'
-    HAEMORRHAGIC_FEVERS = 'haemorrhagic fevers'
-    HEPATITIS = 'hepatitis'
-    YELLOW_FEVER = 'yellow fever'
+    CHOLERA = "cholera"
+    MENINGITIS = "meningitis"
+    RIFT_VALLEY_FEVER = "rift valley fever"
+    HAEMORRHAGIC_FEVERS = "haemorrhagic fevers"
+    HEPATITIS = "hepatitis"
+    YELLOW_FEVER = "yellow fever"
 
     CHOICES = (
-        (CHOLERA, _('Cholera Outbreak')),
-        (MENINGITIS, _('Meningitis')),
-        (RIFT_VALLEY_FEVER, _('Rift Valley fever')),
-        (HAEMORRHAGIC_FEVERS, _('Viral haemorrhagic fevers')),
-        (HEPATITIS, _('Viral hepatitis')),
-        (YELLOW_FEVER, _('Yellow fever')),
+        (CHOLERA, _("Cholera Outbreak")),
+        (MENINGITIS, _("Meningitis")),
+        (RIFT_VALLEY_FEVER, _("Rift Valley fever")),
+        (HAEMORRHAGIC_FEVERS, _("Viral haemorrhagic fevers")),
+        (HEPATITIS, _("Viral hepatitis")),
+        (YELLOW_FEVER, _("Yellow fever")),
     )
-    LABEL_MAP = {
-        value: label
-        for value, label in CHOICES
-    }
+    LABEL_MAP = {value: label for value, label in CHOICES}
 
 
-class InformIndicator():
+class InformIndicator:
     # Grouping indicators
     GROUP_LABELS = {
-        'HA': _('Hazard & Exposure'),
-        'VU': _('Vulnerability'),
-        'CC': _('Lack Of Coping Capacity'),
+        "HA": _("Hazard & Exposure"),
+        "VU": _("Vulnerability"),
+        "CC": _("Lack Of Coping Capacity"),
     }
 
     # Indicators
     CHOICES = (
-        ('HDI-Est', _('Estimated HDI from GDP per capita')),
-        ('INFORM', _('INFORM Risk Index')),
-        ('HA', _('Hazard & Exposure Index')),
-        ('VU', _('Vulnerability Index')),
-        ('CC', _('Lack of Coping Capacity Index')),
-
+        ("HDI-Est", _("Estimated HDI from GDP per capita")),
+        ("INFORM", _("INFORM Risk Index")),
+        ("HA", _("Hazard & Exposure Index")),
+        ("VU", _("Vulnerability Index")),
+        ("CC", _("Lack of Coping Capacity Index")),
         # HAZARD AND EXPOSURE
-        ('HA.HUM', _('Human Hazard')),
-        ('HA.HUM.CON', _('Current conflicts')),
-        ('HA.HUM.CON.GCRI', _('GCRI Internal conflicts')),
-        ('HA.HUM.CON.HVC', _('Highly Violent Conflict probability Score')),
-        ('HA.HUM.CON.VC', _('Violent Conflict probability Score')),
-        ('HA.NAT', _('Natural Hazard')),
-        ('HA.NAT.DR', _('Droughts probability and historical impact')),
-        ('HA.NAT.DR.AFF', _('People affected by droughts')),
-        ('HA.NAT.DR.AFF-FREQ', _('People affected by drought and Frequency of events')),
-        ('HA.NAT.DR.ASI', _('Agriculture Drought Probability')),
-        ('HA.NAT.DR.ASI_temp', _('Agriculture Drought Probability')),
-        ('HA.NAT.DR.FREQ', _('Frequency of drought events')),
-        ('HA.NAT.EPI', _('Epidemic')),
-        ('HA.NAT.EQ', _('Physical exposure to earthquakes')),
-        ('HA.NAT.FL', _('Physical exposure to floods')),
-        ('HA.NAT.TC', _('Physical exposure to tropical cyclones')),
-        ('HA.NAT.TS', _('Physical exposure to tsunamis')),
-
+        ("HA.HUM", _("Human Hazard")),
+        ("HA.HUM.CON", _("Current conflicts")),
+        ("HA.HUM.CON.GCRI", _("GCRI Internal conflicts")),
+        ("HA.HUM.CON.HVC", _("Highly Violent Conflict probability Score")),
+        ("HA.HUM.CON.VC", _("Violent Conflict probability Score")),
+        ("HA.NAT", _("Natural Hazard")),
+        ("HA.NAT.DR", _("Droughts probability and historical impact")),
+        ("HA.NAT.DR.AFF", _("People affected by droughts")),
+        ("HA.NAT.DR.AFF-FREQ", _("People affected by drought and Frequency of events")),
+        ("HA.NAT.DR.ASI", _("Agriculture Drought Probability")),
+        ("HA.NAT.DR.ASI_temp", _("Agriculture Drought Probability")),
+        ("HA.NAT.DR.FREQ", _("Frequency of drought events")),
+        ("HA.NAT.EPI", _("Epidemic")),
+        ("HA.NAT.EQ", _("Physical exposure to earthquakes")),
+        ("HA.NAT.FL", _("Physical exposure to floods")),
+        ("HA.NAT.TC", _("Physical exposure to tropical cyclones")),
+        ("HA.NAT.TS", _("Physical exposure to tsunamis")),
         # VULNERABILITY
-        ('VU.SEV', _('Socio-Economic Vulnerability')),
-        ('VU.SEV.AD', _('Economic Dependency')),
-        ('VU.SEV.INQ', _('Inequality')),
-        ('VU.SEV.INQ.GII', _('Gender Inequality Index')),
-        ('VU.SEV.INQ.GINI', _('Income Gini coefficient')),
-        ('VU.SEV.PD', _('Poverty & Development')),
-        ('VU.SEV.PD.HDI', _('Human Development Index')),
-        ('VU.SEV.PD.MPI', _('Multidimensional Poverty Index')),
-        ('VU.VGR', _('Vulnerable Groups')),
-        ('VU.VGR.OG', _('Others Vulnerable Groups')),
-        ('VU.VGR.UP', _('Uprooted people')),
-
+        ("VU.SEV", _("Socio-Economic Vulnerability")),
+        ("VU.SEV.AD", _("Economic Dependency")),
+        ("VU.SEV.INQ", _("Inequality")),
+        ("VU.SEV.INQ.GII", _("Gender Inequality Index")),
+        ("VU.SEV.INQ.GINI", _("Income Gini coefficient")),
+        ("VU.SEV.PD", _("Poverty & Development")),
+        ("VU.SEV.PD.HDI", _("Human Development Index")),
+        ("VU.SEV.PD.MPI", _("Multidimensional Poverty Index")),
+        ("VU.VGR", _("Vulnerable Groups")),
+        ("VU.VGR.OG", _("Others Vulnerable Groups")),
+        ("VU.VGR.UP", _("Uprooted people")),
         # LACK OF COPING CAPACITY
-        ('CC.INF.AHC', _('Access to Health Care')),
-        ('CC.INF.COM', _('Communication')),
-        ('CC.INF.PHY', _('Physical Infrastructure')),
-        ('CC.INS.DRR', _('Disaster Risk Reduction')),
-        ('CC.INS.GOV', _('Governance')),
+        ("CC.INF.AHC", _("Access to Health Care")),
+        ("CC.INF.COM", _("Communication")),
+        ("CC.INF.PHY", _("Physical Infrastructure")),
+        ("CC.INS.DRR", _("Disaster Risk Reduction")),
+        ("CC.INS.GOV", _("Governance")),
     )
-    LABEL_MAP = {
-        value: label
-        for value, label in CHOICES
-    }
+    LABEL_MAP = {value: label for value, label in CHOICES}
 
     @classmethod
     def get_group(cls, indicator):
-        if isinstance(indicator, str) and indicator.find('.') != -1:
-            return indicator.split('.')[0]
+        if isinstance(indicator, str) and indicator.find(".") != -1:
+            return indicator.split(".")[0]
 
     @classmethod
     def get_group_display(cls, indicator):
@@ -190,364 +174,132 @@ class CountryOverview(models.Model):
     script_modified_at = models.DateTimeField(null=True, blank=True)
 
     # Country Key Indicators (Using Script: FDRS API)
-    population = models.IntegerField(null=True, blank=True, verbose_name=_('population'))
-    gdp = models.FloatField(verbose_name=_('GDP'), null=True, blank=True)
-    gnipc = models.IntegerField(verbose_name=_('GNI/CAPITA'), null=True, blank=True)
-    life_expectancy = models.IntegerField(null=True, blank=True, verbose_name=_('life expectancy'))
+    population = models.IntegerField(null=True, blank=True, verbose_name=_("population"))
+    gdp = models.FloatField(verbose_name=_("GDP"), null=True, blank=True)
+    gnipc = models.IntegerField(verbose_name=_("GNI/CAPITA"), null=True, blank=True)
+    life_expectancy = models.IntegerField(null=True, blank=True, verbose_name=_("life expectancy"))
     urban_population = models.FloatField(
         validators=[MaxValueValidator(100), MinValueValidator(0)],
-        verbose_name=_('urban POP (%)'),
-        null=True, blank=True,
+        verbose_name=_("urban POP (%)"),
+        null=True,
+        blank=True,
     )
     poverty = models.FloatField(
         validators=[MaxValueValidator(100), MinValueValidator(0)],
-        verbose_name=_('poverty (%)'),
-        null=True, blank=True,
+        verbose_name=_("poverty (%)"),
+        null=True,
+        blank=True,
     )
     literacy = models.FloatField(
         validators=[MaxValueValidator(100), MinValueValidator(0)],
-        verbose_name=_('literacy (%)'),
-        null=True, blank=True,
+        verbose_name=_("literacy (%)"),
+        null=True,
+        blank=True,
     )
 
     # National Society Indicators (Using Script: FDRS API)
-    income = models.FloatField(verbose_name=_('income (CHF)'), null=True, blank=True)
-    expenditures = models.FloatField(verbose_name=_('expenditures (CHF)'), null=True, blank=True)
-    volunteers = models.IntegerField(verbose_name=_('volunteers'), null=True, blank=True)
-    trained_in_first_aid = models.IntegerField(verbose_name=_('trained in first aid'), null=True, blank=True)
-    branches = models.IntegerField(
-        verbose_name=_('Branches'),
-        null=True,
-        blank=True
-    )
+    income = models.FloatField(verbose_name=_("income (CHF)"), null=True, blank=True)
+    expenditures = models.FloatField(verbose_name=_("expenditures (CHF)"), null=True, blank=True)
+    volunteers = models.IntegerField(verbose_name=_("volunteers"), null=True, blank=True)
+    trained_in_first_aid = models.IntegerField(verbose_name=_("trained in first aid"), null=True, blank=True)
+    branches = models.IntegerField(verbose_name=_("Branches"), null=True, blank=True)
 
     # Population data
     # Voluntering
-    male_volunteer_age_6_12 = models.IntegerField(
-        verbose_name=_('male volunteer age 6 to 12'),
-        null=True,
-        blank=True
-    )
-    male_volunteer_age_13_17 = models.IntegerField(
-        verbose_name=_('male volunteer age 13 to 17'),
-        null=True,
-        blank=True
-    )
-    male_volunteer_age_18_29 = models.IntegerField(
-        verbose_name=_('male volunteer age 18 to 29'),
-        null=True,
-        blank=True
-    )
-    male_volunteer_age_18_49 = models.IntegerField(
-        verbose_name=_('male volunteer age 18 to 49'),
-        null=True,
-        blank=True
-    )
-    male_volunteer_age_30_39 = models.IntegerField(
-        verbose_name=_('male volunteer age 30 to 39'),
-        null=True,
-        blank=True
-    )
-    male_volunteer_age_40_49 = models.IntegerField(
-        verbose_name=_('male volunteer age 40 to 49'),
-        null=True,
-        blank=True
-    )
-    male_volunteer_age_50_59 = models.IntegerField(
-        verbose_name=_('male volunteer age 50 to 59'),
-        null=True,
-        blank=True
-    )
-    male_volunteer_age_60_69 = models.IntegerField(
-        verbose_name=_('male volunteer age 60 to 69'),
-        null=True,
-        blank=True
-    )
-    male_volunteer_age_70_79 = models.IntegerField(
-        verbose_name=_('male volunteer age 70 to 79'),
-        null=True,
-        blank=True
-    )
-    male_volunteer_age_80 = models.IntegerField(
-        verbose_name=_('male volunteer age 80'),
-        null=True,
-        blank=True
-    )
-    male_volunteer_age_other = models.IntegerField(
-        verbose_name=_('male volunteer other'),
-        null=True,
-        blank=True
-    )
-    male_volunteer_total = models.IntegerField(
-        verbose_name=_('male volunteer total'),
-        null=True,
-        blank=True
-    )
-    female_volunteer_age_6_12 = models.IntegerField(
-        verbose_name=_('female volunteer age 6 to 12'),
-        null=True,
-        blank=True
-    )
-    female_volunteer_age_13_17 = models.IntegerField(
-        verbose_name=_('female volunteer age 13 to 17'),
-        null=True,
-        blank=True
-    )
-    female_volunteer_age_18_29 = models.IntegerField(
-        verbose_name=_('female volunteer age 18 to 29'),
-        null=True,
-        blank=True
-    )
-    female_volunteer_age_18_49 = models.IntegerField(
-        verbose_name=_('female volunteer age 18 to 49'),
-        null=True,
-        blank=True
-    )
-    female_volunteer_age_30_39 = models.IntegerField(
-        verbose_name=_('female volunteer age 30 to 39'),
-        null=True,
-        blank=True
-    )
-    female_volunteer_age_40_49 = models.IntegerField(
-        verbose_name=_('female volunteer age 40 to 49'),
-        null=True,
-        blank=True
-    )
-    female_volunteer_age_50_59 = models.IntegerField(
-        verbose_name=_('female volunteer age 50 to 59'),
-        null=True,
-        blank=True
-    )
-    female_volunteer_age_60_69 = models.IntegerField(
-        verbose_name=_('female volunteer age 60 to 69'),
-        null=True,
-        blank=True
-    )
-    female_volunteer_age_70_79 = models.IntegerField(
-        verbose_name=_('female volunteer age 70 to 79'),
-        null=True,
-        blank=True
-    )
-    female_volunteer_age_80 = models.IntegerField(
-        verbose_name=_('female volunteer age 80'),
-        null=True,
-        blank=True
-    )
+    male_volunteer_age_6_12 = models.IntegerField(verbose_name=_("male volunteer age 6 to 12"), null=True, blank=True)
+    male_volunteer_age_13_17 = models.IntegerField(verbose_name=_("male volunteer age 13 to 17"), null=True, blank=True)
+    male_volunteer_age_18_29 = models.IntegerField(verbose_name=_("male volunteer age 18 to 29"), null=True, blank=True)
+    male_volunteer_age_18_49 = models.IntegerField(verbose_name=_("male volunteer age 18 to 49"), null=True, blank=True)
+    male_volunteer_age_30_39 = models.IntegerField(verbose_name=_("male volunteer age 30 to 39"), null=True, blank=True)
+    male_volunteer_age_40_49 = models.IntegerField(verbose_name=_("male volunteer age 40 to 49"), null=True, blank=True)
+    male_volunteer_age_50_59 = models.IntegerField(verbose_name=_("male volunteer age 50 to 59"), null=True, blank=True)
+    male_volunteer_age_60_69 = models.IntegerField(verbose_name=_("male volunteer age 60 to 69"), null=True, blank=True)
+    male_volunteer_age_70_79 = models.IntegerField(verbose_name=_("male volunteer age 70 to 79"), null=True, blank=True)
+    male_volunteer_age_80 = models.IntegerField(verbose_name=_("male volunteer age 80"), null=True, blank=True)
+    male_volunteer_age_other = models.IntegerField(verbose_name=_("male volunteer other"), null=True, blank=True)
+    male_volunteer_total = models.IntegerField(verbose_name=_("male volunteer total"), null=True, blank=True)
+    female_volunteer_age_6_12 = models.IntegerField(verbose_name=_("female volunteer age 6 to 12"), null=True, blank=True)
+    female_volunteer_age_13_17 = models.IntegerField(verbose_name=_("female volunteer age 13 to 17"), null=True, blank=True)
+    female_volunteer_age_18_29 = models.IntegerField(verbose_name=_("female volunteer age 18 to 29"), null=True, blank=True)
+    female_volunteer_age_18_49 = models.IntegerField(verbose_name=_("female volunteer age 18 to 49"), null=True, blank=True)
+    female_volunteer_age_30_39 = models.IntegerField(verbose_name=_("female volunteer age 30 to 39"), null=True, blank=True)
+    female_volunteer_age_40_49 = models.IntegerField(verbose_name=_("female volunteer age 40 to 49"), null=True, blank=True)
+    female_volunteer_age_50_59 = models.IntegerField(verbose_name=_("female volunteer age 50 to 59"), null=True, blank=True)
+    female_volunteer_age_60_69 = models.IntegerField(verbose_name=_("female volunteer age 60 to 69"), null=True, blank=True)
+    female_volunteer_age_70_79 = models.IntegerField(verbose_name=_("female volunteer age 70 to 79"), null=True, blank=True)
+    female_volunteer_age_80 = models.IntegerField(verbose_name=_("female volunteer age 80"), null=True, blank=True)
 
-    female_volunteer_age_other = models.IntegerField(
-        verbose_name=_('female volunteer other'),
-        null=True,
-        blank=True
-    )
-    female_volunteer_total = models.IntegerField(
-        verbose_name=_('female volunteer total'),
-        null=True,
-        blank=True
-    )
-    volunteer_total = models.IntegerField(
-        verbose_name=_('volunteer total'),
-        null=True, blank=True
-    )
-    volunteer_age_6_12 = models.IntegerField(
-        verbose_name=_('volunteer age 6 to 12'),
-        null=True, blank=True
-    )
-    volunteer_age_13_17 = models.IntegerField(
-        verbose_name=_('volunteer age 13 to 17'),
-        null=True, blank=True
-    )
-    volunteer_age_18_29 = models.IntegerField(
-        verbose_name=_('volunteer age 18 to 29'),
-        null=True, blank=True
-    )
+    female_volunteer_age_other = models.IntegerField(verbose_name=_("female volunteer other"), null=True, blank=True)
+    female_volunteer_total = models.IntegerField(verbose_name=_("female volunteer total"), null=True, blank=True)
+    volunteer_total = models.IntegerField(verbose_name=_("volunteer total"), null=True, blank=True)
+    volunteer_age_6_12 = models.IntegerField(verbose_name=_("volunteer age 6 to 12"), null=True, blank=True)
+    volunteer_age_13_17 = models.IntegerField(verbose_name=_("volunteer age 13 to 17"), null=True, blank=True)
+    volunteer_age_18_29 = models.IntegerField(verbose_name=_("volunteer age 18 to 29"), null=True, blank=True)
     # Staff
-    female_staff_age_18_29 = models.IntegerField(
-        verbose_name=_('female staff age 18 to 29'),
-        null=True,
-        blank=True
-    )
-    female_staff_age_18_49 = models.IntegerField(
-        verbose_name=_('female staff age 18 to 49'),
-        null=True,
-        blank=True
-    )
-    female_staff_age_30_39 = models.IntegerField(
-        verbose_name=_('female staff age 30 to 39'),
-        null=True,
-        blank=True
-    )
-    female_staff_age_40_49 = models.IntegerField(
-        verbose_name=_('female staff age 40 to 49'),
-        null=True,
-        blank=True
-    )
-    female_staff_age_50_59 = models.IntegerField(
-        verbose_name=_('female staff age 50 to 59'),
-        null=True,
-        blank=True
-    )
-    female_staff_age_60_69 = models.IntegerField(
-        verbose_name=_('female staff age 60 to 69'),
-        null=True,
-        blank=True
-    )
-    female_staff_age_70_79 = models.IntegerField(
-        verbose_name=_('female staff age 70 to 79'),
-        null=True,
-        blank=True
-    )
-    female_staff_age_80 = models.IntegerField(
-        verbose_name=_('female staff age 80'),
-        null=True,
-        blank=True
-    )
-    female_staff_age_other = models.IntegerField(
-        verbose_name=_('female staff other'),
-        null=True,
-        blank=True
-    )
-    female_staff_total = models.IntegerField(
-        verbose_name=_('female staff total'),
-        null=True,
-        blank=True
-    )
-    male_staff_age_18_29 = models.IntegerField(
-        verbose_name=_('male staff age 18 to 29'),
-        null=True,
-        blank=True
-    )
-    male_staff_age_18_49 = models.IntegerField(
-        verbose_name=_('male staff age 18 to 49'),
-        null=True,
-        blank=True
-    )
-    male_staff_age_30_39 = models.IntegerField(
-        verbose_name=_('male staff age 30 to 39'),
-        null=True,
-        blank=True
-    )
-    male_staff_age_40_49 = models.IntegerField(
-        verbose_name=_('male staff age 40 to 49'),
-        null=True,
-        blank=True
-    )
-    male_staff_age_50_59 = models.IntegerField(
-        verbose_name=_('male staff age 50 to 59'),
-        null=True,
-        blank=True
-    )
-    male_staff_age_60_69 = models.IntegerField(
-        verbose_name=_('male staff age 60 to 69'),
-        null=True,
-        blank=True
-    )
-    male_staff_age_70_79 = models.IntegerField(
-        verbose_name=_('male staff age 70 to 79'),
-        null=True,
-        blank=True
-    )
-    male_staff_age_80 = models.IntegerField(
-        verbose_name=_('male staff age 80'),
-        null=True,
-        blank=True
-    )
-    male_staff_age_other = models.IntegerField(
-        verbose_name=_('male staff other'),
-        null=True,
-        blank=True
-    )
-    male_staff_total = models.IntegerField(
-        verbose_name=_('male staff total'),
-        null=True,
-        blank=True
-    )
-    staff_total = models.IntegerField(
-        verbose_name=_('staff total'),
-        null=True, blank=True
-    )
-    staff_age_18_29 = models.IntegerField(
-        verbose_name=_('staff age 18 to 29'),
-        null=True, blank=True
-    )
+    female_staff_age_18_29 = models.IntegerField(verbose_name=_("female staff age 18 to 29"), null=True, blank=True)
+    female_staff_age_18_49 = models.IntegerField(verbose_name=_("female staff age 18 to 49"), null=True, blank=True)
+    female_staff_age_30_39 = models.IntegerField(verbose_name=_("female staff age 30 to 39"), null=True, blank=True)
+    female_staff_age_40_49 = models.IntegerField(verbose_name=_("female staff age 40 to 49"), null=True, blank=True)
+    female_staff_age_50_59 = models.IntegerField(verbose_name=_("female staff age 50 to 59"), null=True, blank=True)
+    female_staff_age_60_69 = models.IntegerField(verbose_name=_("female staff age 60 to 69"), null=True, blank=True)
+    female_staff_age_70_79 = models.IntegerField(verbose_name=_("female staff age 70 to 79"), null=True, blank=True)
+    female_staff_age_80 = models.IntegerField(verbose_name=_("female staff age 80"), null=True, blank=True)
+    female_staff_age_other = models.IntegerField(verbose_name=_("female staff other"), null=True, blank=True)
+    female_staff_total = models.IntegerField(verbose_name=_("female staff total"), null=True, blank=True)
+    male_staff_age_18_29 = models.IntegerField(verbose_name=_("male staff age 18 to 29"), null=True, blank=True)
+    male_staff_age_18_49 = models.IntegerField(verbose_name=_("male staff age 18 to 49"), null=True, blank=True)
+    male_staff_age_30_39 = models.IntegerField(verbose_name=_("male staff age 30 to 39"), null=True, blank=True)
+    male_staff_age_40_49 = models.IntegerField(verbose_name=_("male staff age 40 to 49"), null=True, blank=True)
+    male_staff_age_50_59 = models.IntegerField(verbose_name=_("male staff age 50 to 59"), null=True, blank=True)
+    male_staff_age_60_69 = models.IntegerField(verbose_name=_("male staff age 60 to 69"), null=True, blank=True)
+    male_staff_age_70_79 = models.IntegerField(verbose_name=_("male staff age 70 to 79"), null=True, blank=True)
+    male_staff_age_80 = models.IntegerField(verbose_name=_("male staff age 80"), null=True, blank=True)
+    male_staff_age_other = models.IntegerField(verbose_name=_("male staff other"), null=True, blank=True)
+    male_staff_total = models.IntegerField(verbose_name=_("male staff total"), null=True, blank=True)
+    staff_total = models.IntegerField(verbose_name=_("staff total"), null=True, blank=True)
+    staff_age_18_29 = models.IntegerField(verbose_name=_("staff age 18 to 29"), null=True, blank=True)
     # Key Climate Event (Manual Entry)
-    avg_temperature = models.FloatField(verbose_name=_('average temperature'), null=True, blank=True)
-    avg_rainfall_precipitation = models.FloatField(verbose_name=_('average rainfall precipitation'), null=True, blank=True)
-    rainy_season = models.CharField(verbose_name=_('rainy season'), choices=Status.CHOICES, max_length=20, blank=True, null=True)
+    avg_temperature = models.FloatField(verbose_name=_("average temperature"), null=True, blank=True)
+    avg_rainfall_precipitation = models.FloatField(verbose_name=_("average rainfall precipitation"), null=True, blank=True)
+    rainy_season = models.CharField(verbose_name=_("rainy season"), choices=Status.CHOICES, max_length=20, blank=True, null=True)
 
     # JSON DATA (Using Script)
     # TODO: Seperate this to multiple tables to support Translation (not required for fts_data)
-    fts_data = JSONField(verbose_name=_('FTS data'), default=list)
-    start_network_data = JSONField(verbose_name=_('start network data'), default=list)
-    past_crises_events = JSONField(verbose_name=_('past crises data'), default=list)
-    past_epidemics = JSONField(verbose_name=_('past epidemics data'), default=list)
-    inform_indicators = JSONField(verbose_name=_('inform indicators data'), default=list)
+    fts_data = JSONField(verbose_name=_("FTS data"), default=list)
+    start_network_data = JSONField(verbose_name=_("start network data"), default=list)
+    past_crises_events = JSONField(verbose_name=_("past crises data"), default=list)
+    past_epidemics = JSONField(verbose_name=_("past epidemics data"), default=list)
+    inform_indicators = JSONField(verbose_name=_("inform indicators data"), default=list)
 
     # World bank data
-    world_bank_population = models.IntegerField(
-        verbose_name=_('world bank population'),
-        null=True, blank=True
-    )
+    world_bank_population = models.IntegerField(verbose_name=_("world bank population"), null=True, blank=True)
     world_bank_population_above_age_65 = models.IntegerField(
-        verbose_name=_('world bank population above age 65'),
-        null=True, blank=True
+        verbose_name=_("world bank population above age 65"), null=True, blank=True
     )
-    world_bank_population_age_14 = models.IntegerField(
-        verbose_name=_('world bank population age 14'),
-        null=True, blank=True
-    )
+    world_bank_population_age_14 = models.IntegerField(verbose_name=_("world bank population age 14"), null=True, blank=True)
     world_bank_urban_population_percentage = models.FloatField(
-        verbose_name=_('world bank urban population percentage'),
-        null=True, blank=True
+        verbose_name=_("world bank urban population percentage"), null=True, blank=True
     )
-    world_bank_gdp = models.FloatField(
-        verbose_name=_('world bank gdp'),
-        null=True, blank=True
-    )
-    world_bank_gni = models.FloatField(
-        verbose_name=_('world bank gni'),
-        null=True, blank=True
-    )
+    world_bank_gdp = models.FloatField(verbose_name=_("world bank gdp"), null=True, blank=True)
+    world_bank_gni = models.FloatField(verbose_name=_("world bank gni"), null=True, blank=True)
     world_bank_gender_inequality_index = models.FloatField(
-        verbose_name=_('world bank gender inequality index'),
-        null=True, blank=True
+        verbose_name=_("world bank gender inequality index"), null=True, blank=True
     )
-    world_bank_life_expectancy = models.IntegerField(
-        verbose_name=_('world bank life expectancy'),
-        null=True, blank=True
-    )
-    world_bank_literacy_rate = models.FloatField(
-        verbose_name=_('world bank life expectancy'),
-        null=True, blank=True
-    )
-    world_bank_poverty_rate = models.FloatField(
-        verbose_name=_('world bank poverty rate'),
-        null=True, blank=True
-    )
-    world_bank_gni_capita = models.IntegerField(
-        verbose_name=_('world bank GNI Per Capita'),
-        null=True, blank=True
-    )
+    world_bank_life_expectancy = models.IntegerField(verbose_name=_("world bank life expectancy"), null=True, blank=True)
+    world_bank_literacy_rate = models.FloatField(verbose_name=_("world bank life expectancy"), null=True, blank=True)
+    world_bank_poverty_rate = models.FloatField(verbose_name=_("world bank poverty rate"), null=True, blank=True)
+    world_bank_gni_capita = models.IntegerField(verbose_name=_("world bank GNI Per Capita"), null=True, blank=True)
 
     # fetched from unicef
-    unicef_population_under_18 = models.IntegerField(
-        verbose_name=_('Unicef population under 18'),
-        null=True, blank=True
-    )
+    unicef_population_under_18 = models.IntegerField(verbose_name=_("Unicef population under 18"), null=True, blank=True)
 
     # hdr
-    hdr_gii = models.FloatField(
-        verbose_name=_('HDR GII'),
-        null=True, blank=True
-    )
-    fdrs_data_fetched_year = models.CharField(
-        verbose_name=_('FDRS Data Fetched Year'),
-        null=True, blank=True,
-        max_length=50
-    )
+    hdr_gii = models.FloatField(verbose_name=_("HDR GII"), null=True, blank=True)
+    fdrs_data_fetched_year = models.CharField(verbose_name=_("FDRS Data Fetched Year"), null=True, blank=True, max_length=50)
 
     class Meta:
-        verbose_name = _('country overview')
-        verbose_name_plural = _('countries overview')
+        verbose_name = _("country overview")
+        verbose_name_plural = _("countries overview")
 
     def __str__(self):
         return str(self.country)
@@ -562,195 +314,157 @@ class CountryOverview(models.Model):
 
 
 class SocialEvent(models.Model):
-    overview = models.ForeignKey(CountryOverview, verbose_name=_('country overview'), on_delete=models.CASCADE)
-    label = models.CharField(verbose_name=_('label'), max_length=255)
-    value = models.CharField(verbose_name=_('value'), max_length=255)
+    overview = models.ForeignKey(CountryOverview, verbose_name=_("country overview"), on_delete=models.CASCADE)
+    label = models.CharField(verbose_name=_("label"), max_length=255)
+    value = models.CharField(verbose_name=_("value"), max_length=255)
 
     class Meta:
-        unique_together = ('overview', 'label')
-        verbose_name = _('Social Event')
-        verbose_name_plural = _('Social Events')
+        unique_together = ("overview", "label")
+        verbose_name = _("Social Event")
+        verbose_name_plural = _("Social Events")
 
     def __str__(self):
-        return f'{self.overview} - {self.label}: {self.value}'
+        return f"{self.overview} - {self.label}: {self.value}"
 
 
 class KeyClimateEvent(models.Model):
-    overview = models.ForeignKey(CountryOverview, verbose_name=_('country overview'), on_delete=models.CASCADE)
-    modified_at = models.DateTimeField(auto_now=True, verbose_name=_('modified at'))
+    overview = models.ForeignKey(CountryOverview, verbose_name=_("country overview"), on_delete=models.CASCADE)
+    modified_at = models.DateTimeField(auto_now=True, verbose_name=_("modified at"))
 
-    month = models.PositiveSmallIntegerField(choices=Month.CHOICES, verbose_name=_('month'))
+    month = models.PositiveSmallIntegerField(choices=Month.CHOICES, verbose_name=_("month"))
     # TODO: Add validation min < max
-    avg_max_temperature = models.FloatField(verbose_name=_('average maximum temperature'))
-    avg_min_temperature = models.FloatField(verbose_name=_('average minimum temperature'))
-    avg_rainfall_precipitation = models.FloatField(verbose_name=_('average rainfall precipitation'))
+    avg_max_temperature = models.FloatField(verbose_name=_("average maximum temperature"))
+    avg_min_temperature = models.FloatField(verbose_name=_("average minimum temperature"))
+    avg_rainfall_precipitation = models.FloatField(verbose_name=_("average rainfall precipitation"))
 
     class Meta:
-        unique_together = ('overview', 'month')
-        verbose_name = _('Key Client Event')
-        verbose_name_plural = _('Key Client Events')
+        unique_together = ("overview", "month")
+        verbose_name = _("Key Client Event")
+        verbose_name_plural = _("Key Client Events")
 
     def __str__(self):
-        return f'{self.overview.country} - {self.get_month_display()}'
+        return f"{self.overview.country} - {self.get_month_display()}"
 
 
 class SeasonalCalender(models.Model):
-    overview = models.ForeignKey(CountryOverview, on_delete=models.CASCADE, verbose_name=_('country overview'))
-    modified_at = models.DateTimeField(auto_now=True, verbose_name=_('modified at'))
-    title = models.CharField(max_length=20, verbose_name=_('title'))  # TODO: CHOICES?
-    sector = models.CharField(max_length=20, verbose_name=_('sector'))  # TODO: CHOICES?
-    date_start = models.DateField(verbose_name=_('date start'))
-    date_end = models.DateField(verbose_name=_('date end'))
+    overview = models.ForeignKey(CountryOverview, on_delete=models.CASCADE, verbose_name=_("country overview"))
+    modified_at = models.DateTimeField(auto_now=True, verbose_name=_("modified at"))
+    title = models.CharField(max_length=20, verbose_name=_("title"))  # TODO: CHOICES?
+    sector = models.CharField(max_length=20, verbose_name=_("sector"))  # TODO: CHOICES?
+    date_start = models.DateField(verbose_name=_("date start"))
+    date_end = models.DateField(verbose_name=_("date end"))
 
     class Meta:
-        unique_together = ('overview', 'sector', 'title')
-        verbose_name = _('Seasonal Calender Record')
-        verbose_name_plural = _('Seasonal Calender Records')
+        unique_together = ("overview", "sector", "title")
+        verbose_name = _("Seasonal Calender Record")
+        verbose_name_plural = _("Seasonal Calender Records")
 
     def __str__(self):
-        return f'{self.overview.country} - {self.title} - {self.sector}'
+        return f"{self.overview.country} - {self.title} - {self.sector}"
 
 
 class AcapsSeasonalCalender(models.Model):
-    overview = models.ForeignKey(
-        CountryOverview,
-        on_delete=models.CASCADE,
-        verbose_name=_('country overview')
-    )
-    modified_at = models.DateTimeField(
-        auto_now=True,
-        verbose_name=_('modified at')
-    )
+    overview = models.ForeignKey(CountryOverview, on_delete=models.CASCADE, verbose_name=_("country overview"))
+    modified_at = models.DateTimeField(auto_now=True, verbose_name=_("modified at"))
     month = ArrayField(
         models.CharField(max_length=100),
-        verbose_name=_('month'), default=list,
+        verbose_name=_("month"),
+        default=list,
     )
     event = ArrayField(
         models.CharField(max_length=100),
-        verbose_name=_('event'), default=list,
+        verbose_name=_("event"),
+        default=list,
     )
     event_type = ArrayField(
         models.CharField(max_length=100),
-        verbose_name=_('event type'), default=list,
+        verbose_name=_("event type"),
+        default=list,
     )
     label = ArrayField(
         models.CharField(max_length=100),
-        verbose_name=_('label'), default=list,
+        verbose_name=_("label"),
+        default=list,
     )
-    source = models.CharField(
-        verbose_name=_('Source'),
-        max_length=255,
-        null=True, blank=True
-    )
-    source_date = models.DateField(
-        verbose_name=_('Source Date'),
-        null=True, blank=True
-    )
+    source = models.CharField(verbose_name=_("Source"), max_length=255, null=True, blank=True)
+    source_date = models.DateField(verbose_name=_("Source Date"), null=True, blank=True)
 
     def __str__(self):
-        return f'{self.overview.country.name} - {self.month}'
+        return f"{self.overview.country.name} - {self.month}"
 
 
 class KeyDocumentGroup(models.Model):
-    title = models.CharField(max_length=20, verbose_name=_('title'))
+    title = models.CharField(max_length=20, verbose_name=_("title"))
 
     def __str__(self):
         return self.title
 
 
 def key_document_path(instance, filename):
-    return 'country-key-documents/%s/%s' % (instance.overview.country_id, filename)
+    return "country-key-documents/%s/%s" % (instance.overview.country_id, filename)
 
 
 class KeyDocument(models.Model):
-    overview = models.ForeignKey(CountryOverview, verbose_name=_('country overview'), on_delete=models.CASCADE)
-    title = models.CharField(max_length=20, verbose_name=_('title'))
-    group = models.ForeignKey(KeyDocumentGroup, on_delete=models.CASCADE, verbose_name=_('group'))
-    date = models.DateField(verbose_name=_('date'))
-    file = models.FileField(verbose_name=_('file'), upload_to=key_document_path)
+    overview = models.ForeignKey(CountryOverview, verbose_name=_("country overview"), on_delete=models.CASCADE)
+    title = models.CharField(max_length=20, verbose_name=_("title"))
+    group = models.ForeignKey(KeyDocumentGroup, on_delete=models.CASCADE, verbose_name=_("group"))
+    date = models.DateField(verbose_name=_("date"))
+    file = models.FileField(verbose_name=_("file"), upload_to=key_document_path)
 
     def __str__(self):
-        return f'{self.title}, {self.date}'
+        return f"{self.title}, {self.date}"
 
 
 class ExternalSource(models.Model):
-    overview = models.ForeignKey(CountryOverview, verbose_name=_('country overview'), on_delete=models.CASCADE)
-    title = models.CharField(max_length=20, verbose_name=_('title'))
-    url = models.URLField(verbose_name=_('url'), max_length=300)
+    overview = models.ForeignKey(CountryOverview, verbose_name=_("country overview"), on_delete=models.CASCADE)
+    title = models.CharField(max_length=20, verbose_name=_("title"))
+    url = models.URLField(verbose_name=_("url"), max_length=300)
 
     def __str__(self):
-        return f'{self.title}: {self.url}'
+        return f"{self.title}: {self.url}"
 
 
 class FDRSIndicator(models.Model):
-    title = models.CharField(verbose_name=_('Indicator Title'), max_length=255)
-    description = models.TextField(
-        verbose_name=_('Indicator Descritpion'),
-        null=True, blank=True
-    )
+    title = models.CharField(verbose_name=_("Indicator Title"), max_length=255)
+    description = models.TextField(verbose_name=_("Indicator Descritpion"), null=True, blank=True)
 
 
 class FDRSIncome(models.Model):
-    overview = models.ForeignKey(
-        CountryOverview,
-        verbose_name=_('country overview'),
-        on_delete=models.CASCADE
-    )
-    date = models.DateField(
-        verbose_name=_('date')
-    )
-    indicator = models.ForeignKey(
-        FDRSIndicator,
-        on_delete=models.CASCADE,
-        verbose_name=_('FDRS Indicator')
-    )
-    value = models.FloatField(
-        verbose_name=_('value'),
-        null=True, blank=True
-    )
+    overview = models.ForeignKey(CountryOverview, verbose_name=_("country overview"), on_delete=models.CASCADE)
+    date = models.DateField(verbose_name=_("date"))
+    indicator = models.ForeignKey(FDRSIndicator, on_delete=models.CASCADE, verbose_name=_("FDRS Indicator"))
+    value = models.FloatField(verbose_name=_("value"), null=True, blank=True)
 
     def __str__(self):
-        return f'{self.overview.country.name} - {self.date} - {self.indicator.title} - {self.value}'
+        return f"{self.overview.country.name} - {self.date} - {self.indicator.title} - {self.value}"
 
 
 class FDRSAnnualIncome(models.Model):
     """This is used to track the historical income data from fdrs"""
-    overview = models.ForeignKey(
-        CountryOverview,
-        verbose_name=_('country overview'),
-        on_delete=models.CASCADE
-    )
-    date = models.DateField(
-        verbose_name=_('date')
-    )
-    value = models.FloatField(
-        verbose_name=_('value'),
-        null=True, blank=True
-    )
+
+    overview = models.ForeignKey(CountryOverview, verbose_name=_("country overview"), on_delete=models.CASCADE)
+    date = models.DateField(verbose_name=_("date"))
+    value = models.FloatField(verbose_name=_("value"), null=True, blank=True)
 
     def __str__(self):
-        return f'{self.overview.country.name} - {self.date} - {self.value}'
+        return f"{self.overview.country.name} - {self.date} - {self.value}"
 
 
 class CountryKeyClimate(models.Model):
-    overview = models.ForeignKey(
-        CountryOverview,
-        on_delete=models.CASCADE,
-        verbose_name=_('country overview')
-    )
+    overview = models.ForeignKey(CountryOverview, on_delete=models.CASCADE, verbose_name=_("country overview"))
 
-    year = models.PositiveIntegerField(verbose_name=_('year'))
-    month = models.PositiveSmallIntegerField(choices=Month.CHOICES, verbose_name=_('month'))
+    year = models.PositiveIntegerField(verbose_name=_("year"))
+    month = models.PositiveSmallIntegerField(choices=Month.CHOICES, verbose_name=_("month"))
 
-    min_temp = models.FloatField(verbose_name=_('min temperature'))
-    max_temp = models.FloatField(verbose_name=_('max temperature'))
-    avg_temp = models.FloatField(verbose_name=_('average temperature'))
-    precipitation = models.FloatField(verbose_name=_('precipitation'))
+    min_temp = models.FloatField(verbose_name=_("min temperature"))
+    max_temp = models.FloatField(verbose_name=_("max temperature"))
+    avg_temp = models.FloatField(verbose_name=_("average temperature"))
+    precipitation = models.FloatField(verbose_name=_("precipitation"))
 
     class Meta:
-        unique_together = ('overview', 'month', 'year')
-        verbose_name = _('Country Climate')
-        verbose_name_plural = _('Country Climate')
+        unique_together = ("overview", "month", "year")
+        verbose_name = _("Country Climate")
+        verbose_name_plural = _("Country Climate")
 
     def __str__(self):
-        return f'{self.overview.country.name} - { self.year} - {self.get_month_display()}'
+        return f"{self.overview.country.name} - {self.year} - {self.get_month_display()}"

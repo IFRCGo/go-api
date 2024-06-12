@@ -7,17 +7,21 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0032_auto_20191127_0847'),
+        ("api", "0032_auto_20191127_0847"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='action',
-            name='field_report_type',
+            model_name="action",
+            name="field_report_type",
         ),
         migrations.AddField(
-            model_name='action',
-            name='field_report_types',
-            field=django.contrib.postgres.fields.ArrayField(base_field=models.CharField(choices=[('EVT', 'Event'), ('EW', 'Early Warning')], max_length=4), default=['EVT'], size=None),
+            model_name="action",
+            name="field_report_types",
+            field=django.contrib.postgres.fields.ArrayField(
+                base_field=models.CharField(choices=[("EVT", "Event"), ("EW", "Early Warning")], max_length=4),
+                default=["EVT"],
+                size=None,
+            ),
         ),
     ]

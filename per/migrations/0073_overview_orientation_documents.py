@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0072_remove_overview_orientation_document'),
+        ("per", "0072_remove_overview_orientation_document"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='overview',
-            name='orientation_documents',
-            field=models.ManyToManyField(blank=True, to='per.PerFile', verbose_name='orientation documents'),
+            model_name="overview",
+            name="orientation_documents",
+            field=models.ManyToManyField(blank=True, to="per.PerFile", verbose_name="orientation documents"),
         ),
     ]

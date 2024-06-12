@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('deployments', '0059_auto_20220323_1028'),
+        ("deployments", "0059_auto_20220323_1028"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='emergencyprojectactivity',
-            name='has_no_data_on_people_reached',
-            field=models.BooleanField(verbose_name='Has no data on people reached'),
+            model_name="emergencyprojectactivity",
+            name="has_no_data_on_people_reached",
+            field=models.BooleanField(verbose_name="Has no data on people reached"),
         ),
         migrations.AlterField(
-            model_name='emergencyprojectactivity',
-            name='is_disaggregated_for_disabled',
-            field=models.BooleanField(verbose_name='Is disaggregated for disabled'),
+            model_name="emergencyprojectactivity",
+            name="is_disaggregated_for_disabled",
+            field=models.BooleanField(verbose_name="Is disaggregated for disabled"),
         ),
     ]

@@ -6,40 +6,40 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0115_auto_20240521_0813'),
+        ("per", "0115_auto_20240521_0813"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='formcomponentquestionandanswer',
-            name='answer_ar',
+            model_name="formcomponentquestionandanswer",
+            name="answer_ar",
         ),
         migrations.RemoveField(
-            model_name='formcomponentquestionandanswer',
-            name='answer_en',
+            model_name="formcomponentquestionandanswer",
+            name="answer_en",
         ),
         migrations.RemoveField(
-            model_name='formcomponentquestionandanswer',
-            name='answer_es',
+            model_name="formcomponentquestionandanswer",
+            name="answer_es",
         ),
         migrations.RemoveField(
-            model_name='formcomponentquestionandanswer',
-            name='answer_fr',
+            model_name="formcomponentquestionandanswer",
+            name="answer_fr",
         ),
         migrations.RemoveField(
-            model_name='formcomponentquestionandanswer',
-            name='question_ar',
+            model_name="formcomponentquestionandanswer",
+            name="question_ar",
         ),
         migrations.RemoveField(
-            model_name='formcomponentquestionandanswer',
-            name='question_en',
+            model_name="formcomponentquestionandanswer",
+            name="question_en",
         ),
         migrations.RemoveField(
-            model_name='formcomponentquestionandanswer',
-            name='question_es',
+            model_name="formcomponentquestionandanswer",
+            name="question_es",
         ),
         migrations.RemoveField(
-            model_name='formcomponentquestionandanswer',
-            name='question_fr',
+            model_name="formcomponentquestionandanswer",
+            name="question_fr",
         ),
     ]

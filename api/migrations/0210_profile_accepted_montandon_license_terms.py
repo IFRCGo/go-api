@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0209_auto_20240423_0604'),
+        ("api", "0209_auto_20240423_0604"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='profile',
-            name='accepted_montandon_license_terms',
-            field=models.BooleanField(default=False, verbose_name='has accepted montandon license terms?'),
+            model_name="profile",
+            name="accepted_montandon_license_terms",
+            field=models.BooleanField(default=False, verbose_name="has accepted montandon license terms?"),
         ),
     ]

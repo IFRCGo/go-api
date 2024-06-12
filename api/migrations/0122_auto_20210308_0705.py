@@ -7,13 +7,19 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0121_geccode'),
+        ("api", "0121_geccode"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='district',
-            name='country_iso',
-            field=models.CharField(blank=True, max_length=2, null=True, validators=[django.core.validators.RegexValidator('^[A-Z]*$', 'ISO must be uppercase')], verbose_name='country ISO2'),
+            model_name="district",
+            name="country_iso",
+            field=models.CharField(
+                blank=True,
+                max_length=2,
+                null=True,
+                validators=[django.core.validators.RegexValidator("^[A-Z]*$", "ISO must be uppercase")],
+                verbose_name="country ISO2",
+            ),
         ),
     ]

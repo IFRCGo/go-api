@@ -1,18 +1,19 @@
-from modeltranslation.translator import register, TranslationOptions
+from modeltranslation.translator import TranslationOptions, register
+
 from .models import (
-    PartnerSocietyActivities,
-    PersonnelDeployment,
-    PartnerSocietyDeployment,
     DeployedPerson,
+    PartnerSocietyActivities,
+    PartnerSocietyDeployment,
     Personnel,
-    RegionalProject,
+    PersonnelDeployment,
     Project,
+    RegionalProject,
 )
 
 
 @register(DeployedPerson)
 class DeployedPersonTO(TranslationOptions):
-    fields = ('role',)
+    fields = ("role",)
 
 
 @register(Personnel)
@@ -29,19 +30,22 @@ class PartnerSocietyDeploymentTO(TranslationOptions):
 
 @register(PersonnelDeployment)
 class PersonnelDeploymentTO(TranslationOptions):
-    fields = ('comments',)
+    fields = ("comments",)
 
 
 @register(PartnerSocietyActivities)
 class PartnerSocietyActivitiesTO(TranslationOptions):
-    fields = ('activity',)
+    fields = ("activity",)
 
 
 @register(RegionalProject)
 class RegionalProjectTO(TranslationOptions):
-    fields = ('name',)
+    fields = ("name",)
 
 
 @register(Project)
 class ProjectTO(TranslationOptions):
-    fields = ('name', 'description', )
+    fields = (
+        "name",
+        "description",
+    )

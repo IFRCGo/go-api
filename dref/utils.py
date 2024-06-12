@@ -1,12 +1,8 @@
 from django.conf import settings
-
-from dref.models import (
-    Dref,
-    DrefOperationalUpdate,
-    DrefFinalReport,
-)
-from django.db import models
 from django.contrib.postgres.aggregates import ArrayAgg
+from django.db import models
+
+from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
 
 
 def get_email_context(instance):

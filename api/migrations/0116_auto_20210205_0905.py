@@ -6,28 +6,28 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0115_merge_20210204_1319'),
+        ("api", "0115_merge_20210204_1319"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='action',
-            name='tooltip_text_ar',
-            field=models.TextField(blank='true', null=True, verbose_name='tooltip text'),
+            model_name="action",
+            name="tooltip_text_ar",
+            field=models.TextField(blank="true", null=True, verbose_name="tooltip text"),
         ),
         migrations.AddField(
-            model_name='action',
-            name='tooltip_text_en',
-            field=models.TextField(blank='true', null=True, verbose_name='tooltip text'),
+            model_name="action",
+            name="tooltip_text_en",
+            field=models.TextField(blank="true", null=True, verbose_name="tooltip text"),
         ),
         migrations.AddField(
-            model_name='action',
-            name='tooltip_text_es',
-            field=models.TextField(blank='true', null=True, verbose_name='tooltip text'),
+            model_name="action",
+            name="tooltip_text_es",
+            field=models.TextField(blank="true", null=True, verbose_name="tooltip text"),
         ),
         migrations.AddField(
-            model_name='action',
-            name='tooltip_text_fr',
-            field=models.TextField(blank='true', null=True, verbose_name='tooltip text'),
+            model_name="action",
+            name="tooltip_text_fr",
+            field=models.TextField(blank="true", null=True, verbose_name="tooltip text"),
         ),
     ]

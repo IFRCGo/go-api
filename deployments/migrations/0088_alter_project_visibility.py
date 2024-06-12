@@ -6,13 +6,23 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('deployments', '0087_auto_20230816_0430'),
+        ("deployments", "0087_auto_20230816_0430"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='project',
-            name='visibility',
-            field=models.CharField(choices=[('logged_in_user', 'RCRC Movement'), ('ifrc_only', 'IFRC Secretariat'), ('public', 'Public'), ('ifrc_ns', 'IFRC and NS')], default='public', max_length=64, verbose_name='visibility'),
+            model_name="project",
+            name="visibility",
+            field=models.CharField(
+                choices=[
+                    ("logged_in_user", "RCRC Movement"),
+                    ("ifrc_only", "IFRC Secretariat"),
+                    ("public", "Public"),
+                    ("ifrc_ns", "IFRC and NS"),
+                ],
+                default="public",
+                max_length=64,
+                verbose_name="visibility",
+            ),
         ),
     ]

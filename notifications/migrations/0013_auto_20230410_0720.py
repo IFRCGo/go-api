@@ -6,18 +6,26 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('notifications', '0012_surgealert_is_stood_down'),
+        ("notifications", "0012_surgealert_is_stood_down"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='surgealert',
-            name='translation_module_original_language',
-            field=models.CharField(choices=[('en', 'English'), ('es', 'Spanish'), ('fr', 'French'), ('ar', 'Arabic')], default='en', help_text='Language used to create this entity', max_length=2, verbose_name='Entity Original language'),
+            model_name="surgealert",
+            name="translation_module_original_language",
+            field=models.CharField(
+                choices=[("en", "English"), ("es", "Spanish"), ("fr", "French"), ("ar", "Arabic")],
+                default="en",
+                help_text="Language used to create this entity",
+                max_length=2,
+                verbose_name="Entity Original language",
+            ),
         ),
         migrations.AddField(
-            model_name='surgealert',
-            name='translation_module_skip_auto_translation',
-            field=models.BooleanField(default=False, help_text='Skip auto translation operation for this entity?', verbose_name='Skip auto translation'),
+            model_name="surgealert",
+            name="translation_module_skip_auto_translation",
+            field=models.BooleanField(
+                default=False, help_text="Skip auto translation operation for this entity?", verbose_name="Skip auto translation"
+            ),
         ),
     ]

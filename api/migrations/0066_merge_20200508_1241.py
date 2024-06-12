@@ -6,9 +6,8 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0064_auto_20200504_1438'),
-        ('api', '0065_fieldreport_epi_figures_source'),
+        ("api", "0064_auto_20200504_1438"),
+        ("api", "0065_fieldreport_epi_figures_source"),
     ]
 
-    operations = [
-    ]
+    operations = []

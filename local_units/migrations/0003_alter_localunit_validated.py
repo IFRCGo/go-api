@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('local_units', '0002_alter_localunit_phone'),
+        ("local_units", "0002_alter_localunit_phone"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='localunit',
-            name='validated',
-            field=models.BooleanField(default=False, verbose_name='Validated'),
+            model_name="localunit",
+            name="validated",
+            field=models.BooleanField(default=False, verbose_name="Validated"),
         ),
     ]

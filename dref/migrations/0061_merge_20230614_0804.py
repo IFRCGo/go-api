@@ -6,9 +6,8 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dref', '0056_auto_20230410_0720'),
-        ('dref', '0060_dreffinalreport_date_of_approval'),
+        ("dref", "0056_auto_20230410_0720"),
+        ("dref", "0060_dreffinalreport_date_of_approval"),
     ]
 
-    operations = [
-    ]
+    operations = []

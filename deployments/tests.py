@@ -1,22 +1,31 @@
-import pydash
 import json
 
-from main.test_case import SnapshotTestCase, APITestCase
-from deployments.factories.user import UserFactory
-from deployments.factories.project import SectorFactory, SectorTagFactory, ProjectFactory
-from api.factories import country, district
-import api.models as models
-from deployments.models import Project, VisibilityCharChoices
+import pydash
 
-from .factories.personnel import PersonnelFactory
+import api.models as models
+from api.factories import country, district
+from api.factories.event import EventFactory
 from deployments.factories.emergency_project import (
-    EmergencyProjectActivityFactory,
     EmergencyProjectActivityActionFactory,
+    EmergencyProjectActivityFactory,
     EmergencyProjectActivitySectorFactory,
     EruFactory,
 )
-from api.factories.event import EventFactory
-from deployments.models import EmergencyProject, EmergencyProjectActivity
+from deployments.factories.project import (
+    ProjectFactory,
+    SectorFactory,
+    SectorTagFactory,
+)
+from deployments.factories.user import UserFactory
+from deployments.models import (
+    EmergencyProject,
+    EmergencyProjectActivity,
+    Project,
+    VisibilityCharChoices,
+)
+from main.test_case import APITestCase, SnapshotTestCase
+
+from .factories.personnel import PersonnelFactory
 
 
 class TestProjectAPI(SnapshotTestCase):
@@ -87,7 +96,7 @@ class TestProjectAPI(SnapshotTestCase):
         new_project["secondary_sectors"] = [new_sector1.id, new_sector2.id]
 
         # submit create request
-        response = self.client.post("/api/v2/project/", new_project, format='json')
+        response = self.client.post("/api/v2/project/", new_project, format="json")
 
         # check response
         self.assert_201(response)
@@ -97,10 +106,7 @@ class TestProjectAPI(SnapshotTestCase):
     def test_project_read(self):
         # create instance
         sct = SectorFactory()
-        new_project = ProjectFactory.create(
-            visibility=VisibilityCharChoices.PUBLIC,
-            primary_sector=sct
-        )
+        new_project = ProjectFactory.create(visibility=VisibilityCharChoices.PUBLIC, primary_sector=sct)
 
         # submit read request
         response = self.client.get(f"/api/v2/project/{new_project.pk}/")
@@ -112,10 +118,7 @@ class TestProjectAPI(SnapshotTestCase):
     def test_project_update(self):
         # create instance
         sct = SectorFactory()
-        new_project = ProjectFactory.create(
-            visibility=VisibilityCharChoices.PUBLIC,
-            primary_sector=sct
-        )
+        new_project = ProjectFactory.create(visibility=VisibilityCharChoices.PUBLIC, primary_sector=sct)
 
         # authenticate
         self.authenticate()
@@ -136,7 +139,7 @@ class TestProjectAPI(SnapshotTestCase):
         new_project["primary_sector"] = sct.id
 
         # submit update request
-        response = self.client.put(f"/api/v2/project/{new_project['id']}/", new_project, format='json')
+        response = self.client.put(f"/api/v2/project/{new_project['id']}/", new_project, format="json")
 
         # check response
         self.assert_200(response)
@@ -146,10 +149,7 @@ class TestProjectAPI(SnapshotTestCase):
     def test_project_delete(self):
         # create instance
         sct = SectorFactory()
-        new_project = ProjectFactory.create(
-            visibility=VisibilityCharChoices.PUBLIC,
-            primary_sector=sct
-        )
+        new_project = ProjectFactory.create(visibility=VisibilityCharChoices.PUBLIC, primary_sector=sct)
 
         # authenticate
         self.authenticate()
@@ -177,7 +177,7 @@ class TestProjectAPI(SnapshotTestCase):
         # ,,,9,ax,aew,country-BwmmOmYevmQESSDMSvLKvNtAvkgDYcFoaOoSoDNnpEVXvZVynz,society-name-bJhjsCmOLWxcbmmsloqUlvJplmblqgbRiyPYhvntDpxZxQkHZN,,9,,9,True,,,,,,,,,,,,\r
         # ,,,10,bM,per,country-niMJnLwriUNBeJqqyPkzDfqRBSjIneOUrOSPmTxKQPGMkAjuYB,society-name-hIhRJAevOfxvXrjZoragyoygYhlHUtLZFgHwSKsJrMgdkuWylw,,10,,10,True,,,,,,,,,,,,\r
 
-        url = '/api/v2/personnel/?format=csv'
+        url = "/api/v2/personnel/?format=csv"
         # Also unaunthenticated user can use this, but without names:
         # resp = self.client.get(url)
         # self.assert_401(resp)
@@ -185,7 +185,7 @@ class TestProjectAPI(SnapshotTestCase):
         self.authenticate()
         resp = self.client.get(url)
         self.assert_200(resp)
-        self.assertMatchSnapshot(resp.content.decode('utf-8'))
+        self.assertMatchSnapshot(resp.content.decode("utf-8"))
 
     def test_project_csv_api(self):
         _country = country.CountryFactory()
@@ -199,13 +199,13 @@ class TestProjectAPI(SnapshotTestCase):
             project_districts=[district1, district2],
             primary_sector=sct,
             secondary_sectors=[sct_1, sct_2],
-            visibility=VisibilityCharChoices.PUBLIC
+            visibility=VisibilityCharChoices.PUBLIC,
         )
 
-        url = '/api/v2/project/?format=csv'
+        url = "/api/v2/project/?format=csv"
         resp = self.client.get(url)
         self.assert_200(resp)
-        self.assertMatchSnapshot(resp.content.decode('utf-8'))
+        self.assertMatchSnapshot(resp.content.decode("utf-8"))
 
     def test_global_project_api(self):
         country_1 = country.CountryFactory()
@@ -237,61 +237,54 @@ class TestProjectAPI(SnapshotTestCase):
             for ns in [ns_1, ns_2]
         ]
 
-        url = '/api/v2/global-project/overview/'
+        url = "/api/v2/global-project/overview/"
         resp = self.client.get(url)
         self.assert_200(resp)
         self.assertMatchSnapshot(resp.json())
 
-        url = '/api/v2/global-project/ns-ongoing-projects-stats/'
+        url = "/api/v2/global-project/ns-ongoing-projects-stats/"
         resp = self.client.get(url)
         self.assert_200(resp)
         self.assertMatchSnapshot(resp.json())
 
 
 class TestEmergencyProjectAPI(APITestCase):
-    fixtures = ['emergency_project_activity_actions.json']
+    fixtures = ["emergency_project_activity_actions.json"]
 
     def test_emergency_project(self):
-        supplies = {
-            '2': 100,
-            '1': 1,
-            '4': 3
-        }
+        supplies = {"2": 100, "1": 1, "4": 3}
         EmergencyProjectActivityFactory.create_batch(5, supplies=supplies)
-        url = '/api/v2/emergency-project/'
+        url = "/api/v2/emergency-project/"
         self.authenticate()
         response = self.client.get(url)
         self.assert_200(response)
-        self.assertEqual(len(response.data['results']), 5)
+        self.assertEqual(len(response.data["results"]), 5)
 
     def test_emergency_project_create(self):
         old_emergency_project_count = EmergencyProject.objects.count()
         old_emergency_project_activity_count = EmergencyProjectActivity.objects.count()
-        country1 = models.Country.objects.create(name='abc')
-        country2 = models.Country.objects.create(name='xyz')
-        district1 = models.District.objects.create(name='test district1', country=country1)
-        district2 = models.District.objects.create(name='test district2', country=country1)
+        country1 = models.Country.objects.create(name="abc")
+        country2 = models.Country.objects.create(name="xyz")
+        district1 = models.District.objects.create(name="test district1", country=country1)
+        district2 = models.District.objects.create(name="test district2", country=country1)
         sector = EmergencyProjectActivitySectorFactory.create()
         action = EmergencyProjectActivityActionFactory.create()
-        event = EventFactory.create(
-            countries=[country1.id, country2.id],
-            districts=[district1.id, district2.id]
-        )
-        reporting_ns = models.Country.objects.create(name='ne')
+        event = EventFactory.create(countries=[country1.id, country2.id], districts=[district1.id, district2.id])
+        reporting_ns = models.Country.objects.create(name="ne")
         deployed_eru = EruFactory.create()
         data = {
-            'title': "Emergency title",
-            'event': event.id,
-            'districts': [district1.id, district2.id],
-            'reporting_ns': reporting_ns.id,
-            'reporting_ns_contact_email': None,
-            'reporting_ns_contact_name': None,
-            'reporting_ns_contact_role': None,
-            'status': EmergencyProject.ActivityStatus.ON_GOING,
-            'activity_lead': EmergencyProject.ActivityLead.NATIONAL_SOCIETY,
-            'start_date': '2022-01-01',
-            'deployed_eru': deployed_eru.id,
-            'country': country1.id,
+            "title": "Emergency title",
+            "event": event.id,
+            "districts": [district1.id, district2.id],
+            "reporting_ns": reporting_ns.id,
+            "reporting_ns_contact_email": None,
+            "reporting_ns_contact_name": None,
+            "reporting_ns_contact_role": None,
+            "status": EmergencyProject.ActivityStatus.ON_GOING,
+            "activity_lead": EmergencyProject.ActivityLead.NATIONAL_SOCIETY,
+            "start_date": "2022-01-01",
+            "deployed_eru": deployed_eru.id,
+            "country": country1.id,
             "activities": [
                 {
                     "sector": sector.id,
@@ -300,18 +293,14 @@ class TestEmergencyProjectAPI(APITestCase):
                     "male": 3,
                     "female": 5,
                     "people_households": EmergencyProjectActivity.PeopleHouseholds.PEOPLE,
-                    "custom_supplies": {
-                        "test_supplies": 23,
-                        "test_world": 34,
-                        "test_emergency": 56
-                    },
-                    "points": []
+                    "custom_supplies": {"test_supplies": 23, "test_world": 34, "test_emergency": 56},
+                    "points": [],
                 },
-            ]
+            ],
         }
-        url = '/api/v2/emergency-project/'
+        url = "/api/v2/emergency-project/"
         self.authenticate()
-        response = self.client.post(url, data=data, format='json')
+        response = self.client.post(url, data=data, format="json")
         self.assert_201(response)
         self.assertEqual(EmergencyProject.objects.count(), old_emergency_project_count + 1)
         self.assertEqual(EmergencyProjectActivity.objects.count(), old_emergency_project_activity_count + 1)

@@ -1,20 +1,17 @@
-import re
-import datetime
-import requests
 import csv
+import datetime
+import re
+
+import requests
 
 from .utils import catch_error, get_country_by_name
 
-
-API_ENDPOINT = 'https://startnetwork.org/api/v1/start-fund-all-alerts'
-DATE_FORMATS = (
-    '%d %b %Y - %H:%S',
-    '%m/%d/%Y %H:%M'
-)
+API_ENDPOINT = "https://startnetwork.org/api/v1/start-fund-all-alerts"
+DATE_FORMATS = ("%d %b %Y - %H:%S", "%m/%d/%Y %H:%M")
 
 
 def parse_amount(amount_in_string):
-    c_string = re.sub('[^0-9]', '', amount_in_string).strip()
+    c_string = re.sub("[^0-9]", "", amount_in_string).strip()
     if c_string:
         return int(c_string)
 
@@ -38,20 +35,20 @@ def prefetch():
 
     CronJobSum = 0
     for row in csv.DictReader(rs):
-        if 'Alert' not in row and 'Alert type' not in row:  # without these we are poor
+        if "Alert" not in row and "Alert type" not in row:  # without these we are poor
             continue
         # Some value are like `Congo [DRC]`
-        country = get_country_by_name(row['Country'].split('[')[0].strip())
-        date = parse_alert_date(row['Alert date'])
+        country = get_country_by_name(row["Country"].split("[")[0].strip())
+        date = parse_alert_date(row["Alert date"])
         if country is None or date is None:
             continue
         iso2 = country.alpha_2
         alert_data = {
-            'date': date.isoformat(),
-            'alert': row['Alert'],
-            'alert_type': row['Alert type'],
-            'amount_awarded': parse_amount(row['Amount Awarded']) if 'Amount Awarded' in row else 0,
-            'crisis_type': row['Crisis Type'] if 'Crisis Type' in row else '',
+            "date": date.isoformat(),
+            "alert": row["Alert"],
+            "alert_type": row["Alert type"],
+            "amount_awarded": parse_amount(row["Amount Awarded"]) if "Amount Awarded" in row else 0,
+            "crisis_type": row["Crisis Type"] if "Crisis Type" in row else "",
         }
 
         if data.get(iso2) is None:

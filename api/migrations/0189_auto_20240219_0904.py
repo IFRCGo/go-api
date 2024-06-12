@@ -6,72 +6,72 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0188_auto_20240109_0508'),
+        ("api", "0188_auto_20240109_0508"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='eventfeatureddocument',
-            name='description_ar',
+            model_name="eventfeatureddocument",
+            name="description_ar",
         ),
         migrations.RemoveField(
-            model_name='eventfeatureddocument',
-            name='description_en',
+            model_name="eventfeatureddocument",
+            name="description_en",
         ),
         migrations.RemoveField(
-            model_name='eventfeatureddocument',
-            name='description_es',
+            model_name="eventfeatureddocument",
+            name="description_es",
         ),
         migrations.RemoveField(
-            model_name='eventfeatureddocument',
-            name='description_fr',
+            model_name="eventfeatureddocument",
+            name="description_fr",
         ),
         migrations.RemoveField(
-            model_name='eventfeatureddocument',
-            name='title_ar',
+            model_name="eventfeatureddocument",
+            name="title_ar",
         ),
         migrations.RemoveField(
-            model_name='eventfeatureddocument',
-            name='title_en',
+            model_name="eventfeatureddocument",
+            name="title_en",
         ),
         migrations.RemoveField(
-            model_name='eventfeatureddocument',
-            name='title_es',
+            model_name="eventfeatureddocument",
+            name="title_es",
         ),
         migrations.RemoveField(
-            model_name='eventfeatureddocument',
-            name='title_fr',
+            model_name="eventfeatureddocument",
+            name="title_fr",
         ),
         migrations.RemoveField(
-            model_name='eventfeatureddocument',
-            name='translation_module_original_language',
+            model_name="eventfeatureddocument",
+            name="translation_module_original_language",
         ),
         migrations.RemoveField(
-            model_name='eventfeatureddocument',
-            name='translation_module_skip_auto_translation',
+            model_name="eventfeatureddocument",
+            name="translation_module_skip_auto_translation",
         ),
         migrations.RemoveField(
-            model_name='situationreport',
-            name='name_ar',
+            model_name="situationreport",
+            name="name_ar",
         ),
         migrations.RemoveField(
-            model_name='situationreport',
-            name='name_en',
+            model_name="situationreport",
+            name="name_en",
         ),
         migrations.RemoveField(
-            model_name='situationreport',
-            name='name_es',
+            model_name="situationreport",
+            name="name_es",
         ),
         migrations.RemoveField(
-            model_name='situationreport',
-            name='name_fr',
+            model_name="situationreport",
+            name="name_fr",
         ),
         migrations.RemoveField(
-            model_name='situationreport',
-            name='translation_module_original_language',
+            model_name="situationreport",
+            name="translation_module_original_language",
         ),
         migrations.RemoveField(
-            model_name='situationreport',
-            name='translation_module_skip_auto_translation',
+            model_name="situationreport",
+            name="translation_module_skip_auto_translation",
         ),
     ]

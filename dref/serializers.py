@@ -1,36 +1,39 @@
-import os
 import datetime
+import os
 from typing import List
 
-from django.utils.translation import gettext
-from django.db import models, transaction
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.db import models, transaction
 from django.utils import timezone
-
-from rest_framework import serializers
+from django.utils.translation import gettext
 from drf_spectacular.utils import extend_schema_field
+from rest_framework import serializers
 
-from lang.serializers import ModelSerializer
-from main.writable_nested_serializers import NestedCreateMixin, NestedUpdateMixin
-from api.serializers import UserNameSerializer, DisasterTypeSerializer, MiniDistrictSerializer, MiniCountrySerializer
-
+from api.serializers import (
+    DisasterTypeSerializer,
+    MiniCountrySerializer,
+    MiniDistrictSerializer,
+    UserNameSerializer,
+)
 from dref.models import (
     Dref,
+    DrefFile,
+    DrefFinalReport,
+    DrefOperationalUpdate,
+    IdentifiedNeed,
+    NationalSocietyAction,
     PlannedIntervention,
     PlannedInterventionIndicators,
-    NationalSocietyAction,
-    IdentifiedNeed,
     RiskSecurity,
-    DrefFile,
-    DrefOperationalUpdate,
-    DrefFinalReport,
     SourceInformation,
 )
+from dref.utils import get_dref_users
+from lang.serializers import ModelSerializer
+from main.writable_nested_serializers import NestedCreateMixin, NestedUpdateMixin
+from utils.file_check import validate_file_type
 
 from .tasks import send_dref_email
-from dref.utils import get_dref_users
-from utils.file_check import validate_file_type
 
 
 class RiskSecuritySerializer(ModelSerializer):
@@ -52,9 +55,7 @@ class PlannedInterventionIndicatorsSerializer(ModelSerializer):
 
 
 class DrefFileInputSerializer(serializers.Serializer):
-    file = serializers.ListField(
-        child=serializers.FileField()
-    )
+    file = serializers.ListField(child=serializers.FileField())
 
 
 class DrefFileSerializer(ModelSerializer):
@@ -107,7 +108,7 @@ class MiniOperationalUpdateActiveSerializer(serializers.ModelSerializer):
             "is_published",
             "status",
             "status_display",
-            "date_of_approval"
+            "date_of_approval",
         ]
 
     def get_application_type(self, obj) -> str:
@@ -143,7 +144,7 @@ class MiniDrefFinalReportActiveSerializer(serializers.ModelSerializer):
             "application_type_display",
             "status",
             "status_display",
-            "date_of_approval"
+            "date_of_approval",
         ]
 
     def get_application_type(self, obj) -> str:
@@ -196,12 +197,12 @@ class MiniDrefSerializer(serializers.ModelSerializer):
             "unpublished_final_report_count",
             "status",
             "status_display",
-            "date_of_approval"
+            "date_of_approval",
         ]
 
     @extend_schema_field(MiniOperationalUpdateActiveSerializer(many=True))
     def get_operational_update_details(self, obj):
-        queryset = DrefOperationalUpdate.objects.filter(dref_id=obj.id).order_by('-created_at')
+        queryset = DrefOperationalUpdate.objects.filter(dref_id=obj.id).order_by("-created_at")
         return MiniOperationalUpdateActiveSerializer(queryset, many=True).data
 
     @extend_schema_field(MiniDrefFinalReportActiveSerializer)
@@ -216,7 +217,7 @@ class MiniDrefSerializer(serializers.ModelSerializer):
         return False
 
     def get_has_final_report(self, obj) -> bool:
-        if hasattr(obj, 'dreffinalreport'):
+        if hasattr(obj, "dreffinalreport"):
             return True
         return False
 
@@ -346,9 +347,11 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
     modified_by_details = UserNameSerializer(source="modified_by", read_only=True)
     event_map_file = DrefFileSerializer(source="event_map", required=False, allow_null=True)
     disaster_category_analysis_details = DrefFileSerializer(
-        source="disaster_category_analysis", read_only=True, required=False, allow_null=True)
+        source="disaster_category_analysis", read_only=True, required=False, allow_null=True
+    )
     targeting_strategy_support_file_details = DrefFileSerializer(
-        source="targeting_strategy_support_file", read_only=True, required=False, allow_null=True)
+        source="targeting_strategy_support_file", read_only=True, required=False, allow_null=True
+    )
     images_file = DrefFileSerializer(many=True, required=False, allow_null=True, source="images")
     # field_report_details = MiniFieldReportSerializer(source='field_report', read_only=True)
     created_by_details = UserNameSerializer(source="created_by", read_only=True)
@@ -356,18 +359,13 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
     budget_file_details = DrefFileSerializer(source="budget_file", read_only=True)
     cover_image_file = DrefFileSerializer(source="cover_image", required=False, allow_null=True)
     disaster_type_details = DisasterTypeSerializer(source="disaster_type", read_only=True)
-    operational_update_details = MiniOperationalUpdateSerializer(
-        source="drefoperationalupdate_set", many=True, read_only=True
-    )
+    operational_update_details = MiniOperationalUpdateSerializer(source="drefoperationalupdate_set", many=True, read_only=True)
     final_report_details = MiniDrefFinalReportSerializer(source="dreffinalreport", read_only=True)
     country_details = MiniCountrySerializer(source="country", read_only=True)
     district_details = MiniDistrictSerializer(source="district", read_only=True, many=True)
     assessment_report_details = DrefFileSerializer(source="assessment_report", read_only=True)
     supporting_document_details = DrefFileSerializer(
-        source="supporting_document",
-        read_only=True,
-        required=False,
-        allow_null=True
+        source="supporting_document", read_only=True, required=False, allow_null=True
     )
     risk_security = RiskSecuritySerializer(many=True, required=False)
     modified_at = serializers.DateTimeField(required=False)
@@ -377,7 +375,12 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
     class Meta:
         model = Dref
         read_only_fields = ("modified_by", "created_by", "budget_file_preview")
-        exclude = ("cover_image", "event_map", "images", "users",)
+        exclude = (
+            "cover_image",
+            "event_map",
+            "images",
+            "users",
+        )
 
     def get_dref_access_user_list(self, obj) -> List[int]:
         dref_users_list = get_dref_users()
@@ -445,8 +448,7 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
         if images_id_without_access:
             raise serializers.ValidationError(
                 gettext(
-                    "Only image owner can attach image. Not allowed image ids: %s"
-                    % ",".join(map(str, images_id_without_access))
+                    "Only image owner can attach image. Not allowed image ids: %s" % ",".join(map(str, images_id_without_access))
                 )
             )
         return images
@@ -595,9 +597,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
         dref = data.get("dref")
         if not self.instance and dref:
             if not dref.is_published:
-                raise serializers.ValidationError(
-                    gettext("Can't create Operational Update for not published %s dref." % dref.id)
-                )
+                raise serializers.ValidationError(gettext("Can't create Operational Update for not published %s dref." % dref.id))
             # get the latest dref_operation_update and
             # check whether it is published or not, exclude no operational object created so far
             dref_operational_update = (
@@ -632,9 +632,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
 
     def create(self, validated_data):
         dref = validated_data["dref"]
-        dref_operational_update = (
-            DrefOperationalUpdate.objects.filter(dref=dref).order_by("-operational_update_number").first()
-        )
+        dref_operational_update = DrefOperationalUpdate.objects.filter(dref=dref).order_by("-operational_update_number").first()
         validated_data["created_by"] = self.context["request"].user
         if not dref_operational_update:
             validated_data["title"] = dref.title
@@ -704,7 +702,9 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["budget_file"] = dref.budget_file
             validated_data["country"] = dref.country
             validated_data["risk_security_concern"] = dref.risk_security_concern
-            validated_data["has_child_safeguarding_risk_analysis_assessment"] = dref.has_child_safeguarding_risk_analysis_assessment
+            validated_data["has_child_safeguarding_risk_analysis_assessment"] = (
+                dref.has_child_safeguarding_risk_analysis_assessment
+            )
             validated_data["event_date"] = dref.event_date
             validated_data["ns_respond_date"] = dref.ns_respond_date
             validated_data["did_ns_respond"] = dref.did_ns_respond
@@ -771,9 +771,9 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["national_society_contact_name"] = dref_operational_update.national_society_contact_name
             validated_data["national_society_contact_email"] = dref_operational_update.national_society_contact_email
             validated_data["national_society_contact_title"] = dref_operational_update.national_society_contact_title
-            validated_data[
-                "national_society_contact_phone_number"
-            ] = dref_operational_update.national_society_contact_phone_number
+            validated_data["national_society_contact_phone_number"] = (
+                dref_operational_update.national_society_contact_phone_number
+            )
             validated_data["media_contact_name"] = dref_operational_update.media_contact_name
             validated_data["media_contact_email"] = dref_operational_update.media_contact_email
             validated_data["media_contact_title"] = dref_operational_update.media_contact_title
@@ -818,14 +818,16 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["assessment_report"] = dref_operational_update.assessment_report
             validated_data["country"] = dref_operational_update.country
             validated_data["risk_security_concern"] = dref_operational_update.risk_security_concern
-            validated_data["has_child_safeguarding_risk_analysis_assessment"] = dref_operational_update.has_child_safeguarding_risk_analysis_assessment
+            validated_data["has_child_safeguarding_risk_analysis_assessment"] = (
+                dref_operational_update.has_child_safeguarding_risk_analysis_assessment
+            )
             validated_data["event_date"] = dref_operational_update.event_date
             validated_data["ns_respond_date"] = dref_operational_update.ns_respond_date
             validated_data["did_ns_respond"] = dref_operational_update.did_ns_respond
             validated_data["total_targeted_population"] = dref_operational_update.total_targeted_population
-            validated_data[
-                "is_there_major_coordination_mechanism"
-            ] = dref_operational_update.is_there_major_coordination_mechanism
+            validated_data["is_there_major_coordination_mechanism"] = (
+                dref_operational_update.is_there_major_coordination_mechanism
+            )
             validated_data["human_resource"] = dref_operational_update.human_resource
             validated_data["is_surge_personnel_deployed"] = dref_operational_update.is_surge_personnel_deployed
             validated_data["surge_personnel_deployed"] = dref_operational_update.surge_personnel_deployed
@@ -976,9 +978,9 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             validated_data["national_society_contact_name"] = dref_operational_update.national_society_contact_name
             validated_data["national_society_contact_email"] = dref_operational_update.national_society_contact_email
             validated_data["national_society_contact_title"] = dref_operational_update.national_society_contact_title
-            validated_data[
-                "national_society_contact_phone_number"
-            ] = dref_operational_update.national_society_contact_phone_number
+            validated_data["national_society_contact_phone_number"] = (
+                dref_operational_update.national_society_contact_phone_number
+            )
             validated_data["media_contact_name"] = dref_operational_update.media_contact_name
             validated_data["media_contact_email"] = dref_operational_update.media_contact_email
             validated_data["media_contact_title"] = dref_operational_update.media_contact_title
@@ -1019,11 +1021,13 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             validated_data["event_scope"] = dref_operational_update.event_scope
             validated_data["country"] = dref_operational_update.country
             validated_data["risk_security_concern"] = dref_operational_update.risk_security_concern
-            validated_data["has_child_safeguarding_risk_analysis_assessment"] = dref_operational_update.has_child_safeguarding_risk_analysis_assessment
+            validated_data["has_child_safeguarding_risk_analysis_assessment"] = (
+                dref_operational_update.has_child_safeguarding_risk_analysis_assessment
+            )
             validated_data["total_targeted_population"] = dref_operational_update.total_targeted_population
-            validated_data[
-                "is_there_major_coordination_mechanism"
-            ] = dref_operational_update.is_there_major_coordination_mechanism
+            validated_data["is_there_major_coordination_mechanism"] = (
+                dref_operational_update.is_there_major_coordination_mechanism
+            )
             validated_data["event_date"] = dref_operational_update.event_date
             validated_data["people_in_need"] = dref_operational_update.people_in_need
             validated_data["ns_respond_date"] = dref_operational_update.ns_respond_date
@@ -1118,7 +1122,9 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             validated_data["assessment_report"] = dref.assessment_report
             validated_data["country"] = dref.country
             validated_data["risk_security_concern"] = dref.risk_security_concern
-            validated_data["has_child_safeguarding_risk_analysis_assessment"] = dref.has_child_safeguarding_risk_analysis_assessment
+            validated_data["has_child_safeguarding_risk_analysis_assessment"] = (
+                dref.has_child_safeguarding_risk_analysis_assessment
+            )
             validated_data["total_targeted_population"] = dref.total_targeted_population
             validated_data["is_there_major_coordination_mechanism"] = dref.is_there_major_coordination_mechanism
             validated_data["event_date"] = dref.event_date
@@ -1196,15 +1202,12 @@ class CompletedDrefOperationsSerializer(serializers.ModelSerializer):
 
 
 class AddDrefUserSerializer(serializers.Serializer):
-    users = serializers.ListField(
-        child=serializers.IntegerField(),
-        write_only=True
-    )
+    users = serializers.ListField(child=serializers.IntegerField(), write_only=True)
     dref = serializers.IntegerField(write_only=True)
 
     def save(self):
-        users_list = self.validated_data['users']
-        dref = self.validated_data['dref']
+        users_list = self.validated_data["users"]
+        dref = self.validated_data["dref"]
 
         users = [User.objects.get(id=user_id) for user_id in users_list]
 
@@ -1230,8 +1233,4 @@ class DrefShareUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Dref
-        fields = (
-            'id',
-            'users',
-            'users_details'
-        )
+        fields = ("id", "users", "users_details")

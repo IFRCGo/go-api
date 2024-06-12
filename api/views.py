@@ -1,65 +1,65 @@
 import json
 from datetime import datetime, timedelta
 
-from django.http import JsonResponse, HttpResponse
+from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
-from django.conf import settings
-from django.views import View
-from django.db.models.functions import TruncMonth, TruncYear, Coalesce
+from django.db.models import Case, Count, F, Q, Sum, When
 from django.db.models.fields import IntegerField
-from django.db import models
-from django.db.models import (
-    Count,
-    Sum,
-    Q,
-    F,
-    Case,
-    When,
-    Subquery,
-    OuterRef,
-    Avg
-)
+from django.db.models.functions import TruncMonth, TruncYear
+from django.http import HttpResponse, JsonResponse
+from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.crypto import get_random_string
-from django.template.loader import render_to_string
-from rest_framework.authtoken.models import Token
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import authentication, permissions
+from django.views import View
 from drf_spectacular.utils import extend_schema, extend_schema_view
+from haystack.query import SQ, SearchQuerySet
+from rest_framework import authentication, permissions
+from rest_framework.authtoken.models import Token
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from deployments.models import Heop, ERUType, Sector, SectorTag, Statuses
-from notifications.models import Subscription, SurgeAlert
-from notifications.notification import send_notification
-from registrations.models import Recovery, Pending
-from deployments.models import Project, ERU, Personnel
-from flash_update.models import FlashUpdate
-
-from .esconnection import ES_CLIENT
-from .models import Appeal, AppealHistory, AppealType, CronJob, Event, FieldReport, Snippet
-from .indexes import ES_PAGE_NAME
-from .logger import logger
-from haystack.query import SearchQuerySet
-from api.models import Country, Region, District
-from haystack.query import SQ
-from .utils import is_user_ifrc
+from api.models import Country, District, Region
 from api.serializers import (
-    AggregateHeaderFiguresSerializer,
-    SearchSerializer,
-    ProjectPrimarySectorsSerializer,
-    ProjectSecondarySectorsSerializer,
-    AggregateByTimeSeriesSerializer,
-    AreaAggregateSerializer,
     AggregateByDtypeSerializer,
     AggregateByTimeSeriesInputSerializer,
-    SearchInputSerializer,
+    AggregateByTimeSeriesSerializer,
     AggregateHeaderFiguresInputSerializer,
-    CountryKeyFigureInputSerializer,
-    CountryKeyFigureSerializer,
-    CountryDisasterTypeCountSerializer,
-    CountryDisasterTypeMonthlySerializer,
+    AggregateHeaderFiguresSerializer,
+    AreaAggregateSerializer,
+    ProjectPrimarySectorsSerializer,
+    ProjectSecondarySectorsSerializer,
+    SearchInputSerializer,
+    SearchSerializer,
 )
+from deployments.models import (
+    ERU,
+    ERUType,
+    Heop,
+    Personnel,
+    Project,
+    Sector,
+    SectorTag,
+    Statuses,
+)
+from flash_update.models import FlashUpdate
+from notifications.models import Subscription, SurgeAlert
+from notifications.notification import send_notification
+from registrations.models import Pending, Recovery
+
+from .esconnection import ES_CLIENT
+from .indexes import ES_PAGE_NAME
+from .logger import logger
+from .models import (
+    Appeal,
+    AppealHistory,
+    AppealType,
+    CronJob,
+    Event,
+    FieldReport,
+    Snippet,
+)
+from .utils import is_user_ifrc
 
 
 def bad_request(message):
@@ -137,12 +137,7 @@ class EsPageSearch(APIView):
         return JsonResponse(results["hits"])
 
 
-@extend_schema_view(
-    get=extend_schema(
-        parameters=[SearchInputSerializer],
-        responses=SearchSerializer
-    )
-)
+@extend_schema_view(get=extend_schema(parameters=[SearchInputSerializer], responses=SearchSerializer))
 class HayStackSearch(APIView):
 
     def get(self, request):
@@ -182,9 +177,11 @@ class HayStackSearch(APIView):
                         SearchQuerySet()
                         .models(Personnel)
                         .filter(
-                            (SQ(deploying_country_name__contains=phrase)
-                            | SQ(deployed_to_country_name__contains=phrase)
-                            | SQ(event_name__content=phrase))
+                            (
+                                SQ(deploying_country_name__contains=phrase)
+                                | SQ(deployed_to_country_name__contains=phrase)
+                                | SQ(event_name__content=phrase)
+                            )
                             & SQ(end_date__gt=datetime.now())
                         )
                         .order_by("-_score")
@@ -194,7 +191,7 @@ class HayStackSearch(APIView):
                         .models(SurgeAlert)
                         .filter(
                             (SQ(event_name__content=phrase) | SQ(country_name__contains=phrase) | SQ(iso3__contains=phrase))
-                            & ~SQ(status='archived')
+                            & ~SQ(status="archived")
                         )
                         .order_by("-_score")
                     )
@@ -250,7 +247,7 @@ class HayStackSearch(APIView):
                         .filter(
                             (SQ(event_name__content=phrase) | SQ(country_name__contains=phrase) | SQ(iso3__contains=phrase))
                             & ~SQ(visibility="IFRC Only")
-                            & ~SQ(status='archived')
+                            & ~SQ(status="archived")
                         )
                         .order_by("-_score")
                     )
@@ -307,7 +304,7 @@ class HayStackSearch(APIView):
                     .filter(
                         (SQ(event_name__content=phrase) | SQ(country_name__contains=phrase) | SQ(iso3__contains=phrase))
                         & SQ(visibility="Public")
-                        & ~SQ(status='archived')
+                        & ~SQ(status="archived")
                     )
                     .order_by("-_score")
                 )
@@ -573,9 +570,7 @@ class ProjectPrimarySectors(APIView):
         keys_labels = [
             {"key": s.id, "label": s.title, "color": s.color, "is_deprecated": s.is_deprecated} for s in Sector.objects.all()
         ]
-        return Response(
-            ProjectPrimarySectorsSerializer(keys_labels, many=True).data
-        )
+        return Response(ProjectPrimarySectorsSerializer(keys_labels, many=True).data)
 
 
 class ProjectSecondarySectors(APIView):
@@ -586,12 +581,9 @@ class ProjectSecondarySectors(APIView):
     )
     def get(cls, request):
         keys_labels = [
-            {"key": s.id, "label": s.title, "color": s.color, "is_deprecated": s.is_deprecated}
-            for s in SectorTag.objects.all()
+            {"key": s.id, "label": s.title, "color": s.color, "is_deprecated": s.is_deprecated} for s in SectorTag.objects.all()
         ]
-        return Response(
-            ProjectSecondarySectorsSerializer(keys_labels, many=True).data
-        )
+        return Response(ProjectSecondarySectorsSerializer(keys_labels, many=True).data)
 
 
 class ProjectStatuses(APIView):
@@ -602,15 +594,13 @@ class ProjectStatuses(APIView):
 
 
 @extend_schema_view(
-    get=extend_schema(
-        parameters=[AggregateHeaderFiguresInputSerializer],
-        responses=AggregateHeaderFiguresSerializer
-    )
+    get=extend_schema(parameters=[AggregateHeaderFiguresInputSerializer], responses=AggregateHeaderFiguresSerializer)
 )
 class AggregateHeaderFigures(APIView):
     """
-        Used mainly for the key-figures header and by FDRS
+    Used mainly for the key-figures header and by FDRS
     """
+
     def get(self, request):
         iso3 = request.GET.get("iso3", None)
         country = request.GET.get("country", None)
@@ -644,9 +634,7 @@ class AggregateHeaderFigures(APIView):
             # Active Appeals with type Emergency Appeal or International Appeal
             acta=Count(Case(When(appeal_conditions, then=1), output_field=IntegerField())),
             # Total Appeals count which are not DREF
-            tota=Count(
-                Case(When(Q(atype=AppealType.APPEAL) | Q(atype=AppealType.INTL), then=1), output_field=IntegerField())
-            ),
+            tota=Count(Case(When(Q(atype=AppealType.APPEAL) | Q(atype=AppealType.INTL), then=1), output_field=IntegerField())),
             # Active Appeals' target population
             tarp=Sum(
                 Case(
@@ -671,18 +659,11 @@ class AggregateHeaderFigures(APIView):
             amount_funded=Sum("amof"),
         )
 
-        return Response(
-            AggregateHeaderFiguresSerializer(
-                appeals_aggregated
-            ).data
-        )
+        return Response(AggregateHeaderFiguresSerializer(appeals_aggregated).data)
 
 
 class AreaAggregate(APIView):
-    @extend_schema(
-        request=None,
-        responses=AreaAggregateSerializer
-    )
+    @extend_schema(request=None, responses=AreaAggregateSerializer)
     def get(self, request):
         region_type = request.GET.get("type", None)
         region_id = request.GET.get("id", None)
@@ -699,13 +680,11 @@ class AreaAggregate(APIView):
                 num_beneficiaries=Sum("num_beneficiaries"),
                 amount_requested=Sum("amount_requested"),
                 amount_funded=Sum("amount_funded"),
-                count=Sum("count_id")
+                count=Sum("count_id"),
             )
         )
 
-        return Response(
-            AreaAggregateSerializer(aggregate).data
-        )
+        return Response(AreaAggregateSerializer(aggregate).data)
 
 
 class AggregateByDtype(APIView):
@@ -726,24 +705,13 @@ class AggregateByDtype(APIView):
             return bad_request("Must specify an `model_type` that is `heop`, `appeal`, `event`, or `fieldreport`")
 
         model = models[mtype]
-        aggregate = model.objects.values(
-            "dtype"
-        ).annotate(
-            count=Count("id")
-        ).order_by(
-            "count"
-        ).values("dtype", "count")
+        aggregate = model.objects.values("dtype").annotate(count=Count("id")).order_by("count").values("dtype", "count")
 
-        return Response(
-            AggregateByDtypeSerializer(aggregate, many=True).data
-        )
+        return Response(AggregateByDtypeSerializer(aggregate, many=True).data)
 
 
 @extend_schema_view(
-    get=extend_schema(
-        parameters=[AggregateByTimeSeriesInputSerializer],
-        responses=AggregateByTimeSeriesSerializer(many=True)
-    )
+    get=extend_schema(parameters=[AggregateByTimeSeriesInputSerializer], responses=AggregateByTimeSeriesSerializer(many=True))
 )
 class AggregateByTime(APIView):
 
@@ -824,9 +792,7 @@ class AggregateByTime(APIView):
             .values(*output_values)
         )
 
-        return Response(
-            AggregateByTimeSeriesSerializer(aggregate, many=True).data
-        )
+        return Response(AggregateByTimeSeriesSerializer(aggregate, many=True).data)
 
 
 class GetAuthToken(APIView):

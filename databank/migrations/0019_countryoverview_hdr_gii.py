@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('databank', '0018_countryoverview_unicef_population_under_18'),
+        ("databank", "0018_countryoverview_unicef_population_under_18"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='countryoverview',
-            name='hdr_gii',
-            field=models.FloatField(blank=True, null=True, verbose_name='HDR GII'),
+            model_name="countryoverview",
+            name="hdr_gii",
+            field=models.FloatField(blank=True, null=True, verbose_name="HDR GII"),
         ),
     ]

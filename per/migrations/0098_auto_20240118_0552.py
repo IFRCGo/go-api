@@ -6,27 +6,21 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     def update_component_description(apps, schema_editor):
-        FormComponent = apps.get_model('per', 'FormComponent')
+        FormComponent = apps.get_model("per", "FormComponent")
 
         # Update formcomponent `14 A` description to 14 and set 14 to `is_parent`
-        form_component_14_A = FormComponent.objects.filter(
-            component_num=14,
-            component_letter="A"
-        )
+        form_component_14_A = FormComponent.objects.filter(component_num=14, component_letter="A")
         if form_component_14_A.exists():
             form_component_14_A_first = form_component_14_A.first()
             form_component_14 = FormComponent.objects.filter(component_num=14).first()
             form_component_14.description_en = form_component_14_A_first.description
             form_component_14.is_parent = True
-            form_component_14.save(update_fields=['description_en', 'is_parent'])
+            form_component_14.save(update_fields=["description_en", "is_parent"])
 
     dependencies = [
-        ('per', '0097_formcomponent_is_parent'),
+        ("per", "0097_formcomponent_is_parent"),
     ]
 
     operations = [
-        migrations.RunPython(
-            update_component_description,
-            reverse_code=migrations.RunPython.noop
-        ),
+        migrations.RunPython(update_component_description, reverse_code=migrations.RunPython.noop),
     ]

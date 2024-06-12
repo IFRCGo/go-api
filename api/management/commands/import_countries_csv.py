@@ -1,7 +1,9 @@
-import os
-from django.db import transaction
 import csv
-from django.core.management.base import BaseCommand, CommandError
+import os
+
+from django.core.management.base import BaseCommand
+from django.db import transaction
+
 from api.models import Country
 
 
@@ -69,7 +71,7 @@ class Command(BaseCommand):
                 all_ids.append(id)
                 try:
                     country = Country.objects.get(pk=id)
-                except:
+                except Exception:
                     country = Country()
                 for key in row.keys():
                     # print(key)

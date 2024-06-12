@@ -6,80 +6,80 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0075_profile_last_frontend_login'),
+        ("api", "0075_profile_last_frontend_login"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='fieldreport',
-            name='cases',
+            model_name="fieldreport",
+            name="cases",
         ),
         migrations.RemoveField(
-            model_name='fieldreport',
-            name='confirmed_cases',
+            model_name="fieldreport",
+            name="confirmed_cases",
         ),
         migrations.RemoveField(
-            model_name='fieldreport',
-            name='health_min_cases',
+            model_name="fieldreport",
+            name="health_min_cases",
         ),
         migrations.RemoveField(
-            model_name='fieldreport',
-            name='health_min_confirmed_cases',
+            model_name="fieldreport",
+            name="health_min_confirmed_cases",
         ),
         migrations.RemoveField(
-            model_name='fieldreport',
-            name='health_min_num_dead',
+            model_name="fieldreport",
+            name="health_min_num_dead",
         ),
         migrations.RemoveField(
-            model_name='fieldreport',
-            name='health_min_probable_cases',
+            model_name="fieldreport",
+            name="health_min_probable_cases",
         ),
         migrations.RemoveField(
-            model_name='fieldreport',
-            name='health_min_suspected_cases',
+            model_name="fieldreport",
+            name="health_min_suspected_cases",
         ),
         migrations.RemoveField(
-            model_name='fieldreport',
-            name='other_cases',
+            model_name="fieldreport",
+            name="other_cases",
         ),
         migrations.RemoveField(
-            model_name='fieldreport',
-            name='other_confirmed_cases',
+            model_name="fieldreport",
+            name="other_confirmed_cases",
         ),
         migrations.RemoveField(
-            model_name='fieldreport',
-            name='other_probable_cases',
+            model_name="fieldreport",
+            name="other_probable_cases",
         ),
         migrations.RemoveField(
-            model_name='fieldreport',
-            name='other_suspected_cases',
+            model_name="fieldreport",
+            name="other_suspected_cases",
         ),
         migrations.RemoveField(
-            model_name='fieldreport',
-            name='probable_cases',
+            model_name="fieldreport",
+            name="probable_cases",
         ),
         migrations.RemoveField(
-            model_name='fieldreport',
-            name='suspected_cases',
+            model_name="fieldreport",
+            name="suspected_cases",
         ),
         migrations.RemoveField(
-            model_name='fieldreport',
-            name='who_cases',
+            model_name="fieldreport",
+            name="who_cases",
         ),
         migrations.RemoveField(
-            model_name='fieldreport',
-            name='who_confirmed_cases',
+            model_name="fieldreport",
+            name="who_confirmed_cases",
         ),
         migrations.RemoveField(
-            model_name='fieldreport',
-            name='who_num_dead',
+            model_name="fieldreport",
+            name="who_num_dead",
         ),
         migrations.RemoveField(
-            model_name='fieldreport',
-            name='who_probable_cases',
+            model_name="fieldreport",
+            name="who_probable_cases",
         ),
         migrations.RemoveField(
-            model_name='fieldreport',
-            name='who_suspected_cases',
+            model_name="fieldreport",
+            name="who_suspected_cases",
         ),
     ]

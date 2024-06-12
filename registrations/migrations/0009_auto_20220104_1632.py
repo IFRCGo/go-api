@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('registrations', '0008_pending_justification'),
+        ("registrations", "0008_pending_justification"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='pending',
-            name='admin_contact_1',
-            field=models.EmailField(blank=True, editable=False, max_length=254, null=True, verbose_name='admin contact 1'),
+            model_name="pending",
+            name="admin_contact_1",
+            field=models.EmailField(blank=True, editable=False, max_length=254, null=True, verbose_name="admin contact 1"),
         ),
         migrations.AlterField(
-            model_name='pending',
-            name='admin_contact_2',
-            field=models.EmailField(blank=True, editable=False, max_length=254, null=True, verbose_name='admin contact 2'),
+            model_name="pending",
+            name="admin_contact_2",
+            field=models.EmailField(blank=True, editable=False, max_length=254, null=True, verbose_name="admin contact 2"),
         ),
     ]

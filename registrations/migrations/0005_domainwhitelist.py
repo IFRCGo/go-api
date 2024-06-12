@@ -6,16 +6,16 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('registrations', '0004_auto_20200211_1514'),
+        ("registrations", "0004_auto_20200211_1514"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='DomainWhitelist',
+            name="DomainWhitelist",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('domain_name', models.CharField(max_length=200)),
-                ('is_active', models.BooleanField(default=True)),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("domain_name", models.CharField(max_length=200)),
+                ("is_active", models.BooleanField(default=True)),
             ],
         ),
     ]

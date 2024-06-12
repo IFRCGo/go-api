@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dref', '0020_auto_20220725_1001'),
+        ("dref", "0020_auto_20220725_1001"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='dref',
-            name='is_there_major_coordination_mechanism',
-            field=models.BooleanField(blank=True, null=True, verbose_name='Is major coordination mechanism'),
+            model_name="dref",
+            name="is_there_major_coordination_mechanism",
+            field=models.BooleanField(blank=True, null=True, verbose_name="Is major coordination mechanism"),
         ),
     ]

@@ -6,23 +6,23 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0043_auto_20230505_0826'),
+        ("per", "0043_auto_20230505_0826"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='overview',
-            name='ns_second_focal_point_email',
-            field=models.CharField(blank=True, max_length=90, null=True, verbose_name='ns second focal point email'),
+            model_name="overview",
+            name="ns_second_focal_point_email",
+            field=models.CharField(blank=True, max_length=90, null=True, verbose_name="ns second focal point email"),
         ),
         migrations.AddField(
-            model_name='overview',
-            name='ns_second_focal_point_name',
-            field=models.CharField(blank=True, max_length=90, null=True, verbose_name='ns second focal point name'),
+            model_name="overview",
+            name="ns_second_focal_point_name",
+            field=models.CharField(blank=True, max_length=90, null=True, verbose_name="ns second focal point name"),
         ),
         migrations.AddField(
-            model_name='overview',
-            name='ns_second_focal_point_phone',
-            field=models.CharField(blank=True, max_length=90, null=True, verbose_name='ns second focal point phone'),
+            model_name="overview",
+            name="ns_second_focal_point_phone",
+            field=models.CharField(blank=True, max_length=90, null=True, verbose_name="ns second focal point phone"),
         ),
     ]

@@ -6,20 +6,17 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     def update_phase(apps, schema_editor):
-        Overview = apps.get_model('per', 'Overview')
-        FormPrioritization = apps.get_model('per', 'FormPrioritization')
+        Overview = apps.get_model("per", "Overview")
+        FormPrioritization = apps.get_model("per", "FormPrioritization")
         overviews = Overview.objects.all()
         for overview in overviews:
             overview.phase = 2
-            overview.save(update_fields=['phase'])
+            overview.save(update_fields=["phase"])
 
     dependencies = [
-        ('per', '0086_migrate_old_form'),
+        ("per", "0086_migrate_old_form"),
     ]
 
     operations = [
-        migrations.RunPython(
-            update_phase,
-            reverse_code=migrations.RunPython.noop
-        ),
+        migrations.RunPython(update_phase, reverse_code=migrations.RunPython.noop),
     ]

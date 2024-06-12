@@ -6,18 +6,26 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('per', '0080_formcomponentresponse_notes'),
+        ("per", "0080_formcomponentresponse_notes"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='customperworkplancomponent',
-            name='status',
-            field=models.IntegerField(choices=[(0, 'Not Started'), (1, 'Ongoing'), (2, 'Delayed'), (3, 'Standby'), (4, 'Finished')], default=0, verbose_name='status'),
+            model_name="customperworkplancomponent",
+            name="status",
+            field=models.IntegerField(
+                choices=[(0, "Not Started"), (1, "Ongoing"), (2, "Delayed"), (3, "Standby"), (4, "Finished")],
+                default=0,
+                verbose_name="status",
+            ),
         ),
         migrations.AlterField(
-            model_name='perworkplancomponent',
-            name='status',
-            field=models.IntegerField(choices=[(0, 'Not Started'), (1, 'Ongoing'), (2, 'Delayed'), (3, 'Standby'), (4, 'Finished')], default=0, verbose_name='status'),
+            model_name="perworkplancomponent",
+            name="status",
+            field=models.IntegerField(
+                choices=[(0, "Not Started"), (1, "Ongoing"), (2, "Delayed"), (3, "Standby"), (4, "Finished")],
+                default=0,
+                verbose_name="status",
+            ),
         ),
     ]

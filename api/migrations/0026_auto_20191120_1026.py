@@ -7,18 +7,25 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0025_fieldreportcontact_phone'),
+        ("api", "0025_fieldreportcontact_phone"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='action',
-            name='field_report_type',
-            field=models.CharField(blank=True, choices=[('EVT', 'Event'), ('EW', 'Early Warning')], max_length=4),
+            model_name="action",
+            name="field_report_type",
+            field=models.CharField(blank=True, choices=[("EVT", "Event"), ("EW", "Early Warning")], max_length=4),
         ),
         migrations.AddField(
-            model_name='action',
-            name='organizations',
-            field=django.contrib.postgres.fields.ArrayField(base_field=models.CharField(choices=[('NTLS', 'National Society'), ('PNS', 'Foreign Society'), ('FDRN', 'Federation')], max_length=4), blank=True, default=list, size=None),
+            model_name="action",
+            name="organizations",
+            field=django.contrib.postgres.fields.ArrayField(
+                base_field=models.CharField(
+                    choices=[("NTLS", "National Society"), ("PNS", "Foreign Society"), ("FDRN", "Federation")], max_length=4
+                ),
+                blank=True,
+                default=list,
+                size=None,
+            ),
         ),
     ]

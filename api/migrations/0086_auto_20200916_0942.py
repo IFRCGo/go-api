@@ -6,58 +6,58 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0085_auto_20200903_0843'),
+        ("api", "0085_auto_20200903_0843"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='situationreporttype',
-            name='type_ar',
-            field=models.CharField(max_length=150, null=True, verbose_name='type'),
+            model_name="situationreporttype",
+            name="type_ar",
+            field=models.CharField(max_length=150, null=True, verbose_name="type"),
         ),
         migrations.AddField(
-            model_name='situationreporttype',
-            name='type_en',
-            field=models.CharField(max_length=150, null=True, verbose_name='type'),
+            model_name="situationreporttype",
+            name="type_en",
+            field=models.CharField(max_length=150, null=True, verbose_name="type"),
         ),
         migrations.AddField(
-            model_name='situationreporttype',
-            name='type_es',
-            field=models.CharField(max_length=150, null=True, verbose_name='type'),
+            model_name="situationreporttype",
+            name="type_es",
+            field=models.CharField(max_length=150, null=True, verbose_name="type"),
         ),
         migrations.AddField(
-            model_name='situationreporttype',
-            name='type_fr',
-            field=models.CharField(max_length=150, null=True, verbose_name='type'),
+            model_name="situationreporttype",
+            name="type_fr",
+            field=models.CharField(max_length=150, null=True, verbose_name="type"),
         ),
         migrations.AlterField(
-            model_name='action',
-            name='name',
-            field=models.CharField(max_length=400, verbose_name='name'),
+            model_name="action",
+            name="name",
+            field=models.CharField(max_length=400, verbose_name="name"),
         ),
         migrations.AlterField(
-            model_name='action',
-            name='name_ar',
-            field=models.CharField(max_length=400, null=True, verbose_name='name'),
+            model_name="action",
+            name="name_ar",
+            field=models.CharField(max_length=400, null=True, verbose_name="name"),
         ),
         migrations.AlterField(
-            model_name='action',
-            name='name_en',
-            field=models.CharField(max_length=400, null=True, verbose_name='name'),
+            model_name="action",
+            name="name_en",
+            field=models.CharField(max_length=400, null=True, verbose_name="name"),
         ),
         migrations.AlterField(
-            model_name='action',
-            name='name_es',
-            field=models.CharField(max_length=400, null=True, verbose_name='name'),
+            model_name="action",
+            name="name_es",
+            field=models.CharField(max_length=400, null=True, verbose_name="name"),
         ),
         migrations.AlterField(
-            model_name='action',
-            name='name_fr',
-            field=models.CharField(max_length=400, null=True, verbose_name='name'),
+            model_name="action",
+            name="name_fr",
+            field=models.CharField(max_length=400, null=True, verbose_name="name"),
         ),
         migrations.AlterField(
-            model_name='situationreporttype',
-            name='type',
-            field=models.CharField(max_length=150, verbose_name='type'),
+            model_name="situationreporttype",
+            name="type",
+            field=models.CharField(max_length=150, verbose_name="type"),
         ),
     ]

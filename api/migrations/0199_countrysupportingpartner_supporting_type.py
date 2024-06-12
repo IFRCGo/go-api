@@ -6,13 +6,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0198_countrysupportingpartner'),
+        ("api", "0198_countrysupportingpartner"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='countrysupportingpartner',
-            name='supporting_type',
-            field=models.IntegerField(blank=True, choices=[(0, 'Ifrc'), (1, 'International Partners')], null=True, verbose_name='Supporting Type'),
+            model_name="countrysupportingpartner",
+            name="supporting_type",
+            field=models.IntegerField(
+                blank=True, choices=[(0, "Ifrc"), (1, "International Partners")], null=True, verbose_name="Supporting Type"
+            ),
         ),
     ]

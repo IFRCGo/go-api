@@ -6,13 +6,22 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0063_auto_20200501_1348'),
+        ("api", "0063_auto_20200501_1348"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='action',
-            name='category',
-            field=models.CharField(choices=[('General', 'General'), ('Health', 'Health'), ('NS Institutional Strengthening', 'NS Institutional Strengthening'), ('Socioeconomic Interventions', 'Socioeconomic Interventions')], default='General', max_length=255),
+            model_name="action",
+            name="category",
+            field=models.CharField(
+                choices=[
+                    ("General", "General"),
+                    ("Health", "Health"),
+                    ("NS Institutional Strengthening", "NS Institutional Strengthening"),
+                    ("Socioeconomic Interventions", "Socioeconomic Interventions"),
+                ],
+                default="General",
+                max_length=255,
+            ),
         ),
     ]
