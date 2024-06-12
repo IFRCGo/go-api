@@ -332,7 +332,11 @@ TINYMCE_DEFAULT_CONFIG = {
     "width": 1120,
     "cleanup_on_startup": True,
     "custom_undo_redo_levels": 20,
-    "selector": "textarea:not(.vWKTField)",
+    "selector": "textarea:not(.vWKTField)"
+    ":not(.mt-field-society_name-en)"
+    ":not(.mt-field-society_name-es)"
+    ":not(.mt-field-society_name-fr)"
+    ":not(.mt-field-society_name-ar)",
     "plugins": '''
         anchor autolink charmap code codesample directionality
         fullscreen image insertdatetime link lists media
