@@ -204,13 +204,37 @@ class AppealFilter(filters.FilterSet):
     code = filters.CharFilter(field_name="code", lookup_expr="exact")
     status = filters.NumberFilter(field_name="status", lookup_expr="exact")
     id = filters.NumberFilter(field_name="id", lookup_expr="exact")
+    appeal_id = filters.NumberFilter(
+        field_name="appeal_id", lookup_expr="exact", help_text="Use this (or code) for appeal identification."
+    )
+    district = filters.ModelMultipleChoiceFilter(
+        field_name="country__district", queryset=District.objects.all(), label="district", method="get_country_district"
+    )
+    admin2 = filters.ModelMultipleChoiceFilter(
+        field_name="country__district__admin2",
+        queryset=Admin2.objects.all(),
+        label="admin2",
+        method="get_country_admin2",
+    )
 
     class Meta:
         model = Appeal
         fields = {
             "start_date": ("exact", "gt", "gte", "lt", "lte"),
             "end_date": ("exact", "gt", "gte", "lt", "lte"),
+            "real_data_update": ("exact", "gt", "gte", "lt", "lte"),
+            "country__iso3": ("exact",),
         }
+
+    def get_country_district(self, qs, name, value):
+        if value:
+            return qs.filter(country__district=value).distinct()
+        return qs
+
+    def get_country_admin2(self, qs, name, value):
+        if value:
+            return qs.filter(country__district__admin2=value).distinct()
+        return qs
 
 
 class AppealHistoryFilter(filters.FilterSet):

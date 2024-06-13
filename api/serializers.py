@@ -2118,6 +2118,7 @@ class AggregateHeaderFiguresSerializer(serializers.Serializer):
     amount_requested = serializers.IntegerField()
     amount_requested_dref_included = serializers.IntegerField()
     amount_funded = serializers.IntegerField()
+    amount_funded_dref_included = serializers.IntegerField()
 
 
 # SearchPage Serializer
@@ -2292,8 +2293,8 @@ class AggregateByDtypeSerializer(serializers.Serializer):
 
 
 class CountryKeyFigureInputSerializer(serializers.Serializer):
-    start_date = serializers.DateField(required=False)
-    end_date = serializers.DateField(required=False)
+    start_date_from = serializers.DateField(required=False)
+    start_date_to = serializers.DateField(required=False)
     dtype = serializers.IntegerField(required=False)
 
 
@@ -2304,9 +2305,11 @@ class CountryKeyClimateInputSerializer(serializers.Serializer):
 class CountryKeyFigureSerializer(serializers.Serializer):
     active_drefs = serializers.IntegerField()
     active_appeals = serializers.IntegerField()
+    amount_requested = serializers.IntegerField()
     target_population = serializers.IntegerField()
-    total_amount_requested = serializers.IntegerField()
-    total_amount_funded = serializers.IntegerField()
+    amount_requested_dref_included = serializers.IntegerField()
+    amount_funded = serializers.IntegerField()
+    amount_funded_dref_included = serializers.IntegerField()
     emergencies = serializers.IntegerField()
 
 

@@ -50,15 +50,7 @@ from registrations.models import Pending, Recovery
 from .esconnection import ES_CLIENT
 from .indexes import ES_PAGE_NAME
 from .logger import logger
-from .models import (
-    Appeal,
-    AppealHistory,
-    AppealType,
-    CronJob,
-    Event,
-    FieldReport,
-    Snippet,
-)
+from .models import Appeal, AppealType, CronJob, Event, FieldReport, Snippet
 from .utils import is_user_ifrc
 
 
@@ -609,25 +601,24 @@ class AggregateHeaderFigures(APIView):
         now = timezone.now()
         date = request.GET.get("date", now)
         appeal_conditions = (
-            (Q(atype=AppealType.APPEAL) | Q(atype=AppealType.INTL)) & Q(end_date__gt=date) & Q(start_date__lt=date)
+            (Q(atype=AppealType.APPEAL) | Q(atype=AppealType.INTL)) & Q(end_date__gte=date) & Q(start_date__lte=date)
         )
 
-        all_appealhistory = AppealHistory.objects.select_related("appeal").filter(
-            valid_from__lt=date, valid_to__gt=date, appeal__code__isnull=False
+        all_appeal = Appeal.objects.filter(
+            code__isnull=False,
         )
 
         if iso3:
-            all_appealhistory = all_appealhistory.filter(country__iso3__iexact=iso3)
+            all_appeal = all_appeal.filter(country__iso3__iexact=iso3)
         if country:
-            all_appealhistory = all_appealhistory.filter(country__id=country)
+            all_appeal = all_appeal.filter(country__id=country)
         if region:
-            all_appealhistory = all_appealhistory.filter(country__region__id=region)
-
-        appeals_aggregated = all_appealhistory.annotate(
+            all_appeal = all_appeal.filter(country__region__id=region)
+        appeals_aggregated = all_appeal.annotate(
             # Active Appeals with DREF type
             actd=Count(
                 Case(
-                    When(Q(atype=AppealType.DREF) & Q(end_date__gt=date) & Q(start_date__lt=date), then=1),
+                    When(Q(atype=AppealType.DREF) & Q(end_date__gte=date) & Q(start_date__lte=date), then=1),
                     output_field=IntegerField(),
                 )
             ),
@@ -638,17 +629,20 @@ class AggregateHeaderFigures(APIView):
             # Active Appeals' target population
             tarp=Sum(
                 Case(
-                    When(Q(end_date__gt=date) & Q(start_date__lt=date), then=F("num_beneficiaries")),
+                    When(Q(end_date__gte=date) & Q(start_date__lte=date), then=F("num_beneficiaries")),
                     output_field=IntegerField(),
                 )
             ),
             # Active Appeals' requested amount, which are not DREF
             amor=Case(When(appeal_conditions, then=F("amount_requested")), output_field=IntegerField()),
             amordref=Case(
-                When(Q(end_date__gt=date) & Q(start_date__lt=date), then=F("amount_requested")), output_field=IntegerField()
+                When(Q(end_date__gte=date) & Q(start_date__lte=date), then=F("amount_requested")), output_field=IntegerField()
             ),
             # Active Appeals' funded amount, which are not DREF
             amof=Case(When(appeal_conditions, then=F("amount_funded")), output_field=IntegerField()),
+            amofdref=Case(
+                When(Q(end_date__gte=date) & Q(start_date__lte=date), then=F("amount_funded")), output_field=IntegerField()
+            ),
         ).aggregate(
             active_drefs=Sum("actd"),
             active_appeals=Sum("acta"),
@@ -657,6 +651,7 @@ class AggregateHeaderFigures(APIView):
             amount_requested=Sum("amor"),
             amount_requested_dref_included=Sum("amordref"),
             amount_funded=Sum("amof"),
+            amount_funded_dref_included=Sum("amofdref"),
         )
 
         return Response(AggregateHeaderFiguresSerializer(appeals_aggregated).data)
