@@ -3,12 +3,15 @@ import logging
 import requests
 from django.conf import settings
 from django.core.management.base import BaseCommand
+from sentry_sdk.crons import monitor
 
 from databank.models import CountryOverview, FDRSAnnualIncome
+from main.sentry import SentryMonitor
 
 logger = logging.getLogger(__name__)
 
 
+@monitor(monitor_slug=SentryMonitor.FDRS_ANNUAL_INCOME)
 class Command(BaseCommand):
     help = "Import FDRS income data"
 

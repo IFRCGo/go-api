@@ -2,13 +2,16 @@ import logging
 
 import requests
 from django.core.management.base import BaseCommand
+from sentry_sdk.crons import monitor
 
 from api.models import CountryType
 from databank.models import CountryKeyClimate, CountryOverview
+from main.sentry import SentryMonitor
 
 logger = logging.getLogger(__name__)
 
 
+@monitor(monitor_slug=SentryMonitor.INGEST_CLIMATE)
 class Command(BaseCommand):
     help = "Add minimum, maximum and Average temperature of country temperature data from source api"
 
