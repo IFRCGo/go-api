@@ -122,7 +122,22 @@ cronjobs:
     schedule: '1 0 * * *'
   - command: 'update_surge_alert_status'
     schedule: '1 */12 * * *'
-
+  - command: 'fdrs_annual_income'
+    schedule: '0 0 * * 0'
+  - command: 'FDRS_INCOME'
+    schedule: '0 0 * * 0'
+  - command: 'ingest_acaps'
+    schedule: '0 0 * * *'
+  - command: 'ingest_climate'
+    schedule: '0 0 * * *'
+  - command: 'ingest_databank'
+    schedule: '0 0 * * *'
+  - command: 'ingest_hdr'
+    schedule: '0 0 * * *'
+  - command: 'ingest_unicef'
+    schedule: '0 0 * * *'
+  - command: 'ingest_worldbank'
+    schedule: '0 0 * * *'
 
 elasticsearch:
   enabled: true

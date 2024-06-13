@@ -4,15 +4,18 @@ import logging
 
 import requests
 from django.core.management.base import BaseCommand
+from sentry_sdk.crons import monitor
 
 from api.models import Country, CountryType
 from databank.models import CountryOverview as CO
+from main.sentry import SentryMonitor
 
 from .sources.utils import get_country_by_iso3
 
 logger = logging.getLogger(__name__)
 
 
+@monitor(monitor_slug=SentryMonitor.INGEST_WORLDBANK)
 class Command(BaseCommand):
     help = "Add Acaps seasonal calendar data"
 

@@ -114,6 +114,14 @@ class SentryMonitor(models.TextChoices):
     USER_REGISTRATION_REMINDER = "user_registration_reminder", "0 9 * * *"
     INGEST_COUNTRY_PLAN_FILE = "ingest_country_plan_file", "1 0 * * *"
     UPDATE_SURGE_ALERT_STATUS = "update_surge_alert_status", "1 */12 * * *"
+    FDRS_ANNUAL_INCOME = "fdrs_annual_income", "0 0 * * 0"
+    FDRS_INCOME = "FDRS_INCOME", "0 0 * * 0"
+    INGEST_ACAPS = "ingest_acaps", "0 0 * * *"
+    INGEST_CLIMATE = "ingest_climate", "0 0 * * *"
+    INGEST_DATABANK = "ingest_databank", "0 0 * * *"
+    INGEST_HDR = "ingest_hdr", "0 0 * * *"
+    INGEST_UNICEF = "ingest_unicef", "0 0 * * *"
+    INGEST_WORLDBANK = "ingest_worldbank", "0 0 * * *"
 
     @staticmethod
     def load_cron_data() -> typing.List[typing.Tuple[str, str]]:

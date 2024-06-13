@@ -3,9 +3,11 @@ import logging
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
+from sentry_sdk.crons import monitor
 
 from api.models import Country, CronJob, CronJobStatus
 from databank.models import CountryOverview
+from main.sentry import SentryMonitor
 
 from .sources import FDRS, FTS_HPC, INFORM, RELIEFWEB, START_NETWORK, WB
 
@@ -24,6 +26,7 @@ SOURCES = [
 ]
 
 
+@monitor(monitor_slug=SentryMonitor.INGEST_DATABANK)
 class Command(BaseCommand):
     def load(self):
         """
