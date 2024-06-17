@@ -23,7 +23,7 @@ from api.management.commands.index_and_notify import Command as Notify
 from lang.admin import TranslationAdmin, TranslationInlineModelAdmin
 from notifications.models import RecordType, SubscriptionType
 
-from .forms import ActionForm
+from .forms import ActionForm, SocietyNamePlain, SummaryPlain
 
 # from reversion.models import Revision
 
@@ -317,6 +317,8 @@ class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAd
         "countries",
         "districts",
     )
+    form = SummaryPlain
+
     readonly_fields = ("report_date", "created_at", "updated_at")
     list_filter = [MembershipFilter]
     actions = [
@@ -648,6 +650,7 @@ class CountryAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAd
         CountryICRCPresenceInline,
     ]
     exclude = ("key_priorities",)
+    form = SocietyNamePlain
 
 
 class RegionAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
