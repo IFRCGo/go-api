@@ -3,11 +3,14 @@ import xmltodict
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from requests.auth import HTTPBasicAuth
+from sentry_sdk.crons import monitor
 
 from api.logger import logger
 from api.models import Country, CountryDirectory, CronJob, CronJobStatus
+from main.sentry import SentryMonitor
 
 
+@monitor(monitor_slug=SentryMonitor.INGEST_NS_DIRECTORY)
 class Command(BaseCommand):
     help = "Add ns contact details"
 
