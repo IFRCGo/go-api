@@ -5,11 +5,14 @@ import pandas as pd
 import requests
 from django.conf import settings
 from django.core.management.base import BaseCommand
+from sentry_sdk.crons import monitor
 
 from api.logger import logger
 from api.models import Country, CountryKeyDocument, CronJob, CronJobStatus
+from main.sentry import SentryMonitor
 
 
+@monitor(monitor_slug=SentryMonitor.INGEST_NS_DOCUMENT)
 class Command(BaseCommand):
     help = "Add ns documents"
 
