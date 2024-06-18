@@ -57,7 +57,14 @@ class Command(BaseCommand):
                         "position": data["CON_title"],
                         "country": country,
                     }
-                    CountryDirectory.objects.create(**data)
+                    existing_qs = CountryDirectory.objects.filter(
+                        country=country,
+                        first_name__iexact=data["first_name"],
+                        last_name__iexact=data["last_name"],
+                        position__iexact=data["position"],
+                    )
+                    if not existing_qs.exists():
+                        CountryDirectory.objects.create(**data)
         text_to_log = "%s Ns Directory added" % added
         logger.info(text_to_log)
         body = {"name": "ingest_ns_directory", "message": text_to_log, "num_result": added, "status": CronJobStatus.SUCCESSFUL}

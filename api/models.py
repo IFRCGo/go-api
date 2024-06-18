@@ -349,6 +349,7 @@ class CountryKeyDocument(models.Model):
     end_year = models.DateField(verbose_name=_("End Year"), null=True, blank=True)
     year_text = models.CharField(verbose_name=_("Year Text"), max_length=255, null=True, blank=True)
 
+    # TODO: Add unique_together country, url
     def __str__(self):
         return f"{self.country.name} - {self.name}"
 
@@ -391,6 +392,7 @@ class NSDInitiatives(models.Model):
     funding_period = models.IntegerField(verbose_name=_("Funding Period in Month"))
     categories = ArrayField(models.CharField(max_length=255), verbose_name=_("Funding categories"), default=list, null=True)
 
+    # TODO: Add unique_together country, year, fund_type
     def __str__(self):
         return f"{self.country.name} - {self.title}"
 

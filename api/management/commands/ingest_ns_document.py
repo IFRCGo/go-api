@@ -100,19 +100,21 @@ class Command(BaseCommand):
         added = 0
         for document in result:
             country = Country.objects.filter(fdrs=document["country_code"]).first()
-            if country:
-                added += 1
-                data = {
-                    "country": country,
-                    "name": document["name"],
-                    "url": document["url"],
-                    "thumbnail": document["thumbnail"],
-                    "document_type": document["document_type"],
-                    "year": document["year"],
-                    "end_year": document["end_year"],
-                    "year_text": document["year_text"],
-                }
-                CountryKeyDocument.objects.create(**data)
+            if country is None:
+                continue
+
+            country_key_document, _ = CountryKeyDocument.objects.get_or_create(
+                country=country,
+                url=document["url"],
+            )
+            country_key_document.name = document["name"]
+            country_key_document.thumbnail = document["thumbnail"]
+            country_key_document.document_type = document["document_type"]
+            country_key_document.year = document["year"]
+            country_key_document.end_year = document["end_year"]
+            country_key_document.year_text = document["year_text"]
+            country_key_document.save()
+            added += 1
         return added
 
     def sync_cron_success(self, text_to_log, added):
