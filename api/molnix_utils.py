@@ -58,8 +58,12 @@ class MolnixApi:
         return self.call_api(path="tags/edit/%d" % id)["tag"]["groups"]
 
     def get_open_positions(self):
-        # return self.call_api_paginated(path='positions', response_key='positions')
+        # return self.call_api_paginated(path="positions", response_key="positions")
         return self.call_api(path="positions/open")
+
+    def get_not_only_open_positions(self):
+        # return self.call_api_paginated(path="positions", response_key="positions")
+        return self.call_api_paginated(path="positions", response_key="positions", params={"limit": 999999})
 
     def get_deployments(self):
         deployments_filter = {
