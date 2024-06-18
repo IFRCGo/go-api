@@ -3,6 +3,7 @@ import logging
 import requests
 from django.conf import settings
 from django.core.management.base import BaseCommand
+from django.db import models
 from sentry_sdk.crons import monitor
 
 from databank.models import CountryOverview, FDRSAnnualIncome
@@ -16,20 +17,41 @@ class Command(BaseCommand):
     help = "Import FDRS income data"
 
     def handle(self, *args, **kwargs):
-        for overview in CountryOverview.objects.all():
-            country_fdrs_code = overview.country.fdrs
-            fdrs_api = f"https://data-api.ifrc.org/api/data?indicator=KPI_IncomeLC_CHF&KPI_Don_Code={country_fdrs_code}&apiKey={settings.FDRS_APIKEY}"  # noqa: E501
-            fdrs_entities = requests.get(fdrs_api)
+        overview_qs = CountryOverview.objects.annotate(
+            country_fdrd=models.F("country__fdrs"),
+        )
+        fdrs_data_count = 0
+        for overview in overview_qs.all():
+            country_fdrs_code = overview.country_fdrd
+            fdrs_entities = requests.get(
+                "https://data-api.ifrc.org/api/data",
+                params={
+                    "apiKey": settings.FDRS_APIKEY,
+                    "indicator": "KPI_IncomeLC_CHF",
+                    "KPI_Don_Code": country_fdrs_code,
+                },
+            )
             if fdrs_entities.status_code != 200:
-                return
+                continue
+
             fdrs_entities.raise_for_status()
             fdrs_entities = fdrs_entities.json()
-            fdrs_data_count = 0
-            if len(fdrs_entities["data"]):
-                income_list = fdrs_entities["data"][0]["data"][0]["data"]
-                if len(income_list):
-                    for income in income_list:
-                        data = {"date": str(income["year"]) + "-01-01", "value": income["value"], "overview": overview}
-                        fdrs_data_count += 1
-                        FDRSAnnualIncome.objects.get_or_create(**data)
+
+            if len(fdrs_entities["data"]) == 0:
+                continue
+
+            income_list = fdrs_entities["data"][0]["data"][0]["data"]
+            if len(income_list) == 0:
+                continue
+
+            for income in income_list:
+                income_value = income["value"]
+                fdrs_annual_income, _ = FDRSAnnualIncome.objects.get_or_create(
+                    overview=overview,
+                    date=str(income["year"]) + "-01-01",
+                )
+                fdrs_annual_income.value = income_value
+                fdrs_annual_income.save(update_fields=("value",))
+                fdrs_data_count += 1
+
         logger.info(f"Successfully created {fdrs_data_count} country data")

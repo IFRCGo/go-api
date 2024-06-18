@@ -47,17 +47,18 @@ class Command(BaseCommand):
             # TODO: Filter not by society name
             country = Country.objects.filter(society_name__iexact=data[0]).first()
             if country:
-                dict_data = {
-                    "country": country,
-                    "title": data[3],
-                    "fund_type": data[2],
-                    "allocation": data[5],
-                    "year": data[1],
-                    "funding_period": data[6],
-                    "categories": data[4],
-                }
+                nsd_initiatives, _ = NSDInitiatives.objects.get_or_create(
+                    country=country,
+                    year=data[1],
+                    fund_type=data[2],
+                )
+                nsd_initiatives.title = data[3]
+                nsd_initiatives.allocation = data[5]
+                nsd_initiatives.funding_period = data[6]
+                nsd_initiatives.categories = data[4]
+                nsd_initiatives.save()
                 added += 1
-                NSDInitiatives.objects.create(**dict_data)
+
         text_to_log = "%s Ns initiatives added" % added
         logger.info(text_to_log)
         body = {"name": "ingest_ns_initiatives", "message": text_to_log, "num_result": added, "status": CronJobStatus.SUCCESSFUL}
