@@ -107,7 +107,7 @@ cronjobs:
   - command: 'index_and_notify'
     schedule: '*/5 * * * *'
   - command: 'sync_molnix'
-    schedule: '*/10 * * * *'
+    schedule: '*/15 * * * *'
   - command: 'ingest_appeals'
     schedule: '45 */2 * * *'
   - command: 'sync_appealdocs'
