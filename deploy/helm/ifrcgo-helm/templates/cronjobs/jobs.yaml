@@ -26,12 +26,13 @@ spec:
                 - configMapRef:
                     name: {{ template "ifrcgo-helm.fullname" $ }}-api-configmap
               # We may eventually want these resources to be configurable per job
+              # For most jobs 2Gi is enough, but long-run sync-molnix needs 4Gi
               resources:
                 requests:
                   cpu: 1
-                  memory: 2Gi 
+                  memory: 4Gi
                 limits:
                   cpu: 1
-                  memory: 2Gi
+                  memory: 4Gi
               #FIXME: Add onFailure policy, retries, etc.
 {{- end }}
