@@ -541,7 +541,7 @@ class Command(BaseCommand):
             logger.info("Fetched countries, now fetching deployments")
             deployments = molnix.get_deployments()
             logger.info("Fetched deployments, now fetching positions")
-            open_positions = molnix.get_open_positions()
+            open_positions = molnix.get_not_only_open_positions()  # FIXME: paginated
             logger.info("Fetched positions")
         except Exception as ex:
             msg = "Failed to fetch data from Molnix API: %s" % str(ex)
