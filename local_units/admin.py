@@ -63,7 +63,7 @@ class LocalUnitAdmin(CompareVersionAdmin, admin.OSMGeoAdmin):
 
 @admin.register(DelegationOffice)
 class DelegationOfficeAdmin(admin.OSMGeoAdmin):
-    search_fields = ("name", "city", "country", "country__name")
+    search_fields = ("name", "city", "country__name")
 
     autocomplete_fields = ("country",)
     list_filter = (AutocompleteFilterFactory("Country", "country"),)
@@ -71,6 +71,7 @@ class DelegationOfficeAdmin(admin.OSMGeoAdmin):
 
 @admin.register(DelegationOfficeType)
 class DelegationOfficeTypeAdmin(admin.ModelAdmin):
+    search_fields = ("name",)
     ordering = ("code",)
 
 
