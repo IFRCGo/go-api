@@ -85,7 +85,7 @@ class FormComponent(models.Model):
 
     class FormComponentStatus(models.TextChoices):
         HIGH_PERFORMANCE = "high_performance", _("High Performance")
-        EXISTS_COULD_BE_STRENGTHENED = "exists_could_be_strengthened", _("Exits Could be Strengthened")
+        EXISTS_COULD_BE_STRENGTHENED = "exists_could_be_strengthened", _("Exists – Could be Strengthened")
         NEEDS_IMPROVEMENT = "needs_improvement", _("Needs Improvement")
         PARTIALLY_EXISTS = "partially_exists", _("Partially Exists")
         DOES_NOT_EXIST = "does_not_exist", _("Does Not Exist")
