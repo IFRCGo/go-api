@@ -50,7 +50,10 @@ from api.filter_set import (
     SituationReportFilter,
     UserFilterSet,
 )
-from api.visibility_class import ReadOnlyVisibilityViewsetMixin
+from api.visibility_class import (
+    ReadOnlyVisibilityViewset,
+    ReadOnlyVisibilityViewsetMixin,
+)
 from country_plan.models import CountryPlan
 from databank.serializers import CountryOverviewSerializer
 from deployments.models import Personnel
@@ -148,7 +151,6 @@ from .serializers import (  # AppealSerializer,; Tableau Serializers; AppealTabl
     UserSerializer,
 )
 from .utils import is_user_ifrc
-from .visibility_class import ReadOnlyVisibilityViewset
 
 
 class DeploymentsByEventViewset(viewsets.ReadOnlyModelViewSet):
@@ -720,7 +722,8 @@ class SituationReportTypeViewset(viewsets.ReadOnlyModelViewSet):
     search_fields = ("type",)  # for /docs
 
 
-class SituationReportViewset(ReadOnlyVisibilityViewset):
+class SituationReportViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ReadOnlyModelViewSet):
+    queryset = SituationReport.objects.select_related("type")
     authentication_classes = (TokenAuthentication,)
     serializer_class = SituationReportSerializer
     ordering_fields = (
