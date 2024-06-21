@@ -5,7 +5,6 @@ from django.contrib.auth.models import User
 import api.models as models
 from api.factories.event import (
     AppealFactory,
-    AppealHistoryFactory,
     AppealType,
     EventFactory,
     EventFeaturedDocumentFactory,
@@ -543,58 +542,53 @@ class AppealTest(APITestCase):
         )
         event2 = EventFactory.create(name="test0", dtype=dtype1, num_affected=10000, countries=[country1])
         event3 = EventFactory.create(name="test2", dtype=dtype2, num_affected=99999, countries=[country2])
-        appeal1 = AppealFactory.create(
-            event=event1, dtype=dtype1, num_beneficiaries=9000, amount_requested=10000, amount_funded=1899999, code=12
-        )
-        appeal2 = AppealFactory.create(
-            event=event2, dtype=dtype2, num_beneficiaries=90023, amount_requested=100440, amount_funded=12299999, code=123
-        )
-        appeal3 = AppealFactory.create(
-            event=event3, dtype=dtype2, num_beneficiaries=91000, amount_requested=10000888, amount_funded=678888, code=1234
-        )
-        AppealHistoryFactory.create(
-            appeal=appeal1,
+        AppealFactory.create(
+            event=event1,
             dtype=dtype1,
             num_beneficiaries=9000,
             amount_requested=10000,
             amount_funded=1899999,
-            country=country1,
-            atype=AppealType.APPEAL,
+            code=12,
             start_date="2024-1-1",
             end_date="2024-1-1",
-        )
-        AppealHistoryFactory.create(
-            appeal=appeal2,
-            dtype=dtype2,
-            num_beneficiaries=1,
-            amount_requested=1,
-            amount_funded=1,
+            atype=AppealType.APPEAL,
             country=country1,
-            atype=AppealType.DREF,
+        )
+        AppealFactory.create(
+            event=event2,
+            dtype=dtype2,
+            num_beneficiaries=90023,
+            amount_requested=100440,
+            amount_funded=12299999,
+            code=123,
             start_date="2024-2-2",
             end_date="2024-2-2",
-        )
-        AppealHistoryFactory.create(
-            appeal=appeal3,
-            dtype=dtype2,
-            num_beneficiaries=1,
-            amount_requested=1,
-            amount_funded=1,
+            atype=AppealType.DREF,
             country=country1,
-            atype=AppealType.APPEAL,
+        )
+        AppealFactory.create(
+            event=event3,
+            dtype=dtype2,
+            num_beneficiaries=91000,
+            amount_requested=10000888,
+            amount_funded=678888,
+            code=1234,
             start_date="2024-3-3",
             end_date="2024-3-3",
-        )
-        AppealHistoryFactory.create(
-            appeal=appeal3,
-            dtype=dtype2,
-            num_beneficiaries=1,
-            amount_requested=1,
-            amount_funded=1,
-            country=country1,
             atype=AppealType.APPEAL,
+            country=country1,
+        )
+        AppealFactory.create(
+            event=event3,
+            dtype=dtype2,
+            num_beneficiaries=91000,
+            amount_requested=10000888,
+            amount_funded=678888,
+            code=12345,
             start_date="2024-4-4",
             end_date="2024-4-4",
+            atype=AppealType.APPEAL,
+            country=country1,
         )
         url = f"/api/v2/country/{country1.id}/figure/"
         self.client.force_authenticate(self.user)
