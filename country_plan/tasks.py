@@ -1,6 +1,7 @@
 import logging
 import operator
 import re
+import typing
 from functools import reduce
 
 import pandas as pd
@@ -12,6 +13,10 @@ from api.models import Country, CountryType
 from .models import CountryPlan, DataImport, MembershipCoordination, StrategicPriority
 
 logger = logging.getLogger(__name__)
+
+
+class RollBackException(Exception):
+    pass
 
 
 class CountryPlanImporter:
@@ -124,15 +129,11 @@ class CountryPlanImporter:
         )
 
     @classmethod
-    def process(cls, file):
-        data = pd.read_excel(file, skiprows=4, na_filter=False, usecols=cls.CSV_COLUMN)
-        data = data[:-1]
-
+    def _process(cls, data) -> typing.List[typing.Dict]:
         errors = []
         for row in data.itertuples():
             try:
-                with transaction.atomic():
-                    cls._save_country_plan(row)
+                cls._save_country_plan(row)
             except Exception as e:
                 logger.error(f"Failed to import Country-Plan: iso3:{row.ISO3}", exc_info=True)
                 errors.append(
@@ -141,6 +142,32 @@ class CountryPlanImporter:
                         error=str(e),
                     )
                 )
+        return errors
+
+    @classmethod
+    def process(cls, file) -> typing.List[typing.Dict]:
+        data = pd.read_excel(file, skiprows=4, na_filter=False, usecols=cls.CSV_COLUMN)
+        data = data[:-1]
+        errors = []
+
+        try:
+            with transaction.atomic():
+                # Clean-up existing dataset StrategicPriority,MembershipCoordination
+                StrategicPriority.objects.all().delete()
+                MembershipCoordination.objects.all().delete()
+
+                # Add new data
+                errors = cls._process(data)
+                if errors:
+                    raise RollBackException()
+        except Exception as e:
+            # handle custom rollback error manually
+            if not isinstance(e, RollBackException):
+                logger.error("Failed to process Country-Plan", exc_info=True)
+                errors.append(dict(error=str(e)))
+            pass
+
+        # Return errors
         return errors
 
 
