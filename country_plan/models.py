@@ -108,11 +108,11 @@ class CountryPlan(CountryPlanAbstract):
 class StrategicPriority(models.Model):
     class Type(models.TextChoices):
         ONGOING_EMERGENCY_OPERATIONS = "ongoing_emergency_operations", _("Ongoing emergency operations")
-        CLIMATE_AND_ENVIRONMENTAL_CRISIS = "climate_and_environmental_crisis", _("Climate and environmental crisis")
-        EVOLVING_CRISIS_AND_DISASTERS = "evolving_crisis_and_disasters", _("Evolving crisis and disasters")
-        GROWING_GAPS_IN_HEALTH_AND_WELLBEING = "growing_gaps_in_health_and_wellbeing", _("Growing gaps in health and wellbeing")
-        MIGRATION_AND_IDENTITY = "migration_and_identity", _("Migration and Identity")
-        VALUE_POWER_AND_INCLUSION = "value_power_and_inclusion", _("Value power and inclusion")
+        CLIMATE_AND_ENVIRONMENT = "climate_and_environment", _("Climate and environment")
+        EVOLVING_CRISIS_AND_DISASTERS = "disasters_and_crisis", _("Disasters and crisis")
+        HEALTH_AND_WELLBEING = "health_and_wellbeing", _("Health and wellbeing")
+        MIGRATION_AND_DISPLACEMENT = "migration_and_displacement", _("Migration and displacement")
+        VALUE_POWER_AND_INCLUSION = "value_power_and_inclusion", _("Values, power and inclusion")
 
     country_plan = models.ForeignKey(
         CountryPlan,
@@ -138,9 +138,7 @@ class MembershipCoordination(models.Model):
         HEALTH = "health", _("Health")
         MIGRATION = "migration", _("Migration")
         INCLUSION = "inclusion", _("Inclusion")
-        ENGAGED = "engaged", _("Engaged")
-        ACCOUNTABLE = "accountable", _("Accountable")
-        TRUSTED = "trusted", _("Trusted")
+        ENABLING_FUNCTIONS = "enabling_functions", _("Enabling functions")
 
     country_plan = models.ForeignKey(
         CountryPlan,

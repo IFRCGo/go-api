@@ -18,33 +18,28 @@ class CountryPlanImporter:
     CSV_COLUMN = [
         "ISO3",
         "Country",
-        "Ongoing emergency operations",
-        "SP1 - Climate and environmental crisis",
-        "SP2 - Evolving crises and disasters",
-        "SP3 - Growing gaps in health and wellbeing",
-        "SP4 - Migration and identity",
-        "SP5 - Values, power, and inclusion",
-        "Max of people to be reached ",
-        "SP1",
-        "SP2",
-        "SP3",
-        "SP4",
-        "SP5",
-        "EA1",
-        "EA2",
-        "EA3",
-        "TOTAL\nFUNDING REQUIREMENTS",
+        "Reach\n2024_EO",
+        "Reach\n2024_SP1",
+        "Reach\n2024_SP2",
+        "Reach\n2024_SP3",
+        "Reach\n2024_SP4",
+        "Reach\n2024_SP5",
+        "SP1 ",
+        "SP2 ",
+        "SP3 ",
+        "SP4 ",
+        "SP5 ",
+        "EF",
+        "Total FR\n2024",
     ]
 
     SP_COLUMN = [
-        "SP1",
-        "SP2",
-        "SP3",
-        "SP4",
-        "SP5",
-        "EA1",
-        "EA2",
-        "EA3",
+        "SP1 ",
+        "SP2 ",
+        "SP3 ",
+        "SP4 ",
+        "SP5 ",
+        "EF",
     ]
 
     @staticmethod
@@ -56,7 +51,7 @@ class CountryPlanImporter:
         # Some specific cases using regex
         value_search = re.search(r"(?P<value>(\d+(?:\.\d+)?))?\s?(?P<expression>[MKB])", number)
         if value_search is None or (value_search.group("value") is None or value_search.group("expression") is None):
-            return pd.to_numeric(number)
+            return pd.to_numeric(number.replace(",", ""))
         value = pd.to_numeric(value_search.group("value"))
         expression = value_search.group("expression")
         EXPRESSION_MULTIPLIER = {
@@ -71,8 +66,14 @@ class CountryPlanImporter:
         country = Country.objects.filter(record_type=CountryType.COUNTRY).get(iso3=row.ISO3)
         # -- Country Plan
         country_plan, _ = CountryPlan.objects.get_or_create(country=country)
-        country_plan.requested_amount = cls._process_number(row._18)
-        country_plan.people_targeted = cls._process_number(row._9)
+        people_targeted_list = [row._3, row._4, row._5, row._6, row._7, row._8]
+        people_new_list = []
+        for people in people_targeted_list:
+            people = cls._process_number(people)
+            people_new_list.append(people)
+        if len(people_new_list):
+            country_plan.people_targeted = max([people for people in people_new_list if people is not None], default=None)
+        country_plan.requested_amount = cls._process_number(row._15)
         country_plan.save()
 
         # -- StrategicPriority
@@ -88,7 +89,8 @@ class CountryPlanImporter:
             strategic_priority.save()
 
         # -- MembershipCoordination
-        n_society_list = [row.SP1, row.SP2, row.SP3, row.SP4, row.SP5, row.EA1, row.EA2, row.EA3]
+        # NOTE: Replace whitespace in xlsx file
+        n_society_list = [row._9, row._10, row._11, row._12, row._13, row.EF]
         sp_column_n_society_map = dict(zip(cls.SP_COLUMN, n_society_list))
         sp_column_ns_type_map = dict(zip(cls.SP_COLUMN, MembershipCoordination.Sector))
         membership_coordination_ids = []
@@ -123,7 +125,7 @@ class CountryPlanImporter:
 
     @classmethod
     def process(cls, file):
-        data = pd.read_excel(file, skiprows=1, na_filter=False, usecols=cls.CSV_COLUMN)
+        data = pd.read_excel(file, skiprows=4, na_filter=False, usecols=cls.CSV_COLUMN)
         data = data[:-1]
 
         errors = []
