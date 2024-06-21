@@ -7,8 +7,10 @@ from .models import Profile, UserCountry, VisibilityCharChoices, VisibilityChoic
 from .utils import is_user_ifrc  # filter_visibility_by_auth (would be better)
 
 
+# TODO: This class can be used only with tailored "get_for" method in the relevant model !!!
 class ReadOnlyVisibilityViewsetMixin:
     def get_visibility_queryset(self, queryset):
+        # for SituationReport the default is ok:
         choices = VisibilityChoices
 
         # TODO: Use VisibilityChoices (ENUM) on projects as well [Refactor]

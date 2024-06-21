@@ -988,6 +988,11 @@ class SituationReport(models.Model):
         verbose_name = _("situation report")
         verbose_name_plural = _("situation reports")
 
+    @staticmethod
+    def get_for(user, queryset=None):
+        countries_qs = UserCountry.objects.filter(user=user).values("country")
+        return queryset.exclude(Q(visibility=VisibilityChoices.IFRC_NS) & ~Q(event__countries__in=countries_qs))
+
     def __str__(self):
         return "%s - %s" % (self.event, self.name)
 
