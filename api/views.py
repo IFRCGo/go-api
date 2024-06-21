@@ -50,7 +50,15 @@ from registrations.models import Pending, Recovery
 from .esconnection import ES_CLIENT
 from .indexes import ES_PAGE_NAME
 from .logger import logger
-from .models import Appeal, AppealType, CronJob, Event, FieldReport, Snippet
+from .models import (
+    Appeal,
+    AppealHistory,
+    AppealType,
+    CronJob,
+    Event,
+    FieldReport,
+    Snippet,
+)
 from .utils import is_user_ifrc
 
 
@@ -604,17 +612,17 @@ class AggregateHeaderFigures(APIView):
             (Q(atype=AppealType.APPEAL) | Q(atype=AppealType.INTL)) & Q(end_date__gte=date) & Q(start_date__lte=date)
         )
 
-        all_appeal = Appeal.objects.filter(
-            code__isnull=False,
+        all_appealhistory = AppealHistory.objects.select_related("appeal").filter(
+            valid_from__lt=date, valid_to__gt=date, appeal__code__isnull=False
         )
 
         if iso3:
-            all_appeal = all_appeal.filter(country__iso3__iexact=iso3)
+            all_appealhistory = all_appealhistory.filter(country__iso3__iexact=iso3)
         if country:
-            all_appeal = all_appeal.filter(country__id=country)
+            all_appealhistory = all_appealhistory.filter(country__id=country)
         if region:
-            all_appeal = all_appeal.filter(country__region__id=region)
-        appeals_aggregated = all_appeal.annotate(
+            all_appealhistory = all_appealhistory.filter(country__region__id=region)
+        appeals_aggregated = all_appealhistory.annotate(
             # Active Appeals with DREF type
             actd=Count(
                 Case(

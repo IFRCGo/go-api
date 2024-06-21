@@ -32,7 +32,7 @@ from rest_framework.views import APIView
 from api.filter_set import (
     Admin2Filter,
     AppealDocumentFilter,
-    AppealFilter,
+    AppealHistoryFilter,
     CountryFilter,
     CountryFilterRMD,
     CountryKeyDocumentFilter,
@@ -66,6 +66,7 @@ from .models import (
     Admin2,
     Appeal,
     AppealDocument,
+    AppealHistory,
     AppealType,
     Country,
     CountryKeyDocument,
@@ -96,8 +97,8 @@ from .serializers import (  # AppealSerializer,; Tableau Serializers; AppealTabl
     Admin2Serializer,
     AppealDocumentSerializer,
     AppealDocumentTableauSerializer,
-    AppealSerializer,
-    AppealTableauSerializer,
+    AppealHistorySerializer,
+    AppealHistoryTableauSerializer,
     CountryDisasterTypeCountSerializer,
     CountryDisasterTypeMonthlySerializer,
     CountryGeoSerializer,
@@ -261,22 +262,26 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
     )
     def get_country_figure(self, request, pk):
         country = self.get_object()
-        start_date_to = timezone.now()
-        start_date_from = start_date_to + timedelta(days=-2 * 365)
-        start_date = request.GET.get("start_date_from", start_date_from)
-        end_date = request.GET.get("start_date_to", start_date_to)
+
+        now = timezone.now()
+        start_date_from = request.GET.get("start_date_from", timezone.now() + timedelta(days=-2 * 365))
+        start_date_to = request.GET.get("start_date_to", timezone.now())
+
         appeal_conditions = Q(atype=AppealType.APPEAL) | Q(atype=AppealType.INTL)
 
-        all_appeal = Appeal.objects.select_related("country").filter(
-            code__isnull=False,
+        all_appealhistory = AppealHistory.objects.select_related("appeal").filter(
+            country=country,
+            appeal__code__isnull=False,
+            valid_from__lt=now,  # TODO: Allow user to provide this?
+            valid_to__gt=now,  # TODO: Allow user to provide this?
         )
-        all_appeal = all_appeal.filter(country=country)
-        if start_date and end_date:
-            all_appeal = all_appeal.filter(
-                start_date__lte=end_date,
-                start_date__gte=start_date,
+        if start_date_from and start_date_to:
+            all_appealhistory = all_appealhistory.filter(
+                start_date__gte=start_date_from,
+                start_date__lte=start_date_to,
             )
-        appeals_aggregated = all_appeal.annotate(
+
+        appeals_aggregated = all_appealhistory.annotate(
             appeal_with_dref=Count(
                 Case(
                     When(Q(atype=AppealType.DREF), then=1),
@@ -314,7 +319,7 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
                     output_field=IntegerField(),
                 )
             ),
-            emergencies_count=Count(F("event_id"), distinct=True),
+            emergencies_count=Count(F("appeal__event_id"), distinct=True),
         ).aggregate(
             active_drefs=Sum("appeal_with_dref"),
             active_appeals=Sum("appeal_without_dref"),
@@ -336,10 +341,9 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
     @action(detail=True, url_path="disaster-count", pagination_class=None)
     def get_country_disaster_count(self, request, pk):
         country = self.get_object()
-        start_date_to = timezone.now()
-        start_date_from = start_date_to + timedelta(days=-2 * 365)
-        start_date = request.GET.get("start_date_from", start_date_from)
-        end_date = request.GET.get("start_date_to", start_date_to)
+
+        start_date_from = request.GET.get("start_date_from", timezone.now() + timedelta(days=-2 * 365))
+        start_date_to = request.GET.get("start_date_to", timezone.now())
 
         queryset = (
             Event.objects.filter(
@@ -355,8 +359,12 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
             .order_by("countries", "dtype__name")
         )
 
-        if start_date and end_date:
-            queryset = queryset.filter(disaster_start_date__gte=start_date, disaster_start_date__lte=end_date)
+        if start_date_from and start_date_to:
+            queryset = queryset.filter(
+                disaster_start_date__gte=start_date_from,
+                disaster_start_date__lte=start_date_to,
+            )
+
         return Response(CountryDisasterTypeCountSerializer(queryset, many=True).data)
 
     @extend_schema(
@@ -367,10 +375,10 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
     @action(detail=True, url_path="disaster-monthly-count", pagination_class=None)
     def get_country_disaster_monthly_count(self, request, pk):
         country = self.get_object()
-        start_date_to = timezone.now()
-        start_date_from = start_date_to + timedelta(days=-2 * 365)
-        start_date = request.GET.get("start_date_from", start_date_from)
-        end_date = request.GET.get("start_date_to", start_date_to)
+
+        start_date_from = request.GET.get("start_date_from", timezone.now() + timedelta(days=-2 * 365))
+        start_date_to = request.GET.get("start_date_to", timezone.now())
+
         queryset = (
             Event.objects.filter(
                 countries__in=[country.id],
@@ -409,8 +417,11 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
             .order_by("date", "countries", "dtype__name")
         )
 
-        if start_date and end_date:
-            queryset = queryset.filter(disaster_start_date__gte=start_date, disaster_start_date__lte=end_date)
+        if start_date_from and start_date_to:
+            queryset = queryset.filter(
+                disaster_start_date__gte=start_date_from,
+                disaster_start_date__lte=start_date_to,
+            )
 
         return Response(CountryDisasterTypeMonthlySerializer(queryset, many=True).data)
 
@@ -422,10 +433,10 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
     @action(detail=True, url_path="historical-disaster", pagination_class=None)
     def get_country_historical_disaster(self, request, pk):
         country = self.get_object()
-        start_date_to = timezone.now()
-        start_date_from = start_date_to + timedelta(days=-2 * 365)
-        start_date = request.GET.get("start_date_from", start_date_from)
-        end_date = request.GET.get("start_date_to", start_date_to)
+
+        start_date_from = request.GET.get("start_date_from", timezone.now() + timedelta(days=-2 * 365))
+        start_date_to = request.GET.get("start_date_to", timezone.now())
+
         dtype = request.GET.get("dtype", None)
 
         queryset = (
@@ -468,8 +479,11 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
             .order_by("date", "countries", "dtype__name")
         )
 
-        if start_date and end_date:
-            queryset = queryset.filter(disaster_start_date__gte=start_date, disaster_start_date__lte=end_date)
+        if start_date_from and start_date_to:
+            queryset = queryset.filter(
+                disaster_start_date__gte=start_date_from,
+                disaster_start_date__lte=start_date_to,
+            )
 
         if dtype:
             queryset = queryset.filter(dtype=dtype)
@@ -762,19 +776,24 @@ class SituationReportViewset(ReadOnlyVisibilityViewset):
 class AppealViewset(mixins.ListModelMixin, viewsets.GenericViewSet):
     """Used to get Appeals from AppealHistory. Has no 'read' option, just 'list'."""
 
-    queryset = Appeal.objects.select_related("event", "dtype", "country", "region").filter(code__isnull=False)
-    serializer_class = AppealSerializer
+    queryset = AppealHistory.objects.select_related(
+        "appeal__event",
+        "dtype",
+        "country",
+        "region",
+    ).filter(appeal__code__isnull=False)
+    serializer_class = AppealHistorySerializer
     ordering_fields = "__all__"
-    filterset_class = AppealFilter
+    filterset_class = AppealHistoryFilter
     search_fields = (
-        "name",
+        "appeal__name",
         "code",
     )  # for /docs
 
     def get_serializer_class(self):
         if is_tableau(self.request) is True:
-            return AppealTableauSerializer
-        return AppealSerializer
+            return AppealHistoryTableauSerializer
+        return AppealHistorySerializer
 
     def remove_unconfirmed_event(self, obj):
         if obj["needs_confirmation"]:
@@ -786,7 +805,13 @@ class AppealViewset(mixins.ListModelMixin, viewsets.GenericViewSet):
 
     # Overwrite to exclude the events which require confirmation
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
+        date = request.GET.get("date", timezone.now())
+        queryset = self.filter_queryset(
+            self.get_queryset().filter(
+                valid_from__lt=date,
+                valid_to__gt=date,
+            )
+        )
 
         page = self.paginate_queryset(queryset)
         if page is not None:
