@@ -6,6 +6,28 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.501
+
+### Added
+ - Remove/replace items in Membership Coordination
+ - Rename Strategic Priorities in NS Strategic Priorities table
+ - Use AppealHistory
+ - SituationReport – get_for fix
+ - N+1 fix for SituationReportViewset
+ - Sync Molnix at every 15th minute
+ - Increase memory for long-run sync-molnix
+ - All Molnix positions instead of only /open
+ - No rich text in FR summary and in society names
+ - Fix duplicate stats generation in country page
+ - Manual flake8 issues fix
+ - Run black and isort
+ - Change country_plan sector
+ - Appealdocument reader fix
+ - Fix boundary box and centroid map edit
+ - Fix Token Admin page
+ - Fix TinyMCE
+ - Use BaseAppealnumber instead of Appealnumber in appealdoc sync
+
 ## 1.1.500
 
 ### Added
@@ -2449,7 +2471,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.500...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.501...HEAD
+[1.1.501]: https://github.com/IFRCGo/go-api/compare/1.1.500...1.1.501
 [1.1.500]: https://github.com/IFRCGo/go-api/compare/1.1.499...1.1.500
 [1.1.499]: https://github.com/IFRCGo/go-api/compare/1.1.498...1.1.499
 [1.1.498]: https://github.com/IFRCGo/go-api/compare/1.1.497...1.1.498
