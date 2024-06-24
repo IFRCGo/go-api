@@ -1850,6 +1850,12 @@ class Profile(models.Model):
     phone_number = models.CharField(verbose_name=_("phone number"), blank=True, null=True, max_length=100)
     last_frontend_login = models.DateTimeField(verbose_name=_("last frontend login"), null=True, blank=True)
     accepted_montandon_license_terms = models.BooleanField(verbose_name=_("has accepted montandon license terms?"), default=False)
+    limit_access_to_guest = models.BooleanField(
+        help_text="If this value is set to true, the user is treated as a guest user regardless of any other permissions \
+        they may have, thereby depriving them of all non-guest user permissions.",
+        verbose_name=_("limit access to guest user permissions"),
+        default=True,
+    )
 
     class Meta:
         verbose_name = _("user profile")

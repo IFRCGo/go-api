@@ -23,6 +23,7 @@ from reversion.views import RevisionMixin
 from api.models import Country, Region
 from api.view_filters import ListFilter
 from api.visibility_class import ReadOnlyVisibilityViewsetMixin
+from main.permissions import DenyGuestUserMutationPermission
 from main.serializers import CsvListMixin
 from main.utils import is_tableau
 
@@ -455,7 +456,7 @@ class ProjectViewset(
         if self.action in ["list", "retrieve"]:
             permission_classes = []
         else:
-            permission_classes = [IsAuthenticated]
+            permission_classes = [IsAuthenticated, DenyGuestUserMutationPermission]
         return [permission() for permission in permission_classes]
 
 

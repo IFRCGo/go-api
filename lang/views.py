@@ -9,6 +9,8 @@ from rest_framework import response, viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action as djaction
 
+from main.permissions import DenyGuestUserMutationPermission
+
 from .models import String
 from .permissions import LangStringPermission
 from .serializers import (
@@ -24,7 +26,7 @@ from .serializers import (
 class LanguageViewSet(viewsets.ViewSet):
     # TODO: Cache retrive response to file
     authentication_classes = (TokenAuthentication,)
-    permission_classes = (LangStringPermission,)
+    permission_classes = (LangStringPermission, DenyGuestUserMutationPermission)
     lookup_url_kwarg = "pk"
 
     @extend_schema(request=None, responses=LanguageListSerializer)

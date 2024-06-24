@@ -147,7 +147,9 @@ class ValidateUser(APIView):
 
 class UserExternalTokenViewset(viewsets.ModelViewSet):
     serializer_class = UserExternalTokenSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [
+        permissions.IsAuthenticated,
+    ]
 
     def get_queryset(self):
         return UserExternalToken.objects.filter(user=self.request.user)

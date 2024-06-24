@@ -5,6 +5,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 
 import api.models as models
+from deployments.factories.user import UserFactory
 from flash_update.factories import (
     DonorFactory,
     DonorGroupFactory,
@@ -127,7 +128,7 @@ class FlashUpdateTest(APITestCase):
         self.assertEqual(updated.actions_taken_flash.count(), 2)
 
     def test_patch(self):
-        user = User.objects.create(username="test_abc")
+        user = UserFactory(username="test_abc")
         self.client.force_authenticate(user=user)
         with self.capture_on_commit_callbacks(execute=True):
             response1 = self.client.post("/api/v2/flash-update/", self.body, format="json").json()
@@ -203,7 +204,7 @@ class FlashUpdateTest(APITestCase):
         self.assert_400(response)
 
     def test_upload_file(self):
-        user = User.objects.create(username="flash_user")
+        user = UserFactory(username="flash_user")
         url = "/api/v2/flash-update-file/"
         data = {"file": open(self.file, "rb"), "caption": "test file"}
         self.client.force_authenticate(user=user)

@@ -33,6 +33,7 @@ from local_units.serializers import (
     PrivateLocalUnitDetailSerializer,
     PrivateLocalUnitSerializer,
 )
+from main.permissions import DenyGuestUserMutationPermission
 
 
 class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
@@ -47,7 +48,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         "local_branch_name",
         "english_branch_name",
     )
-    permission_classes = [permissions.IsAuthenticated, IsAuthenticatedForLocalUnit]
+    permission_classes = [permissions.IsAuthenticated, IsAuthenticatedForLocalUnit, DenyGuestUserMutationPermission]
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -63,7 +64,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         url_path="validate",
         methods=["post"],
         serializer_class=PrivateLocalUnitSerializer,
-        permission_classes=[permissions.IsAuthenticated, ValidateLocalUnitPermission],
+        permission_classes=[permissions.IsAuthenticated, ValidateLocalUnitPermission, DenyGuestUserMutationPermission],
     )
     def get_validate(self, request, pk=None, version=None):
         local_unit = self.get_object()

@@ -10,7 +10,86 @@ from api.factories.event import (
     EventFeaturedDocumentFactory,
     EventLinkFactory,
 )
+from api.models import Profile
+from deployments.factories.user import UserFactory
 from main.test_case import APITestCase, SnapshotTestCase
+
+
+class GuestUserPermissionTest(APITestCase):
+    def setUp(self):
+        # Create guest user
+        self.guest_user = User.objects.create(username="guest")
+        guest_profile = Profile.objects.get(user=self.guest_user)
+        guest_profile.limit_access_to_guest = True
+        guest_profile.save()
+
+        # Create go user
+        self.go_user = User.objects.create(username="go-user")
+        go_user_profile = Profile.objects.get(user=self.go_user)
+        go_user_profile.limit_access_to_guest = False
+        go_user_profile.save()
+
+    def test_guest_user_permission(self):
+        body = {}
+        guest_apis = [
+            "/api/v2/add_subscription/",
+            "/api/v2/del_subscription/",
+            "/api/v2/external-token/",
+        ]
+
+        go_apis = [
+            "/api/v2/dref/",
+            "/api/v2/dref-final-report/",
+            "/api/v2/dref-final-report/{id}/publish/",
+            "/api/v2/dref-op-update/",
+            "/api/v2/dref-op-update/{id}/publish/",
+            "/api/v2/dref-share/",
+            "/api/v2/dref/{id}/publish/",
+            "/api/v2/flash-update/",
+            "/api/v2/flash-update-file/multiple/",
+            "/api/v2/local-units/",
+            "/api/v2/local-units/{id}/validate/",
+            "/api/v2/pdf-export/",
+            "/api/v2/per-assessment/",
+            "/api/v2/per-document-upload/",
+            "/api/v2/per-file/multiple/",
+            "/api/v2/per-prioritization/",
+            "/api/v2/per-work-plan/",
+            "/api/v2/project/",
+            "/api/v2/dref-files/",
+            "/api/v2/dref-files/multiple/",
+            "/api/v2/field-report/",
+            "/api/v2/flash-update-file/",
+            "/api/v2/per-file/",
+            "/api/v2/share-flash-update/",
+            "/api/v2/add_cronjob_log/",
+            "/api/v2/profile/",
+            "/api/v2/subscription/",
+            "/api/v2/user/",
+        ]
+
+        go_apis_req_additional_perm = [
+            "/api/v2/ops-learning/",
+            "/api/v2/per-overview/",
+            "/api/v2/user/{id}/accepted_license_terms/",
+            "/api/v2/language/{id}/bulk-action/",
+        ]
+
+        self.authenticate(user=self.guest_user)
+        for api_url in go_apis + go_apis_req_additional_perm:
+            response = self.client.post(api_url, json=body).json()
+            self.assertIn(response["error_code"], [401, 403])
+
+        for api_url in guest_apis:
+            response = self.client.post(api_url, json=body).json()
+            error_code = response.get("error_code", None)
+            self.assertNotIn(error_code, [403, 401])
+
+        self.authenticate(user=self.go_user)
+        for api_url in go_apis:
+            response = self.client.post(api_url, json=body).json()
+            error_code = response.get("error_code", None)
+            self.assertNotIn(error_code, [403, 401])
 
 
 class AuthTokenTest(APITestCase):
@@ -78,7 +157,7 @@ class FieldReportTest(APITestCase):
     fixtures = ["DisasterTypes", "Actions"]
 
     def test_create_and_update(self):
-        user = User.objects.create(username="jo")
+        user = UserFactory(username="jo")
         region = models.Region.objects.create(name=1)
         country1 = models.Country.objects.create(name="abc", region=region)
         country2 = models.Country.objects.create(name="xyz")
