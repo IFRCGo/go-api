@@ -10,7 +10,7 @@ python manage.py collectstatic --noinput -l
 
 # Add server name(s) to django settings and nginx - later maybe only nginx would be enough, and ALLOWED_HOSTS could be "*"
 if [ "$GO_ENVIRONMENT"x = productionx ]; then
-    sed -i 's/\$NGINX_SERVER_NAME/'$API_FQDN' api.go.ifrc.org/g' /etc/nginx/sites-available/nginx.conf
+    sed -i 's/\$NGINX_SERVER_NAME/'$API_FQDN'/g' /etc/nginx/sites-available/nginx.conf
     sed -i 's/CHANGE_ME_BEFORE_START/prod/' /etc/nginx/sites-available/nginx.conf
 else
     sed -i 's/\$NGINX_SERVER_NAME/'$API_FQDN'/g' /etc/nginx/sites-available/nginx.conf
