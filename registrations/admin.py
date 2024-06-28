@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.http import HttpResponseRedirect
 from django.template.loader import render_to_string
+from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
 from reversion_compare.admin import CompareVersionAdmin
 
 import registrations.models as models
@@ -22,11 +23,16 @@ class PendingAdmin(CompareVersionAdmin):
         "get_phone",
         "justification",
         "created_at",
+        "email_verified",
     )
     search_fields = ("user__username", "user__email", "admin_contact_1", "admin_contact_2")
     list_display = ("get_username_and_mail", "get_region", "get_country", "created_at", "email_verified")
     actions = ("activate_users",)
-    list_filter = ["email_verified"]
+    list_filter = (
+        "email_verified",
+        ("user__profile__country__region", RelatedDropdownFilter),
+        ("user__profile__country", RelatedDropdownFilter),
+    )
 
     change_form_template = "admin/pending_change_form.html"
     change_list_template = "admin/pending_change_list.html"
@@ -145,6 +151,20 @@ class PendingAdmin(CompareVersionAdmin):
 
             return HttpResponseRedirect(".")
         return super().response_change(request, obj)
+
+    def change_view(self, request, object_id, form_url="", extra_context=None):
+        extra_context = {
+            "show_approve_user": True,
+            "show_save": False,
+            "show_save_and_add_another": False,
+            "show_save_and_continue": False,
+        }
+        return self.changeform_view(request, object_id, form_url, extra_context)
+
+    def save_model(self, request, obj, form, change):
+        if "_approve_user" in request.POST:
+            self.activate_users(request, [obj])
+        super().save_model(request, obj, form, change)
 
     def get_actions(self, request):
         actions = super(PendingAdmin, self).get_actions(request)
