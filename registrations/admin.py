@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.http import HttpResponseRedirect
 from django.template.loader import render_to_string
+from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
 from reversion_compare.admin import CompareVersionAdmin
 
 import registrations.models as models
@@ -26,7 +27,11 @@ class PendingAdmin(CompareVersionAdmin):
     search_fields = ("user__username", "user__email", "admin_contact_1", "admin_contact_2")
     list_display = ("get_username_and_mail", "get_region", "get_country", "created_at", "email_verified")
     actions = ("activate_users",)
-    list_filter = ["email_verified"]
+    list_filter = (
+        "email_verified",
+        ("user__profile__country__region", RelatedDropdownFilter),
+        ("user__profile__country", RelatedDropdownFilter),
+    )
 
     change_form_template = "admin/pending_change_form.html"
     change_list_template = "admin/pending_change_list.html"
