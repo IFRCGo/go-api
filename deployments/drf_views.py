@@ -424,7 +424,15 @@ class ProjectViewset(
         Project.objects.select_related(
             "user", "modified_by", "project_country", "reporting_ns", "dtype", "regional_project", "primary_sector"
         )
-        .prefetch_related("project_districts", "event", "annual_splits", "secondary_sectors", "project_admin2")
+        .prefetch_related(
+            "project_districts",
+            "event",
+            "event__appeals",
+            "event__countries_for_preview",
+            "annual_splits",
+            "secondary_sectors",
+            "project_admin2",
+        )
         .order_by("-modified_at")
         .all()
     )
