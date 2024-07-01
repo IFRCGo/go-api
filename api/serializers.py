@@ -843,8 +843,8 @@ class FieldReportContactSerializer(ModelSerializer):
 
 
 class MiniFieldReportSerializer(ModelSerializer):
-    contacts = FieldReportContactSerializer(many=True)
-    countries = MiniCountrySerializer(many=True)
+    contacts = FieldReportContactSerializer(many=True, read_only=True)
+    countries = MiniCountrySerializer(many=True, read_only=True)
     epi_figures_source_display = serializers.CharField(source="get_epi_figures_source_display", read_only=True)
     visibility_display = serializers.CharField(source="get_visibility_display", read_only=True)
 

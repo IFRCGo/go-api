@@ -424,7 +424,15 @@ class ProjectViewset(
         Project.objects.select_related(
             "user", "modified_by", "project_country", "reporting_ns", "dtype", "regional_project", "primary_sector"
         )
-        .prefetch_related("project_districts", "event", "annual_splits", "secondary_sectors", "project_admin2")
+        .prefetch_related(
+            "project_districts",
+            "event",
+            "event__appeals",
+            "event__countries_for_preview",
+            "annual_splits",
+            "secondary_sectors",
+            "project_admin2",
+        )
         .order_by("-modified_at")
         .all()
     )
@@ -840,7 +848,17 @@ class EmergencyProjectViewSet(
 ):
     queryset = (
         EmergencyProject.objects.select_related("created_by", "reporting_ns", "event", "country", "deployed_eru", "modified_by")
-        .prefetch_related("districts", "activities", "admin2")
+        .prefetch_related(
+            "districts",
+            "admin2",
+            "event__appeals",
+            "event__countries_for_preview",
+            "activities",
+            "activities__sector",
+            "activities__action",
+            "activities__action__supplies",
+            "activities__points",
+        )
         .order_by("-modified_at")
         .all()
     )

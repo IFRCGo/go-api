@@ -668,9 +668,13 @@ class EventViewset(ReadOnlyVisibilityViewset):
     def retrieve(self, request, pk=None, *args, **kwargs):
         if pk:
             try:
+                FR = Prefetch(
+                    "field_reports",
+                    queryset=FieldReport.objects.prefetch_related("countries", "contacts"),
+                )
                 if self.request.user.is_authenticated:
                     if is_user_ifrc(self.request.user):
-                        instance = Event.objects.get(pk=pk)
+                        instance = Event.objects.prefetch_related(FR).get(pk=pk)
                     else:
                         user_countries = (
                             UserCountry.objects.filter(user=request.user.id)
@@ -678,12 +682,13 @@ class EventViewset(ReadOnlyVisibilityViewset):
                             .union(Profile.objects.filter(user=request.user.id).values("country"))
                         )
                         instance = (
-                            Event.objects.exclude(visibility=VisibilityChoices.IFRC)
+                            Event.objects.prefetch_related(FR)
+                            .exclude(visibility=VisibilityChoices.IFRC)
                             .exclude(Q(visibility=VisibilityChoices.IFRC_NS) & ~Q(countries__id__in=user_countries))
                             .get(pk=pk)
                         )
                 else:
-                    instance = Event.objects.filter(visibility=VisibilityChoices.PUBLIC).get(pk=pk)
+                    instance = Event.objects.prefetch_related(FR).filter(visibility=VisibilityChoices.PUBLIC).get(pk=pk)
                 # instance = Event.get_for(request.user).get(pk=pk)
             except Exception:
                 raise Http404
