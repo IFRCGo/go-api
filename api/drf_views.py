@@ -622,6 +622,7 @@ class EventViewset(ReadOnlyVisibilityViewset):
 
     def get_queryset(self, *args, **kwargs):
         # import pdb; pdb.set_trace();
+        today = timezone.now().date().strftime("%Y-%m-%d")
         qset = super().get_queryset()
         if self.action == "mini_events":
             # return Event.objects.filter(parent_event__isnull=True).select_related('dtype')
@@ -647,6 +648,17 @@ class EventViewset(ReadOnlyVisibilityViewset):
                         "districts", "countries", "regions", "contacts"
                     ),
                 ),
+            )
+            .annotate(
+                active_deployments=Count(
+                    "personneldeployment__personnel",
+                    filter=Q(
+                        personneldeployment__personnel__type=Personnel.TypeChoices.RR,
+                        personneldeployment__personnel__start_date__date__lte=today,
+                        personneldeployment__personnel__end_date__date__gte=today,
+                        personneldeployment__personnel__is_active=True,
+                    ),
+                )
             )
         )
 
