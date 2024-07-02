@@ -193,7 +193,7 @@ class FormQuestionViewset(viewsets.ReadOnlyModelViewSet):
         return (
             FormQuestion.objects.all()
             .order_by("component__component_num", "question_num", "question")
-            .select_related("component")
+            .select_related("component", "component__area")
             .prefetch_related("answers")
         )
 

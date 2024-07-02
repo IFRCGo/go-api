@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Group, User
 from django.db import models
 from django.db.models import (
     Avg,
@@ -1297,7 +1297,23 @@ class UsersViewset(viewsets.ReadOnlyModelViewSet):
     filterset_class = UserFilterSet
 
     def get_queryset(self):
-        return User.objects.filter(is_active=True)
+
+        return (
+            User.objects.select_related(
+                "profile",
+                "profile__country",
+            )
+            .prefetch_related("subscription")
+            .annotate(
+                is_ifrc_admin=models.Exists(
+                    Group.objects.filter(
+                        name__iexact="IFRC Admins",
+                        user=OuterRef("pk"),
+                    )
+                )
+            )
+            .filter(is_active=True)
+        )
 
 
 class GlobalEnumView(APIView):
