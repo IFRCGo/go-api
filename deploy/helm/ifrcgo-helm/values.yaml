@@ -127,7 +127,7 @@ cronjobs:
   - command: 'FDRS_INCOME'
     schedule: '0 0 * * 0'
   - command: 'ingest_acaps'
-    schedule: '0 0 * * 0'
+    schedule: '0 1 * * 0'
   - command: 'ingest_climate'
     schedule: '0 0 * * 0'
   - command: 'ingest_databank'
@@ -137,7 +137,7 @@ cronjobs:
   - command: 'ingest_unicef'
     schedule: '0 0 * * 0'
   - command: 'ingest_worldbank'
-    schedule: '0 0 * * 0'
+    schedule: '0 2 * * 0'
   - command: 'ingest_disaster_law'
     schedule: '0 0 * * 0'
   - command: 'ingest_ns_contact'
@@ -151,7 +151,7 @@ cronjobs:
   - command: 'ingest_ns_initiatives'
     schedule: '0 0 * * 0'
   - command: 'ingest_icrc'
-    schedule: '0 0 * * 0'
+    schedule: '0 3 * * 0'
 
 
 elasticsearch:

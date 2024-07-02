@@ -103,17 +103,26 @@ class Command(BaseCommand):
             if country is None:
                 continue
 
-            country_key_document, _ = CountryKeyDocument.objects.get_or_create(
+            country_key_document, created = CountryKeyDocument.objects.get_or_create(
                 country=country,
                 url=document["url"],
+                defaults={
+                    "name": document["name"],
+                    "thumbnail": document["thumbnail"],
+                    "document_type": document["document_type"],
+                    "year": document["year"],
+                    "end_year": document["end_year"],
+                    "year_text": document["year_text"],
+                },
             )
-            country_key_document.name = document["name"]
-            country_key_document.thumbnail = document["thumbnail"]
-            country_key_document.document_type = document["document_type"]
-            country_key_document.year = document["year"]
-            country_key_document.end_year = document["end_year"]
-            country_key_document.year_text = document["year_text"]
-            country_key_document.save()
+            if not created:
+                country_key_document.name = document["name"]
+                country_key_document.thumbnail = document["thumbnail"]
+                country_key_document.document_type = document["document_type"]
+                country_key_document.year = document["year"]
+                country_key_document.end_year = document["end_year"]
+                country_key_document.year_text = document["year_text"]
+                country_key_document.save(update_fields=["name", "thumbnail", "document_type", "year", "end_year", "year_text"])
             added += 1
         return added
 

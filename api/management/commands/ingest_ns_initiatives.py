@@ -47,16 +47,23 @@ class Command(BaseCommand):
             # TODO: Filter not by society name
             country = Country.objects.filter(society_name__iexact=data[0]).first()
             if country:
-                nsd_initiatives, _ = NSDInitiatives.objects.get_or_create(
+                nsd_initiatives, created = NSDInitiatives.objects.get_or_create(
                     country=country,
                     year=data[1],
                     fund_type=data[2],
+                    defaults={
+                        "title": data[3],
+                        "categories": data[4],
+                        "allocation": data[5],
+                        "funding_period": data[6],
+                    },
                 )
-                nsd_initiatives.title = data[3]
-                nsd_initiatives.allocation = data[5]
-                nsd_initiatives.funding_period = data[6]
-                nsd_initiatives.categories = data[4]
-                nsd_initiatives.save()
+                if not created:
+                    nsd_initiatives.title = data[3]
+                    nsd_initiatives.allocation = data[5]
+                    nsd_initiatives.funding_period = data[6]
+                    nsd_initiatives.categories = data[4]
+                    nsd_initiatives.save(update_fields=["title", "allocation", "funding_period", "categories"])
                 added += 1
 
         text_to_log = "%s Ns initiatives added" % added

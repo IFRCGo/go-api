@@ -14,7 +14,13 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         logger.info("Strating ICRC data ingest")
-        response = requests.get(url="https://www.icrc.org/en/where-we-work", headers={"User-Agent": ""})
+        HEADERS = {
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36",  # noqa
+        }
+        response = requests.get(
+            url="https://www.icrc.org/en/where-we-work",
+            headers=HEADERS,
+        )
         if response.status_code != 200:
             text_to_log = "Error querying ICRC feed at https://www.icrc.org/en/where-we-work"
             logger.error(text_to_log)
