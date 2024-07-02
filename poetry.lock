@@ -1132,13 +1132,13 @@ typing-extensions = "*"
 
 [[package]]
 name = "django-tinymce"
-version = "4.1.0"
+version = "4.0.0"
 description = "A Django application that contains a widget to render a"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "django_tinymce-4.1.0-py3-none-any.whl", hash = "sha256:9804836e6d2b08de3b03a27c100f8c2e9633549913eff8b323678a10cd48b94e"},
-    {file = "django_tinymce-4.1.0.tar.gz", hash = "sha256:02e3b70e940fd299f0fbef4315aee5c185664e1eb8cd396b176963954e4357c9"},
+    {file = "django-tinymce-4.0.0.tar.gz", hash = "sha256:13a63c81c5bb3683d135f5b1ec4c7da68bc880cf5138ffb266b608914ba12236"},
+    {file = "django_tinymce-4.0.0-py3-none-any.whl", hash = "sha256:2b495dca8a6d36831ffd256e930e0919361468862eb7e5ff26f9631bc42061e0"},
 ]
 
 [package.dependencies]
@@ -3858,4 +3858,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "ef346b453541bcf49ac68db2d701a8e3b2563caf8c97b2aa742f7febc7559eaa"
+content-hash = "2d41cd94f422825ff9ac67601079ba078b9f50640a5652e604b739614435275f"
