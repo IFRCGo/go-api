@@ -3,12 +3,15 @@ import logging
 import requests
 from django.conf import settings
 from django.core.management.base import BaseCommand
+from sentry_sdk.crons import monitor
 
 from databank.models import CountryOverview, FDRSIncome, FDRSIndicator
+from main.sentry import SentryMonitor
 
 logger = logging.getLogger(__name__)
 
 
+@monitor(monitor_slug=SentryMonitor.FDRS_INCOME)
 class Command(BaseCommand):
     help = "Import FDRS income data"
 
@@ -44,13 +47,16 @@ class Command(BaseCommand):
             fdrs_entities = fdrs_entities.json()
             for d in fdrs_entities["data"]:
                 indicator = next(iter(d.values()))
+                fdrs_indicator = map_indicators[fdrs_indicator_enum_data[indicator]]
                 income_list = d["data"][0]["data"]
                 if len(income_list):
                     for income in income_list:
-                        data = {
-                            "date": str(income["year"]) + "-01-01",
-                            "value": income["value"],
-                            "indicator": map_indicators.get(fdrs_indicator_enum_data.get(indicator)),
-                            "overview": overview,
-                        }
-                        FDRSIncome.objects.create(**data)
+                        income_value = income["value"]
+                        fdrs_income, _ = FDRSIncome.objects.get_or_create(
+                            overview=overview,
+                            indicator=fdrs_indicator,
+                            date=str(income["year"]) + "-01-01",
+                        )
+                        fdrs_income.value = income_value
+                        # TODO: Use bulk
+                        fdrs_income.save(update_fields=("value",))
