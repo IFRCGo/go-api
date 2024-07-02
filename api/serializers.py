@@ -1616,7 +1616,7 @@ class MiniSubscriptionSerializer(ModelSerializer):
 class UserSerializer(ModelSerializer):
     profile = ProfileSerializer()
     subscription = MiniSubscriptionSerializer(many=True)
-    is_ifrc_admin = serializers.SerializerMethodField()
+    is_ifrc_admin = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = User
@@ -1654,9 +1654,11 @@ class UserSerializer(ModelSerializer):
         instance.save()
         return instance
 
-    @staticmethod
-    def get_is_ifrc_admin(obj) -> bool:
-        return obj.groups.filter(name__iexact="IFRC Admins").exists()
+
+# Instead of the below method we use the serializer's annotate tag:
+#    @staticmethod
+#    def get_is_ifrc_admin(obj) -> bool:
+#        return obj.groups.filter(name__iexact="IFRC Admins").exists()
 
 
 class UserNameSerializer(UserSerializer):
