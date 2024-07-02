@@ -1,4 +1,7 @@
 import graphene
+
+# Will be needed later, do not remove:
+# import graphql_geojson
 from graphene_django.types import DjangoObjectType
 
 from .models import ActionsTaken, Appeal, Country, DisasterType, Event, FieldReport
@@ -38,7 +41,6 @@ class FieldReportType(DjangoObjectType):
 class Query(graphene.ObjectType):
     all_countries = graphene.List(CountryObjectType)
     all_disasters_types = graphene.List(DisasterObjectType)
-    all_events = graphene.List(EventType)
     all_events = graphene.List(EventType)
     all_appeals = graphene.List(AppealType)
     all_fieldreports = graphene.List(FieldReportType)
