@@ -15,6 +15,11 @@ class Command(BaseCommand):
     help = "Add ns contact details"
 
     def handle(self, *args, **kwargs):
+        def postprocessor(path, key, value):
+            if key == "@i:nil":
+                return None
+            return key, value
+
         logger.info("Starting NS Contacts")
         url = "https://go-api.ifrc.org/"
         headers = {"accept": "application/xml;q=0.9, */*;q=0.8"}
@@ -36,7 +41,7 @@ class Command(BaseCommand):
             raise Exception("Error querying NationalSocietiesContacts")
 
         added = 0
-        dict_data = xmltodict.parse(response.content)
+        dict_data = xmltodict.parse(response.content, postprocessor=postprocessor)
         for data in dict_data["ArrayOfNationalSocietiesContacts"]["NationalSocietiesContacts"]:
             country_name = data["CON_country"] if isinstance(data["CON_country"], str) else None
             if country_name is not None:

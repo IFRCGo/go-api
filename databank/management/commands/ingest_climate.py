@@ -59,25 +59,34 @@ class Command(BaseCommand):
 
                 for value in merged_data.values():
                     for k, v in value.items():
+                        if v[0] is None or v[1] is None or v[2] is None or v[3] is None:
+                            continue
                         year_month = k.split("-")
-                        country_key_climate, _ = CountryKeyClimate.objects.get_or_create(
+                        country_key_climate, created = CountryKeyClimate.objects.get_or_create(
                             overview=overview,
                             year=year_month[0],
                             month=year_month[1],
+                            defaults={
+                                "precipitation": v[0],
+                                "avg_temp": v[1],
+                                "min_temp": v[2],
+                                "max_temp": v[3],
+                            },
                         )
-                        country_key_climate.max_temp = v[3]
-                        country_key_climate.min_temp = v[2]
-                        country_key_climate.avg_temp = v[1]
-                        country_key_climate.precipitation = v[0]
-                        # TODO: Use bulk manager
-                        country_key_climate.save(
-                            update_fields=(
-                                "max_temp",
-                                "min_temp",
-                                "avg_temp",
-                                "precipitation",
+                        if not created:
+                            country_key_climate.max_temp = v[3]
+                            country_key_climate.min_temp = v[2]
+                            country_key_climate.avg_temp = v[1]
+                            country_key_climate.precipitation = v[0]
+                            # TODO: Use bulk manager
+                            country_key_climate.save(
+                                update_fields=(
+                                    "max_temp",
+                                    "min_temp",
+                                    "avg_temp",
+                                    "precipitation",
+                                )
                             )
-                        )
             except Exception:
                 logger.error("Error in ingesting climate data", exc_info=True)
                 continue
