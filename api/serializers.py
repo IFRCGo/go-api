@@ -988,7 +988,7 @@ class ListEventSerializer(ModelSerializer):
     field_reports = MiniFieldReportSerializer(many=True, read_only=True)
     dtype = DisasterTypeSerializer(required=False)
     ifrc_severity_level_display = serializers.CharField(source="get_ifrc_severity_level_display", read_only=True)
-    active_deployments = serializers.SerializerMethodField()
+    active_deployments = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Event
@@ -1019,15 +1019,17 @@ class ListEventSerializer(ModelSerializer):
             "active_deployments",
         )
 
-    def get_active_deployments(self, event) -> int:
-        now = timezone.now()
-        return Personnel.objects.filter(
-            type=Personnel.TypeChoices.RR,
-            start_date__lt=now,
-            end_date__gt=now,
-            deployment__event_deployed_to=event,
-            is_active=True,
-        ).count()
+
+# Instead of the below method we use the queryset's annotate tag:
+#    def get_active_deployments(self, event) -> int:
+#        now = timezone.now()
+#        return Personnel.objects.filter(
+#            type=Personnel.TypeChoices.RR,
+#            start_date__lt=now,
+#            end_date__gt=now,
+#            deployment__event_deployed_to=event,
+#            is_active=True,
+#        ).count()
 
 
 class SurgeEventSerializer(ModelSerializer):
@@ -1655,7 +1657,7 @@ class UserSerializer(ModelSerializer):
         return instance
 
 
-# Instead of the below method we use the serializer's annotate tag:
+# Instead of the below method we use the queryset's annotate tag:
 #    @staticmethod
 #    def get_is_ifrc_admin(obj) -> bool:
 #        return obj.groups.filter(name__iexact="IFRC Admins").exists()
