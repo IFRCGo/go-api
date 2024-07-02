@@ -10,6 +10,7 @@ from rest_framework import permissions, viewsets
 from rest_framework.views import APIView
 
 from api.views import bad_http_request, bad_request
+from main.permissions import DenyGuestUserMutationPermission
 from notifications.notification import send_notification
 from registrations.serializers import UserExternalTokenSerializer
 
@@ -147,7 +148,7 @@ class ValidateUser(APIView):
 
 class UserExternalTokenViewset(viewsets.ModelViewSet):
     serializer_class = UserExternalTokenSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, DenyGuestUserMutationPermission]
 
     def get_queryset(self):
         return UserExternalToken.objects.filter(user=self.request.user)
