@@ -86,6 +86,7 @@ class ERUOwnerSerializer(ModelSerializer):
         )
 
 
+# ERUSerializer uses ERUOwnerSerializer which uses ERUSetSerializer (~circle)
 class ERUSerializer(ModelSerializer):
     deployed_to = MiniCountrySerializer()
     event = ListEventSerializer(allow_null=True, required=False)
