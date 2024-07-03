@@ -223,8 +223,11 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
         # NOTE: kwargs is accepting pk for now
         # TODO: Can kwargs be other than pk??
         pk = self.kwargs["pk"]
-        country = get_object_or_404(Country, pk=int(pk))
-        return self.get_queryset().filter(id=country.id).first()
+        try:
+            country = get_object_or_404(Country, pk=int(pk))
+            return self.get_queryset().filter(id=country.id).first()
+        except ValueError:
+            raise Exception("An error occured", "Country key is unusable", pk)
 
     def get_serializer_class(self):
         if self.request.GET.get("mini", "false").lower() == "true":
