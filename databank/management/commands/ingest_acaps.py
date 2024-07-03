@@ -13,10 +13,10 @@ from databank.models import AcapsSeasonalCalender, CountryOverview
 from main.sentry import SentryMonitor
 
 
-@monitor(monitor_slug=SentryMonitor.INGEST_ACAPS)
 class Command(BaseCommand):
     help = "Add Acaps seasonal calender data"
 
+    @monitor(monitor_slug=SentryMonitor.INGEST_ACAPS)
     @transaction.atomic
     def load_country(self, overview):
         # Remove all existing Seasonal Calendar data for this country

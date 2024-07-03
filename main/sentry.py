@@ -161,3 +161,41 @@ class SentryMonitor(models.TextChoices):
                 )
             )
         )
+
+
+class SentryMonitorConfig:
+    """
+    Custom config for SentryMonitor
+    https://docs.sentry.io/product/crons/getting-started/http/#creating-or-updating-a-monitor-through-a-check-in-optional
+    """
+
+    MAX_RUNTIME_DEFAULT = 30  # Our default is 30 min
+
+    FAILURE_THRESHOLD_DEFAULT = 1
+    FAILURE_THRESHOLD = {
+        # NOTE: INDEX_AND_NOTIFY runs every 5 minutes; we allow up to 6 consecutive failures
+        SentryMonitor.INDEX_AND_NOTIFY: 6,
+    }
+
+    @classmethod
+    def get_checkin_margin(cls, _: SentryMonitor) -> int:
+        """
+        The amount of time (in minutes) [Sentry Default 1 min]
+        Sentry should wait for your checkin before it's considered missed ("grace period")
+        """
+        return cls.MAX_RUNTIME_DEFAULT
+
+    @classmethod
+    def get_failure_issue_threshold(cls, enum: SentryMonitor) -> int:
+        """
+        The number of consecutive failed check-ins it takes before an issue is created. Optional.
+        """
+        return cls.FAILURE_THRESHOLD.get(enum, cls.FAILURE_THRESHOLD_DEFAULT)
+
+    @classmethod
+    def get_recovery_threshold(cls, _: SentryMonitor) -> int:
+        """
+        [Sentry Default 1]
+        The number of consecutive OK check-ins it takes before an issue is resolved. Optional.
+        """
+        return 1

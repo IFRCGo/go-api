@@ -3,6 +3,7 @@ import pandas as pd
 import requests
 from django.conf import settings
 from django.core.management.base import BaseCommand
+from django.db import transaction
 from sentry_sdk.crons import monitor
 
 from api.logger import logger
@@ -10,10 +11,11 @@ from api.models import Country, CronJob, CronJobStatus, NSDInitiatives
 from main.sentry import SentryMonitor
 
 
-@monitor(monitor_slug=SentryMonitor.INGEST_NS_INITIATIVES)
 class Command(BaseCommand):
     help = "Add ns initiatives"
 
+    @monitor(monitor_slug=SentryMonitor.INGEST_NS_INITIATIVES)
+    @transaction.atomic
     def handle(self, *args, **kwargs):
         logger.info("Starting NS Inititatives")
         api_key = settings.NS_INITIATIVES_API_KEY
@@ -43,6 +45,7 @@ class Command(BaseCommand):
             ],
         )
         funding_data = funding_data.replace({np.nan: None})
+        created_ns_initiatives_pk = []
         for data in funding_data.values.tolist():
             # TODO: Filter not by society name
             country = Country.objects.filter(society_name__iexact=data[0]).first()
@@ -60,11 +63,14 @@ class Command(BaseCommand):
                 )
                 if not created:
                     nsd_initiatives.title = data[3]
+                    nsd_initiatives.categories = data[4]
                     nsd_initiatives.allocation = data[5]
                     nsd_initiatives.funding_period = data[6]
-                    nsd_initiatives.categories = data[4]
-                    nsd_initiatives.save(update_fields=["title", "allocation", "funding_period", "categories"])
+                    nsd_initiatives.save(update_fields=["title", "categories", "allocation", "funding_period"])
+                created_ns_initiatives_pk.append(nsd_initiatives.pk)
                 added += 1
+        # NOTE: Delete the NSDInitiatives that are not in the source
+        NSDInitiatives.objects.exclude(id__in=created_ns_initiatives_pk).delete()
 
         text_to_log = "%s Ns initiatives added" % added
         logger.info(text_to_log)

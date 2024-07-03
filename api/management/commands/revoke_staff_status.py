@@ -8,7 +8,6 @@ from main.sentry import SentryMonitor
 # from registrations.views import is_valid_domain
 
 
-@monitor(monitor_slug=SentryMonitor.REVOKE_STAFF_STATUS)
 class Command(BaseCommand):
     help = 'Update staff status in auth_user table according to "Read only" group'
 
@@ -53,6 +52,7 @@ class Command(BaseCommand):
     #
     #       return editors
 
+    @monitor(monitor_slug=SentryMonitor.REVOKE_STAFF_STATUS)
     def handle(self, *args, **options):
         logger.info("Moving Read only users out of staff status...")
 

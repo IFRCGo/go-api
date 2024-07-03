@@ -519,10 +519,10 @@ def sync_open_positions(molnix_positions, molnix_api, countries):
     return messages, warnings, successful_creates
 
 
-@monitor(monitor_slug=SentryMonitor.SYNC_MOLNIX)
 class Command(BaseCommand):
     help = "Sync data from Molnix API to GO db"
 
+    @monitor(monitor_slug=SentryMonitor.SYNC_MOLNIX)
     @transaction.atomic
     def handle(self, *args, **options):
         logger.info("Starting Sync Molnix job")

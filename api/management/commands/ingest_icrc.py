@@ -8,10 +8,10 @@ from api.models import Country, CountryICRCPresence, CronJob, CronJobStatus
 from main.sentry import SentryMonitor
 
 
-@monitor(monitor_slug=SentryMonitor.INGEST_ICRC)
 class Command(BaseCommand):
     help = "Add ICRC data"
 
+    @monitor(monitor_slug=SentryMonitor.INGEST_ICRC)
     def handle(self, *args, **kwargs):
         logger.info("Strating ICRC data ingest")
         HEADERS = {

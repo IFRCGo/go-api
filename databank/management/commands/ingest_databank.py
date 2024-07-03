@@ -26,7 +26,6 @@ SOURCES = [
 ]
 
 
-@monitor(monitor_slug=SentryMonitor.INGEST_DATABANK)
 class Command(BaseCommand):
     def load(self):
         """
@@ -111,6 +110,7 @@ class Command(BaseCommand):
                 }
             )
 
+    @monitor(monitor_slug=SentryMonitor.INGEST_DATABANK)
     def handle(self, *args, **kwargs):
         start = datetime.datetime.now()
         self.load()

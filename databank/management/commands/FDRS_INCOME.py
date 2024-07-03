@@ -2,7 +2,9 @@ import logging
 
 import requests
 from django.conf import settings
+from django.core.management import call_command
 from django.core.management.base import BaseCommand
+from django.db import transaction
 from sentry_sdk.crons import monitor
 
 from databank.models import CountryOverview, FDRSIncome, FDRSIndicator
@@ -11,11 +13,14 @@ from main.sentry import SentryMonitor
 logger = logging.getLogger(__name__)
 
 
-@monitor(monitor_slug=SentryMonitor.FDRS_INCOME)
 class Command(BaseCommand):
     help = "Import FDRS income data"
 
+    @monitor(monitor_slug=SentryMonitor.FDRS_INCOME)
     def handle(self, *args, **kwargs):
+        # NOTE: Loading FDRS indicators
+        call_command("loaddata", "fdrs_indicator.json", verbosity=2)
+
         fdrs_indicator_enum_data = {
             "h_gov_CHF": "Home Government",
             "f_gov_CHF": "Foreign Government",
@@ -45,18 +50,24 @@ class Command(BaseCommand):
                 return
             fdrs_entities.raise_for_status()
             fdrs_entities = fdrs_entities.json()
-            for d in fdrs_entities["data"]:
-                indicator = next(iter(d.values()))
-                fdrs_indicator = map_indicators[fdrs_indicator_enum_data[indicator]]
-                income_list = d["data"][0]["data"]
-                if len(income_list):
-                    for income in income_list:
-                        income_value = income["value"]
-                        fdrs_income, _ = FDRSIncome.objects.get_or_create(
-                            overview=overview,
-                            indicator=fdrs_indicator,
-                            date=str(income["year"]) + "-01-01",
-                        )
-                        fdrs_income.value = income_value
-                        # TODO: Use bulk
-                        fdrs_income.save(update_fields=("value",))
+            created_fdrs_income_ids = []
+            with transaction.atomic():
+                for d in fdrs_entities["data"]:
+                    indicator = next(iter(d.values()))
+                    fdrs_indicator = map_indicators[fdrs_indicator_enum_data[indicator]]
+                    income_list = d["data"][0]["data"]
+                    if len(income_list):
+                        for income in income_list:
+                            income_value = income["value"]
+                            fdrs_income, created = FDRSIncome.objects.get_or_create(
+                                overview=overview,
+                                indicator=fdrs_indicator,
+                                date=str(income["year"]) + "-01-01",
+                                defaults={"value": income_value},
+                            )
+                            if not created:
+                                fdrs_income.value = income_value
+                                fdrs_income.save(update_fields=["value"])
+                            created_fdrs_income_ids.append(fdrs_income.pk)
+                # NOTE: Delete the FDRSIncome that are not in the source
+                FDRSIncome.objects.filter(overview=overview).exclude(id__in=created_fdrs_income_ids).delete()

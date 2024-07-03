@@ -15,10 +15,10 @@ from .sources.utils import get_country_by_iso3
 logger = logging.getLogger(__name__)
 
 
-@monitor(monitor_slug=SentryMonitor.INGEST_WORLDBANK)
 class Command(BaseCommand):
     help = "Add Acaps seasonal calendar data"
 
+    @monitor(monitor_slug=SentryMonitor.INGEST_WORLDBANK)
     def handle(self, *args, **kwargs):
         world_bank_indicator_map = (
             ("SP.POP.TOTL", CO.world_bank_population),

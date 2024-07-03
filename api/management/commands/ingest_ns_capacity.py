@@ -8,10 +8,10 @@ from api.models import Country, CountryCapacityStrengthening, CronJob, CronJobSt
 from main.sentry import SentryMonitor
 
 
-@monitor(monitor_slug=SentryMonitor.INGEST_NS_CAPACITY)
 class Command(BaseCommand):
     help = "Add ns contact details"
 
+    @monitor(monitor_slug=SentryMonitor.INGEST_NS_CAPACITY)
     def handle(self, *args, **kwargs):
         logger.info("Starting NS Contacts")
 

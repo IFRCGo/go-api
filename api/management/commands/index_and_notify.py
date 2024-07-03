@@ -67,7 +67,6 @@ RTYPE_NAMES = {
 }
 
 
-@monitor(monitor_slug=SentryMonitor.INDEX_AND_NOTIFY)
 class Command(BaseCommand):
     help = "Index and send notifications about new/changed records"
 
@@ -920,6 +919,7 @@ class Command(BaseCommand):
                 + ", notification sent to IM team"
             )
 
+    @monitor(monitor_slug=SentryMonitor.INDEX_AND_NOTIFY)
     def handle(self, *args, **options):
         if self.is_digest_mode():
             time_diff = self.diff_1_week()  # in digest mode (once a week, for new_entities only) we use a bigger interval

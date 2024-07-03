@@ -8,10 +8,10 @@ from api.models import Country, CronJob, CronJobStatus
 from main.sentry import SentryMonitor
 
 
-@monitor(monitor_slug=SentryMonitor.INGEST_DISASTER_LAW)
 class Command(BaseCommand):
     help = "Add ICRC data"
 
+    @monitor(monitor_slug=SentryMonitor.INGEST_DISASTER_LAW)
     def handle(self, *args, **kwargs):
         logger.info("Starting Disaster Law data")
         home_url = "https://disasterlaw.ifrc.org/"

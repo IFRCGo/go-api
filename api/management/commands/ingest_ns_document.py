@@ -5,6 +5,7 @@ import pandas as pd
 import requests
 from django.conf import settings
 from django.core.management.base import BaseCommand
+from django.db import transaction
 from sentry_sdk.crons import monitor
 
 from api.logger import logger
@@ -12,10 +13,11 @@ from api.models import Country, CountryKeyDocument, CronJob, CronJobStatus
 from main.sentry import SentryMonitor
 
 
-@monitor(monitor_slug=SentryMonitor.INGEST_NS_DOCUMENT)
 class Command(BaseCommand):
     help = "Add ns documents"
 
+    @monitor(monitor_slug=SentryMonitor.INGEST_NS_DOCUMENT)
+    @transaction.atomic
     def handle(self, *args, **kwargs):
         logger.info("Starting NS Key Documents")
 
@@ -98,6 +100,7 @@ class Command(BaseCommand):
 
     def save_documents_to_database(self, result):
         added = 0
+        created_country_key_document_ids = []
         for document in result:
             country = Country.objects.filter(fdrs=document["country_code"]).first()
             if country is None:
@@ -122,8 +125,20 @@ class Command(BaseCommand):
                 country_key_document.year = document["year"]
                 country_key_document.end_year = document["end_year"]
                 country_key_document.year_text = document["year_text"]
-                country_key_document.save(update_fields=["name", "thumbnail", "document_type", "year", "end_year", "year_text"])
+                country_key_document.save(
+                    update_fields=[
+                        "name",
+                        "thumbnail",
+                        "document_type",
+                        "year",
+                        "end_year",
+                        "year_text",
+                    ]
+                )
+            created_country_key_document_ids.append(country_key_document.pk)
             added += 1
+        # NOTE: Deleting the CountryKeyDocument that are not in the source
+        CountryKeyDocument.objects.exclude(id__in=created_country_key_document_ids).delete()
         return added
 
     def sync_cron_success(self, text_to_log, added):

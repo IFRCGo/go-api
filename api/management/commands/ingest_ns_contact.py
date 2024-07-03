@@ -5,6 +5,7 @@ import requests
 import xmltodict
 from django.conf import settings
 from django.core.management.base import BaseCommand
+from django.db import transaction
 from requests.auth import HTTPBasicAuth
 from sentry_sdk.crons import monitor
 
@@ -13,10 +14,11 @@ from api.models import Country, CronJob, CronJobStatus
 from main.sentry import SentryMonitor
 
 
-@monitor(monitor_slug=SentryMonitor.INGEST_NS_CONTACT)
 class Command(BaseCommand):
     help = "Add ns contact details"
 
+    @monitor(monitor_slug=SentryMonitor.INGEST_NS_CONTACT)
+    @transaction.atomic
     def handle(self, *args, **kwargs):
         logger.info("Starting NS Contacts")
         url = "https://go-api.ifrc.org/"

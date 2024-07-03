@@ -2,6 +2,7 @@ import requests
 import xmltodict
 from django.conf import settings
 from django.core.management.base import BaseCommand
+from django.db import transaction
 from requests.auth import HTTPBasicAuth
 from sentry_sdk.crons import monitor
 
@@ -10,10 +11,11 @@ from api.models import Country, CountryDirectory, CronJob, CronJobStatus
 from main.sentry import SentryMonitor
 
 
-@monitor(monitor_slug=SentryMonitor.INGEST_NS_DIRECTORY)
 class Command(BaseCommand):
     help = "Add ns contact details"
 
+    @monitor(monitor_slug=SentryMonitor.INGEST_NS_DIRECTORY)
+    @transaction.atomic
     def handle(self, *args, **kwargs):
         def postprocessor(path, key, value):
             if key == "@i:nil":
@@ -41,6 +43,7 @@ class Command(BaseCommand):
             raise Exception("Error querying NationalSocietiesContacts")
 
         added = 0
+        created_country_directory_ids = []
         dict_data = xmltodict.parse(response.content, postprocessor=postprocessor)
         for data in dict_data["ArrayOfNationalSocietiesContacts"]["NationalSocietiesContacts"]:
             country_name = data["CON_country"] if isinstance(data["CON_country"], str) else None
@@ -62,14 +65,15 @@ class Command(BaseCommand):
                         "position": data["CON_title"],
                         "country": country,
                     }
-                    existing_qs = CountryDirectory.objects.filter(
+                    country_directory, _ = CountryDirectory.objects.get_or_create(
                         country=country,
                         first_name__iexact=data["first_name"],
                         last_name__iexact=data["last_name"],
                         position__iexact=data["position"],
                     )
-                    if not existing_qs.exists():
-                        CountryDirectory.objects.create(**data)
+                    created_country_directory_ids.append(country_directory.pk)
+        # NOTE: Deleting the country directory which are not available in the source
+        CountryDirectory.objects.exclude(id__in=created_country_directory_ids).delete()
         text_to_log = "%s Ns Directory added" % added
         logger.info(text_to_log)
         body = {"name": "ingest_ns_directory", "message": text_to_log, "num_result": added, "status": CronJobStatus.SUCCESSFUL}

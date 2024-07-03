@@ -10,10 +10,10 @@ from main.sentry import SentryMonitor
 logger = logging.getLogger(__name__)
 
 
-@monitor(monitor_slug=SentryMonitor.INGEST_UNICEF)
 class Command(BaseCommand):
     help = "Add Unicef population data"
 
+    @monitor(monitor_slug=SentryMonitor.INGEST_UNICEF)
     def handle(self, *args, **kwargs):
         for overview in CO.objects.all():
             UNICEF_API = f"https://sdmx.data.unicef.org/ws/public/sdmxapi/rest/data/UNICEF,DM,1.0/{overview.country.iso3}.DM_POP_U18._T._T.?format=sdmx-json"  # noqa: E501
