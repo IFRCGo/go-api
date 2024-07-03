@@ -16,7 +16,6 @@ from drf_spectacular.views import (
     SpectacularRedocView,
     SpectacularSwaggerView,
 )
-from graphene_django.views import GraphQLView
 
 # DRF routes
 from rest_framework import routers
@@ -62,6 +61,8 @@ from per.views import LearningTypes
 from registrations import drf_views as registration_views
 from registrations.drf_views import RegistrationView
 from registrations.views import UserExternalTokenViewset, ValidateUser, VerifyEmail
+
+# from graphene_django.views import GraphQLView  # will be needed later
 
 router = routers.DefaultRouter()
 
@@ -172,9 +173,8 @@ urlpatterns = [
     # url(r"^api/v1/es_search/", EsPageSearch.as_view()),
     url(r"^api/v1/search/", HayStackSearch.as_view()),
     url(r"^api/v1/es_health/", EsPageHealth.as_view()),
-    # If we want to use the next one, some fixes needed, e.g.
-    # stackoverflow.com/questions/47166385/dont-know-how-to-convert-the-django-field-skills-class-taggit-managers-tagga
-    url(r"^api/v1/graphql/", GraphQLView.as_view(graphiql=True)),
+    # If we want to use the next one, some permission overthink is needed:
+    # url(r"^api/v1/graphql/", GraphQLView.as_view(graphiql=True)),
     url(r"^api/v1/aggregate/", AggregateByTime.as_view()),
     url(r"^api/v1/aggregate_dtype/", AggregateByDtype.as_view()),
     url(r"^api/v1/aggregate_area/", AreaAggregate.as_view()),

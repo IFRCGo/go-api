@@ -231,7 +231,8 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
-GRAPHENE = {"SCHEMA": "api.schema.schema"}
+# Not ready yet to use
+# GRAPHENE = {"SCHEMA": "api.schema.schema"}
 
 MIDDLEWARE = [
     "debug_toolbar.middleware.DebugToolbarMiddleware",
