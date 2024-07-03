@@ -99,7 +99,20 @@ class ERUViewset(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (TokenAuthentication,)
     # Some figures are shown on the home page also, and not only authenticated users should see them.
     # permission_classes = (IsAuthenticated,)
-    queryset = ERU.objects.all()
+    queryset = ERU.objects.select_related("eru_owner").prefetch_related(
+        "deployed_to",
+        "event",
+        "event__appeals",
+        "event__dtype",
+        "event__countries",
+        "event__field_reports",
+        "event__field_reports__countries",
+        "event__field_reports__contacts",
+        "eru_owner__national_society_country",
+        "eru_owner__eru_set",
+        "eru_owner__eru_set__deployed_to",
+    )
+    # ERUSerializer uses ERUOwnerSerializer which uses ERUSetSerializer (~circle)
     serializer_class = ERUSerializer
     filterset_class = ERUFilter
     ordering_fields = (
