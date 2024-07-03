@@ -435,7 +435,7 @@ class HayStackSearch(APIView):
                     "funding_coverage": data.amount_funded,
                     "start_date": data.disaster_start_date,
                     "score": data.score,
-                    "countries": Country.objects.filter(id__in=data.countries_id),
+                    "countries": [{"id": id, "name": name} for id, name in zip(data.countries_id, data.countries)],
                     "severity_level_display": data.crisis_categorization,
                     "appeal_type": data.appeal_type,
                     "severity_level": data.severity_level,
