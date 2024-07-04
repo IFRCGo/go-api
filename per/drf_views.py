@@ -52,6 +52,7 @@ from .models import (
     FormQuestionGroup,
     NiceDocument,
     OpsLearning,
+    OpsLearningCacheResponse,
     OrganizationTypes,
     Overview,
     PerAssessment,
@@ -73,6 +74,7 @@ from .serializers import (
     OpsLearningCSVSerializer,
     OpsLearningInSerializer,
     OpsLearningSerializer,
+    OpsLearningSummarySerializer,
     PerAssessmentSerializer,
     PerDocumentUploadSerializer,
     PerFileInputSerializer,
@@ -818,3 +820,10 @@ class PerDocumentUploadViewSet(viewsets.ModelViewSet):
         queryset = super().get_queryset()
         user = self.request.user
         return filter_per_queryset_by_user_access(user, queryset)
+
+
+class OpsLearningSummaryViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = OpsLearningCacheResponse.objects.all()
+    serializer_class = OpsLearningSummarySerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = None
