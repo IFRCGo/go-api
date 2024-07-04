@@ -85,7 +85,9 @@ def generate_url(url, export_id, user, title):
                 browser = p.chromium.launch(
                     headless=True,
                     args=[
-                        "--single-process",
+                        # https://github.com/microsoft/playwright-python/issues/1453
+                        # Usually required when running AWS lambda
+                        # "--single-process",
                         "--no-zygote",
                         "--no-sandbox",
                         "--disable-setuid-sandbox",
