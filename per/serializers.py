@@ -38,6 +38,9 @@ from .models import (
     NiceDocument,
     NSPhase,
     OpsLearning,
+    OpsLearningCacheResponse,
+    OpsLearningComponentCacheResponse,
+    OpsLearningSectorCacheResponse,
     Overview,
     PerAssessment,
     PerComponentRating,
@@ -1130,3 +1133,31 @@ class CountryLatestOverviewSerializer(serializers.ModelSerializer):
             "type_of_assessment",
             "phase_display",
         )
+
+
+class OpsLearningSectorCacheResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OpsLearningSectorCacheResponse
+        fields = ["summary"]
+
+
+class OpsLearningComponentCacheResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OpsLearningComponentCacheResponse
+        fields = ["summary"]
+
+
+class OpsLearningSummarySerializer(serializers.ModelSerializer):
+    by_sectors = OpsLearningSectorCacheResponseSerializer(many=True)
+    by_components = OpsLearningComponentCacheResponseSerializer(many=True)
+
+    class Meta:
+        model = OpsLearningCacheResponse
+        fields = [
+            "id",
+            "insights_1",
+            "insights_2",
+            "insights_3",
+            "by_sectors",
+            "by_components",
+        ]

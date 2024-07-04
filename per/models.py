@@ -754,3 +754,72 @@ class PerDocumentUpload(models.Model):
 
     def __str__(self):
         return f"{self.country.name} - {self.created_by} - {self.per_id}"
+
+
+class OpsLearningCacheResponse(models.Model):
+    used_filters_hash = models.CharField(verbose_name=_("used filters hash"), max_length=32)
+    used_filters = models.JSONField(verbose_name=_("used filters"), default=dict)
+    used_prompt_hash = models.CharField(verbose_name=_("used prompt hash"), max_length=32)
+    used_prompt = models.TextField(verbose_name=_("used prompt"), null=True, blank=True)
+    insights_1 = models.TextField(verbose_name=_("insights 1"), null=True, blank=True)
+    insights_2 = models.TextField(verbose_name=_("insights 2"), null=True, blank=True)
+    insights_3 = models.TextField(verbose_name=_("insights 3"), null=True, blank=True)
+    used_ops_learning = models.ManyToManyField(
+        OpsLearning,
+        related_name="+",
+    )
+    modified_at = models.DateTimeField(verbose_name=_("modified_at"), auto_now=True)
+    created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
+
+    def __str__(self) -> str:
+        return self.filter_hash
+
+
+class OpsLearningSectorCacheResponse(models.Model):
+    filter_response = models.ForeignKey(
+        OpsLearningCacheResponse,
+        verbose_name=_("filter response"),
+        on_delete=models.CASCADE,
+        related_name="+",
+    )
+    sector = models.ForeignKey(
+        SectorTag,
+        verbose_name=_("sector"),
+        on_delete=models.CASCADE,
+        related_name="+",
+    )
+    summary = models.TextField(verbose_name=_("summary"))
+    used_ops_learning = models.ManyToManyField(
+        OpsLearning,
+        related_name="+",
+    )
+    modified_at = models.DateTimeField(verbose_name=_("modified_at"), auto_now=True)
+    created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
+
+    def __str__(self) -> str:
+        return self.summary
+
+
+class OpsLearningComponentCacheResponse(models.Model):
+    filter_response = models.ForeignKey(
+        OpsLearningCacheResponse,
+        verbose_name=_("filter response"),
+        on_delete=models.CASCADE,
+        related_name="+",
+    )
+    component = models.ForeignKey(
+        FormComponent,
+        verbose_name=_("component"),
+        on_delete=models.CASCADE,
+        related_name="+",
+    )
+    summary = models.TextField(verbose_name=_("summary"))
+    used_ops_learning = models.ManyToManyField(
+        OpsLearning,
+        related_name="+",
+    )
+    modified_at = models.DateTimeField(verbose_name=_("modified_at"), auto_now=True)
+    created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
+
+    def __str__(self) -> str:
+        return self.summary
