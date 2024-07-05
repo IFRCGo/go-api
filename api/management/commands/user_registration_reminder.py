@@ -10,13 +10,13 @@ from notifications.notification import send_notification
 from registrations.models import Pending
 
 
-@monitor(monitor_slug=SentryMonitor.USER_REGISTRATION_REMINDER)
 class Command(BaseCommand):
     help = "Send reminder about the pending registrations"
 
     def diff_3_day(self):
         return datetime.utcnow().replace(tzinfo=timezone.utc) - timedelta(days=3)
 
+    @monitor(monitor_slug=SentryMonitor.USER_REGISTRATION_REMINDER)
     def handle(self, *args, **options):
         region_ids = Region.objects.all().values_list("id", flat=True)
         time_diff_3_day = self.diff_3_day()

@@ -1,17 +1,26 @@
 import requests
 from bs4 import BeautifulSoup
 from django.core.management.base import BaseCommand
+from sentry_sdk.crons import monitor
 
 from api.logger import logger
 from api.models import Country, CountryICRCPresence, CronJob, CronJobStatus
+from main.sentry import SentryMonitor
 
 
 class Command(BaseCommand):
     help = "Add ICRC data"
 
+    @monitor(monitor_slug=SentryMonitor.INGEST_ICRC)
     def handle(self, *args, **kwargs):
         logger.info("Strating ICRC data ingest")
-        response = requests.get(url="https://www.icrc.org/en/where-we-work", headers={"User-Agent": ""})
+        HEADERS = {
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36",  # noqa
+        }
+        response = requests.get(
+            url="https://www.icrc.org/en/where-we-work",
+            headers=HEADERS,
+        )
         if response.status_code != 200:
             text_to_log = "Error querying ICRC feed at https://www.icrc.org/en/where-we-work"
             logger.error(text_to_log)
@@ -57,19 +66,19 @@ class Command(BaseCommand):
                         "Description": description,
                     }
                 )
+
         added = 0
         for data in country_list:
-            country = Country.objects.filter(name__exact=data["Country"])
-            if country.exists():
-                dict_data = {
-                    "country": country.first(),
-                    "icrc_presence": data["ICRC presence"],
-                    "url": data["URL"],
-                    "key_operation": data["Key operation"],
-                    "description": data["Description"],
-                }
+            country = Country.objects.filter(name__exact=data["Country"]).first()
+            if country:
+                country_icrc_presence, _ = CountryICRCPresence.objects.get_or_create(country=country)
+
+                country_icrc_presence.icrc_presence = data["ICRC presence"]
+                country_icrc_presence.url = data["URL"]
+                country_icrc_presence.key_operation = data["Key operation"]
+                country_icrc_presence.description = data["Description"]
+                country_icrc_presence.save()
                 added += 1
-                CountryICRCPresence.objects.create(**dict_data)
 
         text_to_log = "%s ICRC added" % added
         logger.info(text_to_log)

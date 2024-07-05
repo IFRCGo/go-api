@@ -114,6 +114,21 @@ class SentryMonitor(models.TextChoices):
     USER_REGISTRATION_REMINDER = "user_registration_reminder", "0 9 * * *"
     INGEST_COUNTRY_PLAN_FILE = "ingest_country_plan_file", "1 0 * * *"
     UPDATE_SURGE_ALERT_STATUS = "update_surge_alert_status", "1 */12 * * *"
+    FDRS_ANNUAL_INCOME = "fdrs_annual_income", "0 0 * * 0"
+    FDRS_INCOME = "FDRS_INCOME", "0 0 * * 0"
+    INGEST_ACAPS = "ingest_acaps", "0 1 * * 0"
+    INGEST_CLIMATE = "ingest_climate", "0 0 * * 0"
+    INGEST_DATABANK = "ingest_databank", "0 0 * * 0"
+    INGEST_HDR = "ingest_hdr", "0 0 * * 0"
+    INGEST_UNICEF = "ingest_unicef", "0 0 * * 0"
+    INGEST_WORLDBANK = "ingest_worldbank", "0 2 * * 0"
+    INGEST_DISASTER_LAW = "ingest_disaster_law", "0 0 * * 0"
+    INGEST_NS_CONTACT = "ingest_ns_contact", "0 0 * * 0"
+    INGEST_NS_CAPACITY = "ingest_ns_capacity", "0 0 * * 0"
+    INGEST_NS_DIRECTORY = "ingest_ns_directory", "0 0 * * 0"
+    INGEST_NS_DOCUMENT = "ingest_ns_document", "0 0 * * 0"
+    INGEST_NS_INITIATIVES = "ingest_ns_initiatives", "0 0 * * 0"
+    INGEST_ICRC = "ingest_icrc", "0 3 * * 0"
 
     @staticmethod
     def load_cron_data() -> typing.List[typing.Tuple[str, str]]:
@@ -146,3 +161,41 @@ class SentryMonitor(models.TextChoices):
                 )
             )
         )
+
+
+class SentryMonitorConfig:
+    """
+    Custom config for SentryMonitor
+    https://docs.sentry.io/product/crons/getting-started/http/#creating-or-updating-a-monitor-through-a-check-in-optional
+    """
+
+    MAX_RUNTIME_DEFAULT = 30  # Our default is 30 min
+
+    FAILURE_THRESHOLD_DEFAULT = 1
+    FAILURE_THRESHOLD = {
+        # NOTE: INDEX_AND_NOTIFY runs every 5 minutes; we allow up to 6 consecutive failures
+        SentryMonitor.INDEX_AND_NOTIFY: 6,
+    }
+
+    @classmethod
+    def get_checkin_margin(cls, _: SentryMonitor) -> int:
+        """
+        The amount of time (in minutes) [Sentry Default 1 min]
+        Sentry should wait for your checkin before it's considered missed ("grace period")
+        """
+        return cls.MAX_RUNTIME_DEFAULT
+
+    @classmethod
+    def get_failure_issue_threshold(cls, enum: SentryMonitor) -> int:
+        """
+        The number of consecutive failed check-ins it takes before an issue is created. Optional.
+        """
+        return cls.FAILURE_THRESHOLD.get(enum, cls.FAILURE_THRESHOLD_DEFAULT)
+
+    @classmethod
+    def get_recovery_threshold(cls, _: SentryMonitor) -> int:
+        """
+        [Sentry Default 1]
+        The number of consecutive OK check-ins it takes before an issue is resolved. Optional.
+        """
+        return 1

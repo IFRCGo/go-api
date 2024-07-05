@@ -435,6 +435,7 @@ class FDRSIncome(models.Model):
     indicator = models.ForeignKey(FDRSIndicator, on_delete=models.CASCADE, verbose_name=_("FDRS Indicator"))
     value = models.FloatField(verbose_name=_("value"), null=True, blank=True)
 
+    # TODO: Add unique_together (overview, date, indicator)
     def __str__(self):
         return f"{self.overview.country.name} - {self.date} - {self.indicator.title} - {self.value}"
 
@@ -446,6 +447,7 @@ class FDRSAnnualIncome(models.Model):
     date = models.DateField(verbose_name=_("date"))
     value = models.FloatField(verbose_name=_("value"), null=True, blank=True)
 
+    # TODO: Add unique_together (overview, date)
     def __str__(self):
         return f"{self.overview.country.name} - {self.date} - {self.value}"
 

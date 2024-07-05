@@ -1,14 +1,17 @@
 import requests
 from django.conf import settings
 from django.core.management.base import BaseCommand
+from sentry_sdk.crons import monitor
 
 from api.logger import logger
 from api.models import Country, CountryCapacityStrengthening, CronJob, CronJobStatus
+from main.sentry import SentryMonitor
 
 
 class Command(BaseCommand):
     help = "Add ns contact details"
 
+    @monitor(monitor_slug=SentryMonitor.INGEST_NS_CAPACITY)
     def handle(self, *args, **kwargs):
         logger.info("Starting NS Contacts")
 
@@ -44,7 +47,7 @@ class Command(BaseCommand):
         text_to_log = "%s Ns capacity added" % ocaa_count
         logger.info(text_to_log)
         body = {
-            "name": "ingest_ns_capaciity",
+            "name": "ingest_ns_capacity",
             "message": text_to_log,
             "num_result": ocaa_count,
             "status": CronJobStatus.SUCCESSFUL,

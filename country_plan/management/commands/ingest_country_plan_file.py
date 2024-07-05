@@ -55,7 +55,6 @@ def get_meta_from_url(url) -> Tuple[Optional[str], str]:
     return resp.headers.get("Content-Type"), _get_filename_from_headers(resp)
 
 
-@monitor(monitor_slug=SentryMonitor.INGEST_COUNTRY_PLAN_FILE)
 class Command(BaseCommand):
     @staticmethod
     def load_file_to_country_plan(country_plan: CountryPlan, url: str, filename: str, field_name: str):
@@ -121,6 +120,7 @@ class Command(BaseCommand):
             except Exception:
                 logger.error("Could not update countries plan", exc_info=True)
 
+    @monitor(monitor_slug=SentryMonitor.INGEST_COUNTRY_PLAN_FILE)
     def handle(self, **_):
         # Public
         self.stdout.write("Fetching data for country plans:: PUBLIC")

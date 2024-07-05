@@ -4,9 +4,11 @@ import logging
 
 import requests
 from django.core.management.base import BaseCommand
+from sentry_sdk.crons import monitor
 
 from api.models import Country, CountryType
 from databank.models import CountryOverview as CO
+from main.sentry import SentryMonitor
 
 from .sources.utils import get_country_by_iso3
 
@@ -16,6 +18,7 @@ logger = logging.getLogger(__name__)
 class Command(BaseCommand):
     help = "Add Acaps seasonal calendar data"
 
+    @monitor(monitor_slug=SentryMonitor.INGEST_WORLDBANK)
     def handle(self, *args, **kwargs):
         world_bank_indicator_map = (
             ("SP.POP.TOTL", CO.world_bank_population),

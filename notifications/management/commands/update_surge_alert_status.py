@@ -12,7 +12,6 @@ from notifications.models import SurgeAlert, SurgeAlertStatus
 logger = logging.getLogger(__name__)
 
 
-@monitor(monitor_slug=SentryMonitor.UPDATE_SURGE_ALERT_STATUS)
 class Command(BaseCommand):
     """
     Updating the Surge Alert Status according:
@@ -23,6 +22,7 @@ class Command(BaseCommand):
 
     help = "Update surge alert status"
 
+    @monitor(monitor_slug=SentryMonitor.UPDATE_SURGE_ALERT_STATUS)
     def handle(self, *args, **options):
         now = timezone.now()
         try:
