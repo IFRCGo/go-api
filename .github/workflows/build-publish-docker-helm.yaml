@@ -41,7 +41,7 @@ jobs:
       run: |
         cd deploy/helm
         # hack to push the image to ghcr.io. We will update chartpress.yaml when we move to separate deploy repo
-        python -c "import re; data=open('chartpress.yaml').read(); open('chartpress.yaml', 'w').write(re.sub(r'ifrcgoacr.azurecr.io/ifrcgo-', 'ghcr.io/IFRCGo/go-', data))"
+        python -c "import re; data=open('chartpress.yaml').read(); open('chartpress.yaml', 'w').write(re.sub(r'ifrcgoacr.azurecr.io/ifrcgo-', 'ghcr.io/ifrcgo/go-', data))"
         chartpress --push
 
     - name: Get the version
@@ -54,4 +54,4 @@ jobs:
 
     - name: Push Helm Chart
       run: |
-        helm push .helm-charts/ifrcgo-helm-${{ steps.get_version.outputs.VERSION }}.tgz oci://ghcr.io/IFRCGo/go-api
+        helm push .helm-charts/ifrcgo-helm-${{ steps.get_version.outputs.VERSION }}.tgz oci://ghcr.io/ifrcgo/go-api
