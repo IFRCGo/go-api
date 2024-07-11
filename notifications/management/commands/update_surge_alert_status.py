@@ -2,7 +2,6 @@ import logging
 
 from django.core.management.base import BaseCommand
 from django.db import models
-from django.utils import timezone
 from sentry_sdk.crons import monitor
 
 from api.models import CronJob, CronJobStatus
@@ -15,23 +14,22 @@ logger = logging.getLogger(__name__)
 class Command(BaseCommand):
     """
     Updating the Surge Alert Status according:
-    If the alert status is marked as stood_down, then the status is Stood Down.
-    If the closing timestamp (closes) is earlier than the current date, the status is displayed as Closed.
-    Otherwise, it is displayed as Open.
+    If molnix_status is active, status should Open,
+    If molnix_status is archived, status should be  Closed,
+    If molnix_status is unfilled, status should be Stood Down,
     """
 
     help = "Update surge alert status"
 
     @monitor(monitor_slug=SentryMonitor.UPDATE_SURGE_ALERT_STATUS)
     def handle(self, *args, **options):
-        now = timezone.now()
         try:
             logger.info("Updating Surge alerts status")
             SurgeAlert.objects.update(
                 status=models.Case(
-                    models.When(is_stood_down=True, then=models.Value(SurgeAlertStatus.STOOD_DOWN)),
-                    models.When(closes__lt=now, then=models.Value(SurgeAlertStatus.CLOSED)),
-                    models.When(closes__gte=now, then=models.Value(SurgeAlertStatus.OPEN)),
+                    models.When(molnix_status="active", then=models.Value(SurgeAlertStatus.OPEN)),
+                    models.When(molnix_status="archived", then=models.Value(SurgeAlertStatus.CLOSED)),
+                    models.When(molnix_status="unfilled", then=models.Value(SurgeAlertStatus.STOOD_DOWN)),
                     default=models.F("status"),
                     output_field=models.IntegerField(),
                 )

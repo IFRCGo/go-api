@@ -74,20 +74,18 @@ class SurgeAlert(models.Model):
 
     def save(self, *args, **kwargs):
         """
-        If the alert status is marked as stood_down, then the status is Stood Down.
-        If the closing timestamp (closes) is earlier than the current date, the status is displayed as Closed.
-        Otherwise, it is displayed as Open.
+        A molnix_status of active should be shown as Open
+        A molnix_status of archived should be shown as Closed
+        A molnix_status of unfilled should be shown as Stood Down
         """
-        # On save, if `created` is not set, make it the current time
         if (not self.id and not self.created_at) or (self.created_at > timezone.now()):
             self.created_at = timezone.now()
-        self.is_stood_down = self.molnix_status == "unfilled"
-        if self.is_stood_down:
-            self.status = SurgeAlertStatus.STOOD_DOWN
-        elif self.closes and self.closes < timezone.now():
-            self.status = SurgeAlertStatus.CLOSED
-        else:
+        if self.molnix_status == "active":
             self.status = SurgeAlertStatus.OPEN
+        elif self.molnix_status == "unfilled":
+            self.status = SurgeAlertStatus.STOOD_DOWN
+        else:
+            self.status = SurgeAlertStatus.CLOSED
         return super(SurgeAlert, self).save(*args, **kwargs)
 
     def __str__(self):

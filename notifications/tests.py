@@ -162,12 +162,14 @@ class SurgeAlertFilteringTest(APITestCase):
             message="CEA Coordinator, Floods, Atlantis",
             country=country_1,
             molnix_tags=[molnix_tag_1, molnix_tag_2],
+            molnix_status="active",
             opens=timezone.now() - timedelta(days=2),
             closes=timezone.now() + timedelta(days=5),
         )
         alert2 = SurgeAlertFactory.create(
             message="WASH Coordinator, Earthquake, Neptunus",
             country=country_2,
+            molnix_status="archived",
             molnix_tags=[molnix_tag_1, molnix_tag_3],
             opens=timezone.now() - timedelta(days=2),
             closes=timezone.now() - timedelta(days=1),
@@ -175,8 +177,8 @@ class SurgeAlertFilteringTest(APITestCase):
         alert3 = SurgeAlertFactory.create(
             message="New One",
             country=country_2,
-            molnix_tags=[molnix_tag_1, molnix_tag_3],
             molnix_status="unfilled",
+            molnix_tags=[molnix_tag_1, molnix_tag_3],
         )
 
         self.assertEqual(alert1.status, SurgeAlertStatus.OPEN)
@@ -210,29 +212,62 @@ class SurgeAlertTestCase(APITestCase):
         molnix_tag_2 = MolnixTagFactory.create(name="L-FRA")
         molnix_tag_3 = MolnixTagFactory.create(name="AMER")
 
+        # Override the original save method to create dummy data without restriction
+        original_save = SurgeAlert.save
+
+        def mocked_save(self, *args, **kwargs):
+            original_save(self, *args, **kwargs)
+
+        SurgeAlert.save = mocked_save
+
         alert1 = SurgeAlertFactory.create(
             message="CEA Coordinator, Floods, Atlantis",
             country=country_1,
+            molnix_status="unfilled",
             molnix_tags=[molnix_tag_1, molnix_tag_2],
             opens=timezone.now() - timedelta(days=2),
             closes=timezone.now() + timedelta(seconds=5),
+            status=SurgeAlertStatus.CLOSED,
         )
+
         alert2 = SurgeAlertFactory.create(
             message="WASH Coordinator, Earthquake, Neptunus",
             country=country_2,
+            molnix_status="unfilled",
             molnix_tags=[molnix_tag_1, molnix_tag_3],
             opens=timezone.now() - timedelta(days=2),
             closes=timezone.now() - timedelta(days=1),
+            status=SurgeAlertStatus.STOOD_DOWN,
         )
-        self.assertEqual(alert1.status, SurgeAlertStatus.OPEN)
-        self.assertEqual(alert2.status, SurgeAlertStatus.CLOSED)
+
+        alert3 = SurgeAlertFactory.create(
+            message="WASH Coordinator, Earthquake, Neptunus",
+            country=country_2,
+            molnix_status="archived",
+            molnix_tags=[molnix_tag_1, molnix_tag_2],
+            opens=timezone.now() - timedelta(days=4),
+            closes=timezone.now() - timedelta(days=1),
+            status=SurgeAlertStatus.OPEN,
+        )
+
+        alert4 = SurgeAlertFactory.create(
+            message="WASH Coordinator, Earthquake, Neptunus",
+            country=country_2,
+            molnix_status="active",
+            molnix_tags=[molnix_tag_1, molnix_tag_2, molnix_tag_3],
+            opens=timezone.now() - timedelta(days=3),
+            closes=timezone.now() - timedelta(days=1),
+            status=SurgeAlertStatus.OPEN,
+        )
+
+        # Restore the original save method after the test
+        SurgeAlert.save = original_save
 
         with patch("django.utils.timezone.now") as mock_now:
             mock_now.return_value = datetime.now() + timedelta(days=1)
             call_command("update_surge_alert_status")
 
-        alert1.refresh_from_db()
-        alert2.refresh_from_db()
-
-        self.assertEqual(alert1.status, SurgeAlertStatus.CLOSED)
-        self.assertEqual(alert2.status, SurgeAlertStatus.CLOSED)
+        self.assertEqual(alert1.status, SurgeAlertStatus.STOOD_DOWN)
+        self.assertEqual(alert2.status, SurgeAlertStatus.STOOD_DOWN)
+        self.assertEqual(alert3.status, SurgeAlertStatus.CLOSED)
+        self.assertEqual(alert4.status, SurgeAlertStatus.OPEN)
