@@ -1,6 +1,7 @@
 import requests
 from django.conf import settings
 from django.core.management.base import BaseCommand
+from django.db import transaction
 from sentry_sdk.crons import monitor
 
 from api.logger import logger
@@ -12,6 +13,7 @@ class Command(BaseCommand):
     help = "Add ns contact details"
 
     @monitor(monitor_slug=SentryMonitor.INGEST_NS_CAPACITY)
+    @transaction.atomic
     def handle(self, *args, **kwargs):
         logger.info("Starting NS Contacts")
 
@@ -32,6 +34,7 @@ class Command(BaseCommand):
 
         resp_ocac_data = resp_ocac.json()
         ocaa_count = 0
+        country_capacity_ids = []
         for item in resp_ocac_data:
             ocaa_count += 1
             data = {
@@ -42,7 +45,22 @@ class Command(BaseCommand):
                 "country": Country.objects.filter(fdrs=item["NsId"]).first(),
                 "assessment_type": CountryCapacityStrengthening.AssessmentType.OCAC,
             }
-            CountryCapacityStrengthening.objects.create(**data)
+            country_capacity_ocac, created = CountryCapacityStrengthening.objects.get_or_create(
+                country=data["country"],
+                assessment_code=data["assessment_code"],
+                assessment_type=data["assessment_type"],
+                defaults={
+                    "submission_date": data["submission_date"],
+                    "url": data["url"],
+                    "year": data["year"],
+                },
+            )
+            if not created:
+                country_capacity_ocac.submission_date = data["submission_date"]
+                country_capacity_ocac.url = data["url"]
+                country_capacity_ocac.year = data["year"]
+                country_capacity_ocac.save(update_fields=["submission_date", "url", "year"])
+            country_capacity_ids.append(country_capacity_ocac.pk)
 
         text_to_log = "%s Ns capacity added" % ocaa_count
         logger.info(text_to_log)
@@ -70,4 +88,23 @@ class Command(BaseCommand):
                     "assessment_type": CountryCapacityStrengthening.AssessmentType.BOCA,
                     "branch_name": item["BranchName"],
                 }
-                CountryCapacityStrengthening.objects.create(**data)
+                country_capacity_boca, created = CountryCapacityStrengthening.objects.get_or_create(
+                    country=data["country"],
+                    assessment_code=data["assessment_code"],
+                    assessment_type=data["assessment_type"],
+                    defaults={
+                        "year": data["year"],
+                        "branch_name": data["branch_name"],
+                        "submission_date": data["submission_date"],
+                        "url": data["url"],
+                    },
+                )
+                if not created:
+                    country_capacity_boca.submission_date = data["submission_date"]
+                    country_capacity_boca.url = data["url"]
+                    country_capacity_boca.year = data["year"]
+                    country_capacity_boca.branch_name = data["branch_name"]
+                    country_capacity_boca.save(update_fields=["submission_date", "url", "year", "branch_name"])
+                country_capacity_ids.append(country_capacity_boca.pk)
+        # Delete the country capacity strengthening which are not available in the source
+        CountryCapacityStrengthening.objects.exclude(id__in=country_capacity_ids).delete()

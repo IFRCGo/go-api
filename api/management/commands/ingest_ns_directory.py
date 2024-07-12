@@ -70,6 +70,11 @@ class Command(BaseCommand):
                         first_name__iexact=data["first_name"],
                         last_name__iexact=data["last_name"],
                         position__iexact=data["position"],
+                        defaults={
+                            "first_name": data["first_name"],
+                            "last_name": data["last_name"],
+                            "position": data["position"],
+                        },
                     )
                     created_country_directory_ids.append(country_directory.pk)
         # NOTE: Deleting the country directory which are not available in the source
