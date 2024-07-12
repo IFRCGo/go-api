@@ -4,6 +4,7 @@ import factory
 from django.contrib.gis.geos import Point
 
 from api.models import Country, Region
+from deployments.factories.user import UserFactory
 from main.test_case import APITestCase
 
 from .models import (
@@ -117,10 +118,10 @@ class TestLocalUnitsListView(APITestCase):
 class TestLocalUnitsDetailView(APITestCase):
     def setUp(self):
         super().setUp()
-        region = Region.objects.create(name=2)
-        country = Country.objects.create(name="Nepal", iso3="NLP", region=region)
-        type = LocalUnitType.objects.create(code=0, name="Code 0")
-        LocalUnitFactory.create_batch(2, country=country, type=type)
+        self.region = Region.objects.create(name=2)
+        self.country = Country.objects.create(name="Nepal", iso3="NLP", region=self.region)
+        self.type = LocalUnitType.objects.create(code=0, name="Code 0")
+        LocalUnitFactory.create_batch(2, country=self.country, type=self.type)
 
     def test_detail(self):
         local_unit = LocalUnit.objects.all().first()
@@ -132,6 +133,26 @@ class TestLocalUnitsDetailView(APITestCase):
         self.assertEqual(response.data["country_details"]["iso3"], "NLP")
         self.assertEqual(response.data["type_details"]["name"], "Code 0")
         self.assertEqual(response.data["type_details"]["code"], 0)
+
+    def test_get_updated_at_updated_by(self):
+        self.authenticate()
+        user_1 = UserFactory.create()
+        user_2 = UserFactory.create()
+        user_1_local_units = LocalUnitFactory.create_batch(
+            2, country=self.country, type=self.type, created_by=user_1, modified_by=user_1
+        )
+        user_2_local_units = LocalUnitFactory.create_batch(
+            2, country=self.country, type=self.type, created_by=user_1, modified_by=user_2
+        )
+        user_1_local_unit = LocalUnit.objects.filter(id__in=[unit.id for unit in user_1_local_units]).first()
+        user_2_local_unit = LocalUnit.objects.filter(id__in=[unit.id for unit in user_2_local_units]).first()
+        response = self.client.get(f"/api/v2/local-units/{user_1_local_unit.id}/")
+        self.assertIsNotNone(response.data["modified_at"])
+        self.assertEqual(response.data["modified_by_details"]["id"], user_1.id)
+
+        response = self.client.get(f"/api/v2/local-units/{user_2_local_unit.id}/")
+        self.assertIsNotNone(response.data["modified_at"])
+        self.assertEqual(response.data["modified_by_details"]["id"], user_2.id)
 
     def test_validate_local_units(self):
         local_unit = LocalUnit.objects.all().first()
@@ -285,7 +306,7 @@ class TestLocalUnitCreate(APITestCase):
         response = self.client.post("/api/v2/local-units/", data=data, format="json")
         self.assertEqual(response.status_code, 201)
 
-    def test_create_local_unit_health(self):
+    def test_create_update_local_unit_health(self):
         region = Region.objects.create(name=2)
         country = Country.objects.create(name="Philippines", iso3="PHL", iso="PH", region=region)
         type = LocalUnitType.objects.create(code=2, name="Code 0")
@@ -368,3 +389,21 @@ class TestLocalUnitCreate(APITestCase):
         self.client.force_authenticate(self.root_user)
         response = self.client.post("/api/v2/local-units/", data=data, format="json")
         self.assertEqual(response.status_code, 201)
+
+        # test update
+        response = response.json()
+        local_unit_id = response["id"]
+        response_updated_1 = self.client.put(f"/api/v2/local-units/{local_unit_id}/", data=data, format="json").json()
+        local_unit_obj = LocalUnit.objects.get(id=local_unit_id)
+        self.assertIsNotNone(local_unit_obj.created_by)
+        self.assertIsNotNone(response_updated_1["modified_by"])
+        self.assertIsNotNone(response_updated_1["modified_at"])
+        self.assertEqual(response_updated_1["modified_by"], local_unit_obj.created_by.id)
+
+        # update existing local_unit with new user
+        user_1 = UserFactory()
+        self.client.force_authenticate(user_1)
+        response_updated_2 = self.client.put(f"/api/v2/local-units/{local_unit_id}/", data=data, format="json").json()
+        self.assertEqual(response_updated_2["modified_by_details"]["id"], user_1.id)
+        self.assertEqual(response_updated_2["created_by_details"]["id"], self.root_user.id)
+        assert response_updated_1["modified_at"] < response_updated_2["modified_at"]
