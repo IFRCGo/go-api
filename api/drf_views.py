@@ -880,16 +880,12 @@ class ProfileViewset(viewsets.ModelViewSet):
 class UserViewset(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated, DenyGuestUserMutationPermission)
+    permission_classes = [IsAuthenticated, DenyGuestUserMutationPermission]
 
     def get_queryset(self):
         return User.objects.filter(pk=self.request.user.pk)
 
-    @action(
-        detail=False,
-        url_path="me",
-        serializer_class=UserMeSerializer,
-    )
+    @action(detail=False, url_path="me", serializer_class=UserMeSerializer, permission_classes=(IsAuthenticated,))
     def get_authenticated_user_info(self, request, *args, **kwargs):
         return Response(self.get_serializer_class()(request.user).data)
 
@@ -1309,7 +1305,7 @@ class UsersViewset(viewsets.ReadOnlyModelViewSet):
     """
 
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, DenyGuestUserMutationPermission]
     filterset_class = UserFilterSet
 
     def get_queryset(self):

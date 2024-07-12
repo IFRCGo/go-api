@@ -2,7 +2,7 @@ import unittest
 from unittest import mock
 
 from django.conf import settings
-from django.contrib.auth.models import Permission, User
+from django.contrib.auth.models import Permission
 from django.core import management
 from django.test import override_settings
 
@@ -131,7 +131,7 @@ class LangTest(APITestCase):
         self.assertEqual(first_string_key, string_1["key"])
 
     def test_user_me(self):
-        user = User.objects.create_user(
+        user = UserFactory.create(
             username="user@test.com",
             first_name="User",
             last_name="Toot",

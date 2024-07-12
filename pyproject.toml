@@ -130,7 +130,7 @@ exclude = '''
 )/
 '''
 # NOTE: Update in .pre-commit-config.yaml as well
-extend-exclude = "^.*\\b(migrations)\\b.*$ (__pycache__|.*snap_test_.*\\.py|.+/+.+/+migrations/+.*)"
+extend-exclude = "^.*\\b(migrations)\\b.*$ (__pycache__|.+/+.+/+migrations/+.*)"
 
 [tool.isort]
 profile = "black"
@@ -138,7 +138,6 @@ multi_line_output = 3
 # NOTE: Update in .pre-commit-config.yaml as well
 skip = [
     "**/__pycache__",
-    "**/snap_test_*.py",
     ".venv/",
     "legacy/",
     "**/migrations/*.py",

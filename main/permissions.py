@@ -14,17 +14,12 @@ class ModifyBySuperAdminOnly(permissions.BasePermission):
 
 class DenyGuestUserMutationPermission(permissions.BasePermission):
     """
-    Custom permission to deny mutation actions for logged-in guest users.
+    Custom permission to deny mutation and query actions for logged-in guest users.
 
-    This permission class allows all safe (read-only) operations but restricts
-    any mutation (write, update, delete) operations if the user is a guest.
+    This permission class restricts all (read, write, update, delete) operations if the user is a guest.
     """
 
     def _has_permission(self, request, view):
-        # Allow all safe methods (GET, HEAD, OPTIONS) which are non-mutating.
-        if request.method in permissions.SAFE_METHODS:
-            return True
-
         # For mutation methods (POST, PUT, DELETE, etc.):
         # Check if the user is authenticated.
         if not bool(request.user and request.user.is_authenticated):

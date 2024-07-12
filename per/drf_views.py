@@ -247,7 +247,7 @@ class PerOverviewViewSet(viewsets.ModelViewSet):
 
 
 class ExportPerView(views.APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, DenyGuestUserMutationPermission]
 
     content_negotiation_class = SpreadSheetContentNegotiation
 

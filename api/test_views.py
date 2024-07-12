@@ -35,20 +35,21 @@ class GuestUserPermissionTest(APITestCase):
             "/api/v2/add_subscription/",
             "/api/v2/del_subscription/",
             "/api/v2/external-token/",
+            "/api/v2/user/me/",
         ]
-
+        id = 1  # NOTE: id is used just to test api that requires id, it doesnot indicate real id. It can be any number.
         go_apis = [
             "/api/v2/dref/",
             "/api/v2/dref-final-report/",
-            "/api/v2/dref-final-report/{id}/publish/",
+            f"/api/v2/dref-final-report/{id}/publish/",
             "/api/v2/dref-op-update/",
-            "/api/v2/dref-op-update/{id}/publish/",
+            f"/api/v2/dref-op-update/{id}/publish/",
             "/api/v2/dref-share/",
-            "/api/v2/dref/{id}/publish/",
+            f"/api/v2/dref/{id}/publish/",
             "/api/v2/flash-update/",
             "/api/v2/flash-update-file/multiple/",
             "/api/v2/local-units/",
-            "/api/v2/local-units/{id}/validate/",
+            f"/api/v2/local-units/{id}/validate/",
             "/api/v2/pdf-export/",
             "/api/v2/per-assessment/",
             "/api/v2/per-document-upload/",
@@ -68,26 +69,86 @@ class GuestUserPermissionTest(APITestCase):
             "/api/v2/user/",
         ]
 
+        get_apis = [
+            "/api/v2/dref/",
+            "/api/v2/dref-files/",
+            "/api/v2/dref-final-report/",
+            f"/api/v2/dref-final-report/{id}/",
+            "/api/v2/dref-op-update/",
+            f"/api/v2/dref/{id}/",
+            "/api/v2/field-report/",
+            f"/api/v2/field-report/{id}/",
+            "/api/v2/flash-update/",
+            "/api/v2/flash-update-file/",
+            f"/api/v2/flash-update/{id}/",
+            "/api/v2/language/",
+            f"/api/v2/language/{id}/",
+            "/api/v2/local-units/",
+            f"/api/v2/local-units/{id}/",
+            "/api/v2/ops-learning/",
+            f"/api/v2/ops-learning/{id}/",
+            f"/api/v2/pdf-export/{id}/",
+            "/api/v2/per-assessment/",
+            f"/api/v2/per-assessment/{id}/",
+            "/api/v2/per-document-upload/",
+            f"/api/v2/per-document-upload/{id}/",
+            "/api/v2/per-file/",
+            "/api/v2/per-overview/",
+            f"/api/v2/per-overview/{id}/",
+            "/api/v2/per-prioritization/",
+            f"/api/v2/per-prioritization/{id}/",
+            "/api/v2/per-work-plan/",
+            f"/api/v2/per-work-plan/{id}/",
+            "/api/v2/profile/",
+            f"/api/v2/profile/{id}/",
+            f"/api/v2/share-flash-update/{id}/",
+            "/api/v2/subscription/",
+            f"/api/v2/subscription/{id}/",
+            "/api/v2/users/",
+            f"/api/v2/users/{id}/",
+        ]
+
+        # TODO Add test case for export apis
+        # get_export_apis = [
+        #     f"/api/v2/export-flash-update/{1}/",
+        #     f"/api/v2/export-per/{1}/",
+        # ]
+
         go_apis_req_additional_perm = [
             "/api/v2/ops-learning/",
             "/api/v2/per-overview/",
-            "/api/v2/user/{id}/accepted_license_terms/",
-            "/api/v2/language/{id}/bulk-action/",
+            f"/api/v2/user/{id}/accepted_license_terms/",
+            f"/api/v2/language/{id}/bulk-action/",
         ]
 
         self.authenticate(user=self.guest_user)
+
+        # Guest user should not be able to access get apis that requires IsAuthenticated permission
+        for api_url in get_apis:
+            response = self.client.get(api_url).json()
+            error_code = response.get("error_code")
+            self.assertIn(error_code, [403, 401])
+
+        # Guest user should not be able to hit post apis.
         for api_url in go_apis + go_apis_req_additional_perm:
             response = self.client.post(api_url, json=body).json()
             self.assertIn(response["error_code"], [401, 403])
 
+        # Guest user should be able to access guest apis
         for api_url in guest_apis:
             response = self.client.post(api_url, json=body).json()
             error_code = response.get("error_code", None)
             self.assertNotIn(error_code, [403, 401])
 
+        # Go user should be able to access go_apis
         self.authenticate(user=self.go_user)
         for api_url in go_apis:
             response = self.client.post(api_url, json=body).json()
+            error_code = response.get("error_code", None)
+            self.assertNotIn(error_code, [403, 401])
+
+        for api_url in get_apis:
+            response = self.client.get(api_url).json()
             error_code = response.get("error_code", None)
             self.assertNotIn(error_code, [403, 401])
 
@@ -283,21 +344,24 @@ class VisibilityTest(APITestCase):
         self.assertEqual(response["count"], 0)
 
         # perform the request with an authenticated user
-        user = User.objects.create(username="foo")
+        user = UserFactory(username="foo")
         self.client.force_authenticate(user=user)
         response = self.client.get("/api/v2/country_snippet/").json()
         # one snippets available to anonymous user
         self.assertEqual(response["count"], 1)
 
         # perform the request with an ifrc user
-        user2 = User.objects.create(username="bar")
+        user2 = UserFactory(username="bar")
         user2.user_permissions.add(self.ifrc_permission)
         self.client.force_authenticate(user=user2)
         response = self.client.get("/api/v2/country_snippet/").json()
         self.assertEqual(response["count"], 2)
 
         # perform the request with a superuser
-        super_user = User.objects.create_superuser(username="baz", email="foo@baz.com", password="12345678")
+        super_user = UserFactory(username="baz", email="foo@baz.com", password="12345678")
+        super_user.is_superuser = True
+        super_user.save()
+
         self.client.force_authenticate(user=super_user)
         response = self.client.get("/api/v2/country_snippet/").json()
         self.assertEqual(response["count"], 2)

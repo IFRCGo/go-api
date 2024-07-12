@@ -200,7 +200,9 @@ class DrefFileViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.G
 
 class CompletedDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = CompletedDrefOperationsSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [
+        permissions.IsAuthenticated,
+    ]
     filterset_class = CompletedDrefOperationsFilterSet
     queryset = DrefFinalReport.objects.filter(is_published=True).order_by("-created_at").distinct()
 
@@ -211,7 +213,9 @@ class CompletedDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
 
 class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = MiniDrefSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [
+        permissions.IsAuthenticated,
+    ]
     filterset_class = ActiveDrefFilterSet
     queryset = (
         Dref.objects.prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
@@ -239,7 +243,9 @@ class DrefShareView(views.APIView):
 
 
 class DrefShareUserViewSet(viewsets.ReadOnlyModelViewSet):
-    permissions_classes = [permissions.IsAuthenticated]
+    permission_classes = [
+        permissions.IsAuthenticated,
+    ]
     serializer_class = DrefShareUserSerializer
     filterset_class = DrefShareUserFilterSet
 

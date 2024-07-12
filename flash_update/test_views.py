@@ -2,7 +2,6 @@ import os
 from unittest import mock
 
 from django.conf import settings
-from django.contrib.auth.models import User
 
 import api.models as models
 from deployments.factories.user import UserFactory
@@ -22,7 +21,7 @@ from main.test_case import APITestCase
 class FlashUpdateTest(APITestCase):
 
     def setUp(self):
-        self.user = User.objects.create(username="jo")
+        self.user = UserFactory.create(username="jo")
         self.country1 = models.Country.objects.create(name="abc")
         self.country2 = models.Country.objects.create(name="xyz")
         self.district1 = models.District.objects.create(name="test district1", country=self.country1)
@@ -142,7 +141,7 @@ class FlashUpdateTest(APITestCase):
         self.assertEqual(flash_id.share_with, FlashUpdate.FlashShareWith.IFRC_SECRETARIAT)
 
     def test_get_flash_update(self):
-        user1 = User.objects.create(username="abc")
+        user1 = UserFactory.create(username="abc")
         flash_update1, flash_update2, flash_update3 = FlashUpdateFactory.create_batch(3, created_by=user1)
         self.client.force_authenticate(user=user1)
         response1 = self.client.get("/api/v2/flash-update/").json()
@@ -158,7 +157,7 @@ class FlashUpdateTest(APITestCase):
         self.assertEqual(response["id"], flash_update1.id)
 
         #  try with another user
-        user2 = User.objects.create(username="xyz")
+        user2 = UserFactory.create(username="xyz")
         self.client.force_authenticate(user=user2)
         flash_update4, flash_update5 = FlashUpdateFactory.create_batch(2, created_by=user2)
         response2 = self.client.get("/api/v2/flash-update/").json()
@@ -168,13 +167,13 @@ class FlashUpdateTest(APITestCase):
         self.assertNotIn([data["id"] for data in response2["results"]], [data["id"] for data in response1["results"]])
 
         # try with users who has no any flash update created
-        user3 = User.objects.create(username="ram")
+        user3 = UserFactory.create(username="ram")
         self.client.force_authenticate(user=user3)
         response3 = self.client.get("/api/v2/flash-update/").json()
         self.assertEqual(response3["count"], 5)
 
     def test_filter(self):
-        user = User.objects.create(username="xyz")
+        user = UserFactory.create(username="xyz")
         self.client.force_authenticate(user=user)
         hazard_type1 = models.DisasterType.objects.create(name="disaster_type1")
         hazard_type2 = models.DisasterType.objects.create(name="disaster_type2")

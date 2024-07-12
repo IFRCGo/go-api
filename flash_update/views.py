@@ -117,7 +117,9 @@ class ShareFlashUpdateViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin
 
 
 class ExportFlashUpdateView(views.APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [
+        permissions.IsAuthenticated,
+    ]
 
     @extend_schema(request=None, responses=ExportFlashUpdateViewSerializer)
     def get(self, request, pk, format=None):
