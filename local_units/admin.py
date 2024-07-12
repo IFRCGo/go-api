@@ -55,6 +55,9 @@ class LocalUnitAdmin(CompareVersionAdmin, admin.OSMGeoAdmin):
         AutocompleteFilterFactory("Level", "level"),
     )
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related("country")
+
     def save_model(self, request, obj, form, change):
         if obj.type.code == 1 and obj.health:
             raise ValidationError({"Can't have health data for type %s" % obj.type.code})
