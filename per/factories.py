@@ -3,6 +3,7 @@ import datetime
 import factory
 from factory import fuzzy
 
+from deployments.factories.project import SectorTagFactory
 from per.models import (
     AssessmentType,
     Form,
@@ -12,6 +13,10 @@ from per.models import (
     FormData,
     FormPrioritization,
     FormQuestion,
+    OpsLearning,
+    OpsLearningCacheResponse,
+    OpsLearningComponentCacheResponse,
+    OpsLearningSectorCacheResponse,
     Overview,
     PerWorkPlan,
     PerWorkPlanComponent,
@@ -59,6 +64,7 @@ class FormAreaFactory(factory.django.DjangoModelFactory):
 
 class FormComponentFactory(factory.django.DjangoModelFactory):
     area = factory.SubFactory(FormAreaFactory)
+    title = fuzzy.FuzzyText(length=50, prefix="component-")
 
     class Meta:
         model = FormComponent
@@ -97,3 +103,38 @@ class FormPrioritizationFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = FormPrioritization
+
+
+class OpsLearningFactory(factory.django.DjangoModelFactory):
+    learning = fuzzy.FuzzyText(length=50)
+
+    class Meta:
+        model = OpsLearning
+
+
+class OpsLearningCacheResponseFactory(factory.django.DjangoModelFactory):
+    used_filters_hash = fuzzy.FuzzyText(length=20)
+    insights_1 = fuzzy.FuzzyText(length=50, prefix="insight-")
+    insights_2 = fuzzy.FuzzyText(length=50, prefix="insight-")
+    insights_3 = fuzzy.FuzzyText(length=50, prefix="insight-")
+
+    class Meta:
+        model = OpsLearningCacheResponse
+
+
+class OpsLearningSectorCacheResponseFactory(factory.django.DjangoModelFactory):
+    filter_response = factory.SubFactory(OpsLearningCacheResponseFactory)
+    summary = fuzzy.FuzzyText(length=50)
+    sector = factory.SubFactory(SectorTagFactory)
+
+    class Meta:
+        model = OpsLearningSectorCacheResponse
+
+
+class OpsLearningComponentCacheResponseFactory(factory.django.DjangoModelFactory):
+    filter_response = factory.SubFactory(OpsLearningCacheResponseFactory)
+    summary = fuzzy.FuzzyText(length=50)
+    component = factory.SubFactory(FormComponentFactory)
+
+    class Meta:
+        model = OpsLearningComponentCacheResponse

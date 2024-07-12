@@ -1124,20 +1124,24 @@ class CountryLatestOverviewSerializer(serializers.ModelSerializer):
 
 
 class OpsLearningSectorCacheResponseSerializer(serializers.ModelSerializer):
+    title = serializers.CharField(source="sector.title", read_only=True)
+
     class Meta:
         model = OpsLearningSectorCacheResponse
-        fields = ["summary"]
+        fields = ["summary", "title"]
 
 
 class OpsLearningComponentCacheResponseSerializer(serializers.ModelSerializer):
+    title = serializers.CharField(source="component.title", read_only=True)
+
     class Meta:
         model = OpsLearningComponentCacheResponse
-        fields = ["summary"]
+        fields = ["summary", "title",]
 
 
 class OpsLearningSummarySerializer(serializers.ModelSerializer):
-    by_sectors = OpsLearningSectorCacheResponseSerializer(many=True)
-    by_components = OpsLearningComponentCacheResponseSerializer(many=True)
+    sectors = OpsLearningSectorCacheResponseSerializer(source="ops_learning_sector", many=True)
+    components = OpsLearningComponentCacheResponseSerializer(source="ops_learning_component", many=True)
 
     class Meta:
         model = OpsLearningCacheResponse
@@ -1146,6 +1150,6 @@ class OpsLearningSummarySerializer(serializers.ModelSerializer):
             "insights_1",
             "insights_2",
             "insights_3",
-            "by_sectors",
-            "by_components",
+            "sectors",
+            "components",
         ]
