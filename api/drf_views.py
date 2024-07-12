@@ -917,7 +917,17 @@ class FieldReportViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ModelViewSet):
     filterset_class = FieldReportFilter
     authentication_class = [IsAuthenticated]
     queryset = FieldReport.objects.select_related("dtype", "event").prefetch_related(
-        "actions_taken", "actions_taken__actions", "countries", "districts", "regions"
+        "actions_taken",
+        "actions_taken__actions",
+        "contacts",
+        "countries",
+        "districts",
+        # Unusable – in serializer: wired-in get_merged_items_by_fields():
+        # "event__countries",
+        "external_partners",
+        "regions",
+        "sources",
+        "supported_activities",
     )
 
     def get_serializer_class(self):
