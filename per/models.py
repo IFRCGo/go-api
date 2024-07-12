@@ -767,7 +767,7 @@ class OpsLearningCacheResponse(models.Model):
     created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
 
     def __str__(self) -> str:
-        return self.filter_hash
+        return self.used_filters_hash
 
 
 class OpsLearningSectorCacheResponse(models.Model):
@@ -775,7 +775,7 @@ class OpsLearningSectorCacheResponse(models.Model):
         OpsLearningCacheResponse,
         verbose_name=_("filter response"),
         on_delete=models.CASCADE,
-        related_name="+",
+        related_name="ops_learning_sector",
     )
     sector = models.ForeignKey(
         SectorTag,
@@ -800,7 +800,7 @@ class OpsLearningComponentCacheResponse(models.Model):
         OpsLearningCacheResponse,
         verbose_name=_("filter response"),
         on_delete=models.CASCADE,
-        related_name="+",
+        related_name="ops_learning_component",
     )
     component = models.ForeignKey(
         FormComponent,
