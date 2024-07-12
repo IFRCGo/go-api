@@ -58,13 +58,15 @@ class Command(BaseCommand):
     def extract_country_data(self, data):
         country_list = []
         for country_data in data:
+            if not country_data["Don_Code"] or not country_data["CON_country"]:
+                continue
             country_code = [country_data["Don_Code"].strip(), country_data["CON_country"]]
             country_list.append(country_code)
 
         country_table = pd.DataFrame(country_list, columns=["Country Code", "Country"]).drop_duplicates(
             subset=["Country Code"], keep="last"
         )
-        country_table = country_table.replace(to_replace="None", value=np.nan).dropna()
+        country_table = country_table.replace(to_replace=["None", ""], value=np.nan).dropna()
         return country_table
 
     def fetch_country_documents(self, api_key, country_ns_code):
