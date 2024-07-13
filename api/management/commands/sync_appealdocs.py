@@ -19,6 +19,8 @@ from main.sentry import SentryMonitor
 CRON_NAME = "sync_appealdocs"
 PUBLIC_SOURCE = "https://go-api.ifrc.org/api/publicsiteappeals?Hidden=false&BaseAppealnumber="
 FEDNET_SOURCE = "https://go-api.ifrc.org/Api/FedNetAppeals?Hidden=false&BaseAppealnumber="
+# Recently not needed, due to all docs are in the above ^ ones:
+# DONOR_SOURCE = "https://go-api.ifrc.org/api/PublicSiteDonorResponses?AppealCode="
 
 
 @monitor(monitor_slug=SentryMonitor.SYNC_APPEALDOCS)
@@ -66,6 +68,7 @@ class Command(BaseCommand):
             code = code.replace(" ", "")
             listone = requests.get(PUBLIC_SOURCE + str(code), auth=auth, headers=headers).json()
             listtwo = requests.get(FEDNET_SOURCE + str(code), auth=auth, headers=headers).json()
+            # list3 = requests.get(DONOR_SOURCE + str(code), auth=auth, headers=headers).json()
             results = listone + listtwo  # do not tempt list(set(...)), because: unhashable type: 'dict'
             for result in results:
                 appeals = Appeal.objects.filter(code=code).values_list("id", flat=True)
@@ -73,7 +76,8 @@ class Command(BaseCommand):
                 # Should be always True due to we started from appeals:
                 if appeal_id:
                     # Filter BaseDirectory + BaseFileName == document_url and via code, like 'MGR00001':
-                    document_url = result["BaseDirectory"] + result["BaseFileName"]
+                    pre = "https://www.ifrc.org" if result["BaseDirectory"][:21] == "/docs/appeals/Active/" else ""
+                    document_url = pre + result["BaseDirectory"] + result["BaseFileName"]
                     already_exists = AppealDocument.objects.filter(document_url=document_url).filter(appeal_id=appeal_id)
                     if already_exists:
                         existing.append(document_url)
