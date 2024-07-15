@@ -375,6 +375,9 @@ class CountryCapacityStrengthening(models.Model):
     assessment_type = models.IntegerField(verbose_name=_("Country Assessment Type"), choices=AssessmentType.choices)
     branch_name = models.CharField(verbose_name=_("Branch Name"), max_length=255, null=True, blank=True)
 
+    class Meta:
+        unique_together = ("assessment_type", "assessment_code")
+
     def __str__(self):
         return f"{self.country.name} - {self.assessment_code} - {self.year}"
 
