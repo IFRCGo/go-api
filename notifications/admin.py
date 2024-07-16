@@ -23,8 +23,8 @@ class SurgeAlertAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdm
         "event__name",
     )
     readonly_fields = ("molnix_id", "is_stood_down")
-    list_display = ("__str__", "message", "start", "molnix_id", "molnix_status", "status", "std")
-    list_filter = ("molnix_status", "status", "is_stood_down")
+    list_display = ("__str__", "message", "start", "molnix_id", "molnix_status", "std")
+    list_filter = ("molnix_status", "is_stood_down")
 
 
 class SubscriptionAdmin(CompareVersionAdmin):
