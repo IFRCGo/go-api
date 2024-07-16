@@ -21,6 +21,7 @@ from api.models import Country
 from deployments.models import SectorTag
 from main.permissions import DenyGuestUserMutationPermission, DenyGuestUserPermission
 from main.utils import SpreadSheetContentNegotiation
+from per.cache import OpslearningSummaryCacheHelper
 from per.filter_set import (
     PerDocumentFilter,
     PerOverviewFilter,
@@ -808,6 +809,20 @@ class OpsLearningViewset(viewsets.ModelViewSet):
         context["bom"] = True
 
         return context
+
+    @extend_schema(filters=True)
+    @action(
+        detail=False,
+        methods=["GET"],
+        permission_classes=[permissions.IsAuthenticated],
+        url_path="summary",
+    )
+    def summary(self, request):
+        """
+        Returns a summary of the OpsLearning data
+        """
+        ops_learning_summary_instance = OpslearningSummaryCacheHelper.get_or_create(request, [self.filterset_class])
+        return response.Response(OpsLearningSummarySerializer(ops_learning_summary_instance).data)
 
 
 class PerDocumentUploadViewSet(viewsets.ModelViewSet):

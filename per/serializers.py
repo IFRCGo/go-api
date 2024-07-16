@@ -1148,7 +1148,7 @@ class OpsLearningComponentCacheResponseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OpsLearningComponentCacheResponse
-        fields = ["summary", "title",]
+        fields = ["summary", "title"]
 
 
 class OpsLearningSummarySerializer(serializers.ModelSerializer):
