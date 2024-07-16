@@ -63,7 +63,7 @@ class SurgeAlertViewset(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (TokenAuthentication,)
     queryset = SurgeAlert.objects.prefetch_related("molnix_tags", "molnix_tags__groups").select_related("event", "country").all()
     filterset_class = SurgeAlertFilter
-    ordering_fields = ("created_at", "atype", "category", "event", "is_stood_down", "status", "opens")
+    ordering_fields = ("created_at", "atype", "category", "event", "is_stood_down", "molnix_status", "opens")
     search_fields = (
         "operation",
         "message",
