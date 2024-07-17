@@ -16,12 +16,13 @@ def push_fr_data(data, retired=False):
     if ERP_API_ENDPOINT == "x":
         return
     # Contacts
-    c_ifrc_names = ",".join(
-        data.contacts.filter(ctype__iexact="Federation").values_list("name", flat=True)
-    )  # normally there is only 1
-    c_ns_names = ",".join(
-        data.contacts.filter(ctype__iexact="NationalSociety").values_list("name", flat=True)
-    )  # normally there is only 1
+    names = list(data.contacts.filter(ctype__iexact="Federation").values_list("name", flat=True))
+    names[:] = (name[:20] for name in names)  # Temporary fix for F&O side field lenght issue
+    c_ifrc_names = ",".join(names)  # normally there is only 1
+
+    names = list(data.contacts.filter(ctype__iexact="NationalSociety").values_list("name", flat=True))
+    names[:] = (name[:20] for name in names)  # Temporary fix for F&O side field lenght issue
+    c_ns_names = ",".join(names)  # normally there is only 1
 
     requestTitle = data.event.name if data.event else "-"  # Emergency name
 
@@ -55,9 +56,9 @@ def push_fr_data(data, retired=False):
         """
 
     if data.appeal != RequestChoices.NO:
-        InitialRequestType, InitialRequestValue = "EA", data.appeal_amount
+        InitialRequestType, InitialRequestValue = "EA", data.appeal_amount or 0
     elif data.dref != RequestChoices.NO:
-        InitialRequestType, InitialRequestValue = "DREF", data.dref_amount
+        InitialRequestType, InitialRequestValue = "DREF", data.dref_amount or 0
     else:
         InitialRequestType, InitialRequestValue = "Empty", 0
 
