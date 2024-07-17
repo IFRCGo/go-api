@@ -6,6 +6,7 @@ import django_filters
 from django.core.serializers.json import DjangoJSONEncoder
 
 from per.models import OpsLearningCacheResponse
+from per.task import generate_summary
 
 
 class OpslearningSummaryCacheHelper:
@@ -52,4 +53,5 @@ class OpslearningSummaryCacheHelper:
             return ops_learning_summary
         # TODO: Create a new summary based on the filters
         # returning a dummy object for now
-        return OpsLearningCacheResponse.objects.first()
+        # return OpsLearningCacheResponse.objects.first()
+        return generate_summary(filter_data, hash_value)
