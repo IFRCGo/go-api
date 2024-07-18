@@ -19,8 +19,10 @@ from drf_spectacular.views import (
 
 # DRF routes
 from rest_framework import routers
+from strawberry.django.views import AsyncGraphQLView, GraphQLView
 
 from api import drf_views as api_views
+from api.schema import schema
 from api.views import (
     AddCronJobLog,
     AddSubscription,
@@ -61,8 +63,6 @@ from per.views import LearningTypes
 from registrations import drf_views as registration_views
 from registrations.drf_views import RegistrationView
 from registrations.views import UserExternalTokenViewset, ValidateUser, VerifyEmail
-
-# from graphene_django.views import GraphQLView  # will be needed later
 
 router = routers.DefaultRouter()
 
@@ -173,8 +173,6 @@ urlpatterns = [
     # url(r"^api/v1/es_search/", EsPageSearch.as_view()),
     url(r"^api/v1/search/", HayStackSearch.as_view()),
     url(r"^api/v1/es_health/", EsPageHealth.as_view()),
-    # If we want to use the next one, some permission overthink is needed:
-    # url(r"^api/v1/graphql/", GraphQLView.as_view(graphiql=True)),
     url(r"^api/v1/aggregate/", AggregateByTime.as_view()),
     url(r"^api/v1/aggregate_dtype/", AggregateByDtype.as_view()),
     url(r"^api/v1/aggregate_area/", AreaAggregate.as_view()),
@@ -233,6 +231,9 @@ urlpatterns = [
     path("docs/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
     path("api-docs/", SpectacularAPIView.as_view(), name="schema"),
     path("api-docs/swagger-ui/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+    # If we want graphql, permissions thinking comes:
+    path("graphql/sync", GraphQLView.as_view(schema=schema)),
+    path("graphql", AsyncGraphQLView.as_view(schema=schema)),
 ]
 
 if settings.DEBUG:

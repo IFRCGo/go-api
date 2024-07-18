@@ -1,7 +1,7 @@
 version: '3.5'
 
 x-server: &base_server_setup
-  image: ifrcgo/go-api:latest
+  image: ifrcgo/go-api:graphql
   build: .
   # To attach to container with stdin `docker attach <container_name>`
   # Used for python debugging.
