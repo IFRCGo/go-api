@@ -200,6 +200,7 @@ INSTALLED_APPS = [
     "tinymce",
     "admin_auto_filters",
     "haystack",
+    "strawberry_django",
     # Logging
     "reversion",
     "reversion_compare",
@@ -235,7 +236,7 @@ REST_FRAMEWORK = {
 # GRAPHENE = {"SCHEMA": "api.schema.schema"}
 
 MIDDLEWARE = [
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
+    # double: "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
@@ -249,6 +250,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "middlewares.middlewares.RequestMiddleware",
+    "strawberry_django.middlewares.debug_toolbar.DebugToolbarMiddleware",
     "reversion.middleware.RevisionMiddleware",
 ]
 
