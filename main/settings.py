@@ -621,6 +621,11 @@ SPECTACULAR_SETTINGS = {
     "ENUM_NAME_OVERRIDES": {},
 }
 
+STRAWBERRY_DJANGO = {
+    "FIELD_DESCRIPTION_FROM_HELP_TEXT": True,
+    "TYPE_DESCRIPTION_FROM_MODEL_DOCSTRING": True,
+}
+
 # A character which is rarely used in strings – for separator:
 SEP = "¤"
 
