@@ -6,7 +6,7 @@ from django.utils.translation import gettext
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-from api.models import Appeal, Country, Region
+from api.models import Appeal, AppealType, Country, Region
 from api.serializers import (
     MiniCountrySerializer,
     RegoCountrySerializer,
@@ -867,6 +867,7 @@ class PublicPerAssessmentSerializer(serializers.ModelSerializer):
 class MiniAppealSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
     start_date = serializers.SerializerMethodField()
+    atype = serializers.SerializerMethodField()
     dtype = serializers.SerializerMethodField()
     country = serializers.SerializerMethodField()
     region = serializers.SerializerMethodField()
@@ -880,6 +881,10 @@ class MiniAppealSerializer(serializers.ModelSerializer):
     @staticmethod
     def get_start_date(obj):
         return obj.start_date and obj.start_date.year
+
+    @staticmethod
+    def get_atype(obj):
+        return obj.atype or AppealType(obj.atype).label
 
     @staticmethod
     def get_dtype(obj):
@@ -918,6 +923,11 @@ class MiniAppealSerializer(serializers.ModelSerializer):
 
 
 class FullAppealSerializer(serializers.ModelSerializer):
+    atype = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_atype(obj):
+        return obj.atype or AppealType(obj.atype).label
 
     class Meta:
         model = Appeal
@@ -925,6 +935,11 @@ class FullAppealSerializer(serializers.ModelSerializer):
 
 
 class MicroAppealSerializer(serializers.ModelSerializer):
+    atype = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_atype(obj):
+        return obj.atype or AppealType(obj.atype).label
 
     class Meta:
         model = Appeal
