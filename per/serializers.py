@@ -903,7 +903,18 @@ class MiniAppealSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Appeal
-        fields = ("code", "name", "country", "region", "country_name", "region_name", "dtype", "start_date", "num_beneficiaries")
+        fields = (
+            "code",
+            "name",
+            "atype",
+            "country",
+            "region",
+            "country_name",
+            "region_name",
+            "dtype",
+            "start_date",
+            "num_beneficiaries",
+        )
 
 
 class FullAppealSerializer(serializers.ModelSerializer):
@@ -911,6 +922,13 @@ class FullAppealSerializer(serializers.ModelSerializer):
     class Meta:
         model = Appeal
         fields = "__all__"
+
+
+class MicroAppealSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Appeal
+        fields = ("code", "name", "atype")
 
 
 class OpsLearningCSVSerializer(serializers.ModelSerializer):
@@ -1002,8 +1020,10 @@ class OpsLearningInSerializer(serializers.ModelSerializer):
 
 
 class PublicOpsLearningSerializer(serializers.ModelSerializer):
-    # We do not extract appeal details here.
+    # We do not extract appeal details here, except appeal type, which is important.
     # Only the validated items are shown, arriving from get_queryset().
+
+    appeal_code = MicroAppealSerializer(allow_null=True, read_only=True)
 
     class Meta:
         model = OpsLearning
