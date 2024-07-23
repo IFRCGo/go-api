@@ -884,7 +884,7 @@ class MiniAppealSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_atype(obj):
-        return obj.atype or AppealType(obj.atype).label
+        return AppealType(obj.atype).label
 
     @staticmethod
     def get_dtype(obj):
@@ -927,7 +927,7 @@ class FullAppealSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_atype(obj):
-        return obj.atype or AppealType(obj.atype).label
+        return AppealType(obj.atype).label
 
     class Meta:
         model = Appeal
@@ -939,7 +939,7 @@ class MicroAppealSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_atype(obj):
-        return obj.atype or AppealType(obj.atype).label
+        return AppealType(obj.atype).label
 
     class Meta:
         model = Appeal
