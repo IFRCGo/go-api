@@ -1,6 +1,9 @@
+import os
 import typing
+from itertools import chain
 
 import pandas as pd
+import tiktoken
 from celery import shared_task
 from django.db.models import F
 
@@ -11,8 +14,46 @@ from per.models import FormPrioritization, OpsLearning, Overview
 
 class OpsLearningSummaryTask:
 
+    PROMPT_DATA_LENGTH_LIMIT = 5000
+    ENCODING_NAME = "cl100k_base"
+
     MIN_DIF_COMPONENTS = 3
     MIN_DIF_EXCERPTS = 3
+    primary_prompt = (
+        "Please aggregate and summarize the provided data into UP TO THREE structured paragraphs. "
+        "The output MUST strictly adhere to the format below: "
+        "Title: Each finding should begin with the main finding TITLE in bold. "
+        "Content: Aggregate findings so that they are supported by evidence from more than one report. "
+        "Always integrate evidence from multiple reports or items into the paragraph, and "
+        "include the year and country of the evidence. "
+        "Confidence Level: For each finding, based on the number of items/reports connected to the finding, "
+        "assign a score from 1 to 5 where 1 is the lowest and 5 is the highest. "
+        "The format should be 'Confidence level: #/5' (e.g., 'Confidence level: 4/5'). "
+        "At the end of the summary, please highlight any contradictory country reports. "
+        "DO NOT use data from any source other than the one provided. Provide your answer in JSON form. "
+        "Reply with only the answer in valid JSON form and include no other commentary: "
+        '{"0": {"title": "xxx", "content": "xxx", "confidence level": "xxx"}, '
+        '"1": {"title": "xxx", "content": "xxx", "confidence level": "xxx"}, '
+        '"2": {"title": "xxx", "content": "xxx", "confidence level": "xxx"}, '
+        '"contradictory reports": "xxx"}'
+    )
+
+    secondary_prompt = (
+        "Please aggregate and summarize this data into structured paragraphs (as few as possible, as many as necessary). "
+        "The output SHOULD ALWAYS follow the format below: "
+        "Type: Whether the paragraph is related to a 'sector' or a 'component'. "
+        "Subtype: Provides the name of the sector or of the component to which the paragraph refers. "
+        "Content: A short summary aggregating findings related to the Subtype, so that they are supported by "
+        "evidence coming from more than one report, "
+        "and there is ONLY ONE entry per subtype. Always integrate in the paragraph evidence that supports it "
+        "from the data available from multiple reports or items, "
+        "include year and country of the evidence. DO NOT use data from any source other than the "
+        "one provided. Provide your answer in JSON form. "
+        "Reply with ONLY the answer in valid JSON form and include NO OTHER COMMENTARY: "
+        '{"0": {"type": "sector", "subtype": "shelter", "content": "lorem ipsum"}, '
+        '"1": {"type": "component", "subtype": "Information Management (IM)", "content": "lorem ipsum"}, '
+        '"2": {"type": "sector", "subtype": "WASH", "content": "lorem ipsum"}}'
+    )
 
     @classmethod
     def fetch_ops_learnings(self, filter_data):
@@ -24,7 +65,14 @@ class OpsLearningSummaryTask:
         ops_learning_df = pd.DataFrame(
             list(
                 ops_learning_filtered_qs.values(
-                    "id", "per_component", "learning", "appeal_code__country_id", "appeal_code__country__region_id"
+                    "id",
+                    "per_component",
+                    "learning",
+                    "appeal_code__country_id",
+                    "appeal_code__country__region_id",
+                    "appeal_code__name",
+                    "appeal_code__start_date",
+                    "sector",
                 )
             )
         )
@@ -33,6 +81,8 @@ class OpsLearningSummaryTask:
                 "per_component": "component",
                 "appeal_code__country_id": "country_id",
                 "appeal_code__country__region_id": "region_id",
+                "appeal_code__name": "appeal_name",
+                "appeal_code__start_date": "appeal_year",
             }
         )
         ops_learning_df.set_index("id", inplace=True)
@@ -206,6 +256,15 @@ class OpsLearningSummaryTask:
                 return "multi-region"
             return None
 
+        def contextualize_learnings(df):
+            """Adds appeal year and event name as a contextualization of the leannings."""
+            for index, row in df.iterrows():
+                df.at[index, "learning"] = f"In {row['appeal_year']} in {row['appeal_name']}: {row['learning']}"
+
+            df = df.drop(columns=["appeal_name"])
+            logger.info("Contextualization added to DataFrame.")
+            return df
+
         components_countries = country_list.to_dict(orient="records")
         components_countries = {item["country"]: item["components"] for item in components_countries}
 
@@ -221,10 +280,202 @@ class OpsLearningSummaryTask:
             )
         prioritized_learnings = ops_learning_df
         logger.info("Prioritization of components completed.")
+        prioritized_learnings = contextualize_learnings(prioritized_learnings)
         return prioritized_learnings
+
+    @classmethod
+    def slice_dataframe(self, df, limit=2000, encoding_name="cl100k_base"):
+        def count_tokens(string, encoding_name):
+            """Returns the number of tokens in a text string."""
+            encoding = tiktoken.get_encoding(encoding_name)
+            return len(encoding.encode(string))
+
+        df["count_temp"] = [count_tokens(x, encoding_name) for x in df["learning"]]
+        df["cumsum"] = df["count_temp"].cumsum()
+
+        slice_index = None
+        for i in range(1, len(df)):
+            if df["cumsum"].iloc[i - 1] <= limit and df["cumsum"].iloc[i] > limit:
+                slice_index = i - 1
+                break
+
+        if slice_index is not None:
+            df_sliced = df.iloc[: slice_index + 1]
+        else:
+            df_sliced = df
+        return df_sliced
+
+    @classmethod
+    def prioritize_excerpts(self, df: pd.DataFrame):
+        """Prioritize the most recent excerpts within the token limit."""
+        logger.info("Prioritizing excerpts within token limit.")
+
+        # Droping duplicates based on 'learning' column for primary DataFrame
+        primary_learning_df = df.drop_duplicates(subset="learning")
+        primary_learning_df = primary_learning_df.sort_values(by="appeal_year", ascending=False)
+        primary_learning_df.reset_index(inplace=True, drop=True)
+
+        # Droping duplicates based on 'learning' and 'component' columns for secondary DataFrame
+        secondary_learning_df = df.drop_duplicates(subset=["learning", "component"])
+        secondary_learning_df = secondary_learning_df.sort_values(by=["component", "appeal_year"], ascending=[True, False])
+        grouped = secondary_learning_df.groupby("component")
+
+        # Create an interleaved list of rows
+        interleaved = list(chain(*zip(*[group[1].itertuples(index=False) for group in grouped])))
+
+        # Convert the interleaved list of rows back to a DataFrame
+        result = pd.DataFrame(interleaved)
+        result.reset_index(inplace=True, drop=True)
+
+        # Slice the Primary and secondary dataframes
+        sliced_primary_learning_df = self.slice_dataframe(primary_learning_df, self.PROMPT_DATA_LENGTH_LIMIT, self.ENCODING_NAME)
+        sliced_secondary_learning_df = self.slice_dataframe(result, self.PROMPT_DATA_LENGTH_LIMIT, self.ENCODING_NAME)
+        logger.info("Excerpts prioritized within token limit.")
+        return sliced_primary_learning_df, sliced_secondary_learning_df
+
+    @classmethod
+    def format_prompt(
+        self,
+        primary_learning_df: pd.DataFrame,
+        secondary_learning_df: pd.DataFrame,
+        filter_data: dict,
+    ):
+        """Formats the prompt based on request filter and prioritized learnings."""
+        logger.info("Formatting prompt.")
+
+        def build_intro_section():
+            """Builds the introductory section of the prompt."""
+            return (
+                "I will provide you with a set of instructions, data, and formatting requests in three sections."
+                + " I will pass you the INSTRUCTIONS section, are you ready?"
+                + os.linesep
+                + os.linesep
+            )
+
+        def build_instruction_section(request_filter, df):
+            """Builds the instruction section of the prompt based on the request filter and DataFrame."""
+            instructions = ["INSTRUCTIONS", "========================", "Summarize essential insights from the DATA"]
+
+            if "appeal_code__dtype__in" in request_filter:
+                dtypes = df["dtype_name"].dropna().unique()
+                dtype_str = '", "'.join(dtypes)
+                instructions.append(f'concerning "{dtype_str}" occurrences')
+
+            if "appeal_code__country__in" in request_filter:
+                countries = df["country_name"].dropna().unique()
+                country_str = '", "'.join(countries)
+                instructions.append(f'in "{country_str}"')
+
+            if "appeal_code__region" in request_filter:
+                regions = df["region_name"].dropna().unique()
+                region_str = '", "'.join(regions)
+                instructions.append(f'in "{region_str}"')
+
+            if "sector_validated__in" in request_filter:
+                sectors = df["sector"].dropna().unique()
+                sector_str = '", "'.join(sectors)
+                instructions.append(f'focusing on "{sector_str}" aspects')
+
+            if "per_component_validated__in" in request_filter:
+                components = df["component"].dropna().unique()
+                component_str = '", "'.join(components)
+                instructions.append(f'and "{component_str}" aspects')
+
+            instructions.append(
+                "In Emergency Response. You should prioritize the insights based on their recurrence "
+                "and potential impact on humanitarian operations, and provide the top insights. \n\n"
+                "I will pass you the DATA section, are you ready?\n\n"
+            )
+            return "\n".join(instructions)
+
+        def get_main_sectors(df: pd.DataFrame):
+            """Get only information from technical sectorial information"""
+            temp = df[df["component"] == "NS-specific areas of intervention"]
+            available_sectors = list(temp["sector"].unique())
+            nb_sectors = len(available_sectors)
+            if nb_sectors == 0:
+                logger.info("There were not specific technical sectorial learnings")
+                return []
+            logger.info("Main sectors for secondary summaries selected")
+            return available_sectors
+
+        def get_main_components(df: pd.DataFrame):
+            available_components = list(df["component"].unique())
+            nb_components = len(available_components)
+            if nb_components == 0:
+                logger.info("There were not specific components")
+                return []
+            logger.info("All components for secondary summaries selected")
+            return available_components
+
+        def process_learnings_sector(sector, df, max_length_per_section):
+            df = df[df["sector"] == sector].dropna()
+            df_sliced = self.slice_dataframe(df, max_length_per_section, self.ENCODING_NAME)
+            learnings_sector = (
+                "\n----------------\n"
+                + "SUBTYPE: "
+                + str(sector)
+                + "\n----------------\n"
+                + "\n----------------\n".join(df_sliced["learning"])
+            )
+            return learnings_sector
+
+        def process_learnings_component(component, df, max_length_per_section):
+            df = df[df["component"] == component].dropna()
+            df_sliced = self.slice_dataframe(df, max_length_per_section, self.ENCODING_NAME)
+            learnings_component = (
+                "\n----------------\n"
+                + "SUBTYPE: "
+                + str(component)
+                + "\n----------------\n"
+                + "\n----------------\n".join(df_sliced["learning"])
+            )
+            return learnings_component
+
+        def build_data_section(primary_df: pd.DataFrame, secondary_df: pd.DataFrame):
+            # Primary learnings section
+            primary_learnings_data = "\n----------------\n".join(primary_df["learning"].dropna())
+
+            # Secondary learnings section
+            sectors = get_main_sectors(secondary_df)
+            components = get_main_components(secondary_df)
+            max_length_per_section = self.PROMPT_DATA_LENGTH_LIMIT / (len(components) + len(sectors))
+            learnings_sectors = (
+                "\n----------------\n\n"
+                + "TYPE: SECTORS"
+                + "\n----------------\n".join(
+                    [process_learnings_sector(int(x), secondary_df, max_length_per_section) for x in sectors if pd.notna(x)]
+                )
+            )
+            learnings_components = (
+                "\n----------------\n\n"
+                + "TYPE: COMPONENT"
+                + "\n----------------\n".join(
+                    [process_learnings_component(int(x), secondary_df, max_length_per_section) for x in components if pd.notna(x)]
+                )
+            )
+            secondary_learnings_data = learnings_sectors + learnings_components
+            return primary_learnings_data, secondary_learnings_data
+
+        prompt_intro = build_intro_section()
+        primary_prompt_instruction = build_instruction_section(filter_data, primary_learning_df)
+        secondary_prompt_instruction = build_instruction_section(filter_data, secondary_learning_df)
+        primary_learnings_data, secondary_learnings_data = build_data_section(primary_learning_df, secondary_learning_df)
+
+        # format the prompts
+        primary_learning_prompt = "".join([prompt_intro, primary_prompt_instruction, primary_learnings_data, self.primary_prompt])
+        secondary_learning_prompt = "".join(
+            [prompt_intro, secondary_prompt_instruction, secondary_learnings_data, self.secondary_prompt]
+        )
+        logger.info("Prompt formatted.")
+        return primary_learning_prompt, secondary_learning_prompt
 
 
 @shared_task
 def generate_summary(filter_data: dict, hash_value: str):
     regional_list, global_list, country_list = OpsLearningSummaryTask.generate_priotization_list()
-    OpsLearningSummaryTask.prioritize_components(filter_data, regional_list, global_list, country_list)
+    prioritized_learnings = OpsLearningSummaryTask.prioritize_components(filter_data, regional_list, global_list, country_list)
+    primary_learning_df, secondary_learning_df = OpsLearningSummaryTask.prioritize_excerpts(prioritized_learnings)
+    primary_learning_prompt, secondary_learning_prompt = OpsLearningSummaryTask.format_prompt(
+        primary_learning_df, secondary_learning_df, filter_data
+    )
