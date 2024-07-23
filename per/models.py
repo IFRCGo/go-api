@@ -759,8 +759,10 @@ class PerDocumentUpload(models.Model):
 class OpsLearningCacheResponse(models.Model):
     used_filters_hash = models.CharField(verbose_name=_("used filters hash"), max_length=32)
     used_filters = models.JSONField(verbose_name=_("used filters"), default=dict)
-    used_prompt_hash = models.CharField(verbose_name=_("used prompt hash"), max_length=32)
-    used_prompt = models.TextField(verbose_name=_("used prompt"), null=True, blank=True)
+    used_primary_prompt_hash = models.CharField(verbose_name=_("used primary prompt hash"), max_length=32)
+    used_primary_prompt = models.TextField(verbose_name=_("used primary prompt"), null=True, blank=True)
+    used_secondary_prompt_hash = models.CharField(verbose_name=_("used secondary prompt hash"), max_length=32)
+    used_secondary_prompt = models.TextField(verbose_name=_("used secondary prompt"), null=True, blank=True)
     insights_1 = models.TextField(verbose_name=_("insights 1"), null=True, blank=True)
     insights_2 = models.TextField(verbose_name=_("insights 2"), null=True, blank=True)
     insights_3 = models.TextField(verbose_name=_("insights 3"), null=True, blank=True)

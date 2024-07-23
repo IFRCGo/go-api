@@ -90,6 +90,7 @@ colorlog = "*"
 
 mapbox-tilesets = "*"
 ipython = "*"
+tiktoken = "*"
 
 [tool.poetry.dev-dependencies]
 pytest-profiling = "*"
