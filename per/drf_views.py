@@ -810,16 +810,16 @@ class OpsLearningViewset(viewsets.ModelViewSet):
 
         return context
 
-    @extend_schema(filters=True)
+    @extend_schema(response=OpsLearningSummarySerializer, filters=True)
     @action(
         detail=False,
         methods=["GET"],
-        permission_classes=[permissions.IsAuthenticated],
+        permission_classes=[permissions.AllowAny],
         url_path="summary",
     )
     def summary(self, request):
         """
-        Returns a summary of the OpsLearning data
+        Get the Ops Learning Summary based on the filters
         """
         ops_learning_summary_instance = OpslearningSummaryCacheHelper.get_or_create(request, [self.filterset_class])
         return response.Response(OpsLearningSummarySerializer(ops_learning_summary_instance).data)

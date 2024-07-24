@@ -4,6 +4,7 @@ import typing
 
 import django_filters
 from django.core.serializers.json import DjangoJSONEncoder
+from django.db import transaction
 
 from per.models import OpsLearningCacheResponse
 from per.task import generate_summary
@@ -51,7 +52,5 @@ class OpslearningSummaryCacheHelper:
         ops_learning_summary = OpsLearningCacheResponse.objects.filter(used_filters_hash=hash_value).first()
         if ops_learning_summary:
             return ops_learning_summary
-        # TODO: Create a new summary based on the filters
-        # returning a dummy object for now
-        # return OpsLearningCacheResponse.objects.first()
-        return generate_summary(filter_data, hash_value)
+        # Create a new summary and cache it
+        return transaction.on_commit(lambda: generate_summary.delay(filter_data, hash_value))
