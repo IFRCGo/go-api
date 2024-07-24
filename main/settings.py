@@ -113,6 +113,10 @@ env = environ.Env(
     NS_DOCUMENT_API_KEY=(str, None),
     NS_INITIATIVES_API_KEY=(str, None),
     NS_INITIATIVES_API_TOKEN=(str, None),
+    # OpenAi Azure
+    AZURE_OPENAI_ENDPOINT=(str, None),
+    AZURE_OPENAI_KEY=(str, None),
+    AZURE_OPENAI_DEPLOYMENT_NAME=(str, None),
 )
 
 
