@@ -11,7 +11,7 @@ class SurgeAlertAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdm
 
     @admin.display(description="std")
     def std(self, obj):
-        return obj.is_stood_down
+        return obj.molnix_status == models.SurgeAlertStatus.STOOD_DOWN
 
     std.boolean = True
     country_in = "event__countries__in"
@@ -22,9 +22,9 @@ class SurgeAlertAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdm
         "message",
         "event__name",
     )
-    readonly_fields = ("molnix_id", "is_stood_down")
+    readonly_fields = ("molnix_id",)
     list_display = ("__str__", "message", "start", "molnix_id", "molnix_status", "std")
-    list_filter = ("molnix_status", "is_stood_down")
+    list_filter = ("molnix_status",)
 
 
 class SubscriptionAdmin(CompareVersionAdmin):

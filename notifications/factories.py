@@ -9,6 +9,7 @@ class SurgeAlertFactory(factory.django.DjangoModelFactory):
         model = SurgeAlert
 
     message = fuzzy.FuzzyText(length=100)
+    molnix_id = fuzzy.FuzzyInteger(low=1)
     atype = fuzzy.FuzzyInteger(low=1)
     category = fuzzy.FuzzyInteger(low=1)
     molnix_status = fuzzy.FuzzyChoice(choices=SurgeAlertStatus)

@@ -49,7 +49,6 @@ class SurgeAlertFilter(filters.FilterSet):
             "created_at": ("exact", "gt", "gte", "lt", "lte"),
             "start": ("exact", "gt", "gte", "lt", "lte"),
             "end": ("exact", "gt", "gte", "lt", "lte"),
-            "is_stood_down": ("exact",),
             "molnix_id": ("exact", "in"),
             "message": ("exact", "in"),
             "country": ("exact", "in"),
@@ -67,7 +66,7 @@ class SurgeAlertViewset(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (TokenAuthentication,)
     queryset = SurgeAlert.objects.prefetch_related("molnix_tags", "molnix_tags__groups").select_related("event", "country").all()
     filterset_class = SurgeAlertFilter
-    ordering_fields = ("created_at", "atype", "category", "event", "is_stood_down", "molnix_status", "opens")
+    ordering_fields = ("created_at", "atype", "category", "event", "molnix_status", "opens")
     search_fields = (
         "operation",
         "message",
@@ -79,6 +78,10 @@ class SurgeAlertViewset(viewsets.ReadOnlyModelViewSet):
         #     return SurgeAlertSerializer
         # return UnauthenticatedSurgeAlertSerializer
         return SurgeAlertSerializer
+
+    def get_queryset(self):
+        queryset = self.get_queryset()
+        return queryset.filter(molnix_id__isnull=False).exclude(molnix_tags__name="NO_GO")
 
 
 #   def get_queryset(self):

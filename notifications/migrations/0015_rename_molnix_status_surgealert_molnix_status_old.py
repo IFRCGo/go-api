@@ -19,4 +19,12 @@ class Migration(migrations.Migration):
             old_name="status",
             new_name="molnix_status",
         ),
+        migrations.RemoveField(
+            model_name="surgealert",
+            name="is_active",
+        ),
+        migrations.RemoveField(
+            model_name="surgealert",
+            name="is_stood_down",
+        ),
     ]

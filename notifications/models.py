@@ -49,16 +49,11 @@ class SurgeAlert(models.Model):
     # ID in Molnix system, if parsed from Molnix.
     molnix_id = models.IntegerField(blank=True, null=True)
 
-    # It depends on molnix_status. Check "save" method below.
-    is_stood_down = models.BooleanField(verbose_name=_("is stood down?"), default=False)
     opens = models.DateTimeField(blank=True, null=True)
     closes = models.DateTimeField(blank=True, null=True)
     start = models.DateTimeField(blank=True, null=True)
     end = models.DateTimeField(blank=True, null=True)
     molnix_tags = models.ManyToManyField(MolnixTag, blank=True)
-
-    # Set to inactive when position is no longer in Molnix
-    is_active = models.BooleanField(default=True)
 
     # Don't set `auto_now_add` so we can modify it on save
     created_at = models.DateTimeField(verbose_name=_("created at"))
