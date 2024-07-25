@@ -12,8 +12,8 @@ from .models import Subscription, SurgeAlert
 
 
 class SurgeAlertSerializer(ModelSerializer):
-    event = SurgeEventSerializer()
-    country = MiniCountrySerializer()
+    event = SurgeEventSerializer(required=False)
+    country = MiniCountrySerializer(required=False)
     atype_display = serializers.CharField(source="get_atype_display", read_only=True)
     molnix_status_display = serializers.CharField(source="get_molnix_status_display", read_only=True)
     category_display = serializers.CharField(source="get_category_display", read_only=True)
@@ -41,7 +41,6 @@ class SurgeAlertSerializer(ModelSerializer):
             "closes",
             "start",
             "end",
-            "is_active",
             "is_stood_down",
             "molnix_status",
             "molnix_status_display",

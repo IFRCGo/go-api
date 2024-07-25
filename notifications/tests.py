@@ -166,6 +166,9 @@ class SurgeAlertFilteringTest(APITestCase):
         self.assertEqual(response["count"], 5)
 
     def test_surge_alert_status(self):
+        def _to_csv(*items):
+            return ",".join([str(i) for i in items])
+
         region_1, region_2 = RegionFactory.create_batch(2)
         country_1 = CountryFactory.create(iso3="ATL", region=region_1)
         country_2 = CountryFactory.create(iso3="NPT", region=region_2)
@@ -209,6 +212,6 @@ class SurgeAlertFilteringTest(APITestCase):
         self.assertEqual(response["count"], 1)
         self.assertEqual(response["results"][0]["molnix_status"], SurgeAlertStatus.CLOSED)
 
-        response = _fetch(dict({"molnix_status": SurgeAlertStatus.STOOD_DOWN}))
-        self.assertEqual(response["count"], 1)
+        response = _fetch(dict({"molnix_status": _to_csv(SurgeAlertStatus.STOOD_DOWN, SurgeAlertStatus.OPEN)}))
+        self.assertEqual(response["count"], 2)
         self.assertEqual(response["results"][0]["molnix_status"], SurgeAlertStatus.STOOD_DOWN)
