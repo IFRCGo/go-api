@@ -35,7 +35,13 @@ class SurgeAlertFilter(filters.FilterSet):
         help_text="Molnix_tag names, comma separated",
         widget=CSVWidget,
     )
-    status = filters.NumberFilter(field_name="status", lookup_expr="exact")
+    molnix_status = CharInFilter(
+        label="molnix status",
+        field_name="molnix_status",
+        lookup_expr="in",
+        help_text="Molnix status value, comma separated",
+        widget=CSVWidget,
+    )
 
     class Meta:
         model = SurgeAlert
@@ -44,9 +50,7 @@ class SurgeAlertFilter(filters.FilterSet):
             "start": ("exact", "gt", "gte", "lt", "lte"),
             "end": ("exact", "gt", "gte", "lt", "lte"),
             "is_stood_down": ("exact",),
-            "is_active": ("exact",),
             "molnix_id": ("exact", "in"),
-            "molnix_status": ("exact", "in"),
             "message": ("exact", "in"),
             "country": ("exact", "in"),
             "country__name": ("exact", "in"),

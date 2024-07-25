@@ -482,7 +482,6 @@ def sync_open_positions(molnix_positions, molnix_api, countries):
         go_alert.closes = get_datetime(position["closes"])
         go_alert.start = get_datetime(position["start"])
         go_alert.end = get_datetime(position["end"])
-        go_alert.is_active = go_alert.molnix_status == SurgeAlertStatus.OPEN
         go_alert.save()
         add_tags_to_obj(go_alert, position["tags"])
         if created:
@@ -491,7 +490,7 @@ def sync_open_positions(molnix_positions, molnix_api, countries):
             successful_updates += 1
 
     # Find existing active alerts that are not in the current list from Molnix
-    existing_alerts = SurgeAlert.objects.filter(is_active=True).exclude(molnix_id__isnull=True)
+    existing_alerts = SurgeAlert.objects.filter(SurgeAlertStatus.OPEN).exclude(molnix_id__isnull=True)
     existing_alert_ids = [e.molnix_id for e in existing_alerts]
     inactive_alerts = list(set(existing_alert_ids) - set(molnix_ids))
 
@@ -503,15 +502,10 @@ def sync_open_positions(molnix_positions, molnix_api, countries):
         position = molnix_api.get_position(alert.molnix_id)
         if not position:
             warnings.append("Position id %d not found in Molnix API" % alert.molnix_id)
-        if position and position["status"].lower() == "unfilled":
-            alert.molnix_status = SurgeAlertStatus.STOOD_DOWN
+        if position and position["status"].lower():
+            alert.molnix_status = SurgeAlert.parse_molnix_status(position["status"])
         if position and position["closes"]:
             alert.closes = get_datetime(position["closes"])
-        if position and position["status"].lower() == "archived":
-            alert.molnix_status = SurgeAlertStatus.CLOSED
-            alert.is_active = False
-        else:
-            alert.is_active = False
         alert.save()
 
     marked_inactive = len(inactive_alerts)
