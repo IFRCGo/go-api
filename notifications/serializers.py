@@ -41,7 +41,6 @@ class SurgeAlertSerializer(ModelSerializer):
             "closes",
             "start",
             "end",
-            "is_stood_down",
             "molnix_status",
             "molnix_status_display",
         )
