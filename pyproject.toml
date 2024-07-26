@@ -6,7 +6,7 @@ authors = ["go-dev <go-dev@ifrc.org>"]
 license = "MIT License"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.11"
 # Better than a wired-in subversion:
 Django = ">=4.2,<5.0"
 Markdown = "==3.3.4"
