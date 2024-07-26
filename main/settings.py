@@ -181,7 +181,6 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "guardian",
     "django_filters",
-    "graphene_django",
     "django_read_only",
     # GO Apps
     "api",
@@ -200,6 +199,7 @@ INSTALLED_APPS = [
     "tinymce",
     "admin_auto_filters",
     "haystack",
+    "strawberry_django",
     # Logging
     "reversion",
     "reversion_compare",
@@ -235,7 +235,7 @@ REST_FRAMEWORK = {
 # GRAPHENE = {"SCHEMA": "api.schema.schema"}
 
 MIDDLEWARE = [
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
+    # double: "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
@@ -249,6 +249,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "middlewares.middlewares.RequestMiddleware",
+    "strawberry_django.middlewares.debug_toolbar.DebugToolbarMiddleware",
     "reversion.middleware.RevisionMiddleware",
 ]
 
@@ -617,6 +618,15 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
     "ENUM_ADD_EXPLICIT_BLANK_NULL_CHOICE": False,
     "ENUM_NAME_OVERRIDES": {},
+}
+
+# Graphql
+STRAWBERRY_ENUM_TO_STRAWBERRY_ENUM_MAP = "main.gqenums.ENUM_TO_STRAWBERRY_ENUM_MAP"
+STRAWBERRY_DEFAULT_PAGINATION_LIMIT = 50
+STRAWBERRY_MAX_PAGINATION_LIMIT = 100
+STRAWBERRY_DJANGO = {
+    "FIELD_DESCRIPTION_FROM_HELP_TEXT": True,
+    "TYPE_DESCRIPTION_FROM_MODEL_DOCSTRING": True,
 }
 
 # A character which is rarely used in strings – for separator:

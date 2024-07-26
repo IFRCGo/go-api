@@ -19,6 +19,7 @@ from drf_spectacular.views import (
 
 # DRF routes
 from rest_framework import routers
+from strawberry.django.views import AsyncGraphQLView, GraphQLView
 
 from api import drf_views as api_views
 from api.views import (
@@ -55,6 +56,8 @@ from flash_update import views as flash_views
 from lang import views as lang_views
 from local_units import views as local_units_views
 from local_units.views import DelegationOfficeDetailAPIView, DelegationOfficeListAPIView
+from main.schema import CustomAsyncGraphQLView
+from main.schema import schema as graphql_schema
 from notifications import drf_views as notification_views
 from per import drf_views as per_views
 from per.views import LearningTypes
@@ -233,6 +236,16 @@ urlpatterns = [
     path("docs/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
     path("api-docs/", SpectacularAPIView.as_view(), name="schema"),
     path("api-docs/swagger-ui/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+    # # If we want graphql, permissions thinking comes:
+    path("graphql0/sync", GraphQLView.as_view(schema=graphql_schema)),
+    path("graphql0", AsyncGraphQLView.as_view(schema=graphql_schema)),
+    path(
+        "graphql/",
+        CustomAsyncGraphQLView.as_view(
+            schema=graphql_schema,
+            graphiql=False,
+        ),
+    ),
 ]
 
 if settings.DEBUG:
@@ -245,6 +258,7 @@ if settings.DEBUG:
             # url(r'^__debug__/', include(debug_toolbar.urls)),
         ]
         + urlpatterns
+        + [path("graphiql/", CustomAsyncGraphQLView.as_view(schema=graphql_schema))]
         + static.static(
             settings.MEDIA_URL,
             view=xframe_options_exempt(serve),
