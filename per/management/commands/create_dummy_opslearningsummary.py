@@ -8,6 +8,7 @@ from per.factories import (
     OpsLearningFactory,
     OpsLearningSectorCacheResponseFactory,
 )
+from per.models import OpsLearningCacheResponse
 
 
 class Command(BaseCommand):
@@ -37,7 +38,9 @@ class Command(BaseCommand):
         selected_ops_learning = OpsLearningFactory.create_batch(50, is_validated=True)
 
         # Generating dummy OpsLearningCacheResponse
-        dummy_ops_learning_cache_responses = OpsLearningCacheResponseFactory.create_batch(5)
+        dummy_ops_learning_cache_responses = OpsLearningCacheResponseFactory.create_batch(
+            5, status=OpsLearningCacheResponse.Status.SUCCESS
+        )
         for ops_learning_cache in dummy_ops_learning_cache_responses:
             ops_learning_cache.used_ops_learning.add(*selected_ops_learning[:10])
             self.generate_sector_response(selected_ops_learning[11:20], ops_learning_cache)
