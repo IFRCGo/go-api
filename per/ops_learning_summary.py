@@ -5,12 +5,24 @@ from itertools import chain
 
 import pandas as pd
 import tiktoken
+from django.conf import settings
 from django.db.models import F
 from openai import AzureOpenAI
 
 from api.logger import logger
 from api.models import Country
-from per.models import FormPrioritization, OpsLearning, Overview
+from deployments.models import SectorTag
+from per.cache import OpslearningSummaryCacheHelper
+from per.models import (
+    FormComponent,
+    FormPrioritization,
+    OpsLearning,
+    OpsLearningCacheResponse,
+    OpsLearningComponentCacheResponse,
+    OpsLearningPromptResponseCache,
+    OpsLearningSectorCacheResponse,
+    Overview,
+)
 
 
 class OpsLearningSummaryTask:
@@ -25,11 +37,11 @@ class OpsLearningSummaryTask:
     primary_prompt = (
         "Please aggregate and summarize the provided data into UP TO THREE structured paragraphs. "
         "The output MUST strictly adhere to the format below: "
-        "Title: Each finding should begin with the main finding TITLE in bold. "
-        "Content: Aggregate findings so that they are supported by evidence from more than one report. "
+        "- Title: Each finding should begin with the main finding TITLE in bold. "
+        "- Content: Aggregate findings so that they are supported by evidence from more than one report. "
         "Always integrate evidence from multiple reports or items into the paragraph, and "
-        "include the year and country of the evidence. "
-        "Confidence Level: For each finding, based on the number of items/reports connected to the finding, "
+        "include the year and country of the evidence."
+        "- Confidence Level: For each finding, based on the number of items/reports connected to the finding, "
         "assign a score from 1 to 5 where 1 is the lowest and 5 is the highest. "
         "The format should be 'Confidence level: #/5' (e.g., 'Confidence level: 4/5'). "
         "At the end of the summary, please highlight any contradictory country reports. "
@@ -41,10 +53,10 @@ class OpsLearningSummaryTask:
         "The shift from youth-focused MHPSS to inclusive care in Peru in 2021, the pivot from sanitation infrastructure "
         "to direct aid in Ecuador in 2022, and the responsive livelihood support in Panama in 2020, "
         "all underscore the need for continuous reassessment and agile adaptation to the complex, "
-        'changing needs of disaster-affected communities.", "confidence level": "xxx"}, '
-        '"1": {"title": "xxx", "content": "xxx", "confidence level": "xxx"}, '
-        '"2": {"title": "xxx", "content": "xxx", "confidence level": "xxx"}, '
-        '"contradictory reports": "xxx"}'
+        'changing needs of disaster-affected communities.", "confidence level": "4/5"}, '
+        '"1": {"title": "...", "content": "...", "confidence level": "..."}, '
+        '"2": {"title": "...", "content": "...", "confidence level": "..."}, '
+        '"contradictory reports": "..."}'
     )
 
     secondary_prompt = (
@@ -93,7 +105,7 @@ class OpsLearningSummaryTask:
     )
 
     client = AzureOpenAI(
-        azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"), api_key=os.getenv("AZURE_OPENAI_API_KEY"), api_version="2023-05-15"
+        azure_endpoint=settings.AZURE_OPENAI_ENDPOINT, api_key=settings.AZURE_OPENAI_KEY, api_version="2023-05-15"
     )
 
     def count_tokens(string, encoding_name):
@@ -104,7 +116,11 @@ class OpsLearningSummaryTask:
     @classmethod
     def fetch_ops_learnings(self, filter_data):
         """Fetches the OPS learnings from the database."""
-        ops_learning_qs = OpsLearning.objects.all()
+        ops_learning_qs = OpsLearning.objects.annotate(
+            component_title=F("per_component__title"),
+            sector_title=F("sector__title"),
+            ops_learning_id=F("id"),
+        )
         from per.drf_views import OpsLearningFilter
 
         ops_learning_filtered_qs = OpsLearningFilter(filter_data, queryset=ops_learning_qs).qs
@@ -112,19 +128,21 @@ class OpsLearningSummaryTask:
             list(
                 ops_learning_filtered_qs.values(
                     "id",
-                    "per_component",
+                    "ops_learning_id",
+                    "component_title",
                     "learning",
                     "appeal_code__country_id",
                     "appeal_code__country__region_id",
                     "appeal_code__name",
                     "appeal_code__start_date",
-                    "sector",
+                    "sector_title",
                 )
             )
         )
         ops_learning_df = ops_learning_df.rename(
             columns={
-                "per_component": "component",
+                "component_title": "component",
+                "sector_title": "sector",
                 "appeal_code__country_id": "country_id",
                 "appeal_code__country__region_id": "region_id",
                 "appeal_code__name": "appeal_name",
@@ -453,7 +471,7 @@ class OpsLearningSummaryTask:
             learnings_sector = (
                 "\n----------------\n"
                 + "SUBTYPE: "
-                + str(sector)
+                + sector
                 + "\n----------------\n"
                 + "\n----------------\n".join(df_sliced["learning"])
             )
@@ -465,7 +483,7 @@ class OpsLearningSummaryTask:
             learnings_component = (
                 "\n----------------\n"
                 + "SUBTYPE: "
-                + str(component)
+                + component
                 + "\n----------------\n"
                 + "\n----------------\n".join(df_sliced["learning"])
             )
@@ -483,14 +501,14 @@ class OpsLearningSummaryTask:
                 "\n----------------\n\n"
                 + "TYPE: SECTORS"
                 + "\n----------------\n".join(
-                    [process_learnings_sector(int(x), secondary_df, max_length_per_section) for x in sectors if pd.notna(x)]
+                    [process_learnings_sector(x, secondary_df, max_length_per_section) for x in sectors if pd.notna(x)]
                 )
             )
             learnings_components = (
                 "\n----------------\n\n"
                 + "TYPE: COMPONENT"
                 + "\n----------------\n".join(
-                    [process_learnings_component(int(x), secondary_df, max_length_per_section) for x in components if pd.notna(x)]
+                    [process_learnings_component(x, secondary_df, max_length_per_section) for x in components if pd.notna(x)]
                 )
             )
             secondary_learnings_data = learnings_sectors + learnings_components
@@ -512,19 +530,19 @@ class OpsLearningSummaryTask:
         return primary_learning_prompt, secondary_learning_prompt
 
     @classmethod
-    def generate_summaries(self, primary_learning_prompt, secondary_learning_prompt):
+    def generate_summary(self, prompt, type: OpsLearningPromptResponseCache.PromptType) -> dict:
         """Generates summaries using the provided system message and prompt."""
-        logger.info("Generating summaries.")
+        logger.info(f"Generating summaries for {type.name} prompt.")
 
-        def _validate_length_prompt(messages, prompt_length_limit):
+        def _validate_length_prompt(messages, prompt_length_limit, type):
             """Validates the length of the prompt."""
             message_content = [msg["content"] for msg in messages]
             text = " ".join(message_content)
             count = self.count_tokens(text, self.ENCODING_NAME)
-            logger.info(f"Token count: {count}")
+            logger.info(f"{type.name} Token count: {count}")
             return count <= prompt_length_limit
 
-        def _summarize(prompt, system_message="You are a helpful assistant"):
+        def _summarize(prompt, type: OpsLearningPromptResponseCache.PromptType, system_message="You are a helpful assistant"):
             """Summarizes the prompt using the provided system message."""
             messages = [
                 {"role": "system", "content": system_message},
@@ -536,13 +554,13 @@ class OpsLearningSummaryTask:
                 },
             ]
 
-            if not _validate_length_prompt(messages, self.PROMPT_LENGTH_LIMIT):
+            if not _validate_length_prompt(messages, self.PROMPT_LENGTH_LIMIT, type):
                 logger.warning("The length of the prompt might be too long.")
                 return "{}"
 
             try:
                 response = self.client.chat.completions.create(
-                    model=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"), messages=messages, temperature=0.7
+                    model=settings.AZURE_OPENAI_DEPLOYMENT_NAME, messages=messages, temperature=0.7
                 )
                 summary = response.choices[0].message.content
                 return summary
@@ -555,11 +573,11 @@ class OpsLearningSummaryTask:
             Validates the format of the summary and modifies it if necessary.
             """
 
-            def validate_text_is_dictionary(text):
+            def _validate_text_is_dictionary(text):
                 formatted_text = ast.literal_eval(text)
                 return isinstance(formatted_text, dict)
 
-            def modify_format(summary):
+            def _modify_format(summary) -> str:
                 try:
                     # Find the index of the last closing brace before the "Note"
                     end_index = summary.rfind("}")
@@ -574,18 +592,147 @@ class OpsLearningSummaryTask:
                     logger.error(f"Modification failed: {e}")
                     return "{}"
 
+            formatted_summary = {}
             # Attempt to parse the summary as a dictionary
-            if validate_text_is_dictionary(summary):
+            if _validate_text_is_dictionary(summary):
                 formated_summary = ast.literal_eval(summary)
                 return formated_summary
             else:
-                formatted_summary = modify_format(summary)
+                formatted_summary = _modify_format(summary)
                 formatted_summary = ast.literal_eval(formatted_summary)
                 return formatted_summary
 
-        primary_summary = _summarize(primary_learning_prompt, self.system_message)
-        secondary_summary = _summarize(secondary_learning_prompt, self.system_message)
-        formated_primary_summary = _validate_format(primary_summary)
-        formated_secondary_summary = _validate_format(secondary_summary)
-        logger.info("Summaries generated.")
-        return formated_primary_summary, formated_secondary_summary
+        def _modify_summary(summary: dict) -> dict:
+            """
+            Checks if the "Confidence level" is present in the primary response and skipping for the secondary summary
+            """
+            for key, value in summary.items():
+                if key == "contradictory reports":
+                    continue
+                if "Confidence level" in value["content"]:
+                    confidence_value = value["content"].split("Confidence level:")[-1]
+                    value["content"] = value["content"].split("Confidence level:")[0]
+                    value["confidence level"] = confidence_value
+
+            return summary
+
+        summary = _summarize(prompt, type, self.system_message)
+        formated_summary = _validate_format(summary)
+        processed_summary = _modify_summary(formated_summary)
+        logger.info(f"Summaries generated for {type.name}")
+        return processed_summary
+
+    @classmethod
+    def _get_or_create_summary(self, prompt: str, prompt_hash: str, type: OpsLearningPromptResponseCache.PromptType) -> dict:
+        instance, created = OpsLearningPromptResponseCache.objects.get_or_create(
+            prompt_hash=prompt_hash,
+            type=type,
+            defaults={"prompt": prompt},
+        )
+        if not created:
+            summary = instance.response
+            return summary
+        summary = self.generate_summary(prompt=prompt, type=type)
+        instance.response = summary
+        instance.save(update_fields=["response"])
+        return summary
+
+    @classmethod
+    def save_to_db(
+        self,
+        ops_learning_summary_instance: OpsLearningCacheResponse,
+        primary_summary: dict,
+        secondary_summary: dict,
+    ):
+        logger.info("Saving to database.")
+        # Primary summary
+        ops_learning_summary_instance.insights1_title = primary_summary["0"]["title"]
+        ops_learning_summary_instance.insights2_title = primary_summary["1"]["title"]
+        ops_learning_summary_instance.insights3_title = primary_summary["2"]["title"]
+        ops_learning_summary_instance.insights1_content = primary_summary["0"]["content"]
+        ops_learning_summary_instance.insights2_content = primary_summary["1"]["content"]
+        ops_learning_summary_instance.insights3_content = primary_summary["2"]["content"]
+        ops_learning_summary_instance.insights1_confidence_level = primary_summary["0"]["confidence level"]
+        ops_learning_summary_instance.insights2_confidence_level = primary_summary["1"]["confidence level"]
+        ops_learning_summary_instance.insights3_confidence_level = primary_summary["2"]["confidence level"]
+        ops_learning_summary_instance.contradictory_reports = primary_summary["contradictory reports"]
+        ops_learning_summary_instance.save(
+            update_fields=[
+                "insights1_title",
+                "insights2_title",
+                "insights3_title",
+                "insights1_content",
+                "insights2_content",
+                "insights3_content",
+                "insights1_confidence_level",
+                "insights2_confidence_level",
+                "insights3_confidence_level",
+                "contradictory_reports",
+            ]
+        )
+
+        # Secondary summary
+        for key, value in secondary_summary.items():
+            type = value["type"]
+            subtype = value["subtype"]
+            content = value["content"]
+
+            if type == "component":
+                component_instance = FormComponent.objects.filter(
+                    title__iexact=subtype,
+                ).first()
+                if not component_instance:
+                    logger.error(f"Component '{subtype}' not found.")
+                    continue
+                OpsLearningComponentCacheResponse.objects.create(
+                    component=component_instance,
+                    content=content,
+                    filter_response=ops_learning_summary_instance,
+                )
+            elif type == "sector":
+                sector_instance = SectorTag.objects.filter(
+                    title__iexact=subtype,
+                ).first()
+                if not sector_instance:
+                    logger.error(f"Sector '{subtype}' not found.")
+                    continue
+                OpsLearningSectorCacheResponse.objects.create(
+                    sector=sector_instance,
+                    content=content,
+                    filter_response=ops_learning_summary_instance,
+                )
+            else:
+                logger.error(f"Invalid type '{type}' on secondary summary.")
+
+        logger.info("Saved to database.")
+
+    @classmethod
+    def get_or_create_summary(
+        self,
+        ops_learning_summary_instance: OpsLearningCacheResponse,
+        primary_learning_prompt: str,
+        secondary_learning_prompt: str,
+    ):
+        """Retrieves or Generates the summary based on the provided prompts."""
+        logger.info("Retrieving or generating summary.")
+
+        # generating hash for both primary and secondary prompt
+        primary_prompt_hash = OpslearningSummaryCacheHelper.generate_hash(primary_learning_prompt)
+        secondary_prompt_hash = OpslearningSummaryCacheHelper.generate_hash(secondary_learning_prompt)
+
+        # Checking the response for primary prompt
+        primary_summary = self._get_or_create_summary(
+            prompt=primary_learning_prompt,
+            prompt_hash=primary_prompt_hash,
+            type=OpsLearningPromptResponseCache.PromptType.PRIMARY,
+        )
+
+        # Checking the response for secondary prompt
+        secondary_summary = self._get_or_create_summary(
+            prompt=secondary_learning_prompt,
+            prompt_hash=secondary_prompt_hash,
+            type=OpsLearningPromptResponseCache.PromptType.SECONDARY,
+        )
+
+        # Saving into the database
+        self.save_to_db(ops_learning_summary_instance, primary_summary, secondary_summary)

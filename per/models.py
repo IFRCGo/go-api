@@ -756,16 +756,47 @@ class PerDocumentUpload(models.Model):
         return f"{self.country.name} - {self.created_by} - {self.per_id}"
 
 
+class OpsLearningPromptResponseCache(models.Model):
+    class PromptType(models.IntegerChoices):
+        PRIMARY = 0, _("primary")
+        SECONDARY = 1, _("secondary")
+
+    prompt_hash = models.CharField(verbose_name=_("used prompt hash"), max_length=32)
+    prompt = models.TextField(verbose_name=_("used prompt"), null=True, blank=True)
+    type = models.IntegerField(verbose_name=_("type"), choices=PromptType.choices)
+
+    response = models.JSONField(verbose_name=_("response"), default=dict)
+
+    def __str__(self) -> str:
+        return f"{self.type} - {self.prompt_hash}"
+
+
 class OpsLearningCacheResponse(models.Model):
+    class Status(models.IntegerChoices):
+        PENDING = 0, _("pending")
+        STARTED = 1, _("started")
+        SUCCESS = 2, _("success")
+        FAILED = 3, _("failed")
+
     used_filters_hash = models.CharField(verbose_name=_("used filters hash"), max_length=32)
     used_filters = models.JSONField(verbose_name=_("used filters"), default=dict)
-    used_primary_prompt_hash = models.CharField(verbose_name=_("used primary prompt hash"), max_length=32)
-    used_primary_prompt = models.TextField(verbose_name=_("used primary prompt"), null=True, blank=True)
-    used_secondary_prompt_hash = models.CharField(verbose_name=_("used secondary prompt hash"), max_length=32)
-    used_secondary_prompt = models.TextField(verbose_name=_("used secondary prompt"), null=True, blank=True)
-    insights_1 = models.TextField(verbose_name=_("insights 1"), null=True, blank=True)
-    insights_2 = models.TextField(verbose_name=_("insights 2"), null=True, blank=True)
-    insights_3 = models.TextField(verbose_name=_("insights 3"), null=True, blank=True)
+
+    status = models.IntegerField(verbose_name=_("status"), choices=Status.choices, default=Status.PENDING)
+
+    insights1_content = models.TextField(verbose_name=_("insights 1"), null=True, blank=True)
+    insights2_content = models.TextField(verbose_name=_("insights 2"), null=True, blank=True)
+    insights3_content = models.TextField(verbose_name=_("insights 3"), null=True, blank=True)
+
+    insights1_title = models.CharField(verbose_name=_("insights 1 title"), max_length=255, null=True, blank=True)
+    insights2_title = models.CharField(verbose_name=_("insights 2 title"), max_length=255, null=True, blank=True)
+    insights3_title = models.CharField(verbose_name=_("insights 3 title"), max_length=255, null=True, blank=True)
+
+    insights1_confidence_level = models.CharField(verbose_name=_("insights 1 confidence level"), null=True, blank=True)
+    insights2_confidence_level = models.CharField(verbose_name=_("insights 2 confidence level"), null=True, blank=True)
+    insights3_confidence_level = models.CharField(verbose_name=_("insights 3 confidence level"), null=True, blank=True)
+
+    contradictory_reports = models.TextField(verbose_name=_("contradictory reports"), null=True, blank=True)
+
     used_ops_learning = models.ManyToManyField(
         OpsLearning,
         related_name="+",
@@ -790,16 +821,14 @@ class OpsLearningSectorCacheResponse(models.Model):
         on_delete=models.CASCADE,
         related_name="+",
     )
-    summary = models.TextField(verbose_name=_("summary"))
+    content = models.TextField(verbose_name=_("content"))
     used_ops_learning = models.ManyToManyField(
         OpsLearning,
         related_name="+",
     )
-    modified_at = models.DateTimeField(verbose_name=_("modified_at"), auto_now=True)
-    created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
 
     def __str__(self) -> str:
-        return self.summary
+        return f"sector - {self.content}"
 
 
 class OpsLearningComponentCacheResponse(models.Model):
@@ -815,13 +844,11 @@ class OpsLearningComponentCacheResponse(models.Model):
         on_delete=models.CASCADE,
         related_name="+",
     )
-    summary = models.TextField(verbose_name=_("summary"))
+    content = models.TextField(verbose_name=_("content"))
     used_ops_learning = models.ManyToManyField(
         OpsLearning,
         related_name="+",
     )
-    modified_at = models.DateTimeField(verbose_name=_("modified_at"), auto_now=True)
-    created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
 
     def __str__(self) -> str:
-        return self.summary
+        return f"component - {self.content}"

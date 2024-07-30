@@ -810,7 +810,11 @@ class OpsLearningViewset(viewsets.ModelViewSet):
 
         return context
 
-    @extend_schema(response=OpsLearningSummarySerializer, filters=True)
+    @extend_schema(
+        request=None,
+        filters=True,
+        responses=OpsLearningSummarySerializer(),
+    )
     @action(
         detail=False,
         methods=["GET"],

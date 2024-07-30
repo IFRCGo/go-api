@@ -4,10 +4,8 @@ import typing
 
 import django_filters
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db import transaction
 
 from per.models import OpsLearningCacheResponse
-from per.task import generate_summary
 
 
 class OpslearningSummaryCacheHelper:
@@ -24,7 +22,7 @@ class OpslearningSummaryCacheHelper:
             return ""
         hashable = None
         if isinstance(value, str):
-            hashable = value
+            hashable = value.encode("utf-8")
         elif isinstance(value, dict):
             hashable = json.dumps(
                 value,
@@ -49,8 +47,17 @@ class OpslearningSummaryCacheHelper:
         }
         hash_value = self.generate_hash(filter_data)
         # Check if the summary is already cached
-        ops_learning_summary = OpsLearningCacheResponse.objects.filter(used_filters_hash=hash_value).first()
-        if ops_learning_summary:
+        ops_learning_summary, created = OpsLearningCacheResponse.objects.get_or_create(
+            used_filters_hash=hash_value,
+            used_filters=filter_data,
+            defaults={"status": OpsLearningCacheResponse.Status.PENDING},
+        )
+        if not created and ops_learning_summary.status == OpsLearningCacheResponse.Status.SUCCESS:
             return ops_learning_summary
-        # Create a new summary and cache it
-        return transaction.on_commit(lambda: generate_summary.delay(filter_data, hash_value))
+        # TODO: Create a new summary and cache it
+        # TODO send a http code of task is pending and return the task id
+        # return transaction.on_commit(lambda: generate_summary.delay(ops_learning_summary, filter_data))
+        # return OpsLearningCacheResponse.objects.filter(status=OpsLearningCacheResponse.Status.SUCCESS).first()
+        from per.task import generate_summary
+
+        return generate_summary(ops_learning_summary, filter_data)

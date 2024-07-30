@@ -1140,7 +1140,7 @@ class OpsLearningSectorCacheResponseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OpsLearningSectorCacheResponse
-        fields = ["summary", "title"]
+        fields = ["content", "title"]
 
 
 class OpsLearningComponentCacheResponseSerializer(serializers.ModelSerializer):
@@ -1148,7 +1148,7 @@ class OpsLearningComponentCacheResponseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OpsLearningComponentCacheResponse
-        fields = ["summary", "title"]
+        fields = ["content", "title"]
 
 
 class OpsLearningSummarySerializer(serializers.ModelSerializer):
@@ -1159,9 +1159,12 @@ class OpsLearningSummarySerializer(serializers.ModelSerializer):
         model = OpsLearningCacheResponse
         fields = [
             "id",
-            "insights_1",
-            "insights_2",
-            "insights_3",
+            "insights1_title",
+            "insights1_content",
+            "insights2_title",
+            "insights2_content",
+            "insights3_title",
+            "insights3_content",
             "sectors",
             "components",
         ]

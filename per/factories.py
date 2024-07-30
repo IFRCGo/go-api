@@ -114,9 +114,12 @@ class OpsLearningFactory(factory.django.DjangoModelFactory):
 
 class OpsLearningCacheResponseFactory(factory.django.DjangoModelFactory):
     used_filters_hash = fuzzy.FuzzyText(length=20)
-    insights_1 = fuzzy.FuzzyText(length=50, prefix="insight-")
-    insights_2 = fuzzy.FuzzyText(length=50, prefix="insight-")
-    insights_3 = fuzzy.FuzzyText(length=50, prefix="insight-")
+    insights1_title = fuzzy.FuzzyText(length=50, prefix="insights1-title-")
+    insights1_content = fuzzy.FuzzyText(length=100, prefix="insights1-content-")
+    insights2_title = fuzzy.FuzzyText(length=50, prefix="insights2-title-")
+    insights2_content = fuzzy.FuzzyText(length=100, prefix="insights2-content-")
+    insights3_title = fuzzy.FuzzyText(length=50, prefix="insights3-title-")
+    insights3_content = fuzzy.FuzzyText(length=100, prefix="insights3-content-")
 
     class Meta:
         model = OpsLearningCacheResponse
@@ -124,7 +127,7 @@ class OpsLearningCacheResponseFactory(factory.django.DjangoModelFactory):
 
 class OpsLearningSectorCacheResponseFactory(factory.django.DjangoModelFactory):
     filter_response = factory.SubFactory(OpsLearningCacheResponseFactory)
-    summary = fuzzy.FuzzyText(length=50)
+    content = fuzzy.FuzzyText(length=50)
     sector = factory.SubFactory(SectorTagFactory)
 
     class Meta:
@@ -133,7 +136,7 @@ class OpsLearningSectorCacheResponseFactory(factory.django.DjangoModelFactory):
 
 class OpsLearningComponentCacheResponseFactory(factory.django.DjangoModelFactory):
     filter_response = factory.SubFactory(OpsLearningCacheResponseFactory)
-    summary = fuzzy.FuzzyText(length=50)
+    content = fuzzy.FuzzyText(length=50)
     component = factory.SubFactory(FormComponentFactory)
 
     class Meta:
