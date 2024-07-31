@@ -106,13 +106,14 @@ class GuestUserPermissionTest(APITestCase):
             f"/api/v2/subscription/{id}/",
             "/api/v2/users/",
             f"/api/v2/users/{id}/",
+            # Exports
+            f"/api/v2/export-flash-update/{1}/",
         ]
 
-        # TODO Add test case for export apis
-        # get_export_apis = [
-        #     f"/api/v2/export-flash-update/{1}/",
-        #     f"/api/v2/export-per/{1}/",
-        # ]
+        # NOTE: With custom Content Negotiation: Look for main.utils.SpreadSheetContentNegotiation
+        get_custom_negotiation_apis = [
+            f"/api/v2/export-per/{1}/",
+        ]
 
         go_apis_req_additional_perm = [
             "/api/v2/ops-learning/",
@@ -123,34 +124,46 @@ class GuestUserPermissionTest(APITestCase):
 
         self.authenticate(user=self.guest_user)
 
+        def _success_check(response):  # NOTE: Only handles json responses
+            self.assertNotIn(response.status_code, [401, 403], response.content)
+            self.assertNotIn(response.json().get("error_code"), [401, 403], response.content)
+
+        def _failure_check(response, is_json=True):
+            self.assertIn(response.status_code, [401, 403], response.content)
+            if is_json:
+                self.assertIn(response.json()["error_code"], [401, 403], response.content)
+
+        for api_url in get_custom_negotiation_apis:
+            headers = {
+                "Accept": "text/html",
+            }
+            response = self.client.get(api_url, headers=headers, stream=True)
+            _failure_check(response, is_json=False)
+
         # Guest user should not be able to access get apis that requires IsAuthenticated permission
         for api_url in get_apis:
-            response = self.client.get(api_url).json()
-            error_code = response.get("error_code")
-            self.assertIn(error_code, [403, 401])
+            response = self.client.get(api_url)
+            _failure_check(response)
 
         # Guest user should not be able to hit post apis.
         for api_url in go_apis + go_apis_req_additional_perm:
-            response = self.client.post(api_url, json=body).json()
-            self.assertIn(response["error_code"], [401, 403])
+            response = self.client.post(api_url, json=body)
+            _failure_check(response)
 
         # Guest user should be able to access guest apis
         for api_url in guest_apis:
-            response = self.client.post(api_url, json=body).json()
-            error_code = response.get("error_code", None)
-            self.assertNotIn(error_code, [403, 401])
+            response = self.client.post(api_url, json=body)
+            _success_check(response)
 
         # Go user should be able to access go_apis
         self.authenticate(user=self.go_user)
         for api_url in go_apis:
-            response = self.client.post(api_url, json=body).json()
-            error_code = response.get("error_code", None)
-            self.assertNotIn(error_code, [403, 401])
+            response = self.client.post(api_url, json=body)
+            _success_check(response)
 
         for api_url in get_apis:
-            response = self.client.get(api_url).json()
-            error_code = response.get("error_code", None)
-            self.assertNotIn(error_code, [403, 401])
+            response = self.client.get(api_url)
+            _success_check(response)
 
 
 class AuthTokenTest(APITestCase):

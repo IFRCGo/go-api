@@ -119,6 +119,7 @@ class ShareFlashUpdateViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin
 class ExportFlashUpdateView(views.APIView):
     permission_classes = [
         permissions.IsAuthenticated,
+        DenyGuestUserMutationPermission,
     ]
 
     @extend_schema(request=None, responses=ExportFlashUpdateViewSerializer)
