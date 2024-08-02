@@ -50,7 +50,7 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
-        if not settings.DEBUG and not settings.GO_ENVIRONMENT == "development":
+        if not settings.DEBUG and settings.GO_ENVIRONMENT not in ["development", "ALPHA-2"]:
             self.stderr.write(
                 "Dummy data generation is not allowed for this instance."
                 " Use environment variable DEBUG set to True and GO_ENVIRONMENT to development"

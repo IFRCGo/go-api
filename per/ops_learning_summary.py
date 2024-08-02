@@ -113,6 +113,12 @@ class OpsLearningSummaryTask:
         encoding = tiktoken.get_encoding(encoding_name)
         return len(encoding.encode(string))
 
+    @staticmethod
+    def change_ops_learning_status(instance: OpsLearningCacheResponse, status: OpsLearningCacheResponse.Status):
+        """Changes the status of the OPS learning instance."""
+        instance.status = status
+        instance.save(update_fields=["status"])
+
     @classmethod
     def fetch_ops_learnings(self, filter_data):
         """Fetches the OPS learnings from the database."""
@@ -607,10 +613,10 @@ class OpsLearningSummaryTask:
             Checks if the "Confidence level" is present in the primary response and skipping for the secondary summary
             """
             for key, value in summary.items():
-                if key == "contradictory reports":
+                if key == "contradictory reports" or "confidence level" in value:
                     continue
                 if "Confidence level" in value["content"]:
-                    confidence_value = value["content"].split("Confidence level:")[-1]
+                    confidence_value = value["content"].split("Confidence level:")[-1].strip()
                     value["content"] = value["content"].split("Confidence level:")[0]
                     value["confidence level"] = confidence_value
 
@@ -703,7 +709,7 @@ class OpsLearningSummaryTask:
                 )
             else:
                 logger.error(f"Invalid type '{type}' on secondary summary.")
-
+        self.change_ops_learning_status(ops_learning_summary_instance, OpsLearningCacheResponse.Status.SUCCESS)
         logger.info("Saved to database.")
 
     @classmethod
