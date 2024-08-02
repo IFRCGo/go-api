@@ -50,14 +50,12 @@ class OpslearningSummaryCacheHelper:
         ops_learning_summary, created = OpsLearningCacheResponse.objects.get_or_create(
             used_filters_hash=hash_value,
             used_filters=filter_data,
+            status=OpsLearningCacheResponse.Status.SUCCESS,
             defaults={"status": OpsLearningCacheResponse.Status.PENDING},
         )
-        if not created and ops_learning_summary.status == OpsLearningCacheResponse.Status.SUCCESS:
+        if not created:
             return ops_learning_summary
-        # TODO: Create a new summary and cache it
         # TODO send a http code of task is pending and return the task id
-        # return transaction.on_commit(lambda: generate_summary.delay(ops_learning_summary, filter_data))
-        # return OpsLearningCacheResponse.objects.filter(status=OpsLearningCacheResponse.Status.SUCCESS).first()
-        from per.task import generate_summary
-
-        return generate_summary(ops_learning_summary, filter_data)
+        # transaction.on_commit(lambda: generate_summary.delay(ops_learning_summary, filter_data))
+        # return Response({"task_id": ops_learning_summary.id}, status=202)
+        return OpsLearningCacheResponse.objects.filter(status=OpsLearningCacheResponse.Status.SUCCESS).first()
