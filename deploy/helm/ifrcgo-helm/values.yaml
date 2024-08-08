@@ -172,4 +172,16 @@ elasticsearch:
       cpu: "2"
       memory: 4Gi
 
+sshBastion:
+  enabled: true
+  resources:
+    requests:
+      cpu: "0.5"
+      memory: 0.5Gi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+  keys:
+    # example key. replace with desired keys before deploying
+    sunu.pub: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIE5DKmjOqpap6prdiSOMVgi1iOIq5nNmtteFYfaMqcNp sunu@sunu.in
 
