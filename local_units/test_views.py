@@ -17,6 +17,7 @@ from .models import (
     LocalUnitLevel,
     LocalUnitType,
     PrimaryHCC,
+    VisibilityChoices,
 )
 
 
@@ -127,6 +128,21 @@ class TestLocalUnitsDetailView(APITestCase):
         local_unit = LocalUnit.objects.all().first()
         self.authenticate()
         response = self.client.get(f"/api/v2/local-units/{local_unit.id}/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["location_details"]["coordinates"], [12, 38])
+        self.assertEqual(response.data["country_details"]["name"], "Nepal")
+        self.assertEqual(response.data["country_details"]["iso3"], "NLP")
+        self.assertEqual(response.data["type_details"]["name"], "Code 0")
+        self.assertEqual(response.data["type_details"]["code"], 0)
+
+        # test for guest user
+        profile = self.user.profile
+        profile.limit_access_to_guest = True
+        profile.save()
+        self.user.profile = profile
+        self.authenticate()
+        local_unit = LocalUnitFactory.create(country=self.country, type=self.type, visibility=VisibilityChoices.PUBLIC)
+        response = self.client.get(f"/api/v2/public-local-units/{local_unit.id}/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["location_details"]["coordinates"], [12, 38])
         self.assertEqual(response.data["country_details"]["name"], "Nepal")
