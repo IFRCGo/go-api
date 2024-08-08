@@ -683,6 +683,7 @@ class UserProfileAdmin(CompareVersionAdmin):
     list_filter = (
         ("country__region", RelatedDropdownFilter),
         ("country", RelatedDropdownFilter),
+        ("limit_access_to_guest"),
     )
     actions = ["export_selected_users"]
     readonly_fields = ("last_frontend_login",)
