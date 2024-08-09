@@ -25,7 +25,7 @@ from api.models import (
 from deployments.models import ERU, Personnel, PersonnelDeployment
 from main.sentry import SentryMonitor
 from notifications.hello import get_hello
-from notifications.models import RecordType, Subscription, SubscriptionType
+from notifications.models import RecordType, Subscription, SubscriptionType, SurgeAlert
 from notifications.notification import send_notification
 from utils.elasticsearch import construct_es_data
 
@@ -955,8 +955,8 @@ class Command(BaseCommand):
             diff=ExpressionWrapper(F("updated_at") - F("created_at"), output_field=DurationField())
         ).filter(condU & cond2 & Q(diff__gt=timedelta(minutes=1)))
 
-        # new_surgealerts = SurgeAlert.objects.filter(cond1)
-        # new_pers_deployments = PersonnelDeployment.objects.filter(cond1)
+        new_surgealerts = SurgeAlert.objects.filter(cond1)
+        new_pers_deployments = PersonnelDeployment.objects.filter(cond1)
 
         # Merge Weekly Digest into one mail instead of separate ones
         if self.is_digest_mode():
@@ -968,8 +968,8 @@ class Command(BaseCommand):
             # self.notify(updated_appeals, RecordType.APPEAL, SubscriptionType.EDIT)
             self.notify(new_events, RecordType.EVENT, SubscriptionType.NEW)
             # self.notify(updated_events, RecordType.EVENT, SubscriptionType.EDIT)
-            # temporary switched off while historical data is uploaded: self.notify(new_surgealerts, RecordType.SURGE_ALERT, SubscriptionType.NEW)  # noqa: E501
-            # temporary switched off while historical data is uploaded: self.notify(new_pers_deployments, RecordType.SURGE_DEPLOYMENT_MESSAGES, SubscriptionType.NEW)  # noqa: E501
+            self.notify(new_surgealerts, RecordType.SURGE_ALERT, SubscriptionType.NEW)
+            self.notify(new_pers_deployments, RecordType.SURGE_DEPLOYMENT_MESSAGES, SubscriptionType.NEW)
 
         # Followed Events
         if self.is_daily_checkup_time():
