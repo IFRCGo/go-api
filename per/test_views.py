@@ -1,6 +1,8 @@
 import json
+from unittest import mock
 
 from api.factories.country import CountryFactory
+from api.models import AppealType
 from main.test_case import APITestCase
 from per.factories import (
     FormAreaFactory,
@@ -188,3 +190,37 @@ class PerTestCase(APITestCase):
         self.authenticate(self.user)
         response = self.client.post(url, data, format="multipart")
         self.assert_403(response)
+
+
+class OpsLearningSummaryTestCase(APITestCase):
+
+    def check_response_id(self, url, data):
+        response = self.client.get(url, data)
+        self.assert_200(response)
+        response_data = json.loads(response.content)
+        id = response_data["id"]
+
+        # NOTE: Checking if the object is same for the filters
+        response = self.client.get(url, data)
+        self.assert_200(response)
+        response_data = json.loads(response.content)
+        self.assertEqual(response_data["id"], id)
+
+    @mock.patch("per.task.generate_summary")
+    def test_summary_generation(self, generate_summary):
+        country = CountryFactory.create()
+
+        url = "/api/v2/ops-learning/summary/"
+        filters = {
+            "appeal_code__dtype": AppealType.DREF,
+        }
+        self.check_response_id(url=url, data=filters)
+        self.assertTrue(generate_summary.assert_called)
+
+        # checking with different filters
+        filters = {
+            "appeal_code__dtype": AppealType.APPEAL,
+            "appeal_code__country": country.id,
+        }
+        self.check_response_id(url=url, data=filters)
+        self.assertTrue(generate_summary.assert_called)

@@ -4,8 +4,13 @@ import typing
 
 import django_filters
 from django.core.serializers.json import DjangoJSONEncoder
+from django.db.models import Count, Prefetch
 
-from per.models import OpsLearningCacheResponse
+from per.models import (
+    OpsLearningCacheResponse,
+    OpsLearningComponentCacheResponse,
+    OpsLearningSectorCacheResponse,
+)
 
 
 class OpslearningSummaryCacheHelper:
@@ -47,15 +52,24 @@ class OpslearningSummaryCacheHelper:
         }
         hash_value = self.generate_hash(filter_data)
         # Check if the summary is already cached
-        ops_learning_summary, created = OpsLearningCacheResponse.objects.get_or_create(
+        # NOTE: count for the related components and sectors are prefetched
+        ops_learning_summary, created = OpsLearningCacheResponse.objects.prefetch_related(
+            "used_ops_learning",
+            Prefetch(
+                "ops_learning_component",
+                queryset=OpsLearningComponentCacheResponse.objects.select_related(
+                    "component",
+                ).annotate(count=Count("used_ops_learning")),
+            ),
+            Prefetch(
+                "ops_learning_sector",
+                queryset=OpsLearningSectorCacheResponse.objects.select_related(
+                    "sector",
+                ).annotate(count=Count("used_ops_learning")),
+            ),
+        ).get_or_create(
             used_filters_hash=hash_value,
             used_filters=filter_data,
-            status=OpsLearningCacheResponse.Status.SUCCESS,
             defaults={"status": OpsLearningCacheResponse.Status.PENDING},
         )
-        if not created:
-            return ops_learning_summary
-        # TODO send a http code of task is pending and return the task id
-        # transaction.on_commit(lambda: generate_summary.delay(ops_learning_summary, filter_data))
-        # return Response({"task_id": ops_learning_summary.id}, status=202)
-        return OpsLearningCacheResponse.objects.filter(status=OpsLearningCacheResponse.Status.SUCCESS).first()
+        return ops_learning_summary, filter_data

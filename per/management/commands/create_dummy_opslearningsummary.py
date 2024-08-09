@@ -8,7 +8,7 @@ from per.factories import (
     OpsLearningFactory,
     OpsLearningSectorCacheResponseFactory,
 )
-from per.models import OpsLearningCacheResponse
+from per.models import OpsLearning, OpsLearningCacheResponse
 
 
 class Command(BaseCommand):
@@ -35,7 +35,10 @@ class Command(BaseCommand):
             ops_learning_component_cache.used_ops_learning.add(*ops_learnings)
 
     def generate_ops_learning_summary(self):
-        selected_ops_learning = OpsLearningFactory.create_batch(50, is_validated=True)
+        selected_ops_learning = OpsLearning.objects.filter(is_validated=True)[:50]
+        if not selected_ops_learning:
+            selected_ops_learning = OpsLearningFactory.create_batch(50, is_validated=True)
+            self.stderr.write(self.style.ERROR("No OpsLearning data found. Create Fake OpsLearning data first."))
 
         # Generating dummy OpsLearningCacheResponse
         dummy_ops_learning_cache_responses = OpsLearningCacheResponseFactory.create_batch(

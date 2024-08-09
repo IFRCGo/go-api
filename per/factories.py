@@ -64,7 +64,7 @@ class FormAreaFactory(factory.django.DjangoModelFactory):
 
 class FormComponentFactory(factory.django.DjangoModelFactory):
     area = factory.SubFactory(FormAreaFactory)
-    title = fuzzy.FuzzyText(length=50, prefix="component-")
+    title = factory.Faker("sentence", nb_words=5)
 
     class Meta:
         model = FormComponent
@@ -114,12 +114,12 @@ class OpsLearningFactory(factory.django.DjangoModelFactory):
 
 class OpsLearningCacheResponseFactory(factory.django.DjangoModelFactory):
     used_filters_hash = fuzzy.FuzzyText(length=20)
-    insights1_title = fuzzy.FuzzyText(length=50, prefix="insights1-title-")
-    insights1_content = fuzzy.FuzzyText(length=100, prefix="insights1-content-")
-    insights2_title = fuzzy.FuzzyText(length=50, prefix="insights2-title-")
-    insights2_content = fuzzy.FuzzyText(length=100, prefix="insights2-content-")
-    insights3_title = fuzzy.FuzzyText(length=50, prefix="insights3-title-")
-    insights3_content = fuzzy.FuzzyText(length=100, prefix="insights3-content-")
+    insights1_title = factory.Faker("sentence", nb_words=5)
+    insights1_content = factory.Faker("sentence", nb_words=20)
+    insights2_title = factory.Faker("sentence", nb_words=5)
+    insights2_content = factory.Faker("sentence", nb_words=25)
+    insights3_title = factory.Faker("sentence", nb_words=10)
+    insights3_content = factory.Faker("sentence", nb_words=30)
 
     class Meta:
         model = OpsLearningCacheResponse
@@ -127,7 +127,7 @@ class OpsLearningCacheResponseFactory(factory.django.DjangoModelFactory):
 
 class OpsLearningSectorCacheResponseFactory(factory.django.DjangoModelFactory):
     filter_response = factory.SubFactory(OpsLearningCacheResponseFactory)
-    content = fuzzy.FuzzyText(length=50)
+    content = factory.Faker("sentence", nb_words=30)
     sector = factory.SubFactory(SectorTagFactory)
 
     class Meta:
@@ -136,7 +136,7 @@ class OpsLearningSectorCacheResponseFactory(factory.django.DjangoModelFactory):
 
 class OpsLearningComponentCacheResponseFactory(factory.django.DjangoModelFactory):
     filter_response = factory.SubFactory(OpsLearningCacheResponseFactory)
-    content = fuzzy.FuzzyText(length=50)
+    content = factory.Faker("sentence", nb_words=30)
     component = factory.SubFactory(FormComponentFactory)
 
     class Meta:
