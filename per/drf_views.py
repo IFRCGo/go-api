@@ -23,6 +23,7 @@ from main.permissions import DenyGuestUserMutationPermission
 from main.utils import SpreadSheetContentNegotiation
 from per.cache import OpslearningSummaryCacheHelper
 from per.filter_set import (
+    OpsLearningSummaryFilter,
     PerDocumentFilter,
     PerOverviewFilter,
     PerPrioritizationFilter,
@@ -73,6 +74,7 @@ from .serializers import (
     ListNiceDocSerializer,
     NiceDocumentSerializer,
     OpsLearningCSVSerializer,
+    OpsLearningExtractSerializer,
     OpsLearningInSerializer,
     OpsLearningSerializer,
     OpsLearningSummarySerializer,
@@ -841,8 +843,17 @@ class PerDocumentUploadViewSet(viewsets.ModelViewSet):
         return filter_per_queryset_by_user_access(user, queryset)
 
 
-class OpsLearningSummaryViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = OpsLearningCacheResponse.objects.all()
-    serializer_class = OpsLearningSummarySerializer
-    permission_classes = [permissions.IsAuthenticated]
-    pagination_class = None
+@extend_schema(
+    request=None,
+    responses=OpsLearningSummarySerializer,
+    filters=True,
+)
+class OpsLearningSummaryViewset(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+    queryset = OpsLearningCacheResponse.objects.filter(status=OpsLearningCacheResponse.Status.SUCCESS).prefetch_related(
+        "used_ops_learning",
+        "used_ops_learning_sector",
+        "used_ops_learning_component",
+    )
+    serializer_class = OpsLearningExtractSerializer
+    filterset_class = OpsLearningSummaryFilter
+    permission_classes = [permissions.AllowAny]

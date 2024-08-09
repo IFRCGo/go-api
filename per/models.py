@@ -816,14 +816,14 @@ class OpsLearningSectorCacheResponse(models.Model):
         on_delete=models.CASCADE,
         related_name="+",
     )
-    content = models.TextField(verbose_name=_("content"))
+    content = models.TextField(verbose_name=_("content"), null=True, blank=True)
     used_ops_learning = models.ManyToManyField(
         OpsLearning,
         related_name="+",
     )
 
     def __str__(self) -> str:
-        return f"sector - {self.content}"
+        return f"Summary - sector - {self.sector.title}"
 
 
 class OpsLearningComponentCacheResponse(models.Model):
@@ -839,11 +839,11 @@ class OpsLearningComponentCacheResponse(models.Model):
         on_delete=models.CASCADE,
         related_name="+",
     )
-    content = models.TextField(verbose_name=_("content"))
+    content = models.TextField(verbose_name=_("content"), null=True, blank=True)
     used_ops_learning = models.ManyToManyField(
         OpsLearning,
         related_name="+",
     )
 
     def __str__(self) -> str:
-        return f"component - {self.content}"
+        return f"Summary - component - {self.component.title}"

@@ -58,4 +58,8 @@ class OpslearningSummaryCacheHelper:
         # TODO send a http code of task is pending and return the task id
         # transaction.on_commit(lambda: generate_summary.delay(ops_learning_summary, filter_data))
         # return Response({"task_id": ops_learning_summary.id}, status=202)
-        return OpsLearningCacheResponse.objects.filter(status=OpsLearningCacheResponse.Status.SUCCESS).first()
+        # return OpsLearningCacheResponse.objects.filter(status=OpsLearningCacheResponse.Status.SUCCESS).first()
+
+        from per.task import generate_summary
+
+        generate_summary(ops_learning_summary, filter_data)

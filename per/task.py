@@ -17,7 +17,7 @@ def generate_summary(ops_learning_summary_instance: OpsLearningCacheResponse, fi
         )
         primary_learning_df, secondary_learning_df = OpsLearningSummaryTask.prioritize_excerpts(prioritized_learnings)
         primary_learning_prompt, secondary_learning_prompt = OpsLearningSummaryTask.format_prompt(
-            primary_learning_df, secondary_learning_df, filter_data
+            ops_learning_summary_instance, primary_learning_df, secondary_learning_df, filter_data
         )
         OpsLearningSummaryTask.get_or_create_summary(
             ops_learning_summary_instance, primary_learning_prompt, secondary_learning_prompt

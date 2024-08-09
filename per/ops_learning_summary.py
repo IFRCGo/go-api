@@ -1,11 +1,12 @@
 import ast
-import os
+import re
 import typing
-from itertools import chain
+from itertools import chain, zip_longest
 
 import pandas as pd
 import tiktoken
 from django.conf import settings
+from django.db import transaction
 from django.db.models import F
 from openai import AzureOpenAI
 
@@ -88,7 +89,7 @@ class OpsLearningSummaryTask:
 
     primary_instruction_prompt = (
         "You should:"
-        "1. Describe, Summarize and Compare: Identify and detail the who, what, where, when and how many."
+        "1. Describe, Summarize and Compare: Identify and detail the who, what, where and when"
         "2. Explain and Connect: Analyze why events happened and how they are related"
         "3. Identify gaps: Assess what data is available, what is missing and potential biases"
         "4. Identify key messages: Determine important stories and signals hidden in the data"
@@ -97,7 +98,7 @@ class OpsLearningSummaryTask:
 
     secondary_instruction_prompt = (
         "You should for each section in the data (TYPE & SUBTYPE combination):"
-        "1. Describe, Summarize and Compare: Identify and detail the who, what, where, when and how many."
+        "1. Describe, Summarize and Compare: Identify and detail the who, what, where and when"
         "2. Explain and Connect: Analyze why events happened and how they are related"
         "3. Identify gaps: Assess what data is available, what is missing and potential biases"
         "4. Identify key messages: Determine if there are important stories and signals hidden in the data"
@@ -118,6 +119,49 @@ class OpsLearningSummaryTask:
         """Changes the status of the OPS learning instance."""
         instance.status = status
         instance.save(update_fields=["status"])
+
+    @staticmethod
+    def add_used_ops_learnings(instance: OpsLearningCacheResponse, used_ops_learnings: typing.List[int]):
+        """Adds the used OPS learnings to the cache response."""
+        instance.used_ops_learning.add(*used_ops_learnings)
+
+    @staticmethod
+    def add_used_ops_learnings_sector(instance: OpsLearningCacheResponse, used_ops_learnings: typing.List[int], sector: str):
+        """Adds the used OPS learnings to the cache response."""
+        # NOTE: This function is pre saving instance for the sector, Content is saved after the response
+        sector_instance = (
+            SectorTag.objects.exclude(is_deprecated=True)
+            .filter(
+                title__iexact=sector,
+            )
+            .first()
+        )
+        if not sector_instance:
+            logger.error(f"Sector '{sector}' not found.")
+            return
+        ops_learning_sector = OpsLearningSectorCacheResponse.objects.create(
+            sector=sector_instance,
+            filter_response=instance,
+        )
+        ops_learning_sector.used_ops_learning.add(*used_ops_learnings)
+
+    @staticmethod
+    def add_used_ops_learnings_component(
+        instance: OpsLearningCacheResponse, used_ops_learnings: typing.List[int], component: str
+    ):
+        """Adds the used OPS learnings to the cache response."""
+        # NOTE: This function is pre saving instance for the component, Content is saved after the response
+        component_instance = FormComponent.objects.filter(
+            title__iexact=component,
+        ).first()
+        if not component_instance:
+            logger.error(f"Component '{component}' not found.")
+            return
+        ops_learning_component = OpsLearningComponentCacheResponse.objects.create(
+            component=component_instance,
+            filter_response=instance,
+        )
+        ops_learning_component.used_ops_learning.add(*used_ops_learnings)
 
     @classmethod
     def fetch_ops_learnings(self, filter_data):
@@ -343,6 +387,9 @@ class OpsLearningSummaryTask:
 
         ops_learning_df = self.fetch_ops_learnings(filter_data)
 
+        # Contectualize the learnings
+        ops_learning_df = _contextualize_learnings(ops_learning_df)
+
         if _need_component_prioritization(ops_learning_df, self.MIN_DIF_COMPONENTS, self.MIN_DIF_EXCERPTS):
             type_prioritization = _identify_type_prioritization(ops_learning_df)
             prioritized_learnings = self.prioritize(
@@ -350,13 +397,12 @@ class OpsLearningSummaryTask:
             )
         prioritized_learnings = ops_learning_df
         logger.info("Prioritization of components completed.")
-        prioritized_learnings = _contextualize_learnings(prioritized_learnings)
         return prioritized_learnings
 
     @classmethod
     def slice_dataframe(self, df, limit=2000, encoding_name="cl100k_base"):
-        df["count_temp"] = [self.count_tokens(x, encoding_name) for x in df["learning"]]
-        df["cumsum"] = df["count_temp"].cumsum()
+        df.loc[:, "count_temp"] = [self.count_tokens(x, encoding_name) for x in df["learning"]]
+        df.loc[:, "cumsum"] = df["count_temp"].cumsum()
 
         slice_index = None
         for i in range(1, len(df)):
@@ -381,15 +427,15 @@ class OpsLearningSummaryTask:
         primary_learning_df.reset_index(inplace=True, drop=True)
 
         # Droping duplicates based on 'learning' and 'component' columns for secondary DataFrame
-        secondary_learning_df = df.drop_duplicates(subset=["learning", "component"])
+        secondary_learning_df = df.drop_duplicates(subset=["learning", "component", "sector"])
         secondary_learning_df = secondary_learning_df.sort_values(by=["component", "appeal_year"], ascending=[True, False])
         grouped = secondary_learning_df.groupby("component")
 
         # Create an interleaved list of rows
-        interleaved = list(chain(*zip(*[group[1].itertuples(index=False) for group in grouped])))
+        interleaved = list(chain(*zip_longest(*[group[1].itertuples(index=False) for group in grouped], fillvalue=None)))
 
         # Convert the interleaved list of rows back to a DataFrame
-        result = pd.DataFrame(interleaved)
+        result = pd.DataFrame(interleaved).dropna(subset=["component"])
         result.reset_index(inplace=True, drop=True)
 
         # Slice the Primary and secondary dataframes
@@ -401,6 +447,7 @@ class OpsLearningSummaryTask:
     @classmethod
     def format_prompt(
         self,
+        ops_learning_summary_instance: OpsLearningCacheResponse,
         primary_learning_df: pd.DataFrame,
         secondary_learning_df: pd.DataFrame,
         filter_data: dict,
@@ -413,8 +460,7 @@ class OpsLearningSummaryTask:
             return (
                 "I will provide you with a set of instructions, data, and formatting requests in three sections."
                 + " I will pass you the INSTRUCTIONS section, are you ready?"
-                + os.linesep
-                + os.linesep
+                + "\n\n\n\n"
             )
 
         def _build_instruction_section(request_filter: dict, df: pd.DataFrame, instruction: str):
@@ -448,7 +494,7 @@ class OpsLearningSummaryTask:
 
             instructions.append("in Emergency Response.")
             instructions.append("\n\n" + instruction)
-            instructions.append("\n\nI will pass you the DATA section, are you ready?\n\n")
+            instructions.append("\n\nI will pass you the DATA section, are you ready?\n\n\n")
             return "\n".join(instructions)
 
         def get_main_sectors(df: pd.DataFrame):
@@ -463,7 +509,8 @@ class OpsLearningSummaryTask:
             return available_sectors
 
         def get_main_components(df: pd.DataFrame):
-            available_components = list(df["component"].unique())
+            temp = df[df["component"] != "NS-specific areas of intervention"]
+            available_components = list(temp["component"].unique())
             nb_components = len(available_components)
             if nb_components == 0:
                 logger.info("There were not specific components")
@@ -474,6 +521,12 @@ class OpsLearningSummaryTask:
         def process_learnings_sector(sector, df, max_length_per_section):
             df = df[df["sector"] == sector].dropna()
             df_sliced = self.slice_dataframe(df, max_length_per_section, self.ENCODING_NAME)
+
+            self.add_used_ops_learnings_sector(
+                instance=ops_learning_summary_instance,
+                used_ops_learnings=df_sliced["ops_learning_id"].tolist(),
+                sector=sector,
+            )
             learnings_sector = (
                 "\n----------------\n"
                 + "SUBTYPE: "
@@ -486,6 +539,12 @@ class OpsLearningSummaryTask:
         def process_learnings_component(component, df, max_length_per_section):
             df = df[df["component"] == component].dropna()
             df_sliced = self.slice_dataframe(df, max_length_per_section, self.ENCODING_NAME)
+
+            self.add_used_ops_learnings_component(
+                instance=ops_learning_summary_instance,
+                used_ops_learnings=df_sliced["ops_learning_id"].tolist(),
+                component=component,
+            )
             learnings_component = (
                 "\n----------------\n"
                 + "SUBTYPE: "
@@ -499,6 +558,12 @@ class OpsLearningSummaryTask:
             # Primary learnings section
             primary_learnings_data = "\n----------------\n".join(primary_df["learning"].dropna())
 
+            primary_learning_data = primary_df["ops_learning_id"].dropna().tolist()
+
+            self.add_used_ops_learnings(
+                ops_learning_summary_instance,
+                used_ops_learnings=primary_learning_data,
+            )
             # Secondary learnings section
             sectors = get_main_sectors(secondary_df)
             components = get_main_components(secondary_df)
@@ -613,12 +678,13 @@ class OpsLearningSummaryTask:
             Checks if the "Confidence level" is present in the primary response and skipping for the secondary summary
             """
             for key, value in summary.items():
-                if key == "contradictory reports" or "confidence level" in value:
+                confidence_level = "confidence level"
+                if key == "contradictory reports" or confidence_level in value:
                     continue
-                if "Confidence level" in value["content"]:
-                    confidence_value = value["content"].split("Confidence level:")[-1].strip()
-                    value["content"] = value["content"].split("Confidence level:")[0]
-                    value["confidence level"] = confidence_value
+                if confidence_level in value["content"].lower():
+                    parts = re.split(rf"(?i)\b{confidence_level}\b", value["content"])
+                    value["content"] = parts[0]
+                    value["confidence level"] = parts[1][1:].strip()
 
             return summary
 
@@ -643,9 +709,8 @@ class OpsLearningSummaryTask:
         instance.save(update_fields=["response"])
         return summary
 
-    @classmethod
+    @transaction.atomic
     def save_to_db(
-        self,
         ops_learning_summary_instance: OpsLearningCacheResponse,
         primary_summary: dict,
         secondary_summary: dict,
@@ -676,7 +741,6 @@ class OpsLearningSummaryTask:
                 "contradictory_reports",
             ]
         )
-
         # Secondary summary
         for key, value in secondary_summary.items():
             type = value["type"]
@@ -684,32 +748,47 @@ class OpsLearningSummaryTask:
             content = value["content"]
 
             if type == "component":
-                component_instance = FormComponent.objects.filter(
-                    title__iexact=subtype,
-                ).first()
-                if not component_instance:
+                component = FormComponent.objects.filter(title__iexact=subtype).first()
+                if not component:
                     logger.error(f"Component '{subtype}' not found.")
                     continue
-                OpsLearningComponentCacheResponse.objects.create(
-                    component=component_instance,
-                    content=content,
+                ops_learning_component, created = OpsLearningComponentCacheResponse.objects.get_or_create(
                     filter_response=ops_learning_summary_instance,
+                    component=component,
+                    defaults={"content": content},
                 )
+                if not created:
+                    ops_learning_component.content = content
+                    ops_learning_component.save(update_fields=["content"])
+
             elif type == "sector":
-                sector_instance = SectorTag.objects.filter(
-                    title__iexact=subtype,
-                ).first()
-                if not sector_instance:
+                sector = (
+                    SectorTag.objects.exclude(is_deprecated=True)
+                    .filter(
+                        title__iexact=subtype,
+                    )
+                    .first()
+                )
+                if not sector:
                     logger.error(f"Sector '{subtype}' not found.")
                     continue
-                OpsLearningSectorCacheResponse.objects.create(
-                    sector=sector_instance,
-                    content=content,
+                ops_learning_sector, created = OpsLearningSectorCacheResponse.objects.get_or_create(
                     filter_response=ops_learning_summary_instance,
+                    sector=sector,
+                    defaults={"content": content},
                 )
+                if not created:
+                    ops_learning_sector.content = content
+                    ops_learning_sector.save(update_fields=["content"])
             else:
                 logger.error(f"Invalid type '{type}' on secondary summary.")
-        self.change_ops_learning_status(ops_learning_summary_instance, OpsLearningCacheResponse.Status.SUCCESS)
+        # NOTE: Deleting the `null` content for now because the response maynot contain the all sector or component
+        OpsLearningComponentCacheResponse.objects.filter(
+            filter_response=ops_learning_summary_instance, content__isnull=True
+        ).delete()
+        OpsLearningSectorCacheResponse.objects.filter(
+            filter_response=ops_learning_summary_instance, content__isnull=True
+        ).delete()
         logger.info("Saved to database.")
 
     @classmethod
@@ -742,3 +821,4 @@ class OpsLearningSummaryTask:
 
         # Saving into the database
         self.save_to_db(ops_learning_summary_instance, primary_summary, secondary_summary)
+        self.change_ops_learning_status(ops_learning_summary_instance, OpsLearningCacheResponse.Status.SUCCESS)

@@ -1049,6 +1049,14 @@ class PublicOpsLearningSerializer(serializers.ModelSerializer):
         exclude = ("learning", "type", "organization", "sector", "per_component")
 
 
+class OpsLearningSummarySourceSerializer(serializers.ModelSerializer):
+    appeal_code = MiniAppealSerializer(allow_null=True, read_only=True)
+
+    class Meta:
+        model = OpsLearning
+        fields = ["id", "appeal_code", "appeal_document_id"]
+
+
 class PerDocumentUploadSerializer(serializers.ModelSerializer):
     MAX_NUMBER_OF_DOCUMENTS = 10
 
@@ -1128,7 +1136,7 @@ class OpsLearningSectorCacheResponseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OpsLearningSectorCacheResponse
-        fields = ["content", "title"]
+        fields = ["id", "content", "title"]
 
 
 class OpsLearningComponentCacheResponseSerializer(serializers.ModelSerializer):
@@ -1136,7 +1144,7 @@ class OpsLearningComponentCacheResponseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OpsLearningComponentCacheResponse
-        fields = ["content", "title"]
+        fields = ["id", "content", "title"]
 
 
 class OpsLearningSummarySerializer(serializers.ModelSerializer):
@@ -1155,4 +1163,18 @@ class OpsLearningSummarySerializer(serializers.ModelSerializer):
             "insights3_content",
             "sectors",
             "components",
+        ]
+
+
+class OpsLearningExtractSerializer(serializers.ModelSerializer):
+    insights_extracts = PublicOpsLearningSerializer(source="used_ops_learning", many=True)
+    sector_extracts = PublicOpsLearningSerializer(source="used_ops_learning_sector", many=True)
+    component_extracts = PublicOpsLearningSerializer(source="used_ops_learning_component", many=True)
+
+    class Meta:
+        model = OpsLearningCacheResponse
+        fields = [
+            "insights_extracts",
+            "sector_extracts",
+            "component_extracts",
         ]
