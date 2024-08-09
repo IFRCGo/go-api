@@ -1,7 +1,7 @@
 import factory
 from factory import fuzzy
 
-from .models import SurgeAlert
+from .models import SurgeAlert, SurgeAlertStatus
 
 
 class SurgeAlertFactory(factory.django.DjangoModelFactory):
@@ -9,9 +9,10 @@ class SurgeAlertFactory(factory.django.DjangoModelFactory):
         model = SurgeAlert
 
     message = fuzzy.FuzzyText(length=100)
+    molnix_id = fuzzy.FuzzyInteger(low=1)
     atype = fuzzy.FuzzyInteger(low=1)
     category = fuzzy.FuzzyInteger(low=1)
-    molnix_status = fuzzy.FuzzyChoice(choices=["active", "inactive"])
+    molnix_status = fuzzy.FuzzyChoice(choices=SurgeAlertStatus)
 
     @factory.post_generation
     def molnix_tags(self, create, extracted, **_):

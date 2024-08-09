@@ -113,7 +113,6 @@ class SentryMonitor(models.TextChoices):
     UPDATE_PROJECT_STATUS = "update_project_status", "1 3 * * *"
     USER_REGISTRATION_REMINDER = "user_registration_reminder", "0 9 * * *"
     INGEST_COUNTRY_PLAN_FILE = "ingest_country_plan_file", "1 0 * * *"
-    UPDATE_SURGE_ALERT_STATUS = "update_surge_alert_status", "1 */12 * * *"
     FDRS_ANNUAL_INCOME = "fdrs_annual_income", "0 0 * * 0"
     FDRS_INCOME = "FDRS_INCOME", "0 0 * * 0"
     INGEST_ACAPS = "ingest_acaps", "0 1 * * 0"
