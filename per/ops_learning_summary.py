@@ -1,12 +1,15 @@
 import ast
-import os
+import re
 import typing
-from itertools import chain
+from itertools import chain, zip_longest
 
 import pandas as pd
 import tiktoken
 from django.conf import settings
+
+# from django.db import transaction
 from django.db.models import F
+from django.utils.functional import cached_property
 from openai import AzureOpenAI
 
 from api.logger import logger
@@ -25,6 +28,24 @@ from per.models import (
 )
 
 
+class AzureOpenAiChat:
+
+    @cached_property
+    def client(self):
+        return AzureOpenAI(
+            azure_endpoint=settings.AZURE_OPENAI_ENDPOINT, api_key=settings.AZURE_OPENAI_KEY, api_version="2023-05-15"
+        )
+
+    def get_response(self, message):
+        try:
+            response = self.client.chat.completions.create(
+                model=settings.AZURE_OPENAI_DEPLOYMENT_NAME, messages=message, temperature=0.7
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            logger.error(f"Error while generating response: {e}", exc_info=True)
+
+
 class OpsLearningSummaryTask:
 
     PROMPT_DATA_LENGTH_LIMIT = 5000
@@ -37,43 +58,54 @@ class OpsLearningSummaryTask:
     primary_prompt = (
         "Please aggregate and summarize the provided data into UP TO THREE structured paragraphs. "
         "The output MUST strictly adhere to the format below: "
-        "- Title: Each finding should begin with the main finding TITLE in bold. "
+        "- *Title*: Each finding should begin with the main finding TITLE in bold. "
+        "Should be a high level summary of the finding below. "
+        "The length of the title MUST be between 20 and 30 characters."
+        "- *Excerpts ID*: Identify the ids of the excerpts you took into account for creating the summary. "
         "- Content: Aggregate findings so that they are supported by evidence from more than one report. "
         "Always integrate evidence from multiple reports or items into the paragraph, and "
         "include the year and country of the evidence."
-        "- Confidence Level: For each finding, based on the number of items/reports connected to the finding, "
-        "assign a score from 1 to 5 where 1 is the lowest and 5 is the highest. "
-        "The format should be 'Confidence level: #/5' (e.g., 'Confidence level: 4/5'). "
+        "- *Confidence Level*: Based on the number of excerpts connected to the finding, "
+        "assign a score from 1 to 5 where 1 is the lowest and 5 is the highest, e.g. 4/5"
         "At the end of the summary, please highlight any contradictory country reports. "
-        "DO NOT use data from any source other than the one provided. Provide your answer in JSON form. "
-        "Reply with only the answer in valid JSON form and include no other commentary: "
+        "Important:"
+        "-- DO NOT mention the excerpts id in the content of the summary."
+        "-- DO NOT mention the confidence level in the content of the summary."
+        "-- DO NOT use data from any source other than the one provided."
+        "Output Format:"
+        "Provide your answer in valid JSON form. Reply with only the answer in valid JSON form and include no other commentary. "
         "Example: "
-        '{"0": {"title": "Flexible and Adaptive Response Planning", '
+        '{"0": {"title": "Flexible and Adaptive Response Planning", "excerpts id":"123, 45" '
         '"content": "Responses in Honduras, Peru, Ecuador, and Panama highlight the importance of adaptable strategies. '
         "The shift from youth-focused MHPSS to inclusive care in Peru in 2021, the pivot from sanitation infrastructure "
         "to direct aid in Ecuador in 2022, and the responsive livelihood support in Panama in 2020, "
         "all underscore the need for continuous reassessment and agile adaptation to the complex, "
         'changing needs of disaster-affected communities.", "confidence level": "4/5"}, '
-        '"1": {"title": "...", "content": "...", "confidence level": "..."}, '
-        '"2": {"title": "...", "content": "...", "confidence level": "..."}, '
+        '"1": {"title": "...", "excerpts id":"...", "content": "...", "confidence level": "..."}, '
+        '"2": {"title": "...", "excerpts id":"...", "content": "...", "confidence level": "..."}, '
         '"contradictory reports": "..."}'
     )
 
     secondary_prompt = (
         "Please aggregate and summarize this data into structured paragraphs (as few as possible, as many as necessary). "
         "The output SHOULD ALWAYS follow the format below: "
-        "Type: Whether the paragraph is related to a 'sector' or a 'component'. "
-        "Subtype: Provides the name of the sector or of the component to which the paragraph refers. "
-        "Content: A short summary aggregating findings related to the Subtype, so that they are supported by "
-        "evidence coming from more than one report, "
-        "and there is ONLY ONE entry per subtype. Always integrate in the paragraph evidence that supports it "
-        "from the data available from multiple reports or items, "
-        "include year and country of the evidence. DO NOT use data from any source other than the "
-        "one provided. Provide your answer in JSON form. "
-        "Reply with ONLY the answer in valid JSON form and include NO OTHER COMMENTARY: "
-        '{"0": {"type": "sector", "subtype": "shelter", "content": "lorem ipsum"}, '
-        '"1": {"type": "component", "subtype": "Information Management (IM)", "content": "lorem ipsum"}, '
-        '"2": {"type": "sector", "subtype": "WASH", "content": "lorem ipsum"}}'
+        "- *Type*: Whether the paragraph is related to a 'sector' or a 'component' "
+        "- *Subtype*: Provides the name of the sector or of the component to which the paragraph refers."
+        "- *Excerpts ID*: Identify the ids of the excerpts you took into account for creating the summary."
+        "*Content*: A short summary aggregating findings related to the Subtype, "
+        "so that they are supported by evidence coming from more than one report, "
+        "and there is ONLY ONE entry per subtype. Always integrate in the paragraph evidence that supports "
+        "it from the data available from multiples reports or items, include year and country of the evidence. "
+        "The length of each paragraph MUST be between 20 and 30 words."
+        " Important:"
+        "- ONLY create one summary per subtype"
+        "- DO NOT mention the ids of the excerpts in the content of the summary."
+        "- DO NOT use data from any source other than the one provided. "
+        "Output Format:"
+        "Provide your answer in valid JSON form. Reply with ONLY the answer in JSON form and include NO OTHER COMMENTARY."
+        '{"0": {"type": "sector", "subtype": "shelter", "excerpts id":"43, 1375, 14543", "content": "lorem ipsum"}, '
+        '"1": {"type": "component", "subtype": "Information Management", "excerpts id":"23, 235", "content": "lorem ipsum"}, '
+        '"2": {"type": "sector", "subtype": "WASH", "excerpts id":"30, 40",  "content": "lorem ipsum"}}'
     )
 
     system_message = (
@@ -88,7 +120,7 @@ class OpsLearningSummaryTask:
 
     primary_instruction_prompt = (
         "You should:"
-        "1. Describe, Summarize and Compare: Identify and detail the who, what, where, when and how many."
+        "1. Describe, Summarize and Compare: Identify and detail the who, what, where and when"
         "2. Explain and Connect: Analyze why events happened and how they are related"
         "3. Identify gaps: Assess what data is available, what is missing and potential biases"
         "4. Identify key messages: Determine important stories and signals hidden in the data"
@@ -97,15 +129,11 @@ class OpsLearningSummaryTask:
 
     secondary_instruction_prompt = (
         "You should for each section in the data (TYPE & SUBTYPE combination):"
-        "1. Describe, Summarize and Compare: Identify and detail the who, what, where, when and how many."
+        "1. Describe, Summarize and Compare: Identify and detail the who, what, where and when"
         "2. Explain and Connect: Analyze why events happened and how they are related"
         "3. Identify gaps: Assess what data is available, what is missing and potential biases"
         "4. Identify key messages: Determine if there are important stories and signals hidden in the data"
         "5. Conclude and make your case"
-    )
-
-    client = AzureOpenAI(
-        azure_endpoint=settings.AZURE_OPENAI_ENDPOINT, api_key=settings.AZURE_OPENAI_KEY, api_version="2023-05-15"
     )
 
     def count_tokens(string, encoding_name):
@@ -119,40 +147,123 @@ class OpsLearningSummaryTask:
         instance.status = status
         instance.save(update_fields=["status"])
 
+    @staticmethod
+    def add_used_ops_learnings(instance: OpsLearningCacheResponse, used_ops_learnings: typing.List[int]):
+        """Adds the used OPS learnings to the cache response."""
+        instance.used_ops_learning.add(*used_ops_learnings)
+
+    @staticmethod
+    def add_used_ops_learnings_sector(
+        instance: OpsLearningCacheResponse, content: str, used_ops_learnings: typing.List[int], sector: str
+    ):
+        """Adds the used OPS learnings to the cache response."""
+        sector_instance = (
+            SectorTag.objects.exclude(is_deprecated=True)
+            .filter(
+                title__iexact=sector,
+            )
+            .first()
+        )
+        if not sector_instance:
+            logger.error(f"Sector '{sector}' not found.", exc_info=True)
+            return
+        ops_learning_instances = OpsLearning.objects.filter(id__in=used_ops_learnings)
+        if len(ops_learning_instances):
+            ops_learning_sector, created = (
+                OpsLearningSectorCacheResponse.objects.select_related("filter_response", "sector")
+                .prefetch_related(
+                    "used_ops_learning",
+                )
+                .get_or_create(sector=sector_instance, filter_response=instance, defaults={"content": content})
+            )
+            if created:
+                ops_learning_sector.used_ops_learning.add(*ops_learning_instances)
+
+    @staticmethod
+    def add_used_ops_learnings_component(
+        instance: OpsLearningCacheResponse, content: str, used_ops_learnings: typing.List[int], component: str
+    ):
+        """Adds the used OPS learnings to the cache response."""
+        component_instance = FormComponent.objects.filter(
+            title__iexact=component,
+        ).first()
+        if not component_instance:
+            logger.error(f"Component '{component}' not found.", exc_info=True)
+            return
+        ops_learning_instances = OpsLearning.objects.filter(id__in=used_ops_learnings)
+        if len(ops_learning_instances):
+            ops_learning_component, created = (
+                OpsLearningComponentCacheResponse.objects.select_related("filter_response", "component")
+                .prefetch_related(
+                    "used_ops_learning",
+                )
+                .get_or_create(component=component_instance, filter_response=instance, defaults={"content": content})
+            )
+            if created:
+                ops_learning_component.used_ops_learning.add(*ops_learning_instances)
+
     @classmethod
     def fetch_ops_learnings(self, filter_data):
         """Fetches the OPS learnings from the database."""
-        ops_learning_qs = OpsLearning.objects.annotate(
-            component_title=F("per_component__title"),
-            sector_title=F("sector__title"),
-            ops_learning_id=F("id"),
+        ops_learning_qs = (
+            OpsLearning.objects.filter(is_validated=True)
+            .select_related(
+                "per_component_validated", "sector_validated", "appeal_code__country", "appeal_code__region", "appeal_code__dtype"
+            )
+            .annotate(
+                excerpts_id=F("id"),
+                component_title=F("per_component_validated__title"),
+                sector_title=F("sector_validated__title"),
+                country_id=F("appeal_code__country__id"),
+                country_name=F("appeal_code__country__name"),
+                region_id=F("appeal_code__region__id"),
+                region_name=F("appeal_code__region__label"),
+                appeal_name=F("appeal_code__name"),
+                appeal_year=F("appeal_code__start_date"),
+                dtype_name=F("appeal_code__dtype__name"),
+            )
         )
         from per.drf_views import OpsLearningFilter
 
         ops_learning_filtered_qs = OpsLearningFilter(filter_data, queryset=ops_learning_qs).qs
-        ops_learning_df = pd.DataFrame(
-            list(
-                ops_learning_filtered_qs.values(
+        if not ops_learning_filtered_qs.exists():
+            logger.info("No OPS learnings found for the given filter.")
+            ops_learning_df = pd.DataFrame(
+                columns=[
                     "id",
-                    "ops_learning_id",
-                    "component_title",
+                    "excerpts_id",
+                    "component",
+                    "sector",
                     "learning",
-                    "appeal_code__country_id",
-                    "appeal_code__country__region_id",
-                    "appeal_code__name",
-                    "appeal_code__start_date",
-                    "sector_title",
-                )
+                    "country_id",
+                    "country_name",
+                    "region_id",
+                    "region_name",
+                    "appeal_name",
+                    "appeal_year",
+                    "dtype_name",
+                ]
+            )
+            return ops_learning_df
+        ops_learning_df = pd.DataFrame.from_records(
+            ops_learning_filtered_qs.values(
+                "id",
+                "excerpts_id",
+                "component_title",
+                "sector_title",
+                "learning",
+                "country_id",
+                "country_name",
+                "region_id",
+                "region_name",
+                "appeal_name",
+                "appeal_year",
             )
         )
         ops_learning_df = ops_learning_df.rename(
             columns={
                 "component_title": "component",
                 "sector_title": "sector",
-                "appeal_code__country_id": "country_id",
-                "appeal_code__country__region_id": "region_id",
-                "appeal_code__name": "appeal_name",
-                "appeal_code__start_date": "appeal_year",
             }
         )
         ops_learning_df.set_index("id", inplace=True)
@@ -303,7 +414,7 @@ class OpsLearningSummaryTask:
     @classmethod
     def prioritize_components(
         self,
-        filter_data: dict,
+        ops_learning_df: pd.DataFrame,
         regional_list,
         global_list,
         country_list,
@@ -329,7 +440,9 @@ class OpsLearningSummaryTask:
         def _contextualize_learnings(df):
             """Adds appeal year and event name as a contextualization of the leannings."""
             for index, row in df.iterrows():
-                df.at[index, "learning"] = f"In {row['appeal_year']} in {row['appeal_name']}: {row['learning']}"
+                df.at[index, "learning"] = (
+                    f"{row['excerpts_id']}. In {row['appeal_year']} in {row['appeal_name']}: {row['learning']}"
+                )
 
             df = df.drop(columns=["appeal_name"])
             logger.info("Contextualization added to DataFrame.")
@@ -341,7 +454,8 @@ class OpsLearningSummaryTask:
         components_regions = regional_list.to_dict(orient="records")
         components_regions = {item["region"]: item["components"] for item in components_regions}
 
-        ops_learning_df = self.fetch_ops_learnings(filter_data)
+        # Contectualize the learnings
+        ops_learning_df = _contextualize_learnings(ops_learning_df)
 
         if _need_component_prioritization(ops_learning_df, self.MIN_DIF_COMPONENTS, self.MIN_DIF_EXCERPTS):
             type_prioritization = _identify_type_prioritization(ops_learning_df)
@@ -350,13 +464,12 @@ class OpsLearningSummaryTask:
             )
         prioritized_learnings = ops_learning_df
         logger.info("Prioritization of components completed.")
-        prioritized_learnings = _contextualize_learnings(prioritized_learnings)
         return prioritized_learnings
 
     @classmethod
     def slice_dataframe(self, df, limit=2000, encoding_name="cl100k_base"):
-        df["count_temp"] = [self.count_tokens(x, encoding_name) for x in df["learning"]]
-        df["cumsum"] = df["count_temp"].cumsum()
+        df.loc[:, "count_temp"] = [self.count_tokens(x, encoding_name) for x in df["learning"]]
+        df.loc[:, "cumsum"] = df["count_temp"].cumsum()
 
         slice_index = None
         for i in range(1, len(df)):
@@ -371,85 +484,130 @@ class OpsLearningSummaryTask:
         return df_sliced
 
     @classmethod
-    def prioritize_excerpts(self, df: pd.DataFrame):
-        """Prioritize the most recent excerpts within the token limit."""
-        logger.info("Prioritizing excerpts within token limit.")
+    def primary_prioritize_excerpts(self, df: pd.DataFrame):
+        """Prioritize the most recent excerpts within the token limit for primary insights."""
+        logger.info("Prioritizing primary excerpts within token limit.")
 
         # Droping duplicates based on 'learning' column for primary DataFrame
-        primary_learning_df = df.drop_duplicates(subset="learning")
-        primary_learning_df = primary_learning_df.sort_values(by="appeal_year", ascending=False)
-        primary_learning_df.reset_index(inplace=True, drop=True)
-
-        # Droping duplicates based on 'learning' and 'component' columns for secondary DataFrame
-        secondary_learning_df = df.drop_duplicates(subset=["learning", "component"])
-        secondary_learning_df = secondary_learning_df.sort_values(by=["component", "appeal_year"], ascending=[True, False])
-        grouped = secondary_learning_df.groupby("component")
-
-        # Create an interleaved list of rows
-        interleaved = list(chain(*zip(*[group[1].itertuples(index=False) for group in grouped])))
-
-        # Convert the interleaved list of rows back to a DataFrame
-        result = pd.DataFrame(interleaved)
-        result.reset_index(inplace=True, drop=True)
+        primary_learning_df = (
+            df.drop_duplicates(subset="learning").sort_values(by="appeal_year", ascending=False).reset_index(drop=True)
+        )
 
         # Slice the Primary and secondary dataframes
         sliced_primary_learning_df = self.slice_dataframe(primary_learning_df, self.PROMPT_DATA_LENGTH_LIMIT, self.ENCODING_NAME)
-        sliced_secondary_learning_df = self.slice_dataframe(result, self.PROMPT_DATA_LENGTH_LIMIT, self.ENCODING_NAME)
-        logger.info("Excerpts prioritized within token limit.")
-        return sliced_primary_learning_df, sliced_secondary_learning_df
+        logger.info("Primary excerpts prioritized within token limit.")
+        return sliced_primary_learning_df
 
     @classmethod
-    def format_prompt(
+    def seconday_prioritize_excerpts(self, df: pd.DataFrame):
+        """Prioritize the most recent excerpts within the token limit for secondary insights."""
+        logger.info("Prioritizing secondary excerpts within token limit.")
+
+        # Droping duplicates based on 'learning' and 'component' columns for secondary DataFrame
+        secondary_learning_df = df.drop_duplicates(subset=["learning", "component", "sector"]).sort_values(
+            by=["component", "appeal_year"], ascending=[True, False]
+        )
+        grouped = secondary_learning_df.groupby("component")
+
+        # Create an interleaved list of rows
+        interleaved = list(chain(*zip_longest(*[group[1].itertuples(index=False) for group in grouped], fillvalue=None)))
+
+        # Convert the interleaved list of rows back to a DataFrame
+        result = (
+            pd.DataFrame(interleaved, columns=secondary_learning_df.columns).dropna(subset=["component"]).reset_index(drop=True)
+        )
+
+        # Slice secondary dataframes
+        sliced_secondary_learning_df = self.slice_dataframe(result, self.PROMPT_DATA_LENGTH_LIMIT, self.ENCODING_NAME)
+        logger.info("Excerpts prioritized within token limit.")
+        return sliced_secondary_learning_df
+
+    @classmethod
+    def _build_intro_section(self):
+        """Builds the introductory section of the prompt."""
+        return (
+            "I will provide you with a set of instructions, data, and formatting requests in three sections."
+            + " I will pass you the INSTRUCTIONS section, are you ready?"
+            + "\n\n\n\n"
+        )
+
+        # Adding the used extracts in primary insights
+
+    @classmethod
+    def _build_instruction_section(self, request_filter: dict, df: pd.DataFrame, instruction: str):
+        """Builds the instruction section of the prompt based on the request filter and DataFrame."""
+        instructions = ["INSTRUCTIONS\n========================\nSummarize essential insights from the DATA"]
+
+        if "appeal_code__dtype__in" in request_filter:
+            dtypes = df["dtype_name"].dropna().unique()
+            dtype_str = '", "'.join(dtypes)
+            instructions.append(f'concerning "{dtype_str}" occurrences')
+
+        if "appeal_code__country__in" in request_filter:
+            countries = df["country_name"].dropna().unique()
+            country_str = '", "'.join(countries)
+            instructions.append(f'in "{country_str}"')
+
+        if "appeal_code__region" in request_filter:
+            regions = df["region_name"].dropna().unique()
+            region_str = '", "'.join(regions)
+            instructions.append(f'in "{region_str}"')
+
+        if "sector_validated__in" in request_filter:
+            sectors = df["sector"].dropna().unique()
+            sector_str = '", "'.join(sectors)
+            instructions.append(f'focusing on "{sector_str}" aspects')
+
+        if "per_component_validated__in" in request_filter:
+            components = df["component"].dropna().unique()
+            component_str = '", "'.join(components)
+            instructions.append(f'and "{component_str}" aspects')
+
+        instructions.append("in Emergency Response.")
+        instructions.append("\n\n" + instruction)
+        instructions.append("\n\nI will pass you the DATA section, are you ready?\n\n\n")
+        return "\n".join(instructions)
+
+    @classmethod
+    def format_primary_prompt(
         self,
+        ops_learning_summary_instance: OpsLearningCacheResponse,
         primary_learning_df: pd.DataFrame,
+        filter_data: dict,
+    ):
+        """Formats the primary prompt based on request filter and prioritized learnings."""
+        logger.info("Formatting primary prompt.")
+
+        # Primary learnings intro section
+        prompt_intro = self._build_intro_section()
+        primary_prompt_instruction = self._build_instruction_section(
+            filter_data, primary_learning_df, self.primary_instruction_prompt
+        )
+
+        # Primary learnings section
+        primary_learnings_data = "\n----------------\n".join(primary_learning_df["learning"].dropna())
+
+        primary_learning_data = primary_learning_df["excerpts_id"].dropna().tolist()
+
+        # Adding the used extracts in primary insights
+        self.add_used_ops_learnings(
+            ops_learning_summary_instance,
+            used_ops_learnings=primary_learning_data,
+        )
+
+        # format the prompts
+        primary_learning_prompt = "".join([prompt_intro, primary_prompt_instruction, primary_learnings_data, self.primary_prompt])
+        logger.info("Primary Prompt formatted.")
+        return primary_learning_prompt
+
+    @classmethod
+    def format_secondary_prompt(
+        self,
         secondary_learning_df: pd.DataFrame,
         filter_data: dict,
     ):
         """Formats the prompt based on request filter and prioritized learnings."""
-        logger.info("Formatting prompt.")
-
-        def _build_intro_section():
-            """Builds the introductory section of the prompt."""
-            return (
-                "I will provide you with a set of instructions, data, and formatting requests in three sections."
-                + " I will pass you the INSTRUCTIONS section, are you ready?"
-                + os.linesep
-                + os.linesep
-            )
-
-        def _build_instruction_section(request_filter: dict, df: pd.DataFrame, instruction: str):
-            """Builds the instruction section of the prompt based on the request filter and DataFrame."""
-            instructions = ["INSTRUCTIONS\n========================\nSummarize essential insights from the DATA"]
-
-            if "appeal_code__dtype__in" in request_filter:
-                dtypes = df["dtype_name"].dropna().unique()
-                dtype_str = '", "'.join(dtypes)
-                instructions.append(f'concerning "{dtype_str}" occurrences')
-
-            if "appeal_code__country__in" in request_filter:
-                countries = df["country_name"].dropna().unique()
-                country_str = '", "'.join(countries)
-                instructions.append(f'in "{country_str}"')
-
-            if "appeal_code__region" in request_filter:
-                regions = df["region_name"].dropna().unique()
-                region_str = '", "'.join(regions)
-                instructions.append(f'in "{region_str}"')
-
-            if "sector_validated__in" in request_filter:
-                sectors = df["sector"].dropna().unique()
-                sector_str = '", "'.join(sectors)
-                instructions.append(f'focusing on "{sector_str}" aspects')
-
-            if "per_component_validated__in" in request_filter:
-                components = df["component"].dropna().unique()
-                component_str = '", "'.join(components)
-                instructions.append(f'and "{component_str}" aspects')
-
-            instructions.append("in Emergency Response.")
-            instructions.append("\n\n" + instruction)
-            instructions.append("\n\nI will pass you the DATA section, are you ready?\n\n")
-            return "\n".join(instructions)
+        logger.info("Formatting secondary prompt.")
 
         def get_main_sectors(df: pd.DataFrame):
             """Get only information from technical sectorial information"""
@@ -463,7 +621,8 @@ class OpsLearningSummaryTask:
             return available_sectors
 
         def get_main_components(df: pd.DataFrame):
-            available_components = list(df["component"].unique())
+            temp = df[df["component"] != "NS-specific areas of intervention"]
+            available_components = list(temp["component"].unique())
             nb_components = len(available_components)
             if nb_components == 0:
                 logger.info("There were not specific components")
@@ -474,6 +633,10 @@ class OpsLearningSummaryTask:
         def process_learnings_sector(sector, df, max_length_per_section):
             df = df[df["sector"] == sector].dropna()
             df_sliced = self.slice_dataframe(df, max_length_per_section, self.ENCODING_NAME)
+
+            if df_sliced["learning"].empty:
+                return ""
+
             learnings_sector = (
                 "\n----------------\n"
                 + "SUBTYPE: "
@@ -486,6 +649,10 @@ class OpsLearningSummaryTask:
         def process_learnings_component(component, df, max_length_per_section):
             df = df[df["component"] == component].dropna()
             df_sliced = self.slice_dataframe(df, max_length_per_section, self.ENCODING_NAME)
+
+            if df_sliced["learning"].empty:
+                return ""
+
             learnings_component = (
                 "\n----------------\n"
                 + "SUBTYPE: "
@@ -495,14 +662,15 @@ class OpsLearningSummaryTask:
             )
             return learnings_component
 
-        def _build_data_section(primary_df: pd.DataFrame, secondary_df: pd.DataFrame):
-            # Primary learnings section
-            primary_learnings_data = "\n----------------\n".join(primary_df["learning"].dropna())
-
+        def _build_data_section(secondary_df: pd.DataFrame):
             # Secondary learnings section
             sectors = get_main_sectors(secondary_df)
             components = get_main_components(secondary_df)
-            max_length_per_section = self.PROMPT_DATA_LENGTH_LIMIT / (len(components) + len(sectors))
+            max_length_per_section = self.PROMPT_DATA_LENGTH_LIMIT
+
+            if (len(sectors) + len(components)) > 0:
+                max_length_per_section = self.PROMPT_DATA_LENGTH_LIMIT / (len(components) + len(sectors))
+
             learnings_sectors = (
                 "\n----------------\n\n"
                 + "TYPE: SECTORS"
@@ -518,22 +686,20 @@ class OpsLearningSummaryTask:
                 )
             )
             secondary_learnings_data = learnings_sectors + learnings_components
-            return primary_learnings_data, secondary_learnings_data
+            return secondary_learnings_data
 
-        prompt_intro = _build_intro_section()
-        primary_prompt_instruction = _build_instruction_section(filter_data, primary_learning_df, self.primary_instruction_prompt)
-        secondary_prompt_instruction = _build_instruction_section(
+        prompt_intro = self._build_intro_section()
+        secondary_prompt_instruction = self._build_instruction_section(
             filter_data, secondary_learning_df, self.secondary_instruction_prompt
         )
-        primary_learnings_data, secondary_learnings_data = _build_data_section(primary_learning_df, secondary_learning_df)
+        secondary_learnings_data = _build_data_section(secondary_learning_df)
 
         # format the prompts
-        primary_learning_prompt = "".join([prompt_intro, primary_prompt_instruction, primary_learnings_data, self.primary_prompt])
         secondary_learning_prompt = "".join(
             [prompt_intro, secondary_prompt_instruction, secondary_learnings_data, self.secondary_prompt]
         )
-        logger.info("Prompt formatted.")
-        return primary_learning_prompt, secondary_learning_prompt
+        logger.info("Secondary Prompt formatted.")
+        return secondary_learning_prompt
 
     @classmethod
     def generate_summary(self, prompt, type: OpsLearningPromptResponseCache.PromptType) -> dict:
@@ -564,17 +730,12 @@ class OpsLearningSummaryTask:
                 logger.warning("The length of the prompt might be too long.")
                 return "{}"
 
-            try:
-                response = self.client.chat.completions.create(
-                    model=settings.AZURE_OPENAI_DEPLOYMENT_NAME, messages=messages, temperature=0.7
-                )
-                summary = response.choices[0].message.content
-                return summary
-            except Exception as e:
-                logger.error(f"Error in summarizing: {e}")
-                raise
+            # Using Azure OpenAI to summarize the prompt
+            client = AzureOpenAiChat()
+            response = client.get_response(message=messages)
+            return response
 
-        def _validate_format(summary) -> bool:
+        def _validate_format(summary, MAX_RETRIES=3):
             """
             Validates the format of the summary and modifies it if necessary.
             """
@@ -595,136 +756,146 @@ class OpsLearningSummaryTask:
                     return formatted_summary
 
                 except Exception as e:
-                    logger.error(f"Modification failed: {e}")
+                    logger.error(f"Modification failed: {e}", exc_info=True)
                     return "{}"
 
             formatted_summary = {}
+            retires = 0
+
             # Attempt to parse the summary as a dictionary
             if _validate_text_is_dictionary(summary):
                 formated_summary = ast.literal_eval(summary)
-                return formated_summary
             else:
                 formatted_summary = _modify_format(summary)
                 formatted_summary = ast.literal_eval(formatted_summary)
-                return formatted_summary
+
+            # Checking if the generated summary is empty
+            if bool(formated_summary):
+                return formated_summary
+
+            # NOTE: Generating the summary if summary is empty
+            while retires < MAX_RETRIES:
+                self.generate_summary(prompt, type)
+                retires += 1
+                logger.info(f"Retrying.... Attempt {retires}/{MAX_RETRIES}")
 
         def _modify_summary(summary: dict) -> dict:
             """
             Checks if the "Confidence level" is present in the primary response and skipping for the secondary summary
             """
             for key, value in summary.items():
-                if key == "contradictory reports" or "confidence level" in value:
+                confidence_level = "confidence level"
+                if key == "contradictory reports" or confidence_level in value:
                     continue
-                if "Confidence level" in value["content"]:
-                    confidence_value = value["content"].split("Confidence level:")[-1].strip()
-                    value["content"] = value["content"].split("Confidence level:")[0]
-                    value["confidence level"] = confidence_value
+                if confidence_level in value["content"].lower():
+                    parts = re.split(rf"(?i)\b{confidence_level}\b", value["content"])
+                    value["content"] = parts[0]
+                    value["confidence level"] = parts[1][1:].strip()
 
             return summary
 
         summary = _summarize(prompt, type, self.system_message)
-        formated_summary = _validate_format(summary)
-        processed_summary = _modify_summary(formated_summary)
+        formatted_summary = _validate_format(summary)
+        processed_summary = _modify_summary(formatted_summary)
         logger.info(f"Summaries generated for {type.name}")
         return processed_summary
 
     @classmethod
-    def _get_or_create_summary(self, prompt: str, prompt_hash: str, type: OpsLearningPromptResponseCache.PromptType) -> dict:
+    def _get_or_create_summary(cls, prompt: str, prompt_hash: str, type: OpsLearningPromptResponseCache.PromptType) -> dict:
         instance, created = OpsLearningPromptResponseCache.objects.get_or_create(
             prompt_hash=prompt_hash,
             type=type,
             defaults={"prompt": prompt},
         )
-        if not created:
-            summary = instance.response
+        if created or not bool(instance.response):
+            summary = cls.generate_summary(prompt, type)
+            instance.response = summary
+            instance.save(update_fields=["response"])
             return summary
-        summary = self.generate_summary(prompt=prompt, type=type)
-        instance.response = summary
-        instance.save(update_fields=["response"])
-        return summary
+        return instance.response
 
     @classmethod
-    def save_to_db(
+    def primary_response_save_to_db(
         self,
         ops_learning_summary_instance: OpsLearningCacheResponse,
         primary_summary: dict,
-        secondary_summary: dict,
     ):
-        logger.info("Saving to database.")
-        # Primary summary
-        ops_learning_summary_instance.insights1_title = primary_summary["0"]["title"]
-        ops_learning_summary_instance.insights2_title = primary_summary["1"]["title"]
-        ops_learning_summary_instance.insights3_title = primary_summary["2"]["title"]
-        ops_learning_summary_instance.insights1_content = primary_summary["0"]["content"]
-        ops_learning_summary_instance.insights2_content = primary_summary["1"]["content"]
-        ops_learning_summary_instance.insights3_content = primary_summary["2"]["content"]
-        ops_learning_summary_instance.insights1_confidence_level = primary_summary["0"]["confidence level"]
-        ops_learning_summary_instance.insights2_confidence_level = primary_summary["1"]["confidence level"]
-        ops_learning_summary_instance.insights3_confidence_level = primary_summary["2"]["confidence level"]
-        ops_learning_summary_instance.contradictory_reports = primary_summary["contradictory reports"]
-        ops_learning_summary_instance.save(
-            update_fields=[
-                "insights1_title",
-                "insights2_title",
-                "insights3_title",
-                "insights1_content",
-                "insights2_content",
-                "insights3_content",
-                "insights1_confidence_level",
-                "insights2_confidence_level",
-                "insights3_confidence_level",
-                "contradictory_reports",
-            ]
-        )
+        """Saves the primary response to the database."""
+        logger.info("Saving primary response to the database.")
 
-        # Secondary summary
-        for key, value in secondary_summary.items():
-            type = value["type"]
-            subtype = value["subtype"]
-            content = value["content"]
+        # List to keep track of fields to update
+        fields_to_update = []
 
-            if type == "component":
-                component_instance = FormComponent.objects.filter(
-                    title__iexact=subtype,
-                ).first()
-                if not component_instance:
-                    logger.error(f"Component '{subtype}' not found.")
-                    continue
-                OpsLearningComponentCacheResponse.objects.create(
-                    component=component_instance,
-                    content=content,
-                    filter_response=ops_learning_summary_instance,
-                )
-            elif type == "sector":
-                sector_instance = SectorTag.objects.filter(
-                    title__iexact=subtype,
-                ).first()
-                if not sector_instance:
-                    logger.error(f"Sector '{subtype}' not found.")
-                    continue
-                OpsLearningSectorCacheResponse.objects.create(
-                    sector=sector_instance,
-                    content=content,
-                    filter_response=ops_learning_summary_instance,
-                )
-            else:
-                logger.error(f"Invalid type '{type}' on secondary summary.")
-        self.change_ops_learning_status(ops_learning_summary_instance, OpsLearningCacheResponse.Status.SUCCESS)
-        logger.info("Saved to database.")
+        # Mapping between summary keys and model fields
+        fields_mapping = {
+            "0": {"title": "insights1_title", "content": "insights1_content", "confidence level": "insights1_confidence_level"},
+            "1": {"title": "insights2_title", "content": "insights2_content", "confidence level": "insights2_confidence_level"},
+            "2": {"title": "insights3_title", "content": "insights3_content", "confidence level": "insights3_confidence_level"},
+            "contradictory reports": "contradictory_reports",
+        }
+        for summary_key, model_fields in fields_mapping.items():
+            if summary_key in primary_summary:
+                summary_data = primary_summary[summary_key]
+
+                if isinstance(model_fields, dict):
+                    for summary_field, model_field in model_fields.items():
+                        if summary_field in summary_data:
+                            setattr(ops_learning_summary_instance, model_field, summary_data[summary_field].strip())
+                            fields_to_update.append(model_field)
+                else:
+                    setattr(ops_learning_summary_instance, model_fields, primary_summary[summary_key])
+                    fields_to_update.append(model_fields)
+
+        if fields_to_update:
+            ops_learning_summary_instance.save(update_fields=fields_to_update)
+
+        logger.info("Primary response saved to the database.")
 
     @classmethod
-    def get_or_create_summary(
+    def secondary_response_save_to_db(
+        self,
+        ops_learning_summary_instance: OpsLearningCacheResponse,
+        secondary_summary: dict,
+    ):
+        logger.info("Saving secondary response to the database.")
+        # Secondary summary
+        for _, value in secondary_summary.items():
+            type = value["type"].strip()
+            subtype = value["subtype"].strip()
+            content = value["content"].strip()
+            excerpt_ids = value["excerpts id"]
+            excerpt_id_list = list(set(int(id.strip()) for id in excerpt_ids.split(",") if excerpt_ids != ""))
+
+            if type == "component" and len(excerpt_id_list) > 0:
+                self.add_used_ops_learnings_component(
+                    instance=ops_learning_summary_instance,
+                    content=content,
+                    used_ops_learnings=excerpt_id_list,
+                    component=subtype,
+                )
+
+            elif type == "sector" and len(excerpt_id_list) > 0:
+                self.add_used_ops_learnings_sector(
+                    instance=ops_learning_summary_instance,
+                    content=content,
+                    used_ops_learnings=excerpt_id_list,
+                    sector=subtype,
+                )
+            else:
+                logger.error(f"Type '{type}' of {len(excerpt_id_list)} on secondary summary.", exc_info=True)
+        logger.info("Secondary response saved to the database.")
+
+    @classmethod
+    def get_or_create_primary_summary(
         self,
         ops_learning_summary_instance: OpsLearningCacheResponse,
         primary_learning_prompt: str,
-        secondary_learning_prompt: str,
     ):
-        """Retrieves or Generates the summary based on the provided prompts."""
-        logger.info("Retrieving or generating summary.")
+        """Retrieves or Generates the primary summary based on the provided prompt."""
+        logger.info("Retrieving or generating primary summary.")
 
-        # generating hash for both primary and secondary prompt
+        # generating hash for primary prompt
         primary_prompt_hash = OpslearningSummaryCacheHelper.generate_hash(primary_learning_prompt)
-        secondary_prompt_hash = OpslearningSummaryCacheHelper.generate_hash(secondary_learning_prompt)
 
         # Checking the response for primary prompt
         primary_summary = self._get_or_create_summary(
@@ -732,6 +903,24 @@ class OpsLearningSummaryTask:
             prompt_hash=primary_prompt_hash,
             type=OpsLearningPromptResponseCache.PromptType.PRIMARY,
         )
+
+        # Saving into the database
+        self.primary_response_save_to_db(
+            ops_learning_summary_instance=ops_learning_summary_instance,
+            primary_summary=primary_summary,
+        )
+
+    @classmethod
+    def get_or_create_secondary_summary(
+        self,
+        ops_learning_summary_instance: OpsLearningCacheResponse,
+        secondary_learning_prompt: str,
+    ):
+        """Retrieves or Generates the summary based on the provided prompts."""
+        logger.info("Retrieving or generating secondary summary.")
+
+        # generating hash for secondary prompt
+        secondary_prompt_hash = OpslearningSummaryCacheHelper.generate_hash(secondary_learning_prompt)
 
         # Checking the response for secondary prompt
         secondary_summary = self._get_or_create_summary(
@@ -741,4 +930,7 @@ class OpsLearningSummaryTask:
         )
 
         # Saving into the database
-        self.save_to_db(ops_learning_summary_instance, primary_summary, secondary_summary)
+        self.secondary_response_save_to_db(
+            ops_learning_summary_instance=ops_learning_summary_instance,
+            secondary_summary=secondary_summary,
+        )

@@ -6,9 +6,10 @@ from django.utils.translation import gettext
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-from api.models import Appeal, AppealType, Country, Region
+from api.models import Appeal, AppealDocument, AppealType, Country, Region
 from api.serializers import (
     MiniCountrySerializer,
+    MiniEventSerializer,
     RegoCountrySerializer,
     UserNameSerializer,
 )
@@ -939,6 +940,7 @@ class MiniAppealSerializer(serializers.ModelSerializer):
 
 class FullAppealSerializer(serializers.ModelSerializer):
     atype = serializers.SerializerMethodField()
+    event_details = MiniEventSerializer(source="event", read_only=True)
 
     @staticmethod
     def get_atype(obj):
@@ -951,6 +953,7 @@ class FullAppealSerializer(serializers.ModelSerializer):
 
 class MicroAppealSerializer(serializers.ModelSerializer):
     atype = serializers.SerializerMethodField()
+    event_details = MiniEventSerializer(source="event", read_only=True)
 
     @staticmethod
     def get_atype(obj):
@@ -958,7 +961,14 @@ class MicroAppealSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Appeal
-        fields = ("code", "name", "atype")
+        fields = (
+            "id",
+            "code",
+            "name",
+            "atype",
+            "event_details",
+            "country",
+        )
 
 
 class OpsLearningCSVSerializer(serializers.ModelSerializer):
@@ -1029,17 +1039,24 @@ class OpsLearningCSVSerializer(serializers.ModelSerializer):
 
 
 class OpsLearningSerializer(serializers.ModelSerializer):
-    appeal_code = FullAppealSerializer(allow_null=True, read_only=True)
-
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        data["appeal"] = data.pop("appeal_code")
-        return data
+    appeal = FullAppealSerializer(source="appeal_code", allow_null=True, read_only=True)
+    document_url = serializers.SerializerMethodField()
+    document_name = serializers.SerializerMethodField()
 
     class Meta:
         model = OpsLearning
         fields = "__all__"
         read_only_fields = ("created_at", "modified_at")
+
+    @staticmethod
+    def get_document_url(obj):
+        if obj.appeal_document_id and (document := AppealDocument.objects.filter(id=obj.appeal_document_id).first()):
+            return document.document_url
+
+    @staticmethod
+    def get_document_name(obj):
+        if obj.appeal_document_id and (document := AppealDocument.objects.filter(id=obj.appeal_document_id).first()):
+            return document.name
 
 
 class OpsLearningInSerializer(serializers.ModelSerializer):
@@ -1053,12 +1070,27 @@ class PublicOpsLearningSerializer(serializers.ModelSerializer):
     # We do not extract appeal details here, except appeal type, which is important.
     # Only the validated items are shown, arriving from get_queryset().
 
-    appeal_code = MicroAppealSerializer(allow_null=True, read_only=True)
+    appeal = MicroAppealSerializer(source="appeal_code", allow_null=True, read_only=True)
+    document_url = serializers.SerializerMethodField()
+    document_name = serializers.SerializerMethodField()
 
     class Meta:
         model = OpsLearning
-        read_only_fields = ("created_at", "modified_at")
+        read_only_fields = (
+            "created_at",
+            "modified_at",
+        )
         exclude = ("learning", "type", "organization", "sector", "per_component")
+
+    @staticmethod
+    def get_document_url(obj):
+        if obj.appeal_document_id and (document := AppealDocument.objects.filter(id=obj.appeal_document_id).first()):
+            return document.document_url
+
+    @staticmethod
+    def get_document_name(obj):
+        if obj.appeal_document_id and (document := AppealDocument.objects.filter(id=obj.appeal_document_id).first()):
+            return document.name
 
 
 class PerDocumentUploadSerializer(serializers.ModelSerializer):
@@ -1137,23 +1169,42 @@ class CountryLatestOverviewSerializer(serializers.ModelSerializer):
 
 class OpsLearningSectorCacheResponseSerializer(serializers.ModelSerializer):
     title = serializers.CharField(source="sector.title", read_only=True)
+    # NOTE: Prefetched count is used here
+    extracts_count = serializers.IntegerField(source="count", read_only=True)
 
     class Meta:
         model = OpsLearningSectorCacheResponse
-        fields = ["content", "title"]
+        fields = [
+            "id",
+            "content",
+            "title",
+            "extracts_count",
+        ]
 
 
 class OpsLearningComponentCacheResponseSerializer(serializers.ModelSerializer):
     title = serializers.CharField(source="component.title", read_only=True)
+    # NOTE: Prefetched count is used here
+    extracts_count = serializers.IntegerField(source="count", read_only=True)
 
     class Meta:
         model = OpsLearningComponentCacheResponse
-        fields = ["content", "title"]
+        fields = [
+            "id",
+            "content",
+            "title",
+            "extracts_count",
+        ]
 
 
 class OpsLearningSummarySerializer(serializers.ModelSerializer):
     sectors = OpsLearningSectorCacheResponseSerializer(source="ops_learning_sector", many=True)
     components = OpsLearningComponentCacheResponseSerializer(source="ops_learning_component", many=True)
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+    total_extracts_count = serializers.SerializerMethodField()
+    used_extracts_count = serializers.SerializerMethodField()
+    earliest_appeal_date = serializers.SerializerMethodField()
+    latest_appeal_date = serializers.SerializerMethodField()
 
     class Meta:
         model = OpsLearningCacheResponse
@@ -1165,6 +1216,28 @@ class OpsLearningSummarySerializer(serializers.ModelSerializer):
             "insights2_content",
             "insights3_title",
             "insights3_content",
+            "total_extracts_count",
+            "used_extracts_count",
+            "earliest_appeal_date",
+            "latest_appeal_date",
+            "status",
+            "status_display",
             "sectors",
             "components",
         ]
+
+    def get_total_extracts_count(self, obj) -> int:
+        return OpsLearning.objects.filter(is_validated=True).values("id").count()
+
+    def get_used_extracts_count(self, obj) -> int:
+        return OpsLearning.objects.filter(id__in=obj.used_ops_learning.all()).values("id").count()
+
+    def get_earliest_appeal_date(self, obj):
+        return Appeal.objects.filter(id__in=obj.used_ops_learning.values("appeal_code__id")).aggregate(
+            min_start_date=models.Min("start_date"),
+        )["min_start_date"]
+
+    def get_latest_appeal_date(self, obj):
+        return Appeal.objects.filter(id__in=obj.used_ops_learning.values("appeal_code__id")).aggregate(
+            max_start_date=models.Max("start_date"),
+        )["max_start_date"]

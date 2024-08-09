@@ -117,7 +117,6 @@ router.register(r"per-country", per_views.PerCountryViewSet, basename="per-count
 router.register(r"public-per-stats", per_views.CountryPublicPerStatsViewset, basename="public_country_per_stats")
 router.register(r"per-stats", per_views.CountryPerStatsViewset, basename="country_per_stats")
 router.register(r"ops-learning", per_views.OpsLearningViewset, basename="ops_learning")
-router.register(r"ops-learning-summary", per_views.OpsLearningSummaryViewset, basename="ops_learning_summary")
 router.register(r"per-document-upload", per_views.PerDocumentUploadViewSet, basename="per_document_upload")
 
 router.register(r"personnel_deployment", deployment_views.PersonnelDeploymentViewset, basename="personnel_deployment")

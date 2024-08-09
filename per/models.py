@@ -758,8 +758,8 @@ class PerDocumentUpload(models.Model):
 
 class OpsLearningPromptResponseCache(models.Model):
     class PromptType(models.IntegerChoices):
-        PRIMARY = 0, _("primary")
-        SECONDARY = 1, _("secondary")
+        PRIMARY = 1, _("Primary")
+        SECONDARY = 2, _("Secondary")
 
     prompt_hash = models.CharField(verbose_name=_("used prompt hash"), max_length=32)
     prompt = models.TextField(verbose_name=_("used prompt"), null=True, blank=True)
@@ -773,10 +773,11 @@ class OpsLearningPromptResponseCache(models.Model):
 
 class OpsLearningCacheResponse(models.Model):
     class Status(models.IntegerChoices):
-        PENDING = 0, _("pending")
-        STARTED = 1, _("started")
-        SUCCESS = 2, _("success")
-        FAILED = 3, _("failed")
+        PENDING = 1, _("Pending")
+        STARTED = 2, _("Started")
+        SUCCESS = 3, _("Success")
+        NO_EXTRACT_AVAILABLE = 4, _("No extract available")
+        FAILED = 5, _("Failed")
 
     used_filters_hash = models.CharField(verbose_name=_("used filters hash"), max_length=32)
     used_filters = models.JSONField(verbose_name=_("used filters"), default=dict)
@@ -791,10 +792,15 @@ class OpsLearningCacheResponse(models.Model):
     insights2_title = models.CharField(verbose_name=_("insights 2 title"), max_length=255, null=True, blank=True)
     insights3_title = models.CharField(verbose_name=_("insights 3 title"), max_length=255, null=True, blank=True)
 
-    insights1_confidence_level = models.CharField(verbose_name=_("insights 1 confidence level"), null=True, blank=True)
-    insights2_confidence_level = models.CharField(verbose_name=_("insights 2 confidence level"), null=True, blank=True)
-    insights3_confidence_level = models.CharField(verbose_name=_("insights 3 confidence level"), null=True, blank=True)
-
+    insights1_confidence_level = models.CharField(
+        verbose_name=_("insights 1 confidence level"), max_length=10, null=True, blank=True
+    )
+    insights2_confidence_level = models.CharField(
+        verbose_name=_("insights 2 confidence level"), max_length=10, null=True, blank=True
+    )
+    insights3_confidence_level = models.CharField(
+        verbose_name=_("insights 3 confidence level"), max_length=10, null=True, blank=True
+    )
     contradictory_reports = models.TextField(verbose_name=_("contradictory reports"), null=True, blank=True)
 
     used_ops_learning = models.ManyToManyField(
@@ -821,14 +827,14 @@ class OpsLearningSectorCacheResponse(models.Model):
         on_delete=models.CASCADE,
         related_name="+",
     )
-    content = models.TextField(verbose_name=_("content"))
+    content = models.TextField(verbose_name=_("content"), null=True, blank=True)
     used_ops_learning = models.ManyToManyField(
         OpsLearning,
         related_name="+",
     )
 
     def __str__(self) -> str:
-        return f"sector - {self.content}"
+        return f"Summary - sector - {self.sector.title}"
 
 
 class OpsLearningComponentCacheResponse(models.Model):
@@ -844,11 +850,11 @@ class OpsLearningComponentCacheResponse(models.Model):
         on_delete=models.CASCADE,
         related_name="+",
     )
-    content = models.TextField(verbose_name=_("content"))
+    content = models.TextField(verbose_name=_("content"), null=True, blank=True)
     used_ops_learning = models.ManyToManyField(
         OpsLearning,
         related_name="+",
     )
 
     def __str__(self) -> str:
-        return f"component - {self.content}"
+        return f"Summary - component - {self.component.title}"
