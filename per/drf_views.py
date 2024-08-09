@@ -21,7 +21,9 @@ from api.models import Country
 from deployments.models import SectorTag
 from main.permissions import DenyGuestUserMutationPermission
 from main.utils import SpreadSheetContentNegotiation
+from per.cache import OpslearningSummaryCacheHelper
 from per.filter_set import (
+    OpsLearningSummaryFilter,
     PerDocumentFilter,
     PerOverviewFilter,
     PerPrioritizationFilter,
@@ -52,6 +54,7 @@ from .models import (
     FormQuestionGroup,
     NiceDocument,
     OpsLearning,
+    OpsLearningCacheResponse,
     OrganizationTypes,
     Overview,
     PerAssessment,
@@ -71,8 +74,10 @@ from .serializers import (
     ListNiceDocSerializer,
     NiceDocumentSerializer,
     OpsLearningCSVSerializer,
+    OpsLearningExtractSerializer,
     OpsLearningInSerializer,
     OpsLearningSerializer,
+    OpsLearningSummarySerializer,
     PerAssessmentSerializer,
     PerDocumentUploadSerializer,
     PerFileInputSerializer,
@@ -807,6 +812,24 @@ class OpsLearningViewset(viewsets.ModelViewSet):
 
         return context
 
+    @extend_schema(
+        request=None,
+        filters=True,
+        responses=OpsLearningSummarySerializer(),
+    )
+    @action(
+        detail=False,
+        methods=["GET"],
+        permission_classes=[permissions.AllowAny],
+        url_path="summary",
+    )
+    def summary(self, request):
+        """
+        Get the Ops Learning Summary based on the filters
+        """
+        ops_learning_summary_instance = OpslearningSummaryCacheHelper.get_or_create(request, [self.filterset_class])
+        return response.Response(OpsLearningSummarySerializer(ops_learning_summary_instance).data)
+
 
 class PerDocumentUploadViewSet(viewsets.ModelViewSet):
     queryset = PerDocumentUpload.objects.all()
@@ -818,3 +841,19 @@ class PerDocumentUploadViewSet(viewsets.ModelViewSet):
         queryset = super().get_queryset()
         user = self.request.user
         return filter_per_queryset_by_user_access(user, queryset)
+
+
+@extend_schema(
+    request=None,
+    responses=OpsLearningSummarySerializer,
+    filters=True,
+)
+class OpsLearningSummaryViewset(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+    queryset = OpsLearningCacheResponse.objects.filter(status=OpsLearningCacheResponse.Status.SUCCESS).prefetch_related(
+        "used_ops_learning",
+        "used_ops_learning_sector",
+        "used_ops_learning_component",
+    )
+    serializer_class = OpsLearningExtractSerializer
+    filterset_class = OpsLearningSummaryFilter
+    permission_classes = [permissions.AllowAny]

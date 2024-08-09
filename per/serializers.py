@@ -38,6 +38,9 @@ from .models import (
     NiceDocument,
     NSPhase,
     OpsLearning,
+    OpsLearningCacheResponse,
+    OpsLearningComponentCacheResponse,
+    OpsLearningSectorCacheResponse,
     Overview,
     PerAssessment,
     PerComponentRating,
@@ -1046,6 +1049,14 @@ class PublicOpsLearningSerializer(serializers.ModelSerializer):
         exclude = ("learning", "type", "organization", "sector", "per_component")
 
 
+class OpsLearningSummarySourceSerializer(serializers.ModelSerializer):
+    appeal_code = MiniAppealSerializer(allow_null=True, read_only=True)
+
+    class Meta:
+        model = OpsLearning
+        fields = ["id", "appeal_code", "appeal_document_id"]
+
+
 class PerDocumentUploadSerializer(serializers.ModelSerializer):
     MAX_NUMBER_OF_DOCUMENTS = 10
 
@@ -1118,3 +1129,52 @@ class CountryLatestOverviewSerializer(serializers.ModelSerializer):
             "type_of_assessment",
             "phase_display",
         )
+
+
+class OpsLearningSectorCacheResponseSerializer(serializers.ModelSerializer):
+    title = serializers.CharField(source="sector.title", read_only=True)
+
+    class Meta:
+        model = OpsLearningSectorCacheResponse
+        fields = ["id", "content", "title"]
+
+
+class OpsLearningComponentCacheResponseSerializer(serializers.ModelSerializer):
+    title = serializers.CharField(source="component.title", read_only=True)
+
+    class Meta:
+        model = OpsLearningComponentCacheResponse
+        fields = ["id", "content", "title"]
+
+
+class OpsLearningSummarySerializer(serializers.ModelSerializer):
+    sectors = OpsLearningSectorCacheResponseSerializer(source="ops_learning_sector", many=True)
+    components = OpsLearningComponentCacheResponseSerializer(source="ops_learning_component", many=True)
+
+    class Meta:
+        model = OpsLearningCacheResponse
+        fields = [
+            "id",
+            "insights1_title",
+            "insights1_content",
+            "insights2_title",
+            "insights2_content",
+            "insights3_title",
+            "insights3_content",
+            "sectors",
+            "components",
+        ]
+
+
+class OpsLearningExtractSerializer(serializers.ModelSerializer):
+    insights_extracts = PublicOpsLearningSerializer(source="used_ops_learning", many=True)
+    sector_extracts = PublicOpsLearningSerializer(source="used_ops_learning_sector", many=True)
+    component_extracts = PublicOpsLearningSerializer(source="used_ops_learning_component", many=True)
+
+    class Meta:
+        model = OpsLearningCacheResponse
+        fields = [
+            "insights_extracts",
+            "sector_extracts",
+            "component_extracts",
+        ]

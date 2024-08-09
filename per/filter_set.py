@@ -4,6 +4,9 @@ from api.models import Country
 from per.models import (
     Form,
     FormPrioritization,
+    OpsLearningCacheResponse,
+    OpsLearningComponentCacheResponse,
+    OpsLearningSectorCacheResponse,
     Overview,
     PerDocumentUpload,
     PerWorkPlan,
@@ -51,4 +54,23 @@ class PerDocumentFilter(filters.FilterSet):
 
     class Meta:
         model = PerDocumentUpload
+        fields = ()
+
+
+class OpsLearningSummaryFilter(filters.FilterSet):
+    sector = filters.ModelMultipleChoiceFilter(
+        field_name="ops_learning_sector",
+        queryset=OpsLearningSectorCacheResponse.objects.all(),
+        help_text="Sector identifiers, comma separated",
+    )
+
+    per_component_validated__in = filters.ModelMultipleChoiceFilter(
+        label="Component identifiers",
+        field_name="ops_learning_component",
+        help_text="PER Component identifiers, comma separated",
+        queryset=OpsLearningComponentCacheResponse.objects.all(),
+    )
+
+    class Meta:
+        model = OpsLearningCacheResponse
         fields = ()
