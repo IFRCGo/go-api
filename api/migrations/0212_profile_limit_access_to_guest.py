@@ -3,6 +3,12 @@
 from django.db import migrations, models
 
 
+def set_limit_access_to_guest_to_false(apps, schema_editor):
+    Profile = apps.get_model("api", "Profile")
+    # Update existing users as non guest
+    print(Profile.objects.all().update(limit_access_to_guest=False))
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -19,4 +25,5 @@ class Migration(migrations.Migration):
                 verbose_name="limit access to guest user permissions",
             ),
         ),
+        migrations.RunPython(set_limit_access_to_guest_to_false),
     ]
