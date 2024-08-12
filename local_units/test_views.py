@@ -136,11 +136,15 @@ class TestLocalUnitsDetailView(APITestCase):
         self.assertEqual(response.data["type_details"]["code"], 0)
 
         # test for guest user
-        profile = self.user.profile
-        profile.limit_access_to_guest = True
-        profile.save()
-        self.user.profile = profile
+        self.user.profile.limit_access_to_guest = True
+        self.user.profile.save()
+
         self.authenticate()
+        # -- Should fail for normal view
+        response = self.client.get(f"/api/v2/local-units/{local_unit.id}/")
+        self.assertEqual(response.status_code, 403)
+
+        # -- Should pass for public view
         local_unit = LocalUnitFactory.create(country=self.country, type=self.type, visibility=VisibilityChoices.PUBLIC)
         response = self.client.get(f"/api/v2/public-local-units/{local_unit.id}/")
         self.assertEqual(response.status_code, 200)

@@ -5,9 +5,8 @@ from django.db import migrations, models
 
 def set_limit_access_to_guest_to_false(apps, schema_editor):
     Profile = apps.get_model("api", "Profile")
-    for profile in Profile.objects.all():
-        profile.limit_access_to_guest = False
-        profile.save()
+    # Update existing users as non guest
+    print(Profile.objects.all().update(limit_access_to_guest=False))
 
 
 class Migration(migrations.Migration):
