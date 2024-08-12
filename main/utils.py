@@ -5,6 +5,7 @@ from collections import defaultdict
 from tempfile import NamedTemporaryFile, _TemporaryFileWrapper
 
 import requests
+from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.db import models, router
 from django.utils.dateparse import parse_date, parse_datetime
@@ -168,4 +169,6 @@ class SpreadSheetContentNegotiation(DefaultContentNegotiation):
         accepts = self.get_accept_list(request)
         if not set(self.MEDIA_TYPES).intersection(set(accepts)):
             raise exceptions.NotAcceptable(available_renderers=renderers)
+        if settings.TESTING:  # NOTE: Quick hack to test permission of the views
+            return super().select_renderer(request, renderers, format_suffix)
         return (None, self.MEDIA_TYPES[0])
