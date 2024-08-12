@@ -31,3 +31,10 @@ class SummaryPlain(forms.ModelForm):
             "summary_fr": forms.Textarea(attrs={"class": "plain-textarea"}),
             "summary_ar": forms.Textarea(attrs={"class": "plain-textarea"}),
         }
+
+
+class DescriptionPlain(forms.ModelForm):
+    class Meta:
+        widgets = {
+            "description": forms.Textarea(attrs={"class": "plain-textarea"}),
+        }
