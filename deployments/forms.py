@@ -34,6 +34,12 @@ class ProjectForm(forms.ModelForm):
     class Meta:
         model = Project
         fields = "__all__"
+        widgets = {
+            "name_en": forms.Textarea(attrs={"class": "plain-textarea"}),
+            "name_es": forms.Textarea(attrs={"class": "plain-textarea"}),
+            "name_fr": forms.Textarea(attrs={"class": "plain-textarea"}),
+            "name_ar": forms.Textarea(attrs={"class": "plain-textarea"}),
+        }
 
 
 class ProjectImportForm(forms.Form):
