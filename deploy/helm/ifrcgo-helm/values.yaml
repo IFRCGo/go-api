@@ -182,6 +182,5 @@ sshBastion:
       cpu: "1"
       memory: 1Gi
   keys:
-    # example key. replace with desired keys before deploying
-    sunu.pub: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIE5DKmjOqpap6prdiSOMVgi1iOIq5nNmtteFYfaMqcNp sunu@sunu.in
+    zoltan.pub: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPGAnkQdf5CIpVoqNVJ17AAzUb02gpTltJI5q5SRKxl8 zol@hp
 
