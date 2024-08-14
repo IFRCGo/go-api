@@ -11,20 +11,20 @@ data:
 ---
 
 apiVersion: v1
-kind: PersistentVolumeClaim
+kind: ConfigMap
 metadata:
-  name: {{ template "ifrcgo-helm.fullname" . }}-ssh-bastion-config
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 100Mi
+  name: {{ template "ifrcgo-helm.fullname" . }}-fix-sshd-config
+data:
+  fix-sshd-config.sh: |
+    #!/bin/bash
+    # set -e
+    sed -i 's/#AllowAgentForwarding yes/AllowAgentForwarding yes/g' /etc/ssh/sshd_config
+    sed -i 's/AllowTcpForwarding no/AllowTcpForwarding yes/g' /etc/ssh/sshd_config
 
 ---
 
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ template "ifrcgo-helm.fullname" . }}-ssh-bastion
   labels:
@@ -44,12 +44,6 @@ spec:
       containers:
       - name: ssh-bastion
         image: linuxserver/openssh-server:latest
-        command: ["sh", "-c"]
-        args:
-        - |
-          sed -i 's@AllowTcpForwarding no@AllowTcpForwarding yes@' /etc/ssh/sshd_config
-          touch /tmp/touched
-          /init
         ports:
         - containerPort: 2222
         resources:
@@ -78,13 +72,26 @@ spec:
           readOnly: true
         - name: config-volume
           mountPath: /config
+        - name: fix-sshd-config
+          mountPath: /custom-cont-init.d/fix-sshd-config.sh
+          subPath: fix-sshd-config.sh
+      restartPolicy: Always
       volumes:
       - name: ssh-authorized-keys
         configMap:
           name: {{ template "ifrcgo-helm.fullname" . }}-ssh-authorized-keys
-      - name: config-volume
-        persistentVolumeClaim:
-          claimName: {{ template "ifrcgo-helm.fullname" . }}-ssh-bastion-config
+      - name: fix-sshd-config
+        configMap:
+          name: {{ template "ifrcgo-helm.fullname" . }}-fix-sshd-config
+  volumeClaimTemplates:
+  - metadata:
+      name: config-volume
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 100Mi
 
 ---
 
