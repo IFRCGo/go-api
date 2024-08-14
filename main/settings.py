@@ -329,7 +329,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # selector – exclude Geometry fields (bbox) and some plain textareas (see forms.py)
 TINYMCE_DEFAULT_CONFIG = {
-    "selector": "textarea:not(.vWKTField):not(.plain-textarea)",
+    "selector": "textarea.vLargeTextField",
     "entity_encoding": "raw",
     "height": 360,
     "width": 1120,
