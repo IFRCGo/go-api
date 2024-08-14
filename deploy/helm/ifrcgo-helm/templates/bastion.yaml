@@ -44,7 +44,12 @@ spec:
       containers:
       - name: ssh-bastion
         image: linuxserver/openssh-server:latest
-        command: ["sh", "-c", "sed -i 's@AllowTcpForwarding no@AllowTcpForwarding yes@' /etc/ssh/sshd_config && /init"]
+        command: ["sh", "-c"]
+        args:
+        - |
+          sed -i 's@AllowTcpForwarding no@AllowTcpForwarding yes@' /etc/ssh/sshd_config
+          touch /tmp/touched
+          /init
         ports:
         - containerPort: 2222
         resources:
