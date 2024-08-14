@@ -1,0 +1,99 @@
+{{- if .Values.sshBastion.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "ifrcgo-helm.fullname" . }}-ssh-authorized-keys
+data:
+{{- range $key, $value := .Values.sshBastion.keys }}
+  {{ $key }}: {{ $value | quote }}
+{{- end }}
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ template "ifrcgo-helm.fullname" . }}-ssh-bastion-config
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "ifrcgo-helm.fullname" . }}-ssh-bastion
+  labels:
+    app: ssh-bastion
+    release: {{ .Release.Name }}
+    environment: {{ .Values.environment }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ssh-bastion
+  template:
+    metadata:
+      labels:
+        app: ssh-bastion
+    spec:
+      containers:
+      - name: ssh-bastion
+        image: linuxserver/openssh-server:latest
+        ports:
+        - containerPort: 2222
+        resources:
+          requests:
+            cpu: {{ .Values.sshBastion.resources.requests.cpu }}
+            memory: {{ .Values.sshBastion.resources.requests.memory }}
+          limits:
+            cpu: {{ .Values.sshBastion.resources.limits.cpu }}
+            memory: {{ .Values.sshBastion.resources.limits.memory }}
+        env:
+        - name: PUID
+          value: "1000"
+        - name: PGID
+          value: "1000"
+        - name: USER_NAME
+          value: "user"
+        - name: PASSWORD_ACCESS
+          value: "false"
+        - name: SUDO_ACCESS
+          value: "false"
+        - name: PUBLIC_KEY_DIR
+          value: "/ssh-public_keys"
+        volumeMounts:
+        - name: ssh-authorized-keys
+          mountPath: /ssh-public_keys
+          readOnly: true
+        - name: config-volume
+          mountPath: /config
+      volumes:
+      - name: ssh-authorized-keys
+        configMap:
+          name: {{ template "ifrcgo-helm.fullname" . }}-ssh-authorized-keys
+      - name: config-volume
+        persistentVolumeClaim:
+          claimName: {{ template "ifrcgo-helm.fullname" . }}-ssh-bastion-config
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: ssh-bastion
+  labels:
+    app: ssh-bastion
+    release: {{ .Release.Name }}
+    environment: {{ .Values.environment }}
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 2222
+  selector:
+    app: ssh-bastion
+{{- end }}

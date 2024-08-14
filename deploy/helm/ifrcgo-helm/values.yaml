@@ -172,4 +172,15 @@ elasticsearch:
       cpu: "2"
       memory: 4Gi
 
+sshBastion:
+  enabled: true
+  resources:
+    requests:
+      cpu: "0.5"
+      memory: 0.5Gi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+  keys:
+    zoltan.pub: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPGAnkQdf5CIpVoqNVJ17AAzUb02gpTltJI5q5SRKxl8 zol@hp
 
