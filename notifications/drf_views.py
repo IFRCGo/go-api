@@ -80,7 +80,7 @@ class SurgeAlertViewset(viewsets.ReadOnlyModelViewSet):
         return SurgeAlertSerializer
 
     def get_queryset(self):
-        queryset = self.get_queryset()
+        queryset = super().get_queryset()
         return queryset.filter(molnix_id__isnull=False).exclude(molnix_tags__name="NO_GO")
 
 
