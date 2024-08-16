@@ -120,8 +120,6 @@ cronjobs:
     schedule: '0 9 * * *'
   - command: 'ingest_country_plan_file'
     schedule: '1 0 * * *'
-  - command: 'update_surge_alert_status'
-    schedule: '1 */12 * * *'
   - command: 'fdrs_annual_income'
     schedule: '0 0 * * 0'
   - command: 'FDRS_INCOME'

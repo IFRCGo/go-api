@@ -49,45 +49,42 @@ class SurgeAlert(models.Model):
     # ID in Molnix system, if parsed from Molnix.
     molnix_id = models.IntegerField(blank=True, null=True)
 
-    # Status field from Molnix - `unfilled` denotes Stood-Down
-    molnix_status = models.CharField(blank=True, null=True, max_length=32)
-
-    # It depends on molnix_status. Check "save" method below.
-    is_stood_down = models.BooleanField(verbose_name=_("is stood down?"), default=False)
     opens = models.DateTimeField(blank=True, null=True)
     closes = models.DateTimeField(blank=True, null=True)
     start = models.DateTimeField(blank=True, null=True)
     end = models.DateTimeField(blank=True, null=True)
     molnix_tags = models.ManyToManyField(MolnixTag, blank=True)
 
-    # Set to inactive when position is no longer in Molnix
-    is_active = models.BooleanField(default=True)
-
     # Don't set `auto_now_add` so we can modify it on save
     created_at = models.DateTimeField(verbose_name=_("created at"))
-    status = models.IntegerField(choices=SurgeAlertStatus.choices, verbose_name=_("alert status"), default=SurgeAlertStatus.OPEN)
+    molnix_status = models.IntegerField(
+        choices=SurgeAlertStatus.choices, verbose_name=_("alert status"), default=SurgeAlertStatus.OPEN
+    )
 
     class Meta:
         ordering = ["-created_at"]
         verbose_name = _("Surge Alert")
         verbose_name_plural = _("Surge Alerts")
 
+    @staticmethod
+    def parse_molnix_status(status_raw: str) -> SurgeAlertStatus:
+        """
+        A position_status of active should be shown as Open
+        A position_status of archived should be shown as Closed
+        A position_status of unfilled should be shown as Stood Down
+        If the position_status is non other than active, archived, unfilled then show Closed.
+        """
+        molnix_status_dict = {
+            "active": SurgeAlertStatus.OPEN,
+            "unfilled": SurgeAlertStatus.STOOD_DOWN,
+            "archived": SurgeAlertStatus.CLOSED,
+        }
+
+        return molnix_status_dict.get(status_raw.lower(), SurgeAlertStatus.CLOSED)
+
     def save(self, *args, **kwargs):
-        """
-        If the alert status is marked as stood_down, then the status is Stood Down.
-        If the closing timestamp (closes) is earlier than the current date, the status is displayed as Closed.
-        Otherwise, it is displayed as Open.
-        """
-        # On save, if `created` is not set, make it the current time
         if (not self.id and not self.created_at) or (self.created_at > timezone.now()):
             self.created_at = timezone.now()
-        self.is_stood_down = self.molnix_status == "unfilled"
-        if self.is_stood_down:
-            self.status = SurgeAlertStatus.STOOD_DOWN
-        elif self.closes and self.closes < timezone.now():
-            self.status = SurgeAlertStatus.CLOSED
-        else:
-            self.status = SurgeAlertStatus.OPEN
         return super(SurgeAlert, self).save(*args, **kwargs)
 
     def __str__(self):
