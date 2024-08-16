@@ -23,7 +23,7 @@ from api.management.commands.index_and_notify import Command as Notify
 from lang.admin import TranslationAdmin, TranslationInlineModelAdmin
 from notifications.models import RecordType, SubscriptionType
 
-from .forms import ActionForm, DescriptionPlain, SocietyNamePlain, SummaryPlain
+from .forms import ActionForm, RichDescription, RichSummary
 
 # from reversion.models import Revision
 
@@ -183,7 +183,6 @@ class SituationReportInline(admin.TabularInline):
 
 class EventFeaturedDocumentInline(admin.TabularInline):
     model = models.EventFeaturedDocument
-    form = DescriptionPlain
 
 
 class EventLinkInline(admin.TabularInline, TranslationInlineModelAdmin):
@@ -220,6 +219,7 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
         "districts",
         "parent_event",
     )
+    form = RichSummary
 
     def appeals(self, instance):
         if getattr(instance, "appeals").exists():
@@ -318,7 +318,6 @@ class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAd
         "countries",
         "districts",
     )
-    form = SummaryPlain
 
     readonly_fields = ("report_date", "created_at", "updated_at")
     list_filter = [MembershipFilter]
@@ -329,6 +328,7 @@ class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAd
     # WikiJS links added
     change_form_template = "admin/fieldreport_change_form.html"
     change_list_template = "admin/fieldreport_change_list.html"
+    form = RichDescription
 
     def create_events(self, request, queryset):
         for report in queryset:
@@ -651,7 +651,6 @@ class CountryAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAd
         CountryICRCPresenceInline,
     ]
     exclude = ("key_priorities",)
-    form = SocietyNamePlain
 
 
 class RegionAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):

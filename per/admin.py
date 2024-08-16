@@ -7,6 +7,7 @@ from django.http import HttpResponse
 from reversion_compare.admin import CompareVersionAdmin
 
 import per.models as models
+from api.forms import RichDescription
 from api.models import Appeal
 from lang.admin import TranslationAdmin, TranslationInlineModelAdmin
 from per.admin_classes import GotoNextModelAdmin, RegionRestrictedAdmin
@@ -72,6 +73,7 @@ class FormComponentAdmin(CompareVersionAdmin, TranslationAdmin):
 class FormQuestionAdmin(CompareVersionAdmin, TranslationAdmin):
     search_fields = ("question",)
     list_display = ("question", "component_number", "question_num")
+    form = RichDescription
 
     def component_number(self, obj):
         return f'{obj.component.component_num or ""}{obj.component.component_letter or ""}'
