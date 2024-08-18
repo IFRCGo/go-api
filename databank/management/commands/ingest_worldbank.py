@@ -1,177 +1,221 @@
 import datetime
-import json
 import logging
+import time
+import typing
 
 import requests
 from django.core.management.base import BaseCommand
+from django.db import models
 from sentry_sdk.crons import monitor
 
 from api.models import Country, CountryType
-from databank.models import CountryOverview as CO
+from databank.models import CountryOverview
+from main.managers import BulkUpdateManager
 from main.sentry import SentryMonitor
-
-from .sources.utils import get_country_by_iso3
+from main.utils import pretty_seconds
 
 logger = logging.getLogger(__name__)
 
 
-def get_indicator_value(indicator):
-    try:
-        result = indicator[0]
-    except (IndexError, TypeError):
-        result = None
-    return result
+class CountryIndicatorData(typing.TypedDict):
+    year: int
+    value: int
 
 
-def get_indicator_year(indicator):
-    try:
-        result = indicator[1]
-    except (IndexError, TypeError):
-        result = None
-    return result
+WORLD_BANK_INDICATOR_MAP = {
+    "SP.POP.TOTL": (
+        CountryOverview.world_bank_population,
+        CountryOverview.calculated_world_bank_population_year,
+    ),
+    "SP.POP.65UP.TO": (
+        CountryOverview.world_bank_population_above_age_65,
+        CountryOverview.calculated_world_bank_population_above_age_65_year,
+    ),
+    "SP.POP.0014.TO": (
+        CountryOverview.world_bank_population_age_14,
+        CountryOverview.calculated_world_bank_population_age_14_year,
+    ),
+    "SP.URB.TOTL.IN.ZS": (
+        CountryOverview.world_bank_urban_population_percentage,
+        CountryOverview.calculated_world_bank_urban_population_percentage_year,
+    ),
+    "NY.GDP.MKTP.CD": (
+        CountryOverview.world_bank_gdp,
+        CountryOverview.calculated_world_bank_gdp_year,
+    ),
+    "NY.GNP.MKTP.CD": (
+        CountryOverview.world_bank_gni,
+        CountryOverview.calculated_world_bank_gni_year,
+    ),
+    "IQ.CPA.GNDR.XQ": (
+        CountryOverview.world_bank_gender_inequality_index,
+        CountryOverview.calculated_world_bank_gender_inequality_index_year,
+    ),
+    "SP.DYN.LE00.IN": (
+        CountryOverview.world_bank_life_expectancy,
+        CountryOverview.calculated_world_bank_life_expectancy_year,
+    ),
+    "SE.ADT.LITR.ZS": (
+        CountryOverview.world_bank_literacy_rate,
+        CountryOverview.calculated_world_bank_literacy_rate_year,
+    ),
+    "SI.POV.NAHC": (
+        CountryOverview.world_bank_poverty_rate,
+        CountryOverview.calculated_world_bank_poverty_rate_year,
+    ),
+    "NY.GNP.PCAP.CD": (
+        CountryOverview.world_bank_gni_capita,
+        CountryOverview.calculated_world_bank_gni_capita_year,
+    ),
+}
+
+COUNTRY_OVERVIEW_CHANGED_FIELDS = [field.field.name for fields in WORLD_BANK_INDICATOR_MAP.values() for field in fields]
 
 
 class Command(BaseCommand):
     help = "Add Acaps seasonal calendar data"
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # NOTE: With session, connection are re-used
+        self.requests = requests.session()
+
+    def show_stats(self, country_qs):
+        self.stdout.write("Countires with empty data per indicators?")
+        for indicator, (value_field, year_field) in WORLD_BANK_INDICATOR_MAP.items():
+            count = CountryOverview.objects.filter(
+                models.Q(
+                    **{
+                        f"{value_field.field.name}__isnull": True,
+                    }
+                )
+                | models.Q(
+                    **{
+                        f"{year_field.field.name}__isnull": True,
+                    }
+                ),
+                country__in=country_qs.values("id"),
+            ).count()
+            if count > 0:
+                self.stdout.write(self.style.WARNING(f" - {indicator:<20}: {count}"))
+
+    @staticmethod
+    def get_date_range(start_year: int, end_year: int):
+        return f"{start_year}:{end_year}"  # Fetch data up to 10 years.
+
+    def paginated_response(self, iso3, indicator, daterange) -> typing.Iterator[dict]:
+        """
+        This addes support for pagination.
+        NOTE: With current per_page 5000 -1, pagination is called rarely
+        """
+        page = 1
+        while True:
+
+            response = self.requests.get(
+                f"https://api.worldbank.org/v2/country/{iso3}/indicator/{indicator}",
+                params={
+                    "date": daterange,
+                    "format": "json",
+                    "source": 2,
+                    "per_page": 5000 - 1,  # World Bank throws error on 5000
+                    "page": page,
+                },
+            )
+
+            if response.status_code != 200:
+                logger.warning(
+                    f"Failed to fetch data Country:{iso3}, Indicator: {indicator}, \n {response.content}",
+                )
+                page += 1  # Try another page
+                continue
+
+            response_json = response.json()
+            if not isinstance(response_json, list) or len(response_json) != 2:
+                logger.warning("Unexpected response from endpoint")
+                page += 1  # Try another page
+                continue
+
+            response_meta, response_data = response_json
+            for item in response_data or []:
+                yield item
+
+            response_page = response_meta["pages"]
+            if page >= response_page:
+                break
+            page += 1
+
     @monitor(monitor_slug=SentryMonitor.INGEST_WORLDBANK)
-    def handle(self, *args, **kwargs):
-        world_bank_indicator_map = (
-            ("SP.POP.TOTL", CO.world_bank_population),
-            ("SP.POP.65UP.TO", CO.world_bank_population_above_age_65),
-            ("SP.POP.0014.TO", CO.world_bank_population_age_14),
-            ("SP.URB.TOTL.IN.ZS", CO.world_bank_urban_population_percentage),
-            ("NY.GDP.MKTP.CD", CO.world_bank_gdp),
-            ("NY.GNP.MKTP.CD", CO.world_bank_gni),
-            ("IQ.CPA.GNDR.XQ", CO.world_bank_gender_inequality_index),
-            ("SP.DYN.LE00.IN", CO.world_bank_life_expectancy),
-            ("SE.ADT.LITR.ZS", CO.world_bank_literacy_rate),
-            ("SI.POV.NAHC", CO.world_bank_poverty_rate),
-            ("NY.GNP.PCAP.CD", CO.world_bank_gni_capita),
+    def handle(self, **_):
+        bulk_mgr = BulkUpdateManager(update_fields=COUNTRY_OVERVIEW_CHANGED_FIELDS, chunk_size=100)
+        total_start_time = time.time()
+        now = datetime.datetime.now()
+        default_daterange = self.get_date_range(now.year - 10, now.year)
+
+        country_qs = (
+            Country.objects.filter(
+                iso3__isnull=False,
+                record_type=CountryType.COUNTRY,
+                region__isnull=False,
+                independent=True,
+            )
+            .select_related("countryoverview")
+            .exclude(iso3__in=["COK", "BAR", "NOR"])
         )
 
-        world_bank_indicators = [indicator for indicator, _ in world_bank_indicator_map]
-        country_dict = {}
+        total_countries = country_qs.count()
+        for index, country in enumerate(country_qs, start=1):
+            iso3 = country.iso3
+            self.stdout.write(f"Importing country ({index:03}/{total_countries}): {iso3}")
+            overview = country.countryoverview
 
-        now = datetime.datetime.now()
-        daterange = f"{now.year - 10}:{now.year}"  # Fetch data up to 10 years.
-
-        for country in Country.objects.filter(
-            iso3__isnull=False, record_type=CountryType.COUNTRY, region__isnull=False, independent=True
-        ).exclude(iso3__in=["COK", "BAR", "NOR"]):
-            country_iso3 = country.iso3
-            print(f"Importing country {country_iso3}")
-            for indicator in world_bank_indicators:
-                page = 1  # Reset the page for each indicator
-                while True:
-                    try:
-                        response = requests.get(
-                            f"https://api.worldbank.org/v2/country/{country_iso3}/indicator/{indicator}?date={daterange}",
-                            params={
-                                "format": "json",
-                                "source": 2,
-                                "per_page": 5000 - 1,  # World Bank throws error on 5000
-                                "page": page,
-                            },
-                        )
-                        response.raise_for_status()
-                    except requests.exceptions.HTTPError:
-                        continue
-
-                    try:
-                        data_list = response.json()[1]
-                        if data_list is not None and len(data_list) > 0:
-                            data = data_list
-                    except (IndexError, KeyError):
-                        continue
-
-                    if data:
-                        country_data = None
-                        geo_id = None
-                        existing_data = None
-                        for datum in data:
-                            geo_code = datum["countryiso3code"]
-                            value = datum["value"]
-                            year = datum["date"]
-
-                            if len(geo_code) == 3:
-                                pcountry = get_country_by_iso3(geo_code)
-                                if pcountry is not None:
-                                    geo_id = pcountry.alpha_2.upper()
-
-                                    if geo_id not in country_dict:
-                                        country_dict[geo_id] = []
-
-                                    if value is not None:
-                                        if existing_data is None or year > existing_data["date"]:
-                                            existing_data = datum
-                                            country_data = (value, year, indicator)
-                        country_dict[geo_id].append(country_data)
-                        logger.info(json.dumps(country_dict))
-
-                        if "pages" in response.json()[0]:
-                            if page >= response.json()[0]["pages"]:
-                                break
-                        page += 1
-
-        for country_code, indicators in country_dict.items():
-            overview = CO.objects.filter(country__iso=country_code).first()
-            if overview:
-                overview.world_bank_population = get_indicator_value(indicators[0])
-                overview.calculated_world_bank_population_year = get_indicator_year(indicators[0])
-
-                overview.world_bank_population_above_age_65 = get_indicator_value(indicators[1])
-                overview.calculated_world_bank_population_above_age_65_year = get_indicator_year(indicators[1])
-
-                overview.world_bank_population_age_14 = get_indicator_value(indicators[2])
-                overview.calculated_world_bank_population_age_14_year = get_indicator_year(indicators[2])
-
-                overview.world_bank_urban_population_percentage = get_indicator_value(indicators[3])
-                overview.calculated_world_bank_urban_population_percentage_year = get_indicator_year(indicators[3])
-
-                overview.world_bank_gdp = get_indicator_value(indicators[4])
-                overview.calculated_world_bank_gdp_year = get_indicator_year(indicators[4])
-
-                overview.world_bank_gni = get_indicator_value(indicators[5])
-                overview.calculated_world_bank_gni_year = get_indicator_year(indicators[5])
-
-                overview.world_bank_gender_inequality_index = get_indicator_value(indicators[6])
-                overview.calculated_world_bank_gender_inequality_index_year = get_indicator_year(indicators[6])
-
-                overview.world_bank_life_expectancy = get_indicator_value(indicators[7])
-                overview.calculated_world_bank_life_expectancy_year = get_indicator_year(indicators[7])
-
-                overview.world_bank_literacy_rate = get_indicator_value(indicators[8])
-                overview.calculated_world_bank_literacy_rate_year = get_indicator_year(indicators[8])
-
-                overview.world_bank_poverty_rate = get_indicator_value(indicators[9])
-                overview.calculated_world_bank_poverty_rate_year = get_indicator_year(indicators[9])
-
-                overview.world_bank_gni_capita = get_indicator_value(indicators[10])
-                overview.calculated_world_bank_gni_capita_year = get_indicator_value(indicators[10])
-                overview.save(
-                    update_fields=[
-                        "world_bank_population",
-                        "calculated_world_bank_population_year",
-                        "world_bank_population_above_age_65",
-                        "calculated_world_bank_population_above_age_65_year",
-                        "world_bank_population_age_14",
-                        "calculated_world_bank_population_age_14_year",
-                        "world_bank_urban_population_percentage",
-                        "calculated_world_bank_urban_population_percentage_year",
-                        "world_bank_gdp",
-                        "calculated_world_bank_gdp_year",
-                        "world_bank_gni",
-                        "calculated_world_bank_gni_year",
-                        "world_bank_gender_inequality_index",
-                        "calculated_world_bank_gender_inequality_index_year",
-                        "world_bank_life_expectancy",
-                        "calculated_world_bank_life_expectancy_year",
-                        "world_bank_literacy_rate",
-                        "calculated_world_bank_literacy_rate_year",
-                        "world_bank_poverty_rate",
-                        "calculated_world_bank_poverty_rate_year",
-                        "world_bank_gni_capita",
-                        "calculated_world_bank_gni_capita_year",
-                    ]
+            # Pre-fetch to generate smaller date-range relative to local
+            indicator_data: dict[str, CountryIndicatorData] = {
+                indicator: CountryIndicatorData(
+                    value=getattr(overview, value_field.field.name),
+                    year=int(getattr(overview, year_field.field.name)),
                 )
+                for indicator, (value_field, year_field) in WORLD_BANK_INDICATOR_MAP.items()
+                if not (getattr(overview, year_field.field.name) is None or getattr(overview, value_field.field.name) is None)
+            }
+
+            for indicator in WORLD_BANK_INDICATOR_MAP.keys():
+                daterange = default_daterange
+                if indicator in indicator_data:
+                    # XXX: This is a simple check to avoid using invalid year. We can remove this later
+                    if (now.year - 10) <= indicator_data[indicator]["year"] <= now.year:
+                        # Avoid historical data we have already processed
+                        daterange = self.get_date_range(indicator_data[indicator]["year"], now.year)
+
+                for data in self.paginated_response(iso3, indicator, daterange):
+                    value = data["value"]
+                    year = int(data["date"])
+
+                    if value is None:
+                        continue
+
+                    if indicator not in indicator_data or year >= indicator_data[indicator]["year"]:
+                        indicator_data[indicator] = CountryIndicatorData(
+                            year=year,
+                            value=value,
+                        )
+
+                if indicator not in indicator_data:
+                    # There was no data available in remote
+                    continue
+
+                # Set the latest data to the fields
+                setattr(overview, WORLD_BANK_INDICATOR_MAP[indicator][0].field.name, indicator_data[indicator]["value"])
+                setattr(
+                    overview,
+                    WORLD_BANK_INDICATOR_MAP[indicator][1].field.name,
+                    indicator_data[indicator]["year"],
+                )
+
+            # Save the country overview
+            bulk_mgr.add(overview)
+        self.stdout.write(f"Total Runtime: {pretty_seconds(time.time() - total_start_time)}")
+
+        bulk_mgr.done()
+        self.stdout.write(self.style.SUCCESS(f"Updated country overview: {bulk_mgr.summary()}"))
+
+        self.show_stats(country_qs)
