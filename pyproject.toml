@@ -88,6 +88,7 @@ django-haystack = { version = "*", extras = ["elasticsearch"] }
 drf-spectacular = "*"
 pyjwt = "*"
 shapely = "*"
+colorlog = "*"
 
 mapbox-tilesets = "*"
 ipython = "*"

@@ -176,3 +176,11 @@ class SpreadSheetContentNegotiation(DefaultContentNegotiation):
 
 def pretty_seconds(seconds):
     return datetime.timedelta(seconds=seconds)
+
+
+def logger_context(data):
+    """
+    This function is used to use a unique key to pass logging context to sentry and console
+    Check main.settings.py::log_render_extra_context
+    """
+    return {"context": data}
