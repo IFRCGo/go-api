@@ -12,7 +12,7 @@ from api.models import Country, CountryType
 from databank.models import CountryOverview
 from main.managers import BulkUpdateManager
 from main.sentry import SentryMonitor
-from main.utils import pretty_seconds
+from main.utils import logger_context, pretty_seconds
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +73,7 @@ COUNTRY_OVERVIEW_CHANGED_FIELDS = [field.field.name for fields in WORLD_BANK_IND
 
 
 class Command(BaseCommand):
-    help = "Add Acaps seasonal calendar data"
+    help = "Ingest worldbank indicators data"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -81,7 +81,7 @@ class Command(BaseCommand):
         self.requests = requests.session()
 
     def show_stats(self, country_qs):
-        self.stdout.write("Countires with empty data per indicators?")
+        self.stdout.write("Countries with empty data per indicators?")
         for indicator, (value_field, year_field) in WORLD_BANK_INDICATOR_MAP.items():
             count = CountryOverview.objects.filter(
                 models.Q(
@@ -122,18 +122,21 @@ class Command(BaseCommand):
                 },
             )
 
+            error_context = logger_context(
+                {
+                    "url": response.url,
+                    "content": response.content,
+                }
+            )
+
             if response.status_code != 200:
-                logger.warning(
-                    f"Failed to fetch data Country:{iso3}, Indicator: {indicator}, \n {response.content}",
-                )
-                page += 1  # Try another page
-                continue
+                logger.error("Worldbank ingest: Failed to fetch data", extra=error_context)
+                break
 
             response_json = response.json()
             if not isinstance(response_json, list) or len(response_json) != 2:
-                logger.warning("Unexpected response from endpoint")
-                page += 1  # Try another page
-                continue
+                logger.error("Worldbank ingest: Unexpected response from endpoint", extra=error_context)
+                break
 
             response_meta, response_data = response_json
             for item in response_data or []:
@@ -146,7 +149,7 @@ class Command(BaseCommand):
 
     @monitor(monitor_slug=SentryMonitor.INGEST_WORLDBANK)
     def handle(self, **_):
-        bulk_mgr = BulkUpdateManager(update_fields=COUNTRY_OVERVIEW_CHANGED_FIELDS, chunk_size=100)
+        bulk_mgr = BulkUpdateManager(update_fields=COUNTRY_OVERVIEW_CHANGED_FIELDS, chunk_size=20)
         total_start_time = time.time()
         now = datetime.datetime.now()
         default_daterange = self.get_date_range(now.year - 10, now.year)
@@ -216,6 +219,6 @@ class Command(BaseCommand):
         self.stdout.write(f"Total Runtime: {pretty_seconds(time.time() - total_start_time)}")
 
         bulk_mgr.done()
-        self.stdout.write(self.style.SUCCESS(f"Updated country overview: {bulk_mgr.summary()}"))
+        self.stdout.write(self.style.SUCCESS(f"Updated: {bulk_mgr.summary()}"))
 
         self.show_stats(country_qs)
