@@ -301,11 +301,11 @@ class CountryOverview(models.Model):
     calculated_world_bank_gni_year = models.CharField(
         verbose_name=_("calculated world bank gni year"), null=True, blank=True, max_length=50
     )
-    world_bank_gender_inequality_index = models.FloatField(
-        verbose_name=_("world bank gender inequality index"), null=True, blank=True
+    world_bank_gender_equality_index = models.FloatField(
+        verbose_name=_("world bank gender equality index"), null=True, blank=True
     )
-    calculated_world_bank_gender_inequality_index_year = models.CharField(
-        verbose_name=_("calculated world bank gender inequality index year"), null=True, blank=True, max_length=50
+    calculated_world_bank_gender_equality_index_year = models.CharField(
+        verbose_name=_("calculated world bank gender equality index year"), null=True, blank=True, max_length=50
     )
     world_bank_life_expectancy = models.IntegerField(verbose_name=_("world bank life expectancy"), null=True, blank=True)
     calculated_world_bank_life_expectancy_year = models.CharField(

@@ -48,8 +48,8 @@ WORLD_BANK_INDICATOR_MAP = {
         CountryOverview.calculated_world_bank_gni_year,
     ),
     "IQ.CPA.GNDR.XQ": (
-        CountryOverview.world_bank_gender_inequality_index,
-        CountryOverview.calculated_world_bank_gender_inequality_index_year,
+        CountryOverview.world_bank_gender_equality_index,
+        CountryOverview.calculated_world_bank_gender_equality_index_year,
     ),
     "SP.DYN.LE00.IN": (
         CountryOverview.world_bank_life_expectancy,
@@ -105,7 +105,7 @@ class Command(BaseCommand):
 
     def paginated_response(self, iso3, indicator, daterange) -> typing.Iterator[dict]:
         """
-        This addes support for pagination.
+        This adds support for pagination.
         NOTE: With current per_page 5000 -1, pagination is called rarely
         """
         page = 1
@@ -169,7 +169,7 @@ class Command(BaseCommand):
         for index, country in enumerate(country_qs, start=1):
             iso3 = country.iso3
             self.stdout.write(f"Importing country ({index:03}/{total_countries}): {iso3}")
-            overview = country.countryoverview
+            overview = CountryOverview(country=country)
 
             # Pre-fetch to generate smaller date-range relative to local
             indicator_data: dict[str, CountryIndicatorData] = {
