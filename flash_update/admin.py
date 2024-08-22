@@ -1,5 +1,6 @@
 from django.contrib import admin
 
+from api.forms import RichSitOverview
 from lang.admin import TranslationAdmin
 
 from .forms import ActionForm
@@ -78,6 +79,7 @@ class FlashUpdateAdmin(TranslationAdmin):
     inlines = [FlashCountryDistrictAdminInline, FlashActionTakenAdminInline]
     search_fields = ("title",)
     list_filter = ("hazard_type", "share_with", "flash_country_district__country")
+    form = RichSitOverview
 
 
 admin.site.register(FlashAction, FlashActionAdmin)

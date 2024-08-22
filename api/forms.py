@@ -13,28 +13,31 @@ class ActionForm(forms.ModelForm):
         fields = "__all__"
 
 
-class SocietyNamePlain(forms.ModelForm):
+class RichSummary(forms.ModelForm):
     class Meta:
         widgets = {
-            "society_name_en": forms.Textarea(attrs={"class": "plain-textarea"}),
-            "society_name_es": forms.Textarea(attrs={"class": "plain-textarea"}),
-            "society_name_fr": forms.Textarea(attrs={"class": "plain-textarea"}),
-            "society_name_ar": forms.Textarea(attrs={"class": "plain-textarea"}),
+            "summary_en": forms.Textarea(attrs={"class": "richtext"}),
+            "summary_es": forms.Textarea(attrs={"class": "richtext"}),
+            "summary_fr": forms.Textarea(attrs={"class": "richtext"}),
+            "summary_ar": forms.Textarea(attrs={"class": "richtext"}),
         }
 
 
-class SummaryPlain(forms.ModelForm):
+class RichDescription(forms.ModelForm):
     class Meta:
         widgets = {
-            "summary_en": forms.Textarea(attrs={"class": "plain-textarea"}),
-            "summary_es": forms.Textarea(attrs={"class": "plain-textarea"}),
-            "summary_fr": forms.Textarea(attrs={"class": "plain-textarea"}),
-            "summary_ar": forms.Textarea(attrs={"class": "plain-textarea"}),
+            "description_en": forms.Textarea(attrs={"class": "richtext"}),
+            "description_es": forms.Textarea(attrs={"class": "richtext"}),
+            "description_fr": forms.Textarea(attrs={"class": "richtext"}),
+            "description_ar": forms.Textarea(attrs={"class": "richtext"}),
         }
 
 
-class DescriptionPlain(forms.ModelForm):
+class RichSitOverview(forms.ModelForm):
     class Meta:
         widgets = {
-            "description": forms.Textarea(attrs={"class": "plain-textarea"}),
+            "situational_overview_en": forms.Textarea(attrs={"class": "richtext"}),
+            "situational_overview_es": forms.Textarea(attrs={"class": "richtext"}),
+            "situational_overview_fr": forms.Textarea(attrs={"class": "richtext"}),
+            "situational_overview_ar": forms.Textarea(attrs={"class": "richtext"}),
         }
