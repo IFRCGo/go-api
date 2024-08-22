@@ -13,13 +13,17 @@ class ActionForm(forms.ModelForm):
         fields = "__all__"
 
 
-class SocietyNamePlain(forms.ModelForm):
+class SocietyNameOverviewPlain(forms.ModelForm):
     class Meta:
         widgets = {
             "society_name_en": forms.Textarea(attrs={"class": "plain-textarea"}),
             "society_name_es": forms.Textarea(attrs={"class": "plain-textarea"}),
             "society_name_fr": forms.Textarea(attrs={"class": "plain-textarea"}),
             "society_name_ar": forms.Textarea(attrs={"class": "plain-textarea"}),
+            "overview_en": forms.Textarea(attrs={"class": "plain-textarea"}),
+            "overview_es": forms.Textarea(attrs={"class": "plain-textarea"}),
+            "overview_fr": forms.Textarea(attrs={"class": "plain-textarea"}),
+            "overview_ar": forms.Textarea(attrs={"class": "plain-textarea"}),
         }
 
 
