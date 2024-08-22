@@ -11,7 +11,6 @@ services:
       environment:
         # For Terraform
         - TF_VAR_domain=${API_FQDN}
-        - TF_VAR_additionalDomain=${API_ADDITIONAL_FQDN}
         - TF_VAR_username=${USER}
         - TF_VAR_environment=${environment}
         - TF_VAR_subscriptionId=${subscriptionId}
