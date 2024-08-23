@@ -19,7 +19,7 @@ from rest_framework.settings import api_settings
 
 from api.models import Country
 from deployments.models import SectorTag
-from main.permissions import DenyGuestUserMutationPermission
+from main.permissions import DenyGuestUserPermission
 from main.utils import SpreadSheetContentNegotiation
 from per.filter_set import (
     PerDocumentFilter,
@@ -227,7 +227,7 @@ class CountryPublicPerStatsViewset(mixins.ListModelMixin, viewsets.GenericViewSe
 class CountryPerStatsViewset(mixins.ListModelMixin, viewsets.GenericViewSet):
     serializer_class = LatestCountryOverviewSerializer
     filterset_class = PerOverviewFilter
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
 
     def get_queryset(self):
         return Overview.objects.select_related("country", "type_of_assessment").order_by("-created_at")
@@ -235,7 +235,7 @@ class CountryPerStatsViewset(mixins.ListModelMixin, viewsets.GenericViewSet):
 
 class PerOverviewViewSet(viewsets.ModelViewSet):
     serializer_class = PerOverviewSerializer
-    permission_classes = [IsAuthenticated, PerPermission, DenyGuestUserMutationPermission]
+    permission_classes = [IsAuthenticated, PerPermission, DenyGuestUserPermission]
     filterset_class = PerOverviewFilter
     ordering_fields = "__all__"
     get_request_user_regions = RegionRestrictedAdmin.get_request_user_regions
@@ -247,7 +247,7 @@ class PerOverviewViewSet(viewsets.ModelViewSet):
 
 
 class ExportPerView(views.APIView):
-    permission_classes = [permissions.IsAuthenticated, DenyGuestUserMutationPermission]
+    permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
 
     content_negotiation_class = SpreadSheetContentNegotiation
 
@@ -507,7 +507,7 @@ class ExportPerView(views.APIView):
 
 
 class NewPerWorkPlanViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticated, PerGeneralPermission, DenyGuestUserMutationPermission)
+    permission_classes = (IsAuthenticated, PerGeneralPermission, DenyGuestUserPermission)
     queryset = PerWorkPlan.objects.all()
     serializer_class = PerWorkPlanSerializer
     filterset_class = PerWorkPlanFilter
@@ -524,7 +524,7 @@ class FormPrioritizationViewSet(viewsets.ModelViewSet):
     serializer_class = FormPrioritizationSerializer
     queryset = FormPrioritization.objects.all()
     filterset_class = PerPrioritizationFilter
-    permission_classes = (IsAuthenticated, PerGeneralPermission, DenyGuestUserMutationPermission)
+    permission_classes = (IsAuthenticated, PerGeneralPermission, DenyGuestUserPermission)
     ordering_fields = "__all__"
 
 
@@ -535,7 +535,7 @@ class PublicFormPrioritizationViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class PerOptionsView(views.APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
     ordering_fields = "__all__"
 
     @extend_schema(request=None, responses=PerOptionsSerializer)
@@ -554,7 +554,7 @@ class PerOptionsView(views.APIView):
 class PerProcessStatusViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PerProcessSerializer
     filterset_class = PerOverviewFilter
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
     ordering_fields = "__all__"
     get_request_user_regions = RegionRestrictedAdmin.get_request_user_regions
     get_filtered_queryset = RegionRestrictedAdmin.get_filtered_queryset
@@ -575,7 +575,7 @@ class PublicPerProcessStatusViewSet(viewsets.ReadOnlyModelViewSet):
 
 class FormAssessmentViewSet(viewsets.ModelViewSet):
     serializer_class = PerAssessmentSerializer
-    permission_classes = [permissions.IsAuthenticated, PerGeneralPermission, DenyGuestUserMutationPermission]
+    permission_classes = [permissions.IsAuthenticated, PerGeneralPermission, DenyGuestUserPermission]
     ordering_fields = "__all__"
 
     def get_queryset(self):
@@ -591,7 +591,7 @@ class PublicFormAssessmentViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class PerFileViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
-    permission_classes = [permissions.IsAuthenticated, DenyGuestUserMutationPermission]
+    permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
     serializer_class = PerFileSerializer
 
     def get_queryset(self):
@@ -604,7 +604,7 @@ class PerFileViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.Ge
         detail=False,
         url_path="multiple",
         methods=["POST"],
-        permission_classes=[permissions.IsAuthenticated, DenyGuestUserMutationPermission],
+        permission_classes=[permissions.IsAuthenticated, DenyGuestUserPermission],
     )
     def multiple_file(self, request, pk=None, version=None):
         # converts querydict to original dict
@@ -639,7 +639,7 @@ class PerCountryViewSet(viewsets.ReadOnlyModelViewSet):
 class PerAggregatedViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PerProcessSerializer
     filterset_class = PerOverviewFilter
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
     ordering_fields = ["assessment_number", "phase", "date_of_assessment"]
     get_request_user_regions = RegionRestrictedAdmin.get_request_user_regions
     get_filtered_queryset = RegionRestrictedAdmin.get_filtered_queryset
@@ -708,7 +708,7 @@ class OpsLearningViewset(viewsets.ModelViewSet):
     """
 
     queryset = OpsLearning.objects.all()
-    permission_classes = [DenyGuestUserMutationPermission, OpsLearningPermission]
+    permission_classes = [DenyGuestUserPermission, OpsLearningPermission]
     filterset_class = OpsLearningFilter
     search_fields = (
         "learning",
@@ -812,7 +812,7 @@ class PerDocumentUploadViewSet(viewsets.ModelViewSet):
     queryset = PerDocumentUpload.objects.all()
     serializer_class = PerDocumentUploadSerializer
     filterset_class = PerDocumentFilter
-    permission_classes = [permissions.IsAuthenticated, PerDocumentUploadPermission, DenyGuestUserMutationPermission]
+    permission_classes = [permissions.IsAuthenticated, PerDocumentUploadPermission, DenyGuestUserPermission]
 
     def get_queryset(self):
         queryset = super().get_queryset()

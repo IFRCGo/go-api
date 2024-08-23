@@ -10,7 +10,8 @@ from api.factories.event import (
     EventFeaturedDocumentFactory,
     EventLinkFactory,
 )
-from api.models import Profile
+from api.factories.field_report import FieldReportFactory
+from api.models import Profile, VisibilityChoices
 from deployments.factories.user import UserFactory
 from main.test_case import APITestCase, SnapshotTestCase
 
@@ -24,21 +25,34 @@ class GuestUserPermissionTest(APITestCase):
         guest_profile.save()
 
         # Create go user
-        self.go_user = User.objects.create(username="go-user")
+        self.go_user = User.objects.create(username="go-user", is_superuser=True, is_staff=True)
         go_user_profile = Profile.objects.get(user=self.go_user)
         go_user_profile.limit_access_to_guest = False
         go_user_profile.save()
 
+        # Create public field reports
+        FieldReportFactory.create_batch(4, visibility=VisibilityChoices.PUBLIC)
+        # Create non-public field reports
+        FieldReportFactory.create_batch(5, visibility=VisibilityChoices.IFRC)
+
     def test_guest_user_permission(self):
         body = {}
+        id = 1  # NOTE: id is used just to test api that requires id, it doesnot indicate real id. It can be any number.
+
         guest_apis = [
             "/api/v2/add_subscription/",
             "/api/v2/del_subscription/",
             "/api/v2/external-token/",
-            "/api/v2/user/me/",
         ]
-        id = 1  # NOTE: id is used just to test api that requires id, it doesnot indicate real id. It can be any number.
-        go_apis = [
+        guest_get_apis = [
+            "/api/v2/user/me/",
+            "/api/v2/field-report/",
+            f"/api/v2/field-report/{id}/",
+            "/api/v2/language/",
+            f"/api/v2/language/{id}/",
+        ]
+
+        go_post_apis = [
             "/api/v2/dref/",
             "/api/v2/dref-final-report/",
             f"/api/v2/dref-final-report/{id}/publish/",
@@ -76,13 +90,9 @@ class GuestUserPermissionTest(APITestCase):
             f"/api/v2/dref-final-report/{id}/",
             "/api/v2/dref-op-update/",
             f"/api/v2/dref/{id}/",
-            "/api/v2/field-report/",
-            f"/api/v2/field-report/{id}/",
             "/api/v2/flash-update/",
             "/api/v2/flash-update-file/",
             f"/api/v2/flash-update/{id}/",
-            "/api/v2/language/",
-            f"/api/v2/language/{id}/",
             "/api/v2/local-units/",
             f"/api/v2/local-units/{id}/",
             "/api/v2/ops-learning/",
@@ -106,6 +116,15 @@ class GuestUserPermissionTest(APITestCase):
             f"/api/v2/subscription/{id}/",
             "/api/v2/users/",
             f"/api/v2/users/{id}/",
+            "/api/v2/per-stats/",
+            "/api/v2/per-options/",
+            "/api/v2/per-process-status/",
+            "/api/v2/aggregated-per-process-status/",
+            "/api/v2/completed-dref/",
+            "/api/v2/active-dref/",
+            "/api/v2/dref-share-user/",
+            "/api/v2/personnel_deployment/",
+            f"/api/v2/delegation-office/{id}/",
             # Exports
             f"/api/v2/export-flash-update/{1}/",
         ]
@@ -115,55 +134,81 @@ class GuestUserPermissionTest(APITestCase):
             f"/api/v2/export-per/{1}/",
         ]
 
-        go_apis_req_additional_perm = [
+        go_post_apis_req_additional_perm = [
             "/api/v2/ops-learning/",
             "/api/v2/per-overview/",
             f"/api/v2/user/{id}/accepted_license_terms/",
-            f"/api/v2/language/{id}/bulk-action/",
         ]
-
-        self.authenticate(user=self.guest_user)
 
         def _success_check(response):  # NOTE: Only handles json responses
             self.assertNotIn(response.status_code, [401, 403], response.content)
             self.assertNotIn(response.json().get("error_code"), [401, 403], response.content)
 
-        def _failure_check(response, is_json=True):
+        def _failure_check(response, check_json_error_code=True):
             self.assertIn(response.status_code, [401, 403], response.content)
-            if is_json:
+            if check_json_error_code:
                 self.assertIn(response.json()["error_code"], [401, 403], response.content)
+
+        # check for unauthenticated user
+        # Unauthenticated user should be able to view public field reports
+        field_report_pub_response = self.client.get("/api/v2/field-report/")
+        _success_check(field_report_pub_response)
+        self.assertEqual(len(field_report_pub_response.json()["results"]), 4)
+
+        # Unauthenticated user should be not be able to do post operations in field reports
+        field_report_pub_response = self.client.post("/api/v2/field-report/", json=body)
+        _failure_check(field_report_pub_response, check_json_error_code=False)
+
+        # authenticate guest user
+        self.authenticate(user=self.guest_user)
 
         for api_url in get_custom_negotiation_apis:
             headers = {
                 "Accept": "text/html",
             }
             response = self.client.get(api_url, headers=headers, stream=True)
-            _failure_check(response, is_json=False)
+            _failure_check(response, check_json_error_code=False)
 
-        # Guest user should not be able to access get apis that requires IsAuthenticated permission
+        # # Guest user should not be able to access get apis that requires IsAuthenticated permission
         for api_url in get_apis:
             response = self.client.get(api_url)
             _failure_check(response)
 
-        # Guest user should not be able to hit post apis.
-        for api_url in go_apis + go_apis_req_additional_perm:
+        # # Guest user should not be able to hit post apis.
+        for api_url in go_post_apis + go_post_apis_req_additional_perm:
             response = self.client.post(api_url, json=body)
             _failure_check(response)
 
-        # Guest user should be able to access guest apis
+        # Guest user should be able to access guest post apis
         for api_url in guest_apis:
             response = self.client.post(api_url, json=body)
             _success_check(response)
 
-        # Go user should be able to access go_apis
+        # Guest user should be able to access guest get apis
+        for api_url in guest_get_apis:
+            response = self.client.get(api_url)
+            _success_check(response)
+
+        # Guest user should be able to view only public field reports
+        field_report_pub_response = self.client.get("/api/v2/field-report/")
+        _success_check(field_report_pub_response)
+        self.assertEqual(len(field_report_pub_response.json()["results"]), 4)
+
+        # authenticate ifrc go user
+        # Go user should be able to access go_post_apis
         self.authenticate(user=self.go_user)
-        for api_url in go_apis:
+        for api_url in go_post_apis:
             response = self.client.post(api_url, json=body)
             _success_check(response)
 
         for api_url in get_apis:
             response = self.client.get(api_url)
             _success_check(response)
+
+        # Go user should be able to view both public + non-public field reports
+        field_report_response = self.client.get("/api/v2/field-report/")
+        _success_check(field_report_response)
+        self.assertEqual(len(field_report_response.json()["results"]), 9)
 
 
 class AuthTokenTest(APITestCase):

@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from deployments.models import MolnixTag
 from main.filters import CharInFilter
-from main.permissions import DenyGuestUserMutationPermission
+from main.permissions import DenyGuestUserPermission
 
 from .models import Subscription, SurgeAlert
 from .serializers import (  # UnauthenticatedSurgeAlertSerializer,
@@ -95,7 +95,7 @@ class SurgeAlertViewset(viewsets.ReadOnlyModelViewSet):
 class SubscriptionViewset(viewsets.ModelViewSet):
     serializer_class = SubscriptionSerializer
     authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated, DenyGuestUserMutationPermission)
+    permission_classes = (IsAuthenticated, DenyGuestUserPermission)
     search_fields = ("user__username", "rtype")  # for /docs
 
     def get_queryset(self):
