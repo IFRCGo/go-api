@@ -90,9 +90,29 @@ class PersonnelAdmin(CompareVersionAdmin, TranslationAdmin):
 
 
 class PersonnelInline(admin.TabularInline):
+
+    def surge_alert_notification(self, obj):
+        if obj.surge_alert:
+            return "%s (%d)" % (obj.surge_alert.message, obj.surge_alert.id)
+        return "-"
+
     model = models.Personnel
+    # including surge_alert makes queries really, really heavy and timeout prone: instead of 20 queries it gives 13700.
+    exclude = ("surge_alert", "molnix_tags")
     autocomplete_fields = ("country_from",)
-    readonly_fields = ("molnix_id",)
+    readonly_fields = ("molnix_id", "surge_alert_notification")
+
+    def get_queryset(self, request):
+        return (
+            super()
+            .get_queryset(request)
+            .select_related(
+                "country_from",
+                "country_to",
+            )
+        )
+        # "deployedperson_ptr", "country_from", "country_to", "deployment", "surge_alert", "surge_alert__event")
+        # .prefetch_related("surge_alert")
 
 
 class PersonnelDeploymentAdmin(CompareVersionAdmin, TranslationAdmin):
@@ -107,7 +127,14 @@ class PersonnelDeploymentAdmin(CompareVersionAdmin, TranslationAdmin):
     )
 
     def get_queryset(self, request):
-        return super().get_queryset(request).select_related("country_deployed_to", "region_deployed_to", "event_deployed_to")
+        return (
+            super()
+            .get_queryset(request)
+            .select_related("country_deployed_to", "region_deployed_to", "event_deployed_to", "appeal_deployed_to")
+        )
+        # .prefetch_related("personnel_set", "personnel_set__deployment", "appeal_deployed_to__event",
+        # "personnel_set__deployment__event_deployed_to", "personnel_set__deployedperson_ptr", "personnel_set__country_from",
+        # "personnel_set__country_to", "personnel_set__surge_alert", "personnel_set__surge_alert__event")
 
 
 class PartnerSocietyActivityAdmin(CompareVersionAdmin, TranslationAdmin):
