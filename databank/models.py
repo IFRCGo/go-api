@@ -273,22 +273,56 @@ class CountryOverview(models.Model):
 
     # World bank data
     world_bank_population = models.IntegerField(verbose_name=_("world bank population"), null=True, blank=True)
+    # NOTE: Using char to store integer values, Need to refactor the column type.
+    calculated_world_bank_population_year = models.CharField(
+        verbose_name=_("calculated world bank population year"), null=True, blank=True, max_length=50
+    )
     world_bank_population_above_age_65 = models.IntegerField(
         verbose_name=_("world bank population above age 65"), null=True, blank=True
     )
+    calculated_world_bank_population_above_age_65_year = models.CharField(
+        verbose_name=_("calculated world bank population above age 65 date in year"), null=True, blank=True, max_length=50
+    )
     world_bank_population_age_14 = models.IntegerField(verbose_name=_("world bank population age 14"), null=True, blank=True)
+    calculated_world_bank_population_age_14_year = models.CharField(
+        verbose_name=_("calculated world bank population age 14 date in year"), null=True, blank=True, max_length=50
+    )
     world_bank_urban_population_percentage = models.FloatField(
         verbose_name=_("world bank urban population percentage"), null=True, blank=True
     )
+    calculated_world_bank_urban_population_percentage_year = models.CharField(
+        verbose_name=_("calculated world bank urban population percentage year"), null=True, blank=True, max_length=50
+    )
     world_bank_gdp = models.FloatField(verbose_name=_("world bank gdp"), null=True, blank=True)
+    calculated_world_bank_gdp_year = models.CharField(
+        verbose_name=_("calculated world bank gdp year"), null=True, blank=True, max_length=50
+    )
     world_bank_gni = models.FloatField(verbose_name=_("world bank gni"), null=True, blank=True)
-    world_bank_gender_inequality_index = models.FloatField(
-        verbose_name=_("world bank gender inequality index"), null=True, blank=True
+    calculated_world_bank_gni_year = models.CharField(
+        verbose_name=_("calculated world bank gni year"), null=True, blank=True, max_length=50
+    )
+    world_bank_gender_equality_index = models.FloatField(
+        verbose_name=_("world bank gender equality index"), null=True, blank=True
+    )
+    calculated_world_bank_gender_equality_index_year = models.CharField(
+        verbose_name=_("calculated world bank gender equality index year"), null=True, blank=True, max_length=50
     )
     world_bank_life_expectancy = models.IntegerField(verbose_name=_("world bank life expectancy"), null=True, blank=True)
+    calculated_world_bank_life_expectancy_year = models.CharField(
+        verbose_name=_("calculated world bank life expectancy year"), null=True, blank=True, max_length=50
+    )
     world_bank_literacy_rate = models.FloatField(verbose_name=_("world bank life expectancy"), null=True, blank=True)
+    calculated_world_bank_literacy_rate_year = models.CharField(
+        verbose_name=_("calculated world bank literacy rate year"), null=True, blank=True, max_length=50
+    )
     world_bank_poverty_rate = models.FloatField(verbose_name=_("world bank poverty rate"), null=True, blank=True)
+    calculated_world_bank_poverty_rate_year = models.CharField(
+        verbose_name=_("calculated world bank poverty rate year"), null=True, blank=True, max_length=50
+    )
     world_bank_gni_capita = models.IntegerField(verbose_name=_("world bank GNI Per Capita"), null=True, blank=True)
+    calculated_world_bank_gni_capita_year = models.CharField(
+        verbose_name=_("calculated world bank gni capita year"), null=True, blank=True, max_length=50
+    )
 
     # fetched from unicef
     unicef_population_under_18 = models.IntegerField(verbose_name=_("Unicef population under 18"), null=True, blank=True)

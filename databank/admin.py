@@ -70,6 +70,7 @@ class CountryOverviewAdmin(admin.ModelAdmin):
         FDRSAnnualIncomeInline,
     ]
     form = CountryOverviewForm
+    # TODO: Add all of the fields
     fieldsets = (
         (None, {"fields": ("country",)}),
         (
@@ -93,4 +94,33 @@ class CountryOverviewAdmin(admin.ModelAdmin):
             },
         ),
         (_("KEY CLIMATE EVENT"), {"fields": ("avg_temperature", "avg_rainfall_precipitation", "rainy_season")}),
+        (
+            _("World bank"),
+            {
+                "fields": (
+                    "world_bank_population",
+                    "calculated_world_bank_population_year",
+                    "world_bank_population_above_age_65",
+                    "calculated_world_bank_population_above_age_65_year",
+                    "world_bank_population_age_14",
+                    "calculated_world_bank_population_age_14_year",
+                    "world_bank_urban_population_percentage",
+                    "calculated_world_bank_urban_population_percentage_year",
+                    "world_bank_gdp",
+                    "calculated_world_bank_gdp_year",
+                    "world_bank_gni",
+                    "calculated_world_bank_gni_year",
+                    "world_bank_gender_equality_index",
+                    "calculated_world_bank_gender_equality_index_year",
+                    "world_bank_life_expectancy",
+                    "calculated_world_bank_life_expectancy_year",
+                    "world_bank_literacy_rate",
+                    "calculated_world_bank_literacy_rate_year",
+                    "world_bank_poverty_rate",
+                    "calculated_world_bank_poverty_rate_year",
+                    "world_bank_gni_capita",
+                    "calculated_world_bank_gni_capita_year",
+                )
+            },
+        ),
     )

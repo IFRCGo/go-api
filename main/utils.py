@@ -172,3 +172,15 @@ class SpreadSheetContentNegotiation(DefaultContentNegotiation):
         if settings.TESTING:  # NOTE: Quick hack to test permission of the views
             return super().select_renderer(request, renderers, format_suffix)
         return (None, self.MEDIA_TYPES[0])
+
+
+def pretty_seconds(seconds):
+    return datetime.timedelta(seconds=seconds)
+
+
+def logger_context(data):
+    """
+    This function is used to use a unique key to pass logging context to sentry and console
+    Check main.settings.py::log_render_extra_context
+    """
+    return {"context": data}
