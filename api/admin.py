@@ -188,6 +188,7 @@ class EventFeaturedDocumentInline(admin.TabularInline):
 
 class EventLinkInline(admin.TabularInline, TranslationInlineModelAdmin):
     model = models.EventLink
+    form = DescriptionPlain
 
 
 class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):

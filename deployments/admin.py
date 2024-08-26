@@ -99,7 +99,10 @@ class PersonnelInline(admin.TabularInline):
     model = models.Personnel
     # including surge_alert makes queries really, really heavy and timeout prone: instead of 20 queries it gives 13700.
     exclude = ("surge_alert", "molnix_tags")
-    autocomplete_fields = ("country_from",)
+    autocomplete_fields = (
+        "country_from",
+        "country_to",
+    )
     readonly_fields = ("molnix_id", "surge_alert_notification")
 
     def get_queryset(self, request):
@@ -112,7 +115,6 @@ class PersonnelInline(admin.TabularInline):
             )
         )
         # "deployedperson_ptr", "country_from", "country_to", "deployment", "surge_alert", "surge_alert__event")
-        # .prefetch_related("surge_alert")
 
 
 class PersonnelDeploymentAdmin(CompareVersionAdmin, TranslationAdmin):
