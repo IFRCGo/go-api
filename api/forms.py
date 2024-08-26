@@ -41,4 +41,8 @@ class DescriptionPlain(forms.ModelForm):
     class Meta:
         widgets = {
             "description": forms.Textarea(attrs={"class": "plain-textarea"}),
+            "description_en": forms.Textarea(attrs={"class": "plain-textarea"}),
+            "description_es": forms.Textarea(attrs={"class": "plain-textarea"}),
+            "description_fr": forms.Textarea(attrs={"class": "plain-textarea"}),
+            "description_ar": forms.Textarea(attrs={"class": "plain-textarea"}),
         }
