@@ -312,7 +312,9 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
         try:
             deployment = PersonnelDeployment.objects.get(is_molnix=True, event_deployed_to=event)
         except Exception:
-            logger.warning("Did not import Deployment with Molnix ID %d. Invalid Event." % md["id"])
+            warning = "Did not import Deployment with Molnix ID %d. Invalid Event." % md["id"]
+            logger.warning(warning)
+            warnings.append(warning)
             prt("Did not import Deployment. Invalid Event", md["id"])
             continue
 
@@ -321,7 +323,9 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
             if md["position_id"]:
                 surge_alert = SurgeAlert.objects.get(molnix_id=md["position_id"])
         except Exception:
-            logger.warning("%d deployment did not find SurgeAlert with Molnix position_id %d." % (md["id"], md["position_id"]))
+            warning = "%d deployment did not find SurgeAlert with Molnix position_id %d." % (md["id"], md["position_id"])
+            logger.warning(warning)
+            warnings.append(warning)
             prt("Deployment did not find SurgeAlert", md["id"], md["position_id"])
             continue
 
@@ -332,7 +336,9 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
             if md["person"] and "sex" in md["person"]:
                 gender = md["person"]["sex"]
         except Exception:
-            logger.warning("Did not find gender info in %d" % md["id"])
+            warning = "Did not find gender info in %d" % md["id"]
+            logger.warning(warning)
+            warnings.append(warning)
             continue
 
         location = None
