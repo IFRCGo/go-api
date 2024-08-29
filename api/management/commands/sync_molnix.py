@@ -452,10 +452,10 @@ def sync_open_positions(molnix_positions, molnix_api, countries):
         event = get_go_event(position["tags"])
         country = get_go_country(countries, position["country_id"])
         if not country:
-            warning = "Position id %d does not have a valid Country" % position["id"]
+            warning = "Position id %d does not have a valid Country, we import it with an empty one" % position["id"]
             logger.warning(warning)
             warnings.append(warning)
-            continue
+            # Do not skip these countryless positions, remove "continue" from code.
         # If no valid GO Emergency tag is found, skip Position
         if not event:
             warning = "Position id %d does not have a valid Emergency tag." % position["id"]
