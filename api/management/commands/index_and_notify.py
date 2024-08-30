@@ -179,7 +179,7 @@ class Command(BaseCommand):
             belonging_event = (
                 record.event.id if record.event is not None else 57
             )  # Very rare – giving a non-existent | manually created surge – no event
-            resource_uri = "%s/emergencies/%s#surge" % (settings.FRONTEND_URL, belonging_event)
+            resource_uri = "%s/emergencies/%s" % (settings.FRONTEND_URL, belonging_event)
         elif rtype == RecordType.SURGE_DEPLOYMENT_MESSAGES:
             resource_uri = "%s/%s" % (settings.FRONTEND_URL, "deployments")  # can be further sophisticated
         elif rtype == RecordType.APPEAL and (record.event is not None and not record.needs_confirmation):
@@ -334,7 +334,7 @@ class Command(BaseCommand):
         #             'type': 'Alert',
         #             'operation': alert.operation,
         #            'event_url': (
-        #                '{}/emergencies/{}#overview'.format(settings.FRONTEND_URL, event.id) if event else
+        #                '{}/emergencies/{}'.format(settings.FRONTEND_URL, event.id) if event else
         #                settings.FRONTEND_URL,
         #            ),
         #             'society_from': '',
@@ -353,9 +353,7 @@ class Command(BaseCommand):
             country_from = Country.objects.get(id=pers.country_from_id) if pers.country_from_id is not None else None
             dep_to_add = {
                 "operation": event.name if event else "",
-                "event_url": (
-                    "{}/emergencies/{}#overview".format(settings.FRONTEND_URL, event.id) if event else settings.FRONTEND_URL
-                ),
+                "event_url": ("{}/emergencies/{}".format(settings.FRONTEND_URL, event.id) if event else settings.FRONTEND_URL),
                 "society_from": country_from.society_name if country_from else "",
                 "name": pers.name,
                 "role": pers.role,
@@ -598,9 +596,7 @@ class Command(BaseCommand):
                     delegates += int(f.num_expats_delegates or 0)
             resource_uri, follow_url = self.get_resource_uri(record, rtype), None
             if resource_uri != settings.FRONTEND_URL:
-                # instead of '{}/account#notifications'.format(settings.FRONTEND_URL):
                 follow_url = resource_uri + "/follow"
-                resource_uri += "#overview"
             rec_obj = {
                 "frontend_url": settings.FRONTEND_URL,
                 "resource_uri": resource_uri,
