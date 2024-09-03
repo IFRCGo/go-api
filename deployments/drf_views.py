@@ -23,7 +23,7 @@ from reversion.views import RevisionMixin
 from api.models import Country, Region
 from api.view_filters import ListFilter
 from api.visibility_class import ReadOnlyVisibilityViewsetMixin
-from main.permissions import DenyGuestUserMutationPermission
+from main.permissions import DenyGuestUserPermission
 from main.serializers import CsvListMixin
 from main.utils import is_tableau
 
@@ -143,7 +143,7 @@ class PersonnelDeploymentFilter(filters.FilterSet):
 
 class PersonnelDeploymentViewset(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, DenyGuestUserPermission)
     queryset = PersonnelDeployment.objects.all()
     serializer_class = PersonnelDeploymentSerializer
     filterset_class = PersonnelDeploymentFilter
@@ -456,7 +456,7 @@ class ProjectViewset(
         if self.action in ["list", "retrieve"]:
             permission_classes = []
         else:
-            permission_classes = [IsAuthenticated, DenyGuestUserMutationPermission]
+            permission_classes = [IsAuthenticated, DenyGuestUserPermission]
         return [permission() for permission in permission_classes]
 
 

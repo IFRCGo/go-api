@@ -14,7 +14,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from api.serializers import ActionSerializer
-from main.permissions import DenyGuestUserMutationPermission
+from main.permissions import DenyGuestUserPermission
 
 from .filter_set import FlashUpdateFilter
 from .models import (
@@ -39,7 +39,7 @@ from .tasks import export_to_pdf
 
 class FlashUpdateViewSet(viewsets.ModelViewSet):
     serializer_class = FlashUpdateSerializer
-    permission_classes = [permissions.IsAuthenticated, DenyGuestUserMutationPermission]
+    permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
     filterset_class = FlashUpdateFilter
 
     def get_queryset(self):
@@ -69,7 +69,7 @@ class FlashUpdateViewSet(viewsets.ModelViewSet):
 
 
 class FlashUpdateFileViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
-    permission_classes = [permissions.IsAuthenticated, DenyGuestUserMutationPermission]
+    permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
     serializer_class = FlashGraphicMapSerializer
 
     def get_queryset(self):
@@ -80,7 +80,7 @@ class FlashUpdateFileViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, vie
         detail=False,
         url_path="multiple",
         methods=["POST"],
-        permission_classes=[permissions.IsAuthenticated, DenyGuestUserMutationPermission],
+        permission_classes=[permissions.IsAuthenticated, DenyGuestUserPermission],
     )
     def multiple_file(self, request, pk=None, version=None):
         files = [files[0] for files in dict((request.data).lists()).values()]
@@ -113,13 +113,13 @@ class DonorsViewSet(viewsets.ReadOnlyModelViewSet):
 class ShareFlashUpdateViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     queryset = FlashUpdateShare.objects.all()
     serializer_class = ShareFlashUpdateSerializer
-    permission_classes = [permissions.IsAuthenticated, DenyGuestUserMutationPermission]
+    permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
 
 
 class ExportFlashUpdateView(views.APIView):
     permission_classes = [
         permissions.IsAuthenticated,
-        DenyGuestUserMutationPermission,
+        DenyGuestUserPermission,
     ]
 
     @extend_schema(request=None, responses=ExportFlashUpdateViewSerializer)

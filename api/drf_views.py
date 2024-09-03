@@ -59,7 +59,7 @@ from databank.serializers import CountryOverviewSerializer
 from deployments.models import Personnel
 from main.enums import GlobalEnumSerializer, get_enum_values
 from main.filters import NullsLastOrderingFilter
-from main.permissions import DenyGuestUserMutationPermission
+from main.permissions import DenyGuestUserMutationPermission, DenyGuestUserPermission
 from main.utils import is_tableau
 from per.models import Overview
 from per.serializers import CountryLatestOverviewSerializer
@@ -871,7 +871,7 @@ class AppealDocumentViewset(viewsets.ReadOnlyModelViewSet):
 class ProfileViewset(viewsets.ModelViewSet):
     serializer_class = ProfileSerializer
     authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated, DenyGuestUserMutationPermission)
+    permission_classes = (IsAuthenticated, DenyGuestUserPermission)
 
     def get_queryset(self):
         return Profile.objects.filter(user=self.request.user)
@@ -880,7 +880,7 @@ class ProfileViewset(viewsets.ModelViewSet):
 class UserViewset(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     authentication_classes = (TokenAuthentication,)
-    permission_classes = [IsAuthenticated, DenyGuestUserMutationPermission]
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
 
     def get_queryset(self):
         return User.objects.filter(pk=self.request.user.pk)
@@ -912,7 +912,7 @@ class FieldReportViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ModelViewSet):
     )  # for /docs
     ordering_fields = ("summary", "event", "dtype", "created_at", "updated_at")
     filterset_class = FieldReportFilter
-    permission_classes = [IsAuthenticated, DenyGuestUserMutationPermission]
+    permission_classes = [DenyGuestUserMutationPermission]
     queryset = FieldReport.objects.select_related("dtype", "event").prefetch_related(
         "actions_taken",
         "actions_taken__actions",
@@ -1315,7 +1315,7 @@ class UsersViewset(viewsets.ReadOnlyModelViewSet):
     """
 
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated, DenyGuestUserMutationPermission]
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
     filterset_class = UserFilterSet
 
     def get_queryset(self):
@@ -1353,7 +1353,7 @@ class GlobalEnumView(APIView):
 
 class ExportViewSet(viewsets.ModelViewSet):
     serializer_class = ExportSerializer
-    permission_classes = [IsAuthenticated, DenyGuestUserMutationPermission]
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
 
     def get_queryset(self):
         user = self.request.user
