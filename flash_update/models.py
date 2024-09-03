@@ -1,3 +1,5 @@
+# import os
+# from uuid import uuid4
 import reversion
 from django.conf import settings
 from django.contrib.auth.models import Group
@@ -6,6 +8,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from tinymce.models import HTMLField
 
+from main.utils import custom_upload_to
 from api.models import (
     ActionCategory,
     ActionOrg,
@@ -15,10 +18,15 @@ from api.models import (
     District,
 )
 
+def flash_map_upload_to(instance, filename):
+    return custom_upload_to('flash_update/images/')(instance, filename)
+
+def flash_extracted_file_upload_to(instance, filename):
+    return custom_upload_to('flash_update/pdf/')(instance, filename)
 
 @reversion.register()
 class FlashGraphicMap(models.Model):
-    file = models.FileField(verbose_name=_("file"), upload_to="flash_update/images/")
+    file = models.FileField(verbose_name=_("file"), upload_to=flash_map_upload_to)
     caption = models.CharField(max_length=225, blank=True, null=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -116,7 +124,7 @@ class FlashUpdate(models.Model):
         verbose_name=_("share with"),
     )
     references = models.ManyToManyField(FlashReferences, blank=True, verbose_name=_("references"))
-    extracted_file = models.FileField(verbose_name=_("extracted file"), upload_to="flash_update/pdf/", blank=True, null=True)
+    extracted_file = models.FileField(verbose_name=_("extracted file"), upload_to=flash_extracted_file_upload_to, blank=True, null=True)
     extracted_at = models.DateTimeField(verbose_name=_("extracted at"), blank=True, null=True)
 
     class Meta:
