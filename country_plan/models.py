@@ -5,6 +5,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from api.models import Country
+from main.fields import SecureFileField
 
 
 def file_upload_to(instance, filename):
@@ -63,7 +64,7 @@ class DataImport(CountryPlanAbstract):
 
 class CountryPlan(CountryPlanAbstract):
     country = models.OneToOneField(Country, on_delete=models.CASCADE, related_name="country_plan", primary_key=True)
-    internal_plan_file = models.FileField(
+    internal_plan_file = SecureFileField(
         verbose_name=_("Internal Plan"),
         upload_to=pdf_upload_to,
         validators=[FileExtensionValidator(["pdf"])],
