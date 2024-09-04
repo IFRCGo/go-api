@@ -1,8 +1,6 @@
-import os
 import datetime
 import json
 import typing
-from uuid import uuid4
 from collections import defaultdict
 from tempfile import NamedTemporaryFile, _TemporaryFileWrapper
 
@@ -16,20 +14,6 @@ from rest_framework.negotiation import DefaultContentNegotiation
 from reversion.models import Version
 from reversion.revisions import _get_options
 
-
-def custom_upload_to(directory):
-    """
-    Rename file name with adding uuid
-    """
-    def upload_to(instance, filename):
-        # Get the file extension
-        extension = filename.split('.')[-1]
-        old_file_name = filename.split('.')[0]
-        # Create a unique filename using uuid4
-        new_filename = f"{old_file_name}-{uuid4().hex}.{extension}"
-        # Return the new file path
-        return os.path.join(directory, new_filename)
-    return upload_to
 
 def is_tableau(request):
     """Checking the request for the 'tableau' parameter
