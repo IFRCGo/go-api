@@ -31,9 +31,11 @@ class GuestUserPermissionTest(APITestCase):
         go_user_profile.save()
 
         # Create public field reports
-        FieldReportFactory.create_batch(4, visibility=VisibilityChoices.PUBLIC)
+        event_pub = EventFactory.create(visibility=VisibilityChoices.PUBLIC, parent_event=None)
+        FieldReportFactory.create_batch(4, event=event_pub, visibility=VisibilityChoices.PUBLIC)
         # Create non-public field reports
-        FieldReportFactory.create_batch(5, visibility=VisibilityChoices.IFRC)
+        event_non_pub = EventFactory.create(visibility=VisibilityChoices.IFRC, parent_event=None)
+        FieldReportFactory.create_batch(5, event=event_non_pub, visibility=VisibilityChoices.IFRC)
 
     def test_guest_user_permission(self):
         body = {}
@@ -50,6 +52,7 @@ class GuestUserPermissionTest(APITestCase):
             f"/api/v2/field-report/{id}/",
             "/api/v2/language/",
             f"/api/v2/language/{id}/",
+            "/api/v2/event/",
         ]
 
         go_post_apis = [
@@ -159,6 +162,11 @@ class GuestUserPermissionTest(APITestCase):
         field_report_pub_response = self.client.post("/api/v2/field-report/", json=body)
         _failure_check(field_report_pub_response, check_json_error_code=False)
 
+        # Unauthenticated user should be able to view public events
+        event_pub_response = self.client.get("/api/v2/event/")
+        _success_check(event_pub_response)
+        self.assertEqual(len(event_pub_response.json()["results"]), 1)
+
         # authenticate guest user
         self.authenticate(user=self.guest_user)
 
@@ -194,6 +202,11 @@ class GuestUserPermissionTest(APITestCase):
         _success_check(field_report_pub_response)
         self.assertEqual(len(field_report_pub_response.json()["results"]), 4)
 
+        # Guest user should be able to view public events
+        event_pub_response = self.client.get("/api/v2/event/")
+        _success_check(event_pub_response)
+        self.assertEqual(len(event_pub_response.json()["results"]), 1)
+
         # authenticate ifrc go user
         # Go user should be able to access go_post_apis
         self.authenticate(user=self.go_user)
@@ -209,6 +222,11 @@ class GuestUserPermissionTest(APITestCase):
         field_report_response = self.client.get("/api/v2/field-report/")
         _success_check(field_report_response)
         self.assertEqual(len(field_report_response.json()["results"]), 9)
+
+        # Go user should be able to view both public + non-pubic events
+        event_response = self.client.get("/api/v2/event/")
+        _success_check(event_response)
+        self.assertEqual(len(event_response.json()["results"]), 2)
 
 
 class AuthTokenTest(APITestCase):

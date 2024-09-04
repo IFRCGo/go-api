@@ -688,7 +688,7 @@ class EventViewset(ReadOnlyVisibilityViewset):
                     "field_reports",
                     queryset=FieldReport.objects.prefetch_related("countries", "contacts"),
                 )
-                if self.request.user.is_authenticated:
+                if self.request.user.is_authenticated and not self.request.user.profile.limit_access_to_guest:
                     if is_user_ifrc(self.request.user):
                         instance = Event.objects.prefetch_related(FR).get(pk=pk)
                     else:
