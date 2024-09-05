@@ -664,6 +664,9 @@ CACHES = {
     }
 }
 
+# Redis locking
+REDIS_DEFAULT_LOCK_EXPIRE = 60 * 10  # Lock expires in 10min (in seconds)
+
 if env("CACHE_MIDDLEWARE_SECONDS"):
     CACHE_MIDDLEWARE_SECONDS = env("CACHE_MIDDLEWARE_SECONDS")  # Planned: 600 for staging, 60 from prod
 DISABLE_API_CACHE = env("DISABLE_API_CACHE")

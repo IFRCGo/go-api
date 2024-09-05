@@ -871,7 +871,7 @@ class OpsLearningViewset(viewsets.ModelViewSet):
     @action(
         detail=False,
         methods=["GET"],
-        permission_classes=[permissions.AllowAny],
+        permission_classes=[DenyGuestUserMutationPermission, OpsLearningPermission],
         url_path="summary",
     )
     def summary(self, request):

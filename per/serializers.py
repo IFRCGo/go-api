@@ -1227,7 +1227,9 @@ class OpsLearningSummarySerializer(serializers.ModelSerializer):
         ]
 
     def get_total_extracts_count(self, obj) -> int:
-        return OpsLearning.objects.filter(is_validated=True).values("id").count()
+        from per.drf_views import OpsLearningFilter
+
+        return OpsLearningFilter(obj.used_filters, queryset=OpsLearning.objects.filter(is_validated=True)).qs.count()
 
     def get_used_extracts_count(self, obj) -> int:
         return OpsLearning.objects.filter(id__in=obj.used_ops_learning.all()).values("id").count()

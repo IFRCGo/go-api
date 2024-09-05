@@ -779,6 +779,11 @@ class OpsLearningCacheResponse(models.Model):
         NO_EXTRACT_AVAILABLE = 4, _("No extract available")
         FAILED = 5, _("Failed")
 
+    class ExportStatus(models.IntegerChoices):
+        PENDING = 1, _("Pending")
+        SUCCESS = 2, _("Success")
+        FAILED = 3, _("Failed")
+
     used_filters_hash = models.CharField(verbose_name=_("used filters hash"), max_length=32)
     used_filters = models.JSONField(verbose_name=_("used filters"), default=dict)
 
@@ -809,6 +814,17 @@ class OpsLearningCacheResponse(models.Model):
     )
     modified_at = models.DateTimeField(verbose_name=_("modified_at"), auto_now=True)
     created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
+
+    # Caching for the exported file
+    export_status = models.IntegerField(
+        verbose_name=_("export status"),
+        choices=ExportStatus.choices,
+        default=ExportStatus.PENDING,
+    )
+    exported_file = models.FileField(
+        verbose_name=_("exported file"), upload_to="ops-learning/summary/export/", blank=True, null=True
+    )
+    exported_at = models.DateTimeField(verbose_name=_("exported at"), blank=True, null=True)
 
     def __str__(self) -> str:
         return self.used_filters_hash

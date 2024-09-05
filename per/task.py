@@ -1,24 +1,12 @@
 from celery import shared_task
 
 from api.logger import logger
+from main.lock import RedisLockKey, redis_lock
 from per.models import OpsLearningCacheResponse
 from per.ops_learning_summary import OpsLearningSummaryTask
 
 
-def validate_primary_summary_generation(filter_data: dict) -> bool:
-    """
-    Validates if primary summary generation is required or not
-    """
-    keys = {"appeal_code__country", "appeal_code__region"}
-    if any(key in filter_data for key in keys):
-        for key in keys:
-            filter_data.pop(key, None)
-        return bool(filter_data)
-    return False
-
-
-@shared_task
-def generate_summary(ops_learning_summary_id: int, filter_data: dict):
+def generate_ops_learning_summary(ops_learning_summary_id: int, filter_data: dict):
     ops_learning_summary_instance = OpsLearningCacheResponse.objects.filter(id=ops_learning_summary_id).first()
     if not ops_learning_summary_instance:
         logger.error("Ops learning summary not found", exc_info=True)
@@ -43,20 +31,18 @@ def generate_summary(ops_learning_summary_id: int, filter_data: dict):
                 ops_learning_df=ops_learning_df, regional_list=regional_list, global_list=global_list, country_list=country_list
             )
 
-            # NOTE: Primary summary generation is only required if region, country and any other filter is provided
-            if validate_primary_summary_generation(filter_data):
-                # Prioritize excerpts for primary insights
-                primary_learning_df = OpsLearningSummaryTask.primary_prioritize_excerpts(prioritized_learnings)
-                # Format primary prompt
-                primary_learning_prompt = OpsLearningSummaryTask.format_primary_prompt(
-                    ops_learning_summary_instance=ops_learning_summary_instance,
-                    primary_learning_df=primary_learning_df,
-                    filter_data=filter_data,
-                )
-                # Generate primary summary
-                OpsLearningSummaryTask.get_or_create_primary_summary(
-                    ops_learning_summary_instance=ops_learning_summary_instance, primary_learning_prompt=primary_learning_prompt
-                )
+            # Prioritize excerpts for primary insights
+            primary_learning_df = OpsLearningSummaryTask.primary_prioritize_excerpts(prioritized_learnings)
+            # Format primary prompt
+            primary_learning_prompt = OpsLearningSummaryTask.format_primary_prompt(
+                ops_learning_summary_instance=ops_learning_summary_instance,
+                primary_learning_df=primary_learning_df,
+                filter_data=filter_data,
+            )
+            # Generate primary summary
+            OpsLearningSummaryTask.get_or_create_primary_summary(
+                ops_learning_summary_instance=ops_learning_summary_instance, primary_learning_prompt=primary_learning_prompt
+            )
 
             # Prioritize excerpts for secondary insights
             secondary_learning_df = OpsLearningSummaryTask.seconday_prioritize_excerpts(prioritized_learnings)
@@ -84,3 +70,12 @@ def generate_summary(ops_learning_summary_id: int, filter_data: dict):
         )
         logger.error("No extracts found", exc_info=True)
         return False
+
+
+@shared_task
+def generate_summary(ops_learning_summary_id: int, filter_data: dict):
+    with redis_lock(key=RedisLockKey.OPERATION_LEARNING_SUMMARY, id=ops_learning_summary_id) as acquired:
+        if not acquired:
+            logger.warning("Ops learning summary generation is already in progress")
+            return False
+        return generate_ops_learning_summary(ops_learning_summary_id, filter_data)
