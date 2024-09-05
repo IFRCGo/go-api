@@ -20,7 +20,7 @@ from rest_framework.settings import api_settings
 
 from api.models import Country
 from deployments.models import SectorTag
-from main.permissions import DenyGuestUserPermission
+from main.permissions import DenyGuestUserMutationPermission, DenyGuestUserPermission
 from main.utils import SpreadSheetContentNegotiation
 from per.cache import OpslearningSummaryCacheHelper
 from per.filter_set import (
@@ -751,8 +751,8 @@ class OpsLearningViewset(viewsets.ModelViewSet):
     A simple ViewSet for viewing and editing OpsLearning records.
     """
 
-    queryset = OpsLearning.objects.all()
-    permission_classes = [DenyGuestUserPermission, OpsLearningPermission]
+    queryset = OpsLearning.objects.all().distinct()
+    permission_classes = [DenyGuestUserMutationPermission, OpsLearningPermission]
     filterset_class = OpsLearningFilter
     search_fields = (
         "learning",
@@ -871,7 +871,7 @@ class OpsLearningViewset(viewsets.ModelViewSet):
     @action(
         detail=False,
         methods=["GET"],
-        permission_classes=[permissions.AllowAny],
+        permission_classes=[DenyGuestUserMutationPermission, OpsLearningPermission],
         url_path="summary",
     )
     def summary(self, request):

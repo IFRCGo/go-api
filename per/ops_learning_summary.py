@@ -6,8 +6,6 @@ from itertools import chain, zip_longest
 import pandas as pd
 import tiktoken
 from django.conf import settings
-
-# from django.db import transaction
 from django.db.models import F
 from django.utils.functional import cached_property
 from openai import AzureOpenAI
@@ -462,7 +460,8 @@ class OpsLearningSummaryTask:
             prioritized_learnings = self.prioritize(
                 ops_learning_df, components_countries, components_regions, global_list, type_prioritization
             )
-        prioritized_learnings = ops_learning_df
+        else:
+            prioritized_learnings = ops_learning_df
         logger.info("Prioritization of components completed.")
         return prioritized_learnings
 
@@ -493,7 +492,7 @@ class OpsLearningSummaryTask:
             df.drop_duplicates(subset="learning").sort_values(by="appeal_year", ascending=False).reset_index(drop=True)
         )
 
-        # Slice the Primary and secondary dataframes
+        # Slice the Primary DataFrame
         sliced_primary_learning_df = self.slice_dataframe(primary_learning_df, self.PROMPT_DATA_LENGTH_LIMIT, self.ENCODING_NAME)
         logger.info("Primary excerpts prioritized within token limit.")
         return sliced_primary_learning_df
@@ -517,7 +516,7 @@ class OpsLearningSummaryTask:
             pd.DataFrame(interleaved, columns=secondary_learning_df.columns).dropna(subset=["component"]).reset_index(drop=True)
         )
 
-        # Slice secondary dataframes
+        # Slice secondary DataFrame
         sliced_secondary_learning_df = self.slice_dataframe(result, self.PROMPT_DATA_LENGTH_LIMIT, self.ENCODING_NAME)
         logger.info("Excerpts prioritized within token limit.")
         return sliced_secondary_learning_df
@@ -530,8 +529,6 @@ class OpsLearningSummaryTask:
             + " I will pass you the INSTRUCTIONS section, are you ready?"
             + "\n\n\n\n"
         )
-
-        # Adding the used extracts in primary insights
 
     @classmethod
     def _build_instruction_section(self, request_filter: dict, df: pd.DataFrame, instruction: str):
