@@ -10,7 +10,12 @@ from api.models import Country, CronJobStatus, Event
 from api.molnix_utils import MolnixApi
 from deployments.models import MolnixTag, MolnixTagGroup, Personnel, PersonnelDeployment
 from main.sentry import SentryMonitor
-from notifications.models import SurgeAlert, SurgeAlertCategory, SurgeAlertType
+from notifications.models import (
+    SurgeAlert,
+    SurgeAlertCategory,
+    SurgeAlertStatus,
+    SurgeAlertType,
+)
 
 CRON_NAME = "sync_molnix"
 
@@ -307,7 +312,9 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
         try:
             deployment = PersonnelDeployment.objects.get(is_molnix=True, event_deployed_to=event)
         except Exception:
-            logger.warning("Did not import Deployment with Molnix ID %d. Invalid Event." % md["id"])
+            warning = "Did not import Deployment with Molnix ID %d. Invalid Event." % md["id"]
+            logger.warning(warning)
+            warnings.append(warning)
             prt("Did not import Deployment. Invalid Event", md["id"])
             continue
 
@@ -316,7 +323,9 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
             if md["position_id"]:
                 surge_alert = SurgeAlert.objects.get(molnix_id=md["position_id"])
         except Exception:
-            logger.warning("%d deployment did not find SurgeAlert with Molnix position_id %d." % (md["id"], md["position_id"]))
+            warning = "%d deployment did not find SurgeAlert with Molnix position_id %d." % (md["id"], md["position_id"])
+            logger.warning(warning)
+            warnings.append(warning)
             prt("Deployment did not find SurgeAlert", md["id"], md["position_id"])
             continue
 
@@ -327,7 +336,9 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
             if md["person"] and "sex" in md["person"]:
                 gender = md["person"]["sex"]
         except Exception:
-            logger.warning("Did not find gender info in %d" % md["id"])
+            warning = "Did not find gender info in %d" % md["id"]
+            logger.warning(warning)
+            warnings.append(warning)
             continue
 
         location = None
@@ -452,10 +463,10 @@ def sync_open_positions(molnix_positions, molnix_api, countries):
         event = get_go_event(position["tags"])
         country = get_go_country(countries, position["country_id"])
         if not country:
-            warning = "Position id %d does not have a valid Country" % position["id"]
+            warning = "Position id %d does not have a valid Country, we import it with an empty one" % position["id"]
             logger.warning(warning)
             warnings.append(warning)
-            continue
+            # Do not skip these countryless positions, remove "continue" from code.
         # If no valid GO Emergency tag is found, skip Position
         if not event:
             warning = "Position id %d does not have a valid Emergency tag." % position["id"]
@@ -470,14 +481,13 @@ def sync_open_positions(molnix_positions, molnix_api, countries):
         # print(json.dumps(position, indent=2))
         go_alert.molnix_id = position["id"]
         go_alert.message = position["name"]
-        go_alert.molnix_status = position["status"]
+        go_alert.molnix_status = SurgeAlert.parse_molnix_status(position["status"])
         go_alert.event = event
         go_alert.country = country
         go_alert.opens = get_datetime(position["opens"])
         go_alert.closes = get_datetime(position["closes"])
         go_alert.start = get_datetime(position["start"])
         go_alert.end = get_datetime(position["end"])
-        go_alert.is_active = position["status"] == "active"
         go_alert.save()
         add_tags_to_obj(go_alert, position["tags"])
         if created:
@@ -486,7 +496,7 @@ def sync_open_positions(molnix_positions, molnix_api, countries):
             successful_updates += 1
 
     # Find existing active alerts that are not in the current list from Molnix
-    existing_alerts = SurgeAlert.objects.filter(is_active=True).exclude(molnix_id__isnull=True)
+    existing_alerts = SurgeAlert.objects.filter(molnix_status=SurgeAlertStatus.OPEN).exclude(molnix_id__isnull=True)
     existing_alert_ids = [e.molnix_id for e in existing_alerts]
     inactive_alerts = list(set(existing_alert_ids) - set(molnix_ids))
 
@@ -498,15 +508,10 @@ def sync_open_positions(molnix_positions, molnix_api, countries):
         position = molnix_api.get_position(alert.molnix_id)
         if not position:
             warnings.append("Position id %d not found in Molnix API" % alert.molnix_id)
-        if position and position["status"] == "unfilled":
-            alert.molnix_status = position["status"]
+        if position and position["status"]:
+            alert.molnix_status = SurgeAlert.parse_molnix_status(position["status"])
         if position and position["closes"]:
             alert.closes = get_datetime(position["closes"])
-        if position and position["status"] == "archived":
-            alert.molnix_status = position["status"]
-            alert.is_active = False
-        else:
-            alert.is_active = False
         alert.save()
 
     marked_inactive = len(inactive_alerts)

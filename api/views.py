@@ -43,7 +43,7 @@ from deployments.models import (
     Statuses,
 )
 from flash_update.models import FlashUpdate
-from main.permissions import DenyGuestUserMutationPermission
+from main.permissions import DenyGuestUserPermission
 from notifications.models import Subscription, SurgeAlert
 from notifications.notification import send_notification
 from registrations.models import Pending, Recovery
@@ -977,7 +977,7 @@ class ResendValidation(APIView):
 
 class AddCronJobLog(APIView):
     authentication_classes = (authentication.TokenAuthentication,)
-    permission_classes = [permissions.IsAuthenticated, DenyGuestUserMutationPermission]
+    permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
 
     def post(self, request):
         errors, created = CronJob.sync_cron(request.data)

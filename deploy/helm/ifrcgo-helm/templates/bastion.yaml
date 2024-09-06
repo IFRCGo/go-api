@@ -1,0 +1,112 @@
+{{- if .Values.sshBastion.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "ifrcgo-helm.fullname" . }}-ssh-authorized-keys
+data:
+{{- range $key, $value := .Values.sshBastion.keys }}
+  {{ $key }}: {{ $value | quote }}
+{{- end }}
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "ifrcgo-helm.fullname" . }}-fix-sshd-config
+data:
+  fix-sshd-config.sh: |
+    #!/bin/bash
+    # set -e
+    sed -i 's/#AllowAgentForwarding yes/AllowAgentForwarding yes/g' /etc/ssh/sshd_config
+    sed -i 's/AllowTcpForwarding no/AllowTcpForwarding yes/g' /etc/ssh/sshd_config
+
+---
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ template "ifrcgo-helm.fullname" . }}-ssh-bastion
+  labels:
+    app: ssh-bastion
+    release: {{ .Release.Name }}
+    environment: {{ .Values.environment }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ssh-bastion
+  template:
+    metadata:
+      labels:
+        app: ssh-bastion
+    spec:
+      containers:
+      - name: ssh-bastion
+        image: linuxserver/openssh-server:latest
+        ports:
+        - containerPort: 2222
+        resources:
+          requests:
+            cpu: {{ .Values.sshBastion.resources.requests.cpu }}
+            memory: {{ .Values.sshBastion.resources.requests.memory }}
+          limits:
+            cpu: {{ .Values.sshBastion.resources.limits.cpu }}
+            memory: {{ .Values.sshBastion.resources.limits.memory }}
+        env:
+        - name: PUID
+          value: "1000"
+        - name: PGID
+          value: "1000"
+        - name: USER_NAME
+          value: "user"
+        - name: PASSWORD_ACCESS
+          value: "false"
+        - name: SUDO_ACCESS
+          value: "false"
+        - name: PUBLIC_KEY_DIR
+          value: "/ssh-public_keys"
+        volumeMounts:
+        - name: ssh-authorized-keys
+          mountPath: /ssh-public_keys
+          readOnly: true
+        - name: config-volume
+          mountPath: /config
+        - name: fix-sshd-config
+          mountPath: /custom-cont-init.d/fix-sshd-config.sh
+          subPath: fix-sshd-config.sh
+      restartPolicy: Always
+      volumes:
+      - name: ssh-authorized-keys
+        configMap:
+          name: {{ template "ifrcgo-helm.fullname" . }}-ssh-authorized-keys
+      - name: fix-sshd-config
+        configMap:
+          name: {{ template "ifrcgo-helm.fullname" . }}-fix-sshd-config
+  volumeClaimTemplates:
+  - metadata:
+      name: config-volume
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 100Mi
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: ssh-bastion
+  labels:
+    app: ssh-bastion
+    release: {{ .Release.Name }}
+    environment: {{ .Values.environment }}
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 2222
+  selector:
+    app: ssh-bastion
+{{- end }}

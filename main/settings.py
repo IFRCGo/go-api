@@ -163,6 +163,21 @@ TESTING = (
 )
 
 
+GO_APPS = [
+    "api",
+    "per",
+    "notifications",
+    "registrations",
+    "deployments",
+    "databank",
+    "lang",
+    "dref",
+    "flash_update",
+    "eap",
+    "country_plan",
+    "local_units",
+]
+
 INSTALLED_APPS = [
     # External App (This app has to defined before django.contrib.admin)
     "modeltranslation",  # https://django-modeltranslation.readthedocs.io/en/latest/installation.html#installed-apps
@@ -183,18 +198,7 @@ INSTALLED_APPS = [
     "django_filters",
     "django_read_only",
     # GO Apps
-    "api",
-    "per",
-    "notifications",
-    "registrations",
-    "deployments",
-    "databank",
-    "lang",
-    "dref",
-    "flash_update",
-    "eap",
-    "country_plan",
-    "local_units",
+    *GO_APPS,
     # Utils Apps
     "tinymce",
     "admin_auto_filters",
@@ -330,7 +334,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # selector – exclude Geometry fields (bbox) and some plain textareas (see forms.py)
 TINYMCE_DEFAULT_CONFIG = {
-    "selector": "textarea:not(.vWKTField):not(.plain-textarea)",
+    "selector": "textarea.vLargeTextField",
     "entity_encoding": "raw",
     "height": 360,
     "width": 1120,
@@ -502,6 +506,60 @@ LOGGING = {
         },
     },
 }
+
+if DEBUG:
+
+    def log_render_extra_context(record):
+        """
+        Append extra->context to logs
+        NOTE: This will appear in logs when used with logger.xxx(..., extra={'context': {..content}})
+        NOTE: This is also send to sentry which can provide additional context to the issue
+        """
+        if hasattr(record, "context"):
+            record.context = f" - {str(record.context)}"
+        else:
+            record.context = ""
+        return True
+
+    LOGGING = {
+        **LOGGING,
+        "filters": {
+            **LOGGING.get("filters", {}),
+            "render_extra_context": {
+                "()": "django.utils.log.CallbackFilter",
+                "callback": log_render_extra_context,
+            },
+        },
+        "formatters": {
+            **LOGGING.get("formatters", {}),
+            "console": {
+                "()": "colorlog.ColoredFormatter",
+                "format": (
+                    "%(log_color)s%(levelname)-8s%(red)s%(module)-8s%(reset)s %(asctime)s %(blue)s%(message)s %(context)s"
+                ),
+            },
+        },
+        "handlers": {
+            **LOGGING.get("handlers", {}),
+            "console": {
+                "level": "INFO",
+                "class": "logging.StreamHandler",
+                "filters": ["render_extra_context"],
+                "formatter": "console",
+            },
+        },
+        "loggers": {
+            **LOGGING.get("loggers", {}),
+            **{
+                app: {
+                    "handlers": ["console"],
+                    "level": "INFO",
+                    "propagate": False,
+                }
+                for app in GO_APPS
+            },
+        },
+    }
 
 # AWS Translate Credentials
 AWS_TRANSLATE_ACCESS_KEY = env("AWS_TRANSLATE_ACCESS_KEY")

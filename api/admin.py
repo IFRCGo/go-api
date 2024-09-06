@@ -23,7 +23,7 @@ from api.management.commands.index_and_notify import Command as Notify
 from lang.admin import TranslationAdmin, TranslationInlineModelAdmin
 from notifications.models import RecordType, SubscriptionType
 
-from .forms import ActionForm, SocietyNamePlain, SummaryPlain
+from .forms import ActionForm, DescriptionPlain, SocietyNameOverviewPlain, SummaryPlain
 
 # from reversion.models import Revision
 
@@ -183,10 +183,12 @@ class SituationReportInline(admin.TabularInline):
 
 class EventFeaturedDocumentInline(admin.TabularInline):
     model = models.EventFeaturedDocument
+    form = DescriptionPlain
 
 
 class EventLinkInline(admin.TabularInline, TranslationInlineModelAdmin):
     model = models.EventLink
+    form = DescriptionPlain
 
 
 class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
@@ -650,7 +652,7 @@ class CountryAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAd
         CountryICRCPresenceInline,
     ]
     exclude = ("key_priorities",)
-    form = SocietyNamePlain
+    form = SocietyNameOverviewPlain
 
 
 class RegionAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):

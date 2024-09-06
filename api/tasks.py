@@ -12,9 +12,10 @@ from django.utils import timezone
 from playwright.sync_api import sync_playwright
 from rest_framework.authtoken.models import Token
 
-from api.models import Export
-
 from .logger import logger
+from .models import Export
+
+# from .utils import DebugPlaywright
 
 
 def build_storage_state(tmp_dir, user, token):
@@ -102,6 +103,7 @@ def generate_url(url, export_id, user, title):
                 )
                 context = browser.new_context(storage_state=storage_state)
                 page = context.new_page()
+                # DebugPlaywright.debug(page)
                 timeout = 300000
                 page.goto(url, timeout=timeout)
                 time.sleep(5)

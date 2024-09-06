@@ -13,13 +13,17 @@ class ActionForm(forms.ModelForm):
         fields = "__all__"
 
 
-class SocietyNamePlain(forms.ModelForm):
+class SocietyNameOverviewPlain(forms.ModelForm):
     class Meta:
         widgets = {
             "society_name_en": forms.Textarea(attrs={"class": "plain-textarea"}),
             "society_name_es": forms.Textarea(attrs={"class": "plain-textarea"}),
             "society_name_fr": forms.Textarea(attrs={"class": "plain-textarea"}),
             "society_name_ar": forms.Textarea(attrs={"class": "plain-textarea"}),
+            "overview_en": forms.Textarea(attrs={"class": "plain-textarea"}),
+            "overview_es": forms.Textarea(attrs={"class": "plain-textarea"}),
+            "overview_fr": forms.Textarea(attrs={"class": "plain-textarea"}),
+            "overview_ar": forms.Textarea(attrs={"class": "plain-textarea"}),
         }
 
 
@@ -30,4 +34,15 @@ class SummaryPlain(forms.ModelForm):
             "summary_es": forms.Textarea(attrs={"class": "plain-textarea"}),
             "summary_fr": forms.Textarea(attrs={"class": "plain-textarea"}),
             "summary_ar": forms.Textarea(attrs={"class": "plain-textarea"}),
+        }
+
+
+class DescriptionPlain(forms.ModelForm):
+    class Meta:
+        widgets = {
+            "description": forms.Textarea(attrs={"class": "plain-textarea"}),
+            "description_en": forms.Textarea(attrs={"class": "plain-textarea"}),
+            "description_es": forms.Textarea(attrs={"class": "plain-textarea"}),
+            "description_fr": forms.Textarea(attrs={"class": "plain-textarea"}),
+            "description_ar": forms.Textarea(attrs={"class": "plain-textarea"}),
         }
