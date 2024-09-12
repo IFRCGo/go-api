@@ -1,1 +1,7 @@
-.tox-promotion {display: none}
+.tox-promotion {
+	display: none
+}
+
+p.deletelink-box {
+	margin-top: 0;
+}

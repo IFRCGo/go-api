@@ -147,7 +147,8 @@ router.register(r"donor", flash_views.DonorsViewSet, basename="donor")
 router.register(r"share-flash-update", flash_views.ShareFlashUpdateViewSet, basename="share_flash_update")
 router.register(r"users", api_views.UsersViewset, basename="users")
 router.register(r"external-token", UserExternalTokenViewset, basename="user_external_token")
-# Dref apis
+
+# DREF apis
 router.register(r"dref", dref_views.DrefViewSet, basename="dref")
 router.register(r"dref-files", dref_views.DrefFileViewSet, basename="dref_files")
 router.register(r"dref-op-update", dref_views.DrefOperationalUpdateViewSet, basename="dref_operational_update")
@@ -155,18 +156,16 @@ router.register(r"dref-final-report", dref_views.DrefFinalReportViewSet, basenam
 router.register(r"completed-dref", dref_views.CompletedDrefOperationsViewSet, basename="completed_dref")
 router.register(r"active-dref", dref_views.ActiveDrefOperationsViewSet, basename="active_dref")
 router.register(r"dref-share-user", dref_views.DrefShareUserViewSet, basename="dref_share_user")
-
-router.register(r"review-country", api_views.CountryOfFieldReportToReviewViewset, basename="review_country")
 router.register(r"pdf-export", api_views.ExportViewSet, basename="export")
 
 # Country Plan apis
 router.register(r"country-plan", country_plan_views.CountryPlanViewset, basename="country_plan")
 
-# local units apis
+# Local Units apis
 router.register(r"local-units", local_units_views.PrivateLocalUnitViewSet, basename="local_units")
 router.register(r"public-local-units", local_units_views.LocalUnitViewSet, basename="public_local_units")
 
-# databank
+# Databank
 router.register(r"country-income", data_bank_views.FDRSIncomeViewSet, basename="country_income")
 
 admin.site.site_header = "IFRC Go administration"
