@@ -15,6 +15,7 @@ from main import sentry
 logger = logging.getLogger(__name__)
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# import pdb; pdb.set_trace()
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 env = environ.Env(
