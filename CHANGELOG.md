@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+ - TinyMCE cleanup - no selector is needed in settings
+ - Align Admin page Delete button
+ - Remove duplication from urls.py
+ - Django and cryptography version bump up
+ - Fix getting event with visibility=RCRC for guest user
+ - Cleaning up frontend URL-s from hashtag+appends
+
 ## 1.1.502
 
 ### Added
