@@ -1,14 +1,17 @@
 import requests
 from bs4 import BeautifulSoup
 from django.core.management.base import BaseCommand
+from sentry_sdk.crons import monitor
 
 from api.logger import logger
 from api.models import Country, CronJob, CronJobStatus
+from main.sentry import SentryMonitor
 
 
 class Command(BaseCommand):
     help = "Add ICRC data"
 
+    @monitor(monitor_slug=SentryMonitor.INGEST_DISASTER_LAW)
     def handle(self, *args, **kwargs):
         logger.info("Starting Disaster Law data")
         home_url = "https://disasterlaw.ifrc.org/"

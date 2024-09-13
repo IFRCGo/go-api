@@ -10,7 +10,12 @@ from api.models import Country, CronJobStatus, Event
 from api.molnix_utils import MolnixApi
 from deployments.models import MolnixTag, MolnixTagGroup, Personnel, PersonnelDeployment
 from main.sentry import SentryMonitor
-from notifications.models import SurgeAlert, SurgeAlertCategory, SurgeAlertType
+from notifications.models import (
+    SurgeAlert,
+    SurgeAlertCategory,
+    SurgeAlertStatus,
+    SurgeAlertType,
+)
 
 CRON_NAME = "sync_molnix"
 
@@ -476,14 +481,13 @@ def sync_open_positions(molnix_positions, molnix_api, countries):
         # print(json.dumps(position, indent=2))
         go_alert.molnix_id = position["id"]
         go_alert.message = position["name"]
-        go_alert.molnix_status = position["status"]
+        go_alert.molnix_status = SurgeAlert.parse_molnix_status(position["status"])
         go_alert.event = event
         go_alert.country = country
         go_alert.opens = get_datetime(position["opens"])
         go_alert.closes = get_datetime(position["closes"])
         go_alert.start = get_datetime(position["start"])
         go_alert.end = get_datetime(position["end"])
-        go_alert.is_active = position["status"] == "active"
         go_alert.save()
         add_tags_to_obj(go_alert, position["tags"])
         if created:
@@ -492,7 +496,7 @@ def sync_open_positions(molnix_positions, molnix_api, countries):
             successful_updates += 1
 
     # Find existing active alerts that are not in the current list from Molnix
-    existing_alerts = SurgeAlert.objects.filter(is_active=True).exclude(molnix_id__isnull=True)
+    existing_alerts = SurgeAlert.objects.filter(molnix_status=SurgeAlertStatus.OPEN).exclude(molnix_id__isnull=True)
     existing_alert_ids = [e.molnix_id for e in existing_alerts]
     inactive_alerts = list(set(existing_alert_ids) - set(molnix_ids))
 
@@ -504,15 +508,10 @@ def sync_open_positions(molnix_positions, molnix_api, countries):
         position = molnix_api.get_position(alert.molnix_id)
         if not position:
             warnings.append("Position id %d not found in Molnix API" % alert.molnix_id)
-        if position and position["status"] == "unfilled":
-            alert.molnix_status = position["status"]
+        if position and position["status"]:
+            alert.molnix_status = SurgeAlert.parse_molnix_status(position["status"])
         if position and position["closes"]:
             alert.closes = get_datetime(position["closes"])
-        if position and position["status"] == "archived":
-            alert.molnix_status = position["status"]
-            alert.is_active = False
-        else:
-            alert.is_active = False
         alert.save()
 
     marked_inactive = len(inactive_alerts)
@@ -525,10 +524,10 @@ def sync_open_positions(molnix_positions, molnix_api, countries):
     return messages, warnings, successful_creates
 
 
-@monitor(monitor_slug=SentryMonitor.SYNC_MOLNIX)
 class Command(BaseCommand):
     help = "Sync data from Molnix API to GO db"
 
+    @monitor(monitor_slug=SentryMonitor.SYNC_MOLNIX)
     @transaction.atomic
     def handle(self, *args, **options):
         logger.info("Starting Sync Molnix job")

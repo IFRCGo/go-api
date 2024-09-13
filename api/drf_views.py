@@ -59,6 +59,7 @@ from databank.serializers import CountryOverviewSerializer
 from deployments.models import Personnel
 from main.enums import GlobalEnumSerializer, get_enum_values
 from main.filters import NullsLastOrderingFilter
+from main.permissions import DenyGuestUserMutationPermission, DenyGuestUserPermission
 from main.utils import is_tableau
 from per.models import Overview
 from per.serializers import CountryLatestOverviewSerializer
@@ -687,7 +688,7 @@ class EventViewset(ReadOnlyVisibilityViewset):
                     "field_reports",
                     queryset=FieldReport.objects.prefetch_related("countries", "contacts"),
                 )
-                if self.request.user.is_authenticated:
+                if self.request.user.is_authenticated and not self.request.user.profile.limit_access_to_guest:
                     if is_user_ifrc(self.request.user):
                         instance = Event.objects.prefetch_related(FR).get(pk=pk)
                     else:
@@ -870,7 +871,7 @@ class AppealDocumentViewset(viewsets.ReadOnlyModelViewSet):
 class ProfileViewset(viewsets.ModelViewSet):
     serializer_class = ProfileSerializer
     authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, DenyGuestUserPermission)
 
     def get_queryset(self):
         return Profile.objects.filter(user=self.request.user)
@@ -879,16 +880,12 @@ class ProfileViewset(viewsets.ModelViewSet):
 class UserViewset(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
 
     def get_queryset(self):
         return User.objects.filter(pk=self.request.user.pk)
 
-    @action(
-        detail=False,
-        url_path="me",
-        serializer_class=UserMeSerializer,
-    )
+    @action(detail=False, url_path="me", serializer_class=UserMeSerializer, permission_classes=(IsAuthenticated,))
     def get_authenticated_user_info(self, request, *args, **kwargs):
         return Response(self.get_serializer_class()(request.user).data)
 
@@ -915,9 +912,19 @@ class FieldReportViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ModelViewSet):
     )  # for /docs
     ordering_fields = ("summary", "event", "dtype", "created_at", "updated_at")
     filterset_class = FieldReportFilter
-    authentication_class = [IsAuthenticated]
+    permission_classes = [DenyGuestUserMutationPermission]
     queryset = FieldReport.objects.select_related("dtype", "event").prefetch_related(
-        "actions_taken", "actions_taken__actions", "countries", "districts", "regions"
+        "actions_taken",
+        "actions_taken__actions",
+        "contacts",
+        "countries",
+        "districts",
+        # Unusable – in serializer: wired-in get_merged_items_by_fields():
+        # "event__countries",
+        "external_partners",
+        "regions",
+        "sources",
+        "supported_activities",
     )
 
     def get_serializer_class(self):
@@ -1308,7 +1315,7 @@ class UsersViewset(viewsets.ReadOnlyModelViewSet):
     """
 
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
     filterset_class = UserFilterSet
 
     def get_queryset(self):
@@ -1346,7 +1353,7 @@ class GlobalEnumView(APIView):
 
 class ExportViewSet(viewsets.ModelViewSet):
     serializer_class = ExportSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
 
     def get_queryset(self):
         user = self.request.user

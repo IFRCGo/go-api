@@ -10,7 +10,223 @@ from api.factories.event import (
     EventFeaturedDocumentFactory,
     EventLinkFactory,
 )
+from api.factories.field_report import FieldReportFactory
+from api.models import Profile, VisibilityChoices
+from deployments.factories.user import UserFactory
 from main.test_case import APITestCase, SnapshotTestCase
+
+
+class GuestUserPermissionTest(APITestCase):
+    def setUp(self):
+        # Create guest user
+        self.guest_user = User.objects.create(username="guest")
+        guest_profile = Profile.objects.get(user=self.guest_user)
+        guest_profile.limit_access_to_guest = True
+        guest_profile.save()
+
+        # Create go user
+        self.go_user = User.objects.create(username="go-user", is_superuser=True, is_staff=True)
+        go_user_profile = Profile.objects.get(user=self.go_user)
+        go_user_profile.limit_access_to_guest = False
+        go_user_profile.save()
+
+        # Create public field reports
+        event_pub = EventFactory.create(visibility=VisibilityChoices.PUBLIC, parent_event=None)
+        FieldReportFactory.create_batch(4, event=event_pub, visibility=VisibilityChoices.PUBLIC)
+        # Create non-public field reports
+        event_non_pub = EventFactory.create(visibility=VisibilityChoices.IFRC, parent_event=None)
+        FieldReportFactory.create_batch(5, event=event_non_pub, visibility=VisibilityChoices.IFRC)
+
+    def test_guest_user_permission(self):
+        body = {}
+        id = 1  # NOTE: id is used just to test api that requires id, it doesnot indicate real id. It can be any number.
+
+        guest_apis = [
+            "/api/v2/add_subscription/",
+            "/api/v2/del_subscription/",
+            "/api/v2/external-token/",
+        ]
+        guest_get_apis = [
+            "/api/v2/user/me/",
+            "/api/v2/field-report/",
+            f"/api/v2/field-report/{id}/",
+            "/api/v2/language/",
+            f"/api/v2/language/{id}/",
+            "/api/v2/event/",
+        ]
+
+        go_post_apis = [
+            "/api/v2/dref/",
+            "/api/v2/dref-final-report/",
+            f"/api/v2/dref-final-report/{id}/publish/",
+            "/api/v2/dref-op-update/",
+            f"/api/v2/dref-op-update/{id}/publish/",
+            "/api/v2/dref-share/",
+            f"/api/v2/dref/{id}/publish/",
+            "/api/v2/flash-update/",
+            "/api/v2/flash-update-file/multiple/",
+            "/api/v2/local-units/",
+            f"/api/v2/local-units/{id}/validate/",
+            "/api/v2/pdf-export/",
+            "/api/v2/per-assessment/",
+            "/api/v2/per-document-upload/",
+            "/api/v2/per-file/multiple/",
+            "/api/v2/per-prioritization/",
+            "/api/v2/per-work-plan/",
+            "/api/v2/project/",
+            "/api/v2/dref-files/",
+            "/api/v2/dref-files/multiple/",
+            "/api/v2/field-report/",
+            "/api/v2/flash-update-file/",
+            "/api/v2/per-file/",
+            "/api/v2/share-flash-update/",
+            "/api/v2/add_cronjob_log/",
+            "/api/v2/profile/",
+            "/api/v2/subscription/",
+            "/api/v2/user/",
+        ]
+
+        get_apis = [
+            "/api/v2/dref/",
+            "/api/v2/dref-files/",
+            "/api/v2/dref-final-report/",
+            f"/api/v2/dref-final-report/{id}/",
+            "/api/v2/dref-op-update/",
+            f"/api/v2/dref/{id}/",
+            "/api/v2/flash-update/",
+            "/api/v2/flash-update-file/",
+            f"/api/v2/flash-update/{id}/",
+            "/api/v2/local-units/",
+            f"/api/v2/local-units/{id}/",
+            "/api/v2/ops-learning/",
+            f"/api/v2/ops-learning/{id}/",
+            f"/api/v2/pdf-export/{id}/",
+            "/api/v2/per-assessment/",
+            f"/api/v2/per-assessment/{id}/",
+            "/api/v2/per-document-upload/",
+            f"/api/v2/per-document-upload/{id}/",
+            "/api/v2/per-file/",
+            "/api/v2/per-overview/",
+            f"/api/v2/per-overview/{id}/",
+            "/api/v2/per-prioritization/",
+            f"/api/v2/per-prioritization/{id}/",
+            "/api/v2/per-work-plan/",
+            f"/api/v2/per-work-plan/{id}/",
+            "/api/v2/profile/",
+            f"/api/v2/profile/{id}/",
+            f"/api/v2/share-flash-update/{id}/",
+            "/api/v2/subscription/",
+            f"/api/v2/subscription/{id}/",
+            "/api/v2/users/",
+            f"/api/v2/users/{id}/",
+            "/api/v2/per-stats/",
+            "/api/v2/per-options/",
+            "/api/v2/per-process-status/",
+            "/api/v2/aggregated-per-process-status/",
+            "/api/v2/completed-dref/",
+            "/api/v2/active-dref/",
+            "/api/v2/dref-share-user/",
+            "/api/v2/personnel_deployment/",
+            f"/api/v2/delegation-office/{id}/",
+            # Exports
+            f"/api/v2/export-flash-update/{1}/",
+        ]
+
+        # NOTE: With custom Content Negotiation: Look for main.utils.SpreadSheetContentNegotiation
+        get_custom_negotiation_apis = [
+            f"/api/v2/export-per/{1}/",
+        ]
+
+        go_post_apis_req_additional_perm = [
+            "/api/v2/ops-learning/",
+            "/api/v2/per-overview/",
+            f"/api/v2/user/{id}/accepted_license_terms/",
+        ]
+
+        def _success_check(response):  # NOTE: Only handles json responses
+            self.assertNotIn(response.status_code, [401, 403], response.content)
+            self.assertNotIn(response.json().get("error_code"), [401, 403], response.content)
+
+        def _failure_check(response, check_json_error_code=True):
+            self.assertIn(response.status_code, [401, 403], response.content)
+            if check_json_error_code:
+                self.assertIn(response.json()["error_code"], [401, 403], response.content)
+
+        # check for unauthenticated user
+        # Unauthenticated user should be able to view public field reports
+        field_report_pub_response = self.client.get("/api/v2/field-report/")
+        _success_check(field_report_pub_response)
+        self.assertEqual(len(field_report_pub_response.json()["results"]), 4)
+
+        # Unauthenticated user should be not be able to do post operations in field reports
+        field_report_pub_response = self.client.post("/api/v2/field-report/", json=body)
+        _failure_check(field_report_pub_response, check_json_error_code=False)
+
+        # Unauthenticated user should be able to view public events
+        event_pub_response = self.client.get("/api/v2/event/")
+        _success_check(event_pub_response)
+        self.assertEqual(len(event_pub_response.json()["results"]), 1)
+
+        # authenticate guest user
+        self.authenticate(user=self.guest_user)
+
+        for api_url in get_custom_negotiation_apis:
+            headers = {
+                "Accept": "text/html",
+            }
+            response = self.client.get(api_url, headers=headers, stream=True)
+            _failure_check(response, check_json_error_code=False)
+
+        # # Guest user should not be able to access get apis that requires IsAuthenticated permission
+        for api_url in get_apis:
+            response = self.client.get(api_url)
+            _failure_check(response)
+
+        # # Guest user should not be able to hit post apis.
+        for api_url in go_post_apis + go_post_apis_req_additional_perm:
+            response = self.client.post(api_url, json=body)
+            _failure_check(response)
+
+        # Guest user should be able to access guest post apis
+        for api_url in guest_apis:
+            response = self.client.post(api_url, json=body)
+            _success_check(response)
+
+        # Guest user should be able to access guest get apis
+        for api_url in guest_get_apis:
+            response = self.client.get(api_url)
+            _success_check(response)
+
+        # Guest user should be able to view only public field reports
+        field_report_pub_response = self.client.get("/api/v2/field-report/")
+        _success_check(field_report_pub_response)
+        self.assertEqual(len(field_report_pub_response.json()["results"]), 4)
+
+        # Guest user should be able to view public events
+        event_pub_response = self.client.get("/api/v2/event/")
+        _success_check(event_pub_response)
+        self.assertEqual(len(event_pub_response.json()["results"]), 1)
+
+        # authenticate ifrc go user
+        # Go user should be able to access go_post_apis
+        self.authenticate(user=self.go_user)
+        for api_url in go_post_apis:
+            response = self.client.post(api_url, json=body)
+            _success_check(response)
+
+        for api_url in get_apis:
+            response = self.client.get(api_url)
+            _success_check(response)
+
+        # Go user should be able to view both public + non-public field reports
+        field_report_response = self.client.get("/api/v2/field-report/")
+        _success_check(field_report_response)
+        self.assertEqual(len(field_report_response.json()["results"]), 9)
+
+        # Go user should be able to view both public + non-pubic events
+        event_response = self.client.get("/api/v2/event/")
+        _success_check(event_response)
+        self.assertEqual(len(event_response.json()["results"]), 2)
 
 
 class AuthTokenTest(APITestCase):
@@ -78,7 +294,7 @@ class FieldReportTest(APITestCase):
     fixtures = ["DisasterTypes", "Actions"]
 
     def test_create_and_update(self):
-        user = User.objects.create(username="jo")
+        user = UserFactory(username="jo")
         region = models.Region.objects.create(name=1)
         country1 = models.Country.objects.create(name="abc", region=region)
         country2 = models.Country.objects.create(name="xyz")
@@ -204,21 +420,24 @@ class VisibilityTest(APITestCase):
         self.assertEqual(response["count"], 0)
 
         # perform the request with an authenticated user
-        user = User.objects.create(username="foo")
+        user = UserFactory(username="foo")
         self.client.force_authenticate(user=user)
         response = self.client.get("/api/v2/country_snippet/").json()
         # one snippets available to anonymous user
         self.assertEqual(response["count"], 1)
 
         # perform the request with an ifrc user
-        user2 = User.objects.create(username="bar")
+        user2 = UserFactory(username="bar")
         user2.user_permissions.add(self.ifrc_permission)
         self.client.force_authenticate(user=user2)
         response = self.client.get("/api/v2/country_snippet/").json()
         self.assertEqual(response["count"], 2)
 
         # perform the request with a superuser
-        super_user = User.objects.create_superuser(username="baz", email="foo@baz.com", password="12345678")
+        super_user = UserFactory(username="baz", email="foo@baz.com", password="12345678")
+        super_user.is_superuser = True
+        super_user.save()
+
         self.client.force_authenticate(user=super_user)
         response = self.client.get("/api/v2/country_snippet/").json()
         self.assertEqual(response["count"], 2)

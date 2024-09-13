@@ -23,7 +23,6 @@ FEDNET_SOURCE = "https://go-api.ifrc.org/Api/FedNetAppeals?Hidden=false&BaseAppe
 # DONOR_SOURCE = "https://go-api.ifrc.org/api/PublicSiteDonorResponses?AppealCode="
 
 
-@monitor(monitor_slug=SentryMonitor.SYNC_APPEALDOCS)
 class Command(BaseCommand):
     help = "Ingest existing appeal documents"
 
@@ -39,6 +38,7 @@ class Command(BaseCommand):
         timeformat = "%Y-%m-%dT%H:%M:%S"
         return datetime.strptime(date_string[:18], timeformat).replace(tzinfo=timezone.utc)
 
+    @monitor(monitor_slug=SentryMonitor.SYNC_APPEALDOCS)
     def handle(self, *args, **options):
         logger.info("Starting appeal document ingest")
 

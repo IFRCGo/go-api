@@ -26,7 +26,7 @@ choicesenum = "==0.7.0"
 coreapi = "==2.3.3"
 coreschema = "==0.0.4"
 coverage = "==4.4.2"
-cryptography = "==42.0.4"
+cryptography = "==43.0.1"
 django-admin-autocomplete-filter = "*"
 django-admin-list-filter-dropdown = "*"
 django-cors-headers = "==3.11.0"
@@ -56,7 +56,7 @@ graphene = "^2.0"
 graphql-core = "^2.0"
 gunicorn = "==22.0.0"
 lxml = "==4.9.1"
-nltk = "^3.8.1"
+nltk = "^3.9"
 numpy = "<2.0.0"
 opencensus-ext-azure = "==1.0.7"
 opencensus-ext-django = "==0.7.4"
@@ -88,6 +88,7 @@ django-haystack = { version = "*", extras = ["elasticsearch"] }
 drf-spectacular = "*"
 pyjwt = "*"
 shapely = "*"
+colorlog = "*"
 
 mapbox-tilesets = "*"
 ipython = "*"
@@ -130,7 +131,7 @@ exclude = '''
 )/
 '''
 # NOTE: Update in .pre-commit-config.yaml as well
-extend-exclude = "^.*\\b(migrations)\\b.*$ (__pycache__|.*snap_test_.*\\.py|.+/+.+/+migrations/+.*)"
+extend-exclude = "^.*\\b(migrations)\\b.*$ (__pycache__|.+/+.+/+migrations/+.*)"
 
 [tool.isort]
 profile = "black"
@@ -138,7 +139,6 @@ multi_line_output = 3
 # NOTE: Update in .pre-commit-config.yaml as well
 skip = [
     "**/__pycache__",
-    "**/snap_test_*.py",
     ".venv/",
     "legacy/",
     "**/migrations/*.py",

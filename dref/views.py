@@ -35,6 +35,7 @@ from dref.serializers import (
     DrefShareUserSerializer,
     MiniDrefSerializer,
 )
+from main.permissions import DenyGuestUserPermission
 
 
 def filter_dref_queryset_by_user_access(user, queryset):
@@ -58,7 +59,7 @@ def filter_dref_queryset_by_user_access(user, queryset):
 
 class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
     serializer_class = DrefSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
     filterset_class = DrefFilter
 
     def get_queryset(self):
@@ -75,7 +76,7 @@ class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
         url_path="publish",
         methods=["post"],
         serializer_class=DrefSerializer,
-        permission_classes=[permissions.IsAuthenticated, PublishDrefPermission],
+        permission_classes=[permissions.IsAuthenticated, PublishDrefPermission, DenyGuestUserPermission],
     )
     def get_published(self, request, pk=None, version=None):
         dref = self.get_object()
@@ -88,7 +89,7 @@ class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
 
 class DrefOperationalUpdateViewSet(RevisionMixin, viewsets.ModelViewSet):
     serializer_class = DrefOperationalUpdateSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
     filterset_class = DrefOperationalUpdateFilter
 
     def get_queryset(self):
@@ -122,7 +123,7 @@ class DrefOperationalUpdateViewSet(RevisionMixin, viewsets.ModelViewSet):
         url_path="publish",
         methods=["post"],
         serializer_class=DrefOperationalUpdateSerializer,
-        permission_classes=[permissions.IsAuthenticated, PublishDrefPermission],
+        permission_classes=[permissions.IsAuthenticated, PublishDrefPermission, DenyGuestUserPermission],
     )
     def get_published(self, request, pk=None, version=None):
         operational_update = self.get_object()
@@ -135,7 +136,7 @@ class DrefOperationalUpdateViewSet(RevisionMixin, viewsets.ModelViewSet):
 
 class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
     serializer_class = DrefFinalReportSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
 
     def get_queryset(self):
         user = self.request.user
@@ -154,7 +155,7 @@ class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
         url_path="publish",
         methods=["post"],
         serializer_class=DrefFinalReportSerializer,
-        permission_classes=[permissions.IsAuthenticated, PublishDrefPermission],
+        permission_classes=[permissions.IsAuthenticated, PublishDrefPermission, DenyGuestUserPermission],
     )
     def get_published(self, request, pk=None, version=None):
         field_report = self.get_object()
@@ -171,7 +172,7 @@ class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
 
 
 class DrefFileViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
-    permission_class = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
     serializer_class = DrefFileSerializer
 
     def get_queryset(self):
@@ -184,7 +185,7 @@ class DrefFileViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.G
         detail=False,
         url_path="multiple",
         methods=["POST"],
-        permission_classes=[permissions.IsAuthenticated],
+        permission_classes=[permissions.IsAuthenticated, DenyGuestUserPermission],
     )
     def multiple_file(self, request, pk=None, version=None):
         # converts querydict to original dict
@@ -199,7 +200,10 @@ class DrefFileViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.G
 
 class CompletedDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = CompletedDrefOperationsSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [
+        permissions.IsAuthenticated,
+        DenyGuestUserPermission,
+    ]
     filterset_class = CompletedDrefOperationsFilterSet
     queryset = DrefFinalReport.objects.filter(is_published=True).order_by("-created_at").distinct()
 
@@ -210,7 +214,7 @@ class CompletedDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
 
 class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = MiniDrefSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
     filterset_class = ActiveDrefFilterSet
     queryset = (
         Dref.objects.prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
@@ -225,7 +229,7 @@ class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class DrefShareView(views.APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
 
     @extend_schema(request=AddDrefUserSerializer, responses=None)
     def post(self, request):
@@ -238,7 +242,10 @@ class DrefShareView(views.APIView):
 
 
 class DrefShareUserViewSet(viewsets.ReadOnlyModelViewSet):
-    permissions_classes = [permissions.IsAuthenticated]
+    permission_classes = [
+        permissions.IsAuthenticated,
+        DenyGuestUserPermission,
+    ]
     serializer_class = DrefShareUserSerializer
     filterset_class = DrefShareUserFilterSet
 

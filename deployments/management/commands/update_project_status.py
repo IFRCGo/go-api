@@ -21,11 +21,11 @@ PROJECT_STATUS_WILL_COMPLETE_MESSAGE = _(
 )
 
 
-@monitor(monitor_slug=SentryMonitor.UPDATE_PROJECT_STATUS)
 class Command(BaseCommand):
 
     help = "Update project status using start/end date"
 
+    @monitor(monitor_slug=SentryMonitor.UPDATE_PROJECT_STATUS)
     def handle(self, *args, **options):
         now = timezone.now().date()
 

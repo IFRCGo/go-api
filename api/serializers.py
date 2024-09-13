@@ -1703,6 +1703,7 @@ class UserMeSerializer(UserSerializer):
     is_per_admin_for_regions = serializers.SerializerMethodField()
     is_per_admin_for_countries = serializers.SerializerMethodField()
     user_countries_regions = serializers.SerializerMethodField()
+    limit_access_to_guest = serializers.BooleanField(read_only=True, source="profile.limit_access_to_guest")
 
     class Meta:
         model = User
@@ -1714,6 +1715,7 @@ class UserMeSerializer(UserSerializer):
             "is_per_admin_for_regions",
             "is_per_admin_for_countries",
             "user_countries_regions",
+            "limit_access_to_guest",
         )
 
     @staticmethod

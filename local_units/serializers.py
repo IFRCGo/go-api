@@ -246,12 +246,14 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
     class Meta:
         model = LocalUnit
         fields = (
+            "id",
             "local_branch_name",
             "english_branch_name",
             "type",
             "country",
             "created_at",
             "modified_at",
+            "modified_by",
             "draft",
             "validated",
             "postcode",
@@ -405,6 +407,7 @@ class PrivateLocalUnitSerializer(serializers.ModelSerializer):
     type_details = LocalUnitTypeSerializer(source="type", read_only=True)
     health_details = MiniHealthDataSerializer(read_only=True, source="health")
     validated = serializers.BooleanField(read_only=True)
+    modified_by_details = LocalUnitMiniUserSerializer(source="modified_by", read_only=True)
 
     class Meta:
         model = LocalUnit
@@ -426,6 +429,8 @@ class PrivateLocalUnitSerializer(serializers.ModelSerializer):
             "focal_person_en",
             "email",
             "phone",
+            "modified_at",
+            "modified_by_details",
         )
 
     def get_location_details(self, unit) -> dict:

@@ -6,6 +6,30 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+ - TinyMCE cleanup - no selector is needed in settings
+ - Align Admin page Delete button
+ - Remove duplication from urls.py
+ - Django and cryptography version bump up
+ - Fix getting event with visibility=RCRC for guest user
+ - Cleaning up frontend URL-s from hashtag+appends
+
+## 1.1.502
+
+### Added
+ - Deployment pipeline features (repo splitting)
+ - SSH bastion creation for custom DB access
+ - Debug and Sentry improvements (Colorlog, Playwright log)
+ - Performance fixes
+ - GuestUser permissions
+ - CountryOverview fixes
+ - Rich Text editor fixes (remove HTML tags where unnecessary)
+ - PER improvements
+ - Translation improvements
+ - Molnix and Surge Alert improvements
+ - OpsLearning improvements
+ - Pending users Admin filters
+ - Bump up django, django-tinymce, nltk, sentry-sdk, certifi...
+
 ## 1.1.501
 
 ### Added
@@ -2471,7 +2495,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.501...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.502...HEAD
+[1.1.502]: https://github.com/IFRCGo/go-api/compare/1.1.501...1.1.502
 [1.1.501]: https://github.com/IFRCGo/go-api/compare/1.1.500...1.1.501
 [1.1.500]: https://github.com/IFRCGo/go-api/compare/1.1.499...1.1.500
 [1.1.499]: https://github.com/IFRCGo/go-api/compare/1.1.498...1.1.499

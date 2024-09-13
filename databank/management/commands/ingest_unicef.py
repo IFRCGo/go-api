@@ -2,8 +2,10 @@ import logging
 
 import requests
 from django.core.management.base import BaseCommand
+from sentry_sdk.crons import monitor
 
 from databank.models import CountryOverview as CO
+from main.sentry import SentryMonitor
 
 logger = logging.getLogger(__name__)
 
@@ -11,6 +13,7 @@ logger = logging.getLogger(__name__)
 class Command(BaseCommand):
     help = "Add Unicef population data"
 
+    @monitor(monitor_slug=SentryMonitor.INGEST_UNICEF)
     def handle(self, *args, **kwargs):
         for overview in CO.objects.all():
             UNICEF_API = f"https://sdmx.data.unicef.org/ws/public/sdmxapi/rest/data/UNICEF,DM,1.0/{overview.country.iso3}.DM_POP_U18._T._T.?format=sdmx-json"  # noqa: E501

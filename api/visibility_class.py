@@ -17,7 +17,7 @@ class ReadOnlyVisibilityViewsetMixin:
         if queryset.model == Project:
             choices = VisibilityCharChoices
 
-        if self.request.user.is_authenticated:
+        if self.request.user.is_authenticated and not self.request.user.profile.limit_access_to_guest:
             if is_user_ifrc(self.request.user):
                 return queryset
             else:
@@ -37,7 +37,7 @@ class ReadOnlyVisibilityViewset(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         # FIXME: utils.py:43
         # filter_visibility_by_auth(user=self.request.user, visibility_model_class=self.visibility_model_class)
-        if self.request.user.is_authenticated:
+        if self.request.user.is_authenticated and not self.request.user.profile.limit_access_to_guest:
             if is_user_ifrc(self.request.user):
                 return self.visibility_model_class.objects.all()
             else:

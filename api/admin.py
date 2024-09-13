@@ -23,7 +23,7 @@ from api.management.commands.index_and_notify import Command as Notify
 from lang.admin import TranslationAdmin, TranslationInlineModelAdmin
 from notifications.models import RecordType, SubscriptionType
 
-from .forms import ActionForm, DescriptionPlain, SocietyNameOverviewPlain, SummaryPlain
+from .forms import ActionForm
 
 # from reversion.models import Revision
 
@@ -183,12 +183,10 @@ class SituationReportInline(admin.TabularInline):
 
 class EventFeaturedDocumentInline(admin.TabularInline):
     model = models.EventFeaturedDocument
-    form = DescriptionPlain
 
 
 class EventLinkInline(admin.TabularInline, TranslationInlineModelAdmin):
     model = models.EventLink
-    form = DescriptionPlain
 
 
 class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
@@ -319,7 +317,6 @@ class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAd
         "countries",
         "districts",
     )
-    form = SummaryPlain
 
     readonly_fields = ("report_date", "created_at", "updated_at")
     list_filter = [MembershipFilter]
@@ -652,7 +649,6 @@ class CountryAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAd
         CountryICRCPresenceInline,
     ]
     exclude = ("key_priorities",)
-    form = SocietyNameOverviewPlain
 
 
 class RegionAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
@@ -685,6 +681,7 @@ class UserProfileAdmin(CompareVersionAdmin):
     list_filter = (
         ("country__region", RelatedDropdownFilter),
         ("country", RelatedDropdownFilter),
+        ("limit_access_to_guest"),
     )
     actions = ["export_selected_users"]
     readonly_fields = ("last_frontend_login",)

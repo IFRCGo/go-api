@@ -5,7 +5,7 @@ import requests
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from main.sentry import SentryMonitor
+from main.sentry import SentryMonitor, SentryMonitorConfig
 from main.settings import SENTRY_DSN
 
 logger = logging.getLogger(__name__)
@@ -48,6 +48,10 @@ class Command(BaseCommand):
                         "type": "crontab",
                         "value": str(schedule),
                     },
+                    "tz": settings.TIME_ZONE,
+                    "checkin_margin": SentryMonitorConfig.get_checkin_margin(cronjob),
+                    "failure_issue_threshold": SentryMonitorConfig.get_failure_issue_threshold(cronjob),
+                    "recovery_threshold": SentryMonitorConfig.get_recovery_threshold(cronjob),
                 },
                 "environment": settings.GO_ENVIRONMENT,
                 "status": "ok",

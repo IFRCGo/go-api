@@ -314,6 +314,9 @@ class CountryDirectory(models.Model):
     last_name = models.CharField(verbose_name=_("Last Name"), max_length=255, null=True, blank=True)
     position = models.CharField(verbose_name=_("Position"), max_length=255, null=True, blank=True)
 
+    class Meta:
+        unique_together = ("country", "first_name", "last_name", "position")
+
     def __str__(self):
         return f"{self.country.name} - {self.first_name}"
 
@@ -349,6 +352,9 @@ class CountryKeyDocument(models.Model):
     end_year = models.DateField(verbose_name=_("End Year"), null=True, blank=True)
     year_text = models.CharField(verbose_name=_("Year Text"), max_length=255, null=True, blank=True)
 
+    class Meta:
+        unique_together = ("country", "url")
+
     def __str__(self):
         return f"{self.country.name} - {self.name}"
 
@@ -368,6 +374,9 @@ class CountryCapacityStrengthening(models.Model):
     )
     assessment_type = models.IntegerField(verbose_name=_("Country Assessment Type"), choices=AssessmentType.choices)
     branch_name = models.CharField(verbose_name=_("Branch Name"), max_length=255, null=True, blank=True)
+
+    class Meta:
+        unique_together = ("assessment_type", "assessment_code")
 
     def __str__(self):
         return f"{self.country.name} - {self.assessment_code} - {self.year}"
@@ -390,6 +399,9 @@ class NSDInitiatives(models.Model):
     year = models.CharField(verbose_name=_("Year"), max_length=20)
     funding_period = models.IntegerField(verbose_name=_("Funding Period in Month"))
     categories = ArrayField(models.CharField(max_length=255), verbose_name=_("Funding categories"), default=list, null=True)
+
+    class Meta:
+        unique_together = ("country", "year", "fund_type")
 
     def __str__(self):
         return f"{self.country.name} - {self.title}"
@@ -1841,6 +1853,14 @@ class Profile(models.Model):
     phone_number = models.CharField(verbose_name=_("phone number"), blank=True, null=True, max_length=100)
     last_frontend_login = models.DateTimeField(verbose_name=_("last frontend login"), null=True, blank=True)
     accepted_montandon_license_terms = models.BooleanField(verbose_name=_("has accepted montandon license terms?"), default=False)
+    limit_access_to_guest = models.BooleanField(
+        help_text=(
+            "If this value is set to true, the user is treated as a guest user regardless of any other permissions"
+            " they may have, thereby depriving them of all non-guest user permissions."
+        ),
+        verbose_name=_("limit access to guest user permissions"),
+        default=True,
+    )
 
     class Meta:
         verbose_name = _("user profile")

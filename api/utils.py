@@ -5,6 +5,36 @@ from django.http import JsonResponse
 from django.utils.translation import gettext
 
 
+class DebugPlaywright:
+    """Basic helpers to debug PlayWright issues locally"""
+
+    @staticmethod
+    def log_console(msg):
+        """Console logs"""
+        print("console:", msg.text)
+
+    @staticmethod
+    def log_request(request):
+        """Network request logs"""
+        # Add filter to remove noise: if request.url.startswith("http://api/v2"):
+        print("Network >>:", request.method, request.url)
+        print(" --- ", request.headers)
+
+    @staticmethod
+    def log_response(response):
+        """Network response logs"""
+        # Add filter to remove noise: if response.url.startswith("http://api/v2"):
+        print("Network <<:", response.status, response.url)
+        print(" --- ", response.headers)
+
+    @classmethod
+    def debug(cls, page):
+        """Add hook to receive logs from playwright"""
+        page.on("console", cls.log_console)
+        page.on("request", cls.log_request)
+        page.on("response", cls.log_response)
+
+
 def pretty_request(request):
     headers = ""
     for header, value in request.META.items():

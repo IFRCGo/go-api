@@ -33,7 +33,6 @@ DTYPE_VALS = [a.lower() for a in DISASTER_TYPE_MAPPING.values()]
 GEC_CODES = GECCode.objects.select_related("country").all()
 
 
-@monitor(monitor_slug=SentryMonitor.INGEST_APPEALS)
 class Command(BaseCommand):
     help = "Add new entries from Access database file"
 
@@ -292,6 +291,7 @@ class Command(BaseCommand):
 
         return fields
 
+    @monitor(monitor_slug=SentryMonitor.INGEST_APPEALS)
     def handle(self, *args, **options):
         logger.info("Starting appeals ingest")
         start_appeals_count = Appeal.objects.all().count()

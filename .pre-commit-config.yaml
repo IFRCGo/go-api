@@ -6,7 +6,6 @@ exclude: |
     (?x)^(
       \.git|
       __pycache__|
-      .*snap_test_.*\.py|
       .+\/.+\/migrations\/.*|
       legacy|
       \.venv
