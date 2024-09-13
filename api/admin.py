@@ -318,7 +318,7 @@ class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAd
         "districts",
     )
 
-    readonly_fields = ("report_date", "created_at", "updated_at")
+    readonly_fields = ("report_date", "created_at", "updated_at", "summary")
     list_filter = [MembershipFilter]
     actions = [
         "create_events",
