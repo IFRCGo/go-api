@@ -750,6 +750,7 @@ class Event(models.Model):
     )
     image = models.ImageField(verbose_name=_("image"), null=True, blank=True, upload_to=snippet_image_path)
     summary = HTMLField(verbose_name=_("summary"), blank=True, default="")
+    # title = models.CharField(max_length=256, blank=True)
 
     num_injured = models.IntegerField(verbose_name=_("number of injured"), null=True, blank=True)
     num_dead = models.IntegerField(verbose_name=_("number of dead"), null=True, blank=True)
@@ -1436,6 +1437,8 @@ class FieldReport(models.Model):
     # Used to differentiate reports that have and have not been synced from DMIS
     rid = models.CharField(verbose_name=_("r id"), max_length=100, null=True, blank=True, editable=False)
     summary = models.TextField(verbose_name=_("summary"), blank=True)
+    # Title field is used for the translation and later adding formated into the summary
+    title = models.CharField(max_length=256, blank=True)
     description = HTMLField(verbose_name=_("description"), blank=True, default="")
     dtype = models.ForeignKey(DisasterType, verbose_name=_("disaster type"), on_delete=models.PROTECT)
     event = models.ForeignKey(
@@ -1643,7 +1646,24 @@ class FieldReport(models.Model):
     #         filters = models.Q(visibility__in=[VisibilityChoices.MEMBERSHIP, VisibilityChoices.PUBLIC])
     #         if is_user_ifrc(user):
     #             filters = models.Q()
-    #     return FieldReport.objects.filter(filters)
+
+    def generate_formatted_summary(self) -> str:
+        translations = {
+            "summary_en": self.title_en,
+            "summary_fr": self.title_fr,
+            "summary_es": self.title_es,
+            "summary_ar": self.title_ar,
+        }
+        country = self.countries.first()
+        disater = self.dtype
+        start_date = self.start_date.strftime("%m-%Y")
+
+        field_report_number = FieldReport.objects.filter(countries=country).count()
+        date = timezone.now().strftime("%Y-%m-%d")
+        for summary_field, title in translations.items():
+            if title:
+                summary = f"{country.iso3}: {disater.name} - {start_date} {title} #{field_report_number} ({date})"
+                setattr(self, summary_field, summary)
 
     def save(self, *args, **kwargs):
         # On save, is report_date or start_date is not set, set it to now.
@@ -1651,6 +1671,9 @@ class FieldReport(models.Model):
             self.report_date = timezone.now()
         if not self.id and not self.start_date:
             self.start_date = timezone.now()
+        # NOTE: Overriding the summary field with translated title
+        self.generate_formatted_summary()
+
         return super(FieldReport, self).save(*args, **kwargs)
 
     def indexing(self):
