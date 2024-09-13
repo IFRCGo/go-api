@@ -2049,10 +2049,11 @@ class FieldReportSerializer(
     class Meta:
         model = FieldReport
         fields = "__all__"
+        read_only_fields = ("summary",)
 
     def create_event(self, report):
         event = Event.objects.create(
-            name=report.summary,
+            name=report.title,
             dtype=report.dtype,
             summary=report.description or "",
             disaster_start_date=report.start_date,
