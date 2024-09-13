@@ -62,7 +62,8 @@ jobs:
             exit 1;
           }
 
+      - name: Run django migrations
+        run: docker compose run --rm serve ./manage.py test --keepdb -v 2 --pattern="test_fake.py"
+
       - name: 🤞 Run Test 🧪
-        run: |
-            time docker compose run --rm serve ./manage.py test --keepdb -v 2 --pattern="test_fake.py" &&
-            docker compose run --rm serve pytest --reuse-db --durations=10
+        run: docker compose run --rm serve pytest --reuse-db --durations=10
