@@ -56,6 +56,7 @@ class FormAreaAdmin(CompareVersionAdmin, TranslationAdmin):
 class FormComponentAdmin(CompareVersionAdmin, TranslationAdmin):
     search_fields = ("title",)
     list_display = ("title", "area_number", "component_number")
+    autocomplete_fields = ["question_responses"]
 
     def component_number(self, obj):
         return f'{obj.component_num or ""}{obj.component_letter or ""}'
@@ -161,7 +162,10 @@ class FormComponentResponseAdmin(TranslationAdmin):
 
 
 class FormComponentQuestionAndAnswerAdmin(TranslationAdmin):
-    pass
+    search_fields = [
+        "question",
+    ]
+    # pass
 
 
 class OrganizationTypesAdmin(admin.ModelAdmin):
