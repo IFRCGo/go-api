@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  workflow_call:
+  pull_request:
+  # NOTE: For develop & master, they are run through helm github action ./build-publish-docker-helm.yml
+
+
+jobs:
+  pre_commit_checks:
+    name: 🚴 Pre-Commit checks 🚴
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@main
+      - name: Install poetry
+        run: pipx install poetry
+      - uses: actions/setup-python@main
+        with:
+          cache: 'poetry'
+      - run: poetry install
+      - uses: pre-commit/action@main
+
+  test:
+    name: 🚴 Checks & Test 🚴
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@main
+
+      - name: 🐳 Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🐳 Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          push: false
+          load: true
+          tags: ifrcgo/go-api:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Docker config setup & Pull docker images
+        run: |
+          cp .env-sample .env &&
+          docker compose run --rm serve ls
+
+      - name: 🕮 Validate if there are no pending django migrations.
+        run: |
+          docker compose run --rm serve ./manage.py makemigrations --check --dry-run || {
+            echo 'There are some changes to be reflected in the migration. Make sure to run makemigrations';
+            exit 1;
+          }
+
+      - name: 🕮 Validate SentryMonitor config
+        run: |
+          docker compose run --rm serve ./manage.py cron_job_monitor --validate-only || {
+            echo 'There are some changes to be reflected in the SentryMonitor. Make sure to update SentryMonitor';
+            exit 1;
+          }
+
+      - name: 🤞 Run Test 🧪
+        run: |
+            time docker compose run --rm serve ./manage.py test --keepdb -v 2 --pattern="test_fake.py" &&
+            docker compose run --rm serve pytest --reuse-db --durations=10
