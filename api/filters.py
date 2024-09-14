@@ -2,7 +2,7 @@ import strawberry
 import strawberry_django
 from django.db import models
 
-from .models import District, Admin2
+from .models import Admin2, District
 
 
 @strawberry_django.filters.filter(District, lookups=True)

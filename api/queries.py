@@ -4,13 +4,21 @@ import strawberry_django
 from main.context import Info
 from utils.paginations import CountList, pagination_field
 
-from .filters import DistrictFilter, Admin2Filter
-from .orders import DistrictOrder, Admin2Order
-from .types import DistrictType, Admin2Type
+from .filters import Admin2Filter, DistrictFilter
+from .orders import Admin2Order, DistrictOrder
+from .types import Admin2Type, CountryType, DistrictType
 
 
 @strawberry.type
 class PublicQuery:
+
+    Countries: CountList[CountryType] = pagination_field(
+        pagination=True,
+    )
+
+    @strawberry_django.field
+    async def country(self, info: Info, pk: strawberry.ID) -> CountryType | None:
+        return await CountryType.get_queryset(None, None, info).filter(pk=pk).afirst()
 
     Districts: CountList[DistrictType] = pagination_field(
         pagination=True,

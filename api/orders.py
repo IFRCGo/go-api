@@ -1,7 +1,7 @@
 import strawberry
 import strawberry_django
 
-from .models import District, Admin2
+from .models import Admin2, District
 
 
 @strawberry_django.ordering.order(District)

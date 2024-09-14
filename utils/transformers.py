@@ -13,9 +13,9 @@ from django.utils.module_loading import import_string
 from rest_framework import fields as drf_fields
 from rest_framework import serializers
 from strawberry.annotation import StrawberryAnnotation
-from strawberry.types.field import StrawberryField
 from strawberry.file_uploads import Upload as StrawberryUploadField
 from strawberry.types import get_object_definition
+from strawberry.types.field import StrawberryField
 from strawberry_django.type import _process_type
 
 from . import types
