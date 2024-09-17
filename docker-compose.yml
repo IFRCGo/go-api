@@ -1,5 +1,3 @@
-version: '3.5'
-
 x-server: &base_server_setup
   image: ifrcgo/go-api:graphql
   build: .
@@ -29,8 +27,8 @@ x-server: &base_server_setup
     CACHE_MIDDLEWARE_SECONDS: ${CACHE_MIDDLEWARE_SECONDS:-600}
     ELASTIC_SEARCH_HOST: ${ELASTIC_SEARCH_HOST:-elasticsearch://elasticsearch:9200}
     # Appeal API
-    APPEALS_USER: ${APPEALS_USER}
-    APPEALS_PASS: ${APPEALS_PASS}
+    APPEALS_USER: ${APPEALS_USER:-}
+    APPEALS_PASS: ${APPEALS_PASS:-}
     # Sentry
     SENTRY_DSN: ${SENTRY_DSN:-}
     SENTRY_SAMPLE_RATE: ${SENTRY_SAMPLE_RATE:-0.2}
@@ -56,7 +54,6 @@ x-server: &base_server_setup
     - db
     - redis
     - elasticsearch
-    - kibana
 
 
 services:
@@ -107,6 +104,7 @@ services:
       - '5601:5601'
     depends_on:
       - elasticsearch
+    profiles: [elasticsearch]
 
   serve:
     <<: *base_server_setup
@@ -120,93 +118,119 @@ services:
     <<: *base_server_setup
     command: python manage.py run_celery_dev
 
+  # ------------------ Helper CLI Commands
+  # Usage: `docker compose run --rm <service-name>`
+  # Example: `docker compose run --rm bash`
   bash:
     <<: *base_server_setup
     entrypoint: /bin/bash
+    profiles: [cli]
 
   shell:
     <<: *base_server_setup
     command: python manage.py shell
+    profiles: [cli]
 
   loaddata:
     <<: *base_server_setup
     command: python manage.py loaddata Regions Countries Districts DisasterTypes Actions Groups
+    profiles: [cli]
 
   ingest_databank:
     <<: *base_server_setup
     command: python manage.py ingest_databank
+    profiles: [cli]
 
   collectstatic:
     <<: *base_server_setup
     command: python manage.py collectstatic --noinput -l
+    profiles: [cli]
 
   createsuperuser:
     <<: *base_server_setup
     command: python manage.py createsuperuser
+    profiles: [cli]
 
   ingest_appeals:
     <<: *base_server_setup
     command: python manage.py ingest_appeals
+    profiles: [cli]
 
   ingest_appeal_docs:
     <<: *base_server_setup
     command: python manage.py ingest_appeal_docs
+    profiles: [cli]
 
   user_registration_reminder:
     <<: *base_server_setup
     command: python manage.py user_registration_reminder
+    profiles: [cli]
 
   ingest_appeal_docs_fullscan:
     <<: *base_server_setup
     command: python manage.py ingest_appeal_docs --fullscan
+    profiles: [cli]
 
   ingest_mdb:
     <<: *base_server_setup
     command: python manage.py ingest_mdb
+    profiles: [cli]
 
   migrate:
     <<: *base_server_setup
     command: python manage.py migrate
+    profiles: [cli]
 
   makemigrations:
     <<: *base_server_setup
     command: python manage.py makemigrations
+    profiles: [cli]
 
   makemigrations_merge:
     <<: *base_server_setup
     command: python manage.py makemigrations --merge
+    profiles: [cli]
 
   make_permissions:
     <<: *base_server_setup
     command: python manage.py make_permissions
+    profiles: [cli]
 
   test:
     <<: *base_server_setup
     command: pytest --durations=10
+    profiles: [cli]
 
   test_snapshot_update:
     <<: *base_server_setup
     command: python manage.py test -k --snapshot-update
+    profiles: [cli]
 
   testr:
     <<: *base_server_setup
     command: pytest --reuse-db --durations=10 -s
+    profiles: [cli]
 
   coverage:
     <<: *base_server_setup
     command: coverage run --source='.' manage.py test -k
+    profiles: [cli]
 
   coverage_report:
     <<: *base_server_setup
     command: coverage report
+    profiles: [cli]
 
   coverage_html:
     <<: *base_server_setup
     command: coverage html
+    profiles: [cli]
 
   triggers_to_db:
     <<: *base_server_setup
     command: python manage.py triggers_to_db
+    profiles: [cli]
+
 
 volumes:
   redis-data:
