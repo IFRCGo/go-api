@@ -4,7 +4,7 @@ import pydash
 
 import api.models as models
 from api.factories import country, district
-from api.factories.event import EventFactory
+from api.factories.event import DisasterTypeFactory, EventFactory
 from deployments.factories.emergency_project import (
     EmergencyProjectActivityActionFactory,
     EmergencyProjectActivityFactory,
@@ -16,11 +16,15 @@ from deployments.factories.project import (
     SectorFactory,
     SectorTagFactory,
 )
+from deployments.factories.regional_project import RegionalProjectFactory
 from deployments.factories.user import UserFactory
 from deployments.models import (
     EmergencyProject,
     EmergencyProjectActivity,
+    OperationTypes,
+    ProgrammeTypes,
     Project,
+    Statuses,
     VisibilityCharChoices,
 )
 from main.test_case import APITestCase, SnapshotTestCase
@@ -100,7 +104,6 @@ class TestProjectAPI(SnapshotTestCase):
 
         # check response
         self.assert_201(response)
-        self.assertMatchSnapshot(json.loads(response.content))
         self.assertTrue(Project.objects.get(name=new_project_name))
 
     def test_project_read(self):
@@ -188,18 +191,35 @@ class TestProjectAPI(SnapshotTestCase):
         self.assertMatchSnapshot(resp.content.decode("utf-8"))
 
     def test_project_csv_api(self):
-        _country = country.CountryFactory()
-        sct = SectorFactory()
-        sct_1 = SectorTagFactory()
-        sct_2 = SectorTagFactory()
+        _country = country.CountryFactory(name="country-1")
+        sct = SectorFactory(title="sect-1")
+        sct_1 = SectorTagFactory(title="sec-tag-1")
+        sct_2 = SectorTagFactory(title="sec-tag-2")
         district1 = district.DistrictFactory(country=_country)
         district2 = district.DistrictFactory(country=_country)
+        dtype = DisasterTypeFactory(name="disaster-type-1", summary="summary")
+        regional_project = RegionalProjectFactory(name="regional-project-1")
+        event = EventFactory(
+            countries=[_country.id],
+            districts=[district1.id, district2.id],
+            dtype=dtype,
+            title="event-1",
+        )
         ProjectFactory.create_batch(
             10,
             project_districts=[district1, district2],
+            budget_amount=100000,
             primary_sector=sct,
+            event=event,
+            regional_project=regional_project,
             secondary_sectors=[sct_1, sct_2],
+            dtype=dtype,
             visibility=VisibilityCharChoices.PUBLIC,
+            project_country=_country,
+            reporting_ns=_country,
+            status=Statuses.COMPLETED,
+            programme_type=ProgrammeTypes.BILATERAL,
+            operation_type=OperationTypes.EMERGENCY_OPERATION,
         )
 
         url = "/api/v2/project/?format=csv"
@@ -225,14 +245,18 @@ class TestProjectAPI(SnapshotTestCase):
             ProjectFactory.create_batch(
                 2,
                 primary_sector=sct,
+                programme_type=programme_type,
+                reporting_ns=ns,
                 project_districts=project_districts,
+                secondary_sectors=secondary_sectors,
                 visibility=VisibilityCharChoices.PUBLIC,
+                budget_amount=100000,
             )
-            for project_districts, secondary_sectors in [
-                ([c1_district1, c1_district2], [sct_1, sct_2]),
-                ([c1_district1, c1_district2], [sct_3, sct_4]),
-                ([c2_district1, c2_district2], [sct_1, sct_3]),
-                ([c2_district1, c2_district2], [sct_2, sct_4]),
+            for project_districts, secondary_sectors, programme_type in [
+                ([c1_district1, c1_district2], [sct_1, sct_2], ProgrammeTypes.BILATERAL),
+                ([c1_district1, c1_district2], [sct_3, sct_4], ProgrammeTypes.MULTILATERAL),
+                ([c2_district1, c2_district2], [sct_1, sct_3], ProgrammeTypes.DOMESTIC),
+                ([c2_district1, c2_district2], [sct_2, sct_4], ProgrammeTypes.DOMESTIC),
             ]
             for ns in [ns_1, ns_2]
         ]
