@@ -19,8 +19,11 @@ from django.db.models import Q
 # from django.db.models import Prefetch
 from django.dispatch import receiver
 from django.utils import timezone
+from django.utils.translation import activate, deactivate
 from django.utils.translation import gettext_lazy as _
 from tinymce.models import HTMLField
+
+from lang.translation import AVAILABLE_LANGUAGES
 
 from .utils import validate_slug_number  # is_user_ifrc,
 
@@ -750,7 +753,7 @@ class Event(models.Model):
     )
     image = models.ImageField(verbose_name=_("image"), null=True, blank=True, upload_to=snippet_image_path)
     summary = HTMLField(verbose_name=_("summary"), blank=True, default="")
-    # title = models.CharField(max_length=256, blank=True)
+    title = models.CharField(max_length=256, blank=True)
 
     num_injured = models.IntegerField(verbose_name=_("number of injured"), null=True, blank=True)
     num_dead = models.IntegerField(verbose_name=_("number of dead"), null=True, blank=True)
@@ -845,6 +848,15 @@ class Event(models.Model):
     def to_dict(self):
         return to_dict(self)
 
+    def generate_formatted_name(self):
+        country_iso3 = self.countries.first().iso3 if self.id and self.countries.first() else "N/A"
+        dtype = self.dtype.name if self.dtype else "N/A"
+        start_date = timezone.now().strftime("%m-%Y")
+        for translation in AVAILABLE_LANGUAGES:
+            activate(translation)
+            self.name = f"{country_iso3}: {dtype} - {start_date} - {self.title}"
+            deactivate()
+
     def save(self, *args, **kwargs):
 
         # Make the slug lowercase
@@ -854,6 +866,8 @@ class Event(models.Model):
         # On save, if `disaster_start_date` is not set, make it the current time
         if not self.id and not self.disaster_start_date:
             self.disaster_start_date = timezone.now()
+
+        self.generate_formatted_name()
 
         return super(Event, self).save(*args, **kwargs)
 
@@ -1647,26 +1661,20 @@ class FieldReport(models.Model):
     #         if is_user_ifrc(user):
     #             filters = models.Q()
 
-    def generate_formatted_summary(self) -> str:
-        translations = {
-            "summary_en": self.title_en,
-            "summary_fr": self.title_fr,
-            "summary_es": self.title_es,
-            "summary_ar": self.title_ar,
-        }
-        country = self.countries.first()
-        disater = self.dtype
+    def generate_formatted_summary(self):
+        country_iso3 = self.countries.first().iso3 if self.id and self.countries.first() else "N/A"
+        dtype = self.dtype.name if self.dtype else "N/A"
         start_date = self.start_date.strftime("%m-%Y")
+        field_report_number = FieldReport.objects.filter(countries__iso3=country_iso3).exclude(id=self.id).count() + 1
+        current_date = timezone.now().strftime("%Y-%m-%d")
 
-        field_report_number = FieldReport.objects.filter(countries=country).count()
-        date = timezone.now().strftime("%Y-%m-%d")
-        for summary_field, title in translations.items():
-            if title:
-                summary = f"{country.iso3}: {disater.name} - {start_date} {title} #{field_report_number} ({date})"
-                setattr(self, summary_field, summary)
+        for translation in AVAILABLE_LANGUAGES:
+            activate(translation)
+            self.summary = f"{country_iso3}: {dtype} - {start_date} {self.title} #{field_report_number} ({current_date})"
+            deactivate()
 
     def save(self, *args, **kwargs):
-        # On save, is report_date or start_date is not set, set it to now.
+        # On save, if report_date or start_date is not set, set it to now.
         if not self.id and not self.report_date:
             self.report_date = timezone.now()
         if not self.id and not self.start_date:

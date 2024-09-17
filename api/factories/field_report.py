@@ -17,6 +17,7 @@ class FieldReportFactory(factory.django.DjangoModelFactory):
     dtype = factory.SubFactory(disaster_type.DisasterTypeFactory)
     event = factory.SubFactory(event.EventFactory)
     summary = fuzzy.FuzzyText(length=500)
+    title = fuzzy.FuzzyText(length=10, prefix="title-")
     description = fuzzy.FuzzyText(length=200)
     report_date = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
     # start_date is now what the user explicitly sets while filling the Field Report form.
