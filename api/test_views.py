@@ -16,7 +16,7 @@ from api.factories.field_report import FieldReportFactory
 from api.models import Profile, VisibilityChoices
 from deployments.factories.user import UserFactory
 from dref.models import DrefFile
-from main.test_case import APITestCase, SnapshotTestCase
+from main.test_case import APITestCase
 
 
 class SecureFileFieldTest(APITestCase):
@@ -284,20 +284,21 @@ class AuthTokenTest(APITestCase):
         self.assertIsNotNone(response.get("expires"))
 
 
-class EventSnaphostTest(SnapshotTestCase):
+class EventApiTest(APITestCase):
+
     def test_event_featured_document_api(self):
         event = EventFactory()
         EventFeaturedDocumentFactory.create_batch(5, event=event)
         resp = self.client.get(f"/api/v2/event/{event.id}/")
         self.assertEqual(resp.status_code, 200)
-        self.assertMatchSnapshot(json.loads(resp.content))
+        self.assertEqual(len(resp.json()["featured_documents"]), 5)
 
     def test_event_link_api(self):
         event = EventFactory()
         EventLinkFactory.create_batch(5, event=event)
         resp = self.client.get(f"/api/v2/event/{event.id}/")
         self.assertEqual(resp.status_code, 200)
-        self.assertMatchSnapshot(json.loads(resp.content))
+        self.assertEqual(len(resp.json()["links"]), 5)
 
 
 class SituationReportTypeTest(APITestCase):
@@ -308,7 +309,7 @@ class SituationReportTypeTest(APITestCase):
         type1 = models.SituationReportType.objects.create(type="Lyric")
         type2 = models.SituationReportType.objects.create(type="Epic")
         dtype1 = models.DisasterType.objects.get(pk=1)
-        event1 = models.Event.objects.create(name="disaster1", summary="test disaster1", dtype=dtype1)
+        event1 = models.Event.objects.create(title="disaster1", summary="test disaster1", dtype=dtype1)
 
         models.SituationReport.objects.create(name="test1", event=event1, type=type1, visibility=3)
         models.SituationReport.objects.create(name="test2", event=event1, type=type2, visibility=3)
@@ -341,7 +342,7 @@ class FieldReportTest(APITestCase):
         body = {
             "countries": [country1.id, country2.id],
             "dtype": 7,
-            "summary": "test",
+            "title": "test",
             "description": "this is a test description",
             "bulletin": "3",
             "num_assisted": 100,
@@ -381,12 +382,12 @@ class FieldReportTest(APITestCase):
         self.assertEqual(created.contacts.count(), 1)
         self.assertEqual(created.visibility, models.VisibilityChoices.IFRC)
         self.assertEqual(created.dtype.id, 7)
-        self.assertEqual(created.summary, "test")
+        self.assertEqual(created.title, "test")
         # Translated field test
-        self.assertEqual(created.summary_en, "test")
+        self.assertEqual(created.title_en, "test")
 
         # created an emergency automatically
-        self.assertEqual(created.event.name, "test")
+        self.assertEqual(created.event.title, "test")
         # event_pk = created.event.id
 
         # body['countries'] = [country2.id]

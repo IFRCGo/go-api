@@ -22,7 +22,8 @@ class EventFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Event
 
-    name = fuzzy.FuzzyText(length=50, prefix="event-")
+    name = fuzzy.FuzzyText(length=50)
+    title = fuzzy.FuzzyText(length=10)
     slug = fuzzy.FuzzyText(length=50)
     dtype = factory.SubFactory(DisasterTypeFactory)
 
