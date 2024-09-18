@@ -1,4 +1,5 @@
 import csv
+import logging
 import os
 
 import markdown
@@ -6,9 +7,11 @@ from django.core.management.base import BaseCommand
 
 from per.models import FormComponent
 
+logger = logging.getLogger(__name__)
 
-def format_description(discription):
-    markdown_text = markdown.markdown(discription)
+
+def format_description(description):
+    markdown_text = markdown.markdown(description)
     return markdown_text
 
 
@@ -17,7 +20,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         command_dir = os.path.dirname(os.path.abspath(__file__))
-        csv_file_path = os.path.join(command_dir, "form_components.csv")
+        csv_file_path = os.path.join(command_dir, "../../fixtures/form_components.csv")
 
         with open(csv_file_path, newline="", encoding="utf-8") as csvfile:
             reader = list(csv.DictReader(csvfile))
@@ -69,4 +72,4 @@ class Command(BaseCommand):
                         "climate_environmental_considerations_guidance_en",
                     ]
                 )
-        print("PER From Component loaded Successfully")
+        logger.info("PER From Component loaded Successfully")

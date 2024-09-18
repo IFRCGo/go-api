@@ -165,7 +165,6 @@ class FormComponentQuestionAndAnswerAdmin(TranslationAdmin):
     search_fields = [
         "question",
     ]
-    # pass
 
 
 class OrganizationTypesAdmin(admin.ModelAdmin):
