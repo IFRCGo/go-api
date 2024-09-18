@@ -53,6 +53,8 @@ class GuestUserPermissionTest(APITestCase):
             "/api/v2/language/",
             f"/api/v2/language/{id}/",
             "/api/v2/event/",
+            "/api/v2/ops-learning/",
+            f"/api/v2/ops-learning/{id}/",
         ]
 
         go_post_apis = [
@@ -73,6 +75,7 @@ class GuestUserPermissionTest(APITestCase):
             "/api/v2/per-file/multiple/",
             "/api/v2/per-prioritization/",
             "/api/v2/per-work-plan/",
+            "/api/v2/ops-learning/",
             "/api/v2/project/",
             "/api/v2/dref-files/",
             "/api/v2/dref-files/multiple/",
@@ -98,8 +101,6 @@ class GuestUserPermissionTest(APITestCase):
             f"/api/v2/flash-update/{id}/",
             "/api/v2/local-units/",
             f"/api/v2/local-units/{id}/",
-            "/api/v2/ops-learning/",
-            f"/api/v2/ops-learning/{id}/",
             f"/api/v2/pdf-export/{id}/",
             "/api/v2/per-assessment/",
             f"/api/v2/per-assessment/{id}/",
@@ -138,7 +139,6 @@ class GuestUserPermissionTest(APITestCase):
         ]
 
         go_post_apis_req_additional_perm = [
-            "/api/v2/ops-learning/",
             "/api/v2/per-overview/",
             f"/api/v2/user/{id}/accepted_license_terms/",
         ]
@@ -166,6 +166,14 @@ class GuestUserPermissionTest(APITestCase):
         event_pub_response = self.client.get("/api/v2/event/")
         _success_check(event_pub_response)
         self.assertEqual(len(event_pub_response.json()["results"]), 1)
+
+        # Unauthenticated user should be able to view operational learning
+        ops_learning_response = self.client.get("/api/v2/ops-learning/")
+        _success_check(ops_learning_response)
+
+        # Unauthenticated user should not be able to do post operations in operational learning
+        ops_learning_response = self.client.post("/api/v2/ops-learning/", json=body)
+        _failure_check(ops_learning_response, check_json_error_code=False)
 
         # authenticate guest user
         self.authenticate(user=self.guest_user)
