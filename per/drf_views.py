@@ -19,7 +19,7 @@ from rest_framework.settings import api_settings
 
 from api.models import Country
 from deployments.models import SectorTag
-from main.permissions import DenyGuestUserPermission
+from main.permissions import DenyGuestUserMutationPermission, DenyGuestUserPermission
 from main.utils import SpreadSheetContentNegotiation
 from per.filter_set import (
     PerDocumentFilter,
@@ -708,7 +708,7 @@ class OpsLearningViewset(viewsets.ModelViewSet):
     """
 
     queryset = OpsLearning.objects.all()
-    permission_classes = [DenyGuestUserPermission, OpsLearningPermission]
+    permission_classes = [DenyGuestUserMutationPermission, OpsLearningPermission]
     filterset_class = OpsLearningFilter
     search_fields = (
         "learning",

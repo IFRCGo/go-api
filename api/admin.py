@@ -756,6 +756,11 @@ class SituationReportTypeAdmin(CompareVersionAdmin):
     search_fields = ("type",)
 
 
+@admin.action(description="Set selected cronjob records to acknowleged status")
+def acknowledge(modeladmin, request, queryset):
+    queryset.update(status=-2)
+
+
 class CronJobAdmin(CompareVersionAdmin):
     list_display = ("name", "created_at", "num_result", "status")
     search_fields = (
@@ -767,6 +772,7 @@ class CronJobAdmin(CompareVersionAdmin):
         "message_display",
     )
     list_filter = ("status", "name")
+    actions = [acknowledge]
 
     def message_display(self, obj):
         style_class = {
