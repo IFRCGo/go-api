@@ -1,5 +1,10 @@
+import strawberry
+import typing
+from utils.strawberry.enums import get_enum_name_from_django_field
+
 from . import models
 
+# -- DREF
 enum_register = {
     "region_name": models.RegionName,
     "country_type": models.CountryType,
@@ -20,4 +25,18 @@ enum_register = {
     "action_category": models.ActionCategory,
     "profile_org_types": models.Profile.OrgTypes,
     "supporting_type": models.CountrySupportingPartner.SupportingPartnerType,
+}
+
+
+# -- Graphql
+AppealTypeEnum = typing.Annotated[type, strawberry.enum(models.AppealType, name="AppealTypeEnum")]
+AppealStatusEnum = typing.Annotated[type, strawberry.enum(models.AppealStatus, name="AppealStatusEnum")]
+
+
+enum_map = {
+    get_enum_name_from_django_field(field): enum
+    for field, enum in (
+        (models.Appeal.atype, AppealTypeEnum),
+        (models.Appeal.status, AppealStatusEnum),
+    )
 }

@@ -35,7 +35,6 @@ django-enumfield = "==2.0.2"
 django-extensions = "==2.0.6"
 django-filter = "==2.4.0"
 django-guardian = "==2.4.0"
-django-graphql-geojson = "==0.1.4"
 django-modeltranslation = "==0.17.5"
 django-read-only = "==1.12.0"
 django-reversion-compare = "==0.16.2"
@@ -51,11 +50,9 @@ django-environ = "==0.8.1"
 elasticsearch = "==7.0.0"
 factory_boy = "==2.12.0"
 fuzzywuzzy = "==0.17.0"
-graphene-django = "^2.15.0"
-graphene = "^2.0"
-graphql-core = "^2.0"
+strawberry-graphql-django = {extras = ["strawberry-graphql"], version = "0.47.1"}
 gunicorn = "==22.0.0"
-lxml = "==4.9.1"
+lxml = "==4.9.3"
 nltk = "^3.9"
 numpy = "<2.0.0"
 opencensus-ext-azure = "==1.0.7"
@@ -100,6 +97,7 @@ pytest-django = "*"
 snapshottest = "==0.6.0"
 django-debug-toolbar = "==4.1.0"
 django-stubs = { version = "*", allow-prereleases = true }
+djangorestframework-stubs = { version = "*", allow-prereleases = true }
 
 [tool.pyright]
 extraPaths = ["apps"]
