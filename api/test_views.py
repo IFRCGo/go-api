@@ -53,6 +53,8 @@ class GuestUserPermissionTest(APITestCase):
             "/api/v2/language/",
             f"/api/v2/language/{id}/",
             "/api/v2/event/",
+            "/api/v2/ops-learning/",
+            f"/api/v2/ops-learning/{id}/",
         ]
 
         go_post_apis = [
@@ -98,8 +100,6 @@ class GuestUserPermissionTest(APITestCase):
             f"/api/v2/flash-update/{id}/",
             "/api/v2/local-units/",
             f"/api/v2/local-units/{id}/",
-            "/api/v2/ops-learning/",
-            f"/api/v2/ops-learning/{id}/",
             f"/api/v2/pdf-export/{id}/",
             "/api/v2/per-assessment/",
             f"/api/v2/per-assessment/{id}/",
