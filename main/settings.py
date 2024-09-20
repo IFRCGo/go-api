@@ -196,7 +196,6 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "guardian",
     "django_filters",
-    "graphene_django",
     "django_read_only",
     # GO Apps
     *GO_APPS,
@@ -234,9 +233,6 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
-
-# Not ready yet to use
-# GRAPHENE = {"SCHEMA": "api.schema.schema"}
 
 MIDDLEWARE = [
     "debug_toolbar.middleware.DebugToolbarMiddleware",

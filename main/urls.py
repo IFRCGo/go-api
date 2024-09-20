@@ -62,8 +62,6 @@ from registrations import drf_views as registration_views
 from registrations.drf_views import RegistrationView
 from registrations.views import UserExternalTokenViewset, ValidateUser, VerifyEmail
 
-# from graphene_django.views import GraphQLView  # will be needed later
-
 router = routers.DefaultRouter()
 
 router.register(r"action", api_views.ActionViewset, basename="action")
@@ -173,7 +171,6 @@ urlpatterns = [
     url(r"^api/v1/search/", HayStackSearch.as_view()),
     url(r"^api/v1/es_health/", EsPageHealth.as_view()),
     # If we want to use the next one, some permission overthink is needed:
-    # url(r"^api/v1/graphql/", GraphQLView.as_view(graphiql=True)),
     url(r"^api/v1/aggregate/", AggregateByTime.as_view()),
     url(r"^api/v1/aggregate_dtype/", AggregateByDtype.as_view()),
     url(r"^api/v1/aggregate_area/", AreaAggregate.as_view()),
