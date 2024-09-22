@@ -55,6 +55,8 @@ class Command(BaseCommand):
             facilitytype_id_map["hospitals"] = facilitytype_id_map["hospital"]
             facilitytype_id_map["pharmacies"] = facilitytype_id_map["pharmacy"]
             facilitytype_id_map["bloodcentres"] = facilitytype_id_map["bloodcenter"]
+            facilitytype_id_map["bloodcentre"] = facilitytype_id_map["bloodcenter"]
+            # facilitytype_id_map["blood"] = facilitytype_id_map["bloodcenter"]
             specializedmedicalservice_id_map["surgicalspecialties"] = specializedmedicalservice_id_map["surgicalspecialities"]
 
             primaryhcc_id_map[""] = None
