@@ -1,4 +1,5 @@
 import uuid
+import typing
 from datetime import datetime, timedelta
 
 import pytz
@@ -1151,6 +1152,10 @@ class Appeal(models.Model):
         default=0.00,
         editable=False,
     )
+
+    # Type annotations
+    country_id: int
+    dtype_id: typing.Optional[int]
 
     class Meta:
         ordering = (

@@ -1,10 +1,11 @@
 import dataclasses
+import typing
 
 import strawberry
 
 from api.enums import enum_map as api_enum_map
 
-ENUM_TO_STRAWBERRY_ENUM_MAP: dict[str, type] = {
+ENUM_TO_STRAWBERRY_ENUM_MAP: dict[str, typing.Union[type, typing.Annotated]] = {
     **api_enum_map,
 }
 
@@ -23,14 +24,19 @@ class AppEnumData:
 
 
 def generate_app_enum_collection_data(name):
-    return type(
-        name,
-        (),
-        {
-            field_name: [AppEnumData(e) for e in enum]  # type: ignore[reportGeneralTypeIssues]
-            for field_name, enum in ENUM_TO_STRAWBERRY_ENUM_MAP.items()
-        },
-    )
+    def _get_enum_type(enum):
+        if typing.get_origin(enum) is typing.Annotated:
+            return typing.get_args(enum)[1]
+        return enum
+
+    params = {
+        field_name: [
+            AppEnumData(e)
+            for e in _get_enum_type(enum)  # type: ignore[reportGeneralTypeIssues]
+        ]
+        for field_name, enum in ENUM_TO_STRAWBERRY_ENUM_MAP.items()
+    }
+    return type(name, (), params)
 
 
 AppEnumCollectionData = generate_app_enum_collection_data("AppEnumCollectionData")

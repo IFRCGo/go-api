@@ -28,15 +28,16 @@ enum_register = {
 }
 
 
-# -- Graphql
-AppealTypeEnum = typing.Annotated[type, strawberry.enum(models.AppealType, name="AppealTypeEnum")]
-AppealStatusEnum = typing.Annotated[type, strawberry.enum(models.AppealStatus, name="AppealStatusEnum")]
-
+# -- GraphQl
+AppealTypeEnum = typing.Annotated[models.AppealType, strawberry.enum(models.AppealType, name="AppealTypeEnum")]
+AppealStatusEnum = typing.Annotated[models.AppealStatus, strawberry.enum(models.AppealStatus, name="AppealStatusEnum")]
+CountryTypeEnum = typing.Annotated[models.CountryType, strawberry.enum(models.CountryType, name="CountryTypeEnum")]
 
 enum_map = {
     get_enum_name_from_django_field(field): enum
     for field, enum in (
         (models.Appeal.atype, AppealTypeEnum),
         (models.Appeal.status, AppealStatusEnum),
+        (models.Country.record_type, CountryTypeEnum),
     )
 }

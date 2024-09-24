@@ -18,7 +18,6 @@ class AppealFilter:
     code: strawberry.auto
     status: typing.Optional[AppealStatusEnum]  # type: ignore[reportInvalidTypeForm]
     id: strawberry.auto
-    appeal_id: strawberry.auto
 
     @strawberry_django.filter_field
     def districts(

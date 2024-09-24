@@ -1,3 +1,4 @@
+import typing
 import strawberry
 import strawberry_django
 
@@ -20,5 +21,5 @@ class PrivateQuery:
 
     # Single ----------------------------
     @strawberry_django.field
-    async def appeal(self, info: Info, pk: strawberry.ID) -> AppealType | None:
+    async def appeal(self, info: Info, pk: strawberry.ID) -> typing.Optional[AppealType]:
         return await AppealType.get_queryset(None, None, info).filter(pk=pk).afirst()

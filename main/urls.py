@@ -61,6 +61,7 @@ from per.views import LearningTypes
 from registrations import drf_views as registration_views
 from registrations.drf_views import RegistrationView
 from registrations.views import UserExternalTokenViewset, ValidateUser, VerifyEmail
+from main.graphql.schema import CustomAsyncGraphQLView, schema as graphql_schema
 
 router = routers.DefaultRouter()
 
@@ -106,7 +107,7 @@ router.register(r"per-formarea", per_views.FormAreaViewset, basename="per-formar
 router.register(r"per-formcomponent", per_views.FormComponentViewset, basename="per-formcomponent")
 router.register(r"per-formquestion", per_views.FormQuestionViewset, basename="per-formquestion")
 router.register(r"per-formquestion-group", per_views.FormQuestionGroupViewset, basename="per-formquestion-group")
-router.register(r"aggregated-per-process-status", per_views.PerAggregatedViewSet, basename="aggregated-per-process-status"),
+router.register(r"aggregated-per-process-status", per_views.PerAggregatedViewSet, basename="aggregated-per-process-status")
 router.register(r"per-file", per_views.PerFileViewSet, basename="per-file")
 router.register(r"per-process-status", per_views.PerProcessStatusViewSet, basename="per-process-status")
 router.register(r"public-per-process-status", per_views.PublicPerProcessStatusViewSet, basename="public-per-process-status")
@@ -167,6 +168,14 @@ admin.site.site_header = "IFRC Go administration"
 admin.site.site_title = "IFRC Go admin"
 
 urlpatterns = [
+    path(
+        "graphql/",
+        CustomAsyncGraphQLView.as_view(
+            schema=graphql_schema,
+            graphql_ide=False,
+        ),
+        name="graphql",
+    ),
     # url(r"^api/v1/es_search/", EsPageSearch.as_view()),
     url(r"^api/v1/search/", HayStackSearch.as_view()),
     url(r"^api/v1/es_health/", EsPageHealth.as_view()),
@@ -236,6 +245,7 @@ if settings.DEBUG:
 
     urlpatterns = (
         [
+            path("graphiql/", CustomAsyncGraphQLView.as_view(schema=graphql_schema), name="graphiql"),
             url("__debug__/", include(debug_toolbar.urls)),
             # For django versions before 2.0:
             # url(r'^__debug__/', include(debug_toolbar.urls)),
