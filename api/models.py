@@ -1859,7 +1859,7 @@ class Profile(models.Model):
             " they may have, thereby depriving them of all non-guest user permissions."
         ),
         verbose_name=_("limit access to guest user permissions"),
-        default=True,
+        default=False,
     )
 
     class Meta:
