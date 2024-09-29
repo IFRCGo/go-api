@@ -732,11 +732,13 @@ class SituationReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
         "name",
         "link_to_event",
         "type",
+        "created_at",
         "visibility",
     )
     country_in = "event__countries__in"
     region_in = "event__regions__in"
     autocomplete_fields = ("event",)
+    readonly_fields = ("created_at",)
 
     # WikiJS links added
     change_form_template = "admin/situationreport_change_form.html"
