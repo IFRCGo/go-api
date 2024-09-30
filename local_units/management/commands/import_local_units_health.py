@@ -65,7 +65,7 @@ class Command(BaseCommand):
                     except ValueError:
                         pass
                 validated = True
-                level_id = int(row["COVERAGECODE"]) + 1
+                level_id = int(row["COVERAGECODE"])  # + 1
                 local_branch_name = row["NAME_LOC"]
                 english_branch_name = row["NAME_EN"]
                 postcode = row["POSTCODE"]
@@ -89,19 +89,19 @@ class Command(BaseCommand):
                     type_id=type,
                     # is_public=is_public,
                     validated=validated,
-                    local_branch_name=local_branch_name,
-                    english_branch_name=english_branch_name,
-                    focal_person_loc=focal_person_loc,
-                    focal_person_en=focal_person_en,
+                    local_branch_name=local_branch_name[:255],
+                    english_branch_name=english_branch_name[:255],
+                    focal_person_loc=focal_person_loc[:255],
+                    focal_person_en=focal_person_en[:255],
                     location=location,
                     postcode=postcode,
                     address_loc=address_loc,
                     address_en=address_en,
-                    city_loc=city_loc,
-                    city_en=city_en,
+                    city_loc=city_loc[:255],
+                    city_en=city_en[:255],
                     phone=phone,
-                    email=email,
-                    link=link,
+                    email=email[:255],
+                    link=link[:255],
                     source_loc=source_loc,
                     source_en=source_en,
                     date_of_data=date_of_data,
