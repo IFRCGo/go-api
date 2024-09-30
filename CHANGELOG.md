@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## 1.1.502
 
 ### Added
+ - SituationReports default ordering
+ - Fix health data loading
+ - New user, guest user issue fix
  - TinyMCE cleanup - no selector is needed in settings
  - Align Admin page Delete button
  - Remove duplication from urls.py
