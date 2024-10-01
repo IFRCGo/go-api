@@ -19,19 +19,21 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         logger.info("Starting NS Inititatives")
         api_key = settings.NS_INITIATIVES_API_KEY
-        esf_url = requests.get(f"https://data-api.ifrc.org/api/esf?apikey={api_key}")
-        nsia_url = requests.get(f"https://data-api.ifrc.org/api/nsia?apikey={api_key}")
-        cbf_url = requests.get(f"https://data-api.ifrc.org/api/cbf?apikey={api_key}")
+        urls = [
+            f"https://data-api.ifrc.org/api/esf?apikey={api_key}",
+            f"https://data-api.ifrc.org/api/nsia?apikey={api_key}",
+            f"https://data-api.ifrc.org/api/cbf?apikey={api_key}",
+        ]
 
-        # resposne for individual request
-        esf_response = esf_url.json()
-        nsia_response = nsia_url.json()
-        cbf_response = cbf_url.json()
+        responses = []
+        for url in urls:
+            response = requests.get(url)
+            if response.status_code == 200:
+                responses.append(response.json())
 
         added = 0
 
-        all_fund_data = [esf_response, nsia_response, cbf_response]
-        flatList = [element for innerList in all_fund_data for element in innerList]
+        flatList = [element for innerList in responses for element in innerList]
         funding_data = pd.DataFrame(
             flatList,
             columns=[
