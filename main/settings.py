@@ -337,7 +337,7 @@ TINYMCE_DEFAULT_CONFIG = {
     "width": 1120,
     "cleanup_on_startup": True,
     "custom_undo_redo_levels": 20,
-    "plugins": '''
+    "plugins": """
         anchor autolink charmap code codesample directionality
         fullscreen image insertdatetime link lists media
         nonbreaking pagebreak preview save searchreplace table
@@ -347,28 +347,29 @@ TINYMCE_DEFAULT_CONFIG = {
         bold italic underline superscript subscript fontsizeselect
         | alignleft alignright | aligncenter alignjustify
         | indent outdent | bullist numlist |
-        | link visualchars charmap hr nonbreaking | code preview fullscreen
+        | link visualchars charmap image hr nonbreaking | code preview fullscreen
         """,
+    "paste_data_images": False,
     "force_p_newlines": True,  # TODO: could be False?
     "force_br_newlines": True,  # TODO: could be False?
     "forced_root_block": "",
     "contextmenu": "formats | link",
     "menubar": False,
     "statusbar": False,
-    # https://www.tiny.cloud/docs/configure/content-filtering/#invalid_styles
     "invalid_styles": {"*": "opacity"},  # Global invalid style
-    # 'extended_valid_elements': 'iframe[src|frameborder|style|scrolling|class|width|height|name|align]',
+    # https://www.tiny.cloud/docs/configure/content-filtering/#invalid_styles
+    # "extended_valid_elements": "iframe[src|frameborder|style|scrolling|class|width|height|name|align]",
     # If more formatting possibilities needed (or more rows), choose from these:
-    # 'toolbar1': ''',
+    # "toolbar1": """,
     # fullscreen preview bold italic underline | fontselect,
     # fontsizeselect  | forecolor backcolor | alignleft alignright |
     # aligncenter alignjustify | indent outdent | bullist numlist table |
     # | link image media | codesample |
-    # ''',
-    # 'toolbar2': '''
+    # """,
+    # "toolbar2": """
     # visualblocks visualchars |
     # charmap hr pagebreak nonbreaking anchor |  code |
-    # ''',
+    # """,
 }
 
 # Languages using BiDi (right-to-left) layout
