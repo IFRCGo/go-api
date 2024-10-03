@@ -25,7 +25,7 @@ FDRS_INDICATORS_FIELD_MAP = (
     ("KPI_expenditureLC_CHF", CO.expenditures),
     ("KPI_PeopleVol_Tot", CO.volunteers),
     ("KPI_TrainFA_Tot", CO.trained_in_first_aid),
-    ("KPI_noLocalUnits", CO.branches),
+    ("KPI_noBranches", CO.branches),
     # volunteers
     ("KPI_PeopleVol_M_age_13_17", CO.male_volunteer_age_13_17),
     ("KPI_PeopleVol_M_age_18_29", CO.male_volunteer_age_18_29),
@@ -107,8 +107,9 @@ def prefetch():
     return (
         {
             # KEY <ISO2>-<Indicator_ID>: {year: '', value: ''}
+            # NOTE: We are fetching the latest data for each indicators
             f"{ns_iso_map[ns_data['id']].upper()}-{indicator_data['id']}": (
-                ns_data["data"][-1] if (ns_data["data"] and len(ns_data["data"]) > 0) else None
+                max(ns_data["data"], key=lambda x: x["year"]) if (ns_data["data"] and len(ns_data["data"]) > 0) else None
             )
             for indicator_data in requests.get(FDRS_DATA_API_ENDPOINT).json()["data"]
             for ns_data in indicator_data["data"]
@@ -127,12 +128,12 @@ def load(country, overview, fdrs_data):
         int(item["year"]) for item in fdrs_data.values() if item is not None and item.get("year") is not None
     )
 
+    # NOTE: We are getting the only latest year specific data
     for fdrs_indicator, field in FDRS_INDICATORS_FIELD_MAP:
-        value = fdrs_data.get(f"{country.iso.upper()}-{fdrs_indicator}")
-        setattr(
-            overview,
-            field.field.name,
-            value and value.get("value"),
-        )
+        data = fdrs_data.get(f"{country.iso.upper()}-{fdrs_indicator}")
+        value = None
+        if data and int(data.get("year")) == fdrs_data_fetched_year:
+            value = data.get("value")
+        setattr(overview, field.field.name, value)
     overview.fdrs_data_fetched_year = str(fdrs_data_fetched_year)
     overview.save()
