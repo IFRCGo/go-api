@@ -73,7 +73,7 @@ class IfrcTranslator(BaseTranslator):
         ):
             raise Exception("Translation configuration missing")
         self.domain = settings.IFRC_TRANSLATION_DOMAIN.strip("/")
-        self.url = f"{self.domain}/TranslationV2_API/api/Home/Translate"
+        self.url = f"{self.domain}/api/translate"
         self.headers = {
             "X-API-KEY": settings.IFRC_TRANSLATION_HEADER_API_KEY,
         }
