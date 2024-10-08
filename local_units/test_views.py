@@ -1,7 +1,7 @@
 import datetime
 
-import factory
 from django.contrib.gis.geos import Point
+from factory import django, fuzzy
 
 from api.models import Country, Region
 from deployments.factories.user import UserFactory
@@ -9,21 +9,24 @@ from main.test_case import APITestCase
 
 from .models import (
     Affiliation,
+    BloodService,
     DelegationOffice,
     DelegationOfficeType,
     FacilityType,
     Functionality,
+    GeneralMedicalService,
     LocalUnit,
     LocalUnitLevel,
     LocalUnitType,
     PrimaryHCC,
+    SpecializedMedicalService,
     VisibilityChoices,
 )
 
 
-class LocalUnitFactory(factory.django.DjangoModelFactory):
+class LocalUnitFactory(django.DjangoModelFactory):
     location = Point(12, 38)
-    date_of_data = factory.fuzzy.FuzzyDate(datetime.date(2024, 1, 2))
+    date_of_data = fuzzy.FuzzyDate(datetime.date(2024, 1, 2))
 
     class Meta:
         model = LocalUnit
@@ -188,7 +191,7 @@ class TestLocalUnitsDetailView(APITestCase):
         self.assert_200(response)
 
 
-class DelegationOfficeFactory(factory.django.DjangoModelFactory):
+class DelegationOfficeFactory(django.DjangoModelFactory):
     location = Point(2.2, 3.3)
 
     class Meta:
@@ -335,6 +338,15 @@ class TestLocalUnitCreate(APITestCase):
         functionality = Functionality.objects.create(code=1, name="Code 1")
         health_facility_type = FacilityType.objects.create(code=1, name="Code 1")
         primary_health_care_center = PrimaryHCC.objects.create(code=1, name="Code 1")
+        BloodService.objects.create(id=1, code=1, name="Blood Collection")
+        BloodService.objects.create(id=2, code=2, name="Blood Testing")
+        GeneralMedicalService.objects.create(id=1, code=1, name="Minor Trauma")
+        GeneralMedicalService.objects.create(id=2, code=2, name="Outpatient Services")
+        GeneralMedicalService.objects.create(id=3, code=3, name="Basic Lab Services")
+        GeneralMedicalService.objects.create(id=4, code=4, name="Basic Life Support")
+        GeneralMedicalService.objects.create(id=5, code=5, name="Referral Capacity")
+        SpecializedMedicalService.objects.create(id=1, code=1, name="Anaesthesiology")
+        SpecializedMedicalService.objects.create(id=2, code=2, name="Blood Transfusion")
 
         data = {
             "local_branch_name": "Silele Red Cross Clinic, Sigombeni Red Cross Clinic & Mahwalala Red Cross Clinic",
@@ -396,7 +408,7 @@ class TestLocalUnitCreate(APITestCase):
                 "primary_health_care_center": primary_health_care_center.id,
                 "hospital_type": None,
                 "general_medical_services": [1, 2, 3, 4, 5],
-                "specialized_medical_beyond_primary_level": [4, 10, 22],
+                "specialized_medical_beyond_primary_level": [1, 2],
                 "blood_services": [2],
                 "professional_training_facilities": [],
             },
