@@ -543,7 +543,7 @@ class PerOptionsView(views.APIView):
         return response.Response(
             PerOptionsSerializer(
                 dict(
-                    componentratings=PerComponentRating.objects.all(),
+                    componentratings=PerComponentRating.objects.all().order_by("value"),
                     answers=FormAnswer.objects.all(),
                     overviewassessmenttypes=AssessmentType.objects.all(),
                 )

@@ -101,6 +101,11 @@ class FormComponent(models.Model):
     question_responses = models.ManyToManyField(FormComponentQuestionAndAnswer, verbose_name=_("Question responses"), blank=True)
     is_parent = models.BooleanField(verbose_name=_("Is parent"), null=True, blank=True)
     has_question_group = models.BooleanField(verbose_name=_("Has Question Group"), null=True, blank=True)
+    urban_considerations_guidance = HTMLField(verbose_name=_("Urban Considerations"), blank=True, default="")
+    epi_considerations_guidance = HTMLField(verbose_name=_("EPI Considerations"), blank=True, default="")
+    climate_environmental_considerations_guidance = HTMLField(
+        verbose_name=_("Climate and Environmental Considerations "), blank=True, default=""
+    )
 
     def __str__(self):
         return f"Component {self.component_num} - {self.title}"

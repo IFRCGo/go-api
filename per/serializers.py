@@ -86,7 +86,19 @@ class FormComponentSerializer(NestedCreateMixin, NestedUpdateMixin, ModelSeriali
 
     class Meta:
         model = FormComponent
-        fields = ("id", "title", "component_num", "description", "area", "component_letter", "is_parent", "has_question_group")
+        fields = (
+            "id",
+            "title",
+            "component_num",
+            "description",
+            "area",
+            "component_letter",
+            "is_parent",
+            "has_question_group",
+            "epi_considerations_guidance",
+            "climate_environmental_considerations_guidance",
+            "urban_considerations_guidance",
+        )
 
 
 class FormAnswerSerializer(ModelSerializer):
