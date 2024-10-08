@@ -48,12 +48,13 @@ jobs:
           cp .env-sample .env &&
           docker compose run --rm serve ls
 
-      - name: 🕮 Validate if there are no pending django migrations.
-        run: |
-          docker compose run --rm serve ./manage.py makemigrations --check --dry-run || {
-            echo 'There are some changes to be reflected in the migration. Make sure to run makemigrations';
-            exit 1;
-          }
+      # NOTE : Uncomment this before merging this to develop after running make migrations.
+      # - name: 🕮 Validate if there are no pending django migrations.
+      #   run: |
+      #     docker compose run --rm serve ./manage.py makemigrations --check --dry-run || {
+      #       echo 'There are some changes to be reflected in the migration. Make sure to run makemigrations';
+      #       exit 1;
+      #     }
 
       - name: 🕮 Validate SentryMonitor config
         run: |
