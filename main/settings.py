@@ -421,17 +421,14 @@ AZURE_STORAGE = {
     "CDN_HOST": None,
     "USE_SSL": False,
 }
-if AZURE_STORAGE_ACCOUNT:
-    DEFAULT_FILE_STORAGE = "api.storage.AzureStorage"
+# instead of: if AZURE_STORAGE_ACCOUNT: DEFAULT_FILE_STORAGE = "api.storage.AzureStorage"
+# > https://django-storages.readthedocs.io/en/latest/backends/azure.html
 
-"""
-# FIXME: TODO: Use this instead. https://django-storages.readthedocs.io/en/latest/backends/azure.html
-AZURE_ACCOUNT_NAME = env('AZURE_STORAGE_ACCOUNT')
-AZURE_ACCOUNT_KEY = env('AZURE_STORAGE_KEY')
-AZURE_CONTAINER = 'api'
+AZURE_ACCOUNT_NAME = env("AZURE_STORAGE_ACCOUNT")
+AZURE_ACCOUNT_KEY = env("AZURE_STORAGE_KEY")
+AZURE_CONTAINER = "api"
 if AZURE_STORAGE_ACCOUNT:
-    DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
-"""
+    DEFAULT_FILE_STORAGE = "storages.backends.azure_storage.AzureStorage"
 
 # Email config
 EMAIL_API_ENDPOINT = env("EMAIL_API_ENDPOINT")
