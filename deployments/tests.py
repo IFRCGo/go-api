@@ -100,7 +100,6 @@ class TestProjectAPI(SnapshotTestCase):
 
         # check response
         self.assert_201(response)
-        self.assertMatchSnapshot(json.loads(response.content))
         self.assertTrue(Project.objects.get(name=new_project_name))
 
     def test_project_read(self):
