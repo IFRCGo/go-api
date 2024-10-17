@@ -1,0 +1,35 @@
+# Role and rolebinding to allow the api init container to wait for the migrations job to complete
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ template "ifrcgo-helm.fullname" . }}-watch-resources-role
+  labels:
+    component: api-deployment
+    environment: {{ .Values.environment }}
+    release: {{ .Release.Name }}
+rules:
+- apiGroups: [""]
+  resources: ["services","pods","deployments"]
+  verbs: ["get","watch","list"]
+- apiGroups: ["batch"]
+  resources: ["jobs"]
+  verbs: ["get","watch","list"]
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ template "ifrcgo-helm.fullname" . }}-watch-resources-role-binding
+  labels:
+    component: api-deployment
+    environment: {{ .Values.environment }}
+    release: {{ .Release.Name }}
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ template "ifrcgo-helm.fullname" . }}-watch-resources-role
