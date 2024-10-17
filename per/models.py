@@ -6,6 +6,7 @@ from tinymce.models import HTMLField
 
 from api.models import Appeal, Country
 from deployments.models import SectorTag
+from main.fields import SecureFileField
 
 
 class ProcessPhase(models.IntegerChoices):
@@ -417,7 +418,7 @@ class Overview(models.Model):
 
 
 class PerFile(models.Model):
-    file = models.FileField(
+    file = SecureFileField(
         verbose_name=_("file"),
         upload_to="per/images/",
     )
@@ -733,7 +734,7 @@ class OpsLearning(models.Model):
 
 
 class PerDocumentUpload(models.Model):
-    file = models.FileField(
+    file = SecureFileField(
         verbose_name=_("file"),
         upload_to="per/documents/",
     )

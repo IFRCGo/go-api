@@ -12,6 +12,7 @@ from django.utils.translation import gettext_lazy as _
 from pdf2image import convert_from_bytes
 
 from api.models import Country, DisasterType, District, FieldReport
+from main.fields import SecureFileField
 
 
 @reversion.register()
@@ -536,7 +537,7 @@ class Dref(models.Model):
         verbose_name=_("budget file"),
         related_name="budget_file_dref",
     )
-    budget_file_preview = models.FileField(verbose_name=_("budget file preview"), null=True, blank=True, upload_to="dref/images/")
+    budget_file_preview = SecureFileField(verbose_name=_("budget file preview"), null=True, blank=True, upload_to="dref/images/")
     assessment_report = models.ForeignKey(
         "DrefFile",
         on_delete=models.SET_NULL,
@@ -648,7 +649,7 @@ class Dref(models.Model):
 
 
 class DrefFile(models.Model):
-    file = models.FileField(
+    file = SecureFileField(
         verbose_name=_("file"),
         upload_to="dref/images/",
     )
@@ -750,7 +751,7 @@ class DrefOperationalUpdate(models.Model):
         verbose_name=_("budget file"),
         related_name="budget_file_dref_operational_update",
     )
-    budget_file_preview = models.FileField(
+    budget_file_preview = SecureFileField(
         verbose_name=_("budget file preview"), null=True, blank=True, upload_to="dref-op-update/images/"
     )
     assessment_report = models.ForeignKey(
@@ -1316,7 +1317,7 @@ class DrefFinalReport(models.Model):
         verbose_name=_("financial report"),
         related_name="financial_report_dref_final_report",
     )
-    financial_report_preview = models.FileField(
+    financial_report_preview = SecureFileField(
         verbose_name=_("financial preview"), null=True, blank=True, upload_to="dref/images/"
     )
     num_assisted = models.IntegerField(verbose_name=_("number of assisted"), blank=True, null=True)
