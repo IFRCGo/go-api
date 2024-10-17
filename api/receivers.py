@@ -3,7 +3,13 @@ from datetime import datetime
 
 from django.db import transaction
 from django.db.models import Q
-from django.db.models.signals import post_delete, post_save, pre_delete, pre_save
+from django.db.models.signals import (
+    m2m_changed,
+    post_delete,
+    post_save,
+    pre_delete,
+    pre_save,
+)
 from django.dispatch import receiver
 from django.utils import timezone
 from reversion.models import Version
@@ -276,3 +282,21 @@ def remove_appeal_filter(sender, instance, using, **kwargs):
 
     appealFilter.value = ",".join(lstCodesToSkip)
     appealFilter.save()
+
+
+@receiver(m2m_changed, sender=Event.countries.through)
+def update_event_name(sender, instance, action, **kwargs):
+    """
+    Update the event name when the countries are changed.
+    """
+    if action in ["post_add", "post_remove"]:
+        instance.save()
+
+
+@receiver(m2m_changed, sender=FieldReport.countries.through)
+def update_fieldreport_summary(sender, instance, action, **kwargs):
+    """
+    Update the FieldReport summary when the countries are changed.
+    """
+    if action in ["post_add", "post_remove"]:
+        instance.save()

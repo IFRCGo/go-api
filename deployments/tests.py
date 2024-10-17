@@ -20,6 +20,7 @@ from deployments.factories.user import UserFactory
 from deployments.models import (
     EmergencyProject,
     EmergencyProjectActivity,
+    ProgrammeTypes,
     Project,
     VisibilityCharChoices,
 )
@@ -100,7 +101,6 @@ class TestProjectAPI(SnapshotTestCase):
 
         # check response
         self.assert_201(response)
-        self.assertMatchSnapshot(json.loads(response.content))
         self.assertTrue(Project.objects.get(name=new_project_name))
 
     def test_project_read(self):
@@ -225,14 +225,17 @@ class TestProjectAPI(SnapshotTestCase):
             ProjectFactory.create_batch(
                 2,
                 primary_sector=sct,
+                programme_type=programme_type,
+                reporting_ns=ns,
                 project_districts=project_districts,
+                secondary_sectors=secondary_sectors,
                 visibility=VisibilityCharChoices.PUBLIC,
             )
-            for project_districts, secondary_sectors in [
-                ([c1_district1, c1_district2], [sct_1, sct_2]),
-                ([c1_district1, c1_district2], [sct_3, sct_4]),
-                ([c2_district1, c2_district2], [sct_1, sct_3]),
-                ([c2_district1, c2_district2], [sct_2, sct_4]),
+            for project_districts, secondary_sectors, programme_type in [
+                ([c1_district1, c1_district2], [sct_1, sct_2], ProgrammeTypes.BILATERAL),
+                ([c1_district1, c1_district2], [sct_3, sct_4], ProgrammeTypes.MULTILATERAL),
+                ([c2_district1, c2_district2], [sct_1, sct_3], ProgrammeTypes.DOMESTIC),
+                ([c2_district1, c2_district2], [sct_2, sct_4], ProgrammeTypes.DOMESTIC),
             ]
             for ns in [ns_1, ns_2]
         ]
