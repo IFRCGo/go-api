@@ -113,6 +113,10 @@ env = environ.Env(
     NS_DOCUMENT_API_KEY=(str, None),
     NS_INITIATIVES_API_KEY=(str, None),
     NS_INITIATIVES_API_TOKEN=(str, None),
+    # OpenAi Azure
+    AZURE_OPENAI_ENDPOINT=(str, None),
+    AZURE_OPENAI_KEY=(str, None),
+    AZURE_OPENAI_DEPLOYMENT_NAME=(str, None),
 )
 
 
@@ -660,6 +664,9 @@ CACHES = {
     }
 }
 
+# Redis locking
+REDIS_DEFAULT_LOCK_EXPIRE = 60 * 10  # Lock expires in 10min (in seconds)
+
 if env("CACHE_MIDDLEWARE_SECONDS"):
     CACHE_MIDDLEWARE_SECONDS = env("CACHE_MIDDLEWARE_SECONDS")  # Planned: 600 for staging, 60 from prod
 DISABLE_API_CACHE = env("DISABLE_API_CACHE")
@@ -690,6 +697,10 @@ def decode_base64(env_key, fallback_env_key):
 JWT_PRIVATE_KEY = decode_base64("JWT_PRIVATE_KEY_BASE64_ENCODED", "JWT_PRIVATE_KEY")
 JWT_PUBLIC_KEY = decode_base64("JWT_PUBLIC_KEY_BASE64_ENCODED", "JWT_PUBLIC_KEY")
 JWT_EXPIRE_TIMESTAMP_DAYS = env("JWT_EXPIRE_TIMESTAMP_DAYS")
+
+AZURE_OPENAI_ENDPOINT = env("AZURE_OPENAI_ENDPOINT")
+AZURE_OPENAI_KEY = env("AZURE_OPENAI_KEY")
+AZURE_OPENAI_DEPLOYMENT_NAME = env("AZURE_OPENAI_DEPLOYMENT_NAME")
 
 # Need to load this to overwrite modeltranslation module
 import main.translation  # noqa: F401 E402
