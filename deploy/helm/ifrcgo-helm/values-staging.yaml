@@ -20,7 +20,6 @@ env:
 
 api:
   domain: goadmin-stage.ifrc.org
-  additionalDomain: ""
   replicaCount: 1
   resources:
     requests:

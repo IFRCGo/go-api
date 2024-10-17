@@ -20,7 +20,6 @@ env:
 
 api:
   domain: goadmin.ifrc.org
-  additionalDomain: api.go.ifrc.org
   replicaCount: 2
   resources:
     requests:
