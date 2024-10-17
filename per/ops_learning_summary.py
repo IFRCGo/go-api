@@ -163,7 +163,7 @@ class OpsLearningSummaryTask:
             .first()
         )
         if not sector_instance:
-            logger.error(f"Sector '{sector}' not found.", exc_info=True)
+            logger.info(f"Sector '{sector}' not found.")
             return
         ops_learning_instances = OpsLearning.objects.filter(id__in=used_ops_learnings)
         if len(ops_learning_instances):
@@ -186,7 +186,7 @@ class OpsLearningSummaryTask:
             title__iexact=component,
         ).first()
         if not component_instance:
-            logger.error(f"Component '{component}' not found.", exc_info=True)
+            logger.info(f"Component '{component}' not found.")
             return
         ops_learning_instances = OpsLearning.objects.filter(id__in=used_ops_learnings)
         if len(ops_learning_instances):
@@ -820,15 +820,24 @@ class OpsLearningSummaryTask:
         """Saves the primary response to the database."""
         logger.info("Saving primary response to the database.")
 
-        # List to keep track of fields to update
-        fields_to_update = []
-
         # Mapping between summary keys and model fields
         fields_mapping = {
-            "0": {"title": "insights1_title", "content": "insights1_content", "confidence level": "insights1_confidence_level"},
-            "1": {"title": "insights2_title", "content": "insights2_content", "confidence level": "insights2_confidence_level"},
-            "2": {"title": "insights3_title", "content": "insights3_content", "confidence level": "insights3_confidence_level"},
-            "contradictory reports": "contradictory_reports",
+            "0": {
+                "title": OpsLearningCacheResponse.insights1_title,
+                "content": OpsLearningCacheResponse.insights1_content,
+                "confidence level": OpsLearningCacheResponse.insights1_confidence_level,
+            },
+            "1": {
+                "title": OpsLearningCacheResponse.insights2_title,
+                "content": OpsLearningCacheResponse.insights2_content,
+                "confidence level": OpsLearningCacheResponse.insights2_confidence_level,
+            },
+            "2": {
+                "title": OpsLearningCacheResponse.insights3_title,
+                "content": OpsLearningCacheResponse.insights3_content,
+                "confidence level": OpsLearningCacheResponse.insights3_confidence_level,
+            },
+            "contradictory reports": OpsLearningCacheResponse.contradictory_reports,
         }
         for summary_key, model_fields in fields_mapping.items():
             if summary_key in primary_summary:
@@ -837,14 +846,10 @@ class OpsLearningSummaryTask:
                 if isinstance(model_fields, dict):
                     for summary_field, model_field in model_fields.items():
                         if summary_field in summary_data:
-                            setattr(ops_learning_summary_instance, model_field, summary_data[summary_field].strip())
-                            fields_to_update.append(model_field)
+                            setattr(ops_learning_summary_instance, model_field.field.name, summary_data[summary_field].strip())
                 else:
-                    setattr(ops_learning_summary_instance, model_fields, primary_summary[summary_key])
-                    fields_to_update.append(model_fields)
-
-        if fields_to_update:
-            ops_learning_summary_instance.save(update_fields=fields_to_update)
+                    setattr(ops_learning_summary_instance, model_fields.field.name, primary_summary[summary_key])
+        ops_learning_summary_instance.save()
 
         logger.info("Primary response saved to the database.")
 
@@ -871,15 +876,13 @@ class OpsLearningSummaryTask:
                     component=subtype,
                 )
 
-            elif type == "sector" and len(excerpt_id_list) > 0:
+            if type == "sector" and len(excerpt_id_list) > 0:
                 self.add_used_ops_learnings_sector(
                     instance=ops_learning_summary_instance,
                     content=content,
                     used_ops_learnings=excerpt_id_list,
                     sector=subtype,
                 )
-            else:
-                logger.error(f"Type '{type}' of {len(excerpt_id_list)} on secondary summary.", exc_info=True)
         logger.info("Secondary response saved to the database.")
 
     @classmethod
