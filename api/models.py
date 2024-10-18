@@ -22,6 +22,8 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from tinymce.models import HTMLField
 
+from main.fields import SecureFileField
+
 from .utils import validate_slug_number  # is_user_ifrc,
 
 
@@ -984,7 +986,7 @@ def sitrep_document_path(instance, filename):
 class SituationReport(models.Model):
     created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
     name = models.CharField(verbose_name=_("name"), max_length=100)
-    document = models.FileField(verbose_name=_("document"), null=True, blank=True, upload_to=sitrep_document_path)
+    document = SecureFileField(verbose_name=_("document"), null=True, blank=True, upload_to=sitrep_document_path)
     document_url = models.URLField(verbose_name=_("document url"), blank=True)
 
     event = models.ForeignKey(Event, verbose_name=_("event"), on_delete=models.CASCADE)
@@ -1287,7 +1289,7 @@ class GeneralDocument(models.Model):
     name = models.CharField(verbose_name=_("name"), max_length=100)
     # Don't set `auto_now_add` so we can modify it on save
     created_at = models.DateTimeField(verbose_name=_("created at"), blank=True)
-    document = models.FileField(verbose_name=_("document"), null=True, blank=True, upload_to=general_document_path)
+    document = SecureFileField(verbose_name=_("document"), null=True, blank=True, upload_to=general_document_path)
     document_url = models.URLField(verbose_name=_("document url"), blank=True)
 
     class Meta:

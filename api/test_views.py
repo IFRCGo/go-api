@@ -1,6 +1,8 @@
 import json
+import uuid
 
 from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 import api.models as models
 from api.factories.event import (
@@ -13,7 +15,35 @@ from api.factories.event import (
 from api.factories.field_report import FieldReportFactory
 from api.models import Profile, VisibilityChoices
 from deployments.factories.user import UserFactory
+from dref.models import DrefFile
 from main.test_case import APITestCase, SnapshotTestCase
+
+
+class SecureFileFieldTest(APITestCase):
+    def is_valid_uuid(self, uuid_to_test):
+        try:
+            # Validate if the directory name is a valid UUID (hex)
+            uuid_obj = uuid.UUID(uuid_to_test, version=4)
+        except ValueError:
+            return False
+        return uuid_obj.hex == uuid_to_test
+
+    def test_filefield_uuid_directory_and_filename(self):
+        # Mocking a file upload with SimpleUploadedFile
+        original_filename = "test_file.txt"
+        mock_file = SimpleUploadedFile(original_filename, b"file_content", content_type="text/plain")
+        # Create an instance of MyModel and save it with the mocked file
+        instance = DrefFile.objects.create(file=mock_file)
+        # Check the uploaded file name
+        uploaded_file_name = instance.file.name
+        # Example output: uploads/5f9d54c8b5a34d3e8fdc4e4f43e2f82a/test_file.txt
+
+        # Extract UUID directory part and filename part
+        directory_name, file_name = uploaded_file_name.split("/")[-2:]
+        # Check that the directory name is a valid UUID (hexadecimal)
+        self.assertTrue(self.is_valid_uuid(directory_name))
+        # Check that the file name retains the original name
+        self.assertEqual(file_name, original_filename)
 
 
 class GuestUserPermissionTest(APITestCase):

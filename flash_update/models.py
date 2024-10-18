@@ -1,3 +1,5 @@
+# import os
+# from uuid import uuid4
 import reversion
 from django.conf import settings
 from django.contrib.auth.models import Group
@@ -14,11 +16,12 @@ from api.models import (
     DisasterType,
     District,
 )
+from main.fields import SecureFileField
 
 
 @reversion.register()
 class FlashGraphicMap(models.Model):
-    file = models.FileField(verbose_name=_("file"), upload_to="flash_update/images/")
+    file = SecureFileField(verbose_name=_("file"), upload_to="flash_update/images")
     caption = models.CharField(max_length=225, blank=True, null=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -116,7 +119,7 @@ class FlashUpdate(models.Model):
         verbose_name=_("share with"),
     )
     references = models.ManyToManyField(FlashReferences, blank=True, verbose_name=_("references"))
-    extracted_file = models.FileField(verbose_name=_("extracted file"), upload_to="flash_update/pdf/", blank=True, null=True)
+    extracted_file = SecureFileField(verbose_name=_("extracted file"), upload_to="flash_update/pdf/", blank=True, null=True)
     extracted_at = models.DateTimeField(verbose_name=_("extracted at"), blank=True, null=True)
 
     class Meta:
