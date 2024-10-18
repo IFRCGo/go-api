@@ -3,6 +3,7 @@ import datetime
 import factory
 from factory import fuzzy
 
+from deployments.factories.project import SectorTagFactory
 from per.models import (
     AssessmentType,
     Form,
@@ -12,6 +13,10 @@ from per.models import (
     FormData,
     FormPrioritization,
     FormQuestion,
+    OpsLearning,
+    OpsLearningCacheResponse,
+    OpsLearningComponentCacheResponse,
+    OpsLearningSectorCacheResponse,
     Overview,
     PerWorkPlan,
     PerWorkPlanComponent,
@@ -59,6 +64,7 @@ class FormAreaFactory(factory.django.DjangoModelFactory):
 
 class FormComponentFactory(factory.django.DjangoModelFactory):
     area = factory.SubFactory(FormAreaFactory)
+    title = factory.Faker("sentence", nb_words=5)
 
     class Meta:
         model = FormComponent
@@ -97,3 +103,41 @@ class FormPrioritizationFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = FormPrioritization
+
+
+class OpsLearningFactory(factory.django.DjangoModelFactory):
+    learning = fuzzy.FuzzyText(length=50)
+
+    class Meta:
+        model = OpsLearning
+
+
+class OpsLearningCacheResponseFactory(factory.django.DjangoModelFactory):
+    used_filters_hash = fuzzy.FuzzyText(length=20)
+    insights1_title = factory.Faker("sentence", nb_words=5)
+    insights1_content = factory.Faker("sentence", nb_words=20)
+    insights2_title = factory.Faker("sentence", nb_words=5)
+    insights2_content = factory.Faker("sentence", nb_words=25)
+    insights3_title = factory.Faker("sentence", nb_words=10)
+    insights3_content = factory.Faker("sentence", nb_words=30)
+
+    class Meta:
+        model = OpsLearningCacheResponse
+
+
+class OpsLearningSectorCacheResponseFactory(factory.django.DjangoModelFactory):
+    filter_response = factory.SubFactory(OpsLearningCacheResponseFactory)
+    content = factory.Faker("sentence", nb_words=30)
+    sector = factory.SubFactory(SectorTagFactory)
+
+    class Meta:
+        model = OpsLearningSectorCacheResponse
+
+
+class OpsLearningComponentCacheResponseFactory(factory.django.DjangoModelFactory):
+    filter_response = factory.SubFactory(OpsLearningCacheResponseFactory)
+    content = factory.Faker("sentence", nb_words=30)
+    component = factory.SubFactory(FormComponentFactory)
+
+    class Meta:
+        model = OpsLearningComponentCacheResponse

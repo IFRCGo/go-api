@@ -13,6 +13,10 @@ from .models import (
     FormPrioritizationComponent,
     FormQuestion,
     FormQuestionGroup,
+    OpsLearning,
+    OpsLearningCacheResponse,
+    OpsLearningComponentCacheResponse,
+    OpsLearningSectorCacheResponse,
     Overview,
     PerAssessment,
     PerComponentRating,
@@ -104,3 +108,33 @@ class PerWorkPlanComponentTo(TranslationOptions):
 @register(CustomPerWorkPlanComponent)
 class CustomPerWorkPlanComponentTO(TranslationOptions):
     fields = ("actions",)
+
+
+@register(OpsLearning)
+class OpsLearningTO(TranslationOptions):
+    fields = (
+        "learning",
+        "learning_validated",
+    )
+
+
+@register(OpsLearningCacheResponse)
+class OpsLearningCacheResponseTO(TranslationOptions):
+    fields = (
+        "insights1_title",
+        "insights2_title",
+        "insights3_title",
+        "insights1_content",
+        "insights2_content",
+        "insights3_content",
+    )
+
+
+@register(OpsLearningSectorCacheResponse)
+class OpsLearningSectorCacheResponseTO(TranslationOptions):
+    fields = ("content",)
+
+
+@register(OpsLearningComponentCacheResponse)
+class OpsLearningComponentCacheResponseTO(TranslationOptions):
+    fields = ("content",)
