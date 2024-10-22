@@ -150,8 +150,6 @@ cronjobs:
     schedule: '0 0 * * 0'
   - command: 'ingest_icrc'
     schedule: '0 3 * * 0'
-  - command: 'tag_ops_learnings'
-    schedule: '4 4 * * 4'
 
 elasticsearch:
   enabled: true
