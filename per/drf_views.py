@@ -2,6 +2,7 @@ from datetime import datetime
 
 import pytz
 from django.conf import settings
+from django.db import transaction
 from django.db.models import Prefetch, Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -21,6 +22,7 @@ from api.models import Country
 from deployments.models import SectorTag
 from main.permissions import DenyGuestUserMutationPermission, DenyGuestUserPermission
 from main.utils import SpreadSheetContentNegotiation
+from per.cache import OpslearningSummaryCacheHelper
 from per.filter_set import (
     PerDocumentFilter,
     PerOverviewFilter,
@@ -33,6 +35,7 @@ from per.permissions import (
     PerGeneralPermission,
     PerPermission,
 )
+from per.task import generate_summary
 from per.utils import filter_per_queryset_by_user_access
 
 from .admin_classes import RegionRestrictedAdmin
@@ -52,6 +55,9 @@ from .models import (
     FormQuestionGroup,
     NiceDocument,
     OpsLearning,
+    OpsLearningCacheResponse,
+    OpsLearningComponentCacheResponse,
+    OpsLearningSectorCacheResponse,
     OrganizationTypes,
     Overview,
     PerAssessment,
@@ -73,6 +79,7 @@ from .serializers import (
     OpsLearningCSVSerializer,
     OpsLearningInSerializer,
     OpsLearningSerializer,
+    OpsLearningSummarySerializer,
     PerAssessmentSerializer,
     PerDocumentUploadSerializer,
     PerFileInputSerializer,
@@ -675,6 +682,20 @@ class OpsLearningFilter(filters.FilterSet):
         widget=CSVWidget,
         queryset=FormComponent.objects.all(),
     )
+    insight_id = filters.NumberFilter(
+        label="Base Insight id for used extracts",
+        method="get_cache_response",
+    )
+    insight_sector_id = filters.NumberFilter(label="Sector insight id for used extracts", method="get_cache_response_sector")
+    insight_component_id = filters.NumberFilter(
+        label="Component insight id for used extracts",
+        method="get_cache_response_component",
+    )
+    # NOTE: overriding the fields for the typing issue
+    sector_validated = filters.NumberFilter(field_name="sector_validated", lookup_expr="exact")
+    per_component_validated = filters.NumberFilter(field_name="per_component_validated", lookup_expr="exact")
+    # NOTE: this field is used in summary generation
+    search_extracts = filters.CharFilter(method="get_filter_search_extracts")
 
     class Meta:
         model = OpsLearning
@@ -686,8 +707,6 @@ class OpsLearningFilter(filters.FilterSet):
             "learning": ("exact", "icontains"),
             "learning_validated": ("exact", "icontains"),
             "organization_validated": ("exact",),
-            "sector_validated": ("exact",),
-            "per_component_validated": ("exact",),
             "appeal_code": ("exact", "in"),
             "appeal_code__code": ("exact", "icontains", "in"),
             "appeal_code__num_beneficiaries": ("exact", "gt", "gte", "lt", "lte"),
@@ -700,6 +719,31 @@ class OpsLearningFilter(filters.FilterSet):
             "appeal_code__country__iso3": ("exact", "in"),
             "appeal_code__region": ("exact", "in"),
         }
+
+    def get_cache_response(self, queryset, name, value):
+        if value and (ops_learning_cache_response := OpsLearningCacheResponse.objects.filter(id=value).first()):
+            return queryset.filter(id__in=ops_learning_cache_response.used_ops_learning.all())
+        return queryset
+
+    def get_cache_response_sector(self, queryset, name, value):
+        if value and (ops_learning_sector_cache_response := OpsLearningSectorCacheResponse.objects.filter(id=value).first()):
+            return queryset.filter(id__in=ops_learning_sector_cache_response.used_ops_learning.all())
+        return queryset
+
+    def get_cache_response_component(self, queryset, name, value):
+        if value and (
+            ops_learning_component_cache_response := OpsLearningComponentCacheResponse.objects.filter(id=value).first()
+        ):
+            return queryset.filter(id__in=ops_learning_component_cache_response.used_ops_learning.all())
+        return queryset
+
+    def get_filter_search_extracts(self, queryset, name, value):
+        return queryset.filter(
+            Q(learning__icontains=value)
+            | Q(learning_validated__icontains=value)
+            | Q(appeal_code__name__icontains=value)
+            | Q(appeal_code__code__icontains=value)
+        )
 
 
 class OpsLearningViewset(viewsets.ModelViewSet):
@@ -733,7 +777,13 @@ class OpsLearningViewset(viewsets.ModelViewSet):
             return qs.select_related(
                 "appeal_code",
             ).prefetch_related(
-                "sector", "organization", "per_component", "sector_validated", "organization_validated", "per_component_validated"
+                "sector",
+                "organization",
+                "per_component",
+                "sector_validated",
+                "organization_validated",
+                "per_component_validated",
+                "appeal_code__event__countries_for_preview",
             )
         return (
             qs.filter(is_validated=True)
@@ -741,7 +791,13 @@ class OpsLearningViewset(viewsets.ModelViewSet):
                 "appeal_code",
             )
             .prefetch_related(
-                "sector", "organization", "per_component", "sector_validated", "organization_validated", "per_component_validated"
+                "sector",
+                "organization",
+                "per_component",
+                "sector_validated",
+                "organization_validated",
+                "per_component_validated",
+                "appeal_code__event__countries_for_preview",
             )
         )
 
@@ -806,6 +862,28 @@ class OpsLearningViewset(viewsets.ModelViewSet):
         context["bom"] = True
 
         return context
+
+    @extend_schema(
+        request=None,
+        filters=True,
+        responses=OpsLearningSummarySerializer,
+    )
+    @action(
+        detail=False,
+        methods=["GET"],
+        permission_classes=[DenyGuestUserMutationPermission, OpsLearningPermission],
+        url_path="summary",
+    )
+    def summary(self, request):
+        """
+        Get the Ops Learning Summary based on the filters
+        """
+        ops_learning_summary_instance, filter_data = OpslearningSummaryCacheHelper.get_or_create(request, [self.filterset_class])
+        if ops_learning_summary_instance.status == OpsLearningCacheResponse.Status.SUCCESS:
+            return response.Response(OpsLearningSummarySerializer(ops_learning_summary_instance).data)
+
+        transaction.on_commit(lambda: generate_summary.delay(ops_learning_summary_instance.id, filter_data))
+        return response.Response(OpsLearningSummarySerializer(ops_learning_summary_instance).data)
 
 
 class PerDocumentUploadViewSet(viewsets.ModelViewSet):

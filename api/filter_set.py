@@ -23,6 +23,11 @@ from api.models import (
     Snippet,
 )
 from api.view_filters import ListFilter
+from per.models import (
+    OpsLearningCacheResponse,
+    OpsLearningComponentCacheResponse,
+    OpsLearningSectorCacheResponse,
+)
 
 
 class UserFilterSet(filters.FilterSet):
@@ -286,6 +291,16 @@ class AppealDocumentFilter(filters.FilterSet):
         widget=filters.widgets.CSVWidget,
         queryset=Appeal.objects.all(),
     )
+    # NOTE: Filters are used to get documents of used ops learning
+    insight_id = filters.NumberFilter(
+        label="Base Insight id for source document",
+        method="get_cache_base_document",
+    )
+    insight_sector_id = filters.NumberFilter(label="Sector insight id for source document", method="get_cache_sector_document")
+    insight_component_id = filters.NumberFilter(
+        label="Component insight id for source document",
+        method="get_cache_component_document",
+    )
 
     class Meta:
         model = AppealDocument
@@ -297,6 +312,27 @@ class AppealDocumentFilter(filters.FilterSet):
     def get_appeal_filter(self, qs, name, value):
         if value:
             return qs.filter(appeal__in=value).distinct()
+        return qs
+
+    def get_cache_base_document(self, qs, name, value):
+        if value and (ops_learning_cache_response := OpsLearningCacheResponse.objects.filter(id=value).first()):
+            return qs.filter(id__in=ops_learning_cache_response.used_ops_learning.values_list("appeal_document_id", flat=True))
+        return qs
+
+    def get_cache_sector_document(self, qs, name, value):
+        if value and (ops_learning_sector_cache_response := OpsLearningSectorCacheResponse.objects.filter(id=value).first()):
+            return qs.filter(
+                id__in=ops_learning_sector_cache_response.used_ops_learning.values_list("appeal_document_id", flat=True)
+            )
+        return qs
+
+    def get_cache_component_document(self, qs, name, value):
+        if value and (
+            ops_learning_component_cache_response := OpsLearningComponentCacheResponse.objects.filter(id=value).first()
+        ):
+            return qs.filter(
+                id__in=ops_learning_component_cache_response.used_ops_learning.values_list("appeal_document_id", flat=True)
+            )
         return qs
 
 
