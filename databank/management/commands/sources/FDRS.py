@@ -1,4 +1,5 @@
 import logging
+from typing import List, Optional, Tuple
 
 import requests
 from django.conf import settings
@@ -85,7 +86,7 @@ FDRS_STAFF_DISAGGREGATION_INDICATORS_FIELD_MAP = (
     ("KPI_PStaff_Tot_age_18_29", CO.fdrs_staff_age_18_29),
 )
 FDRS_INDICATORS = (
-    [indicator for indicator in FDRS_INDICATORS_FIELD_MAP.keys()]
+    list(FDRS_INDICATORS_FIELD_MAP.keys())
     + [indicator for indicator, _ in FDRS_VOLUNTEERS_DISAGGREGATION_INDICATORS_FIELD_MAP]
     + [indicator for indicator, _ in FDRS_STAFF_DISAGGREGATION_INDICATORS_FIELD_MAP]
 )
@@ -100,63 +101,117 @@ FDRS_DATA_API_ENDPOINT = f"https://data-api.ifrc.org/api/data?apiKey={settings.F
 )
 
 
-@catch_error("Error occured while fetching from FDRS API.")
+@catch_error("Error occurred while fetching from FDRS API.")
 def prefetch():
-    fdrs_entities = requests.get(FDRS_NS_API_ENDPOINT)
-    if fdrs_entities.status_code != 200:
-        return
-    fdrs_entities.raise_for_status()
-    fdrs_entities = fdrs_entities.json()
+    response = requests.get(FDRS_NS_API_ENDPOINT)
+    response.raise_for_status()
+    fdrs_entities = response.json()
 
-    ns_iso_map = {
-        # ISO3 are missing for some in FDRS & IFRC-GO only have ISO2 for countries
-        ns["KPI_DON_code"]: ns["iso_2"]
-        for ns in fdrs_entities
-    }
+    ns_iso_map = {ns["KPI_DON_code"]: ns["iso_2"] for ns in fdrs_entities}
 
-    return (
-        {
-            # KEY <ISO2>-<Indicator_ID>: {year: '', value: ''}
-            # NOTE: We are fetching the latest data for each indicators
-            f"{ns_iso_map[ns_data['id']].upper()}-{indicator_data['id']}": (
-                max(ns_data["data"], key=lambda x: x["year"]) if (ns_data["data"] and len(ns_data["data"]) > 0) else None
-            )
-            for indicator_data in requests.get(FDRS_DATA_API_ENDPOINT).json()["data"]
-            for ns_data in indicator_data["data"]
-        },
-        len(ns_iso_map),
-        FDRS_DATA_API_ENDPOINT,
+    fdrs_data_response = requests.get(FDRS_DATA_API_ENDPOINT)
+    fdrs_data_response.raise_for_status()
+    fdrs_data = fdrs_data_response.json()["data"]
+
+    # Getting the latest available data for the indicators
+    processed_fdrs_data = {}
+
+    for indictor_data in fdrs_data:
+        indicator_id = indictor_data["id"]
+
+        for ns_data in indictor_data["data"]:
+            ns_id = ns_data["id"]
+            iso_code = ns_iso_map.get(ns_id)
+
+            if not iso_code:
+                continue
+
+            latest_data_with_value = None
+            for data in ns_data["data"]:
+                if data.get("value"):
+                    if latest_data_with_value is None or int(data["year"]) > int(latest_data_with_value["year"]):
+                        latest_data_with_value = data
+
+            if latest_data_with_value:
+                processed_fdrs_data[f"{iso_code}-{indicator_id}"] = latest_data_with_value
+
+    return (processed_fdrs_data, len(ns_iso_map), FDRS_DATA_API_ENDPOINT)
+
+
+def set_latest_year_data(
+    disaggregation_map: List[Tuple[str, CO]],
+    data_year_field: CO,
+    latest_year: int,
+    fdrs_data: dict,
+    country_iso: str,
+    overview: CO,
+) -> None:
+    """
+    Set only the latest year data for volunteers or staff for the provided year
+    """
+    for indicator, field in disaggregation_map:
+        data = fdrs_data.get(f"{country_iso}-{indicator}")
+        if data and int(data.get("year")) == latest_year:
+            setattr(overview, field.field.name, data.get("value"))
+
+    # Set the year field for the data
+    setattr(overview, data_year_field.field.name, latest_year)
+
+
+def get_latest_year_from_indicators(disaggregation_map: List[Tuple[str, CO]], fdrs_data: dict, country_iso: str) -> Optional[int]:
+    """
+    Get the latest year across all indicators where the value field exists
+    """
+    return max(
+        (
+            int(data["year"])
+            for indicator, _ in disaggregation_map
+            if (data := fdrs_data.get(f"{country_iso}-{indicator}")) and data.get("value")
+        ),
+        default=None,
     )
 
 
-@catch_error()
+@catch_error("Error occurred while loading FDRS data.")
 def load(country, overview, fdrs_data):
-    if country.iso is None or fdrs_data is None:
+    if not country.iso or not fdrs_data:
         return
 
+    country_iso = country.iso.upper()
+
+    # Country Key Indicators
     for indicator, (field, year_field) in FDRS_INDICATORS_FIELD_MAP.items():
-        data = fdrs_data.get(f"{country.iso.upper()}-{indicator}")
+        data = fdrs_data.get(f"{country_iso}-{indicator}")
         if data:
             setattr(overview, field.field.name, data.get("value"))
             setattr(overview, year_field.field.name, data.get("year"))
 
-    def set_disaggregation_data(disaggregation_map, data_year_field):
-        """
-        Set disaggregation data for volunteers or staff for the latest year
-        """
-        latest_year = None
-        for indicator, field in disaggregation_map:
-            data = fdrs_data.get(f"{country.iso.upper()}-{indicator}")
-            if data:
-                year = data.get("year")
-                if latest_year is None or (year and int(year) > latest_year):
-                    latest_year = int(year)
-                setattr(overview, field.field.name, data.get("value"))
-        setattr(overview, data_year_field.field.name, latest_year)
+    # Volunteer disaggregation data
+    latest_year = get_latest_year_from_indicators(
+        disaggregation_map=FDRS_VOLUNTEERS_DISAGGREGATION_INDICATORS_FIELD_MAP, fdrs_data=fdrs_data, country_iso=country_iso
+    )
+    if latest_year:
+        set_latest_year_data(
+            disaggregation_map=FDRS_VOLUNTEERS_DISAGGREGATION_INDICATORS_FIELD_MAP,
+            data_year_field=CO.fdrs_volunteer_data_year,
+            latest_year=latest_year,
+            fdrs_data=fdrs_data,
+            country_iso=country_iso,
+            overview=overview,
+        )
 
-    # Volunteer disaggregation
-    set_disaggregation_data(FDRS_VOLUNTEERS_DISAGGREGATION_INDICATORS_FIELD_MAP, CO.fdrs_volunteer_data_year)
-    # Staff disaggregation
-    set_disaggregation_data(FDRS_STAFF_DISAGGREGATION_INDICATORS_FIELD_MAP, CO.fdrs_staff_data_year)
+    # Staff disaggregation data
+    latest_year = get_latest_year_from_indicators(
+        disaggregation_map=FDRS_STAFF_DISAGGREGATION_INDICATORS_FIELD_MAP, fdrs_data=fdrs_data, country_iso=country_iso
+    )
+    if latest_year:
+        set_latest_year_data(
+            disaggregation_map=FDRS_STAFF_DISAGGREGATION_INDICATORS_FIELD_MAP,
+            data_year_field=CO.fdrs_staff_data_year,
+            latest_year=latest_year,
+            fdrs_data=fdrs_data,
+            country_iso=country_iso,
+            overview=overview,
+        )
 
     overview.save()

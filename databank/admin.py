@@ -99,10 +99,17 @@ class CountryOverviewAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     "fdrs_income",
+                    "fdrs_income_data_year",
                     "fdrs_expenditures",
+                    "fdrs_expenditures_data_year",
                     "fdrs_volunteer_total",
+                    "fdrs_volunteer_data_year",
+                    "fdrs_staff_total",
+                    "fdrs_staff_data_year",
                     "fdrs_trained_in_first_aid",
+                    "fdrs_trained_in_first_aid_data_year",
                     "fdrs_branches",
+                    "fdrs_branches_data_year",
                 ),
             },
         ),
