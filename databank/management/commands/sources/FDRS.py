@@ -10,76 +10,86 @@ from .utils import catch_error
 logger = logging.getLogger(__name__)
 
 
-FDRS_INDICATORS_FIELD_MAP = (
+FDRS_INDICATORS_FIELD_MAP = {
     # INFORM API Indicator, Databank Field
     # Country Key Indicators
-    ("Population", CO.population),
-    ("UrbPop", CO.urban_population),
-    ("GDP", CO.gdp),
-    ("GNIPC", CO.gnipc),
-    ("Poverty", CO.poverty),
-    ("LifeExp", CO.life_expectancy),
-    ("Literacy", CO.literacy),
+    "Population": (CO.fdrs_population, CO.fdrs_population_data_year),
+    "UrbPop": (CO.fdrs_urban_population, CO.fdrs_urban_population_data_year),
+    "GDP": (CO.fdrs_gdp, CO.fdrs_gdp_data_year),
+    "GNIPC": (CO.fdrs_gnipc, CO.fdrs_gnipc_data_year),
+    "Poverty": (CO.fdrs_poverty, CO.fdrs_poverty_data_year),
+    "LifeExp": (CO.fdrs_life_expectancy, CO.fdrs_life_expectancy_data_year),
+    "Literacy": (CO.fdrs_literacy, CO.fdrs_literacy_data_year),
     # National Society Indicators (Using Script: FDRS API)
-    ("KPI_IncomeLC_CHF", CO.income),
-    ("KPI_expenditureLC_CHF", CO.expenditures),
-    ("KPI_PeopleVol_Tot", CO.volunteers),
-    ("KPI_TrainFA_Tot", CO.trained_in_first_aid),
-    ("KPI_noBranches", CO.branches),
+    "KPI_IncomeLC_CHF": (CO.fdrs_income, CO.fdrs_income_data_year),
+    "KPI_expenditureLC_CHF": (CO.fdrs_expenditures, CO.fdrs_expenditures_data_year),
+    "KPI_TrainFA_Tot": (CO.fdrs_trained_in_first_aid, CO.fdrs_trained_in_first_aid_data_year),
+    "KPI_noBranches": (CO.fdrs_branches, CO.fdrs_branches_data_year),
+}
+
+FDRS_VOLUNTEERS_DISAGGREGATION_INDICATORS_FIELD_MAP = (
     # volunteers
-    ("KPI_PeopleVol_M_age_13_17", CO.male_volunteer_age_13_17),
-    ("KPI_PeopleVol_M_age_18_29", CO.male_volunteer_age_18_29),
-    ("KPI_PeopleVol_M_age_18_49", CO.male_volunteer_age_18_49),
-    ("KPI_PeopleVol_M_age_30_39", CO.male_volunteer_age_30_39),
-    ("KPI_PeopleVol_M_age_40_49", CO.male_volunteer_age_40_49),
-    ("KPI_PeopleVol_M_age_50_59", CO.male_volunteer_age_50_59),
-    ("KPI_PeopleVol_M_age_6_12", CO.male_volunteer_age_6_12),
-    ("KPI_PeopleVol_M_age_60_69", CO.male_volunteer_age_60_69),
-    ("KPI_PeopleVol_M_age_70_79", CO.male_volunteer_age_70_79),
-    ("KPI_PeopleVol_M_age_80", CO.male_volunteer_age_80),
-    ("KPI_PeopleVol_M_age_Other", CO.male_volunteer_age_other),
-    ("KPI_PeopleVol_Tot_M", CO.male_volunteer_total),
-    ("KPI_PeopleVol_F_age_13_17", CO.female_volunteer_age_13_17),
-    ("KPI_PeopleVol_F_age_18_29", CO.female_volunteer_age_18_29),
-    ("KPI_PeopleVol_F_age_18_49", CO.female_volunteer_age_18_49),
-    ("KPI_PeopleVol_F_age_30_39", CO.female_volunteer_age_30_39),
-    ("KPI_PeopleVol_F_age_40_49", CO.female_volunteer_age_40_49),
-    ("KPI_PeopleVol_F_age_50_59", CO.female_volunteer_age_50_59),
-    ("KPI_PeopleVol_F_age_6_12", CO.female_volunteer_age_6_12),
-    ("KPI_PeopleVol_F_age_60_69", CO.female_volunteer_age_60_69),
-    ("KPI_PeopleVol_F_age_70_79", CO.female_volunteer_age_70_79),
-    ("KPI_PeopleVol_F_age_80", CO.female_volunteer_age_80),
-    ("KPI_PeopleVol_F_age_Other", CO.female_volunteer_age_other),
-    ("KPI_PeopleVol_Tot_F", CO.female_volunteer_total),
-    ("KPI_PeopleVol_Tot", CO.volunteer_total),
-    ("KPI_PeopleVol_Tot_age_6_12", CO.volunteer_age_6_12),
-    ("KPI_PeopleVol_Tot_age_13_17", CO.volunteer_age_13_17),
-    ("KPI_PeopleVol_Tot_age_18_29", CO.volunteer_age_18_29),
-    # Staff
-    ("KPI_PStaff_M_age_18_29", CO.male_staff_age_18_29),
-    ("KPI_PStaff_M_age_18_49", CO.male_staff_age_18_49),
-    ("KPI_PStaff_M_age_30_39", CO.male_staff_age_30_39),
-    ("KPI_PStaff_M_age_40_49", CO.male_staff_age_40_49),
-    ("KPI_PStaff_M_age_50_59", CO.male_staff_age_50_59),
-    ("KPI_PStaff_M_age_60_69", CO.male_staff_age_60_69),
-    ("KPI_PStaff_M_age_70_79", CO.male_staff_age_70_79),
-    ("KPI_PStaff_M_age_80", CO.male_staff_age_80),
-    ("KPI_PStaff_M_age_Other", CO.male_staff_age_other),
-    ("KPI_PStaff_Tot_M", CO.male_staff_total),
-    ("KPI_PStaff_F_age_18_29", CO.female_staff_age_18_29),
-    ("KPI_PStaff_F_age_18_49", CO.female_staff_age_18_49),
-    ("KPI_PStaff_F_age_30_39", CO.female_staff_age_30_39),
-    ("KPI_PStaff_F_age_40_49", CO.female_staff_age_40_49),
-    ("KPI_PStaff_F_age_50_59", CO.female_staff_age_50_59),
-    ("KPI_PStaff_F_age_60_69", CO.female_staff_age_60_69),
-    ("KPI_PStaff_F_age_70_79", CO.female_staff_age_70_79),
-    ("KPI_PStaff_F_age_80", CO.female_staff_age_80),
-    ("KPI_PStaff_F_age_Other", CO.female_staff_age_other),
-    ("KPI_PStaff_Tot_F", CO.female_staff_total),
-    ("KPI_PStaff_Tot", CO.staff_total),
-    ("KPI_PStaff_Tot_age_18_29", CO.staff_age_18_29),
+    ("KPI_PeopleVol_M_age_13_17", CO.fdrs_male_volunteer_age_13_17),
+    ("KPI_PeopleVol_M_age_18_29", CO.fdrs_male_volunteer_age_18_29),
+    ("KPI_PeopleVol_M_age_18_49", CO.fdrs_male_volunteer_age_18_49),
+    ("KPI_PeopleVol_M_age_30_39", CO.fdrs_male_volunteer_age_30_39),
+    ("KPI_PeopleVol_M_age_40_49", CO.fdrs_male_volunteer_age_40_49),
+    ("KPI_PeopleVol_M_age_50_59", CO.fdrs_male_volunteer_age_50_59),
+    ("KPI_PeopleVol_M_age_6_12", CO.fdrs_male_volunteer_age_6_12),
+    ("KPI_PeopleVol_M_age_60_69", CO.fdrs_male_volunteer_age_60_69),
+    ("KPI_PeopleVol_M_age_70_79", CO.fdrs_male_volunteer_age_70_79),
+    ("KPI_PeopleVol_M_age_80", CO.fdrs_male_volunteer_age_80),
+    ("KPI_PeopleVol_M_age_Other", CO.fdrs_male_volunteer_age_other),
+    ("KPI_PeopleVol_Tot_M", CO.fdrs_male_volunteer_total),
+    ("KPI_PeopleVol_F_age_13_17", CO.fdrs_female_volunteer_age_13_17),
+    ("KPI_PeopleVol_F_age_18_29", CO.fdrs_female_volunteer_age_18_29),
+    ("KPI_PeopleVol_F_age_18_49", CO.fdrs_female_volunteer_age_18_49),
+    ("KPI_PeopleVol_F_age_30_39", CO.fdrs_female_volunteer_age_30_39),
+    ("KPI_PeopleVol_F_age_40_49", CO.fdrs_female_volunteer_age_40_49),
+    ("KPI_PeopleVol_F_age_50_59", CO.fdrs_female_volunteer_age_50_59),
+    ("KPI_PeopleVol_F_age_6_12", CO.fdrs_female_volunteer_age_6_12),
+    ("KPI_PeopleVol_F_age_60_69", CO.fdrs_female_volunteer_age_60_69),
+    ("KPI_PeopleVol_F_age_70_79", CO.fdrs_female_volunteer_age_70_79),
+    ("KPI_PeopleVol_F_age_80", CO.fdrs_female_volunteer_age_80),
+    ("KPI_PeopleVol_F_age_Other", CO.fdrs_female_volunteer_age_other),
+    ("KPI_PeopleVol_Tot_F", CO.fdrs_female_volunteer_total),
+    ("KPI_PeopleVol_Tot", CO.fdrs_volunteer_total),
+    ("KPI_PeopleVol_Tot_age_6_12", CO.fdrs_volunteer_age_6_12),
+    ("KPI_PeopleVol_Tot_age_13_17", CO.fdrs_volunteer_age_13_17),
+    ("KPI_PeopleVol_Tot_age_18_29", CO.fdrs_volunteer_age_18_29),
 )
-FDRS_INDICATORS = [indicator for indicator, _ in FDRS_INDICATORS_FIELD_MAP]
+
+FDRS_STAFF_DISAGGREGATION_INDICATORS_FIELD_MAP = (
+    # Staff
+    ("KPI_PStaff_M_age_18_29", CO.fdrs_male_staff_age_18_29),
+    ("KPI_PStaff_M_age_18_49", CO.fdrs_male_staff_age_18_49),
+    ("KPI_PStaff_M_age_30_39", CO.fdrs_male_staff_age_30_39),
+    ("KPI_PStaff_M_age_40_49", CO.fdrs_male_staff_age_40_49),
+    ("KPI_PStaff_M_age_50_59", CO.fdrs_male_staff_age_50_59),
+    ("KPI_PStaff_M_age_60_69", CO.fdrs_male_staff_age_60_69),
+    ("KPI_PStaff_M_age_70_79", CO.fdrs_male_staff_age_70_79),
+    ("KPI_PStaff_M_age_80", CO.fdrs_male_staff_age_80),
+    ("KPI_PStaff_M_age_Other", CO.fdrs_male_staff_age_other),
+    ("KPI_PStaff_Tot_M", CO.fdrs_male_staff_total),
+    ("KPI_PStaff_F_age_18_29", CO.fdrs_female_staff_age_18_29),
+    ("KPI_PStaff_F_age_18_49", CO.fdrs_female_staff_age_18_49),
+    ("KPI_PStaff_F_age_30_39", CO.fdrs_female_staff_age_30_39),
+    ("KPI_PStaff_F_age_40_49", CO.fdrs_female_staff_age_40_49),
+    ("KPI_PStaff_F_age_50_59", CO.fdrs_female_staff_age_50_59),
+    ("KPI_PStaff_F_age_60_69", CO.fdrs_female_staff_age_60_69),
+    ("KPI_PStaff_F_age_70_79", CO.fdrs_female_staff_age_70_79),
+    ("KPI_PStaff_F_age_80", CO.fdrs_female_staff_age_80),
+    ("KPI_PStaff_F_age_Other", CO.fdrs_female_staff_age_other),
+    ("KPI_PStaff_Tot_F", CO.fdrs_female_staff_total),
+    ("KPI_PStaff_Tot", CO.fdrs_staff_total),
+    ("KPI_PStaff_Tot_age_18_29", CO.fdrs_staff_age_18_29),
+)
+FDRS_INDICATORS = (
+    [indicator for indicator in FDRS_INDICATORS_FIELD_MAP.keys()]
+    + [indicator for indicator, _ in FDRS_VOLUNTEERS_DISAGGREGATION_INDICATORS_FIELD_MAP]
+    + [indicator for indicator, _ in FDRS_STAFF_DISAGGREGATION_INDICATORS_FIELD_MAP]
+)
+
 
 # To fetch NS ID
 FDRS_NS_API_ENDPOINT = f"https://data-api.ifrc.org/api/entities/ns?apiKey={settings.FDRS_APIKEY}"
@@ -124,16 +134,29 @@ def load(country, overview, fdrs_data):
     if country.iso is None or fdrs_data is None:
         return
 
-    fdrs_data_fetched_year = max(
-        int(item["year"]) for item in fdrs_data.values() if item is not None and item.get("year") is not None
-    )
+    for indicator, (field, year_field) in FDRS_INDICATORS_FIELD_MAP.items():
+        data = fdrs_data.get(f"{country.iso.upper()}-{indicator}")
+        if data:
+            setattr(overview, field.field.name, data.get("value"))
+            setattr(overview, year_field.field.name, data.get("year"))
 
-    # NOTE: We are getting the only latest year specific data
-    for fdrs_indicator, field in FDRS_INDICATORS_FIELD_MAP:
-        data = fdrs_data.get(f"{country.iso.upper()}-{fdrs_indicator}")
-        value = None
-        if data and int(data.get("year")) == fdrs_data_fetched_year:
-            value = data.get("value")
-        setattr(overview, field.field.name, value)
-    overview.fdrs_data_fetched_year = str(fdrs_data_fetched_year)
+    def set_disaggregation_data(disaggregation_map, data_year_field):
+        """
+        Set disaggregation data for volunteers or staff for the latest year
+        """
+        latest_year = None
+        for indicator, field in disaggregation_map:
+            data = fdrs_data.get(f"{country.iso.upper()}-{indicator}")
+            if data:
+                year = data.get("year")
+                if latest_year is None or (year and int(year) > latest_year):
+                    latest_year = int(year)
+                setattr(overview, field.field.name, data.get("value"))
+        setattr(overview, data_year_field.field.name, latest_year)
+
+    # Volunteer disaggregation
+    set_disaggregation_data(FDRS_VOLUNTEERS_DISAGGREGATION_INDICATORS_FIELD_MAP, CO.fdrs_volunteer_data_year)
+    # Staff disaggregation
+    set_disaggregation_data(FDRS_STAFF_DISAGGREGATION_INDICATORS_FIELD_MAP, CO.fdrs_staff_data_year)
+
     overview.save()

@@ -9,21 +9,11 @@ from api.models import Country, CronJob, CronJobStatus
 from databank.models import CountryOverview
 from main.sentry import SentryMonitor
 
-from .sources import FDRS, FTS_HPC, INFORM, RELIEFWEB, START_NETWORK, WB
+from .sources import FDRS
 
 logger = logging.getLogger(__name__)
 
-SOURCES = [
-    (s, s.__name__.split(".")[-1])
-    for s in (
-        FDRS,
-        FTS_HPC,
-        INFORM,
-        RELIEFWEB,
-        START_NETWORK,
-        WB,
-    )
-]
+SOURCES = [(s, s.__name__.split(".")[-1]) for s in (FDRS,)]
 
 
 class Command(BaseCommand):
