@@ -776,7 +776,7 @@ class SituationReportTypeViewset(viewsets.ReadOnlyModelViewSet):
 
 
 class SituationReportViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ReadOnlyModelViewSet):
-    queryset = SituationReport.objects.select_related("type").order_by("created_at")
+    queryset = SituationReport.objects.select_related("type").order_by("-created_at")
     authentication_classes = (TokenAuthentication,)
     serializer_class = SituationReportSerializer
     ordering_fields = (
