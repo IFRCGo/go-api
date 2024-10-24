@@ -32,6 +32,13 @@ RUN pip install --upgrade --no-cache-dir pip poetry \
 RUN playwright install \
     && playwright install-deps
 
+# To avoid some SyntaxWarnings ("is" with a literal), still needed on 20241024:
+ENV AZUREROOT=/usr/local/lib/python3.11/site-packages/azure/storage/
+RUN perl -pi -e 's/ is 0 / == 0 /'      ${AZUREROOT}blob/_upload_chunking.py
+RUN perl -pi -e 's/ is not -1 / != 1 /' ${AZUREROOT}blob/baseblobservice.py
+RUN perl -pi -e "s/ is '' / == '' /"    ${AZUREROOT}common/_connection.py
+RUN perl -pi -e "s/ is '' / == '' /"    ${AZUREROOT}_connection.py
+
 COPY main/nginx.conf /etc/nginx/sites-available/
 RUN \
 	ln -s /etc/nginx/sites-available/nginx.conf /etc/nginx/sites-enabled; \
