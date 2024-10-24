@@ -66,18 +66,13 @@ class IfrcTranslator(BaseTranslator):
     params: dict
 
     def __init__(self):
-        if (
-            not settings.IFRC_TRANSLATION_DOMAIN
-            or not settings.IFRC_TRANSLATION_GET_API_KEY
-            or not settings.IFRC_TRANSLATION_HEADER_API_KEY
-        ):
+        if not settings.IFRC_TRANSLATION_DOMAIN or not settings.IFRC_TRANSLATION_HEADER_API_KEY:
             raise Exception("Translation configuration missing")
         self.domain = settings.IFRC_TRANSLATION_DOMAIN.strip("/")
         self.url = f"{self.domain}/api/translate"
         self.headers = {
             "X-API-KEY": settings.IFRC_TRANSLATION_HEADER_API_KEY,
         }
-        self.params = dict(apiKey=settings.IFRC_TRANSLATION_GET_API_KEY)
 
     @classmethod
     def is_text_html(cls, text):
@@ -99,7 +94,6 @@ class IfrcTranslator(BaseTranslator):
         response = requests.post(
             self.url,
             headers=self.headers,
-            params=self.params,
             json=payload,
         )
         return response.json()[0]["translations"][0]["text"]

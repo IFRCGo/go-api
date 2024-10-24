@@ -42,7 +42,6 @@ x-server: &base_server_setup
     # IFRC dynamic translation
     AUTO_TRANSLATION_TRANSLATOR: ${AUTO_TRANSLATION_TRANSLATOR:-}
     IFRC_TRANSLATION_DOMAIN: ${IFRC_TRANSLATION_DOMAIN:-}
-    IFRC_TRANSLATION_GET_API_KEY: ${IFRC_TRANSLATION_GET_API_KEY:-}
     IFRC_TRANSLATION_HEADER_API_KEY: ${IFRC_TRANSLATION_HEADER_API_KEY:-}
   extra_hosts:
       - "host.docker.internal:host-gateway"

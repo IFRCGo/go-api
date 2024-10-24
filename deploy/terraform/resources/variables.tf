@@ -226,11 +226,6 @@ variable "IFRC_TRANSLATION_DOMAIN" {
   default = ""
 }
 
-variable "IFRC_TRANSLATION_GET_API_KEY" {
-  type = string
-  default = ""
-}
-
 variable "IFRC_TRANSLATION_HEADER_API_KEY" {
   type = string
   default = ""

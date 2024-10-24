@@ -159,7 +159,6 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
         --set env.GO_DBPASS=${TF_VAR_GO_DBPASS} \
         --set env.APPEALS_USER=${TF_VAR_APPEALS_USER} \
         --set env.APPEALS_PASS=${TF_VAR_APPEALS_PASS} \
-        --set env.IFRC_TRANSLATION_GET_API_KEY=${TF_VAR_IFRC_TRANSLATION_GET_API_KEY} \
         --set env.IFRC_TRANSLATION_HEADER_API_KEY=${TF_VAR_IFRC_TRANSLATION_HEADER_API_KEY} \
         --set secrets.API_TLS_CRT=${TF_VAR_API_TLS_CRT} \
         --set secrets.API_TLS_KEY=${TF_VAR_API_TLS_KEY} \
