@@ -25,47 +25,47 @@ class CountryIndicatorData(typing.TypedDict):
 WORLD_BANK_INDICATOR_MAP = {
     "SP.POP.TOTL": (
         CountryOverview.world_bank_population,
-        CountryOverview.calculated_world_bank_population_year,
+        CountryOverview.world_bank_population_year,
     ),
     "SP.POP.65UP.TO": (
         CountryOverview.world_bank_population_above_age_65,
-        CountryOverview.calculated_world_bank_population_above_age_65_year,
+        CountryOverview.world_bank_population_above_age_65_year,
     ),
     "SP.POP.0014.TO": (
         CountryOverview.world_bank_population_age_14,
-        CountryOverview.calculated_world_bank_population_age_14_year,
+        CountryOverview.world_bank_population_age_14_year,
     ),
     "SP.URB.TOTL.IN.ZS": (
         CountryOverview.world_bank_urban_population_percentage,
-        CountryOverview.calculated_world_bank_urban_population_percentage_year,
+        CountryOverview.world_bank_urban_population_percentage_year,
     ),
     "NY.GDP.MKTP.CD": (
         CountryOverview.world_bank_gdp,
-        CountryOverview.calculated_world_bank_gdp_year,
+        CountryOverview.world_bank_gdp_year,
     ),
     "NY.GNP.MKTP.CD": (
         CountryOverview.world_bank_gni,
-        CountryOverview.calculated_world_bank_gni_year,
+        CountryOverview.world_bank_gni_year,
     ),
     "IQ.CPA.GNDR.XQ": (
         CountryOverview.world_bank_gender_equality_index,
-        CountryOverview.calculated_world_bank_gender_equality_index_year,
+        CountryOverview.world_bank_gender_equality_index_year,
     ),
     "SP.DYN.LE00.IN": (
         CountryOverview.world_bank_life_expectancy,
-        CountryOverview.calculated_world_bank_life_expectancy_year,
+        CountryOverview.world_bank_life_expectancy_year,
     ),
     "SE.ADT.LITR.ZS": (
         CountryOverview.world_bank_literacy_rate,
-        CountryOverview.calculated_world_bank_literacy_rate_year,
+        CountryOverview.world_bank_literacy_rate_year,
     ),
     "SI.POV.NAHC": (
         CountryOverview.world_bank_poverty_rate,
-        CountryOverview.calculated_world_bank_poverty_rate_year,
+        CountryOverview.world_bank_poverty_rate_year,
     ),
     "NY.GNP.PCAP.CD": (
         CountryOverview.world_bank_gni_capita,
-        CountryOverview.calculated_world_bank_gni_capita_year,
+        CountryOverview.world_bank_gni_capita_year,
     ),
 }
 
