@@ -238,7 +238,6 @@ class TranslatorMockTest(unittest.TestCase):
         for settings_params in [
             dict(),
             dict(
-                IFRC_TRANSLATION_GET_API_KEY="dummy-api-param-key",
                 IFRC_TRANSLATION_HEADER_API_KEY="dummy-api-header-key",
             ),
             dict(IFRC_TRANSLATION_HEADER_API_KEY="dummy-api-header-key"),
@@ -254,7 +253,6 @@ class TranslatorMockTest(unittest.TestCase):
         with override_settings(
             AUTO_TRANSLATION_TRANSLATOR="lang.translation.IfrcTranslator",
             IFRC_TRANSLATION_DOMAIN="http://example.org",
-            IFRC_TRANSLATION_GET_API_KEY="dummy-api-param-key",
             IFRC_TRANSLATION_HEADER_API_KEY="dummy-api-header-key",
         ):
             # with settings.TESTING True

@@ -42,7 +42,6 @@ x-server: &base_server_setup
     # IFRC dynamic translation
     AUTO_TRANSLATION_TRANSLATOR: ${AUTO_TRANSLATION_TRANSLATOR:-}
     IFRC_TRANSLATION_DOMAIN: ${IFRC_TRANSLATION_DOMAIN:-}
-    IFRC_TRANSLATION_GET_API_KEY: ${IFRC_TRANSLATION_GET_API_KEY:-}
     IFRC_TRANSLATION_HEADER_API_KEY: ${IFRC_TRANSLATION_HEADER_API_KEY:-}
   extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -58,13 +57,13 @@ x-server: &base_server_setup
 
 services:
   db:
-    image: postgis/postgis:12-3.4-alpine
+    image: postgis/postgis:15-3.4-alpine
     environment:
       POSTGRES_PASSWORD: test
       POSTGRES_USER: test
       POSTGRES_DB: test
     volumes:
-      - './.db/pg-12:/var/lib/postgresql/data'
+      - './.db/pg-15:/var/lib/postgresql/data'
     extra_hosts:
       - "host.docker.internal:host-gateway"
 

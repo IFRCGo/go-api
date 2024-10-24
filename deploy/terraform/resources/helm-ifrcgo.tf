@@ -177,11 +177,6 @@ resource "helm_release" "ifrcgo" {
   }
 
   set {
-    name = "env.IFRC_TRANSLATION_GET_API_KEY"
-    value = var.IFRC_TRANSLATION_GET_API_KEY
-  }
-
-  set {
     name = "env.IFRC_TRANSLATION_HEADER_API_KEY"
     value = var.IFRC_TRANSLATION_HEADER_API_KEY
   }
