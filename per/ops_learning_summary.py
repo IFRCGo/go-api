@@ -256,6 +256,7 @@ class OpsLearningSummaryTask:
                 "region_name",
                 "appeal_name",
                 "appeal_year",
+                "dtype_name",
             )
         )
         ops_learning_df = ops_learning_df.rename(
@@ -436,7 +437,7 @@ class OpsLearningSummaryTask:
             return None
 
         def _contextualize_learnings(df):
-            """Adds appeal year and event name as a contextualization of the leannings."""
+            """Adds appeal year and event name as a contextualization of the learnings."""
             for index, row in df.iterrows():
                 df.at[index, "learning"] = (
                     f"{row['excerpts_id']}. In {row['appeal_year']} in {row['appeal_name']}: {row['learning']}"
@@ -737,9 +738,15 @@ class OpsLearningSummaryTask:
             Validates the format of the summary and modifies it if necessary.
             """
 
-            def _validate_text_is_dictionary(text):
-                formatted_text = ast.literal_eval(text)
-                return isinstance(formatted_text, dict)
+            def _validate_text_is_dictionary(text) -> bool:
+                """
+                Try to parse the text as a dictionary and check if it is a valid dictionary
+                """
+                try:
+                    formatted_text = ast.literal_eval(text)
+                    return isinstance(formatted_text, dict)
+                except (SyntaxError, ValueError):
+                    return False
 
             def _modify_format(summary) -> str:
                 try:
@@ -752,8 +759,8 @@ class OpsLearningSummaryTask:
                     logger.info("Modification realized to response")
                     return formatted_summary
 
-                except Exception as e:
-                    logger.error(f"Modification failed: {e}", exc_info=True)
+                # NOTE: If the modification fails, it returns empty and it retries to generate the summary again
+                except Exception:
                     return "{}"
 
             formatted_summary = {}

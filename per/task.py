@@ -68,7 +68,7 @@ def generate_ops_learning_summary(ops_learning_summary_id: int, filter_data: dic
         OpsLearningSummaryTask.change_ops_learning_status(
             instance=ops_learning_summary_instance, status=OpsLearningCacheResponse.Status.NO_EXTRACT_AVAILABLE
         )
-        logger.error("No extracts found", exc_info=True)
+        logger.info("No extracts found")
         return False
 
 
