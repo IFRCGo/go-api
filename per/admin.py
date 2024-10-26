@@ -193,19 +193,6 @@ class OpsLearningAdmin(GotoNextModelAdmin):
 
     def get_fields(self, request, obj=None):
         if obj and obj.is_validated:
-            if (
-                obj.learning_validated is None
-                and obj.type_validated == models.LearningType.LESSON_LEARNED.value
-                and obj.organization_validated.count() == 0
-                and obj.sector_validated.count() == 0
-                and obj.per_component_validated.count() == 0
-            ):
-
-                obj.learning_validated = obj.learning
-                obj.type_validated = obj.type
-                obj.organization_validated.add(*[x[0] for x in obj.organization.values_list()])
-                obj.sector_validated.add(*[x[0] for x in obj.sector.values_list()])
-                obj.per_component_validated.add(*[x[0] for x in obj.per_component.values_list()])
             return (
                 "learning_validated",
                 "appeal_code",
@@ -227,6 +214,20 @@ class OpsLearningAdmin(GotoNextModelAdmin):
                 "is_validated",
             )
         return ("learning", "appeal_code", "appeal_document_id", "type", "organization", "sector", "per_component")
+
+    def save_model(self, request, obj, form, change):
+        if change:
+            orig_obj = models.OpsLearning.objects.get(pk=obj.pk)
+            if obj and obj.is_validated and obj.is_validated != orig_obj.is_validated:
+                # Validation happened just now:
+                print("Moving data to validated fields for OpsLearning id: %d" % obj.pk)
+                obj.learning_validated = obj.learning
+                obj.type_validated = obj.type
+                obj.organization_validated.add(*[x[0] for x in obj.organization.values_list()])
+                obj.sector_validated.add(*[x[0] for x in obj.sector.values_list()])
+                obj.per_component_validated.add(*[x[0] for x in obj.per_component.values_list()])
+
+        super().save_model(request, obj, form, change)
 
     def export_selected_records(self, request, queryset):
         """
