@@ -599,7 +599,35 @@ class RegionContactInline(admin.TabularInline):
     model = models.RegionContact
 
 
+class IsDeprecatedFilter(admin.SimpleListFilter):
+    title = "is deprecated"
+    parameter_name = "is_deprecated"
+
+    def lookups(self, request, model_admin):
+
+        return (
+            (False, "No"),
+            (True, "Yes"),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(is_deprecated=self.value())
+        return queryset
+
+
+class CountryIsDeprecatedFilter1(IsDeprecatedFilter):
+    title = "Country deprecated"
+    parameter_name = "admin1__country__is_deprecated"
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(country__is_deprecated=self.value())
+        return queryset
+
+
 class DistrictAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAdmin):
+
     country_in = "country__pk__in"
     region_in = "country__region__in"
     search_fields = (
@@ -607,7 +635,7 @@ class DistrictAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedA
         "country__name",
     )
     list_display = ("__str__", "code")
-    list_filter = ("is_deprecated", "country")
+    list_filter = (IsDeprecatedFilter, CountryIsDeprecatedFilter1, "country")
     modifiable = True
 
 
@@ -667,8 +695,29 @@ class RegionAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAdm
     modifiable = True
 
 
+class Admin1IsDeprecatedFilter(IsDeprecatedFilter):
+    title = "Admin1 deprecated"
+    parameter_name = "admin1__is_deprecated"
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(admin1__is_deprecated=self.value())
+        return queryset
+
+
+class CountryIsDeprecatedFilter2(IsDeprecatedFilter):
+    title = "Country deprecated"
+    parameter_name = "admin1__country__is_deprecated"
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(admin1__country__is_deprecated=self.value())
+        return queryset
+
+
 class Admin2Admin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAdmin):
     search_fields = ("name", "admin1__country__name")
+    list_filter = (IsDeprecatedFilter, Admin1IsDeprecatedFilter, CountryIsDeprecatedFilter2)
     modifiable = True
 
 

@@ -717,8 +717,8 @@ class OpsLearning(models.Model):
             or user.groups.filter(name="OpsLearning Admin").exists()
         )
 
+    # Is this really needed? The admin::save_model should be enough. FIXME
     def save(self, *args, **kwargs):
-
         if self.is_validated and self.id:
             if (
                 self.learning_validated is None
