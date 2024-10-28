@@ -1,3 +1,5 @@
+{{- if .Values.elasticsearch.enabled }}
+
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -14,3 +16,5 @@ spec:
       storage: {{ .Values.elasticsearch.storageSize }}
   storageClassName: managed-csi
   volumeName:  {{ template "ifrcgo-helm.fullname" . }}-elasticsearch-pv
+
+{{- end }}

@@ -29,6 +29,7 @@ env:
   HPC_CREDENTIAL: ''
   APPLICATION_INSIGHTS_INSTRUMENTATION_KEY: ''
   ELASTIC_SEARCH_HOST: ''
+  ELASTIC_SEARCH_INDEX: 'new_index'
   GO_FTPHOST: ''
   GO_FTPUSER: ''
   GO_FTPPASS: ''
@@ -70,6 +71,8 @@ secrets:
 
 api:
   domain: "go-staging.ifrc.org"
+  tls:
+    enabled: true
   additionalDomain: ""
   enabled: true
   replicaCount: 1
