@@ -134,6 +134,7 @@ class OpsLearningSummaryTask:
         "5. Conclude and make your case"
     )
 
+    @staticmethod
     def count_tokens(string, encoding_name):
         """Returns the number of tokens in a text string."""
         encoding = tiktoken.get_encoding(encoding_name)
@@ -201,7 +202,7 @@ class OpsLearningSummaryTask:
                 ops_learning_component.used_ops_learning.add(*ops_learning_instances)
 
     @classmethod
-    def fetch_ops_learnings(self, filter_data):
+    def fetch_ops_learnings(cls, filter_data):
         """Fetches the OPS learnings from the database."""
         ops_learning_qs = (
             OpsLearning.objects.filter(is_validated=True)
@@ -269,7 +270,7 @@ class OpsLearningSummaryTask:
         return ops_learning_df
 
     @classmethod
-    def _generate_regional_prioritization_list(self, df: pd.DataFrame):
+    def _generate_regional_prioritization_list(cls, df: pd.DataFrame):
         """Generates a list of regional prioritizations from the given data."""
         df_exploded = df.explode("components")
         regional_df = df_exploded.groupby(["region", "components"]).size().reset_index(name="count")
@@ -278,7 +279,7 @@ class OpsLearningSummaryTask:
         return regional_list
 
     @classmethod
-    def _generate_global_prioritization_list(self, regional_df: pd.DataFrame):
+    def _generate_global_prioritization_list(cls, regional_df: pd.DataFrame):
         """Generates a global prioritization list from regional data."""
         global_df = regional_df.explode("components").groupby("components").size().reset_index(name="count")
         global_components = global_df[global_df["count"] > 2]["components"].tolist()
@@ -287,7 +288,7 @@ class OpsLearningSummaryTask:
 
     @classmethod
     def _generate_country_prioritization_list(
-        self, regional_df: pd.DataFrame, global_components: list, prioritization_df: pd.DataFrame, country_df: pd.DataFrame
+        cls, regional_df: pd.DataFrame, global_components: list, prioritization_df: pd.DataFrame, country_df: pd.DataFrame
     ):
         """Generates a country-level prioritization list."""
         regional_dict = dict(zip(regional_df["region"], regional_df["components"]))
@@ -305,7 +306,7 @@ class OpsLearningSummaryTask:
         return final_df
 
     @classmethod
-    def generate_priotization_list(self):
+    def generate_priotization_list(cls):
         logger.info("Generating prioritization list.")
         exclusion_list = [
             "IFRC Africa",
@@ -359,15 +360,15 @@ class OpsLearningSummaryTask:
         per_priotization_df = per_priotization_df[["region", "country", "components"]]
 
         # Generate the prioritization list that are in dataframes
-        regional_list = self._generate_regional_prioritization_list(per_priotization_df)
-        global_list = self._generate_global_prioritization_list(regional_list)
-        country_list = self._generate_country_prioritization_list(regional_list, global_list, per_priotization_df, country_df)
+        regional_list = cls._generate_regional_prioritization_list(per_priotization_df)
+        global_list = cls._generate_global_prioritization_list(regional_list)
+        country_list = cls._generate_country_prioritization_list(regional_list, global_list, per_priotization_df, country_df)
         logger.info("Prioritization list generated.")
         return regional_list, global_list, country_list
 
     @classmethod
     def prioritize(
-        self,
+        cls,
         df: pd.DataFrame,
         components_countries: dict,
         components_regions: dict,
@@ -412,7 +413,7 @@ class OpsLearningSummaryTask:
 
     @classmethod
     def prioritize_components(
-        self,
+        cls,
         ops_learning_df: pd.DataFrame,
         regional_list,
         global_list,
@@ -456,9 +457,9 @@ class OpsLearningSummaryTask:
         # Contectualize the learnings
         ops_learning_df = _contextualize_learnings(ops_learning_df)
 
-        if _need_component_prioritization(ops_learning_df, self.MIN_DIF_COMPONENTS, self.MIN_DIF_EXCERPTS):
+        if _need_component_prioritization(ops_learning_df, cls.MIN_DIF_COMPONENTS, cls.MIN_DIF_EXCERPTS):
             type_prioritization = _identify_type_prioritization(ops_learning_df)
-            prioritized_learnings = self.prioritize(
+            prioritized_learnings = cls.prioritize(
                 ops_learning_df, components_countries, components_regions, global_list, type_prioritization
             )
         else:
@@ -467,8 +468,8 @@ class OpsLearningSummaryTask:
         return prioritized_learnings
 
     @classmethod
-    def slice_dataframe(self, df, limit=2000, encoding_name="cl100k_base"):
-        df.loc[:, "count_temp"] = [self.count_tokens(x, encoding_name) for x in df["learning"]]
+    def slice_dataframe(cls, df, limit=2000, encoding_name="cl100k_base"):
+        df.loc[:, "count_temp"] = [cls.count_tokens(x, encoding_name) for x in df["learning"]]
         df.loc[:, "cumsum"] = df["count_temp"].cumsum()
 
         slice_index = None
@@ -484,7 +485,7 @@ class OpsLearningSummaryTask:
         return df_sliced
 
     @classmethod
-    def primary_prioritize_excerpts(self, df: pd.DataFrame):
+    def primary_prioritize_excerpts(cls, df: pd.DataFrame):
         """Prioritize the most recent excerpts within the token limit for primary insights."""
         logger.info("Prioritizing primary excerpts within token limit.")
 
@@ -494,12 +495,12 @@ class OpsLearningSummaryTask:
         )
 
         # Slice the Primary DataFrame
-        sliced_primary_learning_df = self.slice_dataframe(primary_learning_df, self.PROMPT_DATA_LENGTH_LIMIT, self.ENCODING_NAME)
+        sliced_primary_learning_df = cls.slice_dataframe(primary_learning_df, cls.PROMPT_DATA_LENGTH_LIMIT, cls.ENCODING_NAME)
         logger.info("Primary excerpts prioritized within token limit.")
         return sliced_primary_learning_df
 
     @classmethod
-    def seconday_prioritize_excerpts(self, df: pd.DataFrame):
+    def seconday_prioritize_excerpts(cls, df: pd.DataFrame):
         """Prioritize the most recent excerpts within the token limit for secondary insights."""
         logger.info("Prioritizing secondary excerpts within token limit.")
 
@@ -518,12 +519,12 @@ class OpsLearningSummaryTask:
         )
 
         # Slice secondary DataFrame
-        sliced_secondary_learning_df = self.slice_dataframe(result, self.PROMPT_DATA_LENGTH_LIMIT, self.ENCODING_NAME)
+        sliced_secondary_learning_df = cls.slice_dataframe(result, cls.PROMPT_DATA_LENGTH_LIMIT, cls.ENCODING_NAME)
         logger.info("Excerpts prioritized within token limit.")
         return sliced_secondary_learning_df
 
     @classmethod
-    def _build_intro_section(self):
+    def _build_intro_section(cls):
         """Builds the introductory section of the prompt."""
         return (
             "I will provide you with a set of instructions, data, and formatting requests in three sections."
@@ -532,7 +533,7 @@ class OpsLearningSummaryTask:
         )
 
     @classmethod
-    def _build_instruction_section(self, request_filter: dict, df: pd.DataFrame, instruction: str):
+    def _build_instruction_section(cls, request_filter: dict, df: pd.DataFrame, instruction: str):
         """Builds the instruction section of the prompt based on the request filter and DataFrame."""
         instructions = ["INSTRUCTIONS\n========================\nSummarize essential insights from the DATA"]
 
@@ -568,7 +569,7 @@ class OpsLearningSummaryTask:
 
     @classmethod
     def format_primary_prompt(
-        self,
+        cls,
         ops_learning_summary_instance: OpsLearningCacheResponse,
         primary_learning_df: pd.DataFrame,
         filter_data: dict,
@@ -577,9 +578,9 @@ class OpsLearningSummaryTask:
         logger.info("Formatting primary prompt.")
 
         # Primary learnings intro section
-        prompt_intro = self._build_intro_section()
-        primary_prompt_instruction = self._build_instruction_section(
-            filter_data, primary_learning_df, self.primary_instruction_prompt
+        prompt_intro = cls._build_intro_section()
+        primary_prompt_instruction = cls._build_instruction_section(
+            filter_data, primary_learning_df, cls.primary_instruction_prompt
         )
 
         # Primary learnings section
@@ -588,19 +589,19 @@ class OpsLearningSummaryTask:
         primary_learning_data = primary_learning_df["excerpts_id"].dropna().tolist()
 
         # Adding the used extracts in primary insights
-        self.add_used_ops_learnings(
+        cls.add_used_ops_learnings(
             ops_learning_summary_instance,
             used_ops_learnings=primary_learning_data,
         )
 
         # format the prompts
-        primary_learning_prompt = "".join([prompt_intro, primary_prompt_instruction, primary_learnings_data, self.primary_prompt])
+        primary_learning_prompt = "".join([prompt_intro, primary_prompt_instruction, primary_learnings_data, cls.primary_prompt])
         logger.info("Primary Prompt formatted.")
         return primary_learning_prompt
 
     @classmethod
     def format_secondary_prompt(
-        self,
+        cls,
         secondary_learning_df: pd.DataFrame,
         filter_data: dict,
     ):
@@ -630,7 +631,7 @@ class OpsLearningSummaryTask:
 
         def process_learnings_sector(sector, df, max_length_per_section):
             df = df[df["sector"] == sector].dropna()
-            df_sliced = self.slice_dataframe(df, max_length_per_section, self.ENCODING_NAME)
+            df_sliced = cls.slice_dataframe(df, max_length_per_section, cls.ENCODING_NAME)
 
             if df_sliced["learning"].empty:
                 return ""
@@ -646,7 +647,7 @@ class OpsLearningSummaryTask:
 
         def process_learnings_component(component, df, max_length_per_section):
             df = df[df["component"] == component].dropna()
-            df_sliced = self.slice_dataframe(df, max_length_per_section, self.ENCODING_NAME)
+            df_sliced = cls.slice_dataframe(df, max_length_per_section, cls.ENCODING_NAME)
 
             if df_sliced["learning"].empty:
                 return ""
@@ -664,10 +665,10 @@ class OpsLearningSummaryTask:
             # Secondary learnings section
             sectors = get_main_sectors(secondary_df)
             components = get_main_components(secondary_df)
-            max_length_per_section = self.PROMPT_DATA_LENGTH_LIMIT
+            max_length_per_section = cls.PROMPT_DATA_LENGTH_LIMIT
 
             if (len(sectors) + len(components)) > 0:
-                max_length_per_section = self.PROMPT_DATA_LENGTH_LIMIT / (len(components) + len(sectors))
+                max_length_per_section = cls.PROMPT_DATA_LENGTH_LIMIT / (len(components) + len(sectors))
 
             learnings_sectors = (
                 "\n----------------\n\n"
@@ -686,21 +687,21 @@ class OpsLearningSummaryTask:
             secondary_learnings_data = learnings_sectors + learnings_components
             return secondary_learnings_data
 
-        prompt_intro = self._build_intro_section()
-        secondary_prompt_instruction = self._build_instruction_section(
-            filter_data, secondary_learning_df, self.secondary_instruction_prompt
+        prompt_intro = cls._build_intro_section()
+        secondary_prompt_instruction = cls._build_instruction_section(
+            filter_data, secondary_learning_df, cls.secondary_instruction_prompt
         )
         secondary_learnings_data = _build_data_section(secondary_learning_df)
 
         # format the prompts
         secondary_learning_prompt = "".join(
-            [prompt_intro, secondary_prompt_instruction, secondary_learnings_data, self.secondary_prompt]
+            [prompt_intro, secondary_prompt_instruction, secondary_learnings_data, cls.secondary_prompt]
         )
         logger.info("Secondary Prompt formatted.")
         return secondary_learning_prompt
 
     @classmethod
-    def generate_summary(self, prompt, type: OpsLearningPromptResponseCache.PromptType) -> dict:
+    def generate_summary(cls, prompt, type: OpsLearningPromptResponseCache.PromptType) -> dict:
         """Generates summaries using the provided system message and prompt."""
         logger.info(f"Generating summaries for {type.name} prompt.")
 
@@ -708,7 +709,7 @@ class OpsLearningSummaryTask:
             """Validates the length of the prompt."""
             message_content = [msg["content"] for msg in messages]
             text = " ".join(message_content)
-            count = self.count_tokens(text, self.ENCODING_NAME)
+            count = cls.count_tokens(text, cls.ENCODING_NAME)
             logger.info(f"{type.name} Token count: {count}")
             return count <= prompt_length_limit
 
@@ -724,7 +725,7 @@ class OpsLearningSummaryTask:
                 },
             ]
 
-            if not _validate_length_prompt(messages, self.PROMPT_LENGTH_LIMIT, type):
+            if not _validate_length_prompt(messages, cls.PROMPT_LENGTH_LIMIT, type):
                 logger.warning("The length of the prompt might be too long.")
                 return "{}"
 
@@ -779,7 +780,7 @@ class OpsLearningSummaryTask:
 
             # NOTE: Generating the summary if summary is empty
             while retires < MAX_RETRIES:
-                self.generate_summary(prompt, type)
+                cls.generate_summary(prompt, type)
                 retires += 1
                 logger.info(f"Retrying.... Attempt {retires}/{MAX_RETRIES}")
 
@@ -798,7 +799,7 @@ class OpsLearningSummaryTask:
 
             return summary
 
-        summary = _summarize(prompt, type, self.system_message)
+        summary = _summarize(prompt, type, cls.system_message)
         formatted_summary = _validate_format(summary)
         processed_summary = _modify_summary(formatted_summary)
         logger.info(f"Summaries generated for {type.name}")
@@ -820,7 +821,7 @@ class OpsLearningSummaryTask:
 
     @classmethod
     def primary_response_save_to_db(
-        self,
+        cls,
         ops_learning_summary_instance: OpsLearningCacheResponse,
         primary_summary: dict,
     ):
@@ -862,7 +863,7 @@ class OpsLearningSummaryTask:
 
     @classmethod
     def secondary_response_save_to_db(
-        self,
+        cls,
         ops_learning_summary_instance: OpsLearningCacheResponse,
         secondary_summary: dict,
     ):
@@ -876,7 +877,7 @@ class OpsLearningSummaryTask:
             excerpt_id_list = list(set(int(id.strip()) for id in excerpt_ids.split(",") if excerpt_ids != ""))
 
             if type == "component" and len(excerpt_id_list) > 0:
-                self.add_used_ops_learnings_component(
+                cls.add_used_ops_learnings_component(
                     instance=ops_learning_summary_instance,
                     content=content,
                     used_ops_learnings=excerpt_id_list,
@@ -884,7 +885,7 @@ class OpsLearningSummaryTask:
                 )
 
             if type == "sector" and len(excerpt_id_list) > 0:
-                self.add_used_ops_learnings_sector(
+                cls.add_used_ops_learnings_sector(
                     instance=ops_learning_summary_instance,
                     content=content,
                     used_ops_learnings=excerpt_id_list,
@@ -894,7 +895,7 @@ class OpsLearningSummaryTask:
 
     @classmethod
     def get_or_create_primary_summary(
-        self,
+        cls,
         ops_learning_summary_instance: OpsLearningCacheResponse,
         primary_learning_prompt: str,
     ):
@@ -905,21 +906,21 @@ class OpsLearningSummaryTask:
         primary_prompt_hash = OpslearningSummaryCacheHelper.generate_hash(primary_learning_prompt)
 
         # Checking the response for primary prompt
-        primary_summary = self._get_or_create_summary(
+        primary_summary = cls._get_or_create_summary(
             prompt=primary_learning_prompt,
             prompt_hash=primary_prompt_hash,
             type=OpsLearningPromptResponseCache.PromptType.PRIMARY,
         )
 
         # Saving into the database
-        self.primary_response_save_to_db(
+        cls.primary_response_save_to_db(
             ops_learning_summary_instance=ops_learning_summary_instance,
             primary_summary=primary_summary,
         )
 
     @classmethod
     def get_or_create_secondary_summary(
-        self,
+        cls,
         ops_learning_summary_instance: OpsLearningCacheResponse,
         secondary_learning_prompt: str,
     ):
@@ -930,14 +931,14 @@ class OpsLearningSummaryTask:
         secondary_prompt_hash = OpslearningSummaryCacheHelper.generate_hash(secondary_learning_prompt)
 
         # Checking the response for secondary prompt
-        secondary_summary = self._get_or_create_summary(
+        secondary_summary = cls._get_or_create_summary(
             prompt=secondary_learning_prompt,
             prompt_hash=secondary_prompt_hash,
             type=OpsLearningPromptResponseCache.PromptType.SECONDARY,
         )
 
         # Saving into the database
-        self.secondary_response_save_to_db(
+        cls.secondary_response_save_to_db(
             ops_learning_summary_instance=ops_learning_summary_instance,
             secondary_summary=secondary_summary,
         )
