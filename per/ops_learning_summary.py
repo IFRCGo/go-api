@@ -6,13 +6,16 @@ from itertools import chain, zip_longest
 import pandas as pd
 import tiktoken
 from django.conf import settings
+from django.db import transaction
 from django.db.models import F
 from django.utils.functional import cached_property
 from openai import AzureOpenAI
 
 from api.logger import logger
 from api.models import Country
+from api.utils import get_model_name
 from deployments.models import SectorTag
+from lang.tasks import translate_model_fields
 from per.cache import OpslearningSummaryCacheHelper
 from per.models import (
     FormComponent,
@@ -173,14 +176,27 @@ class OpsLearningSummaryTask:
                 .prefetch_related(
                     "used_ops_learning",
                 )
-                .get_or_create(sector=sector_instance, filter_response=instance, defaults={"content": content})
+                .get_or_create(
+                    sector=sector_instance,
+                    filter_response=instance,
+                    defaults={"content": content},
+                )
             )
             if created:
                 ops_learning_sector.used_ops_learning.add(*ops_learning_instances)
+                transaction.on_commit(
+                    lambda: translate_model_fields.delay(
+                        get_model_name(type(ops_learning_sector)),
+                        ops_learning_sector.pk,
+                    )
+                )
 
     @staticmethod
     def add_used_ops_learnings_component(
-        instance: OpsLearningCacheResponse, content: str, used_ops_learnings: typing.List[int], component: str
+        instance: OpsLearningCacheResponse,
+        content: str,
+        used_ops_learnings: typing.List[int],
+        component: str,
     ):
         """Adds the used OPS learnings to the cache response."""
         component_instance = FormComponent.objects.filter(
@@ -196,10 +212,20 @@ class OpsLearningSummaryTask:
                 .prefetch_related(
                     "used_ops_learning",
                 )
-                .get_or_create(component=component_instance, filter_response=instance, defaults={"content": content})
+                .get_or_create(
+                    component=component_instance,
+                    filter_response=instance,
+                    defaults={"content": content},
+                )
             )
             if created:
                 ops_learning_component.used_ops_learning.add(*ops_learning_instances)
+                transaction.on_commit(
+                    lambda: translate_model_fields.delay(
+                        get_model_name(type(ops_learning_component)),
+                        ops_learning_component.pk,
+                    )
+                )
 
     @classmethod
     def fetch_ops_learnings(cls, filter_data):

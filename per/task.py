@@ -1,6 +1,9 @@
 from celery import shared_task
+from django.db import transaction
 
 from api.logger import logger
+from api.utils import get_model_name
+from lang.tasks import translate_model_fields
 from main.lock import RedisLockKey, redis_lock
 from per.models import OpsLearningCacheResponse
 from per.ops_learning_summary import OpsLearningSummaryTask
@@ -41,7 +44,8 @@ def generate_ops_learning_summary(ops_learning_summary_id: int, filter_data: dic
             )
             # Generate primary summary
             OpsLearningSummaryTask.get_or_create_primary_summary(
-                ops_learning_summary_instance=ops_learning_summary_instance, primary_learning_prompt=primary_learning_prompt
+                ops_learning_summary_instance=ops_learning_summary_instance,
+                primary_learning_prompt=primary_learning_prompt,
             )
 
             # Prioritize excerpts for secondary insights
@@ -50,23 +54,33 @@ def generate_ops_learning_summary(ops_learning_summary_id: int, filter_data: dic
             secondary_learning_prompt = OpsLearningSummaryTask.format_secondary_prompt(secondary_learning_df, filter_data)
             # Generate secondary summary
             OpsLearningSummaryTask.get_or_create_secondary_summary(
-                ops_learning_summary_instance=ops_learning_summary_instance, secondary_learning_prompt=secondary_learning_prompt
+                ops_learning_summary_instance=ops_learning_summary_instance,
+                secondary_learning_prompt=secondary_learning_prompt,
             )
 
             # Change Ops Learning Summary Status to SUCCESS
             OpsLearningSummaryTask.change_ops_learning_status(
-                instance=ops_learning_summary_instance, status=OpsLearningCacheResponse.Status.SUCCESS
+                instance=ops_learning_summary_instance,
+                status=OpsLearningCacheResponse.Status.SUCCESS,
+            )
+            transaction.on_commit(
+                lambda: translate_model_fields.delay(
+                    get_model_name(type(ops_learning_summary_instance)),
+                    ops_learning_summary_instance.pk,
+                )
             )
             return True
         except Exception:
             OpsLearningSummaryTask.change_ops_learning_status(
-                instance=ops_learning_summary_instance, status=OpsLearningCacheResponse.Status.FAILED
+                instance=ops_learning_summary_instance,
+                status=OpsLearningCacheResponse.Status.FAILED,
             )
             logger.error("Ops learning summary process failed", exc_info=True)
             return False
     else:
         OpsLearningSummaryTask.change_ops_learning_status(
-            instance=ops_learning_summary_instance, status=OpsLearningCacheResponse.Status.NO_EXTRACT_AVAILABLE
+            instance=ops_learning_summary_instance,
+            status=OpsLearningCacheResponse.Status.NO_EXTRACT_AVAILABLE,
         )
         logger.info("No extracts found")
         return False
