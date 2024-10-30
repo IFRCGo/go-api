@@ -67,3 +67,19 @@ jobs:
 
       - name: 🤞 Run Test 🧪
         run: docker compose run --rm serve pytest --reuse-db --durations=10
+
+  validate_helm:
+    name: 🚴 Validate Helm 🚴
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@main
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: 🐳 Helm lint
+        run: helm lint deploy/helm/ifrcgo-helm --values ./deploy/helm/ifrcgo-helm/values-staging.yaml
+
+      - name: 🐳 Helm template
+        run: helm template deploy/helm/ifrcgo-helm --values ./deploy/helm/ifrcgo-helm/values-staging.yaml

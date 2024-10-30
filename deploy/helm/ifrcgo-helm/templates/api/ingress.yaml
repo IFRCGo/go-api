@@ -10,6 +10,7 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-send-timeout: "360s"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "360s"
 spec:
+  {{- if .Values.api.tls.enabled }}
   tls:
     - hosts:
       - {{ .Values.api.domain }}
@@ -19,6 +20,7 @@ spec:
       - {{ .Values.api.additionalDomain }}
       secretName: {{ template "ifrcgo-helm.fullname" . }}-secret-api-additional-domain-cert
     {{- end }}
+  {{- end }}
 
   rules:
   - host: {{ .Values.api.domain }}
