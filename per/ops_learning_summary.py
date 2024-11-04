@@ -169,7 +169,7 @@ class OpsLearningSummaryTask:
         if not sector_instance:
             logger.info(f"Sector '{sector}' not found.")
             return
-        ops_learning_instances = OpsLearning.objects.filter(id__in=used_ops_learnings)
+        ops_learning_instances = OpsLearning.objects.filter(is_validated=True, id__in=used_ops_learnings)
         if len(ops_learning_instances):
             ops_learning_sector, created = (
                 OpsLearningSectorCacheResponse.objects.select_related("filter_response", "sector")
@@ -205,7 +205,7 @@ class OpsLearningSummaryTask:
         if not component_instance:
             logger.info(f"Component '{component}' not found.")
             return
-        ops_learning_instances = OpsLearning.objects.filter(id__in=used_ops_learnings)
+        ops_learning_instances = OpsLearning.objects.filter(is_validated=True, id__in=used_ops_learnings)
         if len(ops_learning_instances):
             ops_learning_component, created = (
                 OpsLearningComponentCacheResponse.objects.select_related("filter_response", "component")
@@ -276,7 +276,7 @@ class OpsLearningSummaryTask:
                 "excerpts_id",
                 "component_title",
                 "sector_title",
-                "learning",
+                "learning_validated",
                 "country_id",
                 "country_name",
                 "region_id",
@@ -287,10 +287,7 @@ class OpsLearningSummaryTask:
             )
         )
         ops_learning_df = ops_learning_df.rename(
-            columns={
-                "component_title": "component",
-                "sector_title": "sector",
-            }
+            columns={"component_title": "component", "sector_title": "sector", "learning_validated": "learning"}
         )
         ops_learning_df.set_index("id", inplace=True)
         return ops_learning_df
@@ -795,14 +792,14 @@ class OpsLearningSummaryTask:
 
             # Attempt to parse the summary as a dictionary
             if _validate_text_is_dictionary(summary):
-                formated_summary = ast.literal_eval(summary)
+                formatted_summary = ast.literal_eval(summary)
             else:
                 formatted_summary = _modify_format(summary)
                 formatted_summary = ast.literal_eval(formatted_summary)
 
             # Checking if the generated summary is empty
-            if bool(formated_summary):
-                return formated_summary
+            if bool(formatted_summary):
+                return formatted_summary
 
             # NOTE: Generating the summary if summary is empty
             while retires < MAX_RETRIES:
