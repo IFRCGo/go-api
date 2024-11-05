@@ -305,6 +305,37 @@ class OpsLearningAdmin(GotoNextModelAdmin):
     export_selected_records.short_description = "Export selected Ops Learning records to CSV"
 
 
+class OpsLearningCacheResponseAdmin(TranslationAdmin):
+    search_fields = (
+        "response",
+        "id",
+    )
+    list_prefetch_related = "used_ops_learning"
+    list_display = (
+        "__str__",
+        "insights1_title",
+        "insights2_title",
+        "insights3_title",
+        "status",
+    )
+    used_ops_learning_in = "used_ops_learning_in"
+    autocomplete_fields = ("used_ops_learning",)
+    exclude = (
+        "export_status",
+        "exported_file",
+        "exported_at",
+    )
+
+
+class OpsLearningPromptResponseCacheAdmin(admin.ModelAdmin):
+    list_display = (
+        "__str__",
+        "type",
+        "response",
+    )
+    list_filter = ("type",)
+
+
 admin.site.register(models.Form, FormAdmin)
 admin.site.register(models.FormArea, FormAreaAdmin)
 admin.site.register(models.FormComponent, FormComponentAdmin)
@@ -329,3 +360,5 @@ admin.site.register(models.OrganizationTypes, OrganizationTypesAdmin)
 admin.site.register(models.OpsLearning, OpsLearningAdmin)
 admin.site.register(models.PerDocumentUpload, PerDocumentUploadAdmin)
 admin.site.register(models.FormQuestionGroup, FormQuestionGroupAdmin)
+admin.site.register(models.OpsLearningCacheResponse, OpsLearningCacheResponseAdmin)
+admin.site.register(models.OpsLearningPromptResponseCache, OpsLearningPromptResponseCacheAdmin)

@@ -767,8 +767,12 @@ class OpsLearningPromptResponseCache(models.Model):
 
     response = models.JSONField(verbose_name=_("response"), default=dict)
 
+    class Meta:
+        verbose_name = _("Operational learning Prompt Cache")
+        verbose_name_plural = _("Operational learning Prompt Caches")
+
     def __str__(self) -> str:
-        return f"{self.type} - {self.prompt_hash}"
+        return f"{self.prompt_hash}"
 
 
 class OpsLearningCacheResponse(models.Model):
@@ -825,6 +829,10 @@ class OpsLearningCacheResponse(models.Model):
         verbose_name=_("exported file"), upload_to="ops-learning/summary/export/", blank=True, null=True
     )
     exported_at = models.DateTimeField(verbose_name=_("exported at"), blank=True, null=True)
+
+    class Meta:
+        verbose_name = _("Operational learning Cache")
+        verbose_name_plural = _("Operational learning Caches")
 
     def __str__(self) -> str:
         return self.used_filters_hash
