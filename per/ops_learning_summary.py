@@ -897,7 +897,10 @@ class OpsLearningSummaryTask:
             subtype = value["subtype"].strip()
             content = value["content"].strip()
             excerpt_ids = value["excerpts id"]
-            excerpt_id_list = list(set(int(id.strip()) for id in excerpt_ids.split(",") if excerpt_ids != ""))
+            if isinstance(excerpt_ids, list):
+                excerpt_id_list = list(set(excerpt_ids))
+            else:
+                excerpt_id_list = list(set(int(id.strip()) for id in excerpt_ids.split(",") if excerpt_ids != ""))
 
             if type == "component" and len(excerpt_id_list) > 0:
                 cls.add_used_ops_learnings_component(
