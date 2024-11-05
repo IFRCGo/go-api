@@ -37,6 +37,11 @@ class ProfileInline(admin.StackedInline):
 
 
 class GoUserAdmin(UserAdmin):
+
+    @admin.display(description=_("name"))
+    def name(self, obj):
+        return obj.first_name + " " + obj.last_name
+
     inlines = (ProfileInline,)
     list_filter = (
         ("profile__country__region", RelatedDropdownFilter),
@@ -46,6 +51,7 @@ class GoUserAdmin(UserAdmin):
         "is_superuser",
         "is_active",
     )
+    list_display = ("username", "email", "name", "is_active", "is_staff")
 
     def get_inline_instances(self, request, obj=None):
         if not obj:
@@ -617,7 +623,7 @@ class IsDeprecatedFilter(admin.SimpleListFilter):
 
 
 class CountryIsDeprecatedFilter1(IsDeprecatedFilter):
-    title = "Country deprecated"
+    title = "Country is deprecated"
     parameter_name = "admin1__country__is_deprecated"
 
     def queryset(self, request, queryset):
@@ -696,7 +702,7 @@ class RegionAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAdm
 
 
 class Admin1IsDeprecatedFilter(IsDeprecatedFilter):
-    title = "Admin1 deprecated"
+    title = "Admin1 is deprecated"
     parameter_name = "admin1__is_deprecated"
 
     def queryset(self, request, queryset):
@@ -706,7 +712,7 @@ class Admin1IsDeprecatedFilter(IsDeprecatedFilter):
 
 
 class CountryIsDeprecatedFilter2(IsDeprecatedFilter):
-    title = "Country deprecated"
+    title = "Country is deprecated"
     parameter_name = "admin1__country__is_deprecated"
 
     def queryset(self, request, queryset):
