@@ -277,7 +277,7 @@ class ExportPerView(views.APIView):
             "Type of Assessment",
             "Branches involved",
             "Method",
-            "EPI Considerations",
+            "Epidemic Considerations",
             "Urban Considerations",
             "Climate and env considerations",
             "PER process cycle",
