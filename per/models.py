@@ -768,7 +768,7 @@ class OpsLearningPromptResponseCache(models.Model):
     response = models.JSONField(verbose_name=_("response"), default=dict)
 
     def __str__(self) -> str:
-        return f"{self.type} - {self.prompt_hash}"
+        return f"{self.prompt_hash}"
 
 
 class OpsLearningCacheResponse(models.Model):
