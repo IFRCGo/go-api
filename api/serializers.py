@@ -1553,11 +1553,14 @@ class AppealDocumentTableauSerializer(serializers.ModelSerializer):
 
 
 class AppealDocumentAppealSerializer(serializers.ModelSerializer):
+    event = MiniEventSerializer(read_only=True)
+
     class Meta:
         model = Appeal
         fields = (
             "id",
             "code",
+            "event",
         )
 
 

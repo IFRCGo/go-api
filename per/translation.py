@@ -13,10 +13,15 @@ from .models import (
     FormPrioritizationComponent,
     FormQuestion,
     FormQuestionGroup,
+    OpsLearning,
+    OpsLearningCacheResponse,
+    OpsLearningComponentCacheResponse,
+    OpsLearningSectorCacheResponse,
     Overview,
     PerAssessment,
     PerComponentRating,
     PerWorkPlanComponent,
+    SectorTag,
 )
 
 
@@ -27,7 +32,13 @@ class FormAreaTO(TranslationOptions):
 
 @register(FormComponent)
 class FormComponentTO(TranslationOptions):
-    fields = ("title", "description")
+    fields = (
+        "title",
+        "description",
+        "urban_considerations_guidance",
+        "epi_considerations_guidance",
+        "climate_environmental_considerations_guidance",
+    )
 
 
 @register(FormAnswer)
@@ -98,3 +109,38 @@ class PerWorkPlanComponentTo(TranslationOptions):
 @register(CustomPerWorkPlanComponent)
 class CustomPerWorkPlanComponentTO(TranslationOptions):
     fields = ("actions",)
+
+
+@register(OpsLearning)
+class OpsLearningTO(TranslationOptions):
+    fields = (
+        "learning",
+        "learning_validated",
+    )
+
+
+@register(OpsLearningCacheResponse)
+class OpsLearningCacheResponseTO(TranslationOptions):
+    fields = (
+        "insights1_title",
+        "insights2_title",
+        "insights3_title",
+        "insights1_content",
+        "insights2_content",
+        "insights3_content",
+    )
+
+
+@register(OpsLearningSectorCacheResponse)
+class OpsLearningSectorCacheResponseTO(TranslationOptions):
+    fields = ("content",)
+
+
+@register(OpsLearningComponentCacheResponse)
+class OpsLearningComponentCacheResponseTO(TranslationOptions):
+    fields = ("content",)
+
+
+@register(SectorTag)
+class SectorTagTO(TranslationOptions):
+    fields = ("title",)

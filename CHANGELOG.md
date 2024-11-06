@@ -6,6 +6,29 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.503
+
+### Added
+ - Nicer Admin page for user list
+ - Add missing translation trigger for Ops learning
+ - Customize helm
+ - Add filters to District and Admin2 pages
+ - Simplify OpsLearning Admin validation check
+ - Fix dtype issue and summary parsing issue
+ - Use psql-15 for local dev
+ - Reverse creation order in SitReps listing
+ - Remove IFRC_TRANSLATION_GET_API_KEY
+ - Add environment variables for operation learning in helm chart
+ - Change the scraping logic for icrc ingestion
+ - Update urban considerations for component 16 and 17
+ - Add merge migration Add Translation for excerpts, title and summary
+ - Change the format for CSV file.
+ - Upgrade to python 3.11
+ - Azure handling the proper way
+ - New translation api
+ - Not allow data images to be pasted to rich text
+ - Skip non-working ns_initiatives endpoints
+
 ## 1.1.502
 
 ### Added
@@ -2497,7 +2520,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.502...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.503...HEAD
+[1.1.503]: https://github.com/IFRCGo/go-api/compare/1.1.502...1.1.503
 [1.1.502]: https://github.com/IFRCGo/go-api/compare/1.1.501...1.1.502
 [1.1.501]: https://github.com/IFRCGo/go-api/compare/1.1.500...1.1.501
 [1.1.500]: https://github.com/IFRCGo/go-api/compare/1.1.499...1.1.500

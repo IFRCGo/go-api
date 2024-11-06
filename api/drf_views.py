@@ -776,7 +776,7 @@ class SituationReportTypeViewset(viewsets.ReadOnlyModelViewSet):
 
 
 class SituationReportViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ReadOnlyModelViewSet):
-    queryset = SituationReport.objects.select_related("type").order_by("created_at")
+    queryset = SituationReport.objects.select_related("type").order_by("-created_at")
     authentication_classes = (TokenAuthentication,)
     serializer_class = SituationReportSerializer
     ordering_fields = (
@@ -854,7 +854,12 @@ class AppealViewset(mixins.ListModelMixin, viewsets.GenericViewSet):
 
 
 class AppealDocumentViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = AppealDocument.objects.all()
+    queryset = AppealDocument.objects.select_related(
+        "type",
+        "iso",
+    ).prefetch_related(
+        "appeal__event__countries_for_preview",
+    )
     ordering_fields = (
         "created_at",
         "name",

@@ -101,6 +101,11 @@ class FormComponent(models.Model):
     question_responses = models.ManyToManyField(FormComponentQuestionAndAnswer, verbose_name=_("Question responses"), blank=True)
     is_parent = models.BooleanField(verbose_name=_("Is parent"), null=True, blank=True)
     has_question_group = models.BooleanField(verbose_name=_("Has Question Group"), null=True, blank=True)
+    urban_considerations_guidance = HTMLField(verbose_name=_("Urban Considerations"), blank=True, default="")
+    epi_considerations_guidance = HTMLField(verbose_name=_("EPI Considerations"), blank=True, default="")
+    climate_environmental_considerations_guidance = HTMLField(
+        verbose_name=_("Climate and Environmental Considerations "), blank=True, default=""
+    )
 
     def __str__(self):
         return f"Component {self.component_num} - {self.title}"
@@ -712,8 +717,8 @@ class OpsLearning(models.Model):
             or user.groups.filter(name="OpsLearning Admin").exists()
         )
 
+    # Is this really needed? The admin::save_model should be enough. FIXME
     def save(self, *args, **kwargs):
-
         if self.is_validated and self.id:
             if (
                 self.learning_validated is None
@@ -749,3 +754,123 @@ class PerDocumentUpload(models.Model):
 
     def __str__(self):
         return f"{self.country.name} - {self.created_by} - {self.per_id}"
+
+
+class OpsLearningPromptResponseCache(models.Model):
+    class PromptType(models.IntegerChoices):
+        PRIMARY = 1, _("Primary")
+        SECONDARY = 2, _("Secondary")
+
+    prompt_hash = models.CharField(verbose_name=_("used prompt hash"), max_length=32)
+    prompt = models.TextField(verbose_name=_("used prompt"), null=True, blank=True)
+    type = models.IntegerField(verbose_name=_("type"), choices=PromptType.choices)
+
+    response = models.JSONField(verbose_name=_("response"), default=dict)
+
+    def __str__(self) -> str:
+        return f"{self.prompt_hash}"
+
+
+class OpsLearningCacheResponse(models.Model):
+    class Status(models.IntegerChoices):
+        PENDING = 1, _("Pending")
+        STARTED = 2, _("Started")
+        SUCCESS = 3, _("Success")
+        NO_EXTRACT_AVAILABLE = 4, _("No extract available")
+        FAILED = 5, _("Failed")
+
+    class ExportStatus(models.IntegerChoices):
+        PENDING = 1, _("Pending")
+        SUCCESS = 2, _("Success")
+        FAILED = 3, _("Failed")
+
+    used_filters_hash = models.CharField(verbose_name=_("used filters hash"), max_length=32)
+    used_filters = models.JSONField(verbose_name=_("used filters"), default=dict)
+
+    status = models.IntegerField(verbose_name=_("status"), choices=Status.choices, default=Status.PENDING)
+
+    insights1_content = models.TextField(verbose_name=_("insights 1"), null=True, blank=True)
+    insights2_content = models.TextField(verbose_name=_("insights 2"), null=True, blank=True)
+    insights3_content = models.TextField(verbose_name=_("insights 3"), null=True, blank=True)
+
+    insights1_title = models.CharField(verbose_name=_("insights 1 title"), max_length=255, null=True, blank=True)
+    insights2_title = models.CharField(verbose_name=_("insights 2 title"), max_length=255, null=True, blank=True)
+    insights3_title = models.CharField(verbose_name=_("insights 3 title"), max_length=255, null=True, blank=True)
+
+    insights1_confidence_level = models.CharField(
+        verbose_name=_("insights 1 confidence level"), max_length=10, null=True, blank=True
+    )
+    insights2_confidence_level = models.CharField(
+        verbose_name=_("insights 2 confidence level"), max_length=10, null=True, blank=True
+    )
+    insights3_confidence_level = models.CharField(
+        verbose_name=_("insights 3 confidence level"), max_length=10, null=True, blank=True
+    )
+    contradictory_reports = models.TextField(verbose_name=_("contradictory reports"), null=True, blank=True)
+
+    used_ops_learning = models.ManyToManyField(
+        OpsLearning,
+        related_name="+",
+    )
+    modified_at = models.DateTimeField(verbose_name=_("modified_at"), auto_now=True)
+    created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
+
+    # Caching for the exported file
+    export_status = models.IntegerField(
+        verbose_name=_("export status"),
+        choices=ExportStatus.choices,
+        default=ExportStatus.PENDING,
+    )
+    exported_file = models.FileField(
+        verbose_name=_("exported file"), upload_to="ops-learning/summary/export/", blank=True, null=True
+    )
+    exported_at = models.DateTimeField(verbose_name=_("exported at"), blank=True, null=True)
+
+    def __str__(self) -> str:
+        return self.used_filters_hash
+
+
+class OpsLearningSectorCacheResponse(models.Model):
+    filter_response = models.ForeignKey(
+        OpsLearningCacheResponse,
+        verbose_name=_("filter response"),
+        on_delete=models.CASCADE,
+        related_name="ops_learning_sector",
+    )
+    sector = models.ForeignKey(
+        SectorTag,
+        verbose_name=_("sector"),
+        on_delete=models.CASCADE,
+        related_name="+",
+    )
+    content = models.TextField(verbose_name=_("content"), null=True, blank=True)
+    used_ops_learning = models.ManyToManyField(
+        OpsLearning,
+        related_name="+",
+    )
+
+    def __str__(self) -> str:
+        return f"Summary - sector - {self.sector.title}"
+
+
+class OpsLearningComponentCacheResponse(models.Model):
+    filter_response = models.ForeignKey(
+        OpsLearningCacheResponse,
+        verbose_name=_("filter response"),
+        on_delete=models.CASCADE,
+        related_name="ops_learning_component",
+    )
+    component = models.ForeignKey(
+        FormComponent,
+        verbose_name=_("component"),
+        on_delete=models.CASCADE,
+        related_name="+",
+    )
+    content = models.TextField(verbose_name=_("content"), null=True, blank=True)
+    used_ops_learning = models.ManyToManyField(
+        OpsLearning,
+        related_name="+",
+    )
+
+    def __str__(self) -> str:
+        return f"Summary - component - {self.component.title}"

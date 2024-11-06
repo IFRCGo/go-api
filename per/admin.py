@@ -56,6 +56,7 @@ class FormAreaAdmin(CompareVersionAdmin, TranslationAdmin):
 class FormComponentAdmin(CompareVersionAdmin, TranslationAdmin):
     search_fields = ("title",)
     list_display = ("title", "area_number", "component_number")
+    autocomplete_fields = ["question_responses"]
 
     def component_number(self, obj):
         return f'{obj.component_num or ""}{obj.component_letter or ""}'
@@ -161,7 +162,9 @@ class FormComponentResponseAdmin(TranslationAdmin):
 
 
 class FormComponentQuestionAndAnswerAdmin(TranslationAdmin):
-    pass
+    search_fields = [
+        "question",
+    ]
 
 
 class OrganizationTypesAdmin(admin.ModelAdmin):
@@ -190,19 +193,6 @@ class OpsLearningAdmin(GotoNextModelAdmin):
 
     def get_fields(self, request, obj=None):
         if obj and obj.is_validated:
-            if (
-                obj.learning_validated is None
-                and obj.type_validated == models.LearningType.LESSON_LEARNED.value
-                and obj.organization_validated.count() == 0
-                and obj.sector_validated.count() == 0
-                and obj.per_component_validated.count() == 0
-            ):
-
-                obj.learning_validated = obj.learning
-                obj.type_validated = obj.type
-                obj.organization_validated.add(*[x[0] for x in obj.organization.values_list()])
-                obj.sector_validated.add(*[x[0] for x in obj.sector.values_list()])
-                obj.per_component_validated.add(*[x[0] for x in obj.per_component.values_list()])
             return (
                 "learning_validated",
                 "appeal_code",
@@ -224,6 +214,20 @@ class OpsLearningAdmin(GotoNextModelAdmin):
                 "is_validated",
             )
         return ("learning", "appeal_code", "appeal_document_id", "type", "organization", "sector", "per_component")
+
+    def save_model(self, request, obj, form, change):
+        if change:
+            orig_obj = models.OpsLearning.objects.get(pk=obj.pk)
+            if obj and obj.is_validated and obj.is_validated != orig_obj.is_validated:
+                # Validation happened just now:
+                print("Moving data to validated fields for OpsLearning id: %d" % obj.pk)
+                obj.learning_validated = obj.learning
+                obj.type_validated = obj.type
+                obj.organization_validated.add(*[x[0] for x in obj.organization.values_list()])
+                obj.sector_validated.add(*[x[0] for x in obj.sector.values_list()])
+                obj.per_component_validated.add(*[x[0] for x in obj.per_component.values_list()])
+
+        super().save_model(request, obj, form, change)
 
     def export_selected_records(self, request, queryset):
         """
@@ -301,6 +305,36 @@ class OpsLearningAdmin(GotoNextModelAdmin):
     export_selected_records.short_description = "Export selected Ops Learning records to CSV"
 
 
+class OpsLearningCacheResponseAdmin(TranslationAdmin):
+    search_fields = (
+        "response",
+        "id",
+    )
+    list_display = (
+        "__str__",
+        "insights1_title",
+        "insights2_title",
+        "insights3_title",
+        "status",
+    )
+    used_ops_learning_in = "used_ops_learning_in"
+    autocomplete_fields = ("used_ops_learning",)
+    exclude = (
+        "export_status",
+        "exported_file",
+        "exported_at",
+    )
+
+
+class OpsLearningPromptResponseCacheAdmin(admin.ModelAdmin):
+    list_display = (
+        "__str__",
+        "type",
+        "response",
+    )
+    list_filter = ("type",)
+
+
 admin.site.register(models.Form, FormAdmin)
 admin.site.register(models.FormArea, FormAreaAdmin)
 admin.site.register(models.FormComponent, FormComponentAdmin)
@@ -325,3 +359,5 @@ admin.site.register(models.OrganizationTypes, OrganizationTypesAdmin)
 admin.site.register(models.OpsLearning, OpsLearningAdmin)
 admin.site.register(models.PerDocumentUpload, PerDocumentUploadAdmin)
 admin.site.register(models.FormQuestionGroup, FormQuestionGroupAdmin)
+admin.site.register(models.OpsLearningCacheResponse, OpsLearningCacheResponseAdmin)
+admin.site.register(models.OpsLearningPromptResponseCache, OpsLearningPromptResponseCacheAdmin)

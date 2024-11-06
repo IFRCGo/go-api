@@ -60,7 +60,6 @@ env = environ.Env(
     AWS_TRANSLATE_REGION=(str, None),
     # IFRC Translation
     IFRC_TRANSLATION_DOMAIN=(str, None),  # https://example.ifrc.org
-    IFRC_TRANSLATION_GET_API_KEY=(str, None),
     IFRC_TRANSLATION_HEADER_API_KEY=(str, None),
     # Celery NOTE: Not used right now
     CELERY_REDIS_URL=str,
@@ -113,6 +112,10 @@ env = environ.Env(
     NS_DOCUMENT_API_KEY=(str, None),
     NS_INITIATIVES_API_KEY=(str, None),
     NS_INITIATIVES_API_TOKEN=(str, None),
+    # OpenAi Azure
+    AZURE_OPENAI_ENDPOINT=(str, None),
+    AZURE_OPENAI_KEY=(str, None),
+    AZURE_OPENAI_DEPLOYMENT_NAME=(str, None),
 )
 
 
@@ -393,7 +396,6 @@ MODELTRANSLATION_FALLBACK_LANGUAGES = ("en", "fr", "es", "ar")
 AUTO_TRANSLATION_TRANSLATOR = env("AUTO_TRANSLATION_TRANSLATOR")
 
 IFRC_TRANSLATION_DOMAIN = env("IFRC_TRANSLATION_DOMAIN")
-IFRC_TRANSLATION_GET_API_KEY = env("IFRC_TRANSLATION_GET_API_KEY")
 IFRC_TRANSLATION_HEADER_API_KEY = env("IFRC_TRANSLATION_HEADER_API_KEY")
 
 MEDIA_URL = env("DJANGO_MEDIA_URL")
@@ -421,17 +423,14 @@ AZURE_STORAGE = {
     "CDN_HOST": None,
     "USE_SSL": False,
 }
-if AZURE_STORAGE_ACCOUNT:
-    DEFAULT_FILE_STORAGE = "api.storage.AzureStorage"
+# instead of: if AZURE_STORAGE_ACCOUNT: DEFAULT_FILE_STORAGE = "api.storage.AzureStorage"
+# > https://django-storages.readthedocs.io/en/latest/backends/azure.html
 
-"""
-# FIXME: TODO: Use this instead. https://django-storages.readthedocs.io/en/latest/backends/azure.html
-AZURE_ACCOUNT_NAME = env('AZURE_STORAGE_ACCOUNT')
-AZURE_ACCOUNT_KEY = env('AZURE_STORAGE_KEY')
-AZURE_CONTAINER = 'api'
+AZURE_ACCOUNT_NAME = env("AZURE_STORAGE_ACCOUNT")
+AZURE_ACCOUNT_KEY = env("AZURE_STORAGE_KEY")
+AZURE_CONTAINER = "api"
 if AZURE_STORAGE_ACCOUNT:
-    DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
-"""
+    DEFAULT_FILE_STORAGE = "storages.backends.azure_storage.AzureStorage"
 
 # Email config
 EMAIL_API_ENDPOINT = env("EMAIL_API_ENDPOINT")
@@ -663,6 +662,9 @@ CACHES = {
     }
 }
 
+# Redis locking
+REDIS_DEFAULT_LOCK_EXPIRE = 60 * 10  # Lock expires in 10min (in seconds)
+
 if env("CACHE_MIDDLEWARE_SECONDS"):
     CACHE_MIDDLEWARE_SECONDS = env("CACHE_MIDDLEWARE_SECONDS")  # Planned: 600 for staging, 60 from prod
 DISABLE_API_CACHE = env("DISABLE_API_CACHE")
@@ -693,6 +695,10 @@ def decode_base64(env_key, fallback_env_key):
 JWT_PRIVATE_KEY = decode_base64("JWT_PRIVATE_KEY_BASE64_ENCODED", "JWT_PRIVATE_KEY")
 JWT_PUBLIC_KEY = decode_base64("JWT_PUBLIC_KEY_BASE64_ENCODED", "JWT_PUBLIC_KEY")
 JWT_EXPIRE_TIMESTAMP_DAYS = env("JWT_EXPIRE_TIMESTAMP_DAYS")
+
+AZURE_OPENAI_ENDPOINT = env("AZURE_OPENAI_ENDPOINT")
+AZURE_OPENAI_KEY = env("AZURE_OPENAI_KEY")
+AZURE_OPENAI_DEPLOYMENT_NAME = env("AZURE_OPENAI_DEPLOYMENT_NAME")
 
 # Need to load this to overwrite modeltranslation module
 import main.translation  # noqa: F401 E402

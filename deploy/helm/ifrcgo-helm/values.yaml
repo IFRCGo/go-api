@@ -29,6 +29,7 @@ env:
   HPC_CREDENTIAL: ''
   APPLICATION_INSIGHTS_INSTRUMENTATION_KEY: ''
   ELASTIC_SEARCH_HOST: ''
+  ELASTIC_SEARCH_INDEX: 'new_index'
   GO_FTPHOST: ''
   GO_FTPUSER: ''
   GO_FTPPASS: ''
@@ -47,7 +48,6 @@ env:
   DJANGO_READ_ONLY: ''
   AUTO_TRANSLATION_TRANSLATOR: ''
   IFRC_TRANSLATION_DOMAIN: ''
-  IFRC_TRANSLATION_GET_API_KEY: ''
   IFRC_TRANSLATION_HEADER_API_KEY: ''
   FDRS_APIKEY: ''
   NS_CONTACT_USERNAME: ''
@@ -59,6 +59,9 @@ env:
   JWT_PRIVATE_KEY_BASE64_ENCODED: ''
   JWT_PUBLIC_KEY_BASE64_ENCODED: ''
   JWT_EXPIRE_TIMESTAMP_DAYS: ''
+  AZURE_OPENAI_DEPLOYMENT_NAME: ''
+  AZURE_OPENAI_ENDPOINT: ''
+  AZURE_OPENAI_API_KEY: ''
 
 secrets:
   API_TLS_CRT: ''
@@ -68,6 +71,8 @@ secrets:
 
 api:
   domain: "go-staging.ifrc.org"
+  tls:
+    enabled: true
   additionalDomain: ""
   enabled: true
   replicaCount: 1

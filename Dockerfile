@@ -1,4 +1,4 @@
-FROM python:3.9-bullseye
+FROM python:3.11-bullseye
 
 ENV PYTHONUNBUFFERED=1
 EXPOSE 80
@@ -32,10 +32,8 @@ RUN pip install --upgrade --no-cache-dir pip poetry \
 RUN playwright install \
     && playwright install-deps
 
-
-# TODO: Refactor the whole Azure storage part. (Upgrade is not enough, was tested.)
-# Until then avoid some SyntaxWarnings ("is" with a literal):
-ENV AZUREROOT=/usr/local/lib/python3.9/site-packages/azure/storage/
+# To avoid some SyntaxWarnings ("is" with a literal), still needed on 20241024:
+ENV AZUREROOT=/usr/local/lib/python3.11/site-packages/azure/storage/
 RUN perl -pi -e 's/ is 0 / == 0 /'      ${AZUREROOT}blob/_upload_chunking.py
 RUN perl -pi -e 's/ is not -1 / != 1 /' ${AZUREROOT}blob/baseblobservice.py
 RUN perl -pi -e "s/ is '' / == '' /"    ${AZUREROOT}common/_connection.py

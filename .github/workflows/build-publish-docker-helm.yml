@@ -7,6 +7,7 @@ on:
     branches:
     - develop
     - master
+    - project/*
     tags:
     - "**"
 
@@ -39,6 +40,8 @@ jobs:
 
     - name: Install chart publishing dependencies (chartpress, helm)
       run: |
+        python3 -m venv venv
+        source venv/bin/activate
         pip install chartpress
         pip list
 
@@ -46,9 +49,15 @@ jobs:
 
     - name: Build and push Docker image. Update the image tag, chart version etc as needed
       run: |
+        source venv/bin/activate
         cd deploy/helm
         # hack to push the image to ghcr.io. We will update chartpress.yaml when we move to separate deploy repo
-        python -c "import re; data=open('chartpress.yaml').read(); open('chartpress.yaml', 'w').write(re.sub(r'ifrcgoacr.azurecr.io/ifrcgo-', 'ghcr.io/ifrcgo/go-', data))"
+        if [[ "$GITHUB_REF_NAME" == "project/"* ]]; then
+          # NOTE: Using seperate package registry for alpha
+          python -c "import re; data=open('chartpress.yaml').read(); open('chartpress.yaml', 'w').write(re.sub(r'ifrcgoacr.azurecr.io/ifrcgo-', 'ghcr.io/ifrcgo/alpha-go-', data))"
+        else
+          python -c "import re; data=open('chartpress.yaml').read(); open('chartpress.yaml', 'w').write(re.sub(r'ifrcgoacr.azurecr.io/ifrcgo-', 'ghcr.io/ifrcgo/go-', data))"
+        fi
         chartpress --push
 
     - name: Get the version
@@ -57,8 +66,16 @@ jobs:
 
     - name: Package Helm Chart
       run: |
+        if [[ "$GITHUB_REF_NAME" == "project/"* ]]; then
+          # NOTE: Using seperate package registry for alpha
+          sed -i 's/^name: \(.*\)/name: alpha-\1/' deploy/helm/ifrcgo-helm/Chart.yaml
+        fi
         helm package deploy/helm/ifrcgo-helm -d .helm-charts
 
     - name: Push Helm Chart
       run: |
-        helm push .helm-charts/ifrcgo-helm-${{ steps.get_version.outputs.VERSION }}.tgz oci://ghcr.io/ifrcgo/go-api
+        if [[ "$GITHUB_REF_NAME" == "project/"* ]]; then
+          helm push ".helm-charts/alpha-ifrcgo-helm-${{ steps.get_version.outputs.VERSION }}.tgz" oci://ghcr.io/ifrcgo/go-api
+        else
+          helm push ".helm-charts/ifrcgo-helm-${{ steps.get_version.outputs.VERSION }}.tgz" oci://ghcr.io/ifrcgo/go-api
+        fi

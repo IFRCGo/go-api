@@ -174,90 +174,114 @@ class CountryOverview(models.Model):
     script_modified_at = models.DateTimeField(null=True, blank=True)
 
     # Country Key Indicators (Using Script: FDRS API)
-    population = models.IntegerField(null=True, blank=True, verbose_name=_("population"))
-    gdp = models.FloatField(verbose_name=_("GDP"), null=True, blank=True)
-    gnipc = models.IntegerField(verbose_name=_("GNI/CAPITA"), null=True, blank=True)
-    life_expectancy = models.IntegerField(null=True, blank=True, verbose_name=_("life expectancy"))
-    urban_population = models.FloatField(
+    fdrs_population = models.IntegerField(null=True, blank=True, verbose_name=_("population"))
+    fdrs_population_data_year = models.IntegerField(verbose_name=_("population data fetched year"), null=True, blank=True)
+    fdrs_gdp = models.FloatField(verbose_name=_("GDP"), null=True, blank=True)
+    fdrs_gdp_data_year = models.IntegerField(verbose_name=_("GDP data fetched year"), null=True, blank=True)
+    fdrs_gnipc = models.IntegerField(verbose_name=_("GNI/CAPITA"), null=True, blank=True)
+    fdrs_gnipc_data_year = models.IntegerField(verbose_name=_("GNI/CAPITA data fetched year"), null=True, blank=True)
+    fdrs_life_expectancy = models.IntegerField(null=True, blank=True, verbose_name=_("life expectancy"))
+    fdrs_life_expectancy_data_year = models.IntegerField(
+        verbose_name=_("life expectancy data fetched year"), null=True, blank=True
+    )
+    fdrs_urban_population = models.FloatField(
         validators=[MaxValueValidator(100), MinValueValidator(0)],
         verbose_name=_("urban POP (%)"),
         null=True,
         blank=True,
     )
-    poverty = models.FloatField(
+    fdrs_urban_population_data_year = models.IntegerField(
+        verbose_name=_("urban population data fetched year"), null=True, blank=True
+    )
+    fdrs_poverty = models.FloatField(
         validators=[MaxValueValidator(100), MinValueValidator(0)],
         verbose_name=_("poverty (%)"),
         null=True,
         blank=True,
     )
-    literacy = models.FloatField(
+    fdrs_poverty_data_year = models.IntegerField(verbose_name=_("poverty data fetched year"), null=True, blank=True)
+    fdrs_literacy = models.FloatField(
         validators=[MaxValueValidator(100), MinValueValidator(0)],
         verbose_name=_("literacy (%)"),
         null=True,
         blank=True,
     )
+    fdrs_literacy_data_year = models.IntegerField(verbose_name=_("literacy data fetched year"), null=True, blank=True)
 
     # National Society Indicators (Using Script: FDRS API)
-    income = models.FloatField(verbose_name=_("income (CHF)"), null=True, blank=True)
-    expenditures = models.FloatField(verbose_name=_("expenditures (CHF)"), null=True, blank=True)
-    volunteers = models.IntegerField(verbose_name=_("volunteers"), null=True, blank=True)
-    trained_in_first_aid = models.IntegerField(verbose_name=_("trained in first aid"), null=True, blank=True)
-    branches = models.IntegerField(verbose_name=_("Branches"), null=True, blank=True)
+    fdrs_income = models.FloatField(verbose_name=_("income (CHF)"), null=True, blank=True)
+    fdrs_income_data_year = models.IntegerField(verbose_name=_("income data fetched year"), null=True, blank=True)
+    fdrs_expenditures = models.FloatField(verbose_name=_("expenditures (CHF)"), null=True, blank=True)
+    fdrs_expenditures_data_year = models.IntegerField(verbose_name=_("expenditures data fetched year"), null=True, blank=True)
+    fdrs_trained_in_first_aid = models.IntegerField(verbose_name=_("trained in first aid"), null=True, blank=True)
+    fdrs_trained_in_first_aid_data_year = models.IntegerField(
+        verbose_name=_("trained in first aid data fetched year"), null=True, blank=True
+    )
+    fdrs_branches = models.IntegerField(verbose_name=_("Branches"), null=True, blank=True)
+    fdrs_branches_data_year = models.IntegerField(verbose_name=_("branches data fetched year"), null=True, blank=True)
 
     # Population data
     # Voluntering
-    male_volunteer_age_6_12 = models.IntegerField(verbose_name=_("male volunteer age 6 to 12"), null=True, blank=True)
-    male_volunteer_age_13_17 = models.IntegerField(verbose_name=_("male volunteer age 13 to 17"), null=True, blank=True)
-    male_volunteer_age_18_29 = models.IntegerField(verbose_name=_("male volunteer age 18 to 29"), null=True, blank=True)
-    male_volunteer_age_18_49 = models.IntegerField(verbose_name=_("male volunteer age 18 to 49"), null=True, blank=True)
-    male_volunteer_age_30_39 = models.IntegerField(verbose_name=_("male volunteer age 30 to 39"), null=True, blank=True)
-    male_volunteer_age_40_49 = models.IntegerField(verbose_name=_("male volunteer age 40 to 49"), null=True, blank=True)
-    male_volunteer_age_50_59 = models.IntegerField(verbose_name=_("male volunteer age 50 to 59"), null=True, blank=True)
-    male_volunteer_age_60_69 = models.IntegerField(verbose_name=_("male volunteer age 60 to 69"), null=True, blank=True)
-    male_volunteer_age_70_79 = models.IntegerField(verbose_name=_("male volunteer age 70 to 79"), null=True, blank=True)
-    male_volunteer_age_80 = models.IntegerField(verbose_name=_("male volunteer age 80"), null=True, blank=True)
-    male_volunteer_age_other = models.IntegerField(verbose_name=_("male volunteer other"), null=True, blank=True)
-    male_volunteer_total = models.IntegerField(verbose_name=_("male volunteer total"), null=True, blank=True)
-    female_volunteer_age_6_12 = models.IntegerField(verbose_name=_("female volunteer age 6 to 12"), null=True, blank=True)
-    female_volunteer_age_13_17 = models.IntegerField(verbose_name=_("female volunteer age 13 to 17"), null=True, blank=True)
-    female_volunteer_age_18_29 = models.IntegerField(verbose_name=_("female volunteer age 18 to 29"), null=True, blank=True)
-    female_volunteer_age_18_49 = models.IntegerField(verbose_name=_("female volunteer age 18 to 49"), null=True, blank=True)
-    female_volunteer_age_30_39 = models.IntegerField(verbose_name=_("female volunteer age 30 to 39"), null=True, blank=True)
-    female_volunteer_age_40_49 = models.IntegerField(verbose_name=_("female volunteer age 40 to 49"), null=True, blank=True)
-    female_volunteer_age_50_59 = models.IntegerField(verbose_name=_("female volunteer age 50 to 59"), null=True, blank=True)
-    female_volunteer_age_60_69 = models.IntegerField(verbose_name=_("female volunteer age 60 to 69"), null=True, blank=True)
-    female_volunteer_age_70_79 = models.IntegerField(verbose_name=_("female volunteer age 70 to 79"), null=True, blank=True)
-    female_volunteer_age_80 = models.IntegerField(verbose_name=_("female volunteer age 80"), null=True, blank=True)
+    fdrs_male_volunteer_age_6_12 = models.IntegerField(verbose_name=_("male volunteer age 6 to 12"), null=True, blank=True)
+    fdrs_male_volunteer_age_13_17 = models.IntegerField(verbose_name=_("male volunteer age 13 to 17"), null=True, blank=True)
+    fdrs_male_volunteer_age_18_29 = models.IntegerField(verbose_name=_("male volunteer age 18 to 29"), null=True, blank=True)
+    fdrs_male_volunteer_age_18_49 = models.IntegerField(verbose_name=_("male volunteer age 18 to 49"), null=True, blank=True)
+    fdrs_male_volunteer_age_30_39 = models.IntegerField(verbose_name=_("male volunteer age 30 to 39"), null=True, blank=True)
+    fdrs_male_volunteer_age_40_49 = models.IntegerField(verbose_name=_("male volunteer age 40 to 49"), null=True, blank=True)
+    fdrs_male_volunteer_age_50_59 = models.IntegerField(verbose_name=_("male volunteer age 50 to 59"), null=True, blank=True)
+    fdrs_male_volunteer_age_60_69 = models.IntegerField(verbose_name=_("male volunteer age 60 to 69"), null=True, blank=True)
+    fdrs_male_volunteer_age_70_79 = models.IntegerField(verbose_name=_("male volunteer age 70 to 79"), null=True, blank=True)
+    fdrs_male_volunteer_age_80 = models.IntegerField(verbose_name=_("male volunteer age 80"), null=True, blank=True)
+    fdrs_male_volunteer_age_other = models.IntegerField(verbose_name=_("male volunteer other"), null=True, blank=True)
+    fdrs_male_volunteer_total = models.IntegerField(verbose_name=_("male volunteer total"), null=True, blank=True)
+    fdrs_female_volunteer_age_6_12 = models.IntegerField(verbose_name=_("female volunteer age 6 to 12"), null=True, blank=True)
+    fdrs_female_volunteer_age_13_17 = models.IntegerField(verbose_name=_("female volunteer age 13 to 17"), null=True, blank=True)
+    fdrs_female_volunteer_age_18_29 = models.IntegerField(verbose_name=_("female volunteer age 18 to 29"), null=True, blank=True)
+    fdrs_female_volunteer_age_18_49 = models.IntegerField(verbose_name=_("female volunteer age 18 to 49"), null=True, blank=True)
+    fdrs_female_volunteer_age_30_39 = models.IntegerField(verbose_name=_("female volunteer age 30 to 39"), null=True, blank=True)
+    fdrs_female_volunteer_age_40_49 = models.IntegerField(verbose_name=_("female volunteer age 40 to 49"), null=True, blank=True)
+    fdrs_female_volunteer_age_50_59 = models.IntegerField(verbose_name=_("female volunteer age 50 to 59"), null=True, blank=True)
+    fdrs_female_volunteer_age_60_69 = models.IntegerField(verbose_name=_("female volunteer age 60 to 69"), null=True, blank=True)
+    fdrs_female_volunteer_age_70_79 = models.IntegerField(verbose_name=_("female volunteer age 70 to 79"), null=True, blank=True)
+    fdrs_female_volunteer_age_80 = models.IntegerField(verbose_name=_("female volunteer age 80"), null=True, blank=True)
 
-    female_volunteer_age_other = models.IntegerField(verbose_name=_("female volunteer other"), null=True, blank=True)
-    female_volunteer_total = models.IntegerField(verbose_name=_("female volunteer total"), null=True, blank=True)
-    volunteer_total = models.IntegerField(verbose_name=_("volunteer total"), null=True, blank=True)
-    volunteer_age_6_12 = models.IntegerField(verbose_name=_("volunteer age 6 to 12"), null=True, blank=True)
-    volunteer_age_13_17 = models.IntegerField(verbose_name=_("volunteer age 13 to 17"), null=True, blank=True)
-    volunteer_age_18_29 = models.IntegerField(verbose_name=_("volunteer age 18 to 29"), null=True, blank=True)
+    fdrs_female_volunteer_age_other = models.IntegerField(verbose_name=_("female volunteer other"), null=True, blank=True)
+    fdrs_female_volunteer_total = models.IntegerField(verbose_name=_("female volunteer total"), null=True, blank=True)
+    fdrs_volunteer_total = models.IntegerField(verbose_name=_("volunteer total"), null=True, blank=True)
+    fdrs_volunteer_age_6_12 = models.IntegerField(verbose_name=_("volunteer age 6 to 12"), null=True, blank=True)
+    fdrs_volunteer_age_13_17 = models.IntegerField(verbose_name=_("volunteer age 13 to 17"), null=True, blank=True)
+    fdrs_volunteer_age_18_29 = models.IntegerField(verbose_name=_("volunteer age 18 to 29"), null=True, blank=True)
+
+    # FDRS fetched year for the volunteer data
+    fdrs_volunteer_data_year = models.IntegerField(verbose_name=_("volunteer data fetched year"), null=True, blank=True)
+
     # Staff
-    female_staff_age_18_29 = models.IntegerField(verbose_name=_("female staff age 18 to 29"), null=True, blank=True)
-    female_staff_age_18_49 = models.IntegerField(verbose_name=_("female staff age 18 to 49"), null=True, blank=True)
-    female_staff_age_30_39 = models.IntegerField(verbose_name=_("female staff age 30 to 39"), null=True, blank=True)
-    female_staff_age_40_49 = models.IntegerField(verbose_name=_("female staff age 40 to 49"), null=True, blank=True)
-    female_staff_age_50_59 = models.IntegerField(verbose_name=_("female staff age 50 to 59"), null=True, blank=True)
-    female_staff_age_60_69 = models.IntegerField(verbose_name=_("female staff age 60 to 69"), null=True, blank=True)
-    female_staff_age_70_79 = models.IntegerField(verbose_name=_("female staff age 70 to 79"), null=True, blank=True)
-    female_staff_age_80 = models.IntegerField(verbose_name=_("female staff age 80"), null=True, blank=True)
-    female_staff_age_other = models.IntegerField(verbose_name=_("female staff other"), null=True, blank=True)
-    female_staff_total = models.IntegerField(verbose_name=_("female staff total"), null=True, blank=True)
-    male_staff_age_18_29 = models.IntegerField(verbose_name=_("male staff age 18 to 29"), null=True, blank=True)
-    male_staff_age_18_49 = models.IntegerField(verbose_name=_("male staff age 18 to 49"), null=True, blank=True)
-    male_staff_age_30_39 = models.IntegerField(verbose_name=_("male staff age 30 to 39"), null=True, blank=True)
-    male_staff_age_40_49 = models.IntegerField(verbose_name=_("male staff age 40 to 49"), null=True, blank=True)
-    male_staff_age_50_59 = models.IntegerField(verbose_name=_("male staff age 50 to 59"), null=True, blank=True)
-    male_staff_age_60_69 = models.IntegerField(verbose_name=_("male staff age 60 to 69"), null=True, blank=True)
-    male_staff_age_70_79 = models.IntegerField(verbose_name=_("male staff age 70 to 79"), null=True, blank=True)
-    male_staff_age_80 = models.IntegerField(verbose_name=_("male staff age 80"), null=True, blank=True)
-    male_staff_age_other = models.IntegerField(verbose_name=_("male staff other"), null=True, blank=True)
-    male_staff_total = models.IntegerField(verbose_name=_("male staff total"), null=True, blank=True)
-    staff_total = models.IntegerField(verbose_name=_("staff total"), null=True, blank=True)
-    staff_age_18_29 = models.IntegerField(verbose_name=_("staff age 18 to 29"), null=True, blank=True)
+    fdrs_female_staff_age_18_29 = models.IntegerField(verbose_name=_("female staff age 18 to 29"), null=True, blank=True)
+    fdrs_female_staff_age_18_49 = models.IntegerField(verbose_name=_("female staff age 18 to 49"), null=True, blank=True)
+    fdrs_female_staff_age_30_39 = models.IntegerField(verbose_name=_("female staff age 30 to 39"), null=True, blank=True)
+    fdrs_female_staff_age_40_49 = models.IntegerField(verbose_name=_("female staff age 40 to 49"), null=True, blank=True)
+    fdrs_female_staff_age_50_59 = models.IntegerField(verbose_name=_("female staff age 50 to 59"), null=True, blank=True)
+    fdrs_female_staff_age_60_69 = models.IntegerField(verbose_name=_("female staff age 60 to 69"), null=True, blank=True)
+    fdrs_female_staff_age_70_79 = models.IntegerField(verbose_name=_("female staff age 70 to 79"), null=True, blank=True)
+    fdrs_female_staff_age_80 = models.IntegerField(verbose_name=_("female staff age 80"), null=True, blank=True)
+    fdrs_female_staff_age_other = models.IntegerField(verbose_name=_("female staff other"), null=True, blank=True)
+    fdrs_female_staff_total = models.IntegerField(verbose_name=_("female staff total"), null=True, blank=True)
+    fdrs_male_staff_age_18_29 = models.IntegerField(verbose_name=_("male staff age 18 to 29"), null=True, blank=True)
+    fdrs_male_staff_age_18_49 = models.IntegerField(verbose_name=_("male staff age 18 to 49"), null=True, blank=True)
+    fdrs_male_staff_age_30_39 = models.IntegerField(verbose_name=_("male staff age 30 to 39"), null=True, blank=True)
+    fdrs_male_staff_age_40_49 = models.IntegerField(verbose_name=_("male staff age 40 to 49"), null=True, blank=True)
+    fdrs_male_staff_age_50_59 = models.IntegerField(verbose_name=_("male staff age 50 to 59"), null=True, blank=True)
+    fdrs_male_staff_age_60_69 = models.IntegerField(verbose_name=_("male staff age 60 to 69"), null=True, blank=True)
+    fdrs_male_staff_age_70_79 = models.IntegerField(verbose_name=_("male staff age 70 to 79"), null=True, blank=True)
+    fdrs_male_staff_age_80 = models.IntegerField(verbose_name=_("male staff age 80"), null=True, blank=True)
+    fdrs_male_staff_age_other = models.IntegerField(verbose_name=_("male staff other"), null=True, blank=True)
+    fdrs_male_staff_total = models.IntegerField(verbose_name=_("male staff total"), null=True, blank=True)
+    fdrs_staff_total = models.IntegerField(verbose_name=_("staff total"), null=True, blank=True)
+    fdrs_staff_age_18_29 = models.IntegerField(verbose_name=_("staff age 18 to 29"), null=True, blank=True)
+
+    # FDRS fetched year for the staff data
+    fdrs_staff_data_year = models.IntegerField(verbose_name=_("staff data fetched year"), null=True, blank=True)
+
     # Key Climate Event (Manual Entry)
     avg_temperature = models.FloatField(verbose_name=_("average temperature"), null=True, blank=True)
     avg_rainfall_precipitation = models.FloatField(verbose_name=_("average rainfall precipitation"), null=True, blank=True)
@@ -274,62 +298,49 @@ class CountryOverview(models.Model):
     # World bank data
     world_bank_population = models.IntegerField(verbose_name=_("world bank population"), null=True, blank=True)
     # NOTE: Using char to store integer values, Need to refactor the column type.
-    calculated_world_bank_population_year = models.CharField(
-        verbose_name=_("calculated world bank population year"), null=True, blank=True, max_length=50
-    )
+    world_bank_population_year = models.IntegerField(verbose_name=_("world bank population year"), null=True, blank=True)
     world_bank_population_above_age_65 = models.IntegerField(
         verbose_name=_("world bank population above age 65"), null=True, blank=True
     )
-    calculated_world_bank_population_above_age_65_year = models.CharField(
-        verbose_name=_("calculated world bank population above age 65 date in year"), null=True, blank=True, max_length=50
+    world_bank_population_above_age_65_year = models.IntegerField(
+        verbose_name=_("world bank population above age 65 date in year"), null=True, blank=True
     )
     world_bank_population_age_14 = models.IntegerField(verbose_name=_("world bank population age 14"), null=True, blank=True)
-    calculated_world_bank_population_age_14_year = models.CharField(
-        verbose_name=_("calculated world bank population age 14 date in year"), null=True, blank=True, max_length=50
+    world_bank_population_age_14_year = models.IntegerField(
+        verbose_name=_("world bank population age 14 date in year"), null=True, blank=True
     )
     world_bank_urban_population_percentage = models.FloatField(
         verbose_name=_("world bank urban population percentage"), null=True, blank=True
     )
-    calculated_world_bank_urban_population_percentage_year = models.CharField(
-        verbose_name=_("calculated world bank urban population percentage year"), null=True, blank=True, max_length=50
+    world_bank_urban_population_percentage_year = models.IntegerField(
+        verbose_name=_("world bank urban population percentage year"), null=True, blank=True
     )
     world_bank_gdp = models.FloatField(verbose_name=_("world bank gdp"), null=True, blank=True)
-    calculated_world_bank_gdp_year = models.CharField(
-        verbose_name=_("calculated world bank gdp year"), null=True, blank=True, max_length=50
-    )
+    world_bank_gdp_year = models.IntegerField(verbose_name=_("world bank gdp year"), null=True, blank=True)
     world_bank_gni = models.FloatField(verbose_name=_("world bank gni"), null=True, blank=True)
-    calculated_world_bank_gni_year = models.CharField(
-        verbose_name=_("calculated world bank gni year"), null=True, blank=True, max_length=50
-    )
+    world_bank_gni_year = models.IntegerField(verbose_name=_("world bank gni year"), null=True, blank=True)
     world_bank_gender_equality_index = models.FloatField(
         verbose_name=_("world bank gender equality index"), null=True, blank=True
     )
-    calculated_world_bank_gender_equality_index_year = models.CharField(
-        verbose_name=_("calculated world bank gender equality index year"), null=True, blank=True, max_length=50
+    world_bank_gender_equality_index_year = models.IntegerField(
+        verbose_name=_("world bank gender equality index year"), null=True, blank=True
     )
     world_bank_life_expectancy = models.IntegerField(verbose_name=_("world bank life expectancy"), null=True, blank=True)
-    calculated_world_bank_life_expectancy_year = models.CharField(
-        verbose_name=_("calculated world bank life expectancy year"), null=True, blank=True, max_length=50
+    world_bank_life_expectancy_year = models.IntegerField(
+        verbose_name=_("world bank life expectancy year"), null=True, blank=True
     )
     world_bank_literacy_rate = models.FloatField(verbose_name=_("world bank life expectancy"), null=True, blank=True)
-    calculated_world_bank_literacy_rate_year = models.CharField(
-        verbose_name=_("calculated world bank literacy rate year"), null=True, blank=True, max_length=50
-    )
+    world_bank_literacy_rate_year = models.IntegerField(verbose_name=_("world bank literacy rate year"), null=True, blank=True)
     world_bank_poverty_rate = models.FloatField(verbose_name=_("world bank poverty rate"), null=True, blank=True)
-    calculated_world_bank_poverty_rate_year = models.CharField(
-        verbose_name=_("calculated world bank poverty rate year"), null=True, blank=True, max_length=50
-    )
+    world_bank_poverty_rate_year = models.IntegerField(verbose_name=_("world bank poverty rate year"), null=True, blank=True)
     world_bank_gni_capita = models.IntegerField(verbose_name=_("world bank GNI Per Capita"), null=True, blank=True)
-    calculated_world_bank_gni_capita_year = models.CharField(
-        verbose_name=_("calculated world bank gni capita year"), null=True, blank=True, max_length=50
-    )
+    world_bank_gni_capita_year = models.IntegerField(verbose_name=_("world bank gni capita year"), null=True, blank=True)
 
     # fetched from unicef
     unicef_population_under_18 = models.IntegerField(verbose_name=_("Unicef population under 18"), null=True, blank=True)
 
     # hdr
     hdr_gii = models.FloatField(verbose_name=_("HDR GII"), null=True, blank=True)
-    fdrs_data_fetched_year = models.CharField(verbose_name=_("FDRS Data Fetched Year"), null=True, blank=True, max_length=50)
 
     class Meta:
         verbose_name = _("country overview")
