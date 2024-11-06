@@ -96,7 +96,10 @@ class ModelTranslator:
 
     @classmethod
     def get_translatable_fields(cls, model):
-        return list(translator.get_options_for_model(model).fields.keys())
+        translation_options = translator.get_options_for_model(model)
+        # NOTE: Some skipped fields are handled manually.
+        skipped_fields = set(getattr(translation_options, "skip_fields", []))
+        return [field for field in translation_options.fields.keys() if field not in skipped_fields]
 
     def translate_model_fields(self, obj, translatable_fields=None):
         if skip_auto_translation(obj):

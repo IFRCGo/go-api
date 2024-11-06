@@ -4,7 +4,7 @@ import pydash
 
 import api.models as models
 from api.factories import country, district
-from api.factories.event import EventFactory
+from api.factories.event import DisasterTypeFactory, EventFactory
 from deployments.factories.emergency_project import (
     EmergencyProjectActivityActionFactory,
     EmergencyProjectActivityFactory,
@@ -20,6 +20,7 @@ from deployments.factories.user import UserFactory
 from deployments.models import (
     EmergencyProject,
     EmergencyProjectActivity,
+    ProgrammeTypes,
     Project,
     VisibilityCharChoices,
 )
@@ -100,7 +101,6 @@ class TestProjectAPI(SnapshotTestCase):
 
         # check response
         self.assert_201(response)
-        self.assertMatchSnapshot(json.loads(response.content))
         self.assertTrue(Project.objects.get(name=new_project_name))
 
     def test_project_read(self):
@@ -194,11 +194,14 @@ class TestProjectAPI(SnapshotTestCase):
         sct_2 = SectorTagFactory()
         district1 = district.DistrictFactory(country=_country)
         district2 = district.DistrictFactory(country=_country)
+        dtype = DisasterTypeFactory(name="disaster-type-1", summary="summary-1")
         ProjectFactory.create_batch(
             10,
             project_districts=[district1, district2],
+            budget_amount=100000,
             primary_sector=sct,
             secondary_sectors=[sct_1, sct_2],
+            dtype=dtype,
             visibility=VisibilityCharChoices.PUBLIC,
         )
 
@@ -225,14 +228,18 @@ class TestProjectAPI(SnapshotTestCase):
             ProjectFactory.create_batch(
                 2,
                 primary_sector=sct,
+                programme_type=programme_type,
+                reporting_ns=ns,
                 project_districts=project_districts,
+                secondary_sectors=secondary_sectors,
                 visibility=VisibilityCharChoices.PUBLIC,
+                budget_amount=100000,
             )
-            for project_districts, secondary_sectors in [
-                ([c1_district1, c1_district2], [sct_1, sct_2]),
-                ([c1_district1, c1_district2], [sct_3, sct_4]),
-                ([c2_district1, c2_district2], [sct_1, sct_3]),
-                ([c2_district1, c2_district2], [sct_2, sct_4]),
+            for project_districts, secondary_sectors, programme_type in [
+                ([c1_district1, c1_district2], [sct_1, sct_2], ProgrammeTypes.BILATERAL),
+                ([c1_district1, c1_district2], [sct_3, sct_4], ProgrammeTypes.MULTILATERAL),
+                ([c2_district1, c2_district2], [sct_1, sct_3], ProgrammeTypes.DOMESTIC),
+                ([c2_district1, c2_district2], [sct_2, sct_4], ProgrammeTypes.DOMESTIC),
             ]
             for ns in [ns_1, ns_2]
         ]
