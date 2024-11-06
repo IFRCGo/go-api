@@ -354,7 +354,7 @@ class ExportPerView(views.APIView):
             "Benchmark descprition",
             "Benchmark answer (Yes/No/Partially)",
             "Benchmark notes",
-            "Consideration notes epi",
+            "Consideration notes epidemic",
             "Consideration notes urban",
             "Consideration notes climate",
             "Component rating",
