@@ -21,6 +21,7 @@ from .models import (
     PerAssessment,
     PerComponentRating,
     PerWorkPlanComponent,
+    SectorTag,
 )
 
 
@@ -138,3 +139,8 @@ class OpsLearningSectorCacheResponseTO(TranslationOptions):
 @register(OpsLearningComponentCacheResponse)
 class OpsLearningComponentCacheResponseTO(TranslationOptions):
     fields = ("content",)
+
+
+@register(SectorTag)
+class SectorTagTO(TranslationOptions):
+    fields = ("title",)
