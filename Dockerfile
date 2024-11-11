@@ -39,6 +39,10 @@ RUN perl -pi -e 's/ is not -1 / != 1 /' ${AZUREROOT}blob/baseblobservice.py
 RUN perl -pi -e "s/ is '' / == '' /"    ${AZUREROOT}common/_connection.py
 RUN perl -pi -e "s/ is '' / == '' /"    ${AZUREROOT}_connection.py
 
+# To avoid dump of "Queue is full. Dropping telemetry." messages in log, 20241111:
+ENV OPENCENSUSINIT=/usr/local/lib/python3.11/site-packages/opencensus/common/schedule/__init__.py
+RUN perl -pi -e "s/logger.warning.*/pass/" ${OPENCENSUSINIT} 2>/dev/null
+
 COPY main/nginx.conf /etc/nginx/sites-available/
 RUN \
 	ln -s /etc/nginx/sites-available/nginx.conf /etc/nginx/sites-enabled; \
