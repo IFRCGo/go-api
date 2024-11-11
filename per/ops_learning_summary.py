@@ -665,6 +665,7 @@ class OpsLearningSummaryTask:
                 + sector
                 + "\n----------------\n"
                 + "\n----------------\n".join(df_sliced["learning"])
+                + "\n\n"
             )
             return learnings_sector
 
@@ -681,6 +682,7 @@ class OpsLearningSummaryTask:
                 + component
                 + "\n----------------\n"
                 + "\n----------------\n".join(df_sliced["learning"])
+                + "\n\n"
             )
             return learnings_component
 
@@ -942,6 +944,14 @@ class OpsLearningSummaryTask:
         cls.primary_response_save_to_db(
             ops_learning_summary_instance=ops_learning_summary_instance,
             primary_summary=primary_summary,
+        )
+
+        # Translating the primary summary
+        transaction.on_commit(
+            lambda: translate_model_fields.delay(
+                get_model_name(type(ops_learning_summary_instance)),
+                ops_learning_summary_instance.pk,
+            )
         )
 
     @classmethod

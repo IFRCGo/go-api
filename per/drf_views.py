@@ -6,6 +6,7 @@ from django.db import transaction
 from django.db.models import Prefetch, Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django.utils.translation import get_language as django_get_language
 from django_filters import rest_framework as filters
 from django_filters.widgets import CSVWidget
 from drf_spectacular.utils import extend_schema
@@ -882,7 +883,15 @@ class OpsLearningViewset(viewsets.ModelViewSet):
         if ops_learning_summary_instance.status == OpsLearningCacheResponse.Status.SUCCESS:
             return response.Response(OpsLearningSummarySerializer(ops_learning_summary_instance).data)
 
-        transaction.on_commit(lambda: generate_summary.delay(ops_learning_summary_instance.id, filter_data))
+        requested_lang = django_get_language()
+        translation_lazy = requested_lang != "en"
+        transaction.on_commit(
+            lambda: generate_summary.delay(
+                ops_learning_summary_id=ops_learning_summary_instance.id,
+                filter_data=filter_data,
+                translation_lazy=translation_lazy,
+            )
+        )
         return response.Response(OpsLearningSummarySerializer(ops_learning_summary_instance).data)
 
 

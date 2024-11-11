@@ -1,9 +1,7 @@
 from celery import shared_task
-from django.db import transaction
+from django.test import override_settings
 
 from api.logger import logger
-from api.utils import get_model_name
-from lang.tasks import translate_model_fields
 from main.lock import RedisLockKey, redis_lock
 from per.models import OpsLearningCacheResponse
 from per.ops_learning_summary import OpsLearningSummaryTask
@@ -63,12 +61,6 @@ def generate_ops_learning_summary(ops_learning_summary_id: int, filter_data: dic
                 instance=ops_learning_summary_instance,
                 status=OpsLearningCacheResponse.Status.SUCCESS,
             )
-            transaction.on_commit(
-                lambda: translate_model_fields.delay(
-                    get_model_name(type(ops_learning_summary_instance)),
-                    ops_learning_summary_instance.pk,
-                )
-            )
             return True
         except Exception:
             OpsLearningSummaryTask.change_ops_learning_status(
@@ -87,9 +79,10 @@ def generate_ops_learning_summary(ops_learning_summary_id: int, filter_data: dic
 
 
 @shared_task
-def generate_summary(ops_learning_summary_id: int, filter_data: dict):
+def generate_summary(ops_learning_summary_id: int, filter_data: dict, translation_lazy: bool = True):
     with redis_lock(key=RedisLockKey.OPERATION_LEARNING_SUMMARY, id=ops_learning_summary_id) as acquired:
         if not acquired:
             logger.warning("Ops learning summary generation is already in progress")
             return False
-        return generate_ops_learning_summary(ops_learning_summary_id, filter_data)
+        with override_settings(CELERY_TASK_ALWAYS_EAGER=not translation_lazy):
+            return generate_ops_learning_summary(ops_learning_summary_id, filter_data)
