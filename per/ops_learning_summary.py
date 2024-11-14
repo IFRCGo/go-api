@@ -831,13 +831,21 @@ class OpsLearningSummaryTask:
         return processed_summary
 
     @classmethod
-    def _get_or_create_summary(cls, prompt: str, prompt_hash: str, type: OpsLearningPromptResponseCache.PromptType) -> dict:
+    def _get_or_create_summary(
+        cls, prompt: str, prompt_hash: str, type: OpsLearningPromptResponseCache.PromptType, overwrite_prompt_cache: bool = False
+    ) -> dict:
         instance, created = OpsLearningPromptResponseCache.objects.get_or_create(
             prompt_hash=prompt_hash,
             type=type,
             defaults={"prompt": prompt},
         )
-        if created or not bool(instance.response):
+        """
+        NOTE:
+        1. If the prompt response is not found in the cache, it regenerates the summary
+        2. If overwrite_prompt_cache is True, it regenerates the summary
+        3. If new obj is created, it generates the summary
+        """
+        if overwrite_prompt_cache or created or not bool(instance.response):
             summary = cls.generate_summary(prompt, type)
             instance.response = summary
             instance.save(update_fields=["response"])
@@ -926,6 +934,7 @@ class OpsLearningSummaryTask:
         cls,
         ops_learning_summary_instance: OpsLearningCacheResponse,
         primary_learning_prompt: str,
+        overwrite_prompt_cache: bool = False,
     ):
         """Retrieves or Generates the primary summary based on the provided prompt."""
         logger.info("Retrieving or generating primary summary.")
@@ -938,6 +947,7 @@ class OpsLearningSummaryTask:
             prompt=primary_learning_prompt,
             prompt_hash=primary_prompt_hash,
             type=OpsLearningPromptResponseCache.PromptType.PRIMARY,
+            overwrite_prompt_cache=overwrite_prompt_cache,
         )
 
         # Saving into the database
@@ -959,6 +969,7 @@ class OpsLearningSummaryTask:
         cls,
         ops_learning_summary_instance: OpsLearningCacheResponse,
         secondary_learning_prompt: str,
+        overwrite_prompt_cache: bool = False,
     ):
         """Retrieves or Generates the summary based on the provided prompts."""
         logger.info("Retrieving or generating secondary summary.")
@@ -971,6 +982,7 @@ class OpsLearningSummaryTask:
             prompt=secondary_learning_prompt,
             prompt_hash=secondary_prompt_hash,
             type=OpsLearningPromptResponseCache.PromptType.SECONDARY,
+            overwrite_prompt_cache=overwrite_prompt_cache,
         )
 
         # Saving into the database

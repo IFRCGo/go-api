@@ -4,12 +4,14 @@ from functools import lru_cache
 
 from django.contrib import admin
 from django.http import HttpResponse
+from django.utils.translation import get_language as django_get_language
 from reversion_compare.admin import CompareVersionAdmin
 
 import per.models as models
 from api.models import Appeal
 from lang.admin import TranslationAdmin, TranslationInlineModelAdmin
 from per.admin_classes import GotoNextModelAdmin, RegionRestrictedAdmin
+from per.task import generate_summary
 
 
 class FormDataInline(admin.TabularInline, TranslationInlineModelAdmin):
@@ -324,6 +326,23 @@ class OpsLearningCacheResponseAdmin(TranslationAdmin):
         "exported_file",
         "exported_at",
     )
+    actions = ["regenerate_summary"]
+
+    def regenerate_summary(self, request, queryset):
+        """
+        Regenerate the summary of the selected OpsLearningCacheResponse objects.
+        """
+        requested_lang = django_get_language()
+        for obj in queryset:
+            generate_summary.delay(
+                ops_learning_summary_id=obj.id,
+                filter_data=obj.used_filters,
+                translation_lazy=requested_lang != "en",
+                # NOTE: Regenerating the summary will overwrite the cache
+                overwrite_prompt_cache=True,
+            )
+
+    regenerate_summary.short_description = "Regenerate Summary for selected Ops Learning Cache Response"
 
 
 class OpsLearningPromptResponseCacheAdmin(admin.ModelAdmin):

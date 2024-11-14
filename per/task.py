@@ -7,7 +7,7 @@ from per.models import OpsLearningCacheResponse
 from per.ops_learning_summary import OpsLearningSummaryTask
 
 
-def generate_ops_learning_summary(ops_learning_summary_id: int, filter_data: dict):
+def generate_ops_learning_summary(ops_learning_summary_id: int, filter_data: dict, overwrite_prompt_cache: bool = False):
     ops_learning_summary_instance = OpsLearningCacheResponse.objects.filter(id=ops_learning_summary_id).first()
     if not ops_learning_summary_instance:
         logger.error("Ops learning summary not found", exc_info=True)
@@ -44,6 +44,7 @@ def generate_ops_learning_summary(ops_learning_summary_id: int, filter_data: dic
             OpsLearningSummaryTask.get_or_create_primary_summary(
                 ops_learning_summary_instance=ops_learning_summary_instance,
                 primary_learning_prompt=primary_learning_prompt,
+                overwrite_prompt_cache=overwrite_prompt_cache,
             )
 
             # Prioritize excerpts for secondary insights
@@ -54,6 +55,7 @@ def generate_ops_learning_summary(ops_learning_summary_id: int, filter_data: dic
             OpsLearningSummaryTask.get_or_create_secondary_summary(
                 ops_learning_summary_instance=ops_learning_summary_instance,
                 secondary_learning_prompt=secondary_learning_prompt,
+                overwrite_prompt_cache=overwrite_prompt_cache,
             )
 
             # Change Ops Learning Summary Status to SUCCESS
@@ -79,10 +81,19 @@ def generate_ops_learning_summary(ops_learning_summary_id: int, filter_data: dic
 
 
 @shared_task
-def generate_summary(ops_learning_summary_id: int, filter_data: dict, translation_lazy: bool = True):
+def generate_summary(
+    ops_learning_summary_id: int,
+    filter_data: dict,
+    translation_lazy: bool = True,
+    overwrite_prompt_cache: bool = False,
+):
     with redis_lock(key=RedisLockKey.OPERATION_LEARNING_SUMMARY, id=ops_learning_summary_id) as acquired:
         if not acquired:
             logger.warning("Ops learning summary generation is already in progress")
             return False
         with override_settings(CELERY_TASK_ALWAYS_EAGER=not translation_lazy):
-            return generate_ops_learning_summary(ops_learning_summary_id, filter_data)
+            return generate_ops_learning_summary(
+                ops_learning_summary_id=ops_learning_summary_id,
+                filter_data=filter_data,
+                overwrite_prompt_cache=overwrite_prompt_cache,
+            )
