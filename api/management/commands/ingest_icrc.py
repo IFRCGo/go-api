@@ -39,7 +39,17 @@ class Command(BaseCommand):
         # Get countries information from "Where we work" page
         regions_list = soup.find("div", {"class": "js-select-country-list"}).find("ul").find_all("ul")
 
-        country_list = []
+        # Holds the list of countries that are part of the key operations
+        key_operations_country_list = soup.find("div", {"class": "key-operations-content"}).find_all("div", class_="title")
+
+        # NOTE: Mapping this Country, as it doesnot match with the name in the database
+        country_name_mapping = {"Syria": "Syrian Arab Republic", "Israel and the occupied territories": "Israel"}
+
+        country_operations_list = [
+            country.text.strip() for key_operation in key_operations_country_list for country in key_operation.find_all("a")
+        ]
+
+        countries = []
         for region in regions_list:
             for country in region.find_all("li"):
                 name = country.text.strip()
@@ -47,7 +57,8 @@ class Command(BaseCommand):
                 country_url = icrc_url + href if href else None
                 presence = bool(country_url)
                 description = None
-                key_operation = False
+                # Check if country is part of the key operations
+                key_operation = name in country_operations_list
 
                 if country_url:
                     try:
@@ -55,13 +66,12 @@ class Command(BaseCommand):
                         country_page.raise_for_status()
                         country_soup = BeautifulSoup(country_page.content, "html.parser")
                         description_tag = country_soup.find("div", class_="description").find("div", class_="ck-text")
-                        key_operation = bool(description_tag)
                         description = description_tag.text.strip() if description_tag else None
                     except Exception:
                         pass
 
                 # Append to list
-                country_list.append(
+                countries.append(
                     {
                         "Country": name,
                         "ICRC presence": presence,
@@ -72,7 +82,11 @@ class Command(BaseCommand):
                 )
 
         added = 0
-        for data in country_list:
+        created_ns_presence_pk = []
+        for data in countries:
+            # NOTE: mapping the country name
+            data["Country"] = country_name_mapping.get(data["Country"], data["Country"])
+
             country = Country.objects.filter(name__exact=data["Country"]).first()
             if country:
                 country_icrc_presence, _ = CountryICRCPresence.objects.get_or_create(country=country)
@@ -81,7 +95,10 @@ class Command(BaseCommand):
                 country_icrc_presence.key_operation = data["Key operation"]
                 country_icrc_presence.description = data["Description"]
                 country_icrc_presence.save()
+                created_ns_presence_pk.append(country_icrc_presence.pk)
                 added += 1
+        # NOTE: Delete the CountryICRCPresence that are not in the source
+        CountryICRCPresence.objects.exclude(id__in=created_ns_presence_pk).delete()
 
         text_to_log = f"{added} ICRC added"
         logger.info(text_to_log)
