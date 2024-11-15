@@ -819,7 +819,7 @@ class OpsLearningSummaryTask:
                     continue
                 if confidence_level in value["content"].lower():
                     parts = re.split(rf"(?i)\b{confidence_level}\b", value["content"])
-                    value["content"] = parts[0]
+                    value["content"] = parts[0].strip() + "."
                     value["confidence level"] = parts[1][1:].strip()
 
             return summary
@@ -834,7 +834,7 @@ class OpsLearningSummaryTask:
     def _get_or_create_summary(
         cls, prompt: str, prompt_hash: str, type: OpsLearningPromptResponseCache.PromptType, overwrite_prompt_cache: bool = False
     ) -> dict:
-        instance, created = OpsLearningPromptResponseCache.objects.get_or_create(
+        instance, created = OpsLearningPromptResponseCache.objects.update_or_create(
             prompt_hash=prompt_hash,
             type=type,
             defaults={"prompt": prompt},
@@ -845,7 +845,7 @@ class OpsLearningSummaryTask:
         2. If overwrite_prompt_cache is True, it regenerates the summary
         3. If new obj is created, it generates the summary
         """
-        if overwrite_prompt_cache or created or not bool(instance.response):
+        if overwrite_prompt_cache or created or bool(instance.response) is False:
             summary = cls.generate_summary(prompt, type)
             instance.response = summary
             instance.save(update_fields=["response"])
@@ -984,6 +984,11 @@ class OpsLearningSummaryTask:
             type=OpsLearningPromptResponseCache.PromptType.SECONDARY,
             overwrite_prompt_cache=overwrite_prompt_cache,
         )
+        if overwrite_prompt_cache:
+            logger.info("Clearing the cache for secondary summary.")
+            # NOTE: find a better way to update the cache
+            OpsLearningComponentCacheResponse.objects.filter(filter_response=ops_learning_summary_instance).delete()
+            OpsLearningSectorCacheResponse.objects.filter(filter_response=ops_learning_summary_instance).delete()
 
         # Saving into the database
         cls.secondary_response_save_to_db(

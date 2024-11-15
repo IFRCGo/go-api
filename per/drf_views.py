@@ -707,7 +707,9 @@ class OpsLearningFilter(filters.FilterSet):
             "is_validated": ("exact",),
             "learning": ("exact", "icontains"),
             "learning_validated": ("exact", "icontains"),
+            "type_validated": ("exact", "in"),
             "organization_validated": ("exact",),
+            "organization_validated__title": ("exact", "in"),
             "appeal_code": ("exact", "in"),
             "appeal_code__code": ("exact", "icontains", "in"),
             "appeal_code__num_beneficiaries": ("exact", "gt", "gte", "lt", "lte"),
@@ -884,12 +886,11 @@ class OpsLearningViewset(viewsets.ModelViewSet):
             return response.Response(OpsLearningSummarySerializer(ops_learning_summary_instance).data)
 
         requested_lang = django_get_language()
-        translation_lazy = requested_lang != "en"
         transaction.on_commit(
             lambda: generate_summary.delay(
                 ops_learning_summary_id=ops_learning_summary_instance.id,
                 filter_data=filter_data,
-                translation_lazy=translation_lazy,
+                translation_lazy=requested_lang == "en",
             )
         )
         return response.Response(OpsLearningSummarySerializer(ops_learning_summary_instance).data)

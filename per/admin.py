@@ -309,8 +309,8 @@ class OpsLearningAdmin(GotoNextModelAdmin):
 
 class OpsLearningCacheResponseAdmin(TranslationAdmin):
     search_fields = (
-        "response",
         "id",
+        "used_ops_learning__appeal_code__aid",
     )
     list_display = (
         "__str__",
@@ -319,6 +319,7 @@ class OpsLearningCacheResponseAdmin(TranslationAdmin):
         "insights3_title",
         "status",
     )
+    list_filter = ("status",)
     used_ops_learning_in = "used_ops_learning_in"
     autocomplete_fields = ("used_ops_learning",)
     exclude = (
@@ -337,7 +338,7 @@ class OpsLearningCacheResponseAdmin(TranslationAdmin):
             generate_summary.delay(
                 ops_learning_summary_id=obj.id,
                 filter_data=obj.used_filters,
-                translation_lazy=requested_lang != "en",
+                translation_lazy=requested_lang == "en",
                 # NOTE: Regenerating the summary will overwrite the cache
                 overwrite_prompt_cache=True,
             )
