@@ -1487,6 +1487,7 @@ class FieldReport(models.Model):
     summary = models.TextField(verbose_name=_("summary"), blank=True)
     # Title field is used for the translation and later adding formated into the summary
     title = models.CharField(max_length=256, blank=True)
+    fr_num = models.IntegerField(verbose_name=_("field report number"), null=True, blank=True)
     description = HTMLField(verbose_name=_("description"), blank=True, default="")
     dtype = models.ForeignKey(DisasterType, verbose_name=_("disaster type"), on_delete=models.PROTECT)
     event = models.ForeignKey(
@@ -1699,17 +1700,34 @@ class FieldReport(models.Model):
         country_iso3 = self.countries.first().iso3 if self.id and self.countries.first() else "N/A"
         dtype = self.dtype.name if self.dtype else "N/A"
         start_date = self.start_date.strftime("%m-%Y")
-        field_report_number = FieldReport.objects.filter(countries__iso3=country_iso3).exclude(id=self.id).count() + 1
         current_date = timezone.now().strftime("%Y-%m-%d")
+
+        if self.fr_num is None and self.event and self.id:
+            current_fr_number = (
+                FieldReport.objects.filter(event=self.event, countries__iso3=country_iso3).aggregate(
+                    max_fr_num=models.Max("fr_num")
+                )["max_fr_num"]
+                or 0
+            )
+            field_report_number = current_fr_number + 1
+            self.fr_num = field_report_number
+            # NOTE: Updating the updated_fields when the fr_num is updated by translation tasks
+            yield "fr_num"
+
+        # NOTE: Report number is set to None if the report is not associated with an event
+        if self.id and not self.event:
+            self.fr_num = None
+
+        suffix = ""
+        if self.fr_num and self.fr_num > 1:
+            suffix = f"#{self.fr_num} ({current_date})"
 
         for lang in AVAILABLE_LANGUAGES:
             activate(lang)
             if self.is_covid_report:
-                # {ISO3}: COVID-19 #{Field Report Number} ({Date})
-                self.summary = f"{country_iso3}: COVID-19 #{field_report_number} ({current_date})"
+                self.summary = f"{country_iso3}: COVID-19 {suffix}"
             else:
-                # {ISO3}: {Disaster Type} - {Start Date} #{Field Report Number} ({Date})
-                self.summary = f"{country_iso3}: {dtype} - {start_date} {self.title} #{field_report_number} ({current_date})"
+                self.summary = f"{country_iso3}: {dtype} - {start_date} - {self.title} {suffix}"
             deactivate()
             yield build_localized_fieldname("summary", lang)
 
