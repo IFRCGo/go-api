@@ -1561,6 +1561,7 @@ class AppealDocumentAppealSerializer(serializers.ModelSerializer):
             "id",
             "code",
             "event",
+            "start_date",
         )
 
 

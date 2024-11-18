@@ -57,25 +57,25 @@ class OpsLearningSummaryTask:
     MIN_DIF_EXCERPTS = 3
 
     primary_prompt = (
-        "Please aggregate and summarize the provided data into UP TO THREE structured paragraphs. "
-        "The output MUST strictly adhere to the format below: "
-        "- *Title*: Each finding should begin with the main finding TITLE in bold. "
+        "Please aggregate and summarize the provided data into UP TO THREE structured paragraphs.\n"
+        "The output MUST strictly adhere to the format below:\n"
+        "- *Title*: Each finding should begin with the main finding TITLE in bold.\n"
         "Should be a high level summary of the finding below. "
-        "The length of the title MUST be between 20 and 30 characters."
-        "- *Excerpts ID*: Identify the ids of the excerpts you took into account for creating the summary. "
+        "The length of the title MUST be between 20 and 30 characters.\n"
+        "- *Excerpts ID*: Identify the ids of the excerpts you took into account for creating the summary.\n"
         "- Content: Aggregate findings so that they are supported by evidence from more than one report. "
         "Always integrate evidence from multiple reports or items into the paragraph, and "
-        "include the year and country of the evidence."
+        "include the year and country of the evidence.\n"
         "- *Confidence Level*: Based on the number of excerpts connected to the finding, "
         "assign a score from 1 to 5 where 1 is the lowest and 5 is the highest, e.g. 4/5"
-        "At the end of the summary, please highlight any contradictory country reports. "
-        "Important:"
-        "-- DO NOT mention the excerpts id in the content of the summary."
-        "-- DO NOT mention the confidence level in the content of the summary."
-        "-- DO NOT use data from any source other than the one provided."
-        "Output Format:"
-        "Provide your answer in valid JSON form. Reply with only the answer in valid JSON form and include no other commentary. "
-        "Example: "
+        "At the end of the summary, please highlight any contradictory country reports.\n"
+        "Important:\n\n"
+        "-- DO NOT mention the excerpts id in the content of the summary.\n"
+        "-- DO NOT mention the confidence level in the content of the summary.\n"
+        "-- DO NOT use data from any source other than the one provided.\n\n"
+        "Output Format:\n"
+        "Provide your answer in valid JSON form. Reply with only the answer in valid JSON form and include no other commentary.\n"
+        "Example:\n"
         '{"0": {"title": "Flexible and Adaptive Response Planning", "excerpts id":"123, 45" '
         '"content": "Responses in Honduras, Peru, Ecuador, and Panama highlight the importance of adaptable strategies. '
         "The shift from youth-focused MHPSS to inclusive care in Peru in 2021, the pivot from sanitation infrastructure "
@@ -88,22 +88,22 @@ class OpsLearningSummaryTask:
     )
 
     secondary_prompt = (
-        "Please aggregate and summarize this data into structured paragraphs (as few as possible, as many as necessary). "
-        "The output SHOULD ALWAYS follow the format below: "
-        "- *Type*: Whether the paragraph is related to a 'sector' or a 'component' "
-        "- *Subtype*: Provides the name of the sector or of the component to which the paragraph refers."
-        "- *Excerpts ID*: Identify the ids of the excerpts you took into account for creating the summary."
+        "Please aggregate and summarize this data into structured paragraphs (as few as possible, as many as necessary). \n "
+        "The output SHOULD ALWAYS follow the format below:\n"
+        "- *Type*: Whether the paragraph is related to a 'sector' or a 'component'\n"
+        "- *Subtype*: Provides the name of the sector or of the component to which the paragraph refers.\n"
+        "- *Excerpts ID*: Identify the ids of the excerpts you took into account for creating the summary.\n"
         "*Content*: A short summary aggregating findings related to the Subtype, "
         "so that they are supported by evidence coming from more than one report, "
         "and there is ONLY ONE entry per subtype. Always integrate in the paragraph evidence that supports "
         "it from the data available from multiples reports or items, include year and country of the evidence. "
-        "The length of each paragraph MUST be between 20 and 30 words."
-        " Important:"
-        "- ONLY create one summary per subtype"
-        "- DO NOT mention the ids of the excerpts in the content of the summary."
-        "- DO NOT use data from any source other than the one provided. "
-        "Output Format:"
-        "Provide your answer in valid JSON form. Reply with ONLY the answer in JSON form and include NO OTHER COMMENTARY."
+        "The length of each paragraph MUST be between 20 and 30 words.\n"
+        " Important:\n\n"
+        "- ONLY create one summary per subtype\n"
+        "- DO NOT mention the ids of the excerpts in the content of the summary.\n"
+        "- DO NOT use data from any source other than the one provided.\n\n"
+        "Output Format:\n"
+        "Provide your answer in valid JSON form. Reply with ONLY the answer in JSON form and include NO OTHER COMMENTARY.\n"
         '{"0": {"type": "sector", "subtype": "shelter", "excerpts id":"43, 1375, 14543", "content": "lorem ipsum"}, '
         '"1": {"type": "component", "subtype": "Information Management", "excerpts id":"23, 235", "content": "lorem ipsum"}, '
         '"2": {"type": "sector", "subtype": "WASH", "excerpts id":"30, 40",  "content": "lorem ipsum"}}'
@@ -120,21 +120,21 @@ class OpsLearningSummaryTask:
     )
 
     primary_instruction_prompt = (
-        "You should:"
-        "1. Describe, Summarize and Compare: Identify and detail the who, what, where and when"
-        "2. Explain and Connect: Analyze why events happened and how they are related"
-        "3. Identify gaps: Assess what data is available, what is missing and potential biases"
-        "4. Identify key messages: Determine important stories and signals hidden in the data"
-        "5. Select top three: Select up to three findings to report"
+        "You should:\n"
+        "1. Describe, Summarize and Compare: Identify and detail the who, what, where and when "
+        "2. Explain and Connect: Analyze why events happened and how they are related "
+        "3. Identify gaps: Assess what data is available, what is missing and potential biases "
+        "4. Identify key messages: Determine important stories and signals hidden in the data "
+        "5. Select top three: Select up to three findings to report "
     )
 
     secondary_instruction_prompt = (
-        "You should for each section in the data (TYPE & SUBTYPE combination):"
-        "1. Describe, Summarize and Compare: Identify and detail the who, what, where and when"
-        "2. Explain and Connect: Analyze why events happened and how they are related"
-        "3. Identify gaps: Assess what data is available, what is missing and potential biases"
-        "4. Identify key messages: Determine if there are important stories and signals hidden in the data"
-        "5. Conclude and make your case"
+        "You should for each section in the data (TYPE & SUBTYPE combination):\n"
+        "1. Describe, Summarize and Compare: Identify and detail the who, what, where and when "
+        "2. Explain and Connect: Analyze why events happened and how they are related "
+        "3. Identify gaps: Assess what data is available, what is missing and potential biases "
+        "4. Identify key messages: Determine if there are important stories and signals hidden in the data "
+        "5. Conclude and make your case "
     )
 
     @staticmethod
@@ -552,7 +552,7 @@ class OpsLearningSummaryTask:
         return (
             "I will provide you with a set of instructions, data, and formatting requests in three sections."
             + " I will pass you the INSTRUCTIONS section, are you ready?"
-            + "\n\n\n\n"
+            + "\n\n"
         )
 
     @classmethod
@@ -585,9 +585,9 @@ class OpsLearningSummaryTask:
             component_str = '", "'.join(components)
             instructions.append(f'and "{component_str}" aspects')
 
-        instructions.append("in Emergency Response.")
+        instructions.append("in Emergency Response. ")
         instructions.append("\n\n" + instruction)
-        instructions.append("\n\nI will pass you the DATA section, are you ready?\n\n\n")
+        instructions.append("\n\nI will pass you the DATA section, are you ready?\n\n")
         return "\n".join(instructions)
 
     @classmethod
@@ -814,13 +814,30 @@ class OpsLearningSummaryTask:
             Checks if the "Confidence level" is present in the primary response and skipping for the secondary summary
             """
             for key, value in summary.items():
-                confidence_level = "confidence level"
-                if key == "contradictory reports" or confidence_level in value:
+                if key == "contradictory reports":
                     continue
-                if confidence_level in value["content"].lower():
-                    parts = re.split(rf"(?i)\b{confidence_level}\b", value["content"])
+
+                content = value.get("content", "")
+                excerpt_ids = value.get("excerpts id", "")
+                excerpt_id_list = (
+                    list(set(excerpt_ids))
+                    if isinstance(excerpt_ids, list)
+                    else list(set(int(id.strip()) for id in excerpt_ids.split(",") if excerpt_ids and excerpt_ids != ""))
+                )
+
+                # Check if any excerpt id is present in the content and regenerate the summary if found
+                if any(re.search(rf"\b{id}\b", content) for id in excerpt_id_list):
+                    return cls.generate_summary(prompt, type)
+
+                value["content"] = content
+                value["excerpts id"] = excerpt_id_list
+
+                # Extract and remove if `confidence level` exists in the content
+                confidence_level = "confidence level"
+                if confidence_level not in value and confidence_level in content.lower():
+                    parts = re.split(rf"(?i)\b{confidence_level}\b", content, maxsplit=1)
                     value["content"] = parts[0].strip() + "."
-                    value["confidence level"] = parts[1][1:].strip()
+                    value["confidence level"] = parts[1].strip()
 
             return summary
 
@@ -906,11 +923,7 @@ class OpsLearningSummaryTask:
             type = value["type"].strip()
             subtype = value["subtype"].strip()
             content = value["content"].strip()
-            excerpt_ids = value["excerpts id"]
-            if isinstance(excerpt_ids, list):
-                excerpt_id_list = list(set(excerpt_ids if excerpt_ids else []))
-            else:
-                excerpt_id_list = list(set(int(id.strip()) for id in excerpt_ids.split(",") if excerpt_ids and excerpt_ids != ""))
+            excerpt_id_list = value["excerpts id"]
 
             if type == "component" and len(excerpt_id_list) > 0:
                 cls.add_used_ops_learnings_component(
