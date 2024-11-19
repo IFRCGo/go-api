@@ -1,0 +1,48 @@
+{{- range $hookName, $hook := .Values.argoHooks }}
+
+{{- if $hook.enabled }}
+
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  {{- if $hook.preservehistory }}
+  generateName: {{ template "ifrcgo-helm.fullname" $ }}-{{ $hookName }}-
+  {{- else }}
+  name: {{ template "ifrcgo-helm.fullname" $ }}-{{ $hookName }}
+  {{- end }}
+  annotations:
+    argocd.argoproj.io/hook: {{ $hook.hook }}
+
+spec:
+  template:
+    metadata:
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/config/secret.yaml") $ | sha256sum }}
+        checksum/configmap: {{ include (print $.Template.BasePath "/config/configmap.yaml") $ | sha256sum }}
+    spec:
+      restartPolicy: "Never"
+      containers:
+        - name: {{ $.Chart.Name }}-{{ $hookName }}
+          image: "{{ $.Values.api.image.name }}:{{ $.Values.api.image.tag }}"
+          imagePullPolicy: {{ $.Values.api.image.pullPolicy }}
+          command:
+              {{- range $hook.command }}
+              - "{{ . }}"
+              {{- end }}
+          resources:
+            requests:
+              cpu: {{ default $.Values.api.resources.requests.cpu $hook.requestsCpu }}
+              memory: {{ default $.Values.api.resources.requests.memory $hook.requestsMemory }}
+            limits:
+              cpu: {{ default $.Values.api.resources.limits.cpu $hook.limitsCpu }}
+              memory: {{ default $.Values.api.resources.limits.memory $hook.limitsMemory }}
+          envFrom:
+            - secretRef:
+                name: {{ template "ifrcgo-helm.fullname" $ }}-api-secret
+            - configMapRef:
+                name: {{ template "ifrcgo-helm.fullname" $ }}-api-configmap
+
+{{- end }}
+
+{{- end }}
