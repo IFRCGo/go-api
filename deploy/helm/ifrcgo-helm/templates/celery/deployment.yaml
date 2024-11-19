@@ -16,6 +16,9 @@ spec:
       run: {{ .Release.Name }}-celery
   template:
     metadata:
+      annotations:
+        checksum/secret: {{ include (print .Template.BasePath "/config/secret.yaml") . | sha256sum }}
+        checksum/configmap: {{ include (print .Template.BasePath "/config/configmap.yaml") . | sha256sum }}
       labels:
         app: {{ template "ifrcgo-helm.name" . }}
         release: {{ .Release.Name }}
