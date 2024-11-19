@@ -95,7 +95,7 @@ api:
   image:
     name: 'SET-BY-CHARTPRESS'
     tag: 'set-by-chartpress'
-    pullPolicy: 'ifNotPresent'
+    pullPolicy: 'IfNotPresent'
   resources:
     requests:
       cpu: "2"
@@ -123,6 +123,18 @@ celery:
     limits:
       cpu: "2"
       memory: 4Gi
+
+argoHooks:
+  # NOTE: Make sure keys are lowercase
+  database-migration:
+    enabled: true
+    hook: PostSync
+    preserveHistory: true
+    command: ["./manage.py", "migrate"]
+  collect-static:
+    enabled: true
+    hook: PostSync
+    command: ["./manage.py", "collectstatic", "--noinput"]
 
 cronjobs:
   - command: 'index_and_notify'
@@ -212,15 +224,3 @@ sshBastion:
     thenav56.pub: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN/f/A3qkaTHSdbKn8Hv75YiJvRMEXvWTDdIiR7tyAjJ navin@nav-machine
     david.pub: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC3FzrQdVh5Qwp5Y6KQGcpqHxKErxCW103iEECuutR/jBZe6X0xjD+cW7e+H8SrUsPQwj87fzOsMAc6v6n+3hdYFa6ekgRG/USEIUR5C/GD1Xjva3Xpp45PasBhJEtYt2ON+dlzwvRyOuv2hvqv2WHBO020ewIlVuQ4pU4Qj5ysvwWGj8GAv/jITiVERmjLTStbFwxeIDT3jQEbwnfV1zZZKiGxIecB/y51nk6oIQ00ZGrYEo5ieWsUSVfLHOX0/lZ0mtrdqxDEgMaCbNaUbICAimsJPamNpoirKc7FoKIKKrLQsK8qE1lClWQEecbW+dgSiwxracooKeWhHq+BkKUCNgEL/C0ff2l9e8sJcLmYZUdPtDCdtUDC8BAlELA5HR6tdCTfFcc0nXltclSSODMnZkQohh5/2fixJTwN5p5csEfBLzbdrturKtT/TbYSoaodg4muPqY4YE5jiJfrHVAGS1DVWz/cRcm1vOxT2V4iW2SNvo8fS2PZOpU5furrvbM= ifrcds\david.muchatiza@5CG41911S1
     paola.pub: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDGql4RrbxSQTW5QrTh+P+94jGCXOCeZgc23hxL9zFCYQrzL0SMw1F53Z5SFZimIhJswYPqV2pT8L4oTRqIrTCM+looWi7b9/9u+m/KmA+FWbo3u6uRrckkA3nVIKsKHvlOucX2GxE6i+tXdeXEisW49ZpMtuvxMLJ3Eg4MK10d/2d3FKuzTsrxCTlJn8FAE3yOsVow0jdu+381IrkAqRE2GINeQ87hVlQpbo+bL2N/2QZmNjDhBBQkRJLDisW0+UNgo+S9wN7HbpV5LheSJS9wGN7LlmcqlpZFrDO/lVyoMxEQ0588wUI8BVfqAZDEBJPdGtzq513r+5iXEX/9A1Mendlvxfl6ANNRcH9PVZHkRN1dxY3rckQ+Lk3qqIjjfYFYvl5Gybidb1BM2VNWHAuzaDDQzJpeTHIbQnDt7Ke4oX2xWYgyu+kVhqz0HnAV28qMXbMEsrMIrtwl7IjcrorgdduHghZvWFbaJZNtXOfgnf1IYNXkZ9eWPS+Bz9nWMhE= ifrcds\paola.yela@5CG41911RT
-
-argoHooks:
-  # NOTE: Make sure keys are lowercase
-  database-migration:
-    enabled: true
-    hook: PostSync
-    preservehistory: true
-    command: ["./manage.py", "migrate"]
-  collect-static:
-    enabled: true
-    hook: PostSync
-    command: ["./manage.py", "collectstatic", "--noinput"]
