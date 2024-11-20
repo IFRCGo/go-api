@@ -116,6 +116,32 @@ class Command(BaseCommand):
         countries = ["c%s" % id for id in countries]
         return countries, regions
 
+    def gather_event_countries_and_regions(self, records):
+        # Applies to surgealerts, which have a
+        # many-to-many relationship to countries and regions through event table
+        countries = []
+        for record in records:
+            if record.event.countries is not None:
+                countries += [country.id for country in record.event.countries.all()]
+        countries = list(set(countries))
+        qs = Country.objects.filter(pk__in=countries)
+        regions = ["r%s" % country.region.id for country in qs if country.region is not None]
+        countries = ["c%s" % id for id in countries]
+        return countries, regions
+
+    def gather_eventdt_countries_and_regions(self, records):
+        # Applies to deployments_personneldeployments, which have a
+        # many-to-many relationship to countries and regions through event_deployed_to
+        countries = []
+        for record in records:
+            if record.event_deployed_to.countries is not None:
+                countries += [country.id for country in record.event_deployed_to.countries.all()]
+        countries = list(set(countries))
+        qs = Country.objects.filter(pk__in=countries)
+        regions = ["r%s" % country.region.id for country in qs if country.region is not None]
+        countries = ["c%s" % id for id in countries]
+        return countries, regions
+
     def fix_types_for_subs(self, rtype, stype=SubscriptionType.NEW):
         # Correction for the new notification types:
         if rtype == RecordType.EVENT or rtype == RecordType.FIELD_REPORT:
@@ -133,34 +159,68 @@ class Command(BaseCommand):
         if self.is_digest_mode():
             subscribers = User.objects.filter(subscription__rtype=RecordType.WEEKLY_DIGEST, is_active=True).values("email")
             # In digest mode we do not care about other circumstances, just get every subscriber's email.
-            emails = [subscriber["email"] for subscriber in subscribers]
+            emails = list(set([subscriber["email"] for subscriber in subscribers]))
             return emails
         else:
             # Start with any users subscribed directly to this record type.
             subscribers = User.objects.filter(
                 subscription__rtype=rtype_of_subscr, subscription__stype=stype, is_active=True
             ).values("email")
+            emails = list(set([subscriber["email"] for subscriber in subscribers]))
 
-        # For FOLLOWED_EVENTs and DEPLOYMENTs we do not collect other generic (d*, country, region) subscriptions, just one.
-        # This part is not called.
-        if (
-            rtype_of_subscr != RecordType.FOLLOWED_EVENT
-            and rtype_of_subscr != RecordType.SURGE_ALERT
-            and rtype_of_subscr != RecordType.SURGE_DEPLOYMENT_MESSAGES
-        ):
-            dtypes = list(set(["d%s" % record.dtype.id for record in records if record.dtype is not None]))
+        # For FOLLOWED_EVENTs we do not collect other generic (d*, country, region) subscriptions.
+        if rtype_of_subscr != RecordType.FOLLOWED_EVENT:
+            subscribers_no_geo_dtype = (
+                User.objects.filter(subscription__rtype=rtype_of_subscr, subscription__stype=stype, is_active=True)
+                .exclude(subscription__rtype__in=[RecordType.COUNTRY, RecordType.REGION, RecordType.DTYPE])
+                .values("email")
+            )
+            emailset_no_geo_dtype = {subscriber["email"] for subscriber in subscribers_no_geo_dtype}
+
+            subscribers_geo = (
+                User.objects.filter(subscription__rtype=rtype_of_subscr, subscription__stype=stype, is_active=True)
+                .filter(subscription__rtype__in=[RecordType.COUNTRY, RecordType.REGION])
+                .values("email")
+            )
+            emailset_geo = {subscriber["email"] for subscriber in subscribers_geo}
+
+            subscribers_dtype = (
+                User.objects.filter(subscription__rtype=rtype_of_subscr, subscription__stype=stype, is_active=True)
+                .filter(subscription__rtype=RecordType.DTYPE)
+                .values("email")
+            )
+            emailset_dtype = {subscriber["email"] for subscriber in subscribers_dtype}
 
             if rtype_of_subscr == RecordType.NEW_OPERATIONS:
                 countries, regions = self.gather_country_and_region(records)
+            elif rtype_of_subscr == RecordType.SURGE_ALERT:
+                countries, regions = self.gather_event_countries_and_regions(records)
+            elif rtype_of_subscr == RecordType.SURGE_DEPLOYMENT_MESSAGES:
+                countries, regions = self.gather_eventdt_countries_and_regions(records)
             else:
                 countries, regions = self.gather_countries_and_regions(records)
 
-            lookups = dtypes + countries + regions
-            if len(lookups):
-                subscribers = (
-                    subscribers | User.objects.filter(subscription__lookup_id__in=lookups, is_active=True).values("email")
-                ).distinct()
-        emails = list(set([subscriber["email"] for subscriber in subscribers]))
+            if rtype_of_subscr == RecordType.SURGE_ALERT:
+                dtypes = list(set(["d%s" % record.event.dtype.id for record in records if record.event.dtype is not None]))
+            elif rtype_of_subscr == RecordType.SURGE_DEPLOYMENT_MESSAGES:
+                dtypes = list(set(["d%s" % rec.event_deployed_to.dtype.id for rec in records if rec.event_deployed_to.dtype]))
+            else:
+                dtypes = list(set(["d%s" % record.dtype.id for record in records if record.dtype is not None]))
+
+            geo = countries + regions
+            if len(geo):
+                emailset_geo = emailset_geo & {
+                    subscriber["email"]
+                    for subscriber in User.objects.filter(subscription__lookup_id__in=geo, is_active=True).values("email")
+                }
+
+            if len(dtypes):
+                emailset_dtype = emailset_dtype & {
+                    subscriber["email"]
+                    for subscriber in User.objects.filter(subscription__lookup_id__in=dtypes, is_active=True).values("email")
+                }
+
+            emails = list(emailset_no_geo_dtype | emailset_geo | emailset_dtype)
         return emails
 
     def get_template(self, rtype=99):
