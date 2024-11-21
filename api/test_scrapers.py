@@ -57,6 +57,11 @@ class FieldReportNotificationTest(TestCase):
     def test_country_subscription(self):
         # Subscription to a country
         user = get_user()
+        Subscription.objects.create(
+            user=user,
+            rtype=RecordType.NEW_EMERGENCIES,  # FIELD_REPORT,
+            stype=SubscriptionType.NEW,
+        )
         c = Country.objects.get(name="c2")
         Subscription.objects.create(
             user=user,
@@ -66,7 +71,7 @@ class FieldReportNotificationTest(TestCase):
         notify = Notify()
         emails = notify.gather_subscribers(
             FieldReport.objects.filter(created_at__gte=notify.diff_5_minutes()),
-            RecordType.FIELD_REPORT,
+            RecordType.NEW_EMERGENCIES,  # FIELD_REPORT,
             SubscriptionType.NEW,
         )
         self.assertEqual(len(emails), 1)
@@ -75,6 +80,11 @@ class FieldReportNotificationTest(TestCase):
     def test_region_subscription(self):
         # Subscription to a region
         user = get_user()
+        Subscription.objects.create(
+            user=user,
+            rtype=RecordType.NEW_EMERGENCIES,  # FIELD_REPORT,
+            stype=SubscriptionType.NEW,
+        )
         r = Region.objects.get(name=1)
         Subscription.objects.create(
             user=user,
@@ -84,7 +94,7 @@ class FieldReportNotificationTest(TestCase):
         notify = Notify()
         emails = notify.gather_subscribers(
             FieldReport.objects.filter(created_at__gte=notify.diff_5_minutes()),
-            RecordType.FIELD_REPORT,
+            RecordType.NEW_EMERGENCIES,  # FIELD_REPORT,
             SubscriptionType.NEW,
         )
         self.assertEqual(len(emails), 1)
@@ -93,6 +103,11 @@ class FieldReportNotificationTest(TestCase):
     def test_dtype_subscription(self):
         # Subscription to a disaster type
         user = get_user()
+        Subscription.objects.create(
+            user=user,
+            rtype=RecordType.NEW_EMERGENCIES,  # FIELD_REPORT,
+            stype=SubscriptionType.NEW,
+        )
         d = DisasterType.objects.get(name="d1")
         Subscription.objects.create(
             user=user,
@@ -102,7 +117,7 @@ class FieldReportNotificationTest(TestCase):
         notify = Notify()
         emails = notify.gather_subscribers(
             FieldReport.objects.filter(created_at__gte=notify.diff_5_minutes()),
-            RecordType.FIELD_REPORT,
+            RecordType.NEW_EMERGENCIES,  # FIELD_REPORT,
             SubscriptionType.NEW,
         )
         self.assertEqual(len(emails), 1)
@@ -111,6 +126,18 @@ class FieldReportNotificationTest(TestCase):
     def test_multiple_subscription(self):
         user1 = get_user()
         user2 = get_user()
+
+        Subscription.objects.create(
+            user=user1,
+            rtype=RecordType.NEW_EMERGENCIES,  # FIELD_REPORT,
+            stype=SubscriptionType.NEW,
+        )
+
+        Subscription.objects.create(
+            user=user2,
+            rtype=RecordType.NEW_EMERGENCIES,  # FIELD_REPORT,
+            stype=SubscriptionType.NEW,
+        )
 
         d = DisasterType.objects.get(name="d1")
         r = Region.objects.get(name=1)
@@ -139,7 +166,7 @@ class FieldReportNotificationTest(TestCase):
         notify = Notify()
         emails = notify.gather_subscribers(
             FieldReport.objects.filter(created_at__gte=notify.diff_5_minutes()),
-            RecordType.FIELD_REPORT,
+            RecordType.NEW_EMERGENCIES,  # FIELD_REPORT,
             SubscriptionType.NEW,
         )
         self.assertEqual(len(emails), 2)
@@ -161,6 +188,11 @@ class AppealNotificationTest(TestCase):
 
     def test_region_subscription(self):
         user = get_user()
+        Subscription.objects.create(
+            user=user,
+            rtype=RecordType.NEW_OPERATIONS,
+            stype=SubscriptionType.NEW,
+        )
         r = Region.objects.get(name="1")
         Subscription.objects.create(user=user, region=r, lookup_id="r%s" % r.id)
         notify = Notify()
@@ -174,6 +206,11 @@ class AppealNotificationTest(TestCase):
 
     def test_region_and_country_subscription(self):
         user = get_user()
+        Subscription.objects.create(
+            user=user,
+            rtype=RecordType.NEW_OPERATIONS,
+            stype=SubscriptionType.NEW,
+        )
         r = Region.objects.get(name="1")
         c = Country.objects.get(name="2")
         Subscription.objects.create(user=user, region=r, lookup_id="r%s" % r.id)
