@@ -3,6 +3,8 @@ import datetime
 import factory
 from factory import fuzzy
 
+from api.factories.country import CountryFactory
+from api.models import Appeal, AppealDocument
 from deployments.factories.project import SectorTagFactory
 from per.models import (
     AssessmentType,
@@ -105,11 +107,21 @@ class FormPrioritizationFactory(factory.django.DjangoModelFactory):
         model = FormPrioritization
 
 
+class AppealFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Appeal
+
+    country = factory.SubFactory(CountryFactory)
+
+
 class OpsLearningFactory(factory.django.DjangoModelFactory):
     learning = fuzzy.FuzzyText(length=50)
 
     class Meta:
         model = OpsLearning
+
+    appeal_code = factory.SubFactory(AppealFactory)
+    is_validated = fuzzy.FuzzyChoice([True, False])
 
 
 class OpsLearningCacheResponseFactory(factory.django.DjangoModelFactory):
@@ -141,3 +153,10 @@ class OpsLearningComponentCacheResponseFactory(factory.django.DjangoModelFactory
 
     class Meta:
         model = OpsLearningComponentCacheResponse
+
+
+class AppealDocumentFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = AppealDocument
+
+    appeal = factory.SubFactory(AppealFactory)

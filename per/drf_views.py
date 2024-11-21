@@ -3,7 +3,7 @@ from datetime import datetime
 import pytz
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Prefetch, Q
+from django.db.models import Count, F, OuterRef, Prefetch, Q, Subquery
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils.translation import get_language as django_get_language
@@ -20,7 +20,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
-from api.models import Country
+from api.models import Appeal, AppealType, Country
 from deployments.models import SectorTag
 from main.permissions import DenyGuestUserMutationPermission, DenyGuestUserPermission
 from main.utils import SpreadSheetContentNegotiation
@@ -920,6 +920,82 @@ class OpsLearningViewset(viewsets.ModelViewSet):
             )
         )
         return response.Response(OpsLearningSummarySerializer(ops_learning_summary_instance).data)
+
+    @action(
+        detail=False,
+        methods=["GET"],
+        permission_classes=[DenyGuestUserMutationPermission, OpsLearningPermission],
+        url_path="stats",
+    )
+    def stats(self, request):
+        """
+        Get the Ops Learning stats based on the filters
+        """
+        ops_data = (
+            super()
+            .get_queryset()
+            .filter(is_validated=True)
+            .select_related("appeal_code")
+            .prefetch_related(
+                "appeal_code__appealdocument",
+                "sector_validated",
+            )
+            .aggregate(
+                operations_included=Count("appeal_code", distinct=True),
+                learning_extracts=Count("id", distinct=True),
+                sector_covered=Count("sector_validated", distinct=True),
+                source_used=Count("appeal_code__appealdocument", distinct=True),
+            )
+        )
+
+        learning_by_sector = (
+            SectorTag.objects.filter(title__isnull=False)
+            .annotate(count=Count("validated_sectors", distinct=True))
+            .values("title", "count")
+        )
+
+        sources_overtime = {
+            str(appeal_type_label): OpsLearning.objects.filter(appeal_code__atype=appeal_type, is_validated=True)
+            .annotate(date=F(("appeal_code__start_date")))
+            .values("date")
+            .annotate(count=Count("appeal_code__appealdocument", distinct=True))
+            .order_by("date")
+            for appeal_type, appeal_type_label in AppealType.choices
+        }
+
+        region_subquery = Appeal.objects.filter(code=OuterRef("appeal_code"), region__isnull=False).values("region__label")[:1]
+        region_id = Appeal.objects.filter(code=OuterRef("appeal_code"), region__isnull=False).values("region__id")[:1]
+
+        learning_by_region = (
+            OpsLearning.objects.filter(is_validated=True)
+            .annotate(name=Subquery(region_subquery))
+            .values("name")
+            .annotate(id=Subquery(region_id), count=Count("id", distinct=True))
+            .order_by("name")
+        )
+
+        country_subquery = Appeal.objects.filter(code=OuterRef("appeal_code"), country__isnull=False).values("country__name")[:1]
+        country_id = Appeal.objects.filter(code=OuterRef("appeal_code"), country__isnull=False).values("country__id")[:1]
+
+        learning_by_country = (
+            OpsLearning.objects.filter(is_validated=True)
+            .annotate(name=Subquery(country_subquery))
+            .values("name")
+            .annotate(id=Subquery(country_id), count=Count("id", distinct=True))
+            .order_by("name")
+        )
+
+        data = {
+            "operations_included": ops_data["operations_included"],
+            "learning_extracts": ops_data["learning_extracts"],
+            "sectors_covered": ops_data["sector_covered"],
+            "sources_used": ops_data["source_used"],
+            "learning_by_region": learning_by_region,
+            "learning_by_sector": learning_by_sector,
+            "sources_overtime": sources_overtime,
+            "learning_by_country": learning_by_country,
+        }
+        return response.Response(data)
 
 
 class PerDocumentUploadViewSet(viewsets.ModelViewSet):
