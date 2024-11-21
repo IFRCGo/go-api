@@ -3,6 +3,8 @@ import datetime
 import factory
 from factory import fuzzy
 
+from api.factories.country import CountryFactory
+from api.models import Appeal, AppealDocument
 from deployments.factories.project import SectorTagFactory
 from per.models import (
     AssessmentType,
@@ -141,3 +143,17 @@ class OpsLearningComponentCacheResponseFactory(factory.django.DjangoModelFactory
 
     class Meta:
         model = OpsLearningComponentCacheResponse
+
+
+class AppealFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Appeal
+
+    country = factory.SubFactory(CountryFactory)
+
+
+class AppealDocumentFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = AppealDocument
+
+    appeal = factory.SubFactory(AppealFactory)
