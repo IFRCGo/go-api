@@ -2,17 +2,21 @@ import json
 from unittest import mock
 
 from api.factories.country import CountryFactory
-from api.models import AppealType
+from api.factories.region import RegionFactory
+from api.models import AppealDocument, AppealType
 from main.test_case import APITestCase
 from per.factories import (
+    AppealDocumentFactory,
+    AppealFactory,
     FormAreaFactory,
     FormComponentFactory,
     FormPrioritizationFactory,
+    OpsLearningFactory,
     OverviewFactory,
     PerWorkPlanFactory,
 )
 
-from .models import WorkPlanStatus
+from .models import OpsLearning, WorkPlanStatus
 
 
 class PerTestCase(APITestCase):
@@ -224,3 +228,68 @@ class OpsLearningSummaryTestCase(APITestCase):
         }
         self.check_response_id(url=url, data=filters)
         self.assertTrue(generate_summary.assert_called)
+
+
+class OpsLearningStatsTestCase(APITestCase):
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.region = RegionFactory()
+        cls.country = CountryFactory(region=cls.region)
+
+        OpsLearningFactory.create_batch(10)
+
+        for _ in range(5):
+            appeal = AppealFactory(region=cls.region)
+            AppealDocumentFactory.create_batch(2, appeal=appeal)
+
+        FormAreaFactory.create_batch(3)
+
+    def test_ops_learning_stats(self):
+        url = "/api/v2/ops-learning/stats/"
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+
+        # Validate keys in response
+        expected_keys = [
+            "operations_included",
+            "sources_used",
+            "learning_extracts",
+            "sectors_covered",
+            "sources_overtime",
+            "learning_by_region",
+            "learning_by_area",
+        ]
+        for key in expected_keys:
+            self.assertIn(key, response.data)
+
+        # Validate counts
+        self.assertEqual(response.data["operations_included"], OpsLearning.objects.count())
+
+        appeal_codes = OpsLearning.objects.values_list("appeal_code", flat=True).distinct()
+        sources_count = AppealDocument.objects.filter(appeal__aid__in=appeal_codes).distinct().count()
+        self.assertEqual(response.data["sources_used"], sources_count)
+
+        validated_learning_extracts = OpsLearning.objects.filter(learning_validated__isnull=False).count()
+        self.assertEqual(response.data["learning_extracts"], validated_learning_extracts)
+
+        sectors_covered_count = OpsLearning.objects.filter(sector_validated__isnull=False).values("sector").distinct().count()
+        self.assertEqual(response.data["sectors_covered"], sectors_covered_count)
+
+        # Validate sources_overtime
+        for appeal_type, label in AppealType.choices:
+            self.assertIn(label, response.data["sources_overtime"])
+            for item in response.data["sources_overtime"][label]:
+                self.assertIn("year", item)
+                self.assertIn("count", item)
+
+        # Validate learning_by_region
+        for item in response.data["learning_by_region"]:
+            self.assertIn("region_name", item)
+            self.assertIn("count", item)
+
+        # Validate learning_by_area
+        for item in response.data["learning_by_area"]:
+            self.assertIn("title", item)
+            self.assertIn("count", item)

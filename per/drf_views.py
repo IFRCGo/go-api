@@ -3,7 +3,8 @@ from datetime import datetime
 import pytz
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Prefetch, Q
+from django.db.models import Count, F, OuterRef, Prefetch, Q, Subquery
+from django.db.models.functions import ExtractYear
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils.translation import get_language as django_get_language
@@ -20,7 +21,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
-from api.models import Country
+from api.models import AppealDocument, AppealType, Country
 from deployments.models import SectorTag
 from main.permissions import DenyGuestUserMutationPermission, DenyGuestUserPermission
 from main.utils import SpreadSheetContentNegotiation
@@ -920,6 +921,65 @@ class OpsLearningViewset(viewsets.ModelViewSet):
             )
         )
         return response.Response(OpsLearningSummarySerializer(ops_learning_summary_instance).data)
+
+    @action(
+        detail=False,
+        methods=["GET"],
+        permission_classes=[DenyGuestUserMutationPermission, OpsLearningPermission],
+        url_path="stats",
+    )
+    def stats(self, request):
+
+        ops_data = OpsLearning.objects.aggregate(
+            operations_included=Count("id", distict=True),
+            learning_extracts=Count("id", filter=Q(learning_validated__isnull=False), distinct=True),
+            sector_covered=Count("id", filter=Q(sector_validated__isnull=False), distinct=True),
+        )
+        sources_count = (
+            AppealDocument.objects.filter(appeal__aid__in=OpsLearning.objects.values_list("appeal_code", flat=True))
+            .distinct()
+            .count()
+        )
+
+        learning_by_area = FormArea.objects.annotate(
+            count=Subquery(
+                OpsLearning.objects.filter(per_component_validated__area=OuterRef("pk"))
+                .values("per_component_validated__area")
+                .annotate(count=Count("id", distict=True))
+                .values("count")[:1]
+            )
+        ).values("title", "count")
+
+        learning_by_region = (
+            OpsLearning.objects.values(region_name=F("appeal_code__region__label"))
+            .annotate(count=Count("id", distict=True))
+            .order_by("region_name")
+        )
+
+        sources_overtime = {}
+        for appeal_type, appeal_type_label in AppealType.choices:
+            # Convert appealtype_label to a string
+            appeal_type_label_str = str(appeal_type_label)
+            subquery = (
+                OpsLearning.objects.annotate(year=ExtractYear(F("appeal_code__start_date")))
+                .filter(appeal_code__atype=appeal_type)
+                .values("year")
+                .annotate(count=Count("id"))
+                .distinct()
+                .order_by("year")
+            )
+            sources_overtime[appeal_type_label_str] = list(subquery)
+
+        data = {
+            "operations_included": ops_data["operations_included"],
+            "learning_extracts": ops_data["learning_extracts"],
+            "sectors_covered": ops_data["sector_covered"],
+            "sources_used": sources_count,
+            "sources_overtime": sources_overtime,
+            "learning_by_region": list(learning_by_region),
+            "learning_by_area": learning_by_area,
+        }
+        return response.Response(data)
 
 
 class PerDocumentUploadViewSet(viewsets.ModelViewSet):
