@@ -43,7 +43,23 @@ class Command(BaseCommand):
         key_operations_country_list = soup.find("div", {"class": "key-operations-content"}).find_all("div", class_="title")
 
         # NOTE: Mapping this Country, as it doesnot match with the name in the database
-        country_name_mapping = {"Syria": "Syrian Arab Republic", "Israel and the occupied territories": "Israel"}
+        country_name_mapping = {
+            "Syria": "Syrian Arab Republic",
+            "Israel and the occupied territories": "Israel",
+            "Republic of Moldova": "Moldova, Republic of",
+            "United Arab Emirates (UAE) delegation": "United Arab Emirates",
+            "The Republic of South Sudan": "South Sudan",
+            "United States of America": "United States",
+            "Russia": "Russian Federation",
+            "Iran": "Iran, Islamic Republic of",
+            "Democratic Republic of the Congo": "Democratic Republic of Congo",
+        }
+
+        # NOTE: Group country names
+        countries_group = {
+            "Indonesia and Timor-Leste",
+            "Gulf Cooperation Council (GCC) Countries",
+        }
 
         country_operations_list = [
             country.text.strip() for key_operation in key_operations_country_list for country in key_operation.find_all("a")
@@ -67,6 +83,25 @@ class Command(BaseCommand):
                         country_soup = BeautifulSoup(country_page.content, "html.parser")
                         description_tag = country_soup.find("div", class_="description").find("div", class_="ck-text")
                         description = description_tag.text.strip() if description_tag else None
+
+                        # NOTE: Getting the countries that are part of the country_group
+                        if name in countries_group:
+                            country_contact_soup = (
+                                country_soup.find(id="contact-country")
+                                .find("div", class_="icrc-container")
+                                .find_all("div", class_="contact-row")
+                            )
+                            for contact in country_contact_soup:
+                                country_name = contact.find("div", class_="title").text.strip()
+                                countries.append(
+                                    {
+                                        "Country": country_name,
+                                        "ICRC presence": presence,
+                                        "URL": country_url,
+                                        "Key operation": key_operation,
+                                        "Description": description,
+                                    }
+                                )
                     except Exception:
                         pass
 
@@ -80,6 +115,9 @@ class Command(BaseCommand):
                         "Description": description,
                     }
                 )
+
+        # Remove the countries_group countries from the countries list
+        countries = [country for country in countries if country["Country"] not in countries_group]
 
         added = 0
         created_ns_presence_pk = []
