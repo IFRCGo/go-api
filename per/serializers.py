@@ -42,6 +42,7 @@ from .models import (
     OpsLearningCacheResponse,
     OpsLearningComponentCacheResponse,
     OpsLearningSectorCacheResponse,
+    OrganizationTypes,
     Overview,
     PerAssessment,
     PerComponentRating,
@@ -1243,3 +1244,12 @@ class OpsLearningSummarySerializer(serializers.ModelSerializer):
         return Appeal.objects.filter(id__in=obj.used_ops_learning.values("appeal_code__id")).aggregate(
             max_start_date=models.Max("start_date"),
         )["max_start_date"]
+
+
+class OpsLearningOrganizationTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrganizationTypes
+        fields = [
+            "id",
+            "title",
+        ]

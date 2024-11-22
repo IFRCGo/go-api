@@ -188,7 +188,7 @@ class OpsLearningAdmin(GotoNextModelAdmin):
     ls = ("organization", "organization_validated", "sector", "sector_validated", "per_component", "per_component_validated")
     list_filter = ("is_validated", "appeal_code__atype") + ls
     autocomplete_fields = ("appeal_code",) + ls
-    search_fields = ("learning", "learning_validated")
+    search_fields = ("learning", "learning_validated", "appeal_code__aid", "appeal_code__code")
     list_display = ("learning", "appeal_code", "is_validated", "modified_at")
     change_form_template = "admin/opslearning_change_form.html"
     actions = ["export_selected_records"]
@@ -311,6 +311,7 @@ class OpsLearningCacheResponseAdmin(TranslationAdmin):
     search_fields = (
         "id",
         "used_ops_learning__appeal_code__aid",
+        "used_ops_learning__appeal_code__code",
     )
     list_display = (
         "__str__",

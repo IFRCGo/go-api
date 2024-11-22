@@ -17,6 +17,7 @@ from rest_framework import views, viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
 from api.models import Country
@@ -79,6 +80,7 @@ from .serializers import (
     NiceDocumentSerializer,
     OpsLearningCSVSerializer,
     OpsLearningInSerializer,
+    OpsLearningOrganizationTypeSerializer,
     OpsLearningSerializer,
     OpsLearningSummarySerializer,
     PerAssessmentSerializer,
@@ -865,6 +867,30 @@ class OpsLearningViewset(viewsets.ModelViewSet):
         context["bom"] = True
 
         return context
+
+    @extend_schema(
+        request=None,
+        filters=False,
+        responses=OpsLearningOrganizationTypeSerializer(many=True),
+    )
+    @action(
+        detail=False,
+        methods=["GET"],
+        permission_classes=[DenyGuestUserMutationPermission, OpsLearningPermission],
+        serializer_class=OpsLearningOrganizationTypeSerializer,
+        url_path="organization-type",
+    )
+    def organization(self, request):
+        """
+        Get the Organization Types
+        """
+        queryset = OrganizationTypes.objects.exclude(is_deprecated=True)
+        serializer = OpsLearningOrganizationTypeSerializer(queryset, many=True)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = OpsLearningOrganizationTypeSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        return Response(serializer.data)
 
     @extend_schema(
         request=None,
