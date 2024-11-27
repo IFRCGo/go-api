@@ -59,5 +59,4 @@ def get_email_context(instance):
         "actions_taken": actions_taken,
         "resources": resources,
     }
-    email_context = {key: value for key, value in email_context.items() if value is not None}
     return email_context

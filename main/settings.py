@@ -137,6 +137,7 @@ DEBUG_TOOLBAR_CONFIG = {
 
 ALLOWED_HOSTS = [
     "localhost",
+    "serve",
     "0.0.0.0",
     GO_API_FQDN,
     *env("DJANGO_ADDITIONAL_ALLOWED_HOSTS"),
