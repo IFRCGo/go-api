@@ -6,6 +6,7 @@ from django.db import transaction
 from django.db.models import Prefetch, Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django.utils.translation import get_language as django_get_language
 from django_filters import rest_framework as filters
 from django_filters.widgets import CSVWidget
 from drf_spectacular.utils import extend_schema
@@ -16,6 +17,7 @@ from rest_framework import views, viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
 from api.models import Country
@@ -78,6 +80,7 @@ from .serializers import (
     NiceDocumentSerializer,
     OpsLearningCSVSerializer,
     OpsLearningInSerializer,
+    OpsLearningOrganizationTypeSerializer,
     OpsLearningSerializer,
     OpsLearningSummarySerializer,
     PerAssessmentSerializer,
@@ -706,7 +709,9 @@ class OpsLearningFilter(filters.FilterSet):
             "is_validated": ("exact",),
             "learning": ("exact", "icontains"),
             "learning_validated": ("exact", "icontains"),
+            "type_validated": ("exact", "in"),
             "organization_validated": ("exact",),
+            "organization_validated__title": ("exact", "in"),
             "appeal_code": ("exact", "in"),
             "appeal_code__code": ("exact", "icontains", "in"),
             "appeal_code__num_beneficiaries": ("exact", "gt", "gte", "lt", "lte"),
@@ -865,6 +870,30 @@ class OpsLearningViewset(viewsets.ModelViewSet):
 
     @extend_schema(
         request=None,
+        filters=False,
+        responses=OpsLearningOrganizationTypeSerializer(many=True),
+    )
+    @action(
+        detail=False,
+        methods=["GET"],
+        permission_classes=[DenyGuestUserMutationPermission, OpsLearningPermission],
+        serializer_class=OpsLearningOrganizationTypeSerializer,
+        url_path="organization-type",
+    )
+    def organization(self, request):
+        """
+        Get the Organization Types
+        """
+        queryset = OrganizationTypes.objects.exclude(is_deprecated=True)
+        serializer = OpsLearningOrganizationTypeSerializer(queryset, many=True)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = OpsLearningOrganizationTypeSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        return Response(serializer.data)
+
+    @extend_schema(
+        request=None,
         filters=True,
         responses=OpsLearningSummarySerializer,
     )
@@ -882,7 +911,14 @@ class OpsLearningViewset(viewsets.ModelViewSet):
         if ops_learning_summary_instance.status == OpsLearningCacheResponse.Status.SUCCESS:
             return response.Response(OpsLearningSummarySerializer(ops_learning_summary_instance).data)
 
-        transaction.on_commit(lambda: generate_summary.delay(ops_learning_summary_instance.id, filter_data))
+        requested_lang = django_get_language()
+        transaction.on_commit(
+            lambda: generate_summary.delay(
+                ops_learning_summary_id=ops_learning_summary_instance.id,
+                filter_data=filter_data,
+                translation_lazy=requested_lang == "en",
+            )
+        )
         return response.Response(OpsLearningSummarySerializer(ops_learning_summary_instance).data)
 
 
