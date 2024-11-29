@@ -520,3 +520,21 @@ class MiniDelegationOfficeSerializer(serializers.ModelSerializer):
             "city",
             "address",
         )
+
+
+class LocalUnitDepricateSerializer(serializers.Serializer):
+    is_deprecated = serializers.BooleanField(default=True)
+    deprecated_reason = serializers.ChoiceField(choices=LocalUnit.DepricateReason.choices)
+    depricated_reason_overview = serializers.CharField(required=False)
+
+    def save(self):
+        """Depricate the local unit object"""
+
+        depricated_reason = self.validated_data["deprecated_reason"]
+        depricated_reason_overview = self.validated_data.get("deprecated_reason_overview", "")
+        self.instance.is_deprecated = True
+        self.instance.deprecated_reason = depricated_reason
+        self.instance.deprecate_notes = depricated_reason_overview
+        self.instance.save()
+
+        return self.instance
