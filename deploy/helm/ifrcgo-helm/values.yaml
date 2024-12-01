@@ -156,7 +156,6 @@ cronjobs:
   - command: 'ingest_icrc'
     schedule: '0 3 * * 0'
 
-
 elasticsearch:
   enabled: true
   httpPort: 9200
