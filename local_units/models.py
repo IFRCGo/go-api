@@ -281,7 +281,7 @@ class LocalUnit(models.Model):
         VERIFIED = 1, _("Verified")
         UNVERIFIED = 2, _("Unverified")
 
-    class DepricateReason(models.IntegerChoices):
+    class DeprecateReason(models.IntegerChoices):
         NON_EXISTENT = 1, _("Non-existent local unit")
         INCORRECTLY_ADDED = 2, _("Incorrectly added local unit")
         SECURITY_CONCERNS = 3, _("Security concerns")
@@ -355,7 +355,7 @@ class LocalUnit(models.Model):
     )
     is_deprecated = models.BooleanField(default=False, verbose_name=_("Is deprecated?"), blank=True, null=True)
     deprecated_reason = models.IntegerField(
-        choices=DepricateReason.choices, verbose_name=_("deprecated reason"), blank=True, null=True
+        choices=DeprecateReason.choices, verbose_name=_("deprecated reason"), blank=True, null=True
     )
     deprecated_reason_overview = models.TextField(
         verbose_name=_("Explain the reason why the local unit is being deleted"), blank=True, null=True
