@@ -277,6 +277,16 @@ class LocalUnitLevel(models.Model):
 
 @reversion.register(follow=("health",))
 class LocalUnit(models.Model):
+    class Status(models.IntegerChoices):
+        VERIFIED = 1, _("Verified")
+        UNVERIFIED = 2, _("Unverified")
+
+    class DeprecateReason(models.IntegerChoices):
+        NON_EXISTENT = 1, _("Non-existent local unit")
+        INCORRECTLY_ADDED = 2, _("Incorrectly added local unit")
+        SECURITY_CONCERNS = 3, _("Security concerns")
+        OTHER = 4, _("Other")
+
     # added to track health local unit data (Table B)
     health = models.ForeignKey(
         HealthData, on_delete=models.SET_NULL, verbose_name=_("Health Data"), related_name="health_data", null=True, blank=True
@@ -340,10 +350,66 @@ class LocalUnit(models.Model):
     email = models.EmailField(max_length=255, blank=True, null=True, verbose_name=_("Email"))
     link = models.URLField(max_length=255, blank=True, null=True, verbose_name=_("Social link"))
     location = models.PointField(srid=4326, help_text="Local Unit Location")
+    status = models.IntegerField(choices=Status.choices, verbose_name=_("status"), default=Status.UNVERIFIED)
+    is_deprecated = models.BooleanField(default=False, verbose_name=_("Is deprecated?"))
+    deprecated_reason = models.IntegerField(
+        choices=DeprecateReason.choices, verbose_name=_("deprecated reason"), blank=True, null=True
+    )
+    deprecated_reason_overview = models.TextField(
+        verbose_name=_("Explain the reason why the local unit is being deleted"), blank=True, null=True
+    )
 
     def __str__(self):
         branch_name = self.local_branch_name or self.english_branch_name
         return f"{branch_name} ({self.country.name})"
+
+
+class LocalUnitChangeRequest(models.Model):
+
+    class Status(models.IntegerChoices):
+        PENDING = 1, _("Pending")
+        APPROVED = 2, _("Approved")
+        REVERT = 3, _("Revert")
+
+    class Validator(models.IntegerChoices):
+        LOCAL = 1, _("Local")
+        REGIONAL = 2, _("Regional")
+        GLOBAL = 3, _("Global")
+
+    local_unit = models.ForeignKey(
+        LocalUnit, on_delete=models.CASCADE, verbose_name=_("Local Unit"), related_name="local_unit_change_request"
+    )
+    previous_data = models.JSONField(verbose_name=_("Previous data"), default=dict)
+    status = models.IntegerField(choices=Status.choices, verbose_name=_("status"), default=Status.PENDING)
+    current_validator = models.IntegerField(
+        choices=Validator.choices, verbose_name=_("Current validator"), default=Validator.LOCAL
+    )
+
+    # NOTE: triggered_by is the user who created the request
+    triggered_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_("triggered by"),
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="tiggered_by_local_unit",
+    )
+    triggered_at = models.DateTimeField(verbose_name=_("Triggered at"), auto_now_add=True)
+
+    # NOTE: updated_by is the user who approved/revert the request
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_("updated by"),
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="updated_by_local_unit",
+    )
+    updated_at = models.DateTimeField(verbose_name=_("Updated at"), auto_now=True)
+    rejected_data = models.JSONField(verbose_name=_("Rejected data"), default=dict)
+    rejected_reason = models.TextField(verbose_name=_("Rejected reason"), blank=True, null=True)
+
+    def __str__(self):
+        branch_name = self.local_branch_name or self.english_branch_name
+        return f"{branch_name}-Change Request-{self.id}"
 
 
 class DelegationOfficeType(models.Model):
