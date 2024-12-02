@@ -351,9 +351,9 @@ class LocalUnit(models.Model):
     link = models.URLField(max_length=255, blank=True, null=True, verbose_name=_("Social link"))
     location = models.PointField(srid=4326, help_text="Local Unit Location")
     status = models.IntegerField(
-        choices=Status.choices, verbose_name=_("status"), default=Status.UNVERIFIED, blank=True, null=True
+        choices=Status.choices, verbose_name=_("status"), default=Status.UNVERIFIED
     )
-    is_deprecated = models.BooleanField(default=False, verbose_name=_("Is deprecated?"), blank=True, null=True)
+    is_deprecated = models.BooleanField(default=False, verbose_name=_("Is deprecated?"))
     deprecated_reason = models.IntegerField(
         choices=DeprecateReason.choices, verbose_name=_("deprecated reason"), blank=True, null=True
     )
@@ -395,7 +395,7 @@ class LocalUnitChangeRequest(models.Model):
         null=True,
         related_name="tiggered_by_local_unit",
     )
-    triggered_at = models.DateTimeField(verbose_name=_("Triggered at"), auto_now=True)
+    triggered_at = models.DateTimeField(verbose_name=_("Triggered at"), auto_now_add=True)
 
     # NOTE: updated_by is the user who approved/revert the request
     updated_by = models.ForeignKey(
