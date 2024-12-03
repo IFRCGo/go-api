@@ -1,3 +1,4 @@
+from django.utils import timezone
 from drf_spectacular.utils import extend_schema
 from rest_framework import permissions, response, views, viewsets
 from rest_framework.decorators import action
@@ -14,6 +15,7 @@ from local_units.models import (
     GeneralMedicalService,
     HospitalType,
     LocalUnit,
+    LocalUnitChangeRequest,
     LocalUnitLevel,
     LocalUnitType,
     PrimaryHCC,
@@ -58,6 +60,34 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         return bad_request("Delete method not allowed")
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+
+        # Creating a new change request for the local unit
+        LocalUnitChangeRequest.objects.create(
+            local_unit=serializer.instance,
+            previous_data=serializer.data,
+            status=LocalUnitChangeRequest.Status.PENDING,
+            triggered_by=request.user,
+        )
+        return response.Response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        local_unit = self.get_object()
+
+        serializer = self.get_serializer_class(local_unit)
+
+        # Creating a new change request for the local unit
+        LocalUnitChangeRequest.objects.create(
+            local_unit=local_unit,
+            previous_data=serializer.data,
+            status=LocalUnitChangeRequest.Status.PENDING,
+            triggered_by=request.user,
+        )
+        return super().update(request, *args, **kwargs)
+
     @extend_schema(responses=PrivateLocalUnitSerializer)
     @action(
         detail=True,
@@ -68,10 +98,75 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
     )
     def get_validate(self, request, pk=None, version=None):
         local_unit = self.get_object()
+
+        serializer = self.get_serializer_class(local_unit)
+
+        # Creating a new change request to revert the local unit
+        change_request_instance = LocalUnitChangeRequest.objects.create(
+            previous_data=serializer.data,
+            status=LocalUnitChangeRequest.Status.APPROVED,
+            triggered_by=request.user,
+            updated_by=request.user,
+            updated_at=timezone.now(),
+        )
+        change_request_instance.local_unit = local_unit
+        change_request_instance.save(
+            update_fields=[
+                "local_unit",
+            ]
+        )
+
+        # Validate the local unit
         local_unit.validated = True
-        local_unit.save(update_fields=["validated"])
         serializer = PrivateLocalUnitSerializer(local_unit, context={"request": request})
         return response.Response(serializer.data)
+
+    @extend_schema(responses=PrivateLocalUnitSerializer)
+    @action(
+        detail=True,
+        url_path="revert",
+        methods=["post"],
+        serializer_class=PrivateLocalUnitSerializer,
+    )
+    def get_revert(self, request, pk=None, version=None):
+        local_unit = self.get_object()
+
+        if local_unit.validated and local_unit.status == LocalUnit.Status.VERIFIED:
+            return bad_request("Local unit is already validated and cannot be reverted")
+
+        local_unit_data = PrivateLocalUnitSerializer(local_unit, context={"request": request})
+
+        # Creating a new change request to revert the local unit
+        change_request_instance = LocalUnitChangeRequest.objects.create(
+            previous_data=local_unit_data.validated_data,
+            status=LocalUnitChangeRequest.Status.REVERT,
+            triggered_by=request.user,
+        )
+        change_request_instance.local_unit = local_unit
+        change_request_instance.save(
+            update_fields=[
+                "local_unit",
+            ]
+        )
+
+        # Reverting the last change request related to this local unit
+        last_change_request = LocalUnitChangeRequest.objects.filter(
+            local_unit=local_unit,
+            status=LocalUnitChangeRequest.Status.APPROVED,
+        ).last()
+
+        # reverting the previous data of change request to local unit by passing through serializer
+        if last_change_request:
+            serializer = PrivateLocalUnitSerializer(
+                local_unit,
+                data=last_change_request.previous_data,
+                context={"request": request},
+                partial=True,
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+        else:
+            return bad_request("No change request found to revert")
 
 
 class LocalUnitViewSet(viewsets.ModelViewSet):

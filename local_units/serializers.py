@@ -22,6 +22,7 @@ from .models import (
     HealthData,
     HospitalType,
     LocalUnit,
+    LocalUnitChangeRequest,
     LocalUnitLevel,
     LocalUnitType,
     PrimaryHCC,
@@ -311,6 +312,14 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
             raise serializers.ValidationError({"Can't have health data for type %s" % type.code})
         return data
 
+    def create_localunits_change_request(self, instance, validated_data):
+        LocalUnitChangeRequest.objects.create(
+            local_unit=instance,
+            previous_data=validated_data,
+            status=LocalUnitChangeRequest.Status.PENDING,
+            triggered_by=self.context["request"].user,
+        )
+
     def create(self, validated_data):
         country = validated_data.get("country")
         location_json = validated_data.pop("location_json")
@@ -369,6 +378,7 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
         validated_data["modified_by"] = self.context["request"].user
         # NOTE: Each time form is updated change validated status to `False`
         validated_data["validated"] = False
+        validated_data["status"] = LocalUnit.Status.UNVERIFIED
         return super().update(instance, validated_data)
 
 

@@ -408,7 +408,7 @@ class LocalUnitChangeRequest(models.Model):
     rejected_reason = models.TextField(verbose_name=_("Rejected reason"), blank=True, null=True)
 
     def __str__(self):
-        branch_name = self.local_branch_name or self.english_branch_name
+        branch_name = self.local_unit.local_branch_name or self.local_unit.english_branch_name
         return f"{branch_name}-Change Request-{self.id}"
 
 
