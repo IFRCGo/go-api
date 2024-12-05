@@ -702,3 +702,5 @@ AZURE_OPENAI_DEPLOYMENT_NAME = env("AZURE_OPENAI_DEPLOYMENT_NAME")
 
 # Need to load this to overwrite modeltranslation module
 import main.translation  # noqa: F401 E402
+
+AZURE_TRANSL_LIMIT = 49990

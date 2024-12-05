@@ -78,10 +78,43 @@ class IfrcTranslator(BaseTranslator):
     def is_text_html(cls, text):
         return bool(BeautifulSoup(text, "html.parser").find())
 
+    @classmethod
+    def find_last_slashtable(cls, text, limit):
+        tag = "</table>"
+        truncate_here = text[:limit].rfind(tag)
+        if truncate_here != -1:
+            truncate_here += len(tag)
+        return truncate_here
+
+    @classmethod
+    def find_last_slashp(cls, text, limit):
+        tag = "</p>"
+        truncate_here = text[:limit].rfind(tag)
+        if truncate_here != -1:
+            truncate_here += len(tag)
+        return truncate_here
+
     def translate_text(self, text, dest_language, source_language=None):
         if settings.TESTING:
             # NOTE: Mocking for test purpose
             return self._fake_translation(text, dest_language, source_language)
+
+        # A dirty workaround to handle oversized HTML+CSS texts, usually tables:
+        textTail = ""
+        if len(text) > settings.AZURE_TRANSL_LIMIT:
+            truncate_here = self.find_last_slashtable(text, settings.AZURE_TRANSL_LIMIT)
+            if truncate_here != -1:
+                textTail = text[truncate_here:]
+                text = text[:truncate_here]
+            else:
+                truncate_here = self.find_last_slashp(text, settings.AZURE_TRANSL_LIMIT)
+                if truncate_here != -1:
+                    textTail = text[truncate_here:]
+                    text = text[:truncate_here]
+                else:
+                    textTail = text[settings.AZURE_TRANSL_LIMIT :]
+                    text = text[: settings.AZURE_TRANSL_LIMIT]
+
         payload = {
             "text": text,
             "from": source_language,
@@ -96,7 +129,10 @@ class IfrcTranslator(BaseTranslator):
             headers=self.headers,
             json=payload,
         )
-        return response.json()[0]["translations"][0]["text"]
+
+        # Not using == 200 – it would break tests with MagicMock name=requests.post() results
+        if response.status_code != 500:
+            return response.json()[0]["translations"][0]["text"] + textTail
 
 
 def get_translator_class():
