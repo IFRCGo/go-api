@@ -266,16 +266,18 @@ class OpsLearningStatsTestCase(APITestCase):
             self.assertIn(key, response.data)
 
         # Validate counts
-        self.assertEqual(response.data["operations_included"], OpsLearning.objects.count())
+        self.assertEqual(response.data["operations_included"], OpsLearning.objects.values("learning").distinct().count())
 
         appeal_codes = OpsLearning.objects.values_list("appeal_code", flat=True).distinct()
         sources_count = AppealDocument.objects.filter(appeal__aid__in=appeal_codes).distinct().count()
         self.assertEqual(response.data["sources_used"], sources_count)
 
-        validated_learning_extracts = OpsLearning.objects.filter(learning_validated__isnull=False).count()
+        validated_learning_extracts = OpsLearning.objects.filter(learning_validated__isnull=False).distinct().count()
         self.assertEqual(response.data["learning_extracts"], validated_learning_extracts)
 
-        sectors_covered_count = OpsLearning.objects.filter(sector_validated__isnull=False).values("sector").distinct().count()
+        sectors_covered_count = (
+            OpsLearning.objects.filter(sector_validated__isnull=False).values("sector_validated").distinct().count()
+        )
         self.assertEqual(response.data["sectors_covered"], sectors_covered_count)
 
         # Validate sources_overtime
@@ -288,14 +290,29 @@ class OpsLearningStatsTestCase(APITestCase):
         # Validate learning_by_region
         for item in response.data["learning_by_region"]:
             self.assertIn("region_name", item)
+            self.assertIn("region_id", item)
             self.assertIn("count", item)
+
+            region_id = item["region_id"]
+            expected_count = OpsLearning.objects.filter(appeal_code__region_id=region_id).count()
+            self.assertEqual(item["count"], expected_count)
 
         # Validate learning_by_sector
         for item in response.data["learning_by_sector"]:
+            self.assertIn("id", item)
             self.assertIn("title", item)
             self.assertIn("count", item)
 
-        # Validate learning_by_country
+            sector_id = item["id"]
+            expected_count = OpsLearning.objects.filter(sector_validated=sector_id).count()
+            self.assertEqual(item["count"], expected_count)
+
+        # Verify the operation count for each country
         for item in response.data["learning_by_country"]:
             self.assertIn("country_name", item)
+            self.assertIn("country_id", item)
             self.assertIn("operation_count", item)
+
+            country_id = item["country_id"]
+            expected_operation_count = OpsLearning.objects.filter(appeal_code__country_id=country_id).count()
+            self.assertEqual(item["operation_count"], expected_operation_count)
