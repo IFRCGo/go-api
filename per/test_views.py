@@ -14,6 +14,7 @@ from per.factories import (
     OpsLearningFactory,
     OverviewFactory,
     PerWorkPlanFactory,
+    SectorTagFactory,
 )
 
 from .models import OpsLearning, WorkPlanStatus
@@ -237,13 +238,12 @@ class OpsLearningStatsTestCase(APITestCase):
         cls.region = RegionFactory()
         cls.country = CountryFactory(region=cls.region)
 
+        SectorTagFactory.create_batch(5)
         OpsLearningFactory.create_batch(10)
 
         for _ in range(5):
             appeal = AppealFactory(region=cls.region)
-            AppealDocumentFactory.create_batch(2, appeal=appeal)
-
-        FormAreaFactory.create_batch(3)
+            AppealDocumentFactory.create_batch(4, appeal=appeal)
 
     def test_ops_learning_stats(self):
         url = "/api/v2/ops-learning/stats/"
@@ -259,7 +259,7 @@ class OpsLearningStatsTestCase(APITestCase):
             "sectors_covered",
             "sources_overtime",
             "learning_by_region",
-            "learning_by_area",
+            "learning_by_sector",
         ]
         for key in expected_keys:
             self.assertIn(key, response.data)
@@ -289,7 +289,7 @@ class OpsLearningStatsTestCase(APITestCase):
             self.assertIn("region_name", item)
             self.assertIn("count", item)
 
-        # Validate learning_by_area
-        for item in response.data["learning_by_area"]:
+        # Validate learning_by_sector
+        for item in response.data["learning_by_sector"]:
             self.assertIn("title", item)
             self.assertIn("count", item)
