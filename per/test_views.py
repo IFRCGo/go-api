@@ -260,6 +260,7 @@ class OpsLearningStatsTestCase(APITestCase):
             "sources_overtime",
             "learning_by_region",
             "learning_by_sector",
+            "learning_by_country",
         ]
         for key in expected_keys:
             self.assertIn(key, response.data)
@@ -293,3 +294,8 @@ class OpsLearningStatsTestCase(APITestCase):
         for item in response.data["learning_by_sector"]:
             self.assertIn("title", item)
             self.assertIn("count", item)
+
+        # Validate learning_by_country
+        for item in response.data["learning_by_country"]:
+            self.assertIn("country_name", item)
+            self.assertIn("operation_count", item)

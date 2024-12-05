@@ -940,12 +940,14 @@ class OpsLearningViewset(viewsets.ModelViewSet):
         )
 
         learning_by_region = (
-            OpsLearning.objects.values(region_name=F("appeal_code__region__label"))
+            OpsLearning.objects.values(region_name=F("appeal_code__region__label"), region_id=F("appeal_code__region__id"))
             .annotate(count=Count("id", distict=True))
             .order_by("region_name")
         )
 
-        learning_by_sector = SectorTag.objects.annotate(count=Count("validated_sectors", distinct=True)).values("title", "count")
+        learning_by_sector = SectorTag.objects.annotate(count=Count("validated_sectors", distinct=True)).values(
+            "id", "title", "count"
+        )
 
         sources_overtime = {}
         for appeal_type, appeal_type_label in AppealType.choices:
@@ -961,12 +963,19 @@ class OpsLearningViewset(viewsets.ModelViewSet):
             )
             sources_overtime[appeal_type_label_str] = list(subquery)
 
+        learning_by_country = (
+            OpsLearning.objects.values(country_name=F("appeal_code__country__name"), country_id=F("appeal_code__country__id"))
+            .annotate(operation_count=Count("id", distict=True))
+            .order_by("country_name")
+        )
+
         data = {
             "operations_included": ops_data["operations_included"],
             "learning_extracts": ops_data["learning_extracts"],
             "sectors_covered": ops_data["sector_covered"],
             "sources_used": ops_data["source_used"],
             "learning_by_region": list(learning_by_region),
+            "learning_by_country": list(learning_by_country),
             "learning_by_sector": learning_by_sector,
             "sources_overtime": sources_overtime,
         }
