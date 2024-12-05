@@ -6,17 +6,17 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('local_units', '0019_alter_localunit_is_deprecated_alter_localunit_status_and_more'),
+        ("local_units", "0019_alter_localunit_is_deprecated_alter_localunit_status_and_more"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='localunit',
-            name='status',
+            model_name="localunit",
+            name="status",
         ),
         migrations.AddField(
-            model_name='localunit',
-            name='is_locked',
-            field=models.BooleanField(default=False, verbose_name='Is locked?'),
+            model_name="localunit",
+            name="is_locked",
+            field=models.BooleanField(default=False, verbose_name="Is locked?"),
         ),
     ]
