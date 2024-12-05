@@ -1,6 +1,6 @@
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
-from rest_framework import permissions, response, views, viewsets
+from rest_framework import permissions, response, status, views, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 
@@ -35,6 +35,7 @@ from local_units.serializers import (
     LocalUnitSerializer,
     PrivateLocalUnitDetailSerializer,
     PrivateLocalUnitSerializer,
+    RejectedReasonSerialzier,
 )
 from main.permissions import DenyGuestUserPermission
 
@@ -74,7 +75,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
             status=LocalUnitChangeRequest.Status.PENDING,
             triggered_by=request.user,
         )
-        return response.Response(serializer.data)
+        return response.Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
         local_unit = self.get_object()
@@ -127,12 +128,12 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         serializer = PrivateLocalUnitSerializer(local_unit, context={"request": request})
         return response.Response(serializer.data)
 
-    @extend_schema(request=None, responses=PrivateLocalUnitSerializer)
+    @extend_schema(request=RejectedReasonSerialzier, responses=PrivateLocalUnitSerializer)
     @action(
         detail=True,
         url_path="revert",
         methods=["post"],
-        serializer_class=PrivateLocalUnitSerializer,
+        serializer_class=RejectedReasonSerialzier,
     )
     def get_revert(self, request, pk=None, version=None):
         local_unit = self.get_object()
@@ -142,9 +143,14 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
 
         clean_data = FullLocalUnitSerializer(local_unit).data
 
+        serializer = RejectedReasonSerialzier(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        reason = serializer.validated_data["reason"]
+
         LocalUnitChangeRequest.objects.create(
             local_unit=local_unit,
             previous_data=clean_data,
+            rejected_reason=reason,
             status=LocalUnitChangeRequest.Status.REVERT,
             triggered_by=request.user,
         )
@@ -159,6 +165,8 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
             return bad_request("No change request found to revert")
 
         # NOTE: Unlocking the reverted local unit
+        local_unit.is_locked = False
+        local_unit.save(update_fields=["is_locked"])
         # reverting the previous data of change request to local unit by passing through serializer
         serializer = PrivateLocalUnitSerializer(
             local_unit,

@@ -314,14 +314,6 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
             raise serializers.ValidationError({"Can't have health data for type %s" % type.code})
         return data
 
-    def create_localunits_change_request(self, instance, validated_data):
-        LocalUnitChangeRequest.objects.create(
-            local_unit=instance,
-            previous_data=validated_data,
-            status=LocalUnitChangeRequest.Status.PENDING,
-            triggered_by=self.context["request"].user,
-        )
-
     def create(self, validated_data):
         country = validated_data.get("country")
         location_json = validated_data.pop("location_json")
@@ -542,3 +534,7 @@ class FullLocalUnitSerializer(serializers.ModelSerializer):
     class Meta:
         model = LocalUnit
         fields = "__all__"
+
+
+class RejectedReasonSerialzier(serializers.Serializer):
+    reason = serializers.CharField(required=True)
