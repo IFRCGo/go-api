@@ -277,9 +277,6 @@ class LocalUnitLevel(models.Model):
 
 @reversion.register(follow=("health",))
 class LocalUnit(models.Model):
-    class Status(models.IntegerChoices):
-        VERIFIED = 1, _("Verified")
-        UNVERIFIED = 2, _("Unverified")
 
     class DeprecateReason(models.IntegerChoices):
         NON_EXISTENT = 1, _("Non-existent local unit")
@@ -350,7 +347,7 @@ class LocalUnit(models.Model):
     email = models.EmailField(max_length=255, blank=True, null=True, verbose_name=_("Email"))
     link = models.URLField(max_length=255, blank=True, null=True, verbose_name=_("Social link"))
     location = models.PointField(srid=4326, help_text="Local Unit Location")
-    status = models.IntegerField(choices=Status.choices, verbose_name=_("status"), default=Status.UNVERIFIED)
+    is_locked = models.BooleanField(default=False, verbose_name=_("Is locked?"))
     is_deprecated = models.BooleanField(default=False, verbose_name=_("Is deprecated?"))
     deprecated_reason = models.IntegerField(
         choices=DeprecateReason.choices, verbose_name=_("deprecated reason"), blank=True, null=True
@@ -408,7 +405,7 @@ class LocalUnitChangeRequest(models.Model):
     rejected_reason = models.TextField(verbose_name=_("Rejected reason"), blank=True, null=True)
 
     def __str__(self):
-        branch_name = self.local_branch_name or self.english_branch_name
+        branch_name = self.local_unit.local_branch_name or self.local_unit.english_branch_name
         return f"{branch_name}-Change Request-{self.id}"
 
 

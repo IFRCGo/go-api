@@ -242,6 +242,7 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
     modified_by_details = LocalUnitMiniUserSerializer(source="modified_by", read_only=True)
     created_by_details = LocalUnitMiniUserSerializer(source="created_by", read_only=True)
     version_id = serializers.SerializerMethodField()
+    is_locked = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = LocalUnit
@@ -283,6 +284,7 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
             "modified_by_details",
             "created_by_details",
             "version_id",
+            "is_locked",
         )
 
     def get_location_details(self, unit) -> dict:
@@ -338,6 +340,7 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
                 )
         validated_data["location"] = GEOSGeometry("POINT(%f %f)" % (lng, lat))
         validated_data["created_by"] = self.context["request"].user
+        validated_data["is_locked"] = True
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
@@ -408,6 +411,7 @@ class PrivateLocalUnitSerializer(serializers.ModelSerializer):
     health_details = MiniHealthDataSerializer(read_only=True, source="health")
     validated = serializers.BooleanField(read_only=True)
     modified_by_details = LocalUnitMiniUserSerializer(source="modified_by", read_only=True)
+    is_locked = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = LocalUnit
@@ -431,6 +435,7 @@ class PrivateLocalUnitSerializer(serializers.ModelSerializer):
             "phone",
             "modified_at",
             "modified_by_details",
+            "is_locked",
         )
 
     def get_location_details(self, unit) -> dict:
@@ -520,3 +525,7 @@ class MiniDelegationOfficeSerializer(serializers.ModelSerializer):
             "city",
             "address",
         )
+
+
+class RejectedReasonSerialzier(serializers.Serializer):
+    reason = serializers.CharField(required=True)
