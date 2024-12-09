@@ -22,7 +22,6 @@ from .models import (
     HealthData,
     HospitalType,
     LocalUnit,
-    LocalUnitChangeRequest,
     LocalUnitLevel,
     LocalUnitType,
     PrimaryHCC,
@@ -526,14 +525,6 @@ class MiniDelegationOfficeSerializer(serializers.ModelSerializer):
             "city",
             "address",
         )
-
-
-# NOTE: Currently `FullLocalUnitSerializer` is used for storing previous version of LocalUnit
-class FullLocalUnitSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = LocalUnit
-        fields = "__all__"
 
 
 class RejectedReasonSerialzier(serializers.Serializer):
