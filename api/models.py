@@ -298,6 +298,29 @@ class District(models.Model):
     wb_year = models.CharField(
         verbose_name=_("WB year"), max_length=4, null=True, blank=True, help_text=_("population data year from WB API")
     )
+    nuts1 = models.CharField(
+        verbose_name=_("nuts1"),
+        max_length=3,
+        blank=True,
+        null=True,
+        help_text=_("Nomenclature of Territorial Units for Statistics 1"),
+    )
+    nuts2 = models.CharField(
+        verbose_name=_("nuts2"),
+        max_length=4,
+        blank=True,
+        null=True,
+        help_text=_("Nomenclature of Territorial Units for Statistics 2"),
+    )
+    nuts3 = models.CharField(
+        verbose_name=_("nuts3"),
+        max_length=5,
+        blank=True,
+        null=True,
+        help_text=_("Nomenclature of Territorial Units for Statistics 3"),
+    )
+    emma_id = models.CharField(verbose_name=_("emma_id"), max_length=10, blank=True, null=True, help_text=_("Meteoalarm EMMA_ID"))
+    fips_code = models.PositiveIntegerField(verbose_name=_("fips_code"), blank=True, null=True, help_text=_("USA FIPS Code"))
 
     class Meta:
         ordering = ("code",)

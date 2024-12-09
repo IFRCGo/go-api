@@ -332,7 +332,22 @@ class DistrictSerializer(ModelSerializer):
 
     class Meta:
         model = District
-        fields = ("name", "code", "country", "id", "is_deprecated", "bbox", "centroid", "wb_population", "wb_year")
+        fields = (
+            "name",
+            "code",
+            "country",
+            "id",
+            "is_deprecated",
+            "bbox",
+            "centroid",
+            "wb_population",
+            "wb_year",
+            "nuts1",
+            "nuts2",
+            "nuts3",
+            "emma_id",
+            "fips_code",
+        )
 
     @staticmethod
     def get_bbox(district) -> dict:
@@ -387,6 +402,11 @@ class MiniDistrictGeoSerializer(GeoSerializerMixin, ModelSerializer):
     country_name = serializers.CharField(source="country.name", read_only=True)
     country_iso = serializers.CharField(source="country.iso", read_only=True)
     country_iso3 = serializers.CharField(source="country.iso3", read_only=True)
+    nuts1 = serializers.CharField(read_only=True)
+    nuts2 = serializers.CharField(read_only=True)
+    nuts3 = serializers.CharField(read_only=True)
+    emma_id = serializers.CharField(read_only=True)
+    fips_code = serializers.IntegerField(read_only=True)
 
     @staticmethod
     def get_bbox(district) -> Union[dict, None]:
@@ -417,6 +437,11 @@ class MiniDistrictGeoSerializer(GeoSerializerMixin, ModelSerializer):
             "is_deprecated",
             "wb_population",
             "wb_year",
+            "nuts1",
+            "nuts2",
+            "nuts3",
+            "emma_id",
+            "fips_code",
         )
 
 
@@ -1561,6 +1586,7 @@ class AppealDocumentAppealSerializer(serializers.ModelSerializer):
             "id",
             "code",
             "event",
+            "start_date",
         )
 
 

@@ -4,7 +4,9 @@ import pydash
 
 import api.models as models
 from api.factories import country, district
+from api.factories.disaster_type import DisasterTypeFactory
 from api.factories.event import EventFactory
+from api.factories.region import RegionFactory
 from deployments.factories.emergency_project import (
     EmergencyProjectActivityActionFactory,
     EmergencyProjectActivityFactory,
@@ -16,11 +18,15 @@ from deployments.factories.project import (
     SectorFactory,
     SectorTagFactory,
 )
+from deployments.factories.regional_project import RegionalProjectFactory
 from deployments.factories.user import UserFactory
 from deployments.models import (
     EmergencyProject,
     EmergencyProjectActivity,
+    OperationTypes,
+    ProgrammeTypes,
     Project,
+    Statuses,
     VisibilityCharChoices,
 )
 from main.test_case import APITestCase, SnapshotTestCase
@@ -188,18 +194,43 @@ class TestProjectAPI(SnapshotTestCase):
         self.assertMatchSnapshot(resp.content.decode("utf-8"))
 
     def test_project_csv_api(self):
-        _country = country.CountryFactory()
-        sct = SectorFactory()
-        sct_1 = SectorTagFactory()
-        sct_2 = SectorTagFactory()
-        district1 = district.DistrictFactory(country=_country)
-        district2 = district.DistrictFactory(country=_country)
+        _user = UserFactory(username="jo")
+        region = RegionFactory(name=models.RegionName.AMERICAS)
+        _country = country.CountryFactory(
+            name="country-1",
+            record_type=models.CountryType.COUNTRY,
+            society_name="society-name-1",
+            region=region,
+        )
+        sct = SectorFactory(title="sector-1")
+        sct_1 = SectorTagFactory(title="sector-tag-1")
+        sct_2 = SectorTagFactory(title="sector-tag-2")
+        dtype = DisasterTypeFactory(
+            name="disaster-type-1",
+            summary="disaster-type-1-summary",
+        )
+        regional_project = RegionalProjectFactory(name="regional-project-1")
+        event = EventFactory(
+            countries=[_country.id],
+            dtype=dtype,
+            name="event-1",
+        )
         ProjectFactory.create_batch(
             10,
-            project_districts=[district1, district2],
+            name="project-1",
             primary_sector=sct,
             secondary_sectors=[sct_1, sct_2],
+            budget_amount=100000,
+            event=event,
+            regional_project=regional_project,
+            dtype=dtype,
             visibility=VisibilityCharChoices.PUBLIC,
+            project_country=_country,
+            reporting_ns=_country,
+            status=Statuses.COMPLETED,
+            user=_user,
+            programme_type=ProgrammeTypes.BILATERAL,
+            operation_type=OperationTypes.EMERGENCY_OPERATION,
         )
 
         url = "/api/v2/project/?format=csv"

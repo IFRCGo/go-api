@@ -4,12 +4,14 @@ from functools import lru_cache
 
 from django.contrib import admin
 from django.http import HttpResponse
+from django.utils.translation import get_language as django_get_language
 from reversion_compare.admin import CompareVersionAdmin
 
 import per.models as models
 from api.models import Appeal
 from lang.admin import TranslationAdmin, TranslationInlineModelAdmin
 from per.admin_classes import GotoNextModelAdmin, RegionRestrictedAdmin
+from per.task import generate_summary
 
 
 class FormDataInline(admin.TabularInline, TranslationInlineModelAdmin):
@@ -186,7 +188,7 @@ class OpsLearningAdmin(GotoNextModelAdmin):
     ls = ("organization", "organization_validated", "sector", "sector_validated", "per_component", "per_component_validated")
     list_filter = ("is_validated", "appeal_code__atype") + ls
     autocomplete_fields = ("appeal_code",) + ls
-    search_fields = ("learning", "learning_validated")
+    search_fields = ("learning", "learning_validated", "appeal_code__aid", "appeal_code__code")
     list_display = ("learning", "appeal_code", "is_validated", "modified_at")
     change_form_template = "admin/opslearning_change_form.html"
     actions = ["export_selected_records"]
@@ -307,8 +309,9 @@ class OpsLearningAdmin(GotoNextModelAdmin):
 
 class OpsLearningCacheResponseAdmin(TranslationAdmin):
     search_fields = (
-        "response",
         "id",
+        "used_ops_learning__appeal_code__aid",
+        "used_ops_learning__appeal_code__code",
     )
     list_display = (
         "__str__",
@@ -317,6 +320,7 @@ class OpsLearningCacheResponseAdmin(TranslationAdmin):
         "insights3_title",
         "status",
     )
+    list_filter = ("status",)
     used_ops_learning_in = "used_ops_learning_in"
     autocomplete_fields = ("used_ops_learning",)
     exclude = (
@@ -324,6 +328,23 @@ class OpsLearningCacheResponseAdmin(TranslationAdmin):
         "exported_file",
         "exported_at",
     )
+    actions = ["regenerate_summary"]
+
+    def regenerate_summary(self, request, queryset):
+        """
+        Regenerate the summary of the selected OpsLearningCacheResponse objects.
+        """
+        requested_lang = django_get_language()
+        for obj in queryset:
+            generate_summary.delay(
+                ops_learning_summary_id=obj.id,
+                filter_data=obj.used_filters,
+                translation_lazy=requested_lang == "en",
+                # NOTE: Regenerating the summary will overwrite the cache
+                overwrite_prompt_cache=True,
+            )
+
+    regenerate_summary.short_description = "Regenerate Summary for selected Ops Learning Cache Response"
 
 
 class OpsLearningPromptResponseCacheAdmin(admin.ModelAdmin):
