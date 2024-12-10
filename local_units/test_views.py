@@ -65,7 +65,7 @@ class TestLocalUnitsListView(APITestCase):
         # self.assertEqual(response.data['results'][0]['type_details']['name'], 'Code 0')
         # self.assertEqual(response.data['results'][0]['type_details']['code'], 0)
 
-    def test_depriciate_local_unit(self):
+    def test_deprecate_local_unit(self):
         country = Country.objects.all().first()
         type = LocalUnitType.objects.all().first()
         local_unit_obj = LocalUnitFactory.create(

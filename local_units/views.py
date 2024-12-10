@@ -30,7 +30,7 @@ from local_units.permissions import (
 from local_units.serializers import (
     DelegationOfficeSerializer,
     LocalUnitChangeRequestSerializer,
-    LocalUnitDepricateSerializer,
+    LocalUnitDeprecateSerializer,
     LocalUnitDetailSerializer,
     LocalUnitOptionsSerializer,
     LocalUnitSerializer,
@@ -215,12 +215,12 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         serializer = LocalUnitChangeRequestSerializer(change_request, context={"request": request})
         return response.Response(serializer.data)
 
-    @extend_schema(request=LocalUnitDepricateSerializer)
+    @extend_schema(request=LocalUnitDeprecateSerializer)
     @action(detail=True, methods=["put"], url_path="deprecate")
     def deprecate(self, request, pk=None):
         """Deprecate local unit object object"""
         instance = self.get_object()
-        serializer = LocalUnitDepricateSerializer(data=request.data)
+        serializer = LocalUnitDeprecateSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(instance)
             return response.Response(
