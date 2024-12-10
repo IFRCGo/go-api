@@ -80,6 +80,7 @@ api:
   image:
     name: 'SET-BY-CHARTPRESS'
     tag: 'set-by-chartpress'
+    pullPolicy: 'IfNotPresent'
   resources:
     requests:
       cpu: "2"
@@ -107,6 +108,18 @@ celery:
     limits:
       cpu: "2"
       memory: 4Gi
+
+argoHooks:
+  # NOTE: Make sure keys are lowercase
+  database-migration:
+    enabled: true
+    hook: PostSync
+    preserveHistory: true
+    command: ["./manage.py", "migrate"]
+  collect-static:
+    enabled: true
+    hook: PostSync
+    command: ["./manage.py", "collectstatic", "--noinput"]
 
 cronjobs:
   - command: 'index_and_notify'
