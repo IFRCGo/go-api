@@ -11,7 +11,7 @@ data:
   CACHE_REDIS_URL: "redis://{{ template "ifrcgo-helm.fullname" . }}-redis:6379/1"
   CACHE_MIDDLEWARE_SECONDS: {{ .Values.env.CACHE_MIDDLEWARE_SECONDS | quote }}
   DJANGO_DEBUG: {{ .Values.env.DJANGO_DEBUG | quote }}
-  ELASTIC_SEARCH_HOST: "elasticsearch://{{ template "ifrcgo-helm.fullname" . }}-elasticsearch:9200" #FIXME: double check format
+  ELASTIC_SEARCH_HOST: {{ default (printf "elasticsearch://%s-elasticsearch:9200" (include "ifrcgo-helm.fullname" .)) .Values.env.ELASTIC_SEARCH_HOST | quote }}
   ELASTIC_SEARCH_INDEX: {{ .Values.env.ELASTIC_SEARCH_INDEX | quote }}
   DOCKER_HOST_IP: {{ .Values.env.DOCKER_HOST_IP | quote }}
   DJANGO_ADDITIONAL_ALLOWED_HOSTS: {{ .Values.env.DJANGO_ADDITIONAL_ALLOWED_HOSTS | quote }}
