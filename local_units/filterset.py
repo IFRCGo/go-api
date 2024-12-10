@@ -13,6 +13,7 @@ class LocalUnitFilters(filters.FilterSet):
             "type__code",
             "draft",
             "validated",
+            "is_locked",
         )
 
 
