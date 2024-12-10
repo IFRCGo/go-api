@@ -52,10 +52,6 @@ class TestLocalUnitsListView(APITestCase):
         type_1 = LocalUnitType.objects.create(code=1, name="Code 1")
         LocalUnitFactory.create_batch(5, country=country, type=type, draft=True, validated=False, date_of_data="2023-09-09")
         LocalUnitFactory.create_batch(5, country=country_1, type=type_1, draft=False, validated=True, date_of_data="2023-08-08")
-        self.local_unit_obj1 = LocalUnitFactory.create(
-            country=country, type=type, draft=True, validated=False, date_of_data="2023-09-09"
-        )
-        print("Local unit obj", self.local_unit_obj1.id)
 
     def test_list(self):
         self.authenticate()
@@ -70,14 +66,20 @@ class TestLocalUnitsListView(APITestCase):
         # self.assertEqual(response.data['results'][0]['type_details']['code'], 0)
 
     def test_depriciate_local_unit(self):
+        country = Country.objects.all().first()
+        type = LocalUnitType.objects.all().first()
+        local_unit_obj = LocalUnitFactory.create(
+            country=country, type=type, draft=True, validated=False, date_of_data="2023-09-09"
+        )
+
         self.authenticate()
-        url = f"/api/v2/local-units/{self.local_unit_obj1.id}/deprecate/"
+        url = f"/api/v2/local-units/{local_unit_obj.id}/deprecate/"
         data = {
             "deprecated_reason": LocalUnit.DeprecateReason.INCORRECTLY_ADDED,
             "deprecated_reason_overview": "test reason",
         }
         response = self.client.put(url, data=data)
-        local_unit_obj = LocalUnit.objects.get(id=self.local_unit_obj1.id)
+        local_unit_obj = LocalUnit.objects.get(id=local_unit_obj.id)
 
         self.assert_200(response)
         self.assertEqual(local_unit_obj.is_deprecated, True)
