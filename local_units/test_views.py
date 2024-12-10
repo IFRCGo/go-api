@@ -78,7 +78,7 @@ class TestLocalUnitsListView(APITestCase):
             "deprecated_reason": LocalUnit.DeprecateReason.INCORRECTLY_ADDED,
             "deprecated_reason_overview": "test reason",
         }
-        response = self.client.put(url, data=data)
+        response = self.client.post(url, data=data)
         local_unit_obj = LocalUnit.objects.get(id=local_unit_obj.id)
 
         self.assert_200(response)
@@ -87,7 +87,7 @@ class TestLocalUnitsListView(APITestCase):
         # test revert deprecate
         data = {}
         url = f"/api/v2/local-units/{local_unit_obj.id}/revert-deprecate/"
-        response = self.client.put(url, data=data)
+        response = self.client.post(url, data=data)
         local_unit_obj = LocalUnit.objects.get(id=local_unit_obj.id)
         self.assert_200(response)
         self.assertEqual(local_unit_obj.is_deprecated, False)

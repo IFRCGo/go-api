@@ -101,7 +101,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         )
         return response.Response(serializer.data)
 
-    @extend_schema(responses=PrivateLocalUnitSerializer)
+    @extend_schema(request=None, responses=PrivateLocalUnitSerializer)
     @action(
         detail=True,
         url_path="validate",
@@ -215,22 +215,32 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         serializer = LocalUnitChangeRequestSerializer(change_request, context={"request": request})
         return response.Response(serializer.data)
 
-    @extend_schema(request=LocalUnitDeprecateSerializer)
-    @action(detail=True, methods=["put"], url_path="deprecate")
+    @extend_schema(request=LocalUnitDeprecateSerializer, responses=None)
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path="deprecate",
+        serializer_class=LocalUnitDeprecateSerializer,
+        permission_classes=[permissions.IsAuthenticated, DenyGuestUserPermission],
+    )
     def deprecate(self, request, pk=None):
         """Deprecate local unit object object"""
         instance = self.get_object()
         serializer = LocalUnitDeprecateSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(instance)
-            return response.Response(
-                {"message": f"Object {instance.id}-{instance.is_deprecated} deprecated successfully."},
-                status=status.HTTP_200_OK,
-            )
-        return response.Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(instance)
+        return response.Response(
+            {"message": "Local unit object deprecated successfully."},
+            status=status.HTTP_200_OK,
+        )
 
-    @extend_schema(responses=PrivateLocalUnitSerializer)
-    @action(detail=True, methods=["put"], url_path="revert-deprecate")
+    @extend_schema(request=None, responses=PrivateLocalUnitSerializer)
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path="revert-deprecate",
+        permission_classes=[permissions.IsAuthenticated, DenyGuestUserPermission],
+    )
     def revert_deprecate(self, request, pk=None):
         """Revert the deprecate local unit object."""
         local_unit = self.get_object()
