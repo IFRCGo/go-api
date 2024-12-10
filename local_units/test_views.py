@@ -77,8 +77,20 @@ class TestLocalUnitsListView(APITestCase):
             "deprecated_reason_overview": "test reason",
         }
         response = self.client.put(url, data=data)
+        local_unit_obj = LocalUnit.objects.get(id=self.local_unit_obj1.id)
+
         self.assert_200(response)
-        self.assertEqual(LocalUnit.objects.get(id=self.local_unit_obj1.id).is_deprecated, True)
+        self.assertEqual(local_unit_obj.is_deprecated, True)
+
+        # test revert deprecate
+        data = {}
+        url = f"/api/v2/local-units/{local_unit_obj.id}/revert-deprecate/"
+        response = self.client.put(url, data=data)
+        local_unit_obj = LocalUnit.objects.get(id=local_unit_obj.id)
+        self.assert_200(response)
+        self.assertEqual(local_unit_obj.is_deprecated, False)
+        self.assertEqual(local_unit_obj.deprecated_reason, None)
+        self.assertEqual(local_unit_obj.deprecated_reason_overview, "")
 
     def test_filter(self):
         self.authenticate()

@@ -229,6 +229,32 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         serializer = LocalUnitChangeRequestSerializer(change_request, context={"request": request})
         return response.Response(serializer.data)
 
+    @extend_schema(request=LocalUnitDepricateSerializer)
+    @action(detail=True, methods=["put"], url_path="deprecate")
+    def deprecate(self, request, pk=None):
+        """Deprecate local unit object object"""
+        instance = self.get_object()
+        serializer = LocalUnitDepricateSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(instance)
+            return response.Response(
+                {"message": f"Object {instance.id}-{instance.is_deprecated} deprecated successfully."},
+                status=status.HTTP_200_OK,
+            )
+        return response.Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @extend_schema(responses=PrivateLocalUnitSerializer)
+    @action(detail=True, methods=["put"], url_path="revert-deprecate")
+    def revert_deprecate(self, request, pk=None):
+        """Revert the deprecate local unit object."""
+        local_unit = self.get_object()
+        local_unit.is_deprecated = False
+        local_unit.deprecated_reason = None
+        local_unit.deprecated_reason_overview = ""
+        local_unit.save(update_fields=["is_deprecated", "deprecated_reason", "deprecated_reason_overview"])
+        serializer = PrivateLocalUnitSerializer(local_unit, context={"request": request})
+        return response.Response(serializer.data)
+
 
 class LocalUnitViewSet(viewsets.ModelViewSet):
     queryset = LocalUnit.objects.select_related(
