@@ -404,7 +404,11 @@ class LocalUnitChangeRequest(models.Model):
     rejected_data = models.JSONField(verbose_name=_("Rejected data"), default=dict)
     rejected_reason = models.TextField(verbose_name=_("Rejected reason"), blank=True, null=True)
 
+    class Meta:
+        ordering = ("id",)
+
     def __str__(self):
+        # NOTE: N+1, make sure to use select_related
         branch_name = self.local_unit.local_branch_name or self.local_unit.english_branch_name
         return f"{branch_name}-Change Request-{self.id}"
 

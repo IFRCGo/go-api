@@ -1,4 +1,4 @@
-def format_local_unit(data: dict) -> dict:
+def get_local_unit_snapshot_data(data: dict) -> dict:
     """
     Formatting the json local unit data
     """

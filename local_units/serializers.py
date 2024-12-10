@@ -22,6 +22,7 @@ from .models import (
     HealthData,
     HospitalType,
     LocalUnit,
+    LocalUnitChangeRequest,
     LocalUnitLevel,
     LocalUnitType,
     PrimaryHCC,
@@ -529,3 +530,23 @@ class MiniDelegationOfficeSerializer(serializers.ModelSerializer):
 
 class RejectedReasonSerialzier(serializers.Serializer):
     reason = serializers.CharField(required=True)
+
+
+class LocalUnitChangeRequestSerializer(serializers.ModelSerializer):
+    local_unit_details = PrivateLocalUnitDetailSerializer(source="local_unit", read_only=True)
+    created_by_details = LocalUnitMiniUserSerializer(source="created_by", read_only=True)
+    status_details = serializers.CharField(source="get_status_display", read_only=True)
+    current_validator_details = serializers.CharField(source="get_current_validator_display", read_only=True)
+
+    class Meta:
+        model = LocalUnitChangeRequest
+        fields = (
+            "id",
+            "local_unit_details",
+            "status",
+            "status_details",
+            "current_validator",
+            "current_validator_details",
+            "created_by_details",
+            "previous_data",
+        )
