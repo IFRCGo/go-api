@@ -101,20 +101,6 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         )
         return response.Response(serializer.data)
 
-    @extend_schema(request=None, responses=PrivateLocalUnitSerializer)
-    @action(detail=False, methods=["post"], url_path="deprecate")
-    def deprecate(self, request):
-        """Deprecate an object by ID."""
-        instance = self.get_object()
-        serializer = LocalUnitDepricateSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(instance)
-            return response.Response(
-                {"message": f"Object {instance.id}-{instance.is_deprecated} deprecated successfully."},
-                status=status.HTTP_200_OK,
-            )
-        return response.Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
     @extend_schema(responses=PrivateLocalUnitSerializer)
     @action(
         detail=True,
