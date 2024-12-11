@@ -14,6 +14,7 @@ from .models import (
     HealthData,
     HospitalType,
     LocalUnit,
+    LocalUnitChangeRequest,
     LocalUnitLevel,
     LocalUnitType,
     PrimaryHCC,
@@ -62,6 +63,41 @@ class LocalUnitAdmin(CompareVersionAdmin, admin.OSMGeoAdmin):
         if obj.type.code == 1 and obj.health:
             raise ValidationError({"Can't have health data for type %s" % obj.type.code})
         super().save_model(request, obj, form, change)
+
+
+@admin.register(LocalUnitChangeRequest)
+class LocalUnitChangeRequestAdmin(admin.ModelAdmin):
+    autocomplete_fields = (
+        "local_unit",
+        "triggered_by",
+    )
+    search_fields = (
+        "local_unit__id",
+        "local_unit__english_branch_name",
+        "local_unit__local_branch_name",
+    )
+    list_filter = ("status",)
+    list_display = (
+        "local_unit",
+        "status",
+        "current_validator",
+    )
+    readonly_fields = (
+        "previous_data",
+        "rejected_data",
+        "rejected_reason",
+    )
+    ordering = ("id",)
+
+    def get_queryset(self, request):
+        return (
+            super()
+            .get_queryset(request)
+            .select_related(
+                "local_unit",
+                "triggered_by",
+            )
+        )
 
 
 @admin.register(DelegationOffice)
