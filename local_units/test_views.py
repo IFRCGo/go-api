@@ -83,6 +83,7 @@ class TestLocalUnitsListView(APITestCase):
 
         self.assert_200(response)
         self.assertEqual(local_unit_obj.is_deprecated, True)
+        self.assertEqual(local_unit_obj.deprecated_reason, LocalUnit.DeprecateReason.INCORRECTLY_ADDED)
 
         # test revert deprecate
         data = {}
