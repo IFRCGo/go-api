@@ -560,10 +560,10 @@ class LocalUnitDeprecateSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         instance = self.instance
-        if instance and instance.is_deprecated and attrs.get("is_deprecated", False):
+        if instance and instance.is_deprecated:
             raise serializers.ValidationError("This object is already deprecated.")
 
-        if attrs.get("is_deprecated", False) and not attrs.get("deprecated_reason"):
+        if not attrs.get("deprecated_reason"):
             raise serializers.ValidationError("A reason must be provided when deprecating an object.")
 
         return attrs
