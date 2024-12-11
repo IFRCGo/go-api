@@ -31,6 +31,11 @@ from .models import (
 )
 
 
+class LocationSerializer(serializers.Serializer):
+    lat = serializers.FloatField(required=True)
+    lng = serializers.FloatField(required=True)
+
+
 class GeneralMedicalServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = GeneralMedicalService
@@ -191,7 +196,7 @@ class LocalUnitDetailSerializer(serializers.ModelSerializer):
     type_details = LocalUnitTypeSerializer(source="type", read_only=True)
     level_details = LocalUnitLevelSerializer(source="level", read_only=True)
     health = HealthDataSerializer(required=False, allow_null=True)
-    location_details = serializers.SerializerMethodField()
+    location_geojson = serializers.SerializerMethodField()
     visibility_display = serializers.CharField(source="get_visibility_display", read_only=True)
     validated = serializers.BooleanField(read_only=True)
 
@@ -220,13 +225,13 @@ class LocalUnitDetailSerializer(serializers.ModelSerializer):
             "level",
             "health",
             "visibility_display",
-            "location_details",
+            "location_geojson",
             "type_details",
             "level_details",
             "country_details",
         )
 
-    def get_location_details(self, unit) -> dict:
+    def get_location_geojson(self, unit) -> dict:
         return json.loads(unit.location.geojson)
 
 
@@ -235,10 +240,11 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
     type_details = LocalUnitTypeSerializer(source="type", read_only=True)
     level_details = LocalUnitLevelSerializer(source="level", read_only=True)
     health = HealthDataSerializer(required=False, allow_null=True)
-    location_details = serializers.SerializerMethodField(read_only=True)
+    # NOTE: location_geojson contains the geojson of the location
+    location_geojson = serializers.SerializerMethodField(read_only=True)
     visibility_display = serializers.CharField(source="get_visibility_display", read_only=True)
     validated = serializers.BooleanField(read_only=True)
-    location_json = serializers.JSONField(required=True, write_only=True)
+    location_json = LocationSerializer(required=True)
     location = serializers.CharField(required=False)
     modified_by_details = LocalUnitMiniUserSerializer(source="modified_by", read_only=True)
     created_by_details = LocalUnitMiniUserSerializer(source="created_by", read_only=True)
@@ -272,7 +278,7 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
             "level",
             "health",
             "visibility_display",
-            "location_details",
+            "location_geojson",
             "type_details",
             "level_details",
             "country_details",
@@ -288,7 +294,7 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
             "is_locked",
         )
 
-    def get_location_details(self, unit) -> dict:
+    def get_location_geojson(self, unit) -> dict:
         return json.loads(unit.location.geojson)
 
     def get_version_id(self, resource):
@@ -319,8 +325,6 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
         location_json = validated_data.pop("location_json")
         lat = location_json.get("lat")
         lng = location_json.get("lng")
-        if not lat and not lng:
-            raise serializers.ValidationError(gettext("Combination of lat/lon is required"))
         input_point = Point(lng, lat)
         if country.bbox:
             country_json = json.loads(country.countrygeoms.geom.geojson)
@@ -349,8 +353,6 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
         location_json = validated_data.pop("location_json")
         lat = location_json.get("lat")
         lng = location_json.get("lng")
-        if not lat and not lng:
-            raise serializers.ValidationError(gettext("Combination of lat/lon is required"))
         input_point = Point(lng, lat)
         if country.bbox:
             country_json = json.loads(country.countrygeoms.geom.geojson)
@@ -377,7 +379,8 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
 
 
 class LocalUnitSerializer(serializers.ModelSerializer):
-    location_details = serializers.SerializerMethodField()
+    # NOTE: location_geojson contains the geojson of the location
+    location_geojson = serializers.SerializerMethodField()
     country_details = LocalUnitCountrySerializer(source="country", read_only=True)
     type_details = LocalUnitTypeSerializer(source="type", read_only=True)
     health_details = MiniHealthDataSerializer(read_only=True, source="health")
@@ -390,7 +393,7 @@ class LocalUnitSerializer(serializers.ModelSerializer):
             "country",
             "local_branch_name",
             "english_branch_name",
-            "location_details",
+            "location_geojson",
             "type",
             "validated",
             "address_loc",
@@ -401,12 +404,13 @@ class LocalUnitSerializer(serializers.ModelSerializer):
             "health_details",
         )
 
-    def get_location_details(self, unit) -> dict:
+    def get_location_geojson(self, unit) -> dict:
         return json.loads(unit.location.geojson)
 
 
 class PrivateLocalUnitSerializer(serializers.ModelSerializer):
-    location_details = serializers.SerializerMethodField()
+    # NOTE: location_geojson contains the geojson of the location
+    location_geojson = serializers.SerializerMethodField()
     country_details = LocalUnitCountrySerializer(source="country", read_only=True)
     type_details = LocalUnitTypeSerializer(source="type", read_only=True)
     health_details = MiniHealthDataSerializer(read_only=True, source="health")
@@ -421,7 +425,7 @@ class PrivateLocalUnitSerializer(serializers.ModelSerializer):
             "country",
             "local_branch_name",
             "english_branch_name",
-            "location_details",
+            "location_geojson",
             "type",
             "validated",
             "address_loc",
@@ -439,7 +443,7 @@ class PrivateLocalUnitSerializer(serializers.ModelSerializer):
             "is_locked",
         )
 
-    def get_location_details(self, unit) -> dict:
+    def get_location_geojson(self, unit) -> dict:
         return json.loads(unit.location.geojson)
 
 
