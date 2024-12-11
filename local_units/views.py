@@ -38,7 +38,6 @@ from local_units.serializers import (
     PrivateLocalUnitSerializer,
     RejectedReasonSerialzier,
 )
-from local_units.utils import get_local_unit_snapshot_data
 from main.permissions import DenyGuestUserPermission
 
 
@@ -48,7 +47,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         "country",
         "type",
         "level",
-    )
+    ).exclude(is_deprecated=True)
     filterset_class = LocalUnitFilters
     search_fields = (
         "local_branch_name",
@@ -72,7 +71,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         # Creating a new change request for the local unit
         LocalUnitChangeRequest.objects.create(
             local_unit=serializer.instance,
-            previous_data=get_local_unit_snapshot_data(serializer.data),
+            previous_data=serializer.data,
             status=LocalUnitChangeRequest.Status.PENDING,
             triggered_by=request.user,
         )
@@ -95,11 +94,11 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         # Creating a new change request for the local unit
         LocalUnitChangeRequest.objects.create(
             local_unit=local_unit,
-            previous_data=get_local_unit_snapshot_data(serializer.data),
+            previous_data=serializer,
             status=LocalUnitChangeRequest.Status.PENDING,
             triggered_by=request.user,
         )
-        return response.Response(serializer.data)
+        return response.Response(serializer)
 
     @extend_schema(request=None, responses=PrivateLocalUnitSerializer)
     @action(
@@ -166,7 +165,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         change_request_instance.rejected_reason = reason
         change_request_instance.updated_by = request.user
         change_request_instance.updated_at = timezone.now()
-        change_request_instance.rejected_data = get_local_unit_snapshot_data(full_serializer.data)
+        change_request_instance.rejected_data = full_serializer.data
         change_request_instance.save(update_fields=["status", "rejected_reason", "updated_at", "updated_by", "rejected_data"])
 
         # Reverting the last change request related to this local unit
