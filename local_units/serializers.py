@@ -552,14 +552,25 @@ class LocalUnitChangeRequestSerializer(serializers.ModelSerializer):
         )
 
 
-class LocalUnitDeprecateSerializer(serializers.Serializer):
-    deprecated_reason = serializers.ChoiceField(choices=LocalUnit.DeprecateReason.choices)
-    deprecated_reason_overview = serializers.CharField(required=False)
+class LocalUnitDeprecateSerializer(serializers.ModelSerializer):
 
-    def save(self, instance):
-        """Deprecate the local unit object"""
+    class Meta:
+        model = LocalUnit
+        fields = ("deprecated_reason", "deprecated_reason_overview")
+
+    def validate(self, attrs):
+        instance = self.instance
+        if instance and instance.is_deprecated and attrs.get("is_deprecated", False):
+            raise serializers.ValidationError("This object is already deprecated.")
+
+        if attrs.get("is_deprecated", False) and not attrs.get("deprecated_reason"):
+            raise serializers.ValidationError("A reason must be provided when deprecating an object.")
+
+        return attrs
+
+    def update(self, instance, validated_data):
         instance.is_deprecated = True
-        instance.deprecated_reason = self.validated_data.get("deprecated_reason", LocalUnit.DeprecateReason.OTHER)
-        instance.deprecated_reason_overview = self.validated_data.get("deprecated_reason_overview", "")
+        instance.deprecate_reason = validated_data.get("deprecated_reason", instance.deprecated_reason)
+        instance.deprecate_reason_overview = validated_data.get("deprecated_reason_overview", instance.deprecated_reason_overview)
         instance.save()
         return instance
