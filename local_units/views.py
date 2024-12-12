@@ -94,11 +94,11 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         # Creating a new change request for the local unit
         LocalUnitChangeRequest.objects.create(
             local_unit=local_unit,
-            previous_data=serializer,
+            previous_data=serializer.data,
             status=LocalUnitChangeRequest.Status.PENDING,
             triggered_by=request.user,
         )
-        return response.Response(serializer)
+        return response.Response(serializer.data)
 
     @extend_schema(request=None, responses=PrivateLocalUnitSerializer)
     @action(
