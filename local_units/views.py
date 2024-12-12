@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
 from rest_framework import permissions, response, status, views, viewsets
@@ -238,11 +239,11 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         detail=True,
         methods=["post"],
         url_path="revert-deprecate",
-        permission_classes=[permissions.IsAuthenticated, DenyGuestUserPermission],
+        permission_classes=[permissions.IsAuthenticated, ValidateLocalUnitPermission, DenyGuestUserPermission],
     )
     def revert_deprecate(self, request, pk=None):
         """Revert the deprecate local unit object."""
-        local_unit = self.get_object()
+        local_unit = get_object_or_404(LocalUnit, pk=pk)
         local_unit.is_deprecated = False
         local_unit.deprecated_reason = None
         local_unit.deprecated_reason_overview = ""
