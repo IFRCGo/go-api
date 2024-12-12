@@ -3,6 +3,8 @@ from django.contrib.gis import admin
 from django.core.exceptions import ValidationError
 from reversion_compare.admin import CompareVersionAdmin
 
+from dref.admin import ReadOnlyMixin
+
 from .models import (
     Affiliation,
     BloodService,
@@ -66,7 +68,7 @@ class LocalUnitAdmin(CompareVersionAdmin, admin.OSMGeoAdmin):
 
 
 @admin.register(LocalUnitChangeRequest)
-class LocalUnitChangeRequestAdmin(admin.ModelAdmin):
+class LocalUnitChangeRequestAdmin(ReadOnlyMixin, admin.ModelAdmin):
     autocomplete_fields = (
         "local_unit",
         "triggered_by",
@@ -81,11 +83,6 @@ class LocalUnitChangeRequestAdmin(admin.ModelAdmin):
         "local_unit",
         "status",
         "current_validator",
-    )
-    readonly_fields = (
-        "previous_data",
-        "rejected_data",
-        "rejected_reason",
     )
     ordering = ("id",)
 
