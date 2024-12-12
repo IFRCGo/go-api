@@ -360,6 +360,15 @@ class LocalUnit(models.Model):
         branch_name = self.local_branch_name or self.english_branch_name
         return f"{branch_name} ({self.country.name})"
 
+    def location_json(self):
+        """
+        Returns location in JSON format
+        """
+        return {
+            "lat": self.location.y,
+            "lng": self.location.x,
+        }
+
 
 class LocalUnitChangeRequest(models.Model):
 

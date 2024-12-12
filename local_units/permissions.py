@@ -3,7 +3,7 @@ from rest_framework import permissions
 
 
 class ValidateLocalUnitPermission(permissions.BasePermission):
-    message = "You need to be super user/ country admin to validate local unit"
+    message = "You need to be super user/ country admin/ region admin to validate local unit"
 
     def has_object_permission(self, request, view, object):
         user = request.user
@@ -16,7 +16,14 @@ class ValidateLocalUnitPermission(permissions.BasePermission):
                 codename__startswith="country_admin_",
             ).values_list("codename", flat=True)
         ]
-        if object.country_id in country_admin_ids:
+        region_admin_ids = [
+            int(codename.replace("region_admin_", ""))
+            for codename in Permission.objects.filter(
+                group__user=user,
+                codename__startswith="region_admin_",
+            ).values_list("codename", flat=True)
+        ]
+        if object.country_id in country_admin_ids or object.region_id in region_admin_ids:
             return True
         return False
 

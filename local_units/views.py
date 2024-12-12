@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
 from rest_framework import permissions, response, status, views, viewsets
@@ -38,7 +39,6 @@ from local_units.serializers import (
     PrivateLocalUnitSerializer,
     RejectedReasonSerialzier,
 )
-from local_units.utils import get_local_unit_snapshot_data
 from main.permissions import DenyGuestUserPermission
 
 
@@ -48,7 +48,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         "country",
         "type",
         "level",
-    )
+    ).exclude(is_deprecated=True)
     filterset_class = LocalUnitFilters
     search_fields = (
         "local_branch_name",
@@ -72,7 +72,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         # Creating a new change request for the local unit
         LocalUnitChangeRequest.objects.create(
             local_unit=serializer.instance,
-            previous_data=get_local_unit_snapshot_data(serializer.data),
+            previous_data=serializer.data,
             status=LocalUnitChangeRequest.Status.PENDING,
             triggered_by=request.user,
         )
@@ -95,7 +95,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         # Creating a new change request for the local unit
         LocalUnitChangeRequest.objects.create(
             local_unit=local_unit,
-            previous_data=get_local_unit_snapshot_data(serializer.data),
+            previous_data=serializer.data,
             status=LocalUnitChangeRequest.Status.PENDING,
             triggered_by=request.user,
         )
@@ -166,7 +166,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         change_request_instance.rejected_reason = reason
         change_request_instance.updated_by = request.user
         change_request_instance.updated_at = timezone.now()
-        change_request_instance.rejected_data = get_local_unit_snapshot_data(full_serializer.data)
+        change_request_instance.rejected_data = full_serializer.data
         change_request_instance.save(update_fields=["status", "rejected_reason", "updated_at", "updated_by", "rejected_data"])
 
         # Reverting the last change request related to this local unit
@@ -239,11 +239,11 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         detail=True,
         methods=["post"],
         url_path="revert-deprecate",
-        permission_classes=[permissions.IsAuthenticated, DenyGuestUserPermission],
+        permission_classes=[permissions.IsAuthenticated, ValidateLocalUnitPermission, DenyGuestUserPermission],
     )
     def revert_deprecate(self, request, pk=None):
         """Revert the deprecate local unit object."""
-        local_unit = self.get_object()
+        local_unit = get_object_or_404(LocalUnit, pk=pk)
         local_unit.is_deprecated = False
         local_unit.deprecated_reason = None
         local_unit.deprecated_reason_overview = ""

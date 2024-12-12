@@ -87,8 +87,9 @@ class TestLocalUnitsListView(APITestCase):
 
         # Test for validation
         response = self.client.post(url, data=data)
-        self.assert_400(response)
+        self.assert_404(response)
 
+        self.client.force_authenticate(self.root_user)
         # test revert deprecate
         data = {}
         url = f"/api/v2/local-units/{local_unit_obj.id}/revert-deprecate/"
@@ -171,7 +172,7 @@ class TestLocalUnitsDetailView(APITestCase):
         self.authenticate()
         response = self.client.get(f"/api/v2/local-units/{local_unit.id}/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["location_details"]["coordinates"], [12, 38])
+        self.assertEqual(response.data["location_geojson"]["coordinates"], [12, 38])
         self.assertEqual(response.data["country_details"]["name"], "Nepal")
         self.assertEqual(response.data["country_details"]["iso3"], "NLP")
         self.assertEqual(response.data["type_details"]["name"], "Code 0")
@@ -190,7 +191,7 @@ class TestLocalUnitsDetailView(APITestCase):
         local_unit = LocalUnitFactory.create(country=self.country, type=self.type, visibility=VisibilityChoices.PUBLIC)
         response = self.client.get(f"/api/v2/public-local-units/{local_unit.id}/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["location_details"]["coordinates"], [12, 38])
+        self.assertEqual(response.data["location_geojson"]["coordinates"], [12, 38])
         self.assertEqual(response.data["country_details"]["name"], "Nepal")
         self.assertEqual(response.data["country_details"]["iso3"], "NLP")
         self.assertEqual(response.data["type_details"]["name"], "Code 0")
