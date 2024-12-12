@@ -575,5 +575,5 @@ class LocalUnitDeprecateSerializer(serializers.ModelSerializer):
         instance.deprecated_reason_overview = validated_data.get(
             "deprecated_reason_overview", instance.deprecated_reason_overview
         )
-        instance.save(update_fields=["deprecated_reason", "deprecated_reason_overview"])
+        instance.save(update_fields=["is_deprecated", "deprecated_reason", "deprecated_reason_overview"])
         return instance
