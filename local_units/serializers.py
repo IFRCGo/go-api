@@ -553,6 +553,8 @@ class LocalUnitChangeRequestSerializer(serializers.ModelSerializer):
 
 
 class LocalUnitDeprecateSerializer(serializers.ModelSerializer):
+    deprecated_reason = serializers.ChoiceField(choices=LocalUnit.DeprecateReason, required=True)
+    deprecated_reason_overview = serializers.CharField(required=True, allow_blank=False)
 
     class Meta:
         model = LocalUnit
@@ -563,8 +565,6 @@ class LocalUnitDeprecateSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         instance = self.instance
-        if not attrs.get("deprecated_reason", None):
-            raise serializers.ValidationError({"non_field_errors": "Deprecate reason must be provided"})
 
         if instance and instance.is_deprecated:
             raise serializers.ValidationError({"non_field_errors": gettext("This object is already depricated")})

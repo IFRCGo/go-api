@@ -226,7 +226,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
     def deprecate(self, request, pk=None):
         """Deprecate local unit object object"""
         instance = self.get_object()
-        serializer = LocalUnitDeprecateSerializer(instance, data=request.data, partial=True)
+        serializer = LocalUnitDeprecateSerializer(instance, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return response.Response(
