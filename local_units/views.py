@@ -30,6 +30,7 @@ from local_units.permissions import (
 from local_units.serializers import (
     DelegationOfficeSerializer,
     LocalUnitChangeRequestSerializer,
+    LocalUnitDeprecateSerializer,
     LocalUnitDetailSerializer,
     LocalUnitOptionsSerializer,
     LocalUnitSerializer,
@@ -212,6 +213,42 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
             return bad_request("Last change request not found")
 
         serializer = LocalUnitChangeRequestSerializer(change_request, context={"request": request})
+        return response.Response(serializer.data)
+
+    @extend_schema(request=LocalUnitDeprecateSerializer, responses=None)
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path="deprecate",
+        serializer_class=LocalUnitDeprecateSerializer,
+        permission_classes=[permissions.IsAuthenticated, DenyGuestUserPermission],
+    )
+    def deprecate(self, request, pk=None):
+        """Deprecate local unit object object"""
+        instance = self.get_object()
+        serializer = LocalUnitDeprecateSerializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return response.Response(
+            {"message": "Local unit object deprecated successfully."},
+            status=status.HTTP_200_OK,
+        )
+
+    @extend_schema(request=None, responses=PrivateLocalUnitSerializer)
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path="revert-deprecate",
+        permission_classes=[permissions.IsAuthenticated, DenyGuestUserPermission],
+    )
+    def revert_deprecate(self, request, pk=None):
+        """Revert the deprecate local unit object."""
+        local_unit = self.get_object()
+        local_unit.is_deprecated = False
+        local_unit.deprecated_reason = None
+        local_unit.deprecated_reason_overview = ""
+        local_unit.save(update_fields=["is_deprecated", "deprecated_reason", "deprecated_reason_overview"])
+        serializer = PrivateLocalUnitSerializer(local_unit, context={"request": request})
         return response.Response(serializer.data)
 
 
