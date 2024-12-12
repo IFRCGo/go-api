@@ -2,6 +2,7 @@ import datetime
 
 import factory
 from django.contrib.gis.geos import Point
+from factory import fuzzy
 
 from api.models import Country, Region
 from deployments.factories.user import UserFactory
@@ -25,7 +26,7 @@ from .models import (
 
 class LocalUnitFactory(factory.django.DjangoModelFactory):
     location = Point(12, 38)
-    date_of_data = factory.fuzzy.FuzzyDate(datetime.date(2024, 1, 2))
+    date_of_data = fuzzy.FuzzyDate(datetime.date(2024, 1, 2))
 
     class Meta:
         model = LocalUnit
@@ -63,6 +64,40 @@ class TestLocalUnitsListView(APITestCase):
         # self.assertEqual(response.data['results'][0]['country_details']['iso3'], 'NLP')
         # self.assertEqual(response.data['results'][0]['type_details']['name'], 'Code 0')
         # self.assertEqual(response.data['results'][0]['type_details']['code'], 0)
+
+    def test_deprecate_local_unit(self):
+        country = Country.objects.all().first()
+        type = LocalUnitType.objects.all().first()
+        local_unit_obj = LocalUnitFactory.create(
+            country=country, type=type, draft=True, validated=False, date_of_data="2023-09-09"
+        )
+
+        self.authenticate()
+        url = f"/api/v2/local-units/{local_unit_obj.id}/deprecate/"
+        data = {
+            "deprecated_reason": LocalUnit.DeprecateReason.INCORRECTLY_ADDED,
+            "deprecated_reason_overview": "test reason",
+        }
+        response = self.client.post(url, data=data)
+        local_unit_obj = LocalUnit.objects.get(id=local_unit_obj.id)
+
+        self.assert_200(response)
+        self.assertEqual(local_unit_obj.is_deprecated, True)
+        self.assertEqual(local_unit_obj.deprecated_reason, LocalUnit.DeprecateReason.INCORRECTLY_ADDED)
+
+        # Test for validation
+        response = self.client.post(url, data=data)
+        self.assert_400(response)
+
+        # test revert deprecate
+        data = {}
+        url = f"/api/v2/local-units/{local_unit_obj.id}/revert-deprecate/"
+        response = self.client.post(url, data=data)
+        local_unit_obj = LocalUnit.objects.get(id=local_unit_obj.id)
+        self.assert_200(response)
+        self.assertEqual(local_unit_obj.is_deprecated, False)
+        self.assertEqual(local_unit_obj.deprecated_reason, None)
+        self.assertEqual(local_unit_obj.deprecated_reason_overview, "")
 
     def test_filter(self):
         self.authenticate()
