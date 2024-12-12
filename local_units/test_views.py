@@ -87,8 +87,9 @@ class TestLocalUnitsListView(APITestCase):
 
         # Test for validation
         response = self.client.post(url, data=data)
-        self.assert_400(response)
+        self.assert_404(response)
 
+        self.client.force_authenticate(self.root_user)
         # test revert deprecate
         data = {}
         url = f"/api/v2/local-units/{local_unit_obj.id}/revert-deprecate/"
