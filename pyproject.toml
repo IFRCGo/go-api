@@ -113,36 +113,37 @@ exclude = [
 reportMissingImports = true
 reportMissingTypeStubs = false
 
-[tool.black]
+[tool.ruff]
 line-length = 130
-target-version = ['py39']
-include = '\.pyi?$'
-exclude = '''
-/(
-    \.git
-  | \.tox
-  | \.venv
-  | \.db
-  | _build
-  | buck-out
-  | build
-  | dist
-  | docs
-)/
-'''
-# NOTE: Update in .pre-commit-config.yaml as well
-extend-exclude = "^.*\\b(migrations)\\b.*$ (__pycache__|.+/+.+/+migrations/+.*)"
-
-[tool.isort]
-profile = "black"
-multi_line_output = 3
-# NOTE: Update in .pre-commit-config.yaml as well
-skip = [
-    "**/__pycache__",
-    ".venv/",
-    "legacy/",
-    "**/migrations/*.py",
+target-version = "py39"
+include = ["*.py"]
+exclude = [
+  ".git",
+  ".tox",
+  ".venv",
+  ".db",
+  "_build",
+  "buck-out",
+  "build",
+  "dist",
+  "docs",
+  "/__pycache__",
+  "*snapshots*",
+  "*migrations*",
 ]
+extend-exclude = [
+  ".*\\b(migrations)\\b.*$",
+  "__pycache__",
+  ".+/+.+/+migrations/+.+",
+  ".+/+.+/+tests/+.+",
+]
+
+[tool.ruff.lint]
+ignore = ["C901", "E203", "E701", "E741", "E714"]
+
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

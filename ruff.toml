@@ -1,0 +1,31 @@
+exclude = [
+  ".git",
+  ".tox",
+  ".venv",
+  ".db",
+  "_build",
+  "buck-out",
+  "build",
+  "dist",
+  "docs",
+  "**/__pycache__",
+  "*snapshots*",
+  "*migrations*",
+]
+extend-exclude = [
+  ".*\\b(migrations)\\b.*$",
+  "__pycache__",
+  ".+/+.+/+migrations/+.+",
+  ".+/+.+/+tests/+.+",
+]
+
+[lint]
+ignore = ["C901", "E203", "E701", "E741", "E714"]
+
+# exclude = .git,__pycache__,old,build,dist,*migrations*,*snapshots*
+
+[lint.pycodestyle]
+max-line-length = 130
+
+[lint.mccabe]
+max-complexity = 10
