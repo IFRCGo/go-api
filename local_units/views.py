@@ -123,19 +123,21 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
             return bad_request("No change request found to validate")
 
         # Checking the validator type
-        region_admin_ids = [
-            int(codename.replace("region_admin_", ""))
-            for codename in Permission.objects.filter(
-                group__user=request.user,
-                codename__startswith="region_admin_",
-            ).values_list("codename", flat=True)
-        ]
-        if local_unit.country.region_id in region_admin_ids:
-            validator = LocalUnitChangeRequest.Validator.REGIONAL
-        elif request.user.is_superuser:
+
+        validator = LocalUnitChangeRequest.Validator.LOCAL
+        if request.user.is_superuser:
             validator = LocalUnitChangeRequest.Validator.GLOBAL
         else:
-            validator = LocalUnitChangeRequest.Validator.LOCAL
+            region_admin_ids = [
+                int(codename.replace("region_admin_", ""))
+                for codename in Permission.objects.filter(
+                    group__user=request.user,
+                    codename__startswith="region_admin_",
+                ).values_list("codename", flat=True)
+            ]
+            if local_unit.country.region_id in region_admin_ids:
+                validator = LocalUnitChangeRequest.Validator.REGIONAL
+
         change_request_instance.current_validator = validator
         change_request_instance.status = LocalUnitChangeRequest.Status.APPROVED
         change_request_instance.updated_by = request.user
