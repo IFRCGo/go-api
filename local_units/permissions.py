@@ -23,7 +23,7 @@ class ValidateLocalUnitPermission(permissions.BasePermission):
                 codename__startswith="region_admin_",
             ).values_list("codename", flat=True)
         ]
-        if object.country_id in country_admin_ids or object.region_id in region_admin_ids:
+        if object.country_id in country_admin_ids or object.country.region_id in region_admin_ids:
             return True
         return False
 

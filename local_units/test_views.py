@@ -1,7 +1,9 @@
 import datetime
 
 import factory
+from django.contrib.auth.models import Group
 from django.contrib.gis.geos import Point
+from django.core import management
 from factory import fuzzy
 
 from api.models import Country, Region
@@ -307,6 +309,23 @@ class TestDelegationOfficesDetailView(APITestCase):
 
 
 class TestLocalUnitCreate(APITestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.region = Region.objects.create(name=2)
+        self.country = Country.objects.create(name="Nepal", iso3="NLP", region=self.region)
+        management.call_command("make_permissions")
+
+        # Permissions and different validators
+        self.local_unit_admin = UserFactory.create()
+        self.regional_validator = UserFactory.create()
+
+        # Permissions and different validators
+        country_group = Group.objects.filter(name="%s Admins" % self.country.name).first()
+        region_group = Group.objects.filter(name="%s Regional Admins" % self.region.name).first()
+
+        self.local_unit_admin.groups.add(country_group)
+        self.regional_validator.groups.add(region_group)
 
     def test_create_local_unit_administrative(self):
         region = Region.objects.create(name=2)
@@ -624,3 +643,54 @@ class TestLocalUnitCreate(APITestCase):
         self.assert_200(response)
         self.assertEqual(response.data["previous_data"]["local_branch_name"], previous_data["local_branch_name"])
         self.assertEqual(response.data["previous_data"]["english_branch_name"], previous_data["english_branch_name"])
+
+    def test_validate_local_unit(self):
+        type = LocalUnitType.objects.create(code=0, name="Code 0")
+        data = {
+            "local_branch_name": "Silele Red Cross Clinic, Sigombeni Red Cross Clinic & Mahwalala Red Cross Clinic",
+            "english_branch_name": None,
+            "type": type.id,
+            "country": self.country.id,
+            "date_of_data": "2024-05-13",
+            "location_json": {
+                "lat": 42.066667,
+                "lng": 19.983333,
+            },
+        }
+        self.authenticate()
+        response = self.client.post("/api/v2/local-units/", data=data, format="json")
+        self.assert_201(response)
+
+        local_unit_id = response.data["id"]
+
+        # Testing For the local unit admin/Local validator
+        self.authenticate(self.local_unit_admin)
+        # validating the local unit by the local unit admin
+        response = self.client.post(f"/api/v2/local-units/{local_unit_id}/validate/")
+        self.assert_200(response)
+        local_unit_request = LocalUnitChangeRequest.objects.filter(
+            local_unit=local_unit_id, status=LocalUnitChangeRequest.Status.APPROVED
+        ).last()
+        self.assertEqual(local_unit_request.current_validator, LocalUnitChangeRequest.Validator.LOCAL)
+
+        # Testing For the regional validator
+        self.authenticate(self.regional_validator)
+        response = self.client.put(f"/api/v2/local-units/{local_unit_id}/", data=data, format="json")
+        self.assert_200(response)
+        # validating the local unit by the regional validator
+        response = self.client.post(f"/api/v2/local-units/{local_unit_id}/validate/")
+        local_unit_request = LocalUnitChangeRequest.objects.filter(
+            local_unit=local_unit_id, status=LocalUnitChangeRequest.Status.APPROVED
+        ).last()
+        self.assertEqual(local_unit_request.current_validator, LocalUnitChangeRequest.Validator.REGIONAL)
+
+        # Testing for Root User/Global validator
+        self.authenticate(self.root_user)
+        response = self.client.put(f"/api/v2/local-units/{local_unit_id}/", data=data, format="json")
+        self.assert_200(response)
+        # validating the local unit by the global validator
+        response = self.client.post(f"/api/v2/local-units/{local_unit_id}/validate/")
+        local_unit_request = LocalUnitChangeRequest.objects.filter(
+            local_unit=local_unit_id, status=LocalUnitChangeRequest.Status.APPROVED
+        ).last()
+        self.assertEqual(local_unit_request.current_validator, LocalUnitChangeRequest.Validator.GLOBAL)
