@@ -1,4 +1,5 @@
 from django.contrib.auth.models import Permission
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
@@ -40,6 +41,8 @@ from local_units.serializers import (
     PrivateLocalUnitSerializer,
     RejectedReasonSerialzier,
 )
+from local_units.tasks import send_local_unit_email
+from local_units.utils import get_local_admins
 from main.permissions import DenyGuestUserPermission
 
 
@@ -76,6 +79,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
             status=LocalUnitChangeRequest.Status.PENDING,
             triggered_by=request.user,
         )
+        transaction.on_commit(lambda: send_local_unit_email(serializer.instance.id, get_local_admins(serializer.instance), "New"))
         return response.Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
