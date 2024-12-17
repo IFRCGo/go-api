@@ -16,6 +16,30 @@ def get_email_context(instance):
 
 
 def get_local_admins(instance):
+    """
+    Get the user with the country level admin permission for the country of the instance
+    """
+    country_admins = User.objects.filter(groups__permissions__codename=f"country_admin_{instance.country_id}").values_list(
+        "email", flat=True
+    )
+    return country_admins
 
-    local_admins = User.objects.filter(local_units=instance, role="local_admin")
-    return local_admins.values_list("email", flat=True)
+
+def get_region_admins(instance):
+    """
+    Get the user with the region level admin permission for the region of the instance
+    """
+    region_admins = User.objects.filter(groups__permissions__codename=f"region_admin_{instance.region_id}").values_list(
+        "email", flat=True
+    )
+    return region_admins
+
+
+def get_global_validators():
+    """
+    Get the user with the global validator permission
+    """
+    global_validators = User.objects.filter(groups__permissions__codename="global_validator").values_list(
+        "email", flat=True
+    )
+    return global_validators
