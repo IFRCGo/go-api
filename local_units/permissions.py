@@ -9,14 +9,10 @@ class ValidateLocalUnitPermission(permissions.BasePermission):
         user = request.user
 
         # Check if user is superuser or in Local Unit Global Validators group
-        group_queryset = (
-            Group.objects.filter(
-                name="Local Unit Global Validators",
-                user=user,
-            )
-            .values_list("id", flat=True)
-            .first()
-        )
+        group_queryset = Group.objects.filter(
+            name="Local Unit Global Validators",
+            user=user,
+        ).first()
 
         if user.is_superuser or group_queryset:
             return True

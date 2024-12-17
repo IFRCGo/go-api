@@ -125,14 +125,10 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         # Checking the validator type
 
         validator = LocalUnitChangeRequest.Validator.LOCAL
-        group_queryset = (
-            Group.objects.filter(
-                name="Local Unit Global Validators",
-                user=request.user,
-            )
-            .values_list("id", flat=True)
-            .first()
-        )
+        group_queryset = Group.objects.filter(
+            name="Local Unit Global Validators",
+            user=request.user,
+        ).first()
         if request.user.is_superuser or group_queryset:
             validator = LocalUnitChangeRequest.Validator.GLOBAL
         else:
