@@ -235,6 +235,12 @@ class LocalUnitDetailSerializer(serializers.ModelSerializer):
         return json.loads(unit.location.geojson)
 
 
+"""
+NOTE: This `PrivateLocalUnitDetailSerializer` is used to store the previous_data of local unit
+changing the serializer might effect the data of previous_data
+"""
+
+
 class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
     country_details = LocalUnitCountrySerializer(source="country", read_only=True)
     type_details = LocalUnitTypeSerializer(source="type", read_only=True)
@@ -537,23 +543,26 @@ class RejectedReasonSerialzier(serializers.Serializer):
 
 
 class LocalUnitChangeRequestSerializer(serializers.ModelSerializer):
-    local_unit_details = PrivateLocalUnitDetailSerializer(source="local_unit", read_only=True)
     created_by_details = LocalUnitMiniUserSerializer(source="created_by", read_only=True)
     status_details = serializers.CharField(source="get_status_display", read_only=True)
     current_validator_details = serializers.CharField(source="get_current_validator_display", read_only=True)
+    # NOTE: Typing issue on JsonField, So returning as string
+    previous_data_details = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = LocalUnitChangeRequest
         fields = (
             "id",
-            "local_unit_details",
             "status",
             "status_details",
             "current_validator",
             "current_validator_details",
             "created_by_details",
-            "previous_data",
+            "previous_data_details",
         )
+
+    def get_previous_data_details(self, obj):
+        return obj.previous_data
 
 
 class LocalUnitDeprecateSerializer(serializers.ModelSerializer):
