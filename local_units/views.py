@@ -48,7 +48,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         "country",
         "type",
         "level",
-    ).exclude(is_deprecated=True)
+    )
     filterset_class = LocalUnitFilters
     search_fields = (
         "local_branch_name",
