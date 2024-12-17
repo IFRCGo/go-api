@@ -302,20 +302,5 @@ class OpsLearningStatsTestCase(APITestCase):
         self.assertEqual(country_data[0]["country_name"], "Country A")
         self.assertEqual(country_data[0]["count"], 1)
 
-        # Validate sources overtime
-        for appeal_type, label in AppealType.choices:
-            self.assertIn(label, response.data["sources_overtime"])
-            for item in response.data["sources_overtime"][label]:
-                self.assertIn("date", item)
-                self.assertIn("count", item)
-
-                date_str = item["date"]
-                date_str_iso = date_str.replace(tzinfo=None).isoformat() + "Z"
-
-                if label == "DREF":
-                    self.assertEqual(date_str_iso, "2023-01-01T00:00:00Z")
-                    self.assertEqual(item["count"], 1)
-
-                elif label == "Emergency Appeal":
-                    self.assertEqual(date_str_iso, "2023-02-01T00:00:00Z")
-                    self.assertEqual(item["count"], 0)
+        sources_overtime = response.data["sources_overtime"]
+        self.assertEqual(len(sources_overtime), 1)

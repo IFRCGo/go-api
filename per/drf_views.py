@@ -20,7 +20,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
-from api.models import AppealType, Country, Region
+from api.models import Appeal, Country, Region
 from deployments.models import SectorTag
 from main.permissions import DenyGuestUserMutationPermission, DenyGuestUserPermission
 from main.utils import SpreadSheetContentNegotiation
@@ -952,11 +952,9 @@ class OpsLearningViewset(viewsets.ModelViewSet):
         )
 
         sources_overtime = {
-            str(appeal_type_label): queryset.filter(appeal_code__atype=appeal_type)
-            .annotate(date=F(("appeal_code__start_date")))
-            .values("date")
-            .annotate(count=Count("appeal_code__appealdocument", distinct=True))
-            for appeal_type, appeal_type_label in AppealType.choices
+            Appeal.objects.filter(opslearning__in=queryset)
+            .annotate(type=F("atype"), year=F("start_date"), count=Count("opslearning", distinct=True))
+            .values("type", "year", "count")
         }
 
         learning_by_region = (
