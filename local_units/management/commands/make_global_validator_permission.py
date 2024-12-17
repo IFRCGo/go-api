@@ -15,7 +15,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         logger.info("Creating/Updating permissions/groups for local unit global validator")
         print("- Creating/Updating permissions/groups for local unit global validator")
-        codename = ("local_unit_global_validator",)
+        codename = "local_unit_global_validator"
         content_type = ContentType.objects.get_for_model(LocalUnit)
         permission, created = Permission.objects.get_or_create(
             codename=codename,

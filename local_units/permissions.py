@@ -1,4 +1,4 @@
-from django.contrib.auth.models import Group, Permission
+from django.contrib.auth.models import Permission
 from rest_framework import permissions
 
 
@@ -8,13 +8,7 @@ class ValidateLocalUnitPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, object):
         user = request.user
 
-        # Check if user is superuser or in Local Unit Global Validators group
-        group_queryset = Group.objects.filter(
-            name="Local Unit Global Validators",
-            user=user,
-        ).first()
-
-        if user.is_superuser or group_queryset:
+        if user.is_superuser or user.has_perm("local_units.local_unit_global_validator"):
             return True
         country_admin_ids = [
             int(codename.replace("country_admin_", ""))

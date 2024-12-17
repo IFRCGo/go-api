@@ -1,7 +1,7 @@
 import datetime
 
 import factory
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, Permission
 from django.contrib.gis.geos import Point
 from django.core import management
 from factory import fuzzy
@@ -322,15 +322,16 @@ class TestLocalUnitCreate(APITestCase):
         self.local_unit_admin_user = UserFactory.create()
         self.regional_validator_user = UserFactory.create()
 
+        # Adding permissions to the users
+        global_validator_permission = Permission.objects.filter(codename="local_unit_global_validator").first()
+
         country_group = Group.objects.filter(name="%s Admins" % self.country.name).first()
         region_group = Group.objects.filter(name="%s Regional Admins" % self.region.name).first()
-        global_validator_group = Group.objects.filter(name="Local Unit Global Validators").first()
 
         self.local_unit_admin_user.groups.add(country_group)
         self.regional_validator_user.groups.add(region_group)
 
-        # Adding global validator permission to global validator
-        self.global_validator_user.groups.add(global_validator_group)
+        self.global_validator_user.user_permissions.add(global_validator_permission)
 
     def test_create_local_unit_administrative(self):
         region = Region.objects.create(name=2)
