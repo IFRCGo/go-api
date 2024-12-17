@@ -951,21 +951,32 @@ class OpsLearningViewset(viewsets.ModelViewSet):
             .values("title", "count")
         )
 
-        sources_overtime = {
+        sources_overtime = (
             Appeal.objects.filter(opslearning__in=queryset)
-            .annotate(type=F("atype"), date=F("start_date"), count=Count("opslearning", distinct=True))
+            .annotate(
+                type=F("atype"),
+                date=F("start_date"),
+                count=Count("appealdocument", distinct=True),
+            )
             .values("type", "date", "count")
-        }
+        )
 
         learning_by_region = (
-            Region.objects.filter(appeal__in=queryset.values("appeal_code__id"))
-            .annotate(region_name=F("label"), count=Count("appeal__opslearning", distinct=True))
+            Region.objects.filter(appeal__opslearning__in=queryset)
+            .annotate(
+                region_name=F("label"),
+                count=Count("appeal__opslearning", distinct=True),
+            )
             .values("region_name", "count")
         )
 
         learning_by_country = (
-            Country.objects.filter(appeal__in=queryset.values("appeal_code__id"))
-            .annotate(country_id=F("id"), country_name=F("name"), count=Count("appeal__opslearning", distinct=True))
+            Country.objects.filter(appeal__opslearning__in=queryset)
+            .annotate(
+                country_id=F("id"),
+                country_name=F("name"),
+                count=Count("appeal__opslearning", distinct=True),
+            )
             .values("country_id", "country_name", "count")
         )
 
@@ -979,7 +990,7 @@ class OpsLearningViewset(viewsets.ModelViewSet):
             "sources_overtime": sources_overtime,
             "learning_by_country": learning_by_country,
         }
-        return response.Response(data)
+        return response.Response(OpsLearningStatSerializer(data).data)
 
 
 class PerDocumentUploadViewSet(viewsets.ModelViewSet):

@@ -1273,7 +1273,7 @@ class LearningBySectorSerializer(serializers.Serializer):
 
 class LearningSourcesOvertimeSerializer(serializers.Serializer):
     type = serializers.IntegerField()
-    date = serializers.DateField()
+    date = serializers.DateTimeField()
     count = serializers.IntegerField()
 
 

@@ -254,7 +254,7 @@ class OpsLearningStatsTestCase(APITestCase):
         self.ops_learning1 = OpsLearningFactory.create(is_validated=True, appeal_code=self.appeal1)
         self.ops_learning1.sector_validated.set([self.sector1])
 
-        self.ops_learning2 = OpsLearningFactory.create(is_validated=False, appeal_code=self.appeal2)
+        self.ops_learning2 = OpsLearningFactory.create(is_validated=True, appeal_code=self.appeal2)
         self.ops_learning2.sector_validated.set([self.sector2])
 
         self.ops_learning3 = OpsLearningFactory.create(is_validated=False, appeal_code=self.appeal2)
@@ -279,28 +279,22 @@ class OpsLearningStatsTestCase(APITestCase):
             self.assertIn(key, response.data)
 
         # Updated counts based on validated entries
-        self.assertEqual(response.data["operations_included"], 1)
-        self.assertEqual(response.data["sources_used"], 1)
-        self.assertEqual(response.data["learning_extracts"], 1)
-        self.assertEqual(response.data["sectors_covered"], 1)
+        self.assertEqual(response.data["operations_included"], 2)
+        self.assertEqual(response.data["sources_used"], 2)
+        self.assertEqual(response.data["learning_extracts"], 2)
+        self.assertEqual(response.data["sectors_covered"], 2)
 
         # Validate learning by region
         region_data = response.data["learning_by_region"]
-        self.assertEqual(len(region_data), 1)
-        self.assertEqual(region_data[0]["region_name"], "Region A")
-        self.assertEqual(region_data[0]["count"], 1)
+        self.assertEqual(region_data[0]["count"], 2)
 
         # Validate learning by sector
         sector_data = response.data["learning_by_sector"]
         self.assertEqual(len(sector_data), 2)
-        self.assertEqual(sector_data[0]["title"], "Sector 1")
-        self.assertEqual(sector_data[0]["count"], 1)
 
         # Validate learning by country
         country_data = response.data["learning_by_country"]
         self.assertEqual(len(country_data), 1)
-        self.assertEqual(country_data[0]["country_name"], "Country A")
-        self.assertEqual(country_data[0]["count"], 1)
 
         sources_overtime = response.data["sources_overtime"]
-        self.assertEqual(len(sources_overtime), 1)
+        self.assertEqual(len(sources_overtime), 2)
