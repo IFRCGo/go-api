@@ -946,15 +946,15 @@ class OpsLearningViewset(viewsets.ModelViewSet):
         )
 
         learning_by_sector = (
-            SectorTag.objects.filter(title__isnull=False)
+            SectorTag.objects.filter(validated_sectors__in=queryset, title__isnull=False)
             .annotate(count=Count("validated_sectors", distinct=True))
             .values("title", "count")
         )
 
         sources_overtime = {
             Appeal.objects.filter(opslearning__in=queryset)
-            .annotate(type=F("atype"), year=F("start_date"), count=Count("opslearning", distinct=True))
-            .values("type", "year", "count")
+            .annotate(type=F("atype"), date=F("start_date"), count=Count("opslearning", distinct=True))
+            .values("type", "date", "count")
         }
 
         learning_by_region = (

@@ -1256,7 +1256,6 @@ class OpsLearningOrganizationTypeSerializer(serializers.ModelSerializer):
 
 
 class LearningByRegionSerializer(serializers.Serializer):
-    region_id = serializers.IntegerField()
     region_name = serializers.CharField()
     count = serializers.IntegerField()
 
@@ -1273,6 +1272,7 @@ class LearningBySectorSerializer(serializers.Serializer):
 
 
 class LearningSourcesOvertimeSerializer(serializers.Serializer):
+    type = serializers.IntegerField()
     date = serializers.DateField()
     count = serializers.IntegerField()
 
