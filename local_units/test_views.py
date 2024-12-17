@@ -87,7 +87,7 @@ class TestLocalUnitsListView(APITestCase):
 
         # Test for validation
         response = self.client.post(url, data=data)
-        self.assert_404(response)
+        self.assert_400(response)
 
         self.client.force_authenticate(self.root_user)
         # test revert deprecate
@@ -622,5 +622,5 @@ class TestLocalUnitCreate(APITestCase):
         # Checking the latest changes
         response = self.client.post(f"/api/v2/local-units/{local_unit_id}/latest-change-request/")
         self.assert_200(response)
-        self.assertEqual(response.data["previous_data"]["local_branch_name"], previous_data["local_branch_name"])
-        self.assertEqual(response.data["previous_data"]["english_branch_name"], previous_data["english_branch_name"])
+        self.assertEqual(response.data["previous_data_details"]["local_branch_name"], previous_data["local_branch_name"])
+        self.assertEqual(response.data["previous_data_details"]["english_branch_name"], previous_data["english_branch_name"])
