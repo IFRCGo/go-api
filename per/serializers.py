@@ -1253,3 +1253,36 @@ class OpsLearningOrganizationTypeSerializer(serializers.ModelSerializer):
             "id",
             "title",
         ]
+
+
+class LearningByRegionSerializer(serializers.Serializer):
+    region_id = serializers.IntegerField()
+    region_name = serializers.CharField()
+    count = serializers.IntegerField()
+
+
+class LearningByCountrySerializer(serializers.Serializer):
+    country_id = serializers.IntegerField()
+    country_name = serializers.CharField()
+    count = serializers.IntegerField()
+
+
+class LearningBySectorSerializer(serializers.Serializer):
+    title = serializers.CharField()
+    count = serializers.IntegerField()
+
+
+class LearningSourcesOvertimeSerializer(serializers.Serializer):
+    date = serializers.DateField()
+    count = serializers.IntegerField()
+
+
+class OpsLearningStatSerializer(serializers.Serializer):
+    operations_included = serializers.IntegerField()
+    learning_extracts = serializers.IntegerField()
+    sectors_covered = serializers.IntegerField()
+    sources_used = serializers.IntegerField()
+    learning_by_region = LearningByRegionSerializer(many=True)
+    learning_by_country = LearningByCountrySerializer(many=True)
+    learning_by_sector = LearningBySectorSerializer(many=True)
+    sources_overtime = LearningSourcesOvertimeSerializer(many=True)

@@ -3,7 +3,7 @@ from datetime import datetime
 import pytz
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Count, F, OuterRef, Prefetch, Q, Subquery
+from django.db.models import Count, F, Prefetch, Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils.translation import get_language as django_get_language
@@ -20,7 +20,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
-from api.models import Appeal, AppealType, Country
+from api.models import AppealType, Country, Region
 from deployments.models import SectorTag
 from main.permissions import DenyGuestUserMutationPermission, DenyGuestUserPermission
 from main.utils import SpreadSheetContentNegotiation
@@ -82,6 +82,7 @@ from .serializers import (
     OpsLearningInSerializer,
     OpsLearningOrganizationTypeSerializer,
     OpsLearningSerializer,
+    OpsLearningStatSerializer,
     OpsLearningSummarySerializer,
     PerAssessmentSerializer,
     PerDocumentUploadSerializer,
@@ -921,6 +922,11 @@ class OpsLearningViewset(viewsets.ModelViewSet):
         )
         return response.Response(OpsLearningSummarySerializer(ops_learning_summary_instance).data)
 
+    @extend_schema(
+        request=None,
+        filters=True,
+        responses=OpsLearningStatSerializer,
+    )
     @action(
         detail=False,
         methods=["GET"],
@@ -931,21 +937,12 @@ class OpsLearningViewset(viewsets.ModelViewSet):
         """
         Get the Ops Learning stats based on the filters
         """
-        ops_data = (
-            super()
-            .get_queryset()
-            .filter(is_validated=True)
-            .select_related("appeal_code")
-            .prefetch_related(
-                "appeal_code__appealdocument",
-                "sector_validated",
-            )
-            .aggregate(
-                operations_included=Count("appeal_code", distinct=True),
-                learning_extracts=Count("id", distinct=True),
-                sector_covered=Count("sector_validated", distinct=True),
-                source_used=Count("appeal_code__appealdocument", distinct=True),
-            )
+        queryset = self.filter_queryset(self.get_queryset()).filter(is_validated=True)
+        ops_data = queryset.aggregate(
+            operations_included=Count("appeal_code", distinct=True),
+            learning_extracts=Count("id", distinct=True),
+            sector_covered=Count("sector_validated", distinct=True),
+            source_used=Count("appeal_code__appealdocument", distinct=True),
         )
 
         learning_by_sector = (
@@ -955,34 +952,23 @@ class OpsLearningViewset(viewsets.ModelViewSet):
         )
 
         sources_overtime = {
-            str(appeal_type_label): OpsLearning.objects.filter(appeal_code__atype=appeal_type, is_validated=True)
+            str(appeal_type_label): queryset.filter(appeal_code__atype=appeal_type)
             .annotate(date=F(("appeal_code__start_date")))
             .values("date")
             .annotate(count=Count("appeal_code__appealdocument", distinct=True))
-            .order_by("date")
             for appeal_type, appeal_type_label in AppealType.choices
         }
 
-        region_subquery = Appeal.objects.filter(code=OuterRef("appeal_code"), region__isnull=False).values("region__label")[:1]
-        region_id = Appeal.objects.filter(code=OuterRef("appeal_code"), region__isnull=False).values("region__id")[:1]
-
         learning_by_region = (
-            OpsLearning.objects.filter(is_validated=True)
-            .annotate(name=Subquery(region_subquery))
-            .values("name")
-            .annotate(id=Subquery(region_id), count=Count("id", distinct=True))
-            .order_by("name")
+            Region.objects.filter(appeal__in=queryset.values("appeal_code__id"))
+            .annotate(region_name=F("label"), count=Count("appeal__opslearning", distinct=True))
+            .values("region_name", "count")
         )
 
-        country_subquery = Appeal.objects.filter(code=OuterRef("appeal_code"), country__isnull=False).values("country__name")[:1]
-        country_id = Appeal.objects.filter(code=OuterRef("appeal_code"), country__isnull=False).values("country__id")[:1]
-
         learning_by_country = (
-            OpsLearning.objects.filter(is_validated=True)
-            .annotate(name=Subquery(country_subquery))
-            .values("name")
-            .annotate(id=Subquery(country_id), count=Count("id", distinct=True))
-            .order_by("name")
+            Country.objects.filter(appeal__in=queryset.values("appeal_code__id"))
+            .annotate(country_id=F("id"), country_name=F("name"), count=Count("appeal__opslearning", distinct=True))
+            .values("country_id", "country_name", "count")
         )
 
         data = {

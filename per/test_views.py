@@ -232,39 +232,39 @@ class OpsLearningSummaryTestCase(APITestCase):
 
 
 class OpsLearningStatsTestCase(APITestCase):
-    @classmethod
-    def setUpTestData(cls):
-        cls.region = RegionFactory.create(label="Region A")
-        cls.country = CountryFactory.create(region=cls.region, name="Country A")
 
-        cls.sector1 = SectorTagFactory.create(title="Sector 1")
-        cls.sector2 = SectorTagFactory.create(title="Sector 2")
+    def setUp(self):
+        super().setUp()
+        self.region = RegionFactory.create(label="Region A")
+        self.country = CountryFactory.create(region=self.region, name="Country A")
 
-        cls.appeal1 = AppealFactory.create(
-            region=cls.region, country=cls.country, code="APP001", atype=0, start_date="2023-01-01"
+        self.sector1 = SectorTagFactory.create(title="Sector 1")
+        self.sector2 = SectorTagFactory.create(title="Sector 2")
+
+        self.appeal1 = AppealFactory.create(
+            region=self.region, country=self.country, code="APP001", atype=0, start_date="2023-01-01"
         )
-        cls.appeal2 = AppealFactory.create(
-            region=cls.region, country=cls.country, code="APP002", atype=1, start_date="2023-02-01"
+        self.appeal2 = AppealFactory.create(
+            region=self.region, country=self.country, code="APP002", atype=1, start_date="2023-02-01"
         )
 
-        AppealDocumentFactory.create(appeal=cls.appeal1)
-        AppealDocumentFactory.create(appeal=cls.appeal2)
+        AppealDocumentFactory.create(appeal=self.appeal1)
+        AppealDocumentFactory.create(appeal=self.appeal2)
 
-        cls.ops_learning1 = OpsLearningFactory.create(is_validated=True, appeal_code=cls.appeal1)
-        cls.ops_learning1.sector_validated.set([cls.sector1])
+        self.ops_learning1 = OpsLearningFactory.create(is_validated=True, appeal_code=self.appeal1)
+        self.ops_learning1.sector_validated.set([self.sector1])
 
-        cls.ops_learning2 = OpsLearningFactory.create(is_validated=False, appeal_code=cls.appeal2)
-        cls.ops_learning2.sector_validated.set([cls.sector2])
+        self.ops_learning2 = OpsLearningFactory.create(is_validated=False, appeal_code=self.appeal2)
+        self.ops_learning2.sector_validated.set([self.sector2])
 
-        cls.ops_learning3 = OpsLearningFactory.create(is_validated=False, appeal_code=cls.appeal2)
-        cls.ops_learning3.sector_validated.set([cls.sector2])
+        self.ops_learning3 = OpsLearningFactory.create(is_validated=False, appeal_code=self.appeal2)
+        self.ops_learning3.sector_validated.set([self.sector2])
 
     def test_ops_learning_stats(self):
         url = "/api/v2/ops-learning/stats/"
         response = self.client.get(url)
 
-        self.assertEqual(response.status_code, 200)
-
+        self.assert_200(response)
         expected_keys = [
             "operations_included",
             "sources_used",
@@ -287,7 +287,7 @@ class OpsLearningStatsTestCase(APITestCase):
         # Validate learning by region
         region_data = response.data["learning_by_region"]
         self.assertEqual(len(region_data), 1)
-        self.assertEqual(region_data[0]["name"], "Region A")
+        self.assertEqual(region_data[0]["region_name"], "Region A")
         self.assertEqual(region_data[0]["count"], 1)
 
         # Validate learning by sector
@@ -299,7 +299,7 @@ class OpsLearningStatsTestCase(APITestCase):
         # Validate learning by country
         country_data = response.data["learning_by_country"]
         self.assertEqual(len(country_data), 1)
-        self.assertEqual(country_data[0]["name"], "Country A")
+        self.assertEqual(country_data[0]["country_name"], "Country A")
         self.assertEqual(country_data[0]["count"], 1)
 
         # Validate sources overtime
