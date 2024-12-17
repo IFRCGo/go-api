@@ -1,7 +1,7 @@
 import datetime
 
 import factory
-from django.contrib.auth.models import Group, Permission
+from django.contrib.auth.models import Group
 from django.contrib.gis.geos import Point
 from django.core import management
 from factory import fuzzy
@@ -318,20 +318,19 @@ class TestLocalUnitCreate(APITestCase):
         management.call_command("make_global_validator_permission")
 
         # Permissions and different validators
-        self.global_validator = UserFactory.create()
-        self.local_unit_admin = UserFactory.create()
-        self.regional_validator = UserFactory.create()
+        self.global_validator_user = UserFactory.create()
+        self.local_unit_admin_user = UserFactory.create()
+        self.regional_validator_user = UserFactory.create()
 
         country_group = Group.objects.filter(name="%s Admins" % self.country.name).first()
         region_group = Group.objects.filter(name="%s Regional Admins" % self.region.name).first()
         global_validator_group = Group.objects.filter(name="Local Unit Global Validators").first()
-        global_validator_group.refresh_from_db()
 
-        self.local_unit_admin.groups.add(country_group)
-        self.regional_validator.groups.add(region_group)
+        self.local_unit_admin_user.groups.add(country_group)
+        self.regional_validator_user.groups.add(region_group)
 
         # Adding global validator permission to global validator
-        self.global_validator.groups.add(global_validator_group)
+        self.global_validator_user.groups.add(global_validator_group)
 
     def test_create_local_unit_administrative(self):
         region = Region.objects.create(name=2)
@@ -669,7 +668,7 @@ class TestLocalUnitCreate(APITestCase):
 
         local_unit_id = response.data["id"]
         # Testing For the local unit Global validator
-        self.authenticate(self.global_validator)
+        self.authenticate(self.global_validator_user)
         # validating the local unit by the Global validator
         response = self.client.post(f"/api/v2/local-units/{local_unit_id}/validate/")
         self.assert_200(response)
@@ -679,17 +678,18 @@ class TestLocalUnitCreate(APITestCase):
         self.assertEqual(local_unit_request.current_validator, LocalUnitChangeRequest.Validator.GLOBAL)
 
         # Testing For the local unit admin/Local validator
-        self.authenticate(self.local_unit_admin)
+        self.authenticate(self.local_unit_admin_user)
+        response = self.client.put(f"/api/v2/local-units/{local_unit_id}/", data=data, format="json")
+        self.assert_200(response)
         # validating the local unit by the local unit admin
         response = self.client.post(f"/api/v2/local-units/{local_unit_id}/validate/")
-        self.assert_200(response)
         local_unit_request = LocalUnitChangeRequest.objects.filter(
             local_unit=local_unit_id, status=LocalUnitChangeRequest.Status.APPROVED
         ).last()
         self.assertEqual(local_unit_request.current_validator, LocalUnitChangeRequest.Validator.LOCAL)
 
         # Testing For the regional validator
-        self.authenticate(self.regional_validator)
+        self.authenticate(self.regional_validator_user)
         response = self.client.put(f"/api/v2/local-units/{local_unit_id}/", data=data, format="json")
         self.assert_200(response)
         # validating the local unit by the regional validator

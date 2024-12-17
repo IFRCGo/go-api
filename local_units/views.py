@@ -1,4 +1,4 @@
-from django.contrib.auth.models import Permission
+from django.contrib.auth.models import Group, Permission
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
@@ -125,7 +125,15 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         # Checking the validator type
 
         validator = LocalUnitChangeRequest.Validator.LOCAL
-        if request.user.is_superuser:
+        group_queryset = (
+            Group.objects.filter(
+                name="Local Unit Global Validators",
+                user=request.user,
+            )
+            .values_list("id", flat=True)
+            .first()
+        )
+        if request.user.is_superuser or group_queryset:
             validator = LocalUnitChangeRequest.Validator.GLOBAL
         else:
             region_admin_ids = [
