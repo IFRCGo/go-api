@@ -107,6 +107,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
             status=LocalUnitChangeRequest.Status.PENDING,
             triggered_by=request.user,
         )
+        transaction.on_commit(lambda: send_local_unit_email(local_unit.id, get_local_admins(serializer.instance), "Updated"))
         return response.Response(serializer.data)
 
     @extend_schema(request=None, responses=PrivateLocalUnitSerializer)
