@@ -1,7 +1,7 @@
 import datetime
 
 import factory
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, Permission
 from django.contrib.gis.geos import Point
 from django.core import management
 from factory import fuzzy
@@ -315,17 +315,23 @@ class TestLocalUnitCreate(APITestCase):
         self.region = Region.objects.create(name=2)
         self.country = Country.objects.create(name="Nepal", iso3="NLP", region=self.region)
         management.call_command("make_permissions")
+        management.call_command("make_global_validator_permission")
 
         # Permissions and different validators
+        self.global_validator = UserFactory.create()
         self.local_unit_admin = UserFactory.create()
         self.regional_validator = UserFactory.create()
 
-        # Permissions and different validators
         country_group = Group.objects.filter(name="%s Admins" % self.country.name).first()
         region_group = Group.objects.filter(name="%s Regional Admins" % self.region.name).first()
+        global_validator_group = Group.objects.filter(name="Local Unit Global Validators").first()
+        global_validator_group.refresh_from_db()
 
         self.local_unit_admin.groups.add(country_group)
         self.regional_validator.groups.add(region_group)
+
+        # Adding global validator permission to global validator
+        self.global_validator.groups.add(global_validator_group)
 
     def test_create_local_unit_administrative(self):
         region = Region.objects.create(name=2)
@@ -662,6 +668,15 @@ class TestLocalUnitCreate(APITestCase):
         self.assert_201(response)
 
         local_unit_id = response.data["id"]
+        # Testing For the local unit Global validator
+        self.authenticate(self.global_validator)
+        # validating the local unit by the Global validator
+        response = self.client.post(f"/api/v2/local-units/{local_unit_id}/validate/")
+        self.assert_200(response)
+        local_unit_request = LocalUnitChangeRequest.objects.filter(
+            local_unit=local_unit_id, status=LocalUnitChangeRequest.Status.APPROVED
+        ).last()
+        self.assertEqual(local_unit_request.current_validator, LocalUnitChangeRequest.Validator.GLOBAL)
 
         # Testing For the local unit admin/Local validator
         self.authenticate(self.local_unit_admin)
