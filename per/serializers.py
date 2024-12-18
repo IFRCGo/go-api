@@ -1257,21 +1257,21 @@ class OpsLearningOrganizationTypeSerializer(serializers.ModelSerializer):
 
 
 class LearningByRegionSerializer(serializers.Serializer):
-    region_id = serializers.IntegerField()
-    region_name = serializers.CharField()
-    count = serializers.IntegerField()
+    region_id = serializers.IntegerField(required=True)
+    region_name = serializers.CharField(required=True)
+    count = serializers.IntegerField(required=True)
 
 
 class LearningByCountrySerializer(serializers.Serializer):
-    country_id = serializers.IntegerField()
-    country_name = serializers.CharField()
-    count = serializers.IntegerField()
+    country_id = serializers.IntegerField(required=True)
+    country_name = serializers.CharField(required=True)
+    count = serializers.IntegerField(required=True)
 
 
 class LearningBySectorSerializer(serializers.Serializer):
-    sector_id = serializers.IntegerField()
-    title = serializers.CharField()
-    count = serializers.IntegerField()
+    sector_id = serializers.IntegerField(required=True)
+    title = serializers.CharField(required=True)
+    count = serializers.IntegerField(required=True)
 
 
 class LearningSourcesOvertimeSerializer(serializers.Serializer):
