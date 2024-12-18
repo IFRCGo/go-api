@@ -519,7 +519,7 @@ class LocalUnitOptionsSerializer(serializers.Serializer):
     blood_services = BloodServiceSerializer(many=True)
     professional_training_facilities = ProfessionalTrainingFacilitySerializer(many=True)
     general_medical_services = GeneralMedicalServiceSerializer(many=True)
-    specialized_medical_services = SpecializedMedicalServiceSerializer(many=True)
+    specialized_medical_beyond_primary_level = SpecializedMedicalServiceSerializer(many=True)
 
 
 class MiniDelegationOfficeSerializer(serializers.ModelSerializer):

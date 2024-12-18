@@ -49,7 +49,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         "country",
         "type",
         "level",
-    )
+    ).exclude(is_deprecated=True)
     filterset_class = LocalUnitFilters
     search_fields = (
         "local_branch_name",
@@ -315,7 +315,7 @@ class LocalUnitOptionsView(views.APIView):
                     blood_services=BloodService.objects.all(),
                     professional_training_facilities=ProfessionalTrainingFacility.objects.all(),
                     general_medical_services=GeneralMedicalService.objects.all(),
-                    specialized_medical_services=SpecializedMedicalService.objects.all(),
+                    specialized_medical_beyond_primary_level=SpecializedMedicalService.objects.all(),
                 ),
                 context={"request": request},
             ).data
