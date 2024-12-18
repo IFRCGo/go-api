@@ -73,7 +73,6 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         # Creating a new change request for the local unit
         LocalUnitChangeRequest.objects.create(
             local_unit=serializer.instance,
-            previous_data=serializer.data,
             status=LocalUnitChangeRequest.Status.PENDING,
             triggered_by=request.user,
         )
@@ -122,6 +121,8 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         if not change_request_instance:
             return bad_request("No change request found to validate")
 
+        full_serializer = PrivateLocalUnitDetailSerializer(local_unit, context={"request": request})
+
         # Checking the validator type
 
         validator = LocalUnitChangeRequest.Validator.LOCAL
@@ -139,10 +140,11 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
                 validator = LocalUnitChangeRequest.Validator.REGIONAL
 
         change_request_instance.current_validator = validator
+        change_request_instance.previous_data = full_serializer.data
         change_request_instance.status = LocalUnitChangeRequest.Status.APPROVED
         change_request_instance.updated_by = request.user
         change_request_instance.updated_at = timezone.now()
-        change_request_instance.save(update_fields=["status", "updated_by", "updated_at", "current_validator"])
+        change_request_instance.save(update_fields=["status", "updated_by", "updated_at", "current_validator", "previous_data"])
 
         # Validate the local unit
         local_unit.validated = True
@@ -224,7 +226,6 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
 
         change_request = LocalUnitChangeRequest.objects.filter(
             local_unit=local_unit,
-            status=LocalUnitChangeRequest.Status.APPROVED,
         ).last()
 
         if not change_request:

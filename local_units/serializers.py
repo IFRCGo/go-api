@@ -547,7 +547,7 @@ class LocalUnitChangeRequestSerializer(serializers.ModelSerializer):
     status_details = serializers.CharField(source="get_status_display", read_only=True)
     current_validator_details = serializers.CharField(source="get_current_validator_display", read_only=True)
     # NOTE: Typing issue on JsonField, So returning as string
-    previous_data_details = serializers.SerializerMethodField(read_only=True)
+    previous_data_details = serializers.SerializerMethodField(read_only=True, required=False)
 
     class Meta:
         model = LocalUnitChangeRequest
