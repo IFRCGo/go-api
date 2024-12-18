@@ -1,2 +1,9 @@
-<p>Dear Local Validator {% include "includes/logo.html" %}</p>
+<p>Dear {% validator_email %} {% include "includes/logo.html" %}</p>
+
+{% if new_local_unit %}
 <p>A new local unit has been added and is awaiting your validation. Kindly review the information and validate or delete as necessary.</p>
+{% endif %}
+
+{% if update_local_unit %}
+<p>A new local unit has been added and is awaiting your validation. Kindly review the information and validate or delete as necessary.</p>
+{% endif %}

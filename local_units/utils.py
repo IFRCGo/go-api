@@ -39,7 +39,7 @@ def get_global_validators():
     """
     Get the user with the global validator permission
     """
-    global_validators = User.objects.filter(groups__permissions__codename="global_validator").values_list(
+    global_validators = User.objects.filter(groups__permissions__codename="local_unit_global_validator").values_list(
         "email", flat=True
     )
     return global_validators
