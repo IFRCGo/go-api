@@ -969,6 +969,7 @@ class MicroAppealSerializer(serializers.ModelSerializer):
             "atype",
             "event_details",
             "country",
+            "start_date",
         )
 
 
@@ -1253,3 +1254,43 @@ class OpsLearningOrganizationTypeSerializer(serializers.ModelSerializer):
             "id",
             "title",
         ]
+
+
+class LearningByRegionSerializer(serializers.Serializer):
+    region_id = serializers.IntegerField(required=True)
+    region_name = serializers.CharField(required=True)
+    count = serializers.IntegerField(required=True)
+
+
+class LearningByCountrySerializer(serializers.Serializer):
+    country_id = serializers.IntegerField(required=True)
+    country_name = serializers.CharField(required=True)
+    count = serializers.IntegerField(required=True)
+
+
+class LearningBySectorSerializer(serializers.Serializer):
+    sector_id = serializers.IntegerField(required=True)
+    title = serializers.CharField(required=True)
+    count = serializers.IntegerField(required=True)
+
+
+class LearningSourcesOvertimeSerializer(serializers.Serializer):
+    type = serializers.IntegerField(required=True)
+    type_display = serializers.SerializerMethodField(read_only=True)
+    date = serializers.DateTimeField(required=True)
+    count = serializers.IntegerField(required=True)
+
+    def get_type_display(self, obj):
+        type = obj.get("type")
+        return AppealType(type).label
+
+
+class OpsLearningStatSerializer(serializers.Serializer):
+    operations_included = serializers.IntegerField(required=True)
+    learning_extracts = serializers.IntegerField(required=True)
+    sectors_covered = serializers.IntegerField(required=True)
+    sources_used = serializers.IntegerField(required=True)
+    learning_by_region = LearningByRegionSerializer(many=True)
+    learning_by_country = LearningByCountrySerializer(many=True)
+    learning_by_sector = LearningBySectorSerializer(many=True)
+    sources_overtime = LearningSourcesOvertimeSerializer(many=True)

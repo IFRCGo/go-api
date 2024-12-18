@@ -2,14 +2,19 @@ import json
 from unittest import mock
 
 from api.factories.country import CountryFactory
+from api.factories.region import RegionFactory
 from api.models import AppealType
 from main.test_case import APITestCase
 from per.factories import (
+    AppealDocumentFactory,
+    AppealFactory,
     FormAreaFactory,
     FormComponentFactory,
     FormPrioritizationFactory,
+    OpsLearningFactory,
     OverviewFactory,
     PerWorkPlanFactory,
+    SectorTagFactory,
 )
 
 from .models import WorkPlanStatus
@@ -224,3 +229,60 @@ class OpsLearningSummaryTestCase(APITestCase):
         }
         self.check_response_id(url=url, data=filters)
         self.assertTrue(generate_summary.assert_called)
+
+
+class OpsLearningStatsTestCase(APITestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.region = RegionFactory.create(label="Region A")
+        self.country = CountryFactory.create(region=self.region, name="Country A")
+
+        self.sector1 = SectorTagFactory.create(title="Sector 1")
+        self.sector2 = SectorTagFactory.create(title="Sector 2")
+
+        self.appeal1 = AppealFactory.create(
+            region=self.region, country=self.country, code="APP001", atype=0, start_date="2023-01-01"
+        )
+        self.appeal2 = AppealFactory.create(
+            region=self.region, country=self.country, code="APP002", atype=1, start_date="2023-02-01"
+        )
+
+        AppealDocumentFactory.create(appeal=self.appeal1)
+        AppealDocumentFactory.create(appeal=self.appeal2)
+
+        self.ops_learning1 = OpsLearningFactory.create(is_validated=True, appeal_code=self.appeal1)
+        self.ops_learning1.sector_validated.set([self.sector1])
+
+        self.ops_learning2 = OpsLearningFactory.create(is_validated=True, appeal_code=self.appeal2)
+        self.ops_learning2.sector_validated.set([self.sector2])
+
+        self.ops_learning3 = OpsLearningFactory.create(is_validated=False, appeal_code=self.appeal2)
+        self.ops_learning3.sector_validated.set([self.sector2])
+
+    def test_ops_learning_stats(self):
+        url = "/api/v2/ops-learning/stats/"
+        response = self.client.get(url)
+
+        self.assert_200(response)
+
+        # Updated counts based on validated entries
+        self.assertEqual(response.data["operations_included"], 2)
+        self.assertEqual(response.data["sources_used"], 2)
+        self.assertEqual(response.data["learning_extracts"], 2)
+        self.assertEqual(response.data["sectors_covered"], 2)
+
+        # Validate learning by region
+        region_data = response.data["learning_by_region"]
+        self.assertEqual(region_data[0]["count"], 2)
+
+        # Validate learning by sector
+        sector_data = response.data["learning_by_sector"]
+        self.assertEqual(len(sector_data), 2)
+
+        # Validate learning by country
+        country_data = response.data["learning_by_country"]
+        self.assertEqual(len(country_data), 1)
+
+        sources_overtime = response.data["sources_overtime"]
+        self.assertEqual(len(sources_overtime), 2)
