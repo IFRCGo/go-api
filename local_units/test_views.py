@@ -633,6 +633,9 @@ class TestLocalUnitCreate(APITestCase):
         response = self.client.post(f"/api/v2/local-units/{local_unit_id}/validate/")
         self.assert_200(response)
 
+        # saving the previous data
+        previous_data = response.data
+
         # Changing the local unit
         data["local_branch_name"] = "Updated local branch name"
         data["english_branch_name"] = "Updated english branch name"
@@ -643,8 +646,8 @@ class TestLocalUnitCreate(APITestCase):
         # Checking the latest changes
         response = self.client.post(f"/api/v2/local-units/{local_unit_id}/latest-change-request/")
         self.assert_200(response)
-        self.assertEqual(response.data["previous_data_details"]["local_branch_name"], data["local_branch_name"])
-        self.assertEqual(response.data["previous_data_details"]["english_branch_name"], data["english_branch_name"])
+        self.assertEqual(response.data["previous_data_details"]["local_branch_name"], previous_data["local_branch_name"])
+        self.assertEqual(response.data["previous_data_details"]["english_branch_name"], previous_data["english_branch_name"])
 
     def test_validate_local_unit(self):
         type = LocalUnitType.objects.create(code=0, name="Code 0")
