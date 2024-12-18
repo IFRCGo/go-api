@@ -3,7 +3,6 @@ import datetime
 import factory
 from factory import fuzzy
 
-from api.factories.country import CountryFactory
 from api.models import Appeal, AppealDocument
 from deployments.factories.project import SectorTagFactory
 from per.models import (
@@ -111,16 +110,12 @@ class AppealFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Appeal
 
-    country = factory.SubFactory(CountryFactory)
-
 
 class OpsLearningFactory(factory.django.DjangoModelFactory):
     learning = fuzzy.FuzzyText(length=50)
 
     class Meta:
         model = OpsLearning
-
-    appeal_code = factory.SubFactory(AppealFactory)
 
 
 class OpsLearningCacheResponseFactory(factory.django.DjangoModelFactory):

@@ -959,7 +959,7 @@ class OpsLearningViewset(viewsets.ModelViewSet):
                 date=F("start_date"),
                 count=Count("appealdocument", distinct=True),
             )
-            .values("id", "type", "date", "count")
+            .values("type", "date", "count")
         )
 
         learning_by_region_qs = (
