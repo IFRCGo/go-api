@@ -165,7 +165,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         if local_unit.validated:
             return bad_request("Local unit is already validated and cannot be reverted")
 
-        full_serializer = PrivateLocalUnitDetailSerializer(local_unit, context={"request": request})
+        rejected_data = PrivateLocalUnitDetailSerializer(local_unit, context={"request": request}).data
 
         serializer = RejectedReasonSerialzier(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -184,7 +184,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         change_request_instance.rejected_reason = reason
         change_request_instance.updated_by = request.user
         change_request_instance.updated_at = timezone.now()
-        change_request_instance.rejected_data = full_serializer.data
+        change_request_instance.rejected_data = rejected_data
         change_request_instance.save(update_fields=["status", "rejected_reason", "updated_at", "updated_by", "rejected_data"])
 
         # NOTE: Handling the first change request
