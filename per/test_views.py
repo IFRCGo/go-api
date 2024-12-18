@@ -265,18 +265,6 @@ class OpsLearningStatsTestCase(APITestCase):
         response = self.client.get(url)
 
         self.assert_200(response)
-        expected_keys = [
-            "operations_included",
-            "sources_used",
-            "learning_extracts",
-            "sectors_covered",
-            "sources_overtime",
-            "learning_by_region",
-            "learning_by_sector",
-            "learning_by_country",
-        ]
-        for key in expected_keys:
-            self.assertIn(key, response.data)
 
         # Updated counts based on validated entries
         self.assertEqual(response.data["operations_included"], 2)

@@ -945,32 +945,34 @@ class OpsLearningViewset(viewsets.ModelViewSet):
             source_used=Count("appeal_code__appealdocument", distinct=True),
         )
 
-        learning_by_sector = (
+        learning_by_sector_qs = (
             SectorTag.objects.filter(validated_sectors__in=queryset, title__isnull=False)
-            .annotate(count=Count("validated_sectors", distinct=True))
-            .values("title", "count")
+            .annotate(sector_id=F("id"), count=Count("validated_sectors", distinct=True))
+            .values("sector_id", "title", "count")
         )
 
-        sources_overtime = (
+        # NOTE: Queryset is unbounded, we may need to add some start_date filter.
+        sources_overtime_qs = (
             Appeal.objects.filter(opslearning__in=queryset)
             .annotate(
                 type=F("atype"),
                 date=F("start_date"),
                 count=Count("appealdocument", distinct=True),
             )
-            .values("type", "date", "count")
+            .values("id", "type", "date", "count")
         )
 
-        learning_by_region = (
+        learning_by_region_qs = (
             Region.objects.filter(appeal__opslearning__in=queryset)
             .annotate(
+                region_id=F("id"),
                 region_name=F("label"),
                 count=Count("appeal__opslearning", distinct=True),
             )
-            .values("region_name", "count")
+            .values("region_id", "region_name", "count")
         )
 
-        learning_by_country = (
+        learning_by_country_qs = (
             Country.objects.filter(appeal__opslearning__in=queryset)
             .annotate(
                 country_id=F("id"),
@@ -985,10 +987,10 @@ class OpsLearningViewset(viewsets.ModelViewSet):
             "learning_extracts": ops_data["learning_extracts"],
             "sectors_covered": ops_data["sector_covered"],
             "sources_used": ops_data["source_used"],
-            "learning_by_region": learning_by_region,
-            "learning_by_sector": learning_by_sector,
-            "sources_overtime": sources_overtime,
-            "learning_by_country": learning_by_country,
+            "learning_by_region": learning_by_region_qs,
+            "learning_by_sector": learning_by_sector_qs,
+            "sources_overtime": sources_overtime_qs,
+            "learning_by_country": learning_by_country_qs,
         }
         return response.Response(OpsLearningStatSerializer(data).data)
 

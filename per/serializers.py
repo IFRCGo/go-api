@@ -1257,6 +1257,7 @@ class OpsLearningOrganizationTypeSerializer(serializers.ModelSerializer):
 
 
 class LearningByRegionSerializer(serializers.Serializer):
+    region_id = serializers.IntegerField()
     region_name = serializers.CharField()
     count = serializers.IntegerField()
 
@@ -1268,21 +1269,27 @@ class LearningByCountrySerializer(serializers.Serializer):
 
 
 class LearningBySectorSerializer(serializers.Serializer):
+    sector_id = serializers.IntegerField()
     title = serializers.CharField()
     count = serializers.IntegerField()
 
 
 class LearningSourcesOvertimeSerializer(serializers.Serializer):
-    type = serializers.IntegerField()
-    date = serializers.DateTimeField()
-    count = serializers.IntegerField()
+    type = serializers.IntegerField(required=True)
+    type_display = serializers.SerializerMethodField(read_only=True)
+    date = serializers.DateTimeField(required=True)
+    count = serializers.IntegerField(required=True)
+
+    def get_type_display(self, obj):
+        type = obj.get("type")
+        return AppealType(type).label
 
 
 class OpsLearningStatSerializer(serializers.Serializer):
-    operations_included = serializers.IntegerField()
-    learning_extracts = serializers.IntegerField()
-    sectors_covered = serializers.IntegerField()
-    sources_used = serializers.IntegerField()
+    operations_included = serializers.IntegerField(required=True)
+    learning_extracts = serializers.IntegerField(required=True)
+    sectors_covered = serializers.IntegerField(required=True)
+    sources_used = serializers.IntegerField(required=True)
     learning_by_region = LearningByRegionSerializer(many=True)
     learning_by_country = LearningByCountrySerializer(many=True)
     learning_by_sector = LearningBySectorSerializer(many=True)

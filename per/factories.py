@@ -121,7 +121,6 @@ class OpsLearningFactory(factory.django.DjangoModelFactory):
         model = OpsLearning
 
     appeal_code = factory.SubFactory(AppealFactory)
-    is_validated = fuzzy.FuzzyChoice([True, False])
 
 
 class OpsLearningCacheResponseFactory(factory.django.DjangoModelFactory):
