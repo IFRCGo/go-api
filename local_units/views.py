@@ -142,7 +142,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         change_request_instance.status = LocalUnitChangeRequest.Status.APPROVED
         change_request_instance.updated_by = request.user
         change_request_instance.updated_at = timezone.now()
-        change_request_instance.save(update_fields=["status", "updated_by", "updated_at", "current_validator", "previous_data"])
+        change_request_instance.save(update_fields=["status", "updated_by", "updated_at", "current_validator"])
 
         # Validate the local unit
         local_unit.validated = True
