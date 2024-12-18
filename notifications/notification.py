@@ -85,6 +85,12 @@ def send_notification(subject, recipients, html, mailtype="", files=None):
         print(f"\n{html}\n")
         print("-" * 22, "EMAIL END -", "-" * 22)
 
+    if settings.FORCE_USE_SMTP:
+        logger.info("Forcing SMPT usage for sending emails.")
+        msg = construct_msg(subject, html)
+        SendMail(recipients, msg).start()
+        return
+
     to_addresses = recipients if isinstance(recipients, list) else [recipients]
 
     #    if not IS_PROD:
