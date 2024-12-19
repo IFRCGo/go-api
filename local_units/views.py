@@ -90,6 +90,8 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
 
         # NOTE: Locking the local unit after the change request is created
         local_unit.is_locked = True
+        local_unit.validated = False
+        local_unit.save(update_fields=["is_locked", "validated"])
         serializer = self.get_serializer(local_unit, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
@@ -202,7 +204,8 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
 
         # NOTE: Unlocking the reverted local unit
         local_unit.is_locked = False
-        local_unit.save(update_fields=["is_locked"])
+        local_unit.validated = True
+        local_unit.save(update_fields=["is_locked", "validated"])
 
         # reverting the previous data of change request to local unit by passing through serializer
         serializer = PrivateLocalUnitDetailSerializer(

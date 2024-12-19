@@ -589,6 +589,7 @@ class TestLocalUnitCreate(APITestCase):
         self.assertEqual(local_unit_change_request.rejected_reason, revert_data["reason"])
         # Checking if the local unit is unlocked
         self.assertEqual(local_unit.is_locked, False)
+        self.assertEqual(local_unit.validated, True)
 
     def test_latest_changes(self):
         region = Region.objects.create(name=2)
