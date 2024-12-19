@@ -125,8 +125,6 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         if not change_request_instance:
             return bad_request("No change request found to validate")
 
-        previous_data = PrivateLocalUnitDetailSerializer(local_unit, context={"request": request}).data
-
         # Checking the validator type
         validator = LocalUnitChangeRequest.Validator.LOCAL
         if request.user.is_superuser or request.user.has_perm("local_units.local_unit_global_validator"):
@@ -143,11 +141,10 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
                 validator = LocalUnitChangeRequest.Validator.REGIONAL
 
         change_request_instance.current_validator = validator
-        change_request_instance.previous_data = previous_data
         change_request_instance.status = LocalUnitChangeRequest.Status.APPROVED
         change_request_instance.updated_by = request.user
         change_request_instance.updated_at = timezone.now()
-        change_request_instance.save(update_fields=["status", "updated_by", "updated_at", "current_validator", "previous_data"])
+        change_request_instance.save(update_fields=["status", "updated_by", "updated_at", "current_validator"])
 
         # Validate the local unit
         local_unit.validated = True
@@ -199,20 +196,12 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
                 total_change_request_count == 1
             ), f"There should be one change request and it is the first one {total_change_request_count}"
             local_unit.is_deprecated = True
-            local_unit.deprecated_reason = reason
+            local_unit.deprecated_reason = LocalUnit.DeprecateReason.OTHER
+            local_unit.deprecated_reason_overview = reason
             local_unit.save(
-                update_fields=["is_deprecated", "deprecated_reason"],
+                update_fields=["is_deprecated", "deprecated_reason", "deprecated_reason_overview"],
             )
             return response.Response(PrivateLocalUnitDetailSerializer(local_unit, context={"request": request}).data)
-
-        # Reverting the last approved change request related to this local unit
-        last_approved_change_request = LocalUnitChangeRequest.objects.filter(
-            local_unit=local_unit,
-            status=LocalUnitChangeRequest.Status.APPROVED,
-        ).last()
-
-        if not last_approved_change_request:
-            return bad_request("No change request found to revert")
 
         # NOTE: Unlocking the reverted local unit
         local_unit.is_locked = False
@@ -222,7 +211,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         # reverting the previous data of change request to local unit by passing through serializer
         serializer = PrivateLocalUnitDetailSerializer(
             local_unit,
-            data=last_approved_change_request.previous_data,
+            data=change_request_instance.previous_data,
             context={"request": request},
             partial=True,
         )
