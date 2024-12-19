@@ -379,8 +379,6 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
                 )
         validated_data["location"] = GEOSGeometry("POINT(%f %f)" % (lng, lat))
         validated_data["modified_by"] = self.context["request"].user
-        # NOTE: Each time form is updated change validated status to `False`
-        validated_data["validated"] = False
         return super().update(instance, validated_data)
 
 
