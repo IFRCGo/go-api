@@ -90,6 +90,8 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
 
         # NOTE: Locking the local unit after the change request is created
         local_unit.is_locked = True
+        local_unit.validated = False
+        local_unit.save(update_fields=["is_locked", "validated"])
         serializer = self.get_serializer(local_unit, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
@@ -123,6 +125,8 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         if not change_request_instance:
             return bad_request("No change request found to validate")
 
+        previous_data = PrivateLocalUnitDetailSerializer(local_unit, context={"request": request}).data
+
         # Checking the validator type
         validator = LocalUnitChangeRequest.Validator.LOCAL
         if request.user.is_superuser or request.user.has_perm("local_units.local_unit_global_validator"):
@@ -139,10 +143,11 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
                 validator = LocalUnitChangeRequest.Validator.REGIONAL
 
         change_request_instance.current_validator = validator
+        change_request_instance.previous_data = previous_data
         change_request_instance.status = LocalUnitChangeRequest.Status.APPROVED
         change_request_instance.updated_by = request.user
         change_request_instance.updated_at = timezone.now()
-        change_request_instance.save(update_fields=["status", "updated_by", "updated_at", "current_validator"])
+        change_request_instance.save(update_fields=["status", "updated_by", "updated_at", "current_validator", "previous_data"])
 
         # Validate the local unit
         local_unit.validated = True
@@ -200,14 +205,24 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
             )
             return response.Response(PrivateLocalUnitDetailSerializer(local_unit, context={"request": request}).data)
 
+        # Reverting the last approved change request related to this local unit
+        last_approved_change_request = LocalUnitChangeRequest.objects.filter(
+            local_unit=local_unit,
+            status=LocalUnitChangeRequest.Status.APPROVED,
+        ).last()
+
+        if not last_approved_change_request:
+            return bad_request("No change request found to revert")
+
         # NOTE: Unlocking the reverted local unit
         local_unit.is_locked = False
-        local_unit.save(update_fields=["is_locked"])
+        local_unit.validated = True
+        local_unit.save(update_fields=["is_locked", "validated"])
 
         # reverting the previous data of change request to local unit by passing through serializer
         serializer = PrivateLocalUnitDetailSerializer(
             local_unit,
-            data=change_request_instance.previous_data,
+            data=last_approved_change_request.previous_data,
             context={"request": request},
             partial=True,
         )

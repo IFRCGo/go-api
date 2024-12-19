@@ -560,6 +560,7 @@ class TestLocalUnitCreate(APITestCase):
         response = self.client.post(f"/api/v2/local-units/{local_unit_id}/validate/")
         self.assert_200(response)
         self.assertEqual(response.data["is_locked"], False)
+        self.assertEqual(response.data["validated"], True)
 
         # saving the previous data
         previous_data = response.data
@@ -589,6 +590,7 @@ class TestLocalUnitCreate(APITestCase):
         self.assertEqual(local_unit_change_request.rejected_reason, revert_data["reason"])
         # Checking if the local unit is unlocked
         self.assertEqual(local_unit.is_locked, False)
+        self.assertEqual(local_unit.validated, True)
 
     def test_latest_changes(self):
         region = Region.objects.create(name=2)
