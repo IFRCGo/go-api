@@ -5,5 +5,17 @@
 {% endif %}
 
 {% if update_local_unit %}
-<p>A new local unit has been added and is awaiting your validation. Kindly review the information and validate or delete as necessary.</p>
+<p>The local unit has been updated and is awaiting your validation. Kindly review the information and validate or delete as necessary.</p>
+{% endif %}
+
+{% if validate_success %}
+<p>
+    Your request for the local unit has been successfully validated. The local unit is now visible and marked as validated.
+</p>
+{% endif %}
+
+{% if revert_reason  %}
+<p>
+    Your local unit has been reverted {% revert_reason %}. Please review and resubmit if applicable.
+</p>
 {% endif %}
