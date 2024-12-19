@@ -41,7 +41,11 @@ from local_units.serializers import (
     PrivateLocalUnitSerializer,
     RejectedReasonSerialzier,
 )
-from local_units.tasks import send_local_unit_email
+from local_units.tasks import (
+    send_local_unit_email,
+    send_revert_email,
+    send_validate_success_email,
+)
 from local_units.utils import get_local_admins
 from main.permissions import DenyGuestUserPermission
 
@@ -80,7 +84,9 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
             status=LocalUnitChangeRequest.Status.PENDING,
             triggered_by=request.user,
         )
-        transaction.on_commit(lambda: send_local_unit_email(serializer.instance.id, get_local_admins(serializer.instance), "New"))
+        transaction.on_commit(
+            lambda: send_local_unit_email(serializer.instance.id, get_local_admins(serializer.instance), new=True)
+        )
         return response.Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
@@ -104,7 +110,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
             status=LocalUnitChangeRequest.Status.PENDING,
             triggered_by=request.user,
         )
-        transaction.on_commit(lambda: send_local_unit_email(local_unit.id, get_local_admins(serializer.instance), "Updated"))
+        transaction.on_commit(lambda: send_local_unit_email(local_unit.id, get_local_admins(serializer.instance), new=False))
         return response.Response(serializer.data)
 
     @extend_schema(request=None, responses=PrivateLocalUnitSerializer)
@@ -154,6 +160,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         local_unit.is_locked = False
         local_unit.save(update_fields=["validated", "is_locked"])
         serializer = PrivateLocalUnitSerializer(local_unit, context={"request": request})
+        transaction.on_commit(lambda: send_validate_success_email(local_unit.id, local_unit.created_by.email, "Approved"))
         return response.Response(serializer.data)
 
     @extend_schema(request=RejectedReasonSerialzier, responses=PrivateLocalUnitDetailSerializer)
@@ -214,6 +221,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         )
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
+        transaction.on_commit(lambda: send_revert_email(local_unit.id, local_unit.created_by.email, reason))
         return response.Response(serializer.data)
 
     @extend_schema(request=None, responses=LocalUnitChangeRequestSerializer)
