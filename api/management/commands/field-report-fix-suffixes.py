@@ -11,10 +11,13 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         suffix_pattern = re.compile(r"#(\d+)")
+
         reports = FieldReport.objects.filter(summary__icontains="#")
         self.stdout.write(f"Found {reports.count()} FieldReports to process.")
 
-        # Dictionary to store highest fr_num for each event, country
+        if not reports:
+            return
+
         event_country_data = {}
 
         for report in reports:
@@ -25,7 +28,9 @@ class Command(BaseCommand):
             country = report.countries.first()
 
             summary_match = suffix_pattern.search(report.summary)
+            print("summary_match", summary_match)
             derived_fr_num = int(summary_match.group(1)) if summary_match else None
+            print("derived_fr_num", derived_fr_num)
 
             key = (report.event.id, country.id)
 
@@ -44,6 +49,8 @@ class Command(BaseCommand):
                 self.stdout.write(f"Updating highest fr_num for group (event_id={report.event.id}, country_id={country.id})")
                 group_data["highest_fr_num"] = max_fr_num
                 group_data["report_highest_fr"] = report
+                print("highest fr number after comparing", group_data["highest_fr_num"])
+                print("report_highest_fr from the db", group_data["report_highest_fr"])
 
         with transaction.atomic():
             for (event_id, country_id), data in event_country_data.items():
@@ -59,4 +66,4 @@ class Command(BaseCommand):
                     fr_num=None
                 )
 
-        self.stdout.write("Migration completed successfully.")
+        self.stdout.write("Completed successfully.")
