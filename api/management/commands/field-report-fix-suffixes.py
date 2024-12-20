@@ -28,10 +28,7 @@ class Command(BaseCommand):
             country = report.countries.first()
 
             summary_match = suffix_pattern.search(report.summary)
-            print("summary_match", summary_match)
             derived_fr_num = int(summary_match.group(1)) if summary_match else None
-            print("derived_fr_num", derived_fr_num)
-
             key = (report.event.id, country.id)
 
             # Initialize data for the event country group if not present
@@ -49,8 +46,6 @@ class Command(BaseCommand):
                 self.stdout.write(f"Updating highest fr_num for group (event_id={report.event.id}, country_id={country.id})")
                 group_data["highest_fr_num"] = max_fr_num
                 group_data["report_highest_fr"] = report
-                print("highest fr number after comparing", group_data["highest_fr_num"])
-                print("report_highest_fr from the db", group_data["report_highest_fr"])
 
         with transaction.atomic():
             for (event_id, country_id), data in event_country_data.items():
