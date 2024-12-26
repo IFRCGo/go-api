@@ -52,6 +52,10 @@ class LocalUnitAdmin(CompareVersionAdmin, admin.OSMGeoAdmin):
         "level",
         "health",
     )
+    readonly_fields = (
+        "validated",
+        "is_locked",
+    )
     list_filter = (
         AutocompleteFilterFactory("Country", "country"),
         AutocompleteFilterFactory("Type", "type"),
