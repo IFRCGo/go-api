@@ -16,6 +16,12 @@
 
 {% if revert_reason  %}
 <p>
-    Your local unit has been reverted {% revert_reason %}. Please review and resubmit if applicable.
+    Your local unit has been reverted. Please review and resubmit if applicable.
+</p>
+{% endif %}
+
+{% if deprecate_local_unit %}
+<p>
+    Your local unit has been deprecated. Please contact the administrator for more information.
 </p>
 {% endif %}

@@ -5,9 +5,9 @@ User = get_user_model()
 
 
 def get_email_context(instance):
-    from local_units.serializers import PrivateLocalUnitDetailSerializer
+    from local_units.serializers import PrivateLocalUnitSerializer
 
-    local_unit_data = PrivateLocalUnitDetailSerializer(instance).data
+    local_unit_data = PrivateLocalUnitSerializer(instance).data
     email_context = {
         "id": local_unit_data["id"],
         "frontend_url": settings.FRONTEND_URL,

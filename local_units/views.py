@@ -42,6 +42,7 @@ from local_units.serializers import (
     RejectedReasonSerialzier,
 )
 from local_units.tasks import (
+    send_deprecate_email,
     send_local_unit_email,
     send_revert_email,
     send_validate_success_email,
@@ -84,7 +85,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
             triggered_by=request.user,
         )
         transaction.on_commit(
-            lambda: send_local_unit_email(serializer.instance.id, get_local_admins(serializer.instance), new=True)
+            lambda: send_local_unit_email(serializer.instance.id, list(get_local_admins(serializer.instance)), new=True)
         )
         return response.Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -267,6 +268,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         serializer = LocalUnitDeprecateSerializer(instance, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        transaction.on_commit(lambda: send_deprecate_email(instance.id, instance.created_by.email, instance.deprecated_reason))
         return response.Response(
             {"message": "Local unit object deprecated successfully."},
             status=status.HTTP_200_OK,
