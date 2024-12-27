@@ -242,6 +242,7 @@ if settings.DEBUG:
             url("__debug__/", include(debug_toolbar.urls)),
             # For django versions before 2.0:
             # url(r'^__debug__/', include(debug_toolbar.urls)),
+            url(r"^dev/email-preview/local-units/", local_units_views.LocalUnitsEmailPreview.as_view()),
         ]
         + urlpatterns
         + static.static(

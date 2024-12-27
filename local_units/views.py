@@ -1,11 +1,14 @@
 from django.contrib.auth.models import Permission
 from django.db import transaction
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django.template import loader
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
 from rest_framework import permissions, response, status, views, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.views import APIView
 
 from api.utils import bad_request
 from local_units.filterset import DelegationOfficeFilters, LocalUnitFilters
@@ -47,7 +50,7 @@ from local_units.tasks import (
     send_revert_email,
     send_validate_success_email,
 )
-from local_units.utils import get_local_admins
+from local_units.utils import generate_email_preview_context, get_local_admins
 from main.permissions import DenyGuestUserPermission
 
 
@@ -114,7 +117,9 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
             status=LocalUnitChangeRequest.Status.PENDING,
             triggered_by=request.user,
         )
-        transaction.on_commit(lambda: send_local_unit_email(local_unit.id, get_local_admins(serializer.instance), new=False))
+        transaction.on_commit(
+            lambda: send_local_unit_email(local_unit.id, list(get_local_admins(serializer.instance)), new=False)
+        )
         return response.Response(serializer.data)
 
     @extend_schema(request=None, responses=PrivateLocalUnitSerializer)
@@ -163,7 +168,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         local_unit.is_locked = False
         local_unit.save(update_fields=["validated", "is_locked"])
         serializer = PrivateLocalUnitSerializer(local_unit, context={"request": request})
-        transaction.on_commit(lambda: send_validate_success_email(local_unit.id, local_unit.created_by_id, "Approved"))
+        transaction.on_commit(lambda: send_validate_success_email(local_unit.id, "Approved"))
         return response.Response(serializer.data)
 
     @extend_schema(request=RejectedReasonSerialzier, responses=PrivateLocalUnitDetailSerializer)
@@ -230,7 +235,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         )
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-        transaction.on_commit(lambda: send_revert_email(local_unit.id, local_unit.created_by_id, reason))
+        transaction.on_commit(lambda: send_revert_email(local_unit.id, reason))
         return response.Response(serializer.data)
 
     @extend_schema(request=None, responses=LocalUnitChangeRequestSerializer)
@@ -359,3 +364,22 @@ class DelegationOfficeDetailAPIView(RetrieveAPIView):
         permissions.IsAuthenticated,
         DenyGuestUserPermission,
     ]
+
+
+class LocalUnitsEmailPreview(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        param_types = ["new", "update", "validate", "revert", "deprecate"]
+        try:
+            type = request.GET.get("type")
+            if type not in param_types:
+                return HttpResponse(f"Invalid type found. Please use one of these {param_types} in type parameter")
+        except ValueError:
+            return HttpResponse("Invalid type found, please use one of these {param_types} in type parameter")
+
+        have_data, context = generate_email_preview_context(type)
+        if have_data:
+            template = loader.get_template("email/local_units/local_unit.html")
+            return HttpResponse(template.render(context, request))
+        return HttpResponse("No data found")

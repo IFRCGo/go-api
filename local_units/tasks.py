@@ -11,11 +11,12 @@ User = get_user_model()
 
 
 @shared_task
-def send_local_unit_email(local_unit_id: int, users_details: list, new: bool = True):
-    if not local_unit_id or not users_details:
+def send_local_unit_email(local_unit_id: int, user_ids: list, new: bool = True):
+    if not local_unit_id or not user_ids:
         return None
 
     instance = LocalUnit.objects.get(id=local_unit_id)
+    users = User.objects.filter(id__in=user_ids)
     email_context = get_email_context(instance)
     email_context["new_local_unit"] = True
     email_subject = "Action Required: New Local Unit Pending Validation"
@@ -27,12 +28,12 @@ def send_local_unit_email(local_unit_id: int, users_details: list, new: bool = T
         email_subject = "Action Required: Local Unit Pending Validation"
         email_type = "Update Local Unit"
 
-    for email, first_name, last_name in users_details:
+    for user in users:
         # NOTE: Adding the validator email to the context
-        email_context["validator_email"] = email
-        email_context["full_name"] = f"{first_name} {last_name}"
+        email_context["validator_email"] = user.email
+        email_context["full_name"] = user.get_full_name()
         email_body = render_to_string("email/local_units/local_unit.html", email_context)
-        send_notification(email_subject, email, email_body, email_type)
+        send_notification(email_subject, user.email, email_body, email_type)
     return email_context
 
 
@@ -55,12 +56,12 @@ def send_validate_success_email(local_unit_id: int, user_id: int, new_or_updated
 
 
 @shared_task
-def send_revert_email(local_unit_id: int, user_id: int, reason: str = ""):
-    if not local_unit_id or not user_id:
+def send_revert_email(local_unit_id: int, reason: str = ""):
+    if not local_unit_id:
         return None
 
-    user = User.objects.get(id=user_id)
     instance = LocalUnit.objects.get(id=local_unit_id)
+    user = User.objects.get(id=instance.created_by_id)
     email_context = get_email_context(instance)
     email_context["full_name"] = user.get_full_name()
     email_context["revert_reason"] = reason
@@ -73,12 +74,12 @@ def send_revert_email(local_unit_id: int, user_id: int, reason: str = ""):
 
 
 @shared_task
-def send_deprecate_email(local_unit_id: int, user_id: int, reason: str = ""):
-    if not local_unit_id or not user_id:
+def send_deprecate_email(local_unit_id: int, reason: str = ""):
+    if not local_unit_id:
         return None
 
-    user = User.objects.get(id=user_id)
     instance = LocalUnit.objects.get(id=local_unit_id)
+    user = User.objects.get(id=instance.created_by_id)
     email_context = get_email_context(instance)
     email_context["full_name"] = user.get_full_name()
     email_context["deprecate_local_unit"] = True
