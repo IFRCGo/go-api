@@ -38,18 +38,18 @@ def send_local_unit_email(local_unit_id: int, user_ids: list, new: bool = True):
 
 
 @shared_task
-def send_validate_success_email(local_unit_id: int, user_id: int, new_or_updated: str = ""):
-    if not local_unit_id or not user_id:
+def send_validate_success_email(local_unit_id: int, message: str = ""):
+    if not local_unit_id:
         return None
 
-    user = User.objects.get(id=user_id)
     instance = LocalUnit.objects.get(id=local_unit_id)
+    user = User.objects.get(id=instance.created_by_id)
     email_context = get_email_context(instance)
     email_context["full_name"] = user.get_full_name()
     email_context["validate_success"] = True
     email_subject = "Your Local Unit Addition Request: Approved"
     email_body = render_to_string("email/local_units/local_unit.html", email_context)
-    email_type = f"{new_or_updated} Local Unit"
+    email_type = f"{message} Local Unit"
 
     send_notification(email_subject, user.email, email_body, email_type)
     return email_context
@@ -74,7 +74,7 @@ def send_revert_email(local_unit_id: int, reason: str = ""):
 
 
 @shared_task
-def send_deprecate_email(local_unit_id: int, reason: str = ""):
+def send_deprecate_email(local_unit_id: int):
     if not local_unit_id:
         return None
 
@@ -83,7 +83,7 @@ def send_deprecate_email(local_unit_id: int, reason: str = ""):
     email_context = get_email_context(instance)
     email_context["full_name"] = user.get_full_name()
     email_context["deprecate_local_unit"] = True
-    email_context["deprecate_reason"] = reason
+    email_context["deprecate_reason"] = instance.deprecated_reason_overview
     email_subject = "Your Local Unit Addition Request: Deprecated"
     email_body = render_to_string("email/local_units/local_unit.html", email_context)
     email_type = "Deprecate Local Unit"

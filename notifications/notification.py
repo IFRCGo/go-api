@@ -26,8 +26,8 @@ class SendMail(threading.Thread):
         try:
             server = smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT)
             server.ehlo()
-            # NOTE: TLS is disabled for now, for alpha instance
-            # server.starttls()
+            if settings.EMAIL_USE_TLS:
+                server.starttls()
             server.ehlo()
             succ = server.login(settings.EMAIL_USER, settings.EMAIL_PASS)
             if "successful" not in str(succ[1]):

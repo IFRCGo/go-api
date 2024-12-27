@@ -41,6 +41,7 @@ env = environ.Env(
     AZURE_STORAGE_ACCOUNT=(str, None),
     AZURE_STORAGE_KEY=(str, None),
     # Email
+    USE_EMAIL_SMTP=(bool, True),
     FORCE_USE_SMTP=(bool, False),
     EMAIL_API_ENDPOINT=(str, None),
     EMAIL_HOST=(str, None),
@@ -435,6 +436,7 @@ if AZURE_STORAGE_ACCOUNT:
 
 # Email config
 FORCE_USE_SMTP = env("FORCE_USE_SMTP")
+USE_EMAIL_SMTP = env("USE_EMAIL_SMTP")
 EMAIL_API_ENDPOINT = env("EMAIL_API_ENDPOINT")
 EMAIL_HOST = env("EMAIL_HOST")
 EMAIL_PORT = env("EMAIL_PORT")
