@@ -163,7 +163,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         local_unit.is_locked = False
         local_unit.save(update_fields=["validated", "is_locked"])
         serializer = PrivateLocalUnitSerializer(local_unit, context={"request": request})
-        transaction.on_commit(lambda: send_validate_success_email(local_unit.id, local_unit.created_by.email, "Approved"))
+        transaction.on_commit(lambda: send_validate_success_email(local_unit.id, local_unit.created_by_id, "Approved"))
         return response.Response(serializer.data)
 
     @extend_schema(request=RejectedReasonSerialzier, responses=PrivateLocalUnitDetailSerializer)
@@ -230,7 +230,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         )
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-        transaction.on_commit(lambda: send_revert_email(local_unit.id, local_unit.created_by.email, reason))
+        transaction.on_commit(lambda: send_revert_email(local_unit.id, local_unit.created_by_id, reason))
         return response.Response(serializer.data)
 
     @extend_schema(request=None, responses=LocalUnitChangeRequestSerializer)
@@ -267,8 +267,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         serializer = LocalUnitDeprecateSerializer(instance, data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
-        transaction.on_commit(lambda: send_deprecate_email(instance.id, instance.created_by.email, instance.deprecated_reason))
+        transaction.on_commit(lambda: send_deprecate_email(instance.id, instance.created_by_id, instance.deprecated_reason))
         return response.Response(
             {"message": "Local unit object deprecated successfully."},
             status=status.HTTP_200_OK,

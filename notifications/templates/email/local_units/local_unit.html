@@ -1,4 +1,4 @@
-<p>Dear {% validator_email %} {% include "includes/logo.html" %}</p>
+<p>Dear {{full_name}} {% include "includes/logo.html" %}</p>
 
 {% if new_local_unit %}
 <p>A new local unit has been added and is awaiting your validation. Kindly review the information and validate or delete as necessary.</p>
@@ -16,12 +16,12 @@
 
 {% if revert_reason  %}
 <p>
-    Your local unit has been reverted. Please review and resubmit if applicable.
+    Your local unit has been reverted.{{revert_reason}} Please review and resubmit if applicable.
 </p>
 {% endif %}
 
 {% if deprecate_local_unit %}
 <p>
-    Your local unit has been deprecated. Please contact the administrator for more information.
+    Your local unit has been deprecated. {{deprecate_reason}} Please contact the administrator for more information.
 </p>
 {% endif %}

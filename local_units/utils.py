@@ -20,7 +20,9 @@ def get_local_admins(instance):
     Get the user with the country level admin permission for the country of the instance
     """
     country_admins = User.objects.filter(groups__permissions__codename=f"country_admin_{instance.country_id}").values_list(
-        "email", flat=True
+        "email",
+        "first_name",
+        "last_name",
     )
     return country_admins
 
