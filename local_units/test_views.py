@@ -22,6 +22,7 @@ from .models import (
     LocalUnitLevel,
     LocalUnitType,
     PrimaryHCC,
+    Validator,
     VisibilityChoices,
 )
 
@@ -677,7 +678,7 @@ class TestLocalUnitCreate(APITestCase):
         local_unit_request = LocalUnitChangeRequest.objects.filter(
             local_unit=local_unit_id, status=LocalUnitChangeRequest.Status.APPROVED
         ).last()
-        self.assertEqual(local_unit_request.current_validator, LocalUnitChangeRequest.Validator.GLOBAL)
+        self.assertEqual(local_unit_request.current_validator, Validator.GLOBAL)
 
         # Testing For the local unit admin/Local validator
         self.authenticate(self.local_unit_admin_user)
@@ -688,7 +689,7 @@ class TestLocalUnitCreate(APITestCase):
         local_unit_request = LocalUnitChangeRequest.objects.filter(
             local_unit=local_unit_id, status=LocalUnitChangeRequest.Status.APPROVED
         ).last()
-        self.assertEqual(local_unit_request.current_validator, LocalUnitChangeRequest.Validator.LOCAL)
+        self.assertEqual(local_unit_request.current_validator, Validator.LOCAL)
 
         # Testing For the regional validator
         self.authenticate(self.regional_validator_user)
@@ -699,7 +700,7 @@ class TestLocalUnitCreate(APITestCase):
         local_unit_request = LocalUnitChangeRequest.objects.filter(
             local_unit=local_unit_id, status=LocalUnitChangeRequest.Status.APPROVED
         ).last()
-        self.assertEqual(local_unit_request.current_validator, LocalUnitChangeRequest.Validator.REGIONAL)
+        self.assertEqual(local_unit_request.current_validator, Validator.REGIONAL)
 
         # Testing for Root User/Global validator
         self.authenticate(self.root_user)
@@ -710,4 +711,4 @@ class TestLocalUnitCreate(APITestCase):
         local_unit_request = LocalUnitChangeRequest.objects.filter(
             local_unit=local_unit_id, status=LocalUnitChangeRequest.Status.APPROVED
         ).last()
-        self.assertEqual(local_unit_request.current_validator, LocalUnitChangeRequest.Validator.GLOBAL)
+        self.assertEqual(local_unit_request.current_validator, Validator.GLOBAL)

@@ -27,6 +27,7 @@ from local_units.models import (
     PrimaryHCC,
     ProfessionalTrainingFacility,
     SpecializedMedicalService,
+    Validator,
     VisibilityChoices,
 )
 from local_units.permissions import (
@@ -143,9 +144,9 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
             return bad_request("No change request found to validate")
 
         # Checking the validator type
-        validator = LocalUnitChangeRequest.Validator.LOCAL
+        validator = Validator.LOCAL
         if request.user.is_superuser or request.user.has_perm("local_units.local_unit_global_validator"):
-            validator = LocalUnitChangeRequest.Validator.GLOBAL
+            validator = Validator.GLOBAL
         else:
             region_admin_ids = [
                 int(codename.replace("region_admin_", ""))
@@ -155,7 +156,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
                 ).values_list("codename", flat=True)
             ]
             if local_unit.country.region_id in region_admin_ids:
-                validator = LocalUnitChangeRequest.Validator.REGIONAL
+                validator = Validator.REGIONAL
 
         change_request_instance.current_validator = validator
         change_request_instance.status = LocalUnitChangeRequest.Status.APPROVED
@@ -370,16 +371,15 @@ class LocalUnitsEmailPreview(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        param_types = ["new", "update", "validate", "revert", "deprecate"]
-        try:
-            type = request.GET.get("type")
-            if type not in param_types:
-                return HttpResponse(f"Invalid type found. Please use one of these {param_types} in type parameter")
-        except ValueError:
-            return HttpResponse("Invalid type found, please use one of these {param_types} in type parameter")
+        type_param = request.GET.get("type")
+        param_types = {"new", "update", "validate", "revert", "deprecate", "regional", "global"}
 
-        have_data, context = generate_email_preview_context(type)
-        if have_data:
-            template = loader.get_template("email/local_units/local_unit.html")
-            return HttpResponse(template.render(context, request))
-        return HttpResponse("No data found")
+        if type_param not in param_types:
+            return HttpResponse(f"Invalid type parameter. Please use one of the following values:  {', '.join(param_types)}.")
+
+        context = generate_email_preview_context(type=type_param)
+        if not context:
+            return HttpResponse("No context found for the email preview..")
+
+        template = loader.get_template("email/local_units/local_unit.html")
+        return HttpResponse(template.render(context, request))

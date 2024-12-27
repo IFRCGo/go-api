@@ -6,6 +6,7 @@ User = get_user_model()
 
 def get_email_context(instance):
     from local_units.serializers import PrivateLocalUnitSerializer
+
     # NOTE: Passing through serializer, might need more info in the future
     local_unit_data = PrivateLocalUnitSerializer(instance).data
     email_context = {
@@ -41,28 +42,24 @@ def get_global_validators():
     return global_validators
 
 
-def generate_email_preview_context(type):
+def generate_email_preview_context(type: str) -> dict:
     """
     Generate a context for the email preview
     """
-    from local_units.models import LocalUnit
-    from local_units.tasks import (
-        send_local_unit_email,
-        send_revert_email,
-        send_validate_success_email,
-    )
-
     if type == "new":
-        local_unit = LocalUnit.objects.filter(is_deprecated=False, validated=False).first()
-        context = send_local_unit_email(local_unit_id=local_unit.id, user_ids=get_local_admins(local_unit), new=True)
+        context = {"new_local_unit": True, "validator_email": "Test Validator", "full_name": "Test User"}
     elif type == "update":
-        local_unit = LocalUnit.objects.filter(is_deprecated=False, validated=False).first()
-        context = send_local_unit_email(local_unit_id=local_unit.id, user_ids=get_local_admins(local_unit), new=False)
+        context = {"update_local_unit": True, "validator_email": "Test Validator", "full_name": "Test User"}
     elif type == "validate":
-        local_unit = LocalUnit.objects.filter(is_deprecated=False, validated=True).first()
-        context = send_validate_success_email(local_unit_id=local_unit.id, user_id=local_unit.created_by.id, new_or_updated="New")
+        context = {"validate_success": True, "full_name": "Test User"}
     elif type == "revert":
-        local_unit = LocalUnit.objects.filter(is_deprecated=False, validated=True).first()
-        context = send_revert_email(local_unit_id=local_unit.id, user_id=local_unit.created_by.id)
-
+        context = {"revert_reason": "Test Reason", "full_name": "Test User"}
+    elif type == "deprecate":
+        context = {"deprecate_local_unit": True, "deprecate_reason": "Test Deprecate Reason", "full_name": "Test User"}
+    elif type == "regional":
+        context = {"regional_admin": True, "full_name": "Regional User"}
+    elif type == "global":
+        context = {"global_admin": True, "full_name": "Global User"}
+    else:
+        context = {}
     return context
