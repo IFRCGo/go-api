@@ -155,6 +155,8 @@ cronjobs:
     schedule: '0 0 * * 0'
   - command: 'ingest_icrc'
     schedule: '0 3 * * 0'
+  - command: 'notify_validators'
+    schedule: '0 0 * * *'
 
 
 elasticsearch:
