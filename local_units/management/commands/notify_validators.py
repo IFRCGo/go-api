@@ -24,24 +24,23 @@ class Command(BaseCommand):
 
         # Regional Validators: 14 days
         queryset_for_regional_validtors = LocalUnit.objects.filter(
-            validated=False, is_deprecated=False, created_at__date=timezone.now() - timedelta(days=0)
+            validated=False, is_deprecated=False, created_at__date=timezone.now() - timedelta(days=14)
         )
 
         # Global Validators: 28 days
         queryset_for_global_validators = LocalUnit.objects.filter(
-            validated=False, is_deprecated=False, created_at__date=timezone.now() - timedelta(days=0)
+            validated=False, is_deprecated=False, created_at__date=timezone.now() - timedelta(days=28)
         )
 
         for local_unit in queryset_for_regional_validtors:
             self.stdout.write(self.style.NOTICE(f"Notifying regional validators for local unit {local_unit.id}"))
 
             email_context = get_email_context(local_unit)
-            email_context["new_local_unit"] = True
-            email_subject = "Action Required: New Local Unit Pending Validation"
-            email_type = "New Local Unit"
+            email_context["regional_admin"] = True
+            email_subject = "Action Required: Local Unit Pending Validation"
+            email_type = "Local Unit"
 
             for region_admin_validator in get_region_admins(local_unit):
-                print(region_admin_validator.get_full_name())
                 email_context["full_name"] = region_admin_validator.get_full_name()
                 email_body = render_to_string("email/local_units/local_unit.html", email_context)
                 send_notification(email_subject, region_admin_validator.email, email_body, email_type)
@@ -49,12 +48,11 @@ class Command(BaseCommand):
         for local_unit in queryset_for_global_validators:
             self.stdout.write(self.style.NOTICE(f"Notifying global validators for local unit {local_unit.id}"))
             email_context = get_email_context(local_unit)
-            email_context["new_local_unit"] = True
-            email_subject = "Action Required: New Local Unit Pending Validation"
-            email_type = "New Local Unit"
+            email_context["global_admin"] = True
+            email_subject = "Action Required: Local Unit Pending Validation"
+            email_type = "Local Unit"
 
             for global_validator in get_global_validators():
-                print(global_validator.get_full_name())
                 email_context["full_name"] = global_validator.get_full_name()
                 email_body = render_to_string("email/local_units/local_unit.html", email_context)
                 send_notification(email_subject, global_validator.email, email_body, email_type)
