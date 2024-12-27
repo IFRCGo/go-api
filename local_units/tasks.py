@@ -11,7 +11,7 @@ User = get_user_model()
 
 
 @shared_task
-def send_local_unit_email(local_unit_id, users_details, new=True):
+def send_local_unit_email(local_unit_id: int, users_details: list, new: bool = True):
     if not local_unit_id or not users_details:
         return None
 
@@ -37,7 +37,7 @@ def send_local_unit_email(local_unit_id, users_details, new=True):
 
 
 @shared_task
-def send_validate_success_email(local_unit_id, user_id, new_or_updated=""):
+def send_validate_success_email(local_unit_id: int, user_id: int, new_or_updated: str = ""):
     if not local_unit_id or not user_id:
         return None
 
@@ -55,7 +55,7 @@ def send_validate_success_email(local_unit_id, user_id, new_or_updated=""):
 
 
 @shared_task
-def send_revert_email(local_unit_id, user_id, reason):
+def send_revert_email(local_unit_id: int, user_id: int, reason: str = ""):
     if not local_unit_id or not user_id:
         return None
 
@@ -73,7 +73,7 @@ def send_revert_email(local_unit_id, user_id, reason):
 
 
 @shared_task
-def send_deprecate_email(local_unit_id, user_id, reason):
+def send_deprecate_email(local_unit_id: int, user_id: int, reason: str = ""):
     if not local_unit_id or not user_id:
         return None
 

@@ -31,9 +31,7 @@ def get_region_admins(instance):
     """
     Get the user with the region level admin permission for the region of the instance
     """
-    region_admins = User.objects.filter(groups__permissions__codename=f"region_admin_{instance.region_id}").values_list(
-        "email", flat=True
-    )
+    region_admins = User.objects.filter(groups__permissions__codename=f"region_admin_{instance.country.region_id}")
     return region_admins
 
 
@@ -41,7 +39,5 @@ def get_global_validators():
     """
     Get the user with the global validator permission
     """
-    global_validators = User.objects.filter(groups__permissions__codename="local_unit_global_validator").values_list(
-        "email", flat=True
-    )
+    global_validators = User.objects.filter(groups__permissions__codename="local_unit_global_validator")
     return global_validators
