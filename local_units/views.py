@@ -267,7 +267,9 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         serializer = LocalUnitDeprecateSerializer(instance, data=request.data)
         serializer.is_valid(raise_exception=True)
-        transaction.on_commit(lambda: send_deprecate_email(instance.id, instance.created_by_id, instance.deprecated_reason))
+        self.perform_update(serializer)
+        deprecated_reason = serializer.validated_data["deprecated_reason_overview"]
+        transaction.on_commit(lambda: send_deprecate_email(instance.id, instance.created_by_id, deprecated_reason))
         return response.Response(
             {"message": "Local unit object deprecated successfully."},
             status=status.HTTP_200_OK,
