@@ -16,6 +16,7 @@ from drf_spectacular.views import (
     SpectacularRedocView,
     SpectacularSwaggerView,
 )
+from oauth2_provider import urls as oauth2_urls
 
 # DRF routes
 from rest_framework import routers
@@ -170,6 +171,7 @@ admin.site.site_header = "IFRC Go administration"
 admin.site.site_title = "IFRC Go admin"
 
 urlpatterns = [
+    path("o/", include(oauth2_urls, namespace="oauth2_provider")),
     # url(r"^api/v1/es_search/", EsPageSearch.as_view()),
     url(r"^api/v1/search/", HayStackSearch.as_view()),
     url(r"^api/v1/es_health/", EsPageHealth.as_view()),

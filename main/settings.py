@@ -107,6 +107,11 @@ env = environ.Env(
     JWT_PRIVATE_KEY=(str, None),
     JWT_PUBLIC_KEY=(str, None),
     JWT_EXPIRE_TIMESTAMP_DAYS=(int, 365),
+    # OIDC
+    OIDC_RSA_PRIVATE_KEY_BASE64_ENCODED=(str, None),
+    OIDC_RSA_PRIVATE_KEY=(str, None),
+    OIDC_RSA_PUBLIC_KEY_BASE64_ENCODED=(str, None),
+    OIDC_RSA_PUBLIC_KEY=(str, None),
     # Country page
     NS_CONTACT_USERNAME=(str, None),
     NS_CONTACT_PASSWORD=(str, None),
@@ -206,6 +211,7 @@ INSTALLED_APPS = [
     # GO Apps
     *GO_APPS,
     # Utils Apps
+    "oauth2_provider",
     "tinymce",
     "admin_auto_filters",
     "haystack",
@@ -709,6 +715,26 @@ JWT_EXPIRE_TIMESTAMP_DAYS = env("JWT_EXPIRE_TIMESTAMP_DAYS")
 AZURE_OPENAI_ENDPOINT = env("AZURE_OPENAI_ENDPOINT")
 AZURE_OPENAI_KEY = env("AZURE_OPENAI_KEY")
 AZURE_OPENAI_DEPLOYMENT_NAME = env("AZURE_OPENAI_DEPLOYMENT_NAME")
+
+# django-oauth-toolkit configs
+OIDC_RSA_PRIVATE_KEY = decode_base64("OIDC_RSA_PRIVATE_KEY_BASE64_ENCODED", "OIDC_RSA_PRIVATE_KEY")
+OIDC_RSA_PUBLIC_KEY = decode_base64("OIDC_RSA_PUBLIC_KEY_BASE64_ENCODED", "OIDC_RSA_PUBLIC_KEY")
+
+OAUTH2_PROVIDER = {
+    "ACCESS_TOKEN_EXPIRE_SECONDS": 300,  # NOTE: keep this high if this is used as OAuth instead of OIDC
+    "OIDC_ENABLED": True,
+    "OIDC_RSA_PRIVATE_KEY": OIDC_RSA_PRIVATE_KEY,
+    "PKCE_REQUIRED": True,
+    "SCOPES": {
+        "openid": "OpenID Connect scope",
+        "profile": "Profile scope",
+        "email": "Email scope",
+    },
+    "OAUTH2_VALIDATOR_CLASS": "main.oauth2.CustomOAuth2Validator",
+    "ALLOWED_REDIRECT_URI_SCHEMES": ["https"],
+}
+if GO_ENVIRONMENT == "development":
+    OAUTH2_PROVIDER["ALLOWED_REDIRECT_URI_SCHEMES"].append("http")
 
 # Need to load this to overwrite modeltranslation module
 import main.translation  # noqa: F401 E402
