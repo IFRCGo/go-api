@@ -101,7 +101,7 @@ env = environ.Env(
     DJANGO_READ_ONLY=(bool, False),
     # Misc
     DISABLE_API_CACHE=(bool, False),
-    # jwt private and public key
+    # jwt private and public key (NOTE: Used algorithm ES256)
     JWT_PRIVATE_KEY_BASE64_ENCODED=(str, None),
     JWT_PUBLIC_KEY_BASE64_ENCODED=(str, None),
     JWT_PRIVATE_KEY=(str, None),
@@ -550,7 +550,13 @@ if DEBUG:
             },
         },
         "loggers": {
-            **LOGGING.get("loggers", {}),
+            **{
+                logger: {
+                    **logger_config,
+                    "handlers": ["console"],
+                }
+                for logger, logger_config in LOGGING.get("loggers", {}).items()
+            },
             **{
                 app: {
                     "handlers": ["console"],
@@ -690,7 +696,7 @@ def decode_base64(env_key, fallback_env_key):
     if encoded_value := env(env_key):
         # TODO: Instead use docker/k8 secrets file mount?
         try:
-            return base64.b64decode(encoded_value)
+            return base64.b64decode(encoded_value).decode("utf-8")
         except Exception:
             logger.error(f"Failed to decode {env_key}", exc_info=True)
     return env(fallback_env_key)
