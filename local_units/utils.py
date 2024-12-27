@@ -6,7 +6,7 @@ User = get_user_model()
 
 def get_email_context(instance):
     from local_units.serializers import PrivateLocalUnitSerializer
-
+    # NOTE: Passing through serializer, might need more info in the future
     local_unit_data = PrivateLocalUnitSerializer(instance).data
     email_context = {
         "id": local_unit_data["id"],
