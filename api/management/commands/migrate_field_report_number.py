@@ -43,7 +43,6 @@ class Command(BaseCommand):
             # Update the group data if this report has the highest fr number
             if max_fr_num > group_data["highest_fr_num"]:
 
-                print(f"Updating highest fr_num for group (event_id={report.event.id}, country_id={country.id})")
                 group_data["highest_fr_num"] = max_fr_num
                 group_data["report_highest_fr"] = report
 
@@ -54,17 +53,12 @@ class Command(BaseCommand):
 
                 if highest_report:
 
-                    print(f"Setting fr_num={highest_fr_num} for report ID={highest_report.id}")
                     highest_report.fr_num = highest_fr_num
                     highest_report.save(update_fields=["fr_num"])
 
                 # Set fr_num to null for all other reports in the group
-                excluded_reports = FieldReport.objects.filter(event_id=event_id, countries=country_id).exclude(
-                    id=highest_report.id
+                FieldReport.objects.filter(event_id=event_id, countries=country_id).exclude(id=highest_report.id).update(
+                    fr_num=None
                 )
-
-                excluded_reports.update(fr_num=None)
-
-                print(f"Set fr_num=None for reports in group (event_id={event_id}, country_id={country_id})")
 
         logger.info("FieldReport migration completed successfully.")
