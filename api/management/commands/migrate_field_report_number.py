@@ -3,6 +3,7 @@ import re
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
+from api.logger import logger
 from api.models import FieldReport
 
 
@@ -12,26 +13,24 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         suffix_pattern = re.compile(r"#(\d+)")
 
-        reports = FieldReport.objects.filter(summary__icontains="#")
-        self.stdout.write(f"Found {reports.count()} FieldReports to process.")
+        reports = FieldReport.objects.filter(summary__icontains="#", event__isnull=False, countries__isnull=False)
+
+        logger.info(f"Found {reports.count()} FieldReports to process.")
 
         if not reports:
+            logger.warning("No FieldReports found exiting migration.")
             return
 
         event_country_data = {}
 
         for report in reports:
-            if not report.event or not report.countries.exists():
-                self.stdout.write(f"Skipping report with ID {report.id} due to missing event or countries.")
-                continue
-
             country = report.countries.first()
 
             summary_match = suffix_pattern.search(report.summary)
             derived_fr_num = int(summary_match.group(1)) if summary_match else None
             key = (report.event.id, country.id)
 
-            # Initialize data for the event country group if not present
+            # Initialize data for the event-country group if not present
             if key not in event_country_data:
                 event_country_data[key] = {
                     "highest_fr_num": 0,
@@ -43,7 +42,8 @@ class Command(BaseCommand):
 
             # Update the group data if this report has the highest fr number
             if max_fr_num > group_data["highest_fr_num"]:
-                self.stdout.write(f"Updating highest fr_num for group (event_id={report.event.id}, country_id={country.id})")
+
+                print(f"Updating highest fr_num for group (event_id={report.event.id}, country_id={country.id})")
                 group_data["highest_fr_num"] = max_fr_num
                 group_data["report_highest_fr"] = report
 
@@ -53,12 +53,18 @@ class Command(BaseCommand):
                 highest_fr_num = data["highest_fr_num"]
 
                 if highest_report:
+
+                    print(f"Setting fr_num={highest_fr_num} for report ID={highest_report.id}")
                     highest_report.fr_num = highest_fr_num
                     highest_report.save(update_fields=["fr_num"])
 
                 # Set fr_num to null for all other reports in the group
-                FieldReport.objects.filter(event_id=event_id, countries=country_id).exclude(id=highest_report.id).update(
-                    fr_num=None
+                excluded_reports = FieldReport.objects.filter(event_id=event_id, countries=country_id).exclude(
+                    id=highest_report.id
                 )
 
-        self.stdout.write("Completed successfully.")
+                excluded_reports.update(fr_num=None)
+
+                print(f"Set fr_num=None for reports in group (event_id={event_id}, country_id={country_id})")
+
+        logger.info("FieldReport migration completed successfully.")
