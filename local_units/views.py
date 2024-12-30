@@ -1,14 +1,11 @@
 from django.contrib.auth.models import Permission
 from django.db import transaction
-from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-from django.template import loader
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
 from rest_framework import permissions, response, status, views, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import ListAPIView, RetrieveAPIView
-from rest_framework.views import APIView
 
 from api.utils import bad_request
 from local_units.filterset import DelegationOfficeFilters, LocalUnitFilters
@@ -51,7 +48,6 @@ from local_units.tasks import (
     send_revert_email,
     send_validate_success_email,
 )
-from local_units.utils import generate_email_preview_context, get_local_admins
 from main.permissions import DenyGuestUserPermission
 
 
@@ -88,9 +84,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
             status=LocalUnitChangeRequest.Status.PENDING,
             triggered_by=request.user,
         )
-        transaction.on_commit(
-            lambda: send_local_unit_email(serializer.instance.id, list(get_local_admins(serializer.instance)), new=True)
-        )
+        transaction.on_commit(lambda: send_local_unit_email(serializer.instance.id, new=True))
         return response.Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
@@ -118,9 +112,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
             status=LocalUnitChangeRequest.Status.PENDING,
             triggered_by=request.user,
         )
-        transaction.on_commit(
-            lambda: send_local_unit_email(local_unit.id, list(get_local_admins(serializer.instance)), new=False)
-        )
+        transaction.on_commit(lambda: send_local_unit_email(local_unit.id, new=False))
         return response.Response(serializer.data)
 
     @extend_schema(request=None, responses=PrivateLocalUnitSerializer)
@@ -275,7 +267,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         deprecated_reason = serializer.validated_data["deprecated_reason_overview"]
-        transaction.on_commit(lambda: send_deprecate_email(instance.id, instance.created_by_id, deprecated_reason))
+        transaction.on_commit(lambda: send_deprecate_email(instance.id, deprecated_reason))
         return response.Response(
             {"message": "Local unit object deprecated successfully."},
             status=status.HTTP_200_OK,
@@ -365,21 +357,3 @@ class DelegationOfficeDetailAPIView(RetrieveAPIView):
         permissions.IsAuthenticated,
         DenyGuestUserPermission,
     ]
-
-
-class LocalUnitsEmailPreview(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get(self, request):
-        type_param = request.GET.get("type")
-        param_types = {"new", "update", "validate", "revert", "deprecate", "regional", "global"}
-
-        if type_param not in param_types:
-            return HttpResponse(f"Invalid type parameter. Please use one of the following values:  {', '.join(param_types)}.")
-
-        context = generate_email_preview_context(type=type_param)
-        if not context:
-            return HttpResponse("No context found for the email preview..")
-
-        template = loader.get_template("email/local_units/local_unit.html")
-        return HttpResponse(template.render(context, request))

@@ -1,22 +1,19 @@
 from celery import shared_task
-from django.contrib.auth import get_user_model
 from django.template.loader import render_to_string
 
 from local_units.models import LocalUnit
 from notifications.notification import send_notification
 
-from .utils import get_email_context
-
-User = get_user_model()
+from .utils import get_email_context, get_local_admins
 
 
 @shared_task
-def send_local_unit_email(local_unit_id: int, user_ids: list, new: bool = True):
-    if not local_unit_id or not user_ids:
+def send_local_unit_email(local_unit_id: int, new: bool = True):
+    if not local_unit_id:
         return None
 
     instance = LocalUnit.objects.get(id=local_unit_id)
-    users = User.objects.filter(id__in=user_ids)
+    users = get_local_admins(instance)
     email_context = get_email_context(instance)
     email_context["new_local_unit"] = True
     email_subject = "Action Required: New Local Unit Pending Validation"
@@ -43,7 +40,7 @@ def send_validate_success_email(local_unit_id: int, message: str = ""):
         return None
 
     instance = LocalUnit.objects.get(id=local_unit_id)
-    user = User.objects.get(id=instance.created_by_id)
+    user = instance.created_by
     email_context = get_email_context(instance)
     email_context["full_name"] = user.get_full_name()
     email_context["validate_success"] = True
@@ -61,7 +58,7 @@ def send_revert_email(local_unit_id: int, reason: str = ""):
         return None
 
     instance = LocalUnit.objects.get(id=local_unit_id)
-    user = User.objects.get(id=instance.created_by_id)
+    user = instance.created_by
     email_context = get_email_context(instance)
     email_context["full_name"] = user.get_full_name()
     email_context["revert_reason"] = reason
@@ -79,7 +76,7 @@ def send_deprecate_email(local_unit_id: int):
         return None
 
     instance = LocalUnit.objects.get(id=local_unit_id)
-    user = User.objects.get(id=instance.created_by_id)
+    user = instance.created_by
     email_context = get_email_context(instance)
     email_context["full_name"] = user.get_full_name()
     email_context["deprecate_local_unit"] = True

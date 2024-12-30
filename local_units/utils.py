@@ -20,9 +20,7 @@ def get_local_admins(instance):
     """
     Get the user with the country level admin permission for the country of the instance
     """
-    country_admins = User.objects.filter(groups__permissions__codename=f"country_admin_{instance.country_id}").values_list(
-        "id", flat=True
-    )
+    country_admins = User.objects.filter(groups__permissions__codename=f"country_admin_{instance.country_id}")
     return country_admins
 
 
@@ -40,26 +38,3 @@ def get_global_validators():
     """
     global_validators = User.objects.filter(groups__permissions__codename="local_unit_global_validator")
     return global_validators
-
-
-def generate_email_preview_context(type: str) -> dict:
-    """
-    Generate a context for the email preview
-    """
-    if type == "new":
-        context = {"new_local_unit": True, "validator_email": "Test Validator", "full_name": "Test User"}
-    elif type == "update":
-        context = {"update_local_unit": True, "validator_email": "Test Validator", "full_name": "Test User"}
-    elif type == "validate":
-        context = {"validate_success": True, "full_name": "Test User"}
-    elif type == "revert":
-        context = {"revert_reason": "Test Reason", "full_name": "Test User"}
-    elif type == "deprecate":
-        context = {"deprecate_local_unit": True, "deprecate_reason": "Test Deprecate Reason", "full_name": "Test User"}
-    elif type == "regional":
-        context = {"regional_admin": True, "full_name": "Regional User"}
-    elif type == "global":
-        context = {"global_admin": True, "full_name": "Global User"}
-    else:
-        context = {}
-    return context
