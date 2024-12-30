@@ -1,10 +1,15 @@
 import base64
+import typing
+from typing import Optional
 
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.http import JsonResponse
 from django.utils import timezone
 from django.utils.translation import gettext
+
+if typing.TYPE_CHECKING:
+    from api.models import Country, DisasterType, Event
 
 
 class DebugPlaywright:
@@ -101,10 +106,10 @@ def bad_request(message):
 
 
 def generate_field_report_title(
-    country: models.Model,
-    dtype: models.Model,
-    event: models.Model,
-    start_date: timezone.datetime,
+    country: "Country",
+    dtype: "DisasterType",
+    event: "Event",
+    start_date: Optional[timezone.datetime],
     title: str,
     is_covid_report: bool = False,
 ):
@@ -114,6 +119,7 @@ def generate_field_report_title(
     from api.models import FieldReport
 
     current_date = timezone.now().strftime("%Y-%m-%d")
+    # NOTE: start_date is optional and setting it to current date if not provided
     if start_date:
         start_date = start_date.strftime("%m-%Y")
     else:
