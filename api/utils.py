@@ -1,8 +1,15 @@
 import base64
+import typing
+from typing import Optional
 
 from django.core.exceptions import ValidationError
+from django.db import models
 from django.http import JsonResponse
+from django.utils import timezone
 from django.utils.translation import gettext
+
+if typing.TYPE_CHECKING:
+    from api.models import Country, DisasterType, Event
 
 
 class DebugPlaywright:
@@ -96,3 +103,38 @@ class Echo:
 
 def bad_request(message):
     return JsonResponse({"statusCode": 400, "error_message": message}, status=400)
+
+
+def generate_field_report_title(
+    country: "Country",
+    dtype: "DisasterType",
+    event: "Event",
+    start_date: Optional[timezone.datetime],
+    title: str,
+    is_covid_report: bool = False,
+):
+    """
+    Generates the summary based on the country, dtype, event, start_date, title and is_covid_report
+    """
+    from api.models import FieldReport
+
+    current_date = timezone.now().strftime("%Y-%m-%d")
+    # NOTE: start_date is optional and setting it to current date if not provided
+    if start_date:
+        start_date = start_date.strftime("%m-%Y")
+    else:
+        start_date = timezone.now().strftime("%m-%Y")
+    current_fr_number = (
+        FieldReport.objects.filter(event=event, countries__id=country.id).aggregate(max_fr_num=models.Max("fr_num"))["max_fr_num"]
+        or 0
+    )
+    fr_num = current_fr_number + 1
+
+    suffix = ""
+    if fr_num > 1 and event:
+        suffix = f"#{fr_num} ({current_date})"
+    if is_covid_report:
+        summary = f"{country.iso3}: COVID-19 {suffix}"
+    else:
+        summary = f"{country.iso3}: {dtype.name} - {start_date} - {title} {suffix}"
+    return summary

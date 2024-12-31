@@ -123,6 +123,8 @@ from .serializers import (  # AppealSerializer,; Tableau Serializers; AppealTabl
     DistrictSerializerRMD,
     ExportSerializer,
     ExternalPartnerSerializer,
+    FieldReportGeneratedTitleSerializer,
+    FieldReportGenerateTitleSerializer,
     FieldReportSerializer,
     GoHistoricalSerializer,
     HistoricalDisasterSerializer,
@@ -151,7 +153,7 @@ from .serializers import (  # AppealSerializer,; Tableau Serializers; AppealTabl
     UserMeSerializer,
     UserSerializer,
 )
-from .utils import is_user_ifrc
+from .utils import generate_field_report_title, is_user_ifrc
 
 
 class DeploymentsByEventViewset(viewsets.ReadOnlyModelViewSet):
@@ -942,6 +944,41 @@ class FieldReportViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ModelViewSet):
             else:
                 return FieldReportSerializer
         return FieldReportSerializer
+
+    @extend_schema(
+        request=FieldReportGenerateTitleSerializer,
+        responses=FieldReportGeneratedTitleSerializer,
+    )
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="generate-title",
+        permission_classes=[DenyGuestUserMutationPermission],
+    )
+    def generate_title(self, request):
+        """
+        Generate a title for a Field Report.
+        """
+        serializer = FieldReportGenerateTitleSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        countries = serializer.validated_data.get("countries")
+        dtype = serializer.validated_data.get("dtype")
+        event = serializer.validated_data.get("event")
+        start_date = serializer.validated_data.get("start_date")
+        title = serializer.validated_data.get("title")
+        is_covid_report = serializer.validated_data.get("is_covid_report")
+
+        summary = generate_field_report_title(
+            country=countries[0], dtype=dtype, event=event, start_date=start_date, title=title, is_covid_report=is_covid_report
+        )
+        return Response(
+            FieldReportGeneratedTitleSerializer(
+                {
+                    "title": summary,
+                }
+            ).data
+        )
 
 
 class ActionViewset(viewsets.ReadOnlyModelViewSet):
