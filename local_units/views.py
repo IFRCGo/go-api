@@ -228,7 +228,9 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         )
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-        transaction.on_commit(lambda: send_revert_email(local_unit_id=local_unit.id, reason=reason))
+        transaction.on_commit(
+            lambda: send_revert_email(local_unit_id=local_unit.id, change_request_id=change_request_instance.id)
+        )
         return response.Response(serializer.data)
 
     @extend_schema(request=None, responses=LocalUnitChangeRequestSerializer)
@@ -266,8 +268,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         serializer = LocalUnitDeprecateSerializer(instance, data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-        deprecated_reason = serializer.validated_data["deprecated_reason_overview"]
-        transaction.on_commit(lambda: send_deprecate_email(instance.id, deprecated_reason))
+        transaction.on_commit(lambda: send_deprecate_email(instance.id))
         return response.Response(
             {"message": "Local unit object deprecated successfully."},
             status=status.HTTP_200_OK,

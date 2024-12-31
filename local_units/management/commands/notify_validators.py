@@ -41,7 +41,7 @@ class Command(BaseCommand):
         for local_unit in queryset_for_regional_validators:
             self.stdout.write(self.style.NOTICE(f"Notifying regional validators for local unit pk:({local_unit.id})"))
             email_context = get_email_context(local_unit)
-            email_context["regional_admin"] = True
+            email_context["is_validator_regional_admin"] = True
             email_subject = "Action Required: Local Unit Pending Validation"
             email_type = "Local Unit"
 
@@ -63,7 +63,7 @@ class Command(BaseCommand):
         for local_unit in queryset_for_global_validators:
             self.stdout.write(self.style.NOTICE(f"Notifying global validators for local unit pk:({local_unit.id})"))
             email_context = get_email_context(local_unit)
-            email_context["global_admin"] = True
+            email_context["is_validator_global_admin"] = True
             email_subject = "Action Required: Local Unit Pending Validation"
             email_type = "Local Unit"
 

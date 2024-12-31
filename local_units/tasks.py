@@ -1,7 +1,7 @@
 from celery import shared_task
 from django.template.loader import render_to_string
 
-from local_units.models import LocalUnit
+from local_units.models import LocalUnit, LocalUnitChangeRequest
 from notifications.notification import send_notification
 
 from .utils import get_email_context, get_local_admins
@@ -53,15 +53,16 @@ def send_validate_success_email(local_unit_id: int, message: str = ""):
 
 
 @shared_task
-def send_revert_email(local_unit_id: int, reason: str = ""):
+def send_revert_email(local_unit_id: int, change_request_id: int):
     if not local_unit_id:
         return None
 
     instance = LocalUnit.objects.get(id=local_unit_id)
+    change_request_instance = LocalUnitChangeRequest.objects.get(id=change_request_id)
     user = instance.created_by
     email_context = get_email_context(instance)
     email_context["full_name"] = user.get_full_name()
-    email_context["revert_reason"] = reason
+    email_context["revert_reason"] = change_request_instance.rejected_reason
     email_subject = "Your Local Unit Addition Request: Reverted"
     email_body = render_to_string("email/local_units/local_unit.html", email_context)
     email_type = "Revert Local Unit"

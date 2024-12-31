@@ -26,14 +26,14 @@
 </p>
 {% endif %}
 
-{% if regional_admin %}
+{% if is_validator_regional_admin %}
 <p>
     The new local unit has been pending validation for over 14 days. Kindly review and validate or delete as necessary.
 </p>
 
 {% endif %}
 
-{% if global_admin %}
+{% if is_validator_global_admin %}
 <p>
     The new local unit has been pending validation for over 28 days and requires your attention. Please review and validate
     or delete as necessary.
