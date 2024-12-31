@@ -191,22 +191,24 @@ class TestProjectAPI(SnapshotTestCase):
         self.assertMatchSnapshot(resp.content.decode("utf-8"))
 
     def test_project_csv_api(self):
-        _country = country.CountryFactory(name="country-1")
-        sct = SectorFactory(title="sect-1")
-        sct_1 = SectorTagFactory(title="sec-tag-1")
-        sct_2 = SectorTagFactory(title="sec-tag-2")
-        district1 = district.DistrictFactory(country=_country)
-        district2 = district.DistrictFactory(country=_country)
+        _country = country.CountryFactory(name="country-1", society_name="society-name-1")
+        sct = SectorFactory(title="sect-1", order=1)
+        sct_1 = SectorTagFactory(title="sec-tag-1", order=2)
+        sct_2 = SectorTagFactory(title="sec-tag-2", order=3)
+        district1 = district.DistrictFactory(country=_country, name="district-1", code="dct1")
+        district2 = district.DistrictFactory(country=_country, name="district-2", code="dct2")
         dtype = DisasterTypeFactory(name="disaster-type-1", summary="summary")
         regional_project = RegionalProjectFactory(name="regional-project-1")
         event = EventFactory(
             countries=[_country.id],
+            slug="event-slug",
             districts=[district1.id, district2.id],
             dtype=dtype,
             title="event-1",
         )
         ProjectFactory.create_batch(
             10,
+            name="project-1",
             project_districts=[district1, district2],
             budget_amount=100000,
             primary_sector=sct,

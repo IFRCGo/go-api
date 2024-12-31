@@ -25,7 +25,6 @@ from modeltranslation.utils import build_localized_fieldname
 from tinymce.models import HTMLField
 
 from lang.translation import AVAILABLE_LANGUAGES
-
 from main.fields import SecureFileField
 
 from .utils import validate_slug_number  # is_user_ifrc,
@@ -1713,22 +1712,6 @@ class FieldReport(models.Model):
             self.fr_num = field_report_number
             # NOTE: Updating the updated_fields when the fr_num is updated by translation tasks
             yield "fr_num"
-
-        # NOTE: Report number is set to None if the report is not associated with an event
-        if self.id and not self.event:
-            self.fr_num = None
-
-        suffix = f"#{self.fr_num} ({current_date})" if self.event else ""
-
-        if self.fr_num is None and self.event and self.id:
-            current_fr_number = (
-                FieldReport.objects.filter(event=self.event, countries__iso3=country_iso3).aggregate(
-                    max_fr_num=models.Max("fr_num")
-                )["max_fr_num"]
-                or 0
-            )
-            field_report_number = current_fr_number + 1
-            self.fr_num = field_report_number
 
         # NOTE: Report number is set to None if the report is not associated with an event
         if self.id and not self.event:
