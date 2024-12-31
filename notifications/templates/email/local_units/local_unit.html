@@ -1,43 +1,57 @@
-<p>Dear {{full_name}} {% include "includes/logo.html" %}</p>
+{% include "design/head3.html" %}
 
-{% if new_local_unit %}
-<p>A new local unit has been added and is awaiting your validation. Kindly review the information and validate or delete as necessary.</p>
-{% endif %}
+<table width="80%" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff">
+    <tr>
+        <td align="center">
+            <h3>Dear {{full_name}}</h3>
+        </td>
+    </tr>
+    <tr>
+        {% if new_local_unit %}
+        <td align="center" class="pb-30">
+            A new local unit has been added and is awaiting your validation. Kindly review the information and validate or delete as necessary.
+        </td>
+        {% endif %}
 
-{% if update_local_unit %}
-<p>The local unit has been updated and is awaiting your validation. Kindly review the information and validate or delete as necessary.</p>
-{% endif %}
+        {% if update_local_unit %}
+        <td align="center" class="pb-30">
+            The local unit has been updated and is awaiting your validation. Kindly review the information and validate or delete as necessary.
+        </td>
+        {% endif %}
 
-{% if validate_success %}
-<p>
-    Your request for the local unit has been successfully validated. The local unit is now visible and marked as validated.
-</p>
-{% endif %}
+        {% if validate_success %}
+        <td align="center" class="pb-30">
+            Your request for the local unit has been successfully validated. The local unit is now visible and marked as validated.
+        </td>
+        {% endif %}
 
-{% if revert_reason  %}
-<p>
-    Your local unit has been reverted. {{revert_reason}}. Please review and resubmit if applicable.
-</p>
-{% endif %}
+        {% if revert_reason %}
+        <td align="center" class="pb-30">
+            Your local unit has been reverted. {{revert_reason}}. Please review and resubmit if applicable.
+        </td>
+        {% endif %}
 
-{% if deprecate_local_unit %}
-<p>
-    Your local unit has been deprecated. {{deprecate_reason}}. Please contact the administrator for more information.
-</p>
-{% endif %}
+        {% if deprecate_local_unit %}
+        <td align="center" class="pb-30">
+            Your local unit has been deprecated. {{deprecate_reason}}. Please contact the administrator for more information.
+        </td>
+        {% endif %}
 
-{% if is_validator_regional_admin %}
-<p>
-    The new local unit has been pending validation for over 14 days. Kindly review and validate or delete as necessary.
-</p>
+        {% if regional_admin %}
+        <td align="center" class="pb-30">
+            The new local unit has been pending validation for over 14 days. Kindly review and validate or delete as necessary.
+        </td>
+        {% endif %}
 
-{% endif %}
+        {% if global_admin %}
+        <td align="center" class="pb-30">
+            The new local unit has been pending validation for over 28 days and requires your attention. Please review and validate
+            or delete as necessary.
+        </td>
+        {% endif %}
 
-{% if is_validator_global_admin %}
-<p>
-    The new local unit has been pending validation for over 28 days and requires your attention. Please review and validate
-    or delete as necessary.
-</p>
-{% endif %}
-
+    </tr>
+</table>
 <p>Thank you for your attention to this matter.</p>
+
+{% include "design/foot1.html" %}

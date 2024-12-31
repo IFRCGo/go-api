@@ -27,6 +27,22 @@ class LocalUnitsEmailPreview(APIView):
         context = context_mapping.get(type_param)
         if context is None:
             return HttpResponse("No context found for the email preview.")
+        if type_param == "new":
+            context = {"new_local_unit": True, "validator_email": "Test Validator", "full_name": "Test User"}
+        elif type_param == "update":
+            context = {"update_local_unit": True, "validator_email": "Test Validator", "full_name": "Test User"}
+        elif type_param == "validate":
+            context = {"validate_success": True, "full_name": "Test User"}
+        elif type_param == "revert":
+            context = {"revert_reason": "Test Reason", "full_name": "Test User"}
+        elif type_param == "deprecate":
+            context = {"deprecate_local_unit": True, "deprecate_reason": "Test Deprecate Reason", "full_name": "Test User"}
+        elif type_param == "regional":
+            context = {"regional_admin": True, "full_name": "Regional User"}
+        elif type_param == "global":
+            context = {"global_admin": True, "full_name": "Global User"}
+        else:
+            return HttpResponse("No context found for the email preview..")
 
         template = loader.get_template("email/local_units/local_unit.html")
         return HttpResponse(template.render(context, request))
