@@ -1,4 +1,5 @@
 from django.contrib.auth.models import Permission
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
@@ -23,6 +24,7 @@ from local_units.models import (
     PrimaryHCC,
     ProfessionalTrainingFacility,
     SpecializedMedicalService,
+    Validator,
     VisibilityChoices,
 )
 from local_units.permissions import (
@@ -39,6 +41,12 @@ from local_units.serializers import (
     PrivateLocalUnitDetailSerializer,
     PrivateLocalUnitSerializer,
     RejectedReasonSerialzier,
+)
+from local_units.tasks import (
+    send_deprecate_email,
+    send_local_unit_email,
+    send_revert_email,
+    send_validate_success_email,
 )
 from main.permissions import DenyGuestUserPermission
 
@@ -76,6 +84,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
             status=LocalUnitChangeRequest.Status.PENDING,
             triggered_by=request.user,
         )
+        transaction.on_commit(lambda: send_local_unit_email(serializer.instance.id, new=True))
         return response.Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
@@ -103,6 +112,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
             status=LocalUnitChangeRequest.Status.PENDING,
             triggered_by=request.user,
         )
+        transaction.on_commit(lambda: send_local_unit_email(local_unit.id, new=False))
         return response.Response(serializer.data)
 
     @extend_schema(request=None, responses=PrivateLocalUnitSerializer)
@@ -126,9 +136,9 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
             return bad_request("No change request found to validate")
 
         # Checking the validator type
-        validator = LocalUnitChangeRequest.Validator.LOCAL
+        validator = Validator.LOCAL
         if request.user.is_superuser or request.user.has_perm("local_units.local_unit_global_validator"):
-            validator = LocalUnitChangeRequest.Validator.GLOBAL
+            validator = Validator.GLOBAL
         else:
             region_admin_ids = [
                 int(codename.replace("region_admin_", ""))
@@ -138,7 +148,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
                 ).values_list("codename", flat=True)
             ]
             if local_unit.country.region_id in region_admin_ids:
-                validator = LocalUnitChangeRequest.Validator.REGIONAL
+                validator = Validator.REGIONAL
 
         change_request_instance.current_validator = validator
         change_request_instance.status = LocalUnitChangeRequest.Status.APPROVED
@@ -151,6 +161,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         local_unit.is_locked = False
         local_unit.save(update_fields=["validated", "is_locked"])
         serializer = PrivateLocalUnitSerializer(local_unit, context={"request": request})
+        transaction.on_commit(lambda: send_validate_success_email(local_unit_id=local_unit.id, message="Approved"))
         return response.Response(serializer.data)
 
     @extend_schema(request=RejectedReasonSerialzier, responses=PrivateLocalUnitDetailSerializer)
@@ -217,6 +228,9 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         )
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
+        transaction.on_commit(
+            lambda: send_revert_email(local_unit_id=local_unit.id, change_request_id=change_request_instance.id)
+        )
         return response.Response(serializer.data)
 
     @extend_schema(request=None, responses=LocalUnitChangeRequestSerializer)
@@ -253,7 +267,8 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         serializer = LocalUnitDeprecateSerializer(instance, data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        self.perform_update(serializer)
+        transaction.on_commit(lambda: send_deprecate_email(instance.id))
         return response.Response(
             {"message": "Local unit object deprecated successfully."},
             status=status.HTTP_200_OK,

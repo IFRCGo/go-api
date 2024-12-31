@@ -54,6 +54,7 @@ from dref import views as dref_views
 from flash_update import views as flash_views
 from lang import views as lang_views
 from local_units import views as local_units_views
+from local_units.dev_views import LocalUnitsEmailPreview
 from local_units.views import DelegationOfficeDetailAPIView, DelegationOfficeListAPIView
 from notifications import drf_views as notification_views
 from per import drf_views as per_views
@@ -242,6 +243,7 @@ if settings.DEBUG:
             url("__debug__/", include(debug_toolbar.urls)),
             # For django versions before 2.0:
             # url(r'^__debug__/', include(debug_toolbar.urls)),
+            url(r"^dev/email-preview/local-units/", LocalUnitsEmailPreview.as_view()),
         ]
         + urlpatterns
         + static.static(
