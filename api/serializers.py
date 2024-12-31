@@ -2104,6 +2104,27 @@ class FieldReportSerializer(
         return super().update(instance, validated_data)
 
 
+class FieldReportGenerateTitleSerializer(serializers.ModelSerializer):
+    dtype = serializers.PrimaryKeyRelatedField(queryset=DisasterType.objects.all())
+    event = serializers.PrimaryKeyRelatedField(queryset=Event.objects.all(), required=False)
+    title = serializers.CharField(required=True)
+
+    class Meta:
+        model = FieldReport
+        fields = (
+            "countries",
+            "dtype",
+            "title",
+            "event",
+            "start_date",
+            "is_covid_report",
+        )
+
+
+class FieldReportGeneratedTitleSerializer(serializers.Serializer):
+    title = serializers.CharField()
+
+
 class MainContactSerializer(ModelSerializer):
     class Meta:
         model = MainContact
