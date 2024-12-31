@@ -275,6 +275,12 @@ class LocalUnitLevel(models.Model):
         return f"{self.name} ({self.level})"
 
 
+class Validator(models.IntegerChoices):
+    LOCAL = 1, _("Local")
+    REGIONAL = 2, _("Regional")
+    GLOBAL = 3, _("Global")
+
+
 @reversion.register(follow=("health",))
 class LocalUnit(models.Model):
 
@@ -356,6 +362,12 @@ class LocalUnit(models.Model):
         verbose_name=_("Explain the reason why the local unit is being deleted"), blank=True, null=True
     )
 
+    last_sent_validator_type = models.IntegerField(
+        choices=Validator.choices,
+        verbose_name=_("Last email sent validator type"),
+        default=Validator.LOCAL,
+    )
+
     def __str__(self):
         branch_name = self.local_branch_name or self.english_branch_name
         return f"{branch_name} ({self.country.name})"
@@ -376,11 +388,6 @@ class LocalUnitChangeRequest(models.Model):
         PENDING = 1, _("Pending")
         APPROVED = 2, _("Approved")
         REVERT = 3, _("Revert")
-
-    class Validator(models.IntegerChoices):
-        LOCAL = 1, _("Local")
-        REGIONAL = 2, _("Regional")
-        GLOBAL = 3, _("Global")
 
     local_unit = models.ForeignKey(
         LocalUnit, on_delete=models.CASCADE, verbose_name=_("Local Unit"), related_name="local_unit_change_request"
