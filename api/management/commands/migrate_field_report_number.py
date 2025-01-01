@@ -16,25 +16,35 @@ class Command(BaseCommand):
     help = "Migrate legacy FieldReport data to populate fr_num"
 
     def handle(self, *args, **kwargs):
+
+        process = psutil.Process(os.getpid())
+
+        # Function to log memory usage
+        def memory_usage(stage):
+            memory_usage = process.memory_info().rss / (1024 * 1024)
+            logger.info(f"Memory usage {stage}: {memory_usage:.2f} MB")
+
+        memory_usage(" at start")
+
         suffix_pattern = re.compile(r"#(\d+)")
 
-        event_country_filter_qs = (
-            FieldReport.objects.order_by()
-            .values("event", "countries")
-            .annotate(count=Count("id", filter=Q(fr_num__isnull=True)))
-            .exclude(count__gte=1)
+        event_country_filter_qs = FieldReport.objects.values("event", "countries").annotate(
+            count=Count("id", filter=Q(fr_num__isnull=True))
+        )
+        reports = (
+            FieldReport.objects.filter(
+                event__in=event_country_filter_qs.values("event"),
+                countries__in=event_country_filter_qs.values("countries"),
+            )
+            .distinct()
+            .select_related("event")
+            .prefetch_related("countries")
         )
 
-        reports = FieldReport.objects.filter(
-            event__in=event_country_filter_qs.values("event"),
-            countries__in=event_country_filter_qs.values("countries"),
-        ).distinct()
-
-        # reports = FieldReport.objects.filter(fr_num__isnull=True).select_related('event').distinct()
         logger.info(f"Found {reports.count()} FieldReports to process.")
 
         if not reports:
-            logger.warning("No FieldReports found.")
+            logger.warning("No FieldReports found to migrate.")
             return
 
         event_country_data = {}
@@ -42,12 +52,18 @@ class Command(BaseCommand):
         for report in reports.iterator():
             country = report.countries.first()
 
+            if country is None:
+                logger.warning(f"FieldReport ID {report.rid} has no associated country.")
+                continue
+
             summary_match = suffix_pattern.search(report.summary)
             derived_fr_num = int(summary_match.group(1)) if summary_match else None
+
+            max_fr_num = max(derived_fr_num or 0, report.fr_num or 0)
+
             key = (report.event.id, country.id)
 
-            # Initialize or retrieve group data
-            group_data = event_country_data[key] = event_country_data.get(
+            group_data = event_country_data.get(
                 key,
                 {
                     "highest_fr_num": 0,
@@ -55,13 +71,13 @@ class Command(BaseCommand):
                 },
             )
 
-            max_fr_num = max(derived_fr_num or 0, report.fr_num or 0)
-
             if max_fr_num > group_data["highest_fr_num"]:
                 group_data["highest_fr_num"] = max_fr_num
                 group_data["report_highest_fr"] = report
 
-        bulk_manager = BulkUpdateManager(update_fields=["fr_num"])
+            event_country_data[key] = group_data
+
+        bulk_mgr = BulkUpdateManager(update_fields=["fr_num"])
 
         for (event_id, country_id), data in event_country_data.items():
             highest_report = data["report_highest_fr"]
@@ -70,12 +86,8 @@ class Command(BaseCommand):
             if highest_report:
                 logger.debug(f"Preparing to update FieldReport ID {highest_report.id} with fr_num {highest_fr_num}.")
                 highest_report.fr_num = highest_fr_num
-                bulk_manager._process_obj(highest_report)
-        bulk_manager._commit
-
-        process = psutil.Process(os.getpid())
-
-        memory_usage = process.memory_info().rss / (1024 * 1024)
-        logger.info(f"Memory usage:{memory_usage} MB")
+                bulk_mgr.add(highest_report)
+        bulk_mgr.done()
+        memory_usage("after bulk update")
 
         logger.info("FieldReport migration completed successfully.")
