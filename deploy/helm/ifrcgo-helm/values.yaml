@@ -63,6 +63,8 @@ env:
   AZURE_OPENAI_ENDPOINT: ''
   AZURE_OPENAI_API_KEY: ''
 
+# NOTE: Used to pass additional configs to api/worker containers
+# NOTE: Not used by azure vault
 envAdditional:
   # Additional configs
   # EXAMPLE: MY_CONFIG: "my-value"
@@ -72,6 +74,12 @@ secrets:
   API_TLS_KEY: ''
   API_ADDITIONAL_DOMAIN_TLS_CRT: ''
   API_ADDITIONAL_DOMAIN_TLS_KEY: ''
+
+# NOTE: Used to pass additional secrets to api/worker containers
+# NOTE: Not used by azure vault
+secretsAdditional:
+  # Additional secrets
+  # EXAMPLE: MY_SECRET: "my-secret-value"
 
 api:
   domain: "go-staging.ifrc.org"
