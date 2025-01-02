@@ -87,11 +87,32 @@ class OpsLearningSummaryTask:
         '"contradictory reports": "..."}'
     )
 
-    secondary_prompt = (
+    component_prompt = (
         "Please aggregate and summarize this data into structured paragraphs (as few as possible, as many as necessary). \n "
         "The output SHOULD ALWAYS follow the format below:\n"
-        "- *Type*: Whether the paragraph is related to a 'sector' or a 'component'\n"
-        "- *Subtype*: Provides the name of the sector or of the component to which the paragraph refers.\n"
+        "- *Type*: 'component'\n"
+        "- *Subtype*: Provides the name of the component to which the paragraph refers.\n"
+        "- *Excerpts ID*: Identify the ids of the excerpts you took into account for creating the summary.\n"
+        "*Content*: A short summary aggregating findings related to the Subtype, "
+        "so that they are supported by evidence coming from more than one report, "
+        "and there is ONLY ONE entry per subtype. Always integrate in the paragraph evidence that supports "
+        "it from the data available from multiples reports or items, include year and country of the evidence. "
+        "The length of each paragraph MUST be between 20 and 30 words.\n"
+        " Important:\n\n"
+        "- ONLY create one summary per subtype\n"
+        "- DO NOT mention the ids of the excerpts in the content of the summary.\n"
+        "- DO NOT use data from any source other than the one provided.\n\n"
+        "Output Format:\n"
+        "Provide your answer in valid JSON form. Reply with ONLY the answer in JSON form and include NO OTHER COMMENTARY.\n"
+        '{"0": {"type": "component", "subtype": "Information Management", "excerpts id":"23, 235", "content": "lorem ipsum"}, '
+        '"1": {"type": "component", "subtype": "Logistics", "excerpts id":"45, 678", "content": "lorem ipsum"}}'
+    )
+
+    sector_prompt = (
+        "Please aggregate and summarize this data into structured paragraphs (as few as possible, as many as necessary). \n "
+        "The output SHOULD ALWAYS follow the format below:\n"
+        "- *Type*: 'sector'\n"
+        "- *Subtype*: Provides the name of the sector to which the paragraph refers.\n"
         "- *Excerpts ID*: Identify the ids of the excerpts you took into account for creating the summary.\n"
         "*Content*: A short summary aggregating findings related to the Subtype, "
         "so that they are supported by evidence coming from more than one report, "
@@ -105,8 +126,7 @@ class OpsLearningSummaryTask:
         "Output Format:\n"
         "Provide your answer in valid JSON form. Reply with ONLY the answer in JSON form and include NO OTHER COMMENTARY.\n"
         '{"0": {"type": "sector", "subtype": "shelter", "excerpts id":"43, 1375, 14543", "content": "lorem ipsum"}, '
-        '"1": {"type": "component", "subtype": "Information Management", "excerpts id":"23, 235", "content": "lorem ipsum"}, '
-        '"2": {"type": "sector", "subtype": "WASH", "excerpts id":"30, 40",  "content": "lorem ipsum"}}'
+        '"1": {"type": "sector", "subtype": "WASH", "excerpts id":"30, 40", "content": "lorem ipsum"}}'
     )
 
     system_message = (
@@ -686,14 +706,31 @@ class OpsLearningSummaryTask:
             )
             return learnings_component
 
-        def _build_data_section(secondary_df: pd.DataFrame):
-            # Secondary learnings section
-            sectors = get_main_sectors(secondary_df)
+        def _build_component_data_section(secondary_df: pd.DataFrame):
+            # Component learnings section
             components = get_main_components(secondary_df)
             max_length_per_section = cls.PROMPT_DATA_LENGTH_LIMIT
 
-            if (len(sectors) + len(components)) > 0:
-                max_length_per_section = cls.PROMPT_DATA_LENGTH_LIMIT / (len(components) + len(sectors))
+            if len(components) > 0:
+                max_length_per_section = cls.PROMPT_DATA_LENGTH_LIMIT / len(components)
+
+            learnings_components = (
+                "\n----------------\n\n"
+                + "TYPE: COMPONENT"
+                + "\n----------------\n".join(
+                    [process_learnings_component(x, secondary_df, max_length_per_section) for x in components if pd.notna(x)]
+                )
+            )
+            secondary_learnings_data = learnings_components
+            return secondary_learnings_data
+
+        def _build_sector_data_section(secondary_df: pd.DataFrame):
+            # Sector learnings section
+            sectors = get_main_sectors(secondary_df)
+            max_length_per_section = cls.PROMPT_DATA_LENGTH_LIMIT
+
+            if len(sectors) > 0:
+                max_length_per_section = cls.PROMPT_DATA_LENGTH_LIMIT / len(sectors)
 
             learnings_sectors = (
                 "\n----------------\n\n"
@@ -702,28 +739,28 @@ class OpsLearningSummaryTask:
                     [process_learnings_sector(x, secondary_df, max_length_per_section) for x in sectors if pd.notna(x)]
                 )
             )
-            learnings_components = (
-                "\n----------------\n\n"
-                + "TYPE: COMPONENT"
-                + "\n----------------\n".join(
-                    [process_learnings_component(x, secondary_df, max_length_per_section) for x in components if pd.notna(x)]
-                )
-            )
-            secondary_learnings_data = learnings_sectors + learnings_components
+            secondary_learnings_data = learnings_sectors
             return secondary_learnings_data
 
+        # Prompt intro section
         prompt_intro = cls._build_intro_section()
-        secondary_prompt_instruction = cls._build_instruction_section(
-            filter_data, secondary_learning_df, cls.secondary_instruction_prompt
-        )
-        secondary_learnings_data = _build_data_section(secondary_learning_df)
+
+        # Sector Prompt and Data
+        sector_prompt_instruction = cls._build_instruction_section(filter_data, secondary_learning_df, cls.sector_prompt)
+        sector_learning_data = _build_sector_data_section(secondary_learning_df)
+
+        # Components Prompt and Data
+        component_prompt_instruction = cls._build_instruction_section(filter_data, secondary_learning_df, cls.component_prompt)
+        component_learning_data = _build_component_data_section(secondary_learning_df)
 
         # format the prompts
-        secondary_learning_prompt = "".join(
-            [prompt_intro, secondary_prompt_instruction, secondary_learnings_data, cls.secondary_prompt]
+        sector_learning_prompt = "".join([prompt_intro, sector_prompt_instruction, sector_learning_data, cls.secondary_prompt])
+        component_learning_prompt = "".join(
+            [prompt_intro, component_prompt_instruction, component_learning_data, cls.secondary_prompt]
         )
+
         logger.info("Secondary Prompt formatted.")
-        return secondary_learning_prompt
+        return sector_learning_prompt, component_learning_prompt
 
     @classmethod
     def generate_summary(cls, prompt, type: OpsLearningPromptResponseCache.PromptType) -> dict:
@@ -849,8 +886,10 @@ class OpsLearningSummaryTask:
 
     @classmethod
     def _get_or_create_summary(
-        cls, prompt: str, prompt_hash: str, type: OpsLearningPromptResponseCache.PromptType, overwrite_prompt_cache: bool = False
+        cls, prompt: str, type: OpsLearningPromptResponseCache.PromptType, overwrite_prompt_cache: bool = False
     ) -> dict:
+        """Retrieves or Generates the summary based on the provided prompt."""
+        prompt_hash = OpslearningSummaryCacheHelper.generate_hash(prompt)
         instance, created = OpsLearningPromptResponseCache.objects.update_or_create(
             prompt_hash=prompt_hash,
             type=type,
@@ -952,13 +991,9 @@ class OpsLearningSummaryTask:
         """Retrieves or Generates the primary summary based on the provided prompt."""
         logger.info("Retrieving or generating primary summary.")
 
-        # generating hash for primary prompt
-        primary_prompt_hash = OpslearningSummaryCacheHelper.generate_hash(primary_learning_prompt)
-
         # Checking the response for primary prompt
         primary_summary = cls._get_or_create_summary(
             prompt=primary_learning_prompt,
-            prompt_hash=primary_prompt_hash,
             type=OpsLearningPromptResponseCache.PromptType.PRIMARY,
             overwrite_prompt_cache=overwrite_prompt_cache,
         )
@@ -981,30 +1016,37 @@ class OpsLearningSummaryTask:
     def get_or_create_secondary_summary(
         cls,
         ops_learning_summary_instance: OpsLearningCacheResponse,
-        secondary_learning_prompt: str,
+        sector_learning_prompt: str,
+        component_learning_prompt: str,
         overwrite_prompt_cache: bool = False,
     ):
         """Retrieves or Generates the summary based on the provided prompts."""
         logger.info("Retrieving or generating secondary summary.")
 
-        # generating hash for secondary prompt
-        secondary_prompt_hash = OpslearningSummaryCacheHelper.generate_hash(secondary_learning_prompt)
-
-        # Checking the response for secondary prompt
-        secondary_summary = cls._get_or_create_summary(
-            prompt=secondary_learning_prompt,
-            prompt_hash=secondary_prompt_hash,
-            type=OpsLearningPromptResponseCache.PromptType.SECONDARY,
-            overwrite_prompt_cache=overwrite_prompt_cache,
-        )
         if overwrite_prompt_cache:
             logger.info("Clearing the cache for secondary summary.")
             # NOTE: find a better way to update the cache
             OpsLearningComponentCacheResponse.objects.filter(filter_response=ops_learning_summary_instance).delete()
             OpsLearningSectorCacheResponse.objects.filter(filter_response=ops_learning_summary_instance).delete()
 
-        # Saving into the database
+        # Checking the response for sector prompt
+        sector_summary = cls._get_or_create_summary(
+            prompt=sector_learning_prompt,
+            type=OpsLearningPromptResponseCache.PromptType.SECTOR,
+            overwrite_prompt_cache=overwrite_prompt_cache,
+        )
         cls.secondary_response_save_to_db(
             ops_learning_summary_instance=ops_learning_summary_instance,
-            secondary_summary=secondary_summary,
+            secondary_summary=sector_summary,
+        )
+
+        # Checking the response for component prompt
+        component_summary = cls._get_or_create_summary(
+            prompt=component_learning_prompt,
+            type=OpsLearningPromptResponseCache.PromptType.COMPONENT,
+            overwrite_prompt_cache=overwrite_prompt_cache,
+        )
+        cls.secondary_response_save_to_db(
+            ops_learning_summary_instance=ops_learning_summary_instance,
+            secondary_summary=component_summary,
         )
