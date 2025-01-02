@@ -63,6 +63,10 @@ env:
   AZURE_OPENAI_ENDPOINT: ''
   AZURE_OPENAI_API_KEY: ''
 
+envAdditional:
+  # Additional configs
+  # EXAMPLE: MY_CONFIG: "my-value"
+
 secrets:
   API_TLS_CRT: ''
   API_TLS_KEY: ''
