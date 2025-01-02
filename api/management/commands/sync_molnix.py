@@ -58,6 +58,8 @@ def prt(message_text, molnix_id, position_or_event_id=0, organization=""):
         warning_type = 4
     elif message_text == "Deployment did not find SurgeAlert":
         warning_type = 5
+    elif message_text == "Deployment did not find SurgeAlert in lack of position_id":
+        warning_type = 5
     elif message_text == "NS Name not found for Deployment with secondment_incoming":
         warning_type = 6
     elif message_text == "Did not import Deployment. Invalid Event":
@@ -320,7 +322,13 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
 
         surge_alert = None
         try:
-            if md["position_id"]:
+            if "position_id" not in md:
+                warning = "%d deployment did not find SurgeAlert in lack of Molnix position_id" % md["id"]
+                logger.warning(warning)
+                warnings.append(warning)
+                prt("Deployment did not find SurgeAlert in lack of position_id", md["id"])
+                continue
+            elif md["position_id"]:
                 surge_alert = SurgeAlert.objects.get(molnix_id=md["position_id"])
         except Exception:
             warning = "%d deployment did not find SurgeAlert with Molnix position_id %d." % (md["id"], md["position_id"])
