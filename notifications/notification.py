@@ -26,7 +26,8 @@ class SendMail(threading.Thread):
         try:
             server = smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT)
             server.ehlo()
-            server.starttls()
+            if settings.EMAIL_USE_TLS:
+                server.starttls()
             server.ehlo()
             succ = server.login(settings.EMAIL_USER, settings.EMAIL_PASS)
             if "successful" not in str(succ[1]):
@@ -84,6 +85,12 @@ def send_notification(subject, recipients, html, mailtype="", files=None):
         print("-" * 22, "EMAIL START", "-" * 22)
         print(f"\n{html}\n")
         print("-" * 22, "EMAIL END -", "-" * 22)
+
+    if settings.FORCE_USE_SMTP:
+        logger.info("Forcing SMPT usage for sending emails.")
+        msg = construct_msg(subject, html)
+        SendMail(recipients, msg).start()
+        return
 
     to_addresses = recipients if isinstance(recipients, list) else [recipients]
 

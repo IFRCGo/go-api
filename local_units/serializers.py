@@ -22,12 +22,18 @@ from .models import (
     HealthData,
     HospitalType,
     LocalUnit,
+    LocalUnitChangeRequest,
     LocalUnitLevel,
     LocalUnitType,
     PrimaryHCC,
     ProfessionalTrainingFacility,
     SpecializedMedicalService,
 )
+
+
+class LocationSerializer(serializers.Serializer):
+    lat = serializers.FloatField(required=True)
+    lng = serializers.FloatField(required=True)
 
 
 class GeneralMedicalServiceSerializer(serializers.ModelSerializer):
@@ -190,7 +196,7 @@ class LocalUnitDetailSerializer(serializers.ModelSerializer):
     type_details = LocalUnitTypeSerializer(source="type", read_only=True)
     level_details = LocalUnitLevelSerializer(source="level", read_only=True)
     health = HealthDataSerializer(required=False, allow_null=True)
-    location_details = serializers.SerializerMethodField()
+    location_geojson = serializers.SerializerMethodField()
     visibility_display = serializers.CharField(source="get_visibility_display", read_only=True)
     validated = serializers.BooleanField(read_only=True)
 
@@ -219,14 +225,20 @@ class LocalUnitDetailSerializer(serializers.ModelSerializer):
             "level",
             "health",
             "visibility_display",
-            "location_details",
+            "location_geojson",
             "type_details",
             "level_details",
             "country_details",
         )
 
-    def get_location_details(self, unit) -> dict:
+    def get_location_geojson(self, unit) -> dict:
         return json.loads(unit.location.geojson)
+
+
+"""
+NOTE: This `PrivateLocalUnitDetailSerializer` is used to store the previous_data of local unit
+changing the serializer might effect the data of previous_data
+"""
 
 
 class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
@@ -234,14 +246,16 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
     type_details = LocalUnitTypeSerializer(source="type", read_only=True)
     level_details = LocalUnitLevelSerializer(source="level", read_only=True)
     health = HealthDataSerializer(required=False, allow_null=True)
-    location_details = serializers.SerializerMethodField(read_only=True)
+    # NOTE: location_geojson contains the geojson of the location
+    location_geojson = serializers.SerializerMethodField(read_only=True)
     visibility_display = serializers.CharField(source="get_visibility_display", read_only=True)
     validated = serializers.BooleanField(read_only=True)
-    location_json = serializers.JSONField(required=True, write_only=True)
+    location_json = LocationSerializer(required=True)
     location = serializers.CharField(required=False)
     modified_by_details = LocalUnitMiniUserSerializer(source="modified_by", read_only=True)
     created_by_details = LocalUnitMiniUserSerializer(source="created_by", read_only=True)
     version_id = serializers.SerializerMethodField()
+    is_locked = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = LocalUnit
@@ -270,7 +284,7 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
             "level",
             "health",
             "visibility_display",
-            "location_details",
+            "location_geojson",
             "type_details",
             "level_details",
             "country_details",
@@ -283,9 +297,10 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
             "modified_by_details",
             "created_by_details",
             "version_id",
+            "is_locked",
         )
 
-    def get_location_details(self, unit) -> dict:
+    def get_location_geojson(self, unit) -> dict:
         return json.loads(unit.location.geojson)
 
     def get_version_id(self, resource):
@@ -316,8 +331,6 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
         location_json = validated_data.pop("location_json")
         lat = location_json.get("lat")
         lng = location_json.get("lng")
-        if not lat and not lng:
-            raise serializers.ValidationError(gettext("Combination of lat/lon is required"))
         input_point = Point(lng, lat)
         if country.bbox:
             country_json = json.loads(country.countrygeoms.geom.geojson)
@@ -338,6 +351,7 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
                 )
         validated_data["location"] = GEOSGeometry("POINT(%f %f)" % (lng, lat))
         validated_data["created_by"] = self.context["request"].user
+        validated_data["is_locked"] = True
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
@@ -345,8 +359,6 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
         location_json = validated_data.pop("location_json")
         lat = location_json.get("lat")
         lng = location_json.get("lng")
-        if not lat and not lng:
-            raise serializers.ValidationError(gettext("Combination of lat/lon is required"))
         input_point = Point(lng, lat)
         if country.bbox:
             country_json = json.loads(country.countrygeoms.geom.geojson)
@@ -367,13 +379,12 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
                 )
         validated_data["location"] = GEOSGeometry("POINT(%f %f)" % (lng, lat))
         validated_data["modified_by"] = self.context["request"].user
-        # NOTE: Each time form is updated change validated status to `False`
-        validated_data["validated"] = False
         return super().update(instance, validated_data)
 
 
 class LocalUnitSerializer(serializers.ModelSerializer):
-    location_details = serializers.SerializerMethodField()
+    # NOTE: location_geojson contains the geojson of the location
+    location_geojson = serializers.SerializerMethodField()
     country_details = LocalUnitCountrySerializer(source="country", read_only=True)
     type_details = LocalUnitTypeSerializer(source="type", read_only=True)
     health_details = MiniHealthDataSerializer(read_only=True, source="health")
@@ -386,7 +397,7 @@ class LocalUnitSerializer(serializers.ModelSerializer):
             "country",
             "local_branch_name",
             "english_branch_name",
-            "location_details",
+            "location_geojson",
             "type",
             "validated",
             "address_loc",
@@ -397,17 +408,19 @@ class LocalUnitSerializer(serializers.ModelSerializer):
             "health_details",
         )
 
-    def get_location_details(self, unit) -> dict:
+    def get_location_geojson(self, unit) -> dict:
         return json.loads(unit.location.geojson)
 
 
 class PrivateLocalUnitSerializer(serializers.ModelSerializer):
-    location_details = serializers.SerializerMethodField()
+    # NOTE: location_geojson contains the geojson of the location
+    location_geojson = serializers.SerializerMethodField()
     country_details = LocalUnitCountrySerializer(source="country", read_only=True)
     type_details = LocalUnitTypeSerializer(source="type", read_only=True)
     health_details = MiniHealthDataSerializer(read_only=True, source="health")
     validated = serializers.BooleanField(read_only=True)
     modified_by_details = LocalUnitMiniUserSerializer(source="modified_by", read_only=True)
+    is_locked = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = LocalUnit
@@ -416,7 +429,7 @@ class PrivateLocalUnitSerializer(serializers.ModelSerializer):
             "country",
             "local_branch_name",
             "english_branch_name",
-            "location_details",
+            "location_geojson",
             "type",
             "validated",
             "address_loc",
@@ -431,9 +444,10 @@ class PrivateLocalUnitSerializer(serializers.ModelSerializer):
             "phone",
             "modified_at",
             "modified_by_details",
+            "is_locked",
         )
 
-    def get_location_details(self, unit) -> dict:
+    def get_location_geojson(self, unit) -> dict:
         return json.loads(unit.location.geojson)
 
 
@@ -503,7 +517,7 @@ class LocalUnitOptionsSerializer(serializers.Serializer):
     blood_services = BloodServiceSerializer(many=True)
     professional_training_facilities = ProfessionalTrainingFacilitySerializer(many=True)
     general_medical_services = GeneralMedicalServiceSerializer(many=True)
-    specialized_medical_services = SpecializedMedicalServiceSerializer(many=True)
+    specialized_medical_beyond_primary_level = SpecializedMedicalServiceSerializer(many=True)
 
 
 class MiniDelegationOfficeSerializer(serializers.ModelSerializer):
@@ -520,3 +534,59 @@ class MiniDelegationOfficeSerializer(serializers.ModelSerializer):
             "city",
             "address",
         )
+
+
+class RejectedReasonSerialzier(serializers.Serializer):
+    reason = serializers.CharField(required=True)
+
+
+class LocalUnitChangeRequestSerializer(serializers.ModelSerializer):
+    created_by_details = LocalUnitMiniUserSerializer(source="created_by", read_only=True)
+    status_details = serializers.CharField(source="get_status_display", read_only=True)
+    current_validator_details = serializers.CharField(source="get_current_validator_display", read_only=True)
+    # NOTE: Typing issue on JsonField, So returning as string
+    previous_data_details = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = LocalUnitChangeRequest
+        fields = (
+            "id",
+            "status",
+            "status_details",
+            "current_validator",
+            "current_validator_details",
+            "created_by_details",
+            "previous_data_details",
+        )
+
+    def get_previous_data_details(self, obj):
+        return obj.previous_data
+
+
+class LocalUnitDeprecateSerializer(serializers.ModelSerializer):
+    deprecated_reason = serializers.ChoiceField(choices=LocalUnit.DeprecateReason, required=True)
+    deprecated_reason_overview = serializers.CharField(required=True, allow_blank=False)
+
+    class Meta:
+        model = LocalUnit
+        fields = ("deprecated_reason", "deprecated_reason_overview")
+
+    def create(self, _):
+        raise serializers.ValidationError({"non_field_errors": gettext("Create is not allowed")})
+
+    def validate(self, attrs):
+        instance = self.instance
+
+        if instance and instance.is_deprecated:
+            raise serializers.ValidationError({"non_field_errors": gettext("This object is already depricated")})
+
+        return attrs
+
+    def update(self, instance, validated_data):
+        instance.is_deprecated = True
+        instance.deprecated_reason = validated_data.get("deprecated_reason", instance.deprecated_reason)
+        instance.deprecated_reason_overview = validated_data.get(
+            "deprecated_reason_overview", instance.deprecated_reason_overview
+        )
+        instance.save(update_fields=["is_deprecated", "deprecated_reason", "deprecated_reason_overview"])
+        return instance
