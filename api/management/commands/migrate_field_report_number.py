@@ -27,10 +27,11 @@ class Command(BaseCommand):
             .prefetch_related("countries")
         )
 
-        self.stdout.write(f"Found {reports.count()} FieldReports to process.")
+        report_count = reports.count()
+        self.stdout.write(self.style.NOTICE(f"Found {report_count} FieldReports to process"))
 
-        if not reports:
-            self.stdout.write("No FieldReports found to migrate.")
+        if report_count == 0:
+            self.stdout.write(self.style.WARNING("No FieldReports found to process"))
             return
 
         event_country_data = {}
@@ -39,13 +40,13 @@ class Command(BaseCommand):
             country = report.countries.first()
 
             if country is None:
-                self.stdout.write(f"FieldReport ID {report.rid} has no associated country.")
+                self.stdout.write(self.style.ERROR(f"FieldReport ID {report.id} has no associated country."))
                 continue
 
             summary_match = suffix_pattern.search(report.summary)
-            derived_fr_num = int(summary_match.group(1)) if summary_match else None
+            derived_fr_num = int(summary_match.group(1)) if summary_match else 0
 
-            max_fr_num = max(derived_fr_num or 0, report.fr_num or 0)
+            max_fr_num = max(derived_fr_num, report.fr_num or 0)
             key = (report.event.id, country.id)
 
             group_data = event_country_data.get(
@@ -64,12 +65,13 @@ class Command(BaseCommand):
 
         bulk_mgr = BulkUpdateManager(update_fields=["fr_num"])
 
-        for (event_id, country_id), data in event_country_data.items():
+        for data in event_country_data.values():
             highest_report = data["report_highest_fr"]
             highest_fr_num = data["highest_fr_num"]
             if highest_report:
-                self.stdout.write(f"Preparing to update FieldReport ID {highest_report.id} with fr_num {highest_fr_num}.")
-                highest_report.fr_num = highest_fr_num
+                self.stdout.write(
+                    self.style.NOTICE(f"Preparing to update FieldReport ID {highest_report.id} with fr_num {highest_fr_num}.")
+                )
                 bulk_mgr.add(
                     FieldReport(
                         id=highest_report.id,
@@ -77,5 +79,4 @@ class Command(BaseCommand):
                     )
                 )
         bulk_mgr.done()
-
-        self.stdout.write("FieldReport migration completed successfully.")
+        self.stdout.write(self.style.SUCCESS("FieldReport migration completed successfully."))
