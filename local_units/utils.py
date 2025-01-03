@@ -11,6 +11,7 @@ def get_email_context(instance):
     local_unit_data = PrivateLocalUnitSerializer(instance).data
     email_context = {
         "id": local_unit_data["id"],
+        "local_branch_name": local_unit_data["local_branch_name"],
         "frontend_url": settings.FRONTEND_URL,
     }
     return email_context
