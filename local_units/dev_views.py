@@ -28,5 +28,6 @@ class LocalUnitsEmailPreview(APIView):
         if context is None:
             return HttpResponse("No context found for the email preview.")
 
+        context["local_branch_name"] = "Test Local Branch"
         template = loader.get_template("email/local_units/local_unit.html")
         return HttpResponse(template.render(context, request))
