@@ -49,12 +49,17 @@ def generate_ops_learning_summary(ops_learning_summary_id: int, filter_data: dic
 
             # Prioritize excerpts for secondary insights
             secondary_learning_df = OpsLearningSummaryTask.seconday_prioritize_excerpts(prioritized_learnings)
+
             # Format secondary prompt
-            secondary_learning_prompt = OpsLearningSummaryTask.format_secondary_prompt(secondary_learning_df, filter_data)
+            sector_learning_prompt, component_learning_prompt = OpsLearningSummaryTask.format_secondary_prompt(
+                secondary_learning_df=secondary_learning_df, filter_data=filter_data
+            )
+
             # Generate secondary summary
             OpsLearningSummaryTask.get_or_create_secondary_summary(
                 ops_learning_summary_instance=ops_learning_summary_instance,
-                secondary_learning_prompt=secondary_learning_prompt,
+                sector_learning_prompt=sector_learning_prompt,
+                component_learning_prompt=component_learning_prompt,
                 overwrite_prompt_cache=overwrite_prompt_cache,
             )
 
