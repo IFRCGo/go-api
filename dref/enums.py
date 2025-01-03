@@ -8,4 +8,5 @@ enum_register = {
     "dref_onset_type": models.Dref.OnsetType,
     "dref_disaster_category": models.Dref.DisasterCategory,
     "dref_status": models.Dref.Status,
+    "proposed_action": models.ProposedAction.Action,
 }

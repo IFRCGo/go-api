@@ -12,6 +12,7 @@ from django.utils.translation import gettext_lazy as _
 from pdf2image import convert_from_bytes
 
 from api.models import Country, DisasterType, District, FieldReport
+from deployments.models import Sector
 from main.fields import SecureFileField
 
 
@@ -208,6 +209,22 @@ class SourceInformation(models.Model):
     client_id = models.CharField(max_length=50, null=True, blank=True, verbose_name=_("client_id"))
     source_name = models.CharField(verbose_name=_("Source Name"), null=True, blank=True, max_length=255)
     source_link = models.CharField(verbose_name=_("Source Link"), null=True, blank=True, max_length=255)
+
+
+class ProposedAction(models.Model):
+    class Action(models.IntegerChoices):
+        EARLY_ACTION = 1, _("Early Actions")
+        EARLY_RESPONSE = 2, _("Early Response")
+
+    proposed_type = models.PositiveIntegerField(
+        choices=Action.choices,
+        verbose_name=_("dref proposed action"),
+    )
+    activities = models.ForeignKey(Sector, on_delete=models.SET_NULL, null=True)
+    budget = models.PositiveIntegerField(verbose_name=_(" Purpose Action budgets"), blank=True, null=True)
+
+    def __str__(self) -> str:
+        return f"{self.get_proposed_type_display()}- {self.activities}"
 
 
 @reversion.register()
@@ -589,6 +606,11 @@ class Dref(models.Model):
     __budget_file_id = None
     is_active = models.BooleanField(verbose_name=_("Is Active"), null=True, blank=True)
     source_information = models.ManyToManyField(SourceInformation, blank=True, verbose_name=_("Source Information"))
+    proposed_action = models.ManyToManyField(ProposedAction, verbose_name=_("Proposed Action"), blank=True)
+    sub_total = models.IntegerField(verbose_name=_("Sub total"), blank=True, null=True)
+    surge_deployment = models.IntegerField(verbose_name=_("Surge Deployment"), null=True, blank=True)
+    indirect_cost = models.IntegerField(verbose_name=_("Indirect Cost"), null=True, blank=True)
+    total = models.IntegerField(verbose_name=_("Total"), null=True, blank=True)
 
     class Meta:
         verbose_name = _("dref")
@@ -1022,6 +1044,11 @@ class DrefOperationalUpdate(models.Model):
     reporting_start_date = models.DateField(verbose_name=_("Reporting Start Date"), null=True, blank=True)
     reporting_end_date = models.DateField(verbose_name=_("Reporting End Date"), null=True, blank=True)
     source_information = models.ManyToManyField(SourceInformation, blank=True, verbose_name=_("Source Information"))
+    proposed_action = models.ManyToManyField(ProposedAction, verbose_name=_("Proposed Action"), blank=True)
+    sub_total = models.IntegerField(verbose_name=_("Sub total"), blank=True, null=True)
+    surge_deployment = models.IntegerField(verbose_name=_("Surge Deployment"), null=True, blank=True)
+    indirect_cost = models.IntegerField(verbose_name=_("Indirect Cost"), null=True, blank=True)
+    total = models.IntegerField(verbose_name=_("Total"), null=True, blank=True)
     __budget_file_id = None
 
     class Meta:
@@ -1337,6 +1364,11 @@ class DrefFinalReport(models.Model):
     operation_end_date = models.DateField(verbose_name=_("Operation End Date"), null=True, blank=True)
     source_information = models.ManyToManyField(SourceInformation, blank=True, verbose_name=_("Source Information"))
     __financial_report_id = None
+    proposed_action = models.ManyToManyField(ProposedAction, verbose_name=_("Proposed Action"), blank=True)
+    sub_total = models.IntegerField(verbose_name=_("Sub total"), blank=True, null=True)
+    surge_deployment = models.IntegerField(verbose_name=_("Surge Deployment"), null=True, blank=True)
+    indirect_cost = models.IntegerField(verbose_name=_("Indirect Cost"), null=True, blank=True)
+    total = models.IntegerField(verbose_name=_("Total"), null=True, blank=True)
 
     class Meta:
         verbose_name = _("Dref Final Report")
