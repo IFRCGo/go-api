@@ -486,8 +486,6 @@ class OpsLearningSummaryTask:
                 df.at[index, "learning"] = (
                     f"{row['excerpts_id']}. In {row['appeal_year']} in {row['appeal_name']}: {row['learning']}"
                 )
-
-            df = df.drop(columns=["appeal_name"])
             logger.info("Contextualization added to DataFrame.")
             return df
 
@@ -561,7 +559,7 @@ class OpsLearningSummaryTask:
         secondary_learning_df = df.drop_duplicates(subset=["learning", "component", "sector"]).sort_values(
             by=["appeal_name", "component", "appeal_year"], ascending=[True, True, False]
         )
-        grouped = secondary_learning_df.groupby("component", "appeal_name")
+        grouped = secondary_learning_df.groupby(["component", "appeal_name"])
 
         # Create an interleaved list of rows
         interleaved = list(chain(*zip_longest(*[group[1].itertuples(index=False) for group in grouped], fillvalue=None)))
