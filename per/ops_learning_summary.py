@@ -532,13 +532,23 @@ class OpsLearningSummaryTask:
         """Prioritize the most recent excerpts within the token limit for primary insights."""
         logger.info("Prioritizing primary excerpts within token limit.")
 
-        # Droping duplicates based on 'learning' column for primary DataFrame
-        primary_learning_df = (
-            df.drop_duplicates(subset="learning").sort_values(by="appeal_year", ascending=False).reset_index(drop=True)
+        primary_learning_df = df.drop_duplicates(subset="learning")
+
+        # Sort by 'appeal_name' and 'appeal_year' (descending for recency)
+        primary_learning_df = primary_learning_df.sort_values(by=["appeal_name", "appeal_year"], ascending=[True, False])
+
+        grouped = primary_learning_df.groupby("appeal_name")
+
+        # Interleaved list of rows
+        interleaved = list(chain(*zip_longest(*[group[1].itertuples(index=False) for group in grouped], fillvalue=None)))
+
+        # Convert back to a DataFrame, removing any placeholder rows
+        result = (
+            pd.DataFrame(interleaved, columns=primary_learning_df.columns).dropna(subset=["appeal_name"]).reset_index(drop=True)
         )
 
         # Slice the Primary DataFrame
-        sliced_primary_learning_df = cls.slice_dataframe(primary_learning_df, cls.PROMPT_DATA_LENGTH_LIMIT, cls.ENCODING_NAME)
+        sliced_primary_learning_df = cls.slice_dataframe(result, cls.PROMPT_DATA_LENGTH_LIMIT, cls.ENCODING_NAME)
         logger.info("Primary excerpts prioritized within token limit.")
         return sliced_primary_learning_df
 
@@ -547,11 +557,11 @@ class OpsLearningSummaryTask:
         """Prioritize the most recent excerpts within the token limit for secondary insights."""
         logger.info("Prioritizing secondary excerpts within token limit.")
 
-        # Droping duplicates based on 'learning' and 'component' columns for secondary DataFrame
+        # Droping duplicates based on 'appeal_name' 'learning' and 'component' columns for secondary DataFrame
         secondary_learning_df = df.drop_duplicates(subset=["learning", "component", "sector"]).sort_values(
-            by=["component", "appeal_year"], ascending=[True, False]
+            by=["appeal_name", "component", "appeal_year"], ascending=[True, True, False]
         )
-        grouped = secondary_learning_df.groupby("component")
+        grouped = secondary_learning_df.groupby("component", "appeal_name")
 
         # Create an interleaved list of rows
         interleaved = list(chain(*zip_longest(*[group[1].itertuples(index=False) for group in grouped], fillvalue=None)))
