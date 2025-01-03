@@ -57,7 +57,7 @@ class OpsLearningSummaryTask:
     MIN_DIF_EXCERPTS = 3
 
     primary_prompt = (
-        "Please aggregate and summarize the provided data into UP TO THREE structured paragraphs.\n"
+        "\n Please aggregate and summarize the provided data into UP TO THREE structured paragraphs.\n"
         "The output MUST strictly adhere to the format below:\n"
         "- *Title*: Each finding should begin with the main finding TITLE in bold.\n"
         "Should be a high level summary of the finding below. "
@@ -88,7 +88,7 @@ class OpsLearningSummaryTask:
     )
 
     component_prompt = (
-        "Please aggregate and summarize this data into structured paragraphs (as few as possible, as many as necessary). \n "
+        "\n Please aggregate and summarize this data into structured paragraphs (as few as possible, as many as necessary). \n "
         "The output SHOULD ALWAYS follow the format below:\n"
         "- *Type*: 'component'\n"
         "- *Subtype*: Provides the name of the component to which the paragraph refers.\n"
@@ -109,7 +109,7 @@ class OpsLearningSummaryTask:
     )
 
     sector_prompt = (
-        "Please aggregate and summarize this data into structured paragraphs (as few as possible, as many as necessary). \n "
+        "\n Please aggregate and summarize this data into structured paragraphs (as few as possible, as many as necessary). \n "
         "The output SHOULD ALWAYS follow the format below:\n"
         "- *Type*: 'sector'\n"
         "- *Subtype*: Provides the name of the sector to which the paragraph refers.\n"
@@ -754,9 +754,9 @@ class OpsLearningSummaryTask:
         component_learning_data = _build_component_data_section(secondary_learning_df)
 
         # format the prompts
-        sector_learning_prompt = "".join([prompt_intro, sector_prompt_instruction, sector_learning_data, cls.secondary_prompt])
+        sector_learning_prompt = "".join([prompt_intro, sector_prompt_instruction, sector_learning_data, cls.sector_prompt])
         component_learning_prompt = "".join(
-            [prompt_intro, component_prompt_instruction, component_learning_data, cls.secondary_prompt]
+            [prompt_intro, component_prompt_instruction, component_learning_data, cls.sector_prompt]
         )
 
         logger.info("Secondary Prompt formatted.")
