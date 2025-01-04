@@ -175,6 +175,12 @@ class FormComponentFilter(filters.FilterSet):
         model = FormComponent
         fields = {"area": ("exact",)}
 
+    def filter_queryset(self, queryset):
+        queryset = super().filter_queryset(queryset)
+
+        queryset = queryset.exclude(component_num=14, component_letter__isnull=False)
+        return queryset
+
 
 class FormComponentViewset(viewsets.ReadOnlyModelViewSet):
     """PER Form Components Viewset"""
