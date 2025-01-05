@@ -1,5 +1,6 @@
 from django.db import migrations
 
+
 def migrate_sub_components_to_component14(apps, schema_editor):
     FormComponent = apps.get_model("per", "FormComponent")
     OpsLearning = apps.get_model("per", "OpsLearning")
@@ -14,17 +15,12 @@ def migrate_sub_components_to_component14(apps, schema_editor):
                 ops_learning.per_component_validated.add(component_14.first())
             ops_learning.per_component.remove(*sub_components_14)
             ops_learning.per_component.add(component_14.first())
-            
-            ops_learning.save()
 
+            ops_learning.save()
 
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ("per", "0123_alter_perdocumentupload_file_alter_perfile_file")
-    ]
+    dependencies = [("per", "0123_alter_perdocumentupload_file_alter_perfile_file")]
 
-    operations = [
-        migrations.RunPython(migrate_sub_components_to_component14)
-    ]
+    operations = [migrations.RunPython(migrate_sub_components_to_component14)]
