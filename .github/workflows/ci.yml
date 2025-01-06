@@ -18,7 +18,7 @@ jobs:
       - uses: actions/setup-python@main
         with:
           cache: 'poetry'
-      - run: poetry install
+      - run: poetry install --no-root
       - uses: pre-commit/action@main
 
   test:
