@@ -119,6 +119,7 @@ class MiniOperationalUpdateActiveSerializer(serializers.ModelSerializer):
             "status",
             "status_display",
             "date_of_approval",
+            "addressed_humanitarian_impacts",
         ]
 
     def get_application_type(self, obj) -> str:
@@ -386,6 +387,8 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
     surge_deployment = serializers.IntegerField(required=False)
     indirect_cost = serializers.IntegerField(required=False)
     total = serializers.IntegerField(required=False)
+    hazard_date_and_location = serializers.CharField(required=False)
+    hazard_vulnerabilities_and_risks = serializers.CharField(required=False)
 
     class Meta:
         model = Dref
@@ -610,6 +613,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
     surge_deployment = serializers.IntegerField(required=False)
     indirect_cost = serializers.IntegerField(required=False)
     total = serializers.IntegerField(required=False)
+    addressed_humanitarian_impacts = serializers.CharField(required=False)
 
     class Meta:
         model = DrefOperationalUpdate
