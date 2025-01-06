@@ -170,15 +170,17 @@ class FormAreaViewset(viewsets.ReadOnlyModelViewSet):
 
 class FormComponentFilter(filters.FilterSet):
     area_id = filters.NumberFilter(field_name="area__id", lookup_expr="exact")
+    exclude_subcomponents = filters.BooleanFilter(
+        method="get_exclude_subcomponents",
+    )
 
     class Meta:
         model = FormComponent
         fields = {"area": ("exact",)}
 
-    def filter_queryset(self, queryset):
-        queryset = super().filter_queryset(queryset)
-
-        queryset = queryset.exclude(component_num=14, component_letter__isnull=False)
+    def get_exclude_subcomponents(self, queryset, name, value):
+        if value:
+            return queryset.exclude(component_num=14, is_parent__isnull=True)
         return queryset
 
 
