@@ -14,8 +14,10 @@ class Command(BaseCommand):
 
         suffix_pattern = re.compile(r"#(\d+)")
 
-        event_country_filter_qs = FieldReport.objects.values("event", "countries").annotate(
-            count=Count("id", filter=Q(fr_num__isnull=True))
+        event_country_filter_qs = (
+            FieldReport.objects.values("event", "countries")
+            .annotate(count=Count("id", filter=Q(fr_num__isnull=False)))
+            .exclude(count__gte=1)
         )
         reports = (
             FieldReport.objects.filter(
@@ -40,7 +42,7 @@ class Command(BaseCommand):
             country = report.countries.first()
 
             if country is None:
-                self.stdout.write(self.style.ERROR(f"FieldReport ID {report.id} has no associated country."))
+                self.stdout.write(self.style.ERROR(f"FieldReport ID: ({report.id}) has no associated country."))
                 continue
 
             summary_match = suffix_pattern.search(report.summary)
@@ -70,7 +72,7 @@ class Command(BaseCommand):
             highest_fr_num = data["highest_fr_num"]
             if highest_report:
                 self.stdout.write(
-                    self.style.NOTICE(f"Preparing to update FieldReport ID {highest_report.id} with fr_num {highest_fr_num}.")
+                    self.style.NOTICE(f"Preparing to update FieldReport ID:({highest_report.id}) with fr_num:({highest_fr_num}).")
                 )
                 bulk_mgr.add(
                     FieldReport(
