@@ -2971,17 +2971,20 @@ typing-extensions = ">=4.6.0,<4.7.0 || >4.7.0"
 
 [[package]]
 name = "pydash"
-version = "4.8.0"
+version = "8.0.4"
 description = "The kitchen sink of Python utility libraries for doing \"stuff\" in a functional way. Based on the Lo-Dash Javascript library."
 optional = false
-python-versions = "*"
+python-versions = ">=3.8"
 files = [
-    {file = "pydash-4.8.0-py2.py3-none-any.whl", hash = "sha256:611ad40e3b11fb57396cca4a55ea04641200a1dd632c3c7e2c14849bee386625"},
-    {file = "pydash-4.8.0.tar.gz", hash = "sha256:546afa043ed1defa3122383bebe8b7072f43554ccc5f0c4360638f99e5ed7327"},
+    {file = "pydash-8.0.4-py3-none-any.whl", hash = "sha256:59d0c9ca0d22b4f8bcfab01bfe2e89b49f4c9e9fa75961caf156094670260999"},
+    {file = "pydash-8.0.4.tar.gz", hash = "sha256:a33fb17b4b06c617da5c57c711605d2dc8723311ee5388c8371f87cd44bf4112"},
 ]
 
+[package.dependencies]
+typing-extensions = ">3.10,<4.6.0 || >4.6.0"
+
 [package.extras]
-dev = ["Sphinx", "coverage", "flake8", "mock", "pylint", "pytest", "pytest-cov", "sphinx-rtd-theme", "tox", "twine", "wheel"]
+dev = ["build", "coverage", "furo", "invoke", "mypy", "pytest", "pytest-cov", "pytest-mypy-testing", "ruff", "sphinx", "sphinx-autodoc-typehints", "tox", "twine", "wheel"]
 
 [[package]]
 name = "pygments"
@@ -4337,4 +4340,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "c8700d12a1d7923c590f1ea504592e3db18549481021062266386d9f474b0fc1"
+content-hash = "c7e00c3c311cc27989c88cddec695f276ab253f12d95cb262f8a9748438e1185"
