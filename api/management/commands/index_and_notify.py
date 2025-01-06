@@ -240,7 +240,8 @@ class Command(BaseCommand):
             )  # Very rare – giving a non-existent | manually created surge – no event
             resource_uri = "%s/emergencies/%s" % (settings.FRONTEND_URL, belonging_event)
         elif rtype == RecordType.SURGE_DEPLOYMENT_MESSAGES:
-            resource_uri = "%s/%s" % (settings.FRONTEND_URL, "deployments")  # can be further sophisticated
+            resource_uri = "%s/%s" % (settings.FRONTEND_URL, "surge/overview")  # could be further sophisticated:
+            # e.g. emergencies/6700/surge, where 6700 is the related emergency ID
         elif rtype == RecordType.APPEAL and (record.event is not None and not record.needs_confirmation):
             # Appeals with confirmed emergencies link to that emergency
             resource_uri = "%s/emergencies/%s" % (settings.FRONTEND_URL, record.event.id)
@@ -249,7 +250,7 @@ class Command(BaseCommand):
             resource_uri = "%s/%s/%s" % (
                 settings.FRONTEND_URL,
                 # this else never occurs, see ¤
-                "emergencies" if rtype == RecordType.EVENT or rtype == RecordType.FOLLOWED_EVENT else "reports",
+                "emergencies" if rtype == RecordType.EVENT or rtype == RecordType.FOLLOWED_EVENT else "field-reports",
                 record.id,
             )
         return resource_uri
