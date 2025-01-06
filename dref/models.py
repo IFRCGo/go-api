@@ -611,6 +611,17 @@ class Dref(models.Model):
     surge_deployment = models.IntegerField(verbose_name=_("Surge Deployment"), null=True, blank=True)
     indirect_cost = models.IntegerField(verbose_name=_("Indirect Cost"), null=True, blank=True)
     total = models.IntegerField(verbose_name=_("Total"), null=True, blank=True)
+    hazard_date_and_location = models.CharField(
+        verbose_name=_("Hazard Date and Location"),
+        max_length=255,
+        null=True,
+        blank=True,
+    )
+    hazard_vulnerabilities_and_risks = models.TextField(
+        verbose_name=_("Hazard Vulnerabilities and Risks"),
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         verbose_name = _("dref")
@@ -1049,6 +1060,11 @@ class DrefOperationalUpdate(models.Model):
     surge_deployment = models.IntegerField(verbose_name=_("Surge Deployment"), null=True, blank=True)
     indirect_cost = models.IntegerField(verbose_name=_("Indirect Cost"), null=True, blank=True)
     total = models.IntegerField(verbose_name=_("Total"), null=True, blank=True)
+    addressed_humanitarian_impacts = models.TextField(
+        verbose_name=_("Addressed Humanitarian Impacts"),
+        null=True,
+        blank=True,
+    )
     __budget_file_id = None
 
     class Meta:
