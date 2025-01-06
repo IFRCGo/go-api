@@ -1,5 +1,3 @@
-import logging
-
 from django.core.management.base import BaseCommand
 
 from per.models import FormComponent, OpsLearning
@@ -32,4 +30,3 @@ class Command(BaseCommand):
 
             ops_learning.save()
             self.stdout.write(self.style.SUCCESS("Migration of sub components of component 14 to component 14 is done"))
-
