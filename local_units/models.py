@@ -307,7 +307,7 @@ class LocalUnit(models.Model):
     )
     local_branch_name = models.CharField(max_length=255, null=True, blank=True, verbose_name=_("Branch name in local language"))
     english_branch_name = models.CharField(max_length=255, null=True, blank=True, verbose_name=_("Branch name in English"))
-    created_at = models.DateTimeField(verbose_name=_("Created at"), auto_now=True)
+    created_at = models.DateTimeField(verbose_name=_("Created at"), auto_now_add=True)
     modified_at = models.DateTimeField(verbose_name=_("Modified at"), auto_now=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
