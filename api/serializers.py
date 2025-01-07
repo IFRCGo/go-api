@@ -2372,6 +2372,8 @@ class HistoricalDisasterSerializer(serializers.Serializer):
 
 class ExportSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(source="get_status_display", read_only=True)
+    # NOTE: is_pga is used to determine if the export contains PGA or not
+    is_pga = serializers.BooleanField(default=False, required=False, write_only=True)
 
     class Meta:
         model = Export
@@ -2402,6 +2404,11 @@ class ExportSerializer(serializers.ModelSerializer):
             validated_data["url"] = f"https://{settings.FRONTEND_URL}/countries/{country_id}/{export_type}/{export_id}/export/"
         else:
             validated_data["url"] = f"https://{settings.FRONTEND_URL}/{export_type}/{export_id}/export/"
+
+        # Adding is_pga to the url
+        is_pga = validated_data.pop("is_pga")
+        if is_pga:
+            validated_data["url"] += "?is_pga=true"
         validated_data["requested_by"] = user
         export = super().create(validated_data)
         if export.url:
