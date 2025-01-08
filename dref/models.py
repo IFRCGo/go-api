@@ -611,16 +611,34 @@ class Dref(models.Model):
     surge_deployment = models.IntegerField(verbose_name=_("Surge Deployment"), null=True, blank=True)
     indirect_cost = models.IntegerField(verbose_name=_("Indirect Cost"), null=True, blank=True)
     total = models.IntegerField(verbose_name=_("Total"), null=True, blank=True)
-    hazard_date_and_location = models.CharField(
+    hazard_date_and_location = models.TextField(
         verbose_name=_("Hazard Date and Location"),
         max_length=255,
+        help_text=_("When and where is the hazard expected to happen?"),
         null=True,
         blank=True,
     )
     hazard_vulnerabilities_and_risks = models.TextField(
         verbose_name=_("Hazard Vulnerabilities and Risks"),
+        help_text=_("Explain the underlying vulnerabilities and risks the hazard poses for at-risk communities?"),
         null=True,
         blank=True,
+    )
+    scenario_analysis_supporting_document = models.ForeignKey(
+        "DrefFile",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_("Scenario Analysis Supporting Document"),
+        related_name="scenario_supporting_document",
+    )
+    contingency_plans_supporting_document = models.ForeignKey(
+        "DrefFile",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_("Contingency Plans Supporting Document"),
+        related_name="contingency_plans_supporting_document",
     )
 
     class Meta:
@@ -1062,6 +1080,7 @@ class DrefOperationalUpdate(models.Model):
     total = models.IntegerField(verbose_name=_("Total"), null=True, blank=True)
     addressed_humanitarian_impacts = models.TextField(
         verbose_name=_("Addressed Humanitarian Impacts"),
+        help_text=_(" Which of the expected severe humanitarian impacts of the hazard are your actions addressing?"),
         null=True,
         blank=True,
     )
