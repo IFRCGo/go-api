@@ -382,18 +382,29 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
     modified_at = serializers.DateTimeField(required=False)
     dref_access_user_list = serializers.SerializerMethodField()
     source_information = SourceInformationSerializer(many=True, required=False)
-    proposed_action = ProposedActionSerializer(many=True, required=False)
-    sub_total = serializers.IntegerField(required=False)
-    surge_deployment = serializers.IntegerField(required=False)
-    indirect_cost = serializers.IntegerField(required=False)
-    total = serializers.IntegerField(required=False)
-    hazard_date_and_location = serializers.CharField(required=False)
-    hazard_vulnerabilities_and_risks = serializers.CharField(required=False)
+    scenario_analysis_supporting_document_details = DrefFileSerializer(
+        source="scenario_analysis_supporting_document", read_only=True, required=False, allow_null=True
+    )
+    contingency_plans_supporting_document_details = DrefFileSerializer(
+        source="contingency_plans_supporting_document", read_only=True, required=False, allow_null=True
+    )
+
+    proposed_action = ProposedActionSerializer(many=True, required=True)
+    sub_total = serializers.IntegerField(required=True)
+    surge_deployment = serializers.IntegerField(required=True)
+    indirect_cost = serializers.IntegerField(required=True)
+    total = serializers.IntegerField(required=True)
 
     class Meta:
         model = Dref
-        read_only_fields = ("modified_by", "created_by", "budget_file_preview")
-        exclude = ("cover_image", "event_map", "images", "users", "anticipatory_actions", "event_text")
+        read_only_fields = (
+            "modified_by",
+            "created_by",
+            "budget_file_preview",
+            "anticipatory_actions",
+            "event_text",
+        )
+        exclude = ("cover_image", "event_map", "images", "users")
 
     def get_dref_access_user_list(self, obj) -> List[int]:
         dref_users_list = get_dref_users()
@@ -441,6 +452,11 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
             raise serializers.ValidationError(
                 gettext("Operation timeframe can't be greater than %s for assessment_report" % self.MAX_OPERATION_TIMEFRAME)
             )
+
+        proposed_actions = data.get("proposed_action", None)
+        proposed_budget = sum([proposed_actions["budget"] for proposed_actions in proposed_actions])
+        if proposed_budget != data.get("sub_total"):
+            raise serializers.ValidationError("Sub-total should be equal to proposed budget")
         return data
 
     def validate_images(self, images):
@@ -608,17 +624,21 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
     created_by_details = UserNameSerializer(source="created_by", read_only=True)
     users_details = UserNameSerializer(source="users", many=True, read_only=True)
     source_information = SourceInformationSerializer(many=True, required=False)
-    proposed_action = ProposedActionSerializer(many=True, required=False)
-    sub_total = serializers.IntegerField(required=False)
-    surge_deployment = serializers.IntegerField(required=False)
-    indirect_cost = serializers.IntegerField(required=False)
-    total = serializers.IntegerField(required=False)
-    addressed_humanitarian_impacts = serializers.CharField(required=False)
 
     class Meta:
         model = DrefOperationalUpdate
-        read_only_fields = ("operational_update_number", "modified_by", "created_by")
-        exclude = ("images", "photos", "event_map", "cover_image", "users", "anticipatory_actions", "event_text")
+        read_only_fields = (
+            "operational_update_number",
+            "modified_by",
+            "created_by",
+        )
+        exclude = (
+            "images",
+            "photos",
+            "event_map",
+            "cover_image",
+            "users",
+        )
 
     def validate(self, data):
         dref = data.get("dref")
@@ -640,14 +660,6 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
                 )
 
         return data
-
-    def validate_sub_total(self, sub_total):
-        instance = self.get_initial()
-        proposed_actions = instance.get("proposed_action", None)
-        proposed_budget = sum([proposed_actions["budget"] for proposed_actions in proposed_actions])
-        if proposed_budget != sub_total:
-            raise serializers.ValidationError("Sub-total should be equal to proposed budget")
-        return sub_total
 
     def validate_appeal_code(self, appeal_code):
         if appeal_code and appeal_code != self.instance.appeal_code:
@@ -779,7 +791,6 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             operational_update.users.add(*dref.users.all())
             operational_update.risk_security.add(*dref.risk_security.all())
             operational_update.source_information.add(*dref.source_information.all())
-            operational_update.proposed_action.add(*dref.proposed_action.all())
         else:
             # get the latest dref operational update
             validated_data["title"] = dref_operational_update.title
@@ -895,7 +906,6 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             operational_update.users.add(*dref_operational_update.users.all())
             operational_update.risk_security.add(*dref_operational_update.risk_security.all())
             operational_update.source_information.add(*dref_operational_update.source_information.all())
-            operational_update.proposed_action.add(*dref.proposed_action.all())
         return operational_update
 
     def update(self, instance, validated_data):
@@ -935,23 +945,19 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
     disaster_type_details = DisasterTypeSerializer(source="disaster_type", read_only=True)
     source_information = SourceInformationSerializer(many=True, required=False)
 
-    proposed_action = ProposedActionSerializer(many=True, required=False)
-    sub_total = serializers.IntegerField(required=False)
-    surge_deployment = serializers.IntegerField(required=False)
-    indirect_cost = serializers.IntegerField(required=False)
-    total = serializers.IntegerField(required=False)
-
     class Meta:
         model = DrefFinalReport
-        read_only_fields = ("modified_by", "created_by", "financial_report_preview", "anticipatory_actions", "event_text")
+        read_only_fields = (
+            "modified_by",
+            "created_by",
+            "financial_report_preview",
+        )
         exclude = (
             "images",
             "photos",
             "event_map",
             "cover_image",
             "users",
-            "event_text",
-            "anticipatory_actions",
         )
 
     def validate(self, data):
@@ -983,14 +989,6 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
     def validate_financial_report_preview(self, financial_report_preview):
         validate_file_type(financial_report_preview)
         return financial_report_preview
-
-    def validate_sub_total(self, sub_total):
-        instance = self.get_initial()
-        proposed_actions = instance.get("proposed_action", None)
-        proposed_budget = sum([proposed_actions["budget"] for proposed_actions in proposed_actions])
-        if proposed_budget != sub_total:
-            raise serializers.ValidationError("Sub-total should be equal to proposed budget")
-        return sub_total
 
     def create(self, validated_data):
         # here check if there is operational update for corresponding dref
@@ -1103,7 +1101,6 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             dref_final_report.risk_security.add(*dref_operational_update.risk_security.all())
             dref_final_report.users.add(*dref_operational_update.users.all())
             dref_final_report.source_information.add(*dref_operational_update.source_information.all())
-            dref_final_report.proposed_action.add(*dref.proposed_action.all())
         else:
             validated_data["title"] = dref.title
             validated_data["title_prefix"] = dref.title_prefix
@@ -1200,7 +1197,6 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             dref_final_report.users.add(*dref.users.all())
             dref_final_report.national_society_actions.add(*dref.national_society_actions.all())
             dref_final_report.source_information.add(*dref.source_information.all())
-            dref_final_report.proposed_action.add(*dref.proposed_action.all())
             # also update is_final_report_created for dref
             dref.is_final_report_created = True
             dref.save(update_fields=["is_final_report_created"])
