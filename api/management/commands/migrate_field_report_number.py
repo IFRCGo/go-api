@@ -1,7 +1,7 @@
 import re
 
 from django.core.management.base import BaseCommand
-from django.db.models import Count, Q
+from django.db.models.expressions import Exists, OuterRef
 
 from api.models import FieldReport
 from main.managers import BulkUpdateManager
@@ -12,21 +12,16 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
 
-        suffix_pattern = re.compile(r"#(\d+)")
+        suffix_pattern = re.compile(r"#\s*(\d+)")
 
-        event_country_filter_qs = (
-            FieldReport.objects.values("event", "countries")
-            .annotate(count=Count("id", filter=Q(fr_num__isnull=False)))
-            .exclude(count__gte=1)
-        )
         reports = (
-            FieldReport.objects.filter(
-                event__in=event_country_filter_qs.values("event"),
-                countries__in=event_country_filter_qs.values("countries"),
+            FieldReport.objects.filter(event__isnull=False, countries__isnull=False, summary__icontains="#")
+            .annotate(
+                has_fr_num=Exists(
+                    FieldReport.objects.filter(event=OuterRef("event"), countries=OuterRef("countries"), fr_num__isnull=False)
+                )
             )
-            .distinct()
-            .select_related("event")
-            .prefetch_related("countries")
+            .exclude(has_fr_num=True)
         )
 
         report_count = reports.count()
