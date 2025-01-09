@@ -1,6 +1,8 @@
 import json
 from unittest import mock
 
+from django.core import management
+
 from api.factories.country import CountryFactory
 from api.factories.region import RegionFactory
 from api.models import AppealType
@@ -286,3 +288,35 @@ class OpsLearningStatsTestCase(APITestCase):
 
         sources_overtime = response.data["sources_overtime"]
         self.assertEqual(len(sources_overtime), 2)
+
+    def test_migrate_subcomponents(self):
+        parent_component_14 = FormComponentFactory.create(component_num=14, is_parent=True)
+        print(parent_component_14.id)
+
+        sub_components_14 = FormComponentFactory.create_batch(3, component_num=14)
+
+        # OpsLearning with only parent component
+        ops_learning_with_only_parent_component = OpsLearningFactory.create()
+        ops_learning_with_only_parent_component.per_component.add(parent_component_14)
+
+        # OpsLearning with parent component and sub components
+        ops_learning_with_parent_component = OpsLearningFactory.create()
+
+        ops_learning_with_parent_component.per_component.add(parent_component_14)
+        ops_learning_with_parent_component.per_component.add(*sub_components_14)
+
+        # OpsLearning without parent component but with sub components
+        ops_learning_without_parent_component = OpsLearningFactory.create()
+        ops_learning_without_parent_component.per_component.add(*sub_components_14)
+
+        # Run the management command
+        management.call_command("migrate_sub_components_to_component14")
+
+        ops_learning_with_only_parent_component.refresh_from_db()
+        self.assertEqual(ops_learning_with_only_parent_component.per_component.count(), 1)
+
+        ops_learning_with_parent_component.refresh_from_db()
+        self.assertEqual(ops_learning_with_parent_component.per_component.count(), 1)
+
+        ops_learning_without_parent_component.refresh_from_db()
+        self.assertEqual(ops_learning_without_parent_component.per_component.count(), 1)

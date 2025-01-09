@@ -22,28 +22,45 @@ class Command(BaseCommand):
             self.stdout.write(self.style.ERROR("No sub components found for component 14"))
             return
 
+        # Get OpsLearning IDs that already have parent component
         with_parent_component_ops_learning_qs = OpsLearning.objects.filter(per_component=parent_component_14).values_list(
             "id", flat=True
         )
 
-        # updating per_component for OpsLearning
-        OpsLearning.per_component.through.objects.filter(formcomponent_id__in=sub_components_14_ids).exclude(
-            opslearning_id__in=with_parent_component_ops_learning_qs
-        ).update(formcomponent_id=parent_component_14.id)
+        # For per_component
 
-        # Cleanup
+        # Removing if already have parent component
         OpsLearning.per_component.through.objects.filter(
-            formcomponent_id__in=sub_components_14_ids,
+            formcomponent_id__in=sub_components_14_ids, opslearning_id__in=with_parent_component_ops_learning_qs
         ).delete()
 
-        # updating per_component_validated for validated OpsLearning
-        OpsLearning.per_component_validated.through.objects.filter(formcomponent_id__in=sub_components_14_ids).exclude(
-            opslearning_id__in=with_parent_component_ops_learning_qs
-        ).update(formcomponent_id=parent_component_14.id)
+        # Removing all Sub-Components except one and updating to parent component
+        OpsLearning.per_component.through.objects.filter(formcomponent_id__in=sub_components_14_ids).exclude(
+            id__in=OpsLearning.per_component.through.objects.filter(formcomponent_id__in=sub_components_14_ids).distinct(
+                "opslearning_id"
+            )
+        ).delete()
 
-        # Cleanup
+        OpsLearning.per_component.through.objects.filter(formcomponent_id__in=sub_components_14_ids).update(
+            formcomponent_id=parent_component_14.id
+        )
+
+        # For per_component_validated
+
+        # Removing if already have parent component
         OpsLearning.per_component_validated.through.objects.filter(
-            formcomponent_id__in=sub_components_14_ids,
+            formcomponent_id__in=sub_components_14_ids, opslearning_id__in=with_parent_component_ops_learning_qs
         ).delete()
+
+        # Removing all Sub-Components except one and updating to parent component
+        OpsLearning.per_component_validated.through.objects.filter(formcomponent_id__in=sub_components_14_ids).exclude(
+            id__in=OpsLearning.per_component_validated.through.objects.filter(
+                formcomponent_id__in=sub_components_14_ids
+            ).distinct("opslearning_id")
+        ).delete()
+
+        OpsLearning.per_component_validated.through.objects.filter(formcomponent_id__in=sub_components_14_ids).update(
+            formcomponent_id=parent_component_14.id
+        )
 
         self.stdout.write(self.style.SUCCESS("Successfully migrated sub-components of component-14 to component-14"))
