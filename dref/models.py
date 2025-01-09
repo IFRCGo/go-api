@@ -221,7 +221,7 @@ class ProposedAction(models.Model):
         verbose_name=_("dref proposed action"),
     )
     activities = models.ForeignKey(Sector, on_delete=models.SET_NULL, null=True)
-    budget = models.PositiveIntegerField(verbose_name=_(" Purpose Action budgets"), blank=True, null=True)
+    budget = models.PositiveIntegerField(verbose_name=_("Purpose Action Budgets"), blank=True, null=True)
 
     def __str__(self) -> str:
         return f"{self.get_proposed_type_display()}- {self.activities}"
@@ -630,7 +630,7 @@ class Dref(models.Model):
         null=True,
         blank=True,
         verbose_name=_("Scenario Analysis Supporting Document"),
-        related_name="scenario_supporting_document",
+        related_name="dref_scenario_supporting_document",
     )
     contingency_plans_supporting_document = models.ForeignKey(
         "DrefFile",
@@ -638,7 +638,13 @@ class Dref(models.Model):
         null=True,
         blank=True,
         verbose_name=_("Contingency Plans Supporting Document"),
-        related_name="contingency_plans_supporting_document",
+        related_name="dref_contingency_plans_supporting_document",
+    )
+    addressed_humanitarian_impacts = models.TextField(
+        verbose_name=_("Addressed Humanitarian Impacts"),
+        help_text=_(" Which of the expected severe humanitarian impacts of the hazard are your actions addressing?"),
+        null=True,
+        blank=True,
     )
 
     class Meta:
@@ -1073,17 +1079,6 @@ class DrefOperationalUpdate(models.Model):
     reporting_start_date = models.DateField(verbose_name=_("Reporting Start Date"), null=True, blank=True)
     reporting_end_date = models.DateField(verbose_name=_("Reporting End Date"), null=True, blank=True)
     source_information = models.ManyToManyField(SourceInformation, blank=True, verbose_name=_("Source Information"))
-    proposed_action = models.ManyToManyField(ProposedAction, verbose_name=_("Proposed Action"), blank=True)
-    sub_total = models.IntegerField(verbose_name=_("Sub total"), blank=True, null=True)
-    surge_deployment = models.IntegerField(verbose_name=_("Surge Deployment"), null=True, blank=True)
-    indirect_cost = models.IntegerField(verbose_name=_("Indirect Cost"), null=True, blank=True)
-    total = models.IntegerField(verbose_name=_("Total"), null=True, blank=True)
-    addressed_humanitarian_impacts = models.TextField(
-        verbose_name=_("Addressed Humanitarian Impacts"),
-        help_text=_(" Which of the expected severe humanitarian impacts of the hazard are your actions addressing?"),
-        null=True,
-        blank=True,
-    )
     __budget_file_id = None
 
     class Meta:
@@ -1399,11 +1394,6 @@ class DrefFinalReport(models.Model):
     operation_end_date = models.DateField(verbose_name=_("Operation End Date"), null=True, blank=True)
     source_information = models.ManyToManyField(SourceInformation, blank=True, verbose_name=_("Source Information"))
     __financial_report_id = None
-    proposed_action = models.ManyToManyField(ProposedAction, verbose_name=_("Proposed Action"), blank=True)
-    sub_total = models.IntegerField(verbose_name=_("Sub total"), blank=True, null=True)
-    surge_deployment = models.IntegerField(verbose_name=_("Surge Deployment"), null=True, blank=True)
-    indirect_cost = models.IntegerField(verbose_name=_("Indirect Cost"), null=True, blank=True)
-    total = models.IntegerField(verbose_name=_("Total"), null=True, blank=True)
 
     class Meta:
         verbose_name = _("Dref Final Report")
