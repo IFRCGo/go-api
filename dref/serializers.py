@@ -1084,7 +1084,6 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             )
             validated_data["event_date"] = dref_operational_update.event_date
             validated_data["people_in_need"] = dref_operational_update.people_in_need
-            validated_data["event_text"] = dref_operational_update.event_text
             validated_data["ns_respond_date"] = dref_operational_update.ns_respond_date
             validated_data["assessment_report"] = dref_operational_update.assessment_report
 
@@ -1172,6 +1171,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             validated_data["response_strategy"] = dref.response_strategy
             validated_data["created_by"] = self.context["request"].user
             validated_data["event_description"] = dref.event_description
+            validated_data["anticipatory_actions"] = dref.anticipatory_actions
             validated_data["event_scope"] = dref.event_scope
             validated_data["assessment_report"] = dref.assessment_report
             validated_data["country"] = dref.country
@@ -1183,6 +1183,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             validated_data["is_there_major_coordination_mechanism"] = dref.is_there_major_coordination_mechanism
             validated_data["event_date"] = dref.event_date
             validated_data["people_in_need"] = dref.people_in_need
+            validated_data["event_text"] = dref.event_text
             validated_data["ns_respond_date"] = dref.ns_respond_date
 
             if validated_data["type_of_dref"] == Dref.DrefType.LOAN:
