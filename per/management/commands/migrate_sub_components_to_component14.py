@@ -9,7 +9,6 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
 
         parent_component_14 = FormComponent.objects.filter(component_num=14, is_parent=True).first()
-        print(parent_component_14.id)
 
         if not parent_component_14:
             self.stdout.write(self.style.ERROR("No parent component found for component 14"))
