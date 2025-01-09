@@ -9,6 +9,7 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
 
         parent_component_14 = FormComponent.objects.filter(component_num=14, is_parent=True).first()
+        print(parent_component_14.id)
 
         if not parent_component_14:
             self.stdout.write(self.style.ERROR("No parent component found for component 14"))
@@ -28,7 +29,6 @@ class Command(BaseCommand):
         )
 
         # For per_component
-
         # Removing if already have parent component
         OpsLearning.per_component.through.objects.filter(
             formcomponent_id__in=sub_components_14_ids, opslearning_id__in=with_parent_component_ops_learning_qs
@@ -46,10 +46,14 @@ class Command(BaseCommand):
         )
 
         # For per_component_validated
+        # Get OpsLearning IDs that already have parent component validated
+        with_parent_component_validated_ops_learning_qs = OpsLearning.objects.filter(
+            per_component_validated=parent_component_14
+        ).values_list("id", flat=True)
 
         # Removing if already have parent component
         OpsLearning.per_component_validated.through.objects.filter(
-            formcomponent_id__in=sub_components_14_ids, opslearning_id__in=with_parent_component_ops_learning_qs
+            formcomponent_id__in=sub_components_14_ids, opslearning_id__in=with_parent_component_validated_ops_learning_qs
         ).delete()
 
         # Removing all Sub-Components except one and updating to parent component
