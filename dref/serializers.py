@@ -119,7 +119,6 @@ class MiniOperationalUpdateActiveSerializer(serializers.ModelSerializer):
             "status",
             "status_display",
             "date_of_approval",
-            "addressed_humanitarian_impacts",
         ]
 
     def get_application_type(self, obj) -> str:
@@ -389,11 +388,7 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
         source="contingency_plans_supporting_document", read_only=True, required=False, allow_null=True
     )
 
-    proposed_action = ProposedActionSerializer(many=True, required=True)
-    sub_total = serializers.IntegerField(required=True)
-    surge_deployment = serializers.IntegerField(required=True)
-    indirect_cost = serializers.IntegerField(required=True)
-    total = serializers.IntegerField(required=True)
+    proposed_action = ProposedActionSerializer(many=True, required=False)
 
     class Meta:
         model = Dref
@@ -401,10 +396,13 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
             "modified_by",
             "created_by",
             "budget_file_preview",
-            "anticipatory_actions",
-            "event_text",
         )
-        exclude = ("cover_image", "event_map", "images", "users")
+        exclude = (
+            "cover_image",
+            "event_map",
+            "images",
+            "users",
+        )
 
     def get_dref_access_user_list(self, obj) -> List[int]:
         dref_users_list = get_dref_users()
@@ -453,10 +451,23 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
                 gettext("Operation timeframe can't be greater than %s for assessment_report" % self.MAX_OPERATION_TIMEFRAME)
             )
 
-        proposed_actions = data.get("proposed_action", None)
-        proposed_budget = sum([proposed_actions["budget"] for proposed_actions in proposed_actions])
-        if proposed_budget != data.get("sub_total"):
-            raise serializers.ValidationError("Sub-total should be equal to proposed budget")
+        if data.get("type_of_dref") == Dref.DrefType.IMMINENT:
+            if not data.get("sub_total"):
+                raise serializers.ValidationError({"sub_total": gettext("Sub-total is required for Imminent DREF")})
+            if not data.get("surge_deployment"):
+                raise serializers.ValidationError({"surge_deployment": gettext("Surge Deployment is required for Imminent DREF")})
+            if not data.get("indirect_cost"):
+                raise serializers.ValidationError({"indirect_cost": gettext("Indirect Cost is required for Imminent DREF")})
+            if not data.get("total"):
+                raise serializers.ValidationError({"total": gettext("Total is required for Imminent DREF")})
+            proposed_actions = data.get("proposed_action", None)
+            if not proposed_actions:
+                raise serializers.ValidationError(
+                    {"proposed_action": gettext("Proposed Action is required for type DREF Imminent")}
+                )
+            proposed_budget = sum([action.get("amount") for action in proposed_actions])
+            if proposed_budget != data.get("sub_total"):
+                raise serializers.ValidationError("Sub-total should be equal to proposed budget")
         return data
 
     def validate_images(self, images):
@@ -510,14 +521,6 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
     def validate_budget_file_preview(self, budget_file_preview):
         validate_file_type(budget_file_preview)
         return budget_file_preview
-
-    def validate_sub_total(self, sub_total):
-        instance = self.get_initial()
-        proposed_actions = instance.get("proposed_action", None)
-        proposed_budget = sum([proposed_actions["budget"] for proposed_actions in proposed_actions])
-        if proposed_budget != sub_total:
-            raise serializers.ValidationError("Sub-total should be equal to proposed budget")
-        return sub_total
 
     def create(self, validated_data):
         validated_data["created_by"] = self.context["request"].user
@@ -744,6 +747,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["operational_update_number"] = 1  # if no any dref operational update created so far
             validated_data["dref_allocated_so_far"] = dref.amount_requested
             validated_data["event_description"] = dref.event_description
+            validated_data["anticipatory_actions"] = dref.anticipatory_actions
             validated_data["event_scope"] = dref.event_scope
             validated_data["budget_file"] = dref.budget_file
             validated_data["country"] = dref.country
@@ -769,6 +773,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["date_of_approval"] = dref.date_of_approval
             validated_data["identified_gaps"] = dref.identified_gaps
             validated_data["is_man_made_event"] = dref.is_man_made_event
+            validated_data["event_text"] = dref.event_text
             validated_data["did_national_society"] = dref.did_national_society
 
             operational_update = super().create(validated_data)
@@ -857,6 +862,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["new_operational_start_date"] = dref_operational_update.dref.date_of_approval
             validated_data["dref_allocated_so_far"] = dref_operational_update.total_dref_allocation
             validated_data["event_description"] = dref_operational_update.event_description
+            validated_data["anticipatory_actions"] = dref_operational_update.anticipatory_actions
             validated_data["event_scope"] = dref_operational_update.event_scope
             validated_data["budget_file"] = dref_operational_update.budget_file
             validated_data["assessment_report"] = dref_operational_update.assessment_report
@@ -885,6 +891,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["date_of_approval"] = dref_operational_update.date_of_approval
             validated_data["identified_gaps"] = dref_operational_update.identified_gaps
             validated_data["is_man_made_event"] = dref_operational_update.is_man_made_event
+            validated_data["event_text"] = dref_operational_update.event_text
             validated_data["did_national_society"] = dref_operational_update.did_national_society
             operational_update = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
@@ -1064,6 +1071,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             validated_data["created_by"] = self.context["request"].user
             validated_data["operation_start_date"] = dref_operational_update.dref.date_of_approval
             validated_data["event_description"] = dref_operational_update.event_description
+            validated_data["anticipatory_actions"] = dref_operational_update.anticipatory_actions
             validated_data["event_scope"] = dref_operational_update.event_scope
             validated_data["country"] = dref_operational_update.country
             validated_data["risk_security_concern"] = dref_operational_update.risk_security_concern
@@ -1076,6 +1084,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             )
             validated_data["event_date"] = dref_operational_update.event_date
             validated_data["people_in_need"] = dref_operational_update.people_in_need
+            validated_data["event_text"] = dref_operational_update.event_text
             validated_data["ns_respond_date"] = dref_operational_update.ns_respond_date
             validated_data["assessment_report"] = dref_operational_update.assessment_report
 
