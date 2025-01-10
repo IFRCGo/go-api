@@ -11,6 +11,7 @@ from .models import (
     IdentifiedNeed,
     NationalSocietyAction,
     PlannedIntervention,
+    ProposedAction,
     RiskSecurity,
     SourceInformation,
 )
@@ -86,6 +87,7 @@ class DrefAdmin(CompareVersionAdmin, TranslationAdmin, admin.ModelAdmin):
         "needs_identified",
         "planned_interventions",
         "risk_security",
+        "proposed_action",
     )
 
     def get_queryset(self, request):
@@ -216,3 +218,8 @@ class DrefFinalReportAdmin(CompareVersionAdmin, TranslationAdmin, admin.ModelAdm
                 "dref__needs_identified",
             )
         )
+
+
+@admin.register(ProposedAction)
+class ProposedActionAdmin(ReadOnlyMixin, admin.ModelAdmin):
+    search_fields = ["action"]

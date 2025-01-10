@@ -25,6 +25,7 @@ from dref.models import (
     NationalSocietyAction,
     PlannedIntervention,
     PlannedInterventionIndicators,
+    ProposedAction,
     RiskSecurity,
     SourceInformation,
 )
@@ -51,6 +52,15 @@ class SourceInformationSerializer(ModelSerializer):
 class PlannedInterventionIndicatorsSerializer(ModelSerializer):
     class Meta:
         model = PlannedInterventionIndicators
+        fields = "__all__"
+
+
+class ProposedActionSerializer(serializers.ModelSerializer):
+
+    proposed_type_display = serializers.CharField(source="get_proposed_type_display", read_only=True)
+
+    class Meta:
+        model = ProposedAction
         fields = "__all__"
 
 
@@ -371,10 +381,22 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
     modified_at = serializers.DateTimeField(required=False)
     dref_access_user_list = serializers.SerializerMethodField()
     source_information = SourceInformationSerializer(many=True, required=False)
+    scenario_analysis_supporting_document_details = DrefFileSerializer(
+        source="scenario_analysis_supporting_document", read_only=True, required=False, allow_null=True
+    )
+    contingency_plans_supporting_document_details = DrefFileSerializer(
+        source="contingency_plans_supporting_document", read_only=True, required=False, allow_null=True
+    )
+
+    proposed_action = ProposedActionSerializer(many=True, required=False)
 
     class Meta:
         model = Dref
-        read_only_fields = ("modified_by", "created_by", "budget_file_preview")
+        read_only_fields = (
+            "modified_by",
+            "created_by",
+            "budget_file_preview",
+        )
         exclude = (
             "cover_image",
             "event_map",
@@ -428,6 +450,24 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
             raise serializers.ValidationError(
                 gettext("Operation timeframe can't be greater than %s for assessment_report" % self.MAX_OPERATION_TIMEFRAME)
             )
+
+        if data.get("type_of_dref") == Dref.DrefType.IMMINENT:
+            if not data.get("sub_total"):
+                raise serializers.ValidationError({"sub_total": gettext("Sub-total is required for Imminent DREF")})
+            if not data.get("surge_deployment"):
+                raise serializers.ValidationError({"surge_deployment": gettext("Surge Deployment is required for Imminent DREF")})
+            if not data.get("indirect_cost"):
+                raise serializers.ValidationError({"indirect_cost": gettext("Indirect Cost is required for Imminent DREF")})
+            if not data.get("total"):
+                raise serializers.ValidationError({"total": gettext("Total is required for Imminent DREF")})
+            proposed_actions = data.get("proposed_action", None)
+            if not proposed_actions:
+                raise serializers.ValidationError(
+                    {"proposed_action": gettext("Proposed Action is required for type DREF Imminent")}
+                )
+            proposed_budget = sum([action.get("amount") for action in proposed_actions])
+            if proposed_budget != data.get("sub_total"):
+                raise serializers.ValidationError("Sub-total should be equal to proposed budget")
         return data
 
     def validate_images(self, images):
@@ -590,8 +630,18 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
 
     class Meta:
         model = DrefOperationalUpdate
-        read_only_fields = ("operational_update_number", "modified_by", "created_by")
-        exclude = ("images", "photos", "event_map", "cover_image", "users")
+        read_only_fields = (
+            "operational_update_number",
+            "modified_by",
+            "created_by",
+        )
+        exclude = (
+            "images",
+            "photos",
+            "event_map",
+            "cover_image",
+            "users",
+        )
 
     def validate(self, data):
         dref = data.get("dref")
@@ -904,7 +954,11 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
 
     class Meta:
         model = DrefFinalReport
-        read_only_fields = ("modified_by", "created_by", "financial_report_preview")
+        read_only_fields = (
+            "modified_by",
+            "created_by",
+            "financial_report_preview",
+        )
         exclude = (
             "images",
             "photos",
