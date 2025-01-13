@@ -647,7 +647,7 @@ class TestLocalUnitCreate(APITestCase):
         self.assert_200(response)
 
         # Checking the latest changes
-        response = self.client.post(f"/api/v2/local-units/{local_unit_id}/latest-change-request/")
+        response = self.client.get(f"/api/v2/local-units/{local_unit_id}/latest-change-request/")
         self.assert_200(response)
         self.assertEqual(response.data["previous_data_details"]["local_branch_name"], previous_data["local_branch_name"])
         self.assertEqual(response.data["previous_data_details"]["english_branch_name"], previous_data["english_branch_name"])
