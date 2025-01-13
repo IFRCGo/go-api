@@ -133,7 +133,10 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         ).last()
 
         if not change_request_instance:
-            return bad_request("No change request found to validate")
+            return response.Response(
+                {"message": "No change request found to validate"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         # Checking the validator type
         validator = Validator.LOCAL
@@ -191,7 +194,10 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         ).last()
 
         if not change_request_instance:
-            return bad_request("No change request found to revert")
+            return response.Response(
+                {"message": "No change request found to revert"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         change_request_instance.status = LocalUnitChangeRequest.Status.REVERT
         change_request_instance.rejected_reason = reason
@@ -237,7 +243,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
     @action(
         detail=True,
         url_path="latest-change-request",
-        methods=["post"],
+        methods=["get"],
         serializer_class=LocalUnitChangeRequestSerializer,
         permission_classes=[permissions.IsAuthenticated, IsAuthenticatedForLocalUnit, DenyGuestUserPermission],
     )
@@ -249,7 +255,10 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         ).last()
 
         if not change_request:
-            return bad_request("Last change request not found")
+            return response.Response(
+                {"message": "Last change request not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         serializer = LocalUnitChangeRequestSerializer(change_request, context={"request": request})
         return response.Response(serializer.data)
