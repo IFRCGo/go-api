@@ -29,9 +29,11 @@ class Command(BaseCommand):
 
         # For per_component
         # Removing if already have parent component
-        OpsLearning.per_component.through.objects.filter(
-            formcomponent_id__in=sub_components_14_ids, opslearning_id__in=with_parent_component_ops_learning_qs
-        ).delete()
+        print(
+            OpsLearning.per_component.through.objects.filter(
+                formcomponent_id__in=sub_components_14_ids, opslearning_id__in=with_parent_component_ops_learning_qs
+            ).delete()
+        )
 
         # Removing all Sub-Components except one and updating to parent component
         OpsLearning.per_component.through.objects.filter(formcomponent_id__in=sub_components_14_ids).exclude(
@@ -51,9 +53,11 @@ class Command(BaseCommand):
         ).values_list("id", flat=True)
 
         # Removing if already have parent component
-        OpsLearning.per_component_validated.through.objects.filter(
-            formcomponent_id__in=sub_components_14_ids, opslearning_id__in=with_parent_component_validated_ops_learning_qs
-        ).delete()
+        print(
+            OpsLearning.per_component_validated.through.objects.filter(
+                formcomponent_id__in=sub_components_14_ids, opslearning_id__in=with_parent_component_validated_ops_learning_qs
+            ).delete()
+        )
 
         # Removing all Sub-Components except one and updating to parent component
         OpsLearning.per_component_validated.through.objects.filter(formcomponent_id__in=sub_components_14_ids).exclude(

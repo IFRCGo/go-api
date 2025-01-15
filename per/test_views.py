@@ -293,47 +293,58 @@ class OpsLearningStatsTestCase(APITestCase):
         parent_component_14 = FormComponentFactory.create(component_num=14, is_parent=True)
 
         sub_components_14 = FormComponentFactory.create_batch(3, component_num=14)
+        other_components = FormComponentFactory.create_batch(2, component_num=1)
 
-        # OpsLearning with only parent component
+        # OpsLearning with only parent component and no sub components of component 14
         ops_learning_with_only_parent_component = OpsLearningFactory.create()
         ops_learning_with_only_parent_component.per_component.add(parent_component_14)
+        ops_learning_with_only_parent_component.per_component.add(*other_components)
+
         ops_learning_with_only_parent_component.per_component_validated.add(parent_component_14)
+        ops_learning_with_only_parent_component.per_component_validated.add(*other_components)
 
         # OpsLearning with parent component and sub components
         ops_learning_with_parent_component = OpsLearningFactory.create()
 
         ops_learning_with_parent_component.per_component.add(parent_component_14)
-        ops_learning_with_parent_component.per_component_validated.add(parent_component_14)
-
         ops_learning_with_parent_component.per_component.add(*sub_components_14)
+        ops_learning_with_parent_component.per_component.add(*other_components)
+
+        ops_learning_with_parent_component.per_component_validated.add(parent_component_14)
         ops_learning_with_parent_component.per_component_validated.add(*sub_components_14)
+        ops_learning_with_parent_component.per_component_validated.add(*other_components)
 
         # OpsLearning without parent component but with sub components
         ops_learning_without_parent_component = OpsLearningFactory.create()
         ops_learning_without_parent_component.per_component.add(*sub_components_14)
+        ops_learning_without_parent_component.per_component.add(*other_components)
+
         ops_learning_without_parent_component.per_component_validated.add(*sub_components_14)
+        ops_learning_without_parent_component.per_component_validated.add(*other_components)
 
         # Operational learning with one sub component without parent component
         ops_learning = OpsLearningFactory.create()
         ops_learning.per_component.add(sub_components_14[0])
         ops_learning.per_component_validated.add(sub_components_14[0])
         ops_learning.per_component_validated.add(sub_components_14[1])
+        ops_learning.per_component.add(other_components[0])
+        ops_learning.per_component_validated.add(other_components[0])
 
         # Run the management command
         management.call_command("migrate_sub_components_to_component14")
 
         ops_learning_with_only_parent_component.refresh_from_db()
-        self.assertEqual(ops_learning_with_only_parent_component.per_component.count(), 1)
-        self.assertEqual(ops_learning_with_only_parent_component.per_component_validated.count(), 1)
+        self.assertEqual(ops_learning_with_only_parent_component.per_component.count(), 3)
+        self.assertEqual(ops_learning_with_only_parent_component.per_component_validated.count(), 3)
 
         ops_learning_with_parent_component.refresh_from_db()
-        self.assertEqual(ops_learning_with_parent_component.per_component.count(), 1)
-        self.assertEqual(ops_learning_with_parent_component.per_component_validated.count(), 1)
+        self.assertEqual(ops_learning_with_parent_component.per_component.count(), 3)
+        self.assertEqual(ops_learning_with_parent_component.per_component_validated.count(), 3)
 
         ops_learning_without_parent_component.refresh_from_db()
-        self.assertEqual(ops_learning_without_parent_component.per_component.count(), 1)
-        self.assertEqual(ops_learning_without_parent_component.per_component_validated.count(), 1)
+        self.assertEqual(ops_learning_without_parent_component.per_component.count(), 3)
+        self.assertEqual(ops_learning_without_parent_component.per_component_validated.count(), 3)
 
         ops_learning.refresh_from_db()
-        self.assertEqual(ops_learning.per_component.count(), 1)
-        self.assertEqual(ops_learning.per_component_validated.count(), 1)
+        self.assertEqual(ops_learning.per_component.count(), 2)
+        self.assertEqual(ops_learning.per_component_validated.count(), 2)
