@@ -68,7 +68,11 @@ class FormComponentAdmin(CompareVersionAdmin, TranslationAdmin):
 
     def get_queryset(self, request):
         return (
-            super().get_queryset(request).order_by("area__area_num", "component_num", "component_letter").select_related("area")
+            super()
+            .get_queryset(request)
+            .exclude(component_num=14, is_parent__isnull=True)
+            .order_by("area__area_num", "component_num", "component_letter")
+            .select_related("area")
         )
 
 
