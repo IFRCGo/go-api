@@ -46,6 +46,8 @@ from api.views import (
     ResendValidation,
     ShowUsername,
     UpdateSubscriptionPreferences,
+    LoginFormView,
+    logout_user,
 )
 from country_plan import drf_views as country_plan_views
 from databank import views as data_bank_views
@@ -171,6 +173,8 @@ admin.site.site_header = "IFRC Go administration"
 admin.site.site_title = "IFRC Go admin"
 
 urlpatterns = [
+    path("login/", LoginFormView.as_view(), name="go_login"),
+    path("logout/", logout_user, name="go_logout"),
     path("o/", include(oauth2_urls, namespace="oauth2_provider")),
     # url(r"^api/v1/es_search/", EsPageSearch.as_view()),
     url(r"^api/v1/search/", HayStackSearch.as_view()),
