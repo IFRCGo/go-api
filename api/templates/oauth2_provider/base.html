@@ -1,0 +1,127 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>{% block title %}{% endblock title %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    {% block css %}
+    {% endblock css %}
+
+    <style>
+        :root {
+            font-family: 'Poppins', sans-serif;
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            margin: 0;
+        }
+        p {
+            margin: 0;
+        }
+        * { box-sizing: border-box }
+
+        body {
+            background-color: #f0f0f0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            align-items: center;
+            justify-content: center;
+            animation: slide-up .5s .3s ease-in forwards;
+            opacity: 0;
+            width: 100%;
+            max-width: 30rem;
+        }
+
+        .block-center {
+            width: 100%;
+            background-color: #ffffff;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 5px 3px -2px rgba(0, 0, 0, 0.2);
+        }
+
+        @keyframes slide-up {
+            0% {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .block-center form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        ul {
+            margin: 0;
+        }
+
+        button,
+        input[type='submit'] {
+            border: unset;
+            line-height: 1;
+            padding: 0.5rem 1rem;
+            border-radius: 1.5rem;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            width: fit-content;
+        }
+
+        .btn-primary {
+            background-color: #e04656;
+            color: #fff;
+            border-color: #e04656;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-end;
+        }
+
+        .control-group .controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        #go-logo {
+            height: 3rem;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <img id="go-logo" alt="IFRC GO" src="{% static 'images/logo/go-logo-2020-6cdc2b0c.svg' %}" />
+    {% block content %}
+    {% endblock content %}
+</div>
+</body>
+</html>
