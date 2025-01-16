@@ -89,6 +89,12 @@ class MolnixApi:
         except Exception:
             return None
 
+    def get_deployment(self, id):
+        try:
+            return self.call_api(path="deployments/%d" % id)
+        except Exception:
+            return None
+
     def get_countries(self):
         countries = self.call_api(path="countries")
         countries_list = countries["countries"]

@@ -293,6 +293,9 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
 
     # Create Personnel objects
     for md in molnix_deployments:
+        if "position_id" not in md:  # changed structure §
+            md2 = molnix_api.get_deployment(md["id"])
+            md |= md2["deployment"]
         if skip_this(md["tags"]):
             warning = "Deployment id %d skipped due to No-GO" % md["id"]
             logger.warning(warning)
@@ -322,6 +325,7 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
 
         surge_alert = None
         try:
+            # Should not happen after the "changed structure §" fix:
             if "position_id" not in md:
                 warning = "%d deployment did not find SurgeAlert in lack of Molnix position_id" % md["id"]
                 logger.warning(warning)
