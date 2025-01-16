@@ -41,7 +41,10 @@ form input[type="text"] {
     {% if request.user.is_authenticated %}
     <div class="block-center">
         <h2>GO SSO</h2>
-        <div>{% firstof request.user.get_full_name request.user.username %}</div>
+        <div>Hi {% firstof request.user.get_full_name request.user.username %}</div>
+        {% if request.user.is_staff %}
+        <a href="{% url "admin:index" %}">Admin panel</>
+        {% endif %}
         <form method="post" action="{{ logout_url }}">
             {% csrf_token %}
             <div class="control-group">

@@ -108,6 +108,7 @@ env = environ.Env(
     JWT_PUBLIC_KEY=(str, None),
     JWT_EXPIRE_TIMESTAMP_DAYS=(int, 365),
     # OIDC
+    OIDC_ENABLE=(bool, False),
     OIDC_RSA_PRIVATE_KEY_BASE64_ENCODED=(str, None),
     OIDC_RSA_PRIVATE_KEY=(str, None),
     OIDC_RSA_PUBLIC_KEY_BASE64_ENCODED=(str, None),
@@ -716,30 +717,34 @@ AZURE_OPENAI_ENDPOINT = env("AZURE_OPENAI_ENDPOINT")
 AZURE_OPENAI_KEY = env("AZURE_OPENAI_KEY")
 AZURE_OPENAI_DEPLOYMENT_NAME = env("AZURE_OPENAI_DEPLOYMENT_NAME")
 
-# FIXME: Do not hard-code http protocol
-LOGIN_REDIRECT_URL = f"http://{FRONTEND_URL}/permalink/login-callback"
-LOGOUT_REDIRECT_URL = f"http://{FRONTEND_URL}/permalink/logout-callback"
+LOGIN_REDIRECT_URL = "go_login"
+LOGOUT_REDIRECT_URL = "go_login"
 LOGIN_URL = "go_login"
 
-# django-oauth-toolkit configs
-OIDC_RSA_PRIVATE_KEY = decode_base64("OIDC_RSA_PRIVATE_KEY_BASE64_ENCODED", "OIDC_RSA_PRIVATE_KEY")
-OIDC_RSA_PUBLIC_KEY = decode_base64("OIDC_RSA_PUBLIC_KEY_BASE64_ENCODED", "OIDC_RSA_PUBLIC_KEY")
+OIDC_ENABLE = env("OIDC_ENABLE")
+if OIDC_ENABLE:
+    # django-oauth-toolkit configs
+    OIDC_RSA_PRIVATE_KEY = decode_base64("OIDC_RSA_PRIVATE_KEY_BASE64_ENCODED", "OIDC_RSA_PRIVATE_KEY")
+    OIDC_RSA_PUBLIC_KEY = decode_base64("OIDC_RSA_PUBLIC_KEY_BASE64_ENCODED", "OIDC_RSA_PUBLIC_KEY")
 
-OAUTH2_PROVIDER = {
-    "ACCESS_TOKEN_EXPIRE_SECONDS": 300,  # NOTE: keep this high if this is used as OAuth instead of OIDC
-    "OIDC_ENABLED": True,
-    "OIDC_RSA_PRIVATE_KEY": OIDC_RSA_PRIVATE_KEY,
-    "PKCE_REQUIRED": True,
-    "SCOPES": {
-        "openid": "OpenID Connect scope",
-        "profile": "Profile scope",
-        "email": "Email scope",
-    },
-    "OAUTH2_VALIDATOR_CLASS": "main.oauth2.CustomOAuth2Validator",
-    "ALLOWED_REDIRECT_URI_SCHEMES": ["https"],
-}
-if GO_ENVIRONMENT == "development":
-    OAUTH2_PROVIDER["ALLOWED_REDIRECT_URI_SCHEMES"].append("http")
+    OAUTH2_PROVIDER = {
+        "ACCESS_TOKEN_EXPIRE_SECONDS": 300,  # NOTE: keep this high if this is used as OAuth instead of OIDC
+        "OIDC_ENABLED": True,
+        "OIDC_RSA_PRIVATE_KEY": OIDC_RSA_PRIVATE_KEY,
+        "PKCE_REQUIRED": True,
+        "SCOPES": {
+            "openid": "OpenID Connect scope",
+            "profile": "Profile scope",
+            "email": "Email scope",
+        },
+        "OAUTH2_VALIDATOR_CLASS": "main.oauth2.CustomOAuth2Validator",
+        "ALLOWED_REDIRECT_URI_SCHEMES": ["https"],
+    }
+    if GO_ENVIRONMENT == "development":
+        OAUTH2_PROVIDER["ALLOWED_REDIRECT_URI_SCHEMES"].append("http")
+
+# Manual checks
+import main.checks  # noqa: F401 E402
 
 # Need to load this to overwrite modeltranslation module
 import main.translation  # noqa: F401 E402

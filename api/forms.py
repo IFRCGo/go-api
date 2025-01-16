@@ -1,8 +1,8 @@
 from django import forms
-from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
 
 from .logger import logger
 from .models import Action, ActionOrg, ActionType

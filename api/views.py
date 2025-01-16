@@ -1,30 +1,28 @@
 import json
 from datetime import datetime, timedelta
-
 from urllib.parse import urlparse
-from django.urls import reverse
-from django.utils.http import url_has_allowed_host_and_scheme
-from django.shortcuts import redirect
-from django.contrib.auth import login, logout
+
 from django.conf import settings
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.db.models import Case, Count, F, Q, Sum, When
 from django.db.models.fields import IntegerField
 from django.db.models.functions import TruncMonth, TruncYear
 from django.http import HttpResponse, JsonResponse
+from django.shortcuts import redirect
 from django.template.loader import render_to_string
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.crypto import get_random_string
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views import View
+from django.views.generic.edit import FormView
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from haystack.query import SQ, SearchQuerySet
 from rest_framework import authentication, permissions
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.views.generic.edit import FormView
-from django.urls import reverse_lazy
 
 from api.forms import LoginForm
 from api.models import Country, District, Region
@@ -1008,7 +1006,7 @@ class DummyExceptionError(View):
 
 
 class LoginFormView(FormView):
-    template_name = "login.html"
+    template_name = "oauth2_provider/sso-auth.html"
     form_class = LoginForm
 
     def is_safe_url(self, url):
@@ -1059,7 +1057,8 @@ class LoginFormView(FormView):
 
         return self.render_to_response(self.get_context_data(form=form))
 
+
 def logout_user(request):
-    if request.method == 'POST' and request.user.is_authenticated:
+    if request.method == "POST" and request.user.is_authenticated:
         logout(request)
     return redirect(reverse(settings.LOGIN_URL))
