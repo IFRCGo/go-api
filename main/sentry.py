@@ -129,6 +129,7 @@ class SentryMonitor(models.TextChoices):
     INGEST_NS_INITIATIVES = "ingest_ns_initiatives", "0 0 * * 0"
     INGEST_ICRC = "ingest_icrc", "0 3 * * 0"
     NOTIFY_VALIDATORS = "notify_validators", "0 0 * * *"
+    OAUTH_CLEARTOKENS = "oauth_cleartokens", "0 1 * * *"
 
     @staticmethod
     def load_cron_data() -> typing.List[typing.Tuple[str, str]]:
