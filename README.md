@@ -289,3 +289,7 @@ To update GO countries and districts Mapbox tilesets, run the management command
 
 ## Import GEC codes
 To import GEC codes along with country ids, run `python manage.py import-gec-code appeal_ingest_match.csv`. The CSV should have the columns `'GST_code', 'GST_name', 'GO ID', 'ISO'`
+
+## SSO setup
+
+For more info checkout [GO-SSO](./docs/go-sso.md)
