@@ -1337,7 +1337,13 @@ class UsersViewset(viewsets.ReadOnlyModelViewSet):
                         name__iexact="IFRC Admins",
                         user=OuterRef("pk"),
                     )
-                )
+                ),
+                is_local_unit_global_validator=models.Exists(
+                    Group.objects.filter(
+                        name__iexact="Local Unit Global Validators",
+                        user=OuterRef("pk"),
+                    )
+                ),
             )
             .filter(is_active=True)
         )
