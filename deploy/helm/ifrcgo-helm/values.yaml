@@ -62,6 +62,9 @@ env:
   AZURE_OPENAI_DEPLOYMENT_NAME: ''
   AZURE_OPENAI_ENDPOINT: ''
   AZURE_OPENAI_API_KEY: ''
+  OIDC_ENABLE: false
+  OIDC_RSA_PRIVATE_KEY_BASE64_ENCODED:
+  OIDC_RSA_PUBLIC_KEY_BASE64_ENCODED:
 
 # NOTE: Used to pass additional configs to api/worker containers
 # NOTE: Not used by azure vault
