@@ -4,35 +4,22 @@ IFRC GO | SSO Login
 {% endblock %}
 {% block css %}
 <style>
-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    width: 100%;
-}
-
-form > div {
-    display: flex;
-    flex-direction: column;
-}
-
-form label {
-    text-transform: capitalize;
-    font-size: 0.875rem;
-}
-
-form input[type="password"],
-form input[type="text"] {
-    border: unset;
-    background-color: rgba(0, 0, 0, 0.1);
-    padding: 0.5rem;
-    border-radius: 0.25rem;
-}
 
 .block-center {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: var(--go-ui-spacing-md);
+}
+
+.block-center form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--go-ui-spacing-md);
+}
+
+.block-center form div {
+    display: flex;
+    flex-direction: column;
 }
 
 </style>
