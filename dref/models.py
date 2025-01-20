@@ -220,11 +220,11 @@ class ProposedAction(models.Model):
         choices=Action.choices,
         verbose_name=_("dref proposed action"),
     )
-    activities = models.ForeignKey(Sector, on_delete=models.SET_NULL, null=True)
+    activity = models.ForeignKey(Sector, on_delete=models.CASCADE)
     budget = models.PositiveIntegerField(verbose_name=_("Purpose Action Budgets"), blank=True, null=True)
 
     def __str__(self) -> str:
-        return f"{self.get_proposed_type_display()}- {self.activities}"
+        return f"{self.get_proposed_type_display()}-{self.budget}"
 
 
 @reversion.register()
