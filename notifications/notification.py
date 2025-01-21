@@ -92,6 +92,9 @@ def send_notification(subject, recipients, html, mailtype="", files=None):
         SendMail(recipients, msg).start()
         return
 
+    if "?" not in settings.EMAIL_API_ENDPOINT:  # a.k.a dirty disabling email sending
+        return
+
     to_addresses = recipients if isinstance(recipients, list) else [recipients]
 
     #    if not IS_PROD:
