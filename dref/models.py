@@ -607,10 +607,10 @@ class Dref(models.Model):
     is_active = models.BooleanField(verbose_name=_("Is Active"), null=True, blank=True)
     source_information = models.ManyToManyField(SourceInformation, blank=True, verbose_name=_("Source Information"))
     proposed_action = models.ManyToManyField(ProposedAction, verbose_name=_("Proposed Action"), blank=True)
-    sub_total = models.IntegerField(verbose_name=_("Sub total"), blank=True, null=True)
-    surge_deployment = models.IntegerField(verbose_name=_("Surge Deployment"), null=True, blank=True)
-    indirect_cost = models.IntegerField(verbose_name=_("Indirect Cost"), null=True, blank=True)
-    total = models.IntegerField(verbose_name=_("Total"), null=True, blank=True)
+    sub_total = models.PositiveIntegerField(verbose_name=_("Sub total"), blank=True, null=True)
+    surge_deployment_cost = models.PositiveIntegerField(verbose_name=_("Surge Deployment Cost"), null=True, blank=True)
+    indirect_cost = models.PositiveIntegerField(verbose_name=_("Indirect Cost"), null=True, blank=True)
+    total = models.PositiveIntegerField(verbose_name=_("Total"), null=True, blank=True)
     hazard_date_and_location = models.TextField(
         verbose_name=_("Hazard Date and Location"),
         max_length=255,
