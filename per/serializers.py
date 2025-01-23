@@ -1275,13 +1275,13 @@ class LearningBySectorSerializer(serializers.Serializer):
 
 
 class LearningSourcesOvertimeSerializer(serializers.Serializer):
-    type = serializers.IntegerField(required=True)
-    type_display = serializers.SerializerMethodField(read_only=True)
+    atype = serializers.IntegerField(required=True)
+    atype_display = serializers.SerializerMethodField(read_only=True)
     date = serializers.DateTimeField(required=True)
     count = serializers.IntegerField(required=True)
 
-    def get_type_display(self, obj):
-        type = obj.get("type")
+    def get_atype_display(self, obj):
+        type = obj.get("atype")
         return AppealType(type).label
 
 

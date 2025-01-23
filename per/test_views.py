@@ -250,16 +250,22 @@ class OpsLearningStatsTestCase(APITestCase):
             region=self.region, country=self.country, code="APP002", atype=1, start_date="2023-02-01"
         )
 
-        AppealDocumentFactory.create(appeal=self.appeal1)
-        AppealDocumentFactory.create(appeal=self.appeal2)
+        appeal_document_1 = AppealDocumentFactory.create(appeal=self.appeal1)
+        appeal_document_2 = AppealDocumentFactory.create(appeal=self.appeal2)
 
-        self.ops_learning1 = OpsLearningFactory.create(is_validated=True, appeal_code=self.appeal1)
+        self.ops_learning1 = OpsLearningFactory.create(
+            is_validated=True, appeal_code=self.appeal1, appeal_document_id=appeal_document_1.id
+        )
         self.ops_learning1.sector_validated.set([self.sector1])
 
-        self.ops_learning2 = OpsLearningFactory.create(is_validated=True, appeal_code=self.appeal2)
+        self.ops_learning2 = OpsLearningFactory.create(
+            is_validated=True, appeal_code=self.appeal2, appeal_document_id=appeal_document_2.id
+        )
         self.ops_learning2.sector_validated.set([self.sector2])
 
-        self.ops_learning3 = OpsLearningFactory.create(is_validated=False, appeal_code=self.appeal2)
+        self.ops_learning3 = OpsLearningFactory.create(
+            is_validated=False, appeal_code=self.appeal2, appeal_document_id=appeal_document_2.id
+        )
         self.ops_learning3.sector_validated.set([self.sector2])
 
     def test_ops_learning_stats(self):
