@@ -20,7 +20,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
-from api.models import Appeal, Country, Region
+from api.models import Country, Region
 from deployments.models import SectorTag
 from main.permissions import DenyGuestUserMutationPermission, DenyGuestUserPermission
 from main.utils import SpreadSheetContentNegotiation
@@ -950,7 +950,7 @@ class OpsLearningViewset(viewsets.ModelViewSet):
             operations_included=Count("appeal_code", distinct=True),
             learning_extracts=Count("id", distinct=True),
             sector_covered=Count("sector_validated", distinct=True),
-            source_used=Count("appeal_code__appealdocument", distinct=True),
+            source_used=Count("appeal_document_id", distinct=True),
         )
 
         learning_by_sector_qs = (
@@ -961,13 +961,13 @@ class OpsLearningViewset(viewsets.ModelViewSet):
 
         # NOTE: Queryset is unbounded, we may need to add some start_date filter.
         sources_overtime_qs = (
-            Appeal.objects.filter(opslearning__in=queryset)
+            queryset.filter(appeal_document_id__isnull=False)
             .annotate(
-                type=F("atype"),
-                date=F("start_date"),
-                count=Count("appealdocument", distinct=True),
+                atype=F("appeal_code__atype"),
+                date=F("appeal_code__start_date"),
+                count=Count("appeal_document_id", distinct=True),
             )
-            .values("type", "date", "count")
+            .values("atype", "date", "count")
         )
 
         learning_by_region_qs = (
