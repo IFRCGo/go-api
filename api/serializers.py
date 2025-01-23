@@ -2184,6 +2184,11 @@ class SearchMiniCountrySerializer(serializers.Serializer):
     name = serializers.CharField()
 
 
+class SearchMiniAppealSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    atype = serializers.CharField()
+
+
 class SearchEmergencySerializer(serializers.Serializer):
     id = serializers.IntegerField()
     name = serializers.CharField()
@@ -2195,7 +2200,7 @@ class SearchEmergencySerializer(serializers.Serializer):
     # countries_id = serializers.ListField(child=serializers.IntegerField())
     # iso3 = serializers.ListField(child=serializers.CharField())
     severity_level_display = serializers.CharField()
-    appeal_type = serializers.CharField()
+    appeals = SearchMiniAppealSerializer(many=True)
     score = serializers.FloatField()
     severity_level = serializers.IntegerField()
 
