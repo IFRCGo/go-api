@@ -483,7 +483,7 @@ class AppealDocumentAdmin(CompareVersionAdmin, RegionRestrictedAdmin, Translatio
 
     country_in = "appeal__country__in"
     region_in = "appeal__region__in"
-    list_display = ("appeal_document_label", "description", "iso", "created_at")
+    list_display = ("appeal_document_label", "description", "iso", "type", "created_at")
     search_fields = ("name", "appeal__code", "appeal__name", "description", "iso__name")
 
     def get_queryset(self, request):
