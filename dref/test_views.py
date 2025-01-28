@@ -1264,7 +1264,7 @@ class DrefTestCase(APITestCase):
             title="health",
         )
         national_society = Country.objects.create(name="abc")
-        disaster_type = DisasterType.objects.create(name="abc")
+        disaster_type = DisasterType.objects.create(name="disaster 1")
         data = {
             "title": "Dref test title",
             "type_of_onset": Dref.OnsetType.SUDDEN.value,
