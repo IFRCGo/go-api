@@ -60,6 +60,7 @@ class ProposedActionSerializer(serializers.ModelSerializer):
 
     proposed_type_display = serializers.CharField(source="get_proposed_type_display", read_only=True)
     activity = serializers.PrimaryKeyRelatedField(queryset=Sector.objects.all(), required=True)
+    budget = serializers.IntegerField(required=True)
 
     class Meta:
         model = ProposedAction
@@ -344,6 +345,7 @@ class MiniDrefFinalReportSerializer(ModelSerializer):
 
 
 class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
+    SUB_TOTAL = 75000
     SURGE_DEPLOYMENT_COST = 10000
     INDIRECT_COST_SURGE = 5800
     INDIRECT_COST_NO_SURGE = 5000
@@ -471,6 +473,10 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
                 )
             if not sub_total:
                 raise serializers.ValidationError({"sub_total": gettext("Sub-total is required for Imminent DREF")})
+            if sub_total != self.SUB_TOTAL:
+                raise serializers.ValidationError(
+                    {"sub_total": gettext("Sub-total should be equal to %s for Imminent DREF" % self.SUB_TOTAL)}
+                )
             if is_surge_personnel_deployed and not surge_deployment_cost:
                 raise serializers.ValidationError(
                     {"surge_deployment_cost": gettext("Surge Deployment is required for Imminent DREF")}
