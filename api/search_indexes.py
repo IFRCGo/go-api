@@ -78,7 +78,12 @@ class EmergenciesIndex(indexes.Indexable, indexes.SearchIndex):
     countries_id = indexes.MultiValueField(
         null=True,
     )
-    appeal_type = indexes.CharField(model_attr="appeals__get_atype_display", null=True)
+    appeals_id = indexes.MultiValueField(
+        null=True,
+    )
+    appeals_type = indexes.MultiValueField(
+        null=True,
+    )
     crisis_categorization = indexes.CharField(model_attr="get_ifrc_severity_level_display", null=True)
     iso3 = indexes.MultiValueField(null=True)
     visibility = indexes.CharField(model_attr="get_visibility_display", null=True)
@@ -95,6 +100,12 @@ class EmergenciesIndex(indexes.Indexable, indexes.SearchIndex):
 
     def prepare_iso3(self, obj):
         return [country.iso3 for country in obj.countries.all() if country.iso3]
+
+    def prepare_appeals_id(self, obj):
+        return [appeal.id for appeal in obj.appeals.all()]
+
+    def prepare_appeals_type(self, obj):
+        return [appeal.get_atype_display() for appeal in obj.appeals.all()]
 
     def index_queryset(self, using=None):
         return self.get_model().objects.all()
