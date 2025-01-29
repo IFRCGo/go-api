@@ -19,9 +19,12 @@ from django.db.models import Q
 # from django.db.models import Prefetch
 from django.dispatch import receiver
 from django.utils import timezone
+from django.utils.translation import activate, deactivate
 from django.utils.translation import gettext_lazy as _
+from modeltranslation.utils import build_localized_fieldname
 from tinymce.models import HTMLField
 
+from lang.translation import AVAILABLE_LANGUAGES
 from main.fields import SecureFileField
 
 from .utils import validate_slug_number  # is_user_ifrc,
@@ -775,6 +778,7 @@ class Event(models.Model):
     )
     image = models.ImageField(verbose_name=_("image"), null=True, blank=True, upload_to=snippet_image_path)
     summary = HTMLField(verbose_name=_("summary"), blank=True, default="")
+    title = models.CharField(max_length=256, blank=True)
 
     num_injured = models.IntegerField(verbose_name=_("number of injured"), null=True, blank=True)
     num_dead = models.IntegerField(verbose_name=_("number of dead"), null=True, blank=True)
@@ -869,6 +873,16 @@ class Event(models.Model):
     def to_dict(self):
         return to_dict(self)
 
+    def generate_formatted_name(self):
+        country_iso3 = self.countries.first().iso3 if self.id and self.countries.first() else "N/A"
+        dtype = self.dtype.name if self.dtype else "N/A"
+        start_date = timezone.now().strftime("%m-%Y")
+        for lang in AVAILABLE_LANGUAGES:
+            activate(lang)
+            self.name = f"{country_iso3}: {dtype} - {start_date} - {self.title}"
+            deactivate()
+            yield build_localized_fieldname("name", lang)
+
     def save(self, *args, **kwargs):
 
         # Make the slug lowercase
@@ -878,6 +892,15 @@ class Event(models.Model):
         # On save, if `disaster_start_date` is not set, make it the current time
         if not self.id and not self.disaster_start_date:
             self.disaster_start_date = timezone.now()
+
+        updated_name_fields = list(self.generate_formatted_name())
+
+        # Updating the updated_fields with the fields that are updated
+        if kwargs.get("update_fields"):
+            kwargs["update_fields"] = (
+                *kwargs["update_fields"],
+                *updated_name_fields,
+            )
 
         return super(Event, self).save(*args, **kwargs)
 
@@ -1461,6 +1484,9 @@ class FieldReport(models.Model):
     # Used to differentiate reports that have and have not been synced from DMIS
     rid = models.CharField(verbose_name=_("r id"), max_length=100, null=True, blank=True, editable=False)
     summary = models.TextField(verbose_name=_("summary"), blank=True)
+    # Title field is used for the translation and later adding formated into the summary
+    title = models.CharField(max_length=256, blank=True)
+    fr_num = models.IntegerField(verbose_name=_("field report number"), null=True, blank=True)
     description = HTMLField(verbose_name=_("description"), blank=True, default="")
     dtype = models.ForeignKey(DisasterType, verbose_name=_("disaster type"), on_delete=models.PROTECT)
     event = models.ForeignKey(
@@ -1668,14 +1694,58 @@ class FieldReport(models.Model):
     #         filters = models.Q(visibility__in=[VisibilityChoices.MEMBERSHIP, VisibilityChoices.PUBLIC])
     #         if is_user_ifrc(user):
     #             filters = models.Q()
-    #     return FieldReport.objects.filter(filters)
+
+    def generate_formatted_summary(self):
+        country_iso3 = self.countries.first().iso3 if self.id and self.countries.first() else "N/A"
+        dtype = self.dtype.name if self.dtype else "N/A"
+        start_date = self.start_date.strftime("%m-%Y")
+        current_date = timezone.now().strftime("%Y-%m-%d")
+
+        if self.fr_num is None and self.event and self.id:
+            current_fr_number = (
+                FieldReport.objects.filter(event=self.event, countries__iso3=country_iso3).aggregate(
+                    max_fr_num=models.Max("fr_num")
+                )["max_fr_num"]
+                or 0
+            )
+            field_report_number = current_fr_number + 1
+            self.fr_num = field_report_number
+            # NOTE: Updating the updated_fields when the fr_num is updated by translation tasks
+            yield "fr_num"
+
+        # NOTE: Report number is set to None if the report is not associated with an event
+        if self.id and not self.event:
+            self.fr_num = None
+
+        suffix = ""
+        if self.fr_num and self.fr_num > 1:
+            suffix = f"#{self.fr_num} ({current_date})"
+
+        for lang in AVAILABLE_LANGUAGES:
+            activate(lang)
+            if self.is_covid_report:
+                self.summary = f"{country_iso3}: COVID-19 {suffix}"
+            else:
+                self.summary = f"{country_iso3}: {dtype} - {start_date} - {self.title} {suffix}"
+            deactivate()
+            yield build_localized_fieldname("summary", lang)
 
     def save(self, *args, **kwargs):
-        # On save, is report_date or start_date is not set, set it to now.
+        # On save, if report_date or start_date is not set, set it to now.
         if not self.id and not self.report_date:
             self.report_date = timezone.now()
         if not self.id and not self.start_date:
             self.start_date = timezone.now()
+        # NOTE: Overriding the summary field with translated title
+        updated_summary_list = list(self.generate_formatted_summary())
+
+        # NOTE: Updating the updated_fields by translation tasks
+        if kwargs.get("update_fields"):
+            kwargs["update_fields"] = (
+                *kwargs["update_fields"],
+                *updated_summary_list,
+            )
+
         return super(FieldReport, self).save(*args, **kwargs)
 
     def indexing(self):

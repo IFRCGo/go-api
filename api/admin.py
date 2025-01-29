@@ -225,6 +225,7 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
         "districts",
         "parent_event",
     )
+    readonly_fields = ("name",)
 
     def appeals(self, instance):
         if getattr(instance, "appeals").exists():
@@ -324,7 +325,7 @@ class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAd
         "districts",
     )
 
-    readonly_fields = ("report_date", "created_at", "updated_at")
+    readonly_fields = ("report_date", "created_at", "updated_at", "summary", "fr_num")
     list_filter = [MembershipFilter]
     actions = [
         "create_events",
@@ -337,7 +338,7 @@ class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAd
     def create_events(self, request, queryset):
         for report in queryset:
             event = models.Event.objects.create(
-                name=report.summary,
+                title=report.title,
                 dtype=getattr(report, "dtype"),
                 disaster_start_date=getattr(report, "created_at"),
                 auto_generated=True,
@@ -437,7 +438,7 @@ class AppealAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     def create_events(self, request, queryset):
         for appeal in queryset:
             event = models.Event.objects.create(
-                name=appeal.name,
+                title=appeal.name,
                 dtype=getattr(appeal, "dtype"),
                 disaster_start_date=getattr(appeal, "start_date"),
                 auto_generated=True,

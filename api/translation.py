@@ -78,7 +78,8 @@ class DisasterTypeTO(TranslationOptions):
 
 @register(Event)
 class EventTO(TranslationOptions):
-    fields = ("name", "summary")
+    fields = ("name", "summary", "title")
+    skip_fields = ("name",)  # XXX: CUSTOM field Not used by TranslationOptions, but used in lang/tasks.py
 
 
 @register(ExternalPartner)
@@ -88,7 +89,8 @@ class ExternalPartnerTO(TranslationOptions):
 
 @register(FieldReport)
 class FieldReportTO(TranslationOptions):
-    fields = ("summary", "description", "actions_others", "other_sources")
+    fields = ("title", "summary", "description", "actions_others", "other_sources")
+    skip_fields = ("summary",)  # XXX: CUSTOM field Not used by TranslationOptions, but used in lang/tasks.py
 
 
 @register(GDACSEvent)

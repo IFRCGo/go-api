@@ -1161,6 +1161,7 @@ class ListEventCsvSerializer(serializers.ModelSerializer):
             "dtype",
             "countries",
             "summary",
+            "title",
             "num_affected",
             "ifrc_severity_level",
             "ifrc_severity_level_display",
@@ -1296,6 +1297,7 @@ class DetailEventSerializer(ModelSerializer):
             "countries",
             "districts",
             "summary",
+            "title",
             "num_affected",
             "tab_two_title",
             "tab_three_title",
@@ -2049,10 +2051,11 @@ class FieldReportSerializer(
     class Meta:
         model = FieldReport
         fields = "__all__"
+        read_only_fields = ("summary",)
 
     def create_event(self, report):
         event = Event.objects.create(
-            name=report.summary,
+            title=report.title,
             dtype=report.dtype,
             summary=report.description or "",
             disaster_start_date=report.start_date,
@@ -2099,6 +2102,27 @@ class FieldReportSerializer(
     def update(self, instance, validated_data):
         validated_data["user"] = self.context["request"].user
         return super().update(instance, validated_data)
+
+
+class FieldReportGenerateTitleSerializer(serializers.ModelSerializer):
+    dtype = serializers.PrimaryKeyRelatedField(queryset=DisasterType.objects.all())
+    event = serializers.PrimaryKeyRelatedField(queryset=Event.objects.all(), required=False)
+    title = serializers.CharField(required=True)
+
+    class Meta:
+        model = FieldReport
+        fields = (
+            "countries",
+            "dtype",
+            "title",
+            "event",
+            "start_date",
+            "is_covid_report",
+        )
+
+
+class FieldReportGeneratedTitleSerializer(serializers.Serializer):
+    title = serializers.CharField()
 
 
 class MainContactSerializer(ModelSerializer):
