@@ -612,6 +612,7 @@ class EventViewset(ReadOnlyVisibilityViewset):
     ordering_fields = (
         "disaster_start_date",
         "created_at",
+        "dtype",
         "name",
         "summary",
         "num_affected",
@@ -778,11 +779,12 @@ class SituationReportTypeViewset(viewsets.ReadOnlyModelViewSet):
 
 
 class SituationReportViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ReadOnlyModelViewSet):
-    queryset = SituationReport.objects.select_related("type").order_by("-created_at")
+    queryset = SituationReport.objects.select_related("type").order_by("-is_pinned", "-created_at")
     authentication_classes = (TokenAuthentication,)
     serializer_class = SituationReportSerializer
     ordering_fields = (
         "created_at",
+        "is_pinned",
         "name",
     )
     filterset_class = SituationReportFilter
@@ -864,6 +866,7 @@ class AppealDocumentViewset(viewsets.ReadOnlyModelViewSet):
     )
     ordering_fields = (
         "created_at",
+        "type",
         "name",
     )
     filterset_class = AppealDocumentFilter
