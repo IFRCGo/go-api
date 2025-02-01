@@ -714,13 +714,16 @@ class OpsLearningSummaryTask:
             )
             return learnings_component
 
-        def _build_component_data_section(secondary_df: pd.DataFrame):
+        def _build_component_data_section(secondary_df: pd.DataFrame) -> typing.Union[str, None]:
             # Component learnings section
             components = get_main_components(secondary_df)
             max_length_per_section = cls.PROMPT_DATA_LENGTH_LIMIT
 
             if len(components) > 0:
                 max_length_per_section = cls.PROMPT_DATA_LENGTH_LIMIT / len(components)
+            else:
+                logger.info("No main components found. Skipping...")
+                return None
 
             learnings_components = (
                 "\n----------------\n\n"
@@ -732,13 +735,16 @@ class OpsLearningSummaryTask:
             secondary_learnings_data = learnings_components
             return secondary_learnings_data
 
-        def _build_sector_data_section(secondary_df: pd.DataFrame):
+        def _build_sector_data_section(secondary_df: pd.DataFrame) -> typing.Union[str, None]:
             # Sector learnings section
             sectors = get_main_sectors(secondary_df)
             max_length_per_section = cls.PROMPT_DATA_LENGTH_LIMIT
 
             if len(sectors) > 0:
                 max_length_per_section = cls.PROMPT_DATA_LENGTH_LIMIT / len(sectors)
+            else:
+                logger.info("No main sectors found. Skipping...")
+                return None
 
             learnings_sectors = (
                 "\n----------------\n\n"
@@ -754,18 +760,28 @@ class OpsLearningSummaryTask:
         prompt_intro = cls._build_intro_section()
 
         # Sector Prompt and Data
-        sector_prompt_instruction = cls._build_instruction_section(filter_data, secondary_learning_df, cls.sector_prompt)
+        sector_prompt_instruction = cls._build_instruction_section(
+            filter_data, secondary_learning_df, cls.secondary_instruction_prompt
+        )
         sector_learning_data = _build_sector_data_section(secondary_learning_df)
 
         # Components Prompt and Data
-        component_prompt_instruction = cls._build_instruction_section(filter_data, secondary_learning_df, cls.component_prompt)
+        component_prompt_instruction = cls._build_instruction_section(
+            filter_data, secondary_learning_df, cls.secondary_instruction_prompt
+        )
         component_learning_data = _build_component_data_section(secondary_learning_df)
 
         # format the prompts
-        sector_learning_prompt = "".join([prompt_intro, sector_prompt_instruction, sector_learning_data, cls.sector_prompt])
-        component_learning_prompt = "".join(
-            [prompt_intro, component_prompt_instruction, component_learning_data, cls.sector_prompt]
-        )
+        sector_learning_prompt = None
+        component_learning_prompt = None
+
+        if sector_learning_data:
+            sector_learning_prompt = "".join([prompt_intro, sector_prompt_instruction, sector_learning_data, cls.sector_prompt])
+
+        if component_learning_data:
+            component_learning_prompt = "".join(
+                [prompt_intro, component_prompt_instruction, component_learning_data, cls.component_prompt]
+            )
 
         logger.info("Secondary Prompt formatted.")
         return sector_learning_prompt, component_learning_prompt
@@ -1024,8 +1040,8 @@ class OpsLearningSummaryTask:
     def get_or_create_secondary_summary(
         cls,
         ops_learning_summary_instance: OpsLearningCacheResponse,
-        sector_learning_prompt: str,
-        component_learning_prompt: str,
+        sector_learning_prompt: typing.Union[str, None],
+        component_learning_prompt: typing.Union[str, None],
         overwrite_prompt_cache: bool = False,
     ):
         """Retrieves or Generates the summary based on the provided prompts."""
@@ -1038,23 +1054,25 @@ class OpsLearningSummaryTask:
             OpsLearningSectorCacheResponse.objects.filter(filter_response=ops_learning_summary_instance).delete()
 
         # Checking the response for sector prompt
-        sector_summary = cls._get_or_create_summary(
-            prompt=sector_learning_prompt,
-            type=OpsLearningPromptResponseCache.PromptType.SECTOR,
-            overwrite_prompt_cache=overwrite_prompt_cache,
-        )
-        cls.secondary_response_save_to_db(
-            ops_learning_summary_instance=ops_learning_summary_instance,
-            secondary_summary=sector_summary,
-        )
+        if sector_learning_prompt:
+            sector_summary = cls._get_or_create_summary(
+                prompt=sector_learning_prompt,
+                type=OpsLearningPromptResponseCache.PromptType.SECTOR,
+                overwrite_prompt_cache=overwrite_prompt_cache,
+            )
+            cls.secondary_response_save_to_db(
+                ops_learning_summary_instance=ops_learning_summary_instance,
+                secondary_summary=sector_summary,
+            )
 
-        # Checking the response for component prompt
-        component_summary = cls._get_or_create_summary(
-            prompt=component_learning_prompt,
-            type=OpsLearningPromptResponseCache.PromptType.COMPONENT,
-            overwrite_prompt_cache=overwrite_prompt_cache,
-        )
-        cls.secondary_response_save_to_db(
-            ops_learning_summary_instance=ops_learning_summary_instance,
-            secondary_summary=component_summary,
-        )
+        if component_learning_prompt:
+            # Checking the response for component prompt
+            component_summary = cls._get_or_create_summary(
+                prompt=component_learning_prompt,
+                type=OpsLearningPromptResponseCache.PromptType.COMPONENT,
+                overwrite_prompt_cache=overwrite_prompt_cache,
+            )
+            cls.secondary_response_save_to_db(
+                ops_learning_summary_instance=ops_learning_summary_instance,
+                secondary_summary=component_summary,
+            )
