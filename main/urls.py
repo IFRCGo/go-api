@@ -16,6 +16,7 @@ from drf_spectacular.views import (
     SpectacularRedocView,
     SpectacularSwaggerView,
 )
+from oauth2_provider import urls as oauth2_urls
 
 # DRF routes
 from rest_framework import routers
@@ -37,6 +38,7 @@ from api.views import (
     FieldReportStatuses,
     GetAuthToken,
     HayStackSearch,
+    LoginFormView,
     ProjectPrimarySectors,
     ProjectSecondarySectors,
     ProjectStatuses,
@@ -45,6 +47,7 @@ from api.views import (
     ResendValidation,
     ShowUsername,
     UpdateSubscriptionPreferences,
+    logout_user,
 )
 from country_plan import drf_views as country_plan_views
 from databank import views as data_bank_views
@@ -234,6 +237,13 @@ urlpatterns = [
     path("api-docs/", SpectacularAPIView.as_view(), name="schema"),
     path("api-docs/swagger-ui/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
 ]
+
+if settings.OIDC_ENABLE:
+    urlpatterns = [
+        path("sso-auth/", LoginFormView.as_view(), name="go_login"),
+        path("logout/", logout_user, name="go_logout"),
+        path("o/", include(oauth2_urls, namespace="oauth2_provider")),
+    ] + urlpatterns
 
 if settings.DEBUG:
     import debug_toolbar

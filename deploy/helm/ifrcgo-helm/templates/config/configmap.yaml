@@ -24,6 +24,7 @@ data:
   DJANGO_READ_ONLY: {{ .Values.env.DJANGO_READ_ONLY | quote }}
   SENTRY_SAMPLE_RATE: {{ .Values.env.SENTRY_SAMPLE_RATE | quote }}
   SENTRY_DSN: {{ .Values.env.SENTRY_DSN | quote }}
+  OIDC_ENABLE: {{ .Values.env.OIDC_ENABLE | quote }}
 
   # Additional configs
   {{- range $name, $value := .Values.envAdditional }}

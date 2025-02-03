@@ -1,0 +1,58 @@
+{% extends "oauth2_provider/base.html" %}
+{% block title %}
+IFRC GO | SSO Login
+{% endblock %}
+{% block css %}
+<style>
+
+.block-center {
+    display: flex;
+    flex-direction: column;
+    gap: var(--go-ui-spacing-md);
+}
+
+.block-center form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--go-ui-spacing-md);
+}
+
+.block-center form div {
+    display: flex;
+    flex-direction: column;
+}
+
+</style>
+{% endblock %}
+{% block content %}
+    {% if request.user.is_authenticated %}
+    <div class="block-center">
+        <h2>GO SSO</h2>
+        <div>Hi {% firstof request.user.get_full_name request.user.username %}</div>
+        {% if request.user.is_staff %}
+        <a href="{% url "admin:index" %}">Admin panel</>
+        {% endif %}
+        <form method="post" action="{{ logout_url }}">
+            {% csrf_token %}
+            <div class="control-group">
+                <button class='btn-primary' type="submit">
+                    Logout
+                </button>
+            </div>
+        </form>
+    </div>
+    {% else %}
+    <div class="block-center">
+        <h2>GO SSO Login</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_div }}
+            <div class="control-group">
+                <button class='btn-primary' type="submit">
+                    Login
+                </button>
+            </div>
+        </form>
+    </div>
+    {% endif %}
+{% endblock %}

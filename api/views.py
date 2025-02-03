@@ -1,17 +1,22 @@
 import json
 from datetime import datetime, timedelta
+from urllib.parse import urlparse
 
 from django.conf import settings
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.db.models import Case, Count, F, Q, Sum, When
 from django.db.models.fields import IntegerField
 from django.db.models.functions import TruncMonth, TruncYear
 from django.http import HttpResponse, JsonResponse
+from django.shortcuts import redirect
 from django.template.loader import render_to_string
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.crypto import get_random_string
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views import View
+from django.views.generic.edit import FormView
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from haystack.query import SQ, SearchQuerySet
 from rest_framework import authentication, permissions
@@ -19,6 +24,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from api.forms import LoginForm
 from api.models import Country, District, Region
 from api.serializers import (
     AggregateByDtypeSerializer,
@@ -802,10 +808,12 @@ class AggregateByTime(APIView):
 class GetAuthToken(APIView):
     permission_classes = []
 
+    # FIXME: We need to refactor this block
     def post(self, request):
         username = request.data.get("username", None)
         password = request.data.get("password", None)
 
+        # FIXME: Remove this
         if "ifrc" in password.lower() or "redcross" in password.lower():
             logger.warning("User should be warned to use a stronger password.")
 
@@ -816,6 +824,7 @@ class GetAuthToken(APIView):
         user = authenticate(username=username, password=password)
         if user is None and User.objects.filter(email=username).count() > 1:
             users = User.objects.filter(email=username, is_active=True)
+            # FIXME: Use users.exists()
             if users:
                 # We get the first one if there are still multiple available is_active:
                 user = authenticate(username=users[0].username, password=password)
@@ -994,3 +1003,62 @@ class DummyHttpStatusError(View):
 class DummyExceptionError(View):
     def get(self, request, *args, **kwargs):
         raise Exception("Dev raised exception!")
+
+
+class LoginFormView(FormView):
+    template_name = "oauth2_provider/sso-auth.html"
+    form_class = LoginForm
+
+    def is_safe_url(self, url):
+        # get_host already validates the given host, so no need to check it again
+        allowed_hosts = {self.request.get_host()} | set(settings.ALLOWED_HOSTS)
+
+        if "*" in allowed_hosts:
+            parsed_host = urlparse(url).netloc
+            allowed_host = {parsed_host} if parsed_host else None
+            return url_has_allowed_host_and_scheme(url, allowed_hosts=allowed_host)
+
+        return url_has_allowed_host_and_scheme(url, allowed_hosts=allowed_hosts)
+
+    def get_context_data(self, **kwargs):
+        context_data = super().get_context_data(**kwargs)
+        context_data["logout_url"] = reverse("go_logout")
+        return context_data
+
+    def form_valid(self, form):
+        user = form.cleaned_data["user"]
+
+        # Determining the client IP is not always straightforward:
+        clientIP = ""
+        # if 'REMOTE_ADDR' in request.META:        clientIP += 'R' + request.META['REMOTE_ADDR']
+        # if 'HTTP_CLIENT_IP' in request.META:     clientIP += 'C' + request.META['HTTP_CLIENT_IP']
+        # if 'HTTP_X_FORWARDED' in request.META:   clientIP += 'x' + request.META['HTTP_X_FORWARDED']
+        # if 'HTTP_FORWARDED_FOR' in request.META: clientIP += 'F' + request.META['HTTP_FORWARDED_FOR']
+        # if 'HTTP_FORWARDED' in request.META:     clientIP += 'f' + request.META['HTTP_FORWARDED']
+        if "HTTP_X_FORWARDED_FOR" in self.request.META:
+            clientIP += self.request.META["HTTP_X_FORWARDED_FOR"].split(",")[0]
+
+        logger.info(
+            "%s FROM %s: %s (%s) %s"
+            % (
+                user.username,
+                clientIP,
+                "ok" if user else "ERR",
+                self.request.META["HTTP_ACCEPT_LANGUAGE"] if "HTTP_ACCEPT_LANGUAGE" in self.request.META else "",
+                self.request.META["HTTP_USER_AGENT"] if "HTTP_USER_AGENT" in self.request.META else "",
+            )
+        )
+
+        login(self.request, user)
+
+        next_url = self.request.GET.get("next")
+        if next_url and self.is_safe_url(next_url):
+            return redirect(next_url)
+
+        return self.render_to_response(self.get_context_data(form=form))
+
+
+def logout_user(request):
+    if request.method == "POST" and request.user.is_authenticated:
+        logout(request)
+    return redirect(reverse(settings.LOGIN_URL))

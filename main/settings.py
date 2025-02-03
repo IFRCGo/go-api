@@ -101,12 +101,18 @@ env = environ.Env(
     DJANGO_READ_ONLY=(bool, False),
     # Misc
     DISABLE_API_CACHE=(bool, False),
-    # jwt private and public key
+    # jwt private and public key (NOTE: Used algorithm ES256)
     JWT_PRIVATE_KEY_BASE64_ENCODED=(str, None),
     JWT_PUBLIC_KEY_BASE64_ENCODED=(str, None),
     JWT_PRIVATE_KEY=(str, None),
     JWT_PUBLIC_KEY=(str, None),
     JWT_EXPIRE_TIMESTAMP_DAYS=(int, 365),
+    # OIDC
+    OIDC_ENABLE=(bool, False),
+    OIDC_RSA_PRIVATE_KEY_BASE64_ENCODED=(str, None),
+    OIDC_RSA_PRIVATE_KEY=(str, None),
+    OIDC_RSA_PUBLIC_KEY_BASE64_ENCODED=(str, None),
+    OIDC_RSA_PUBLIC_KEY=(str, None),
     # Country page
     NS_CONTACT_USERNAME=(str, None),
     NS_CONTACT_PASSWORD=(str, None),
@@ -206,6 +212,7 @@ INSTALLED_APPS = [
     # GO Apps
     *GO_APPS,
     # Utils Apps
+    "oauth2_provider",
     "tinymce",
     "admin_auto_filters",
     "haystack",
@@ -550,7 +557,13 @@ if DEBUG:
             },
         },
         "loggers": {
-            **LOGGING.get("loggers", {}),
+            **{
+                logger: {
+                    **logger_config,
+                    "handlers": ["console"],
+                }
+                for logger, logger_config in LOGGING.get("loggers", {}).items()
+            },
             **{
                 app: {
                     "handlers": ["console"],
@@ -690,7 +703,7 @@ def decode_base64(env_key, fallback_env_key):
     if encoded_value := env(env_key):
         # TODO: Instead use docker/k8 secrets file mount?
         try:
-            return base64.b64decode(encoded_value)
+            return base64.b64decode(encoded_value).decode("utf-8")
         except Exception:
             logger.error(f"Failed to decode {env_key}", exc_info=True)
     return env(fallback_env_key)
@@ -703,6 +716,35 @@ JWT_EXPIRE_TIMESTAMP_DAYS = env("JWT_EXPIRE_TIMESTAMP_DAYS")
 AZURE_OPENAI_ENDPOINT = env("AZURE_OPENAI_ENDPOINT")
 AZURE_OPENAI_KEY = env("AZURE_OPENAI_KEY")
 AZURE_OPENAI_DEPLOYMENT_NAME = env("AZURE_OPENAI_DEPLOYMENT_NAME")
+
+OIDC_ENABLE = env("OIDC_ENABLE")
+if OIDC_ENABLE:
+    LOGIN_REDIRECT_URL = "go_login"
+    LOGOUT_REDIRECT_URL = "go_login"
+    LOGIN_URL = "go_login"
+
+    # django-oauth-toolkit configs
+    OIDC_RSA_PRIVATE_KEY = decode_base64("OIDC_RSA_PRIVATE_KEY_BASE64_ENCODED", "OIDC_RSA_PRIVATE_KEY")
+    OIDC_RSA_PUBLIC_KEY = decode_base64("OIDC_RSA_PUBLIC_KEY_BASE64_ENCODED", "OIDC_RSA_PUBLIC_KEY")
+
+    OAUTH2_PROVIDER = {
+        "ACCESS_TOKEN_EXPIRE_SECONDS": 300,  # NOTE: keep this high if this is used as OAuth instead of OIDC
+        "OIDC_ENABLED": True,
+        "OIDC_RSA_PRIVATE_KEY": OIDC_RSA_PRIVATE_KEY,
+        "PKCE_REQUIRED": True,
+        "SCOPES": {
+            "openid": "OpenID Connect scope",
+            "profile": "Profile scope",
+            "email": "Email scope",
+        },
+        "OAUTH2_VALIDATOR_CLASS": "main.oauth2.CustomOAuth2Validator",
+        "ALLOWED_REDIRECT_URI_SCHEMES": ["https"],
+    }
+    if GO_ENVIRONMENT == "development":
+        OAUTH2_PROVIDER["ALLOWED_REDIRECT_URI_SCHEMES"].append("http")
+
+# Manual checks
+import main.checks  # noqa: F401 E402
 
 # Need to load this to overwrite modeltranslation module
 import main.translation  # noqa: F401 E402
