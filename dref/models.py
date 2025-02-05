@@ -12,6 +12,7 @@ from django.utils.translation import gettext_lazy as _
 from pdf2image import convert_from_bytes
 
 from api.models import Country, DisasterType, District, FieldReport
+from deployments.models import Sector
 from main.fields import SecureFileField
 
 
@@ -208,6 +209,22 @@ class SourceInformation(models.Model):
     client_id = models.CharField(max_length=50, null=True, blank=True, verbose_name=_("client_id"))
     source_name = models.CharField(verbose_name=_("Source Name"), null=True, blank=True, max_length=255)
     source_link = models.CharField(verbose_name=_("Source Link"), null=True, blank=True, max_length=255)
+
+
+class ProposedAction(models.Model):
+    class Action(models.IntegerChoices):
+        EARLY_ACTION = 1, _("Early Actions")
+        EARLY_RESPONSE = 2, _("Early Response")
+
+    proposed_type = models.PositiveIntegerField(
+        choices=Action.choices,
+        verbose_name=_("dref proposed action"),
+    )
+    activity = models.ForeignKey(Sector, on_delete=models.CASCADE)
+    budget = models.PositiveIntegerField(verbose_name=_("Purpose Action Budgets"), blank=True, null=True)
+
+    def __str__(self) -> str:
+        return f"{self.get_proposed_type_display()}-{self.budget}"
 
 
 @reversion.register()
@@ -589,6 +606,46 @@ class Dref(models.Model):
     __budget_file_id = None
     is_active = models.BooleanField(verbose_name=_("Is Active"), null=True, blank=True)
     source_information = models.ManyToManyField(SourceInformation, blank=True, verbose_name=_("Source Information"))
+    proposed_action = models.ManyToManyField(ProposedAction, verbose_name=_("Proposed Action"), blank=True)
+    sub_total = models.PositiveIntegerField(verbose_name=_("Sub total"), blank=True, null=True)
+    surge_deployment_cost = models.PositiveIntegerField(verbose_name=_("Surge Deployment Cost"), null=True, blank=True)
+    indirect_cost = models.PositiveIntegerField(verbose_name=_("Indirect Cost"), null=True, blank=True)
+    total = models.PositiveIntegerField(verbose_name=_("Total"), null=True, blank=True)
+    hazard_date_and_location = models.TextField(
+        verbose_name=_("Hazard Date and Location"),
+        max_length=255,
+        help_text=_("When and where is the hazard expected to happen?"),
+        null=True,
+        blank=True,
+    )
+    hazard_vulnerabilities_and_risks = models.TextField(
+        verbose_name=_("Hazard Vulnerabilities and Risks"),
+        help_text=_("Explain the underlying vulnerabilities and risks the hazard poses for at-risk communities?"),
+        null=True,
+        blank=True,
+    )
+    scenario_analysis_supporting_document = models.ForeignKey(
+        "DrefFile",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_("Scenario Analysis Supporting Document"),
+        related_name="dref_scenario_supporting_document",
+    )
+    contingency_plans_supporting_document = models.ForeignKey(
+        "DrefFile",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_("Contingency Plans Supporting Document"),
+        related_name="dref_contingency_plans_supporting_document",
+    )
+    addressed_humanitarian_impacts = models.TextField(
+        verbose_name=_("Addressed Humanitarian Impacts"),
+        help_text=_(" Which of the expected severe humanitarian impacts of the hazard are your actions addressing?"),
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         verbose_name = _("dref")
