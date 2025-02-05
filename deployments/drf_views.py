@@ -166,6 +166,7 @@ class PersonnelFilter(filters.FilterSet):
             "start_date": ("exact", "gt", "gte", "lt", "lte"),
             "end_date": ("exact", "gt", "gte", "lt", "lte"),
             "deployment__updated_at": ("exact", "gt", "gte", "lt", "lte"),
+            "role": ("exact",),
         }
 
 
