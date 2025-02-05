@@ -2100,6 +2100,9 @@ class FieldReportSerializer(
         return field_report
 
     def update(self, instance, validated_data):
+        # NOTE: Set fr_num to None if event is changed
+        if validated_data.get("event") != instance.event:
+            instance.fr_num = None
         validated_data["user"] = self.context["request"].user
         return super().update(instance, validated_data)
 
