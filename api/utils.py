@@ -5,6 +5,7 @@ from typing import Optional
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.translation import gettext
 
@@ -112,6 +113,7 @@ def generate_field_report_title(
     start_date: Optional[timezone.datetime],
     title: str,
     is_covid_report: bool = False,
+    id: Optional[int] = None,
 ):
     """
     Generates the summary based on the country, dtype, event, start_date, title and is_covid_report
@@ -129,6 +131,12 @@ def generate_field_report_title(
         or 0
     )
     fr_num = current_fr_number + 1
+
+    # NOTE: Checking if event or country is changed while Updating
+    if id:
+        fr = get_object_or_404(FieldReport, id=id)
+        if fr.event == event and fr.countries.first() == country:
+            fr_num = current_fr_number
 
     suffix = ""
     if fr_num > 1 and event:

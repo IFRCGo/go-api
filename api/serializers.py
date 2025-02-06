@@ -2111,10 +2111,12 @@ class FieldReportGenerateTitleSerializer(serializers.ModelSerializer):
     dtype = serializers.PrimaryKeyRelatedField(queryset=DisasterType.objects.all())
     event = serializers.PrimaryKeyRelatedField(queryset=Event.objects.all(), required=False)
     title = serializers.CharField(required=True)
+    id = serializers.IntegerField(required=False)
 
     class Meta:
         model = FieldReport
         fields = (
+            "id",
             "countries",
             "dtype",
             "title",

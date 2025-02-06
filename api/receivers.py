@@ -299,4 +299,5 @@ def update_fieldreport_summary(sender, instance, action, **kwargs):
     Update the FieldReport summary when the countries are changed.
     """
     if action in ["post_add", "post_remove"]:
+        instance.fr_num = None
         instance.save()

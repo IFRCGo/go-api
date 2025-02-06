@@ -971,9 +971,16 @@ class FieldReportViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ModelViewSet):
         start_date = serializer.validated_data.get("start_date")
         title = serializer.validated_data.get("title")
         is_covid_report = serializer.validated_data.get("is_covid_report")
+        id = serializer.validated_data.get("id")
 
         summary = generate_field_report_title(
-            country=countries[0], dtype=dtype, event=event, start_date=start_date, title=title, is_covid_report=is_covid_report
+            country=countries[0],
+            dtype=dtype,
+            event=event,
+            start_date=start_date,
+            title=title,
+            is_covid_report=is_covid_report,
+            id=id,
         )
         return Response(
             FieldReportGeneratedTitleSerializer(
