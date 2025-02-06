@@ -157,6 +157,7 @@ class PersonnelDeploymentViewset(viewsets.ReadOnlyModelViewSet):
 
 class PersonnelFilter(filters.FilterSet):
     country_from = filters.NumberFilter(field_name="country_from", lookup_expr="exact")
+    country_to = filters.NumberFilter(field_name="country_to", lookup_expr="exact")
     type = filters.CharFilter(field_name="type", lookup_expr="exact")
     event_deployed_to = filters.NumberFilter(field_name="deployment__event_deployed_to", lookup_expr="exact")
 
