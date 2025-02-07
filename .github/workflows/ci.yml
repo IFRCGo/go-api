@@ -22,7 +22,7 @@ on:
 
 jobs:
   pre_commit_checks:
-    name: 🚴 Pre-Commit checks 🚴
+    name: Pre-Commit checks
     runs-on: ubuntu-latest
 
     steps:
@@ -36,7 +36,7 @@ jobs:
       - uses: pre-commit/action@main
 
   test:
-    name: 🚴 Checks & Test 🚴
+    name: GO Test
     runs-on: ubuntu-latest
 
     outputs:
@@ -124,7 +124,7 @@ jobs:
           IMAGE_TAG: ${{ steps.prep.outputs.tagged_image }}
 
   validate_helm:
-    name: 🚴 Validate Helm 🚴
+    name: Validate Helm
     runs-on: ubuntu-latest
 
     steps:
