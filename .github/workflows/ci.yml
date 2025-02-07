@@ -119,10 +119,9 @@ jobs:
 
       - name: 🐳 Docker push
         if: ${{ inputs.push_docker_image }}
-        uses: docker/build-push-action@v6
-        with:
-          tags: ${{ steps.prep.outputs.tagged_image }}
-          push: true
+        run: docker push $IMAGE_TAG
+        env:
+          IMAGE_TAG: ${{ steps.prep.outputs.tagged_image }}
 
   validate_helm:
     name: 🚴 Validate Helm 🚴
