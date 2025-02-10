@@ -837,11 +837,17 @@ class OpsLearningSummaryTask:
 
             def _modify_format(summary) -> str:
                 try:
+                    formatted_summary = summary
+                    # If the content is wrapped in ```json and clean it up
+                    if formatted_summary.startswith("```json") and formatted_summary.endswith("```"):
+                        # Strip the backticks and any surrounding whitespace
+                        formatted_summary = formatted_summary.strip("```json").strip().strip("```")
+
                     # Find the index of the last closing brace before the "Note"
-                    end_index = summary.rfind("}")
+                    end_index = formatted_summary.rfind("}")
 
                     # Truncate the string to include only the dictionary part
-                    formatted_summary = summary[: end_index + 1]
+                    formatted_summary = formatted_summary[: end_index + 1]
 
                     logger.info("Modification realized to response")
                     return formatted_summary
