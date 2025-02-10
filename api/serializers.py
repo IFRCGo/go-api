@@ -788,6 +788,7 @@ class CountryKeyDocumentSerializer(ModelSerializer):
 
 class RelatedAppealSerializer(ModelSerializer):
     status_display = serializers.CharField(source="get_status_display", read_only=True)
+    atype_display = serializers.CharField(source="get_atype_display", read_only=True)
 
     class Meta:
         model = Appeal
@@ -800,6 +801,8 @@ class RelatedAppealSerializer(ModelSerializer):
             "status",
             "status_display",
             "start_date",
+            "atype",
+            "atype_display",
             "id",
         )
 
