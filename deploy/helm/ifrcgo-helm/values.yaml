@@ -93,8 +93,8 @@ api:
   replicaCount: 1
   containerPort: 80
   image:
-    name: 'SET-BY-CHARTPRESS'
-    tag: 'set-by-chartpress'
+    name: 'SET-BY-CICD-IMAGE'
+    tag: 'SET-BY-CICD-TAG'
     pullPolicy: 'IfNotPresent'
   resources:
     requests:

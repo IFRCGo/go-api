@@ -1,5 +1,7 @@
 FROM python:3.11-bullseye
 
+LABEL org.opencontainers.image.source="https://github.com/IFRCGo/go-api"
+
 ENV PYTHONUNBUFFERED=1
 EXPOSE 80
 EXPOSE 443
