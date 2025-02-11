@@ -8,6 +8,7 @@ from api.models import (
     Appeal,
     AppealDocument,
     AppealHistory,
+    AppealType,
     Country,
     CountryKeyDocument,
     CountryKeyFigure,
@@ -156,6 +157,12 @@ class Admin2Filter(filters.FilterSet):
 
 class EventFilter(filters.FilterSet):
     dtype = filters.NumberFilter(field_name="dtype", lookup_expr="exact")
+    appeal_type = filters.MultipleChoiceFilter(
+        choices=AppealType.choices,
+        field_name="appeals__atype",
+        widget=filters.widgets.CSVWidget,
+        lookup_expr="in",
+    )
     is_featured = filters.BooleanFilter(field_name="is_featured")
     is_featured_region = filters.BooleanFilter(field_name="is_featured_region")
     countries__in = ListFilter(field_name="countries__id")
