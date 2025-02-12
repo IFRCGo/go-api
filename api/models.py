@@ -1703,9 +1703,9 @@ class FieldReport(models.Model):
 
         if self.fr_num is None and self.event and self.id:
             current_fr_number = (
-                FieldReport.objects.filter(event=self.event, countries__iso3=country_iso3).aggregate(
-                    max_fr_num=models.Max("fr_num")
-                )["max_fr_num"]
+                FieldReport.objects.filter(event=self.event, countries__iso3=country_iso3)
+                .exclude(id=self.id)
+                .aggregate(max_fr_num=models.Max("fr_num"))["max_fr_num"]
                 or 0
             )
             field_report_number = current_fr_number + 1

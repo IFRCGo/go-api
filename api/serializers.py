@@ -2103,6 +2103,9 @@ class FieldReportSerializer(
         return field_report
 
     def update(self, instance, validated_data):
+        # NOTE: Set fr_num to None if event is changed
+        if validated_data.get("event") != instance.event:
+            instance.fr_num = None
         validated_data["user"] = self.context["request"].user
         return super().update(instance, validated_data)
 
@@ -2111,10 +2114,12 @@ class FieldReportGenerateTitleSerializer(serializers.ModelSerializer):
     dtype = serializers.PrimaryKeyRelatedField(queryset=DisasterType.objects.all())
     event = serializers.PrimaryKeyRelatedField(queryset=Event.objects.all(), required=False)
     title = serializers.CharField(required=True)
+    id = serializers.IntegerField(required=False)
 
     class Meta:
         model = FieldReport
         fields = (
+            "id",
             "countries",
             "dtype",
             "title",
