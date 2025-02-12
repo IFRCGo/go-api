@@ -379,6 +379,15 @@ class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAd
             del actions["export_field_reports"]
         return actions
 
+    def get_readonly_fields(self, request, obj=None):
+        fields = list(super().get_readonly_fields(request))
+        if (
+            models.CountryOfFieldReportToReview.objects.filter(country=request.user.profile.country).exists()
+            and not request.user.is_superuser
+        ):
+            fields.append("visibility")
+        return fields
+
 
 class ExternalPartnerAdmin(CompareVersionAdmin, TranslationAdmin):
     model = models.ExternalPartner
