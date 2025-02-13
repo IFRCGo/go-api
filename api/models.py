@@ -19,8 +19,8 @@ from django.db.models import Q
 # from django.db.models import Prefetch
 from django.dispatch import receiver
 from django.utils import timezone
-from django.utils.translation import activate, deactivate
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import override as translation_override
 from modeltranslation.utils import build_localized_fieldname
 from tinymce.models import HTMLField
 
@@ -877,11 +877,10 @@ class Event(models.Model):
         country_iso3 = self.countries.first().iso3 if self.id and self.countries.first() else "N/A"
         start_date = timezone.now().strftime("%m-%Y")
         for lang in AVAILABLE_LANGUAGES:
-            activate(lang)
-            dtype = self.dtype.name if self.dtype else "N/A"
-            self.name = f"{country_iso3}: {dtype} - {start_date} - {self.title}"
-            deactivate()
-            yield build_localized_fieldname("name", lang)
+            with translation_override(lang):
+                dtype = self.dtype.name if self.dtype else "N/A"
+                self.name = f"{country_iso3}: {dtype} - {start_date} - {self.title}"
+                yield build_localized_fieldname("name", lang)
 
     def save(self, *args, **kwargs):
 
@@ -1721,14 +1720,13 @@ class FieldReport(models.Model):
             suffix = f"#{self.fr_num} ({current_date})"
 
         for lang in AVAILABLE_LANGUAGES:
-            activate(lang)
-            dtype = self.dtype.name if self.dtype else "N/A"
-            if self.is_covid_report:
-                self.summary = f"{country_iso3}: COVID-19 {suffix}"
-            else:
-                self.summary = f"{country_iso3}: {dtype} - {start_date} - {self.title} {suffix}"
-            deactivate()
-            yield build_localized_fieldname("summary", lang)
+            with translation_override(lang):
+                dtype = self.dtype.name if self.dtype else "N/A"
+                if self.is_covid_report:
+                    self.summary = f"{country_iso3}: COVID-19 {suffix}"
+                else:
+                    self.summary = f"{country_iso3}: {dtype} - {start_date} - {self.title} {suffix}"
+                yield build_localized_fieldname("summary", lang)
 
     def save(self, *args, **kwargs):
         # On save, if report_date or start_date is not set, set it to now.
