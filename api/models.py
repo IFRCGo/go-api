@@ -875,10 +875,10 @@ class Event(models.Model):
 
     def generate_formatted_name(self):
         country_iso3 = self.countries.first().iso3 if self.id and self.countries.first() else "N/A"
-        dtype = self.dtype.name if self.dtype else "N/A"
         start_date = timezone.now().strftime("%m-%Y")
         for lang in AVAILABLE_LANGUAGES:
             activate(lang)
+            dtype = self.dtype.name if self.dtype else "N/A"
             self.name = f"{country_iso3}: {dtype} - {start_date} - {self.title}"
             deactivate()
             yield build_localized_fieldname("name", lang)
@@ -1697,7 +1697,6 @@ class FieldReport(models.Model):
 
     def generate_formatted_summary(self):
         country_iso3 = self.countries.first().iso3 if self.id and self.countries.first() else "N/A"
-        dtype = self.dtype.name if self.dtype else "N/A"
         start_date = self.start_date.strftime("%m-%Y")
         current_date = timezone.now().strftime("%Y-%m-%d")
 
@@ -1723,6 +1722,7 @@ class FieldReport(models.Model):
 
         for lang in AVAILABLE_LANGUAGES:
             activate(lang)
+            dtype = self.dtype.name if self.dtype else "N/A"
             if self.is_covid_report:
                 self.summary = f"{country_iso3}: COVID-19 {suffix}"
             else:
