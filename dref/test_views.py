@@ -1247,3 +1247,80 @@ class DrefTestCase(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data["results"]), 1)
         self.assertEqual(set(response.data["results"][0]["users"]), set([user2.id, user3.id, user4.id]))
+
+    # NOTE: Commenting out as of now for new dref imminent workflow
+    # def test_dref_imminent(self):
+    #     old_count = Dref.objects.count()
+    #     sct_1 = SectorFactory(
+    #         title="shelter_housing_and_settlements",
+    #     )
+    #     sct_2 = SectorFactory(
+    #         title="health",
+    #     )
+    #     national_society = Country.objects.create(name="abc")
+    #     disaster_type = DisasterType.objects.create(name="disaster 1")
+    #     data = {
+    #         "title": "Dref test title",
+    #         "type_of_onset": Dref.OnsetType.SUDDEN.value,
+    #         "type_of_dref": Dref.DrefType.IMMINENT,
+    #         "disaster_category": Dref.DisasterCategory.YELLOW.value,
+    #         "status": Dref.Status.IN_PROGRESS.value,
+    #         "num_assisted": 5666,
+    #         "num_affected": 23,
+    #         "amount_requested": 127771111,
+    #         "women": 344444,
+    #         "men": 5666,
+    #         "girls": 22,
+    #         "boys": 344,
+    #         "appeal_manager_name": "Test Name",
+    #         "ifrc_emergency_email": "test@gmail.com",
+    #         "is_surge_personnel_deployed": False,
+    #         "originator_email": "test@gmail.com",
+    #         "national_society": national_society.id,
+    #         "disaster_type": disaster_type.id,
+    #         "planned_interventions": [
+    #             {
+    #                 "title": "shelter_housing_and_settlements",
+    #                 "description": "matrix",
+    #                 "budget": 23444,
+    #                 "male": 12222,
+    #                 "female": 2255,
+    #                 "indicators": [
+    #                     {
+    #                         "title": "test_title",
+    #                         "actual": 21232,
+    #                         "target": 44444,
+    #                     }
+    #                 ],
+    #             },
+    #         ],
+    #         "proposed_action": [
+    #             {
+    #                 "proposed_type": ProposedAction.Action.EARLY_ACTION.value,
+    #                 "activity": sct_1.id,
+    #                 "budget": 70000,
+    #             },
+    #             {
+    #                 "proposed_type": ProposedAction.Action.EARLY_RESPONSE.value,
+    #                 "activity": sct_2.id,
+    #                 "budget": 5000,
+    #             },
+    #         ],
+    #         "sub_total": 75000,
+    #         "indirect_cost": 5000,
+    #         "total": 80000,
+    #     }
+    #     url = "/api/v2/dref/"
+    #     self.client.force_authenticate(self.user)
+    #     response = self.client.post(url, data, format="json")
+    #     self.assert_201(response)
+    #     self.assertEqual(Dref.objects.count(), old_count + 1)
+
+    #     # Checking for surge personnel deployed
+    #     data["is_surge_personnel_deployed"] = True
+    #     data["surge_deployment_cost"] = 10000
+    #     data["indirect_cost"] = 5800
+    #     data["total"] = 90800
+    #     response = self.client.post(url, data, format="json")
+    #     self.assert_201(response)
+    #     self.assertEqual(Dref.objects.count(), old_count + 2)

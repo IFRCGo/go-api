@@ -16,6 +16,7 @@ from drf_spectacular.views import (
     SpectacularRedocView,
     SpectacularSwaggerView,
 )
+from oauth2_provider import urls as oauth2_urls
 
 # DRF routes
 from rest_framework import routers
@@ -37,6 +38,7 @@ from api.views import (
     FieldReportStatuses,
     GetAuthToken,
     HayStackSearch,
+    LoginFormView,
     ProjectPrimarySectors,
     ProjectSecondarySectors,
     ProjectStatuses,
@@ -45,6 +47,7 @@ from api.views import (
     ResendValidation,
     ShowUsername,
     UpdateSubscriptionPreferences,
+    logout_user,
 )
 from country_plan import drf_views as country_plan_views
 from databank import views as data_bank_views
@@ -54,6 +57,7 @@ from dref import views as dref_views
 from flash_update import views as flash_views
 from lang import views as lang_views
 from local_units import views as local_units_views
+from local_units.dev_views import LocalUnitsEmailPreview
 from local_units.views import DelegationOfficeDetailAPIView, DelegationOfficeListAPIView
 from notifications import drf_views as notification_views
 from per import drf_views as per_views
@@ -234,6 +238,13 @@ urlpatterns = [
     path("api-docs/swagger-ui/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
 ]
 
+if settings.OIDC_ENABLE:
+    urlpatterns = [
+        path("sso-auth/", LoginFormView.as_view(), name="go_login"),
+        path("logout/", logout_user, name="go_logout"),
+        path("o/", include(oauth2_urls, namespace="oauth2_provider")),
+    ] + urlpatterns
+
 if settings.DEBUG:
     import debug_toolbar
 
@@ -242,6 +253,7 @@ if settings.DEBUG:
             url("__debug__/", include(debug_toolbar.urls)),
             # For django versions before 2.0:
             # url(r'^__debug__/', include(debug_toolbar.urls)),
+            url(r"^dev/email-preview/local-units/", LocalUnitsEmailPreview.as_view()),
         ]
         + urlpatterns
         + static.static(

@@ -788,6 +788,7 @@ class CountryKeyDocumentSerializer(ModelSerializer):
 
 class RelatedAppealSerializer(ModelSerializer):
     status_display = serializers.CharField(source="get_status_display", read_only=True)
+    atype_display = serializers.CharField(source="get_atype_display", read_only=True)
 
     class Meta:
         model = Appeal
@@ -800,6 +801,8 @@ class RelatedAppealSerializer(ModelSerializer):
             "status",
             "status_display",
             "start_date",
+            "atype",
+            "atype_display",
             "id",
         )
 
@@ -1161,6 +1164,7 @@ class ListEventCsvSerializer(serializers.ModelSerializer):
             "dtype",
             "countries",
             "summary",
+            "title",
             "num_affected",
             "ifrc_severity_level",
             "ifrc_severity_level_display",
@@ -1296,6 +1300,7 @@ class DetailEventSerializer(ModelSerializer):
             "countries",
             "districts",
             "summary",
+            "title",
             "num_affected",
             "tab_two_title",
             "tab_three_title",
@@ -2049,10 +2054,11 @@ class FieldReportSerializer(
     class Meta:
         model = FieldReport
         fields = "__all__"
+        read_only_fields = ("summary",)
 
     def create_event(self, report):
         event = Event.objects.create(
-            name=report.summary,
+            title=report.title,
             dtype=report.dtype,
             summary=report.description or "",
             disaster_start_date=report.start_date,
@@ -2097,8 +2103,34 @@ class FieldReportSerializer(
         return field_report
 
     def update(self, instance, validated_data):
+        # NOTE: Set fr_num to None if event is changed
+        if validated_data.get("event") != instance.event:
+            instance.fr_num = None
         validated_data["user"] = self.context["request"].user
         return super().update(instance, validated_data)
+
+
+class FieldReportGenerateTitleSerializer(serializers.ModelSerializer):
+    dtype = serializers.PrimaryKeyRelatedField(queryset=DisasterType.objects.all())
+    event = serializers.PrimaryKeyRelatedField(queryset=Event.objects.all(), required=False)
+    title = serializers.CharField(required=True)
+    id = serializers.IntegerField(required=False)
+
+    class Meta:
+        model = FieldReport
+        fields = (
+            "id",
+            "countries",
+            "dtype",
+            "title",
+            "event",
+            "start_date",
+            "is_covid_report",
+        )
+
+
+class FieldReportGeneratedTitleSerializer(serializers.Serializer):
+    title = serializers.CharField()
 
 
 class MainContactSerializer(ModelSerializer):
@@ -2184,6 +2216,11 @@ class SearchMiniCountrySerializer(serializers.Serializer):
     name = serializers.CharField()
 
 
+class SearchMiniAppealSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    atype = serializers.CharField()
+
+
 class SearchEmergencySerializer(serializers.Serializer):
     id = serializers.IntegerField()
     name = serializers.CharField()
@@ -2195,7 +2232,7 @@ class SearchEmergencySerializer(serializers.Serializer):
     # countries_id = serializers.ListField(child=serializers.IntegerField())
     # iso3 = serializers.ListField(child=serializers.CharField())
     severity_level_display = serializers.CharField()
-    appeal_type = serializers.CharField()
+    appeals = SearchMiniAppealSerializer(many=True)
     score = serializers.FloatField()
     severity_level = serializers.IntegerField()
 
@@ -2372,6 +2409,8 @@ class HistoricalDisasterSerializer(serializers.Serializer):
 
 class ExportSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(source="get_status_display", read_only=True)
+    # NOTE: is_pga is used to determine if the export contains PGA or not
+    is_pga = serializers.BooleanField(default=False, required=False, write_only=True)
 
     class Meta:
         model = Export
@@ -2402,6 +2441,11 @@ class ExportSerializer(serializers.ModelSerializer):
             validated_data["url"] = f"https://{settings.FRONTEND_URL}/countries/{country_id}/{export_type}/{export_id}/export/"
         else:
             validated_data["url"] = f"https://{settings.FRONTEND_URL}/{export_type}/{export_id}/export/"
+
+        # Adding is_pga to the url
+        is_pga = validated_data.pop("is_pga")
+        if is_pga:
+            validated_data["url"] += "?is_pga=true"
         validated_data["requested_by"] = user
         export = super().create(validated_data)
         if export.url:

@@ -1,7 +1,10 @@
 import datetime
 
 import factory
+from django.contrib.auth.models import Group, Permission
 from django.contrib.gis.geos import Point
+from django.core import management
+from factory import fuzzy
 
 from api.models import Country, Region
 from deployments.factories.user import UserFactory
@@ -13,20 +16,28 @@ from .models import (
     DelegationOfficeType,
     FacilityType,
     Functionality,
+    HealthData,
     LocalUnit,
+    LocalUnitChangeRequest,
     LocalUnitLevel,
     LocalUnitType,
     PrimaryHCC,
+    Validator,
     VisibilityChoices,
 )
 
 
 class LocalUnitFactory(factory.django.DjangoModelFactory):
     location = Point(12, 38)
-    date_of_data = factory.fuzzy.FuzzyDate(datetime.date(2024, 1, 2))
+    date_of_data = fuzzy.FuzzyDate(datetime.date(2024, 1, 2))
 
     class Meta:
         model = LocalUnit
+
+
+class HealthDataFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = HealthData
 
 
 class TestLocalUnitsListView(APITestCase):
@@ -56,6 +67,41 @@ class TestLocalUnitsListView(APITestCase):
         # self.assertEqual(response.data['results'][0]['country_details']['iso3'], 'NLP')
         # self.assertEqual(response.data['results'][0]['type_details']['name'], 'Code 0')
         # self.assertEqual(response.data['results'][0]['type_details']['code'], 0)
+
+    def test_deprecate_local_unit(self):
+        country = Country.objects.all().first()
+        type = LocalUnitType.objects.all().first()
+        local_unit_obj = LocalUnitFactory.create(
+            country=country, type=type, draft=True, validated=False, date_of_data="2023-09-09"
+        )
+
+        self.authenticate()
+        url = f"/api/v2/local-units/{local_unit_obj.id}/deprecate/"
+        data = {
+            "deprecated_reason": LocalUnit.DeprecateReason.INCORRECTLY_ADDED,
+            "deprecated_reason_overview": "test reason",
+        }
+        response = self.client.post(url, data=data)
+        local_unit_obj = LocalUnit.objects.get(id=local_unit_obj.id)
+
+        self.assert_200(response)
+        self.assertEqual(local_unit_obj.is_deprecated, True)
+        self.assertEqual(local_unit_obj.deprecated_reason, LocalUnit.DeprecateReason.INCORRECTLY_ADDED)
+
+        # Test for validation
+        response = self.client.post(url, data=data)
+        self.assert_404(response)
+
+        self.client.force_authenticate(self.root_user)
+        # test revert deprecate
+        data = {}
+        url = f"/api/v2/local-units/{local_unit_obj.id}/revert-deprecate/"
+        response = self.client.post(url, data=data)
+        local_unit_obj = LocalUnit.objects.get(id=local_unit_obj.id)
+        self.assert_200(response)
+        self.assertEqual(local_unit_obj.is_deprecated, False)
+        self.assertEqual(local_unit_obj.deprecated_reason, None)
+        self.assertEqual(local_unit_obj.deprecated_reason_overview, "")
 
     def test_filter(self):
         self.authenticate()
@@ -129,7 +175,7 @@ class TestLocalUnitsDetailView(APITestCase):
         self.authenticate()
         response = self.client.get(f"/api/v2/local-units/{local_unit.id}/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["location_details"]["coordinates"], [12, 38])
+        self.assertEqual(response.data["location_geojson"]["coordinates"], [12, 38])
         self.assertEqual(response.data["country_details"]["name"], "Nepal")
         self.assertEqual(response.data["country_details"]["iso3"], "NLP")
         self.assertEqual(response.data["type_details"]["name"], "Code 0")
@@ -148,7 +194,7 @@ class TestLocalUnitsDetailView(APITestCase):
         local_unit = LocalUnitFactory.create(country=self.country, type=self.type, visibility=VisibilityChoices.PUBLIC)
         response = self.client.get(f"/api/v2/public-local-units/{local_unit.id}/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["location_details"]["coordinates"], [12, 38])
+        self.assertEqual(response.data["location_geojson"]["coordinates"], [12, 38])
         self.assertEqual(response.data["country_details"]["name"], "Nepal")
         self.assertEqual(response.data["country_details"]["iso3"], "NLP")
         self.assertEqual(response.data["type_details"]["name"], "Code 0")
@@ -173,19 +219,6 @@ class TestLocalUnitsDetailView(APITestCase):
         response = self.client.get(f"/api/v2/local-units/{user_2_local_unit.id}/")
         self.assertIsNotNone(response.data["modified_at"])
         self.assertEqual(response.data["modified_by_details"]["id"], user_2.id)
-
-    def test_validate_local_units(self):
-        local_unit = LocalUnit.objects.all().first()
-        self.authenticate()
-        url = f"/api/v2/local-units/{local_unit.id}/validate/"
-        data = {}
-        response = self.client.post(url, data=data)
-        self.assert_403(response)
-
-        # authenticate with super user
-        self.client.force_authenticate(self.root_user)
-        response = self.client.post(url, data=data)
-        self.assert_200(response)
 
 
 class DelegationOfficeFactory(factory.django.DjangoModelFactory):
@@ -278,6 +311,29 @@ class TestDelegationOfficesDetailView(APITestCase):
 
 class TestLocalUnitCreate(APITestCase):
 
+    def setUp(self):
+        super().setUp()
+        self.region = Region.objects.create(name=2)
+        self.country = Country.objects.create(name="Nepal", iso3="NLP", region=self.region)
+        management.call_command("make_permissions")
+        management.call_command("make_global_validator_permission")
+
+        # Permissions and different validators
+        self.global_validator_user = UserFactory.create()
+        self.local_unit_admin_user = UserFactory.create()
+        self.regional_validator_user = UserFactory.create()
+
+        # Adding permissions to the users
+        global_validator_permission = Permission.objects.filter(codename="local_unit_global_validator").first()
+
+        country_group = Group.objects.filter(name="%s Admins" % self.country.name).first()
+        region_group = Group.objects.filter(name="%s Regional Admins" % self.region.name).first()
+
+        self.local_unit_admin_user.groups.add(country_group)
+        self.regional_validator_user.groups.add(region_group)
+
+        self.global_validator_user.user_permissions.add(global_validator_permission)
+
     def test_create_local_unit_administrative(self):
         region = Region.objects.create(name=2)
         country = Country.objects.create(
@@ -320,11 +376,16 @@ class TestLocalUnitCreate(APITestCase):
         self.authenticate()
         response = self.client.post("/api/v2/local-units/", data=data, format="json")
         self.assertEqual(response.status_code, 400)
+        self.assertEqual(LocalUnitChangeRequest.objects.count(), 0)
 
         # add `english branch_name`
         data["english_branch_name"] = "Test branch name"
         response = self.client.post("/api/v2/local-units/", data=data, format="json")
         self.assertEqual(response.status_code, 201)
+
+        # Checking the request changes for the local unit is created or not
+        request_change = LocalUnitChangeRequest.objects.all()
+        self.assertEqual(request_change.count(), 1)
 
     def test_create_update_local_unit_health(self):
         region = Region.objects.create(name=2)
@@ -409,21 +470,245 @@ class TestLocalUnitCreate(APITestCase):
         self.client.force_authenticate(self.root_user)
         response = self.client.post("/api/v2/local-units/", data=data, format="json")
         self.assertEqual(response.status_code, 201)
+        self.assertEqual(LocalUnitChangeRequest.objects.count(), 1)
+        self.assertEqual(response.data["is_locked"], True)
 
-        # test update
-        response = response.json()
-        local_unit_id = response["id"]
-        response_updated_1 = self.client.put(f"/api/v2/local-units/{local_unit_id}/", data=data, format="json").json()
+        # Locked local unit should not be updated, until it is unlocked
+        local_unit_id = response.data["id"]
+        response = self.client.put(f"/api/v2/local-units/{local_unit_id}/", data=data, format="json")
+        self.assert_400(response)
+
+        # validating the local unit
+        self.client.force_authenticate(self.root_user)
+        response = self.client.post(f"/api/v2/local-units/{local_unit_id}/validate/")
+        self.assert_200(response)
+
+        # Update existing local_unit with new user
+        response_updated_1 = self.client.put(f"/api/v2/local-units/{local_unit_id}/", data=data, format="json")
+        self.assert_200(response_updated_1)
+
         local_unit_obj = LocalUnit.objects.get(id=local_unit_id)
+        self.assertEqual(local_unit_obj.is_locked, True)
         self.assertIsNotNone(local_unit_obj.created_by)
-        self.assertIsNotNone(response_updated_1["modified_by"])
-        self.assertIsNotNone(response_updated_1["modified_at"])
-        self.assertEqual(response_updated_1["modified_by"], local_unit_obj.created_by.id)
+        self.assertIsNotNone(response_updated_1.data["modified_by"])
+        self.assertIsNotNone(response_updated_1.data["modified_at"])
+        self.assertEqual(response_updated_1.data["modified_by"], local_unit_obj.created_by.id)
 
-        # update existing local_unit with new user
-        user_1 = UserFactory()
-        self.client.force_authenticate(user_1)
-        response_updated_2 = self.client.put(f"/api/v2/local-units/{local_unit_id}/", data=data, format="json").json()
-        self.assertEqual(response_updated_2["modified_by_details"]["id"], user_1.id)
-        self.assertEqual(response_updated_2["created_by_details"]["id"], self.root_user.id)
-        assert response_updated_1["modified_at"] < response_updated_2["modified_at"]
+    def test_revert_local_unit(self):
+        region = Region.objects.create(name=2)
+        country = Country.objects.create(name="Philippines", iso3="PHL", iso="PH", region=region)
+        type = LocalUnitType.objects.create(code=2, name="Code 0")
+        level = LocalUnitLevel.objects.create(level=1, name="Code 1")
+        affiliation = Affiliation.objects.create(code=1, name="Code 1")
+        functionality = Functionality.objects.create(code=1, name="Code 1")
+        health_facility_type = FacilityType.objects.create(code=1, name="Code 1")
+        primary_health_care_center = PrimaryHCC.objects.create(code=1, name="Code 1")
+
+        data = {
+            "local_branch_name": "Silele Red Cross Clinic, Sigombeni Red Cross Clinic & Mahwalala Red Cross Clinic",
+            "english_branch_name": None,
+            "type": type.id,
+            "country": country.id,
+            "created_at": "2024-05-13T06:53:14.978083Z",
+            "modified_at": "2024-05-13T06:53:14.978099Z",
+            "draft": False,
+            "validated": True,
+            "postcode": "",
+            "address_loc": "Silele Clinic is is in Hosea Inkhundla under the Shiselweni, Sigombeni is in Nkom'iyahlaba Inkhundla under the Manzini region and Mahwalala is in the Mbabane West Inkhundla under the Hhohho region.",  # noqa: E501
+            "address_en": "",
+            "city_loc": "",
+            "city_en": "",
+            "link": "",
+            "location": "SRID=4326;POINT (31.567837 -27.226852)",
+            "source_loc": "",
+            "source_en": "",
+            "subtype": "",
+            "date_of_data": "2024-05-13",
+            "level": level.id,
+            "location_json": {
+                "lat": 42.066667,
+                "lng": 19.983333,
+            },
+            "health": {
+                "other_affiliation": None,
+                "focal_point_email": "jele@redcross.org.sz",
+                "focal_point_phone_number": "26876088546",
+                "focal_point_position": "Programmes Manager",
+                "other_facility_type": None,
+                "residents_doctor": 0,
+                "feedback": "first question of initial question did not provide for the option to write the name of the NS. It is written LRC yet it should allow Baphalali Eswatini Red Cross Society (BERCS) to be inscribed in the box.",  # noqa: E501
+                "affiliation": affiliation.id,
+                "functionality": functionality.id,
+                "health_facility_type": health_facility_type.id,
+                "primary_health_care_center": primary_health_care_center.id,
+            },
+            "visibility_display": "RCRC Movement",
+            "focal_person_loc": "Elliot Jele",
+            "focal_person_en": "",
+            "email": "",
+            "phone": "",
+        }
+        self.authenticate()
+        response = self.client.post("/api/v2/local-units/", data=data, format="json")
+        self.assert_201(response)
+
+        # Checking if the local unit is locked or not
+        self.assertEqual(response.data["is_locked"], True)
+
+        # validating the local unit
+        local_unit_id = response.data["id"]
+        self.client.force_authenticate(self.root_user)
+        response = self.client.post(f"/api/v2/local-units/{local_unit_id}/validate/")
+        self.assert_200(response)
+        self.assertEqual(response.data["is_locked"], False)
+        self.assertEqual(response.data["validated"], True)
+
+        # saving the previous data
+        previous_data = response.data
+
+        # updating the local unit
+        data["local_branch_name"] = "Updated local branch name"
+        data["english_branch_name"] = "Updated english branch name"
+        data["health"]["focal_point_email"] = "updatedemail@redcross.org.sz"
+        response = self.client.put(f"/api/v2/local-units/{local_unit_id}/", data=data, format="json")
+        self.assert_200(response)
+        self.assertEqual(response.data["local_branch_name"], data["local_branch_name"])
+
+        # Reverting the local unit
+        revert_data = {
+            "reason": "Reverting the local unit test",
+        }
+        response = self.client.post(f"/api/v2/local-units/{local_unit_id}/revert/", data=revert_data, format="json")
+        self.assert_200(response)
+
+        # Checking if the local unit is reverted or not
+        local_unit = LocalUnit.objects.get(id=local_unit_id)
+        self.assertEqual(local_unit.local_branch_name, previous_data["local_branch_name"])
+        self.assertEqual(local_unit.english_branch_name, previous_data["english_branch_name"])
+
+        local_unit_change_request = LocalUnitChangeRequest.objects.filter(local_unit=local_unit).last()
+        self.assertEqual(local_unit_change_request.status, LocalUnitChangeRequest.Status.REVERT)
+        self.assertEqual(local_unit_change_request.rejected_reason, revert_data["reason"])
+        # Checking if the local unit is unlocked
+        self.assertEqual(local_unit.is_locked, False)
+        self.assertEqual(local_unit.validated, True)
+
+    def test_latest_changes(self):
+        region = Region.objects.create(name=2)
+        country = Country.objects.create(name="Philippines", iso3="PHL", iso="PH", region=region)
+        type = LocalUnitType.objects.create(code=2, name="Code 0")
+        level = LocalUnitLevel.objects.create(level=1, name="Code 1")
+        affiliation = Affiliation.objects.create(code=1, name="Code 1")
+        functionality = Functionality.objects.create(code=1, name="Code 1")
+        health_facility_type = FacilityType.objects.create(code=1, name="Code 1")
+        primary_health_care_center = PrimaryHCC.objects.create(code=1, name="Code 1")
+
+        data = {
+            "local_branch_name": "Silele Red Cross Clinic, Sigombeni Red Cross Clinic & Mahwalala Red Cross Clinic",
+            "type": type.id,
+            "country": country.id,
+            "created_at": "2024-05-13T06:53:14.978083Z",
+            "modified_at": "2024-05-13T06:53:14.978099Z",
+            "validated": True,
+            "date_of_data": "2024-05-13",
+            "level": level.id,
+            "address_loc": "Silele Clinic is is in Hosea Inkhundla under the Shiselweni, Sigombeni is in Nkom'iyahlaba Inkhundla under the Manzini region and Mahwalala is in the Mbabane West Inkhundla under the Hhohho region.",  # noqa: E501
+            "location_json": {
+                "lat": 42.066667,
+                "lng": 19.983333,
+            },
+            "health": {
+                "focal_point_email": "jele@redcross.org.sz",
+                "focal_point_phone_number": "26876088546",
+                "affiliation": affiliation.id,
+                "functionality": functionality.id,
+                "health_facility_type": health_facility_type.id,
+                "primary_health_care_center": primary_health_care_center.id,
+            },
+        }
+        self.authenticate()
+        response = self.client.post("/api/v2/local-units/", data=data, format="json")
+        self.assert_201(response)
+
+        # validating the local unit
+        local_unit_id = response.data["id"]
+        self.client.force_authenticate(self.root_user)
+        response = self.client.post(f"/api/v2/local-units/{local_unit_id}/validate/")
+        self.assert_200(response)
+
+        # saving the previous data
+        previous_data = response.data
+
+        # Changing the local unit
+        data["local_branch_name"] = "Updated local branch name"
+        data["english_branch_name"] = "Updated english branch name"
+
+        response = self.client.put(f"/api/v2/local-units/{local_unit_id}/", data=data, format="json")
+        self.assert_200(response)
+
+        # Checking the latest changes
+        response = self.client.get(f"/api/v2/local-units/{local_unit_id}/latest-change-request/")
+        self.assert_200(response)
+        self.assertEqual(response.data["previous_data_details"]["local_branch_name"], previous_data["local_branch_name"])
+        self.assertEqual(response.data["previous_data_details"]["english_branch_name"], previous_data["english_branch_name"])
+
+    def test_validate_local_unit(self):
+        type = LocalUnitType.objects.create(code=0, name="Code 0")
+        data = {
+            "local_branch_name": "Silele Red Cross Clinic, Sigombeni Red Cross Clinic & Mahwalala Red Cross Clinic",
+            "english_branch_name": None,
+            "type": type.id,
+            "country": self.country.id,
+            "date_of_data": "2024-05-13",
+            "location_json": {
+                "lat": 42.066667,
+                "lng": 19.983333,
+            },
+        }
+        self.authenticate()
+        response = self.client.post("/api/v2/local-units/", data=data, format="json")
+        self.assert_201(response)
+
+        local_unit_id = response.data["id"]
+        # Testing For the local unit Global validator
+        self.authenticate(self.global_validator_user)
+        # validating the local unit by the Global validator
+        response = self.client.post(f"/api/v2/local-units/{local_unit_id}/validate/")
+        self.assert_200(response)
+        local_unit_request = LocalUnitChangeRequest.objects.filter(
+            local_unit=local_unit_id, status=LocalUnitChangeRequest.Status.APPROVED
+        ).last()
+        self.assertEqual(local_unit_request.current_validator, Validator.GLOBAL)
+
+        # Testing For the local unit admin/Local validator
+        self.authenticate(self.local_unit_admin_user)
+        response = self.client.put(f"/api/v2/local-units/{local_unit_id}/", data=data, format="json")
+        self.assert_200(response)
+        # validating the local unit by the local unit admin
+        response = self.client.post(f"/api/v2/local-units/{local_unit_id}/validate/")
+        local_unit_request = LocalUnitChangeRequest.objects.filter(
+            local_unit=local_unit_id, status=LocalUnitChangeRequest.Status.APPROVED
+        ).last()
+        self.assertEqual(local_unit_request.current_validator, Validator.LOCAL)
+
+        # Testing For the regional validator
+        self.authenticate(self.regional_validator_user)
+        response = self.client.put(f"/api/v2/local-units/{local_unit_id}/", data=data, format="json")
+        self.assert_200(response)
+        # validating the local unit by the regional validator
+        response = self.client.post(f"/api/v2/local-units/{local_unit_id}/validate/")
+        local_unit_request = LocalUnitChangeRequest.objects.filter(
+            local_unit=local_unit_id, status=LocalUnitChangeRequest.Status.APPROVED
+        ).last()
+        self.assertEqual(local_unit_request.current_validator, Validator.REGIONAL)
+
+        # Testing for Root User/Global validator
+        self.authenticate(self.root_user)
+        response = self.client.put(f"/api/v2/local-units/{local_unit_id}/", data=data, format="json")
+        self.assert_200(response)
+        # validating the local unit by the global validator
+        response = self.client.post(f"/api/v2/local-units/{local_unit_id}/validate/")
+        local_unit_request = LocalUnitChangeRequest.objects.filter(
+            local_unit=local_unit_id, status=LocalUnitChangeRequest.Status.APPROVED
+        ).last()
+        self.assertEqual(local_unit_request.current_validator, Validator.GLOBAL)

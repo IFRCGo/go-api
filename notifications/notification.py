@@ -26,7 +26,8 @@ class SendMail(threading.Thread):
         try:
             server = smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT)
             server.ehlo()
-            server.starttls()
+            if settings.EMAIL_USE_TLS:
+                server.starttls()
             server.ehlo()
             succ = server.login(settings.EMAIL_USER, settings.EMAIL_PASS)
             if "successful" not in str(succ[1]):
@@ -41,12 +42,12 @@ class SendMail(threading.Thread):
             server.quit()
             logger.info("E-mails were sent successfully.")
         except Exception as exc:
-            logger.error("Could not send emails with Python smtlib, exception: {} -- {}".format(type(exc).__name__, exc.args))
+            logger.error("Could not send emails with Python smtlib", exc_info=True)
             ex = ""
             try:
                 ex = str(exc.args)
             except Exception as exctwo:
-                logger.error(exctwo.args)
+                logger.warning(exctwo.args)
             cron_rec = {
                 "name": "notification",
                 "message": "Error sending out email with Python smtplib: {}".format(ex),
@@ -84,6 +85,15 @@ def send_notification(subject, recipients, html, mailtype="", files=None):
         print("-" * 22, "EMAIL START", "-" * 22)
         print(f"\n{html}\n")
         print("-" * 22, "EMAIL END -", "-" * 22)
+
+    if settings.FORCE_USE_SMTP:
+        logger.info("Forcing SMPT usage for sending emails.")
+        msg = construct_msg(subject, html)
+        SendMail(recipients, msg).start()
+        return
+
+    if "?" not in settings.EMAIL_API_ENDPOINT:  # a.k.a dirty disabling email sending
+        return
 
     to_addresses = recipients if isinstance(recipients, list) else [recipients]
 
@@ -145,15 +155,15 @@ def send_notification(subject, recipients, html, mailtype="", files=None):
         )
 
         logger.info("E-mails were sent successfully.")
-    elif res.status_code == 401 or res.status_code == 403:
-        # Try sending with Python smtplib, if reaching the API fails
-        logger.error(f"Authorization/authentication failed ({res.status_code}) to the e-mail sender API.")
-        msg = construct_msg(subject, html)
-        SendMail(to_addresses, msg).start()
     else:
+        logger.error(
+            f"Email send failed using API, status code: ({res.status_code})",
+            extra={
+                "content": res.content,
+            },
+        )
         # Try sending with Python smtplib, if reaching the API fails
-        logger.error("Could not reach the e-mail sender API. Trying with Python smtplib...")
+        logger.warning(f"Authorization/authentication failed ({res.status_code}) to the e-mail sender API.")
         msg = construct_msg(subject, html)
         SendMail(to_addresses, msg).start()
-
     return res.text

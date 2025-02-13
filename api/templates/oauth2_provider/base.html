@@ -1,0 +1,414 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>{% block title %}{% endblock title %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    {% block css %}
+    {% endblock css %}
+
+    <style>
+        /* Styles from go-ui */
+        :root {
+            --go-ui-font-family-sans-serif: Poppins, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+
+            --base-font-size: 0.875rem;
+
+            --go-ui-font-size-2xs: calc(var(--base-font-size) * 0.625);
+            --go-ui-font-size-xs: calc(var(--base-font-size) * 0.75);
+            --go-ui-font-size-sm: calc(var(--base-font-size) * 0.875);
+            --go-ui-font-size-md: var(--base-font-size);
+            --go-ui-font-size-lg: calc(var(--base-font-size) * 1.125);
+            --go-ui-font-size-xl: calc(var(--base-font-size) * 1.25);
+            --go-ui-font-size-2xl: calc(var(--base-font-size) * 1.5);
+            --go-ui-font-size-3xl: calc(var(--base-font-size) * 1.875);
+            --go-ui-font-size-4xl: calc(var(--base-font-size) * 2.375);
+
+            @media screen and (max-width: 40rem) {
+                --go-ui-font-size-2xs: calc(var(--base-font-size) * 0.625);
+                --go-ui-font-size-xs: calc(var(--base-font-size) * 0.75);
+                --go-ui-font-size-sm: calc(var(--base-font-size) * 0.875);
+                --go-ui-font-size-md: calc(var(--base-font-size) * 1);
+                --go-ui-font-size-lg: calc(var(--base-font-size) * 1.125);
+                --go-ui-font-size-xl: calc(var(--base-font-size) * 1.25);
+                --go-ui-font-size-2xl: calc(var(--base-font-size) * 1.4);
+                --go-ui-font-size-3xl: calc(var(--base-font-size) * 1.6);
+                --go-ui-font-size-4xl: calc(var(--base-font-size) * 1.8);
+            }
+
+            --go-ui-height-brand-icon: 2.5rem;
+
+            --go-ui-line-height-none: 1;
+            --go-ui-line-height-xs: 1.25;
+            --go-ui-line-height-sm: 1.375;
+            --go-ui-line-height-md: 1.5;
+
+            --go-ui-font-weight-light: 300;
+            --go-ui-font-weight-normal: 400;
+            --go-ui-font-weight-medium: 500;
+            --go-ui-font-weight-semibold: 600;
+            --go-ui-font-weight-bold: 700;
+
+            --base-spacing: 1rem;
+
+            --go-ui-spacing-4xs: calc(var(--base-spacing) * 0.0625);
+            --go-ui-spacing-3xs: calc(var(--base-spacing) * 0.125);
+            --go-ui-spacing-2xs: calc(var(--base-spacing) * 0.25);
+            --go-ui-spacing-xs: calc(var(--base-spacing) * 0.4);
+            --go-ui-spacing-sm: calc(var(--base-spacing) * 0.625);
+            --go-ui-spacing-md: calc(var(--base-spacing) * 1);
+            --go-ui-spacing-lg: calc(var(--base-spacing) * 1.5);
+            --go-ui-spacing-xl: calc(var(--base-spacing) * 2.25);
+            --go-ui-spacing-2xl: calc(var(--base-spacing) * 3.5);
+            --go-ui-spacing-3xl: calc(var(--base-spacing) * 4.75);
+            --go-ui-spacing-4xl: calc(var(--base-spacing) * 6);
+            --go-ui-spacing-5xl: calc(var(--base-spacing) * 7.25);
+
+            @media screen and (max-width: 40rem) {
+                --go-ui-spacing-4xs: calc(var(--base-spacing) * 0.0625);
+                --go-ui-spacing-3xs: calc(var(--base-spacing) * 0.125);
+                --go-ui-spacing-2xs: calc(var(--base-spacing) * 0.25);
+                --go-ui-spacing-xs: calc(var(--base-spacing) * 0.4);
+                --go-ui-spacing-sm: calc(var(--base-spacing) * 0.625);
+                --go-ui-spacing-md: calc(var(--base-spacing) * 1);
+                --go-ui-spacing-lg: calc(var(--base-spacing) * 1.25);
+                --go-ui-spacing-xl: calc(var(--base-spacing) * 1.5625);
+                --go-ui-spacing-2xl: calc(var(--base-spacing) * 1.95);
+                --go-ui-spacing-3xl: calc(var(--base-spacing) * 2.44);
+                --go-ui-spacing-4xl: calc(var(--base-spacing) * 3);
+                --go-ui-spacing-5xl: calc(var(--base-spacing) * 3.8);
+            }
+
+            --go-ui-width-separator-sm: 1pt;
+            --go-ui-width-separator-md: 2pt;
+            --go-ui-width-separator-lg: 4pt;
+            --go-ui-width-separator-xl: 8pt;
+            --go-ui-width-separator-thin: 1pt;
+            --go-ui-width-separator-small: 2pt;
+            --go-ui-width-separator-thick: 4pt;
+            --go-ui-width-separator-medium: 6pt;
+            --go-ui-width-separator-large: 8pt;
+            --go-ui-width-separator-dense: 12pt;
+            --go-ui-width-separator-extra-dense: 14pt;
+
+            --go-ui-border-radius-none: 0;
+            --go-ui-border-radius-sm: 0.125rem;
+            --go-ui-border-radius-md: 0.25rem;
+            --go-ui-border-radius-lg: 0.5rem;
+            --go-ui-border-radius-xl: 0.75rem;
+            --go-ui-border-radius-2xl: 1rem;
+            --go-ui-border-radius-3xl: 1.5rem;
+            --go-ui-border-radius-full: 9999px;
+
+            --go-ui-box-shadow-xs: 0 1pt 2pt rgb(0 0 0 / 0.2);
+            --go-ui-box-shadow-sm: 0 1pt 4pt rgb(0 0 0 / 0.2);
+            --go-ui-box-shadow-md: 0 1pt 5pt -2pt rgb(0 0 0 / 0.375);
+            --go-ui-box-shadow-lg: 0 2pt 8pt -4pt rgb(0 0 0 / 0.5);
+            --go-ui-box-shadow-xl: 0 3pt 16pt -6pt rgb(0 0 0 / 0.5);
+            --go-ui-box-shadow-2xl: 0 4pt 16pt -6pt rgb(0 0 0 / 1);
+            --go-ui-box-shadow-inner: inset 0 2pt 4pt 0 rgb(0 0 0 / 0.375);
+            --go-ui-box-shadow-none: 0 0 #0000;
+
+            --go-ui-duration-transition-fast: .1s;
+            --go-ui-duration-transition-medium: .2s;
+            --go-ui-duration-transition-slow: .5s;
+
+            --go-ui-color-orange: #FF8000;
+            --go-ui-color-green: #7FB845;
+            --go-ui-color-blue: #3FA2F7;
+            --go-ui-color-red: #F75C65;
+            --go-ui-color-yellow: #d9b100;
+            --go-ui-color-semantic-yellow: #FFB443;
+            --go-ui-color-black: #000000;
+            --go-ui-color-white: #ffffff;
+
+            --go-ui-color-gray-10: #FAFAFA;
+            --go-ui-color-gray-20: #F2F2F2;
+            --go-ui-color-gray-30: #E0E0E0;
+            --go-ui-color-gray-40: #C6C6C6;
+            --go-ui-color-gray-50: #A8A8A8;
+            --go-ui-color-gray-60: #8D8D8D;
+            --go-ui-color-gray-70: #6F6F6F;
+            --go-ui-color-gray-80: #525252;
+            --go-ui-color-gray-90: #323232;
+
+            --go-ui-color-red-10: #FDD6D9;
+            --go-ui-color-red-20: #FCC2C5;
+            --go-ui-color-red-30: #FBADB2;
+            --go-ui-color-red-40: #FA999F;
+            --go-ui-color-red-50: #F9858C;
+            --go-ui-color-red-60: #F87079;
+            --go-ui-color-red-70: #F75C65;
+            --go-ui-color-red-80: #F64752;
+            --go-ui-color-red-90: #F5333F;
+
+            --go-ui-color-dark-blue-10: #009CDD;
+            --go-ui-color-dark-blue-20: #418FDE;
+            --go-ui-color-dark-blue-30: #236192;
+            --go-ui-color-dark-blue-40: #1B365D;
+
+            --go-ui-color-blue-10: #E0E3E7;
+            --go-ui-color-blue-20: #CCD2D9;
+            --go-ui-color-blue-30: #AEB7C2;
+            --go-ui-color-blue-40: #99A5B3;
+            --go-ui-color-blue-50: #7D8B9D;
+            --go-ui-color-blue-60: #67788D;
+            --go-ui-color-blue-70: #4D617A;
+            --go-ui-color-blue-80: #344B67;
+            --go-ui-color-blue-90: #011E41;
+
+            --go-ui-color-primary-red: var(--go-ui-color-red-90);
+            --go-ui-color-primary-blue: var(--go-ui-color-blue-90);
+            --go-ui-color-primary-gray: var(--go-ui-color-gray-90);
+
+            --go-ui-color-red-hover: #DE2934;
+
+            --go-ui-color-purple-per: #8648B3;
+            --go-ui-color-orange-per: #FF8654;
+            --go-ui-color-blue-per: #418FDE;
+            --go-ui-color-teal-per: #00B2A2;
+            --go-ui-color-red-per: #DA283D;
+
+            --go-ui-color-text-black: rgb(0 0 0 / 1);
+            --go-ui-color-text: rgb(0 0 0 / 0.8);
+            --go-ui-color-text-light: rgb(0 0 0 / 0.5);
+
+            --go-ui-color-positive: var(--go-ui-color-green);
+            --go-ui-color-information: var(--go-ui-color-blue);
+            --go-ui-color-warning: var(--go-ui-color-yellow);
+            --go-ui-color-negative: var(--go-ui-color-red);
+
+            --go-ui-color-separator: rgb(0 0 0 / 0.1);
+            --go-ui-color-separator-light: rgb(0 0 0 / 0.05);
+
+            --go-ui-color-background: #f7f7f7;
+            --go-ui-color-foreground: #ffffff;
+
+            --go-ui-color-element-background: rgb(0 0 0 / .06);
+            --go-ui-color-readonly-element-background: rgb(0 0 0 / .03);
+            --go-ui-color-background-overlay: rgb(255 255 255 / .88);
+            --go-ui-color-background-overlay-dark: rgb(0 0 0 / .5);
+            --go-ui-color-background-hover: rgb(0 0 0 / .06);
+
+            --go-ui-color-hazard-fi: #b7c992;
+        }
+
+        /* Styles from go-ui Heading */
+
+        h1, h2, h3, h4, h5, h6 {
+            margin: 0;
+            line-height: var(--go-ui-line-height-sm);
+            font-weight: var(--go-ui-font-weight-semibold);
+        }
+
+        h1 {
+            --font-size: var(--go-ui-font-size-4xl);
+        }
+        h2 {
+            --font-size: var(--go-ui-font-size-2xl);
+        }
+        h3 {
+            --font-size: var(--go-ui-font-size-xl);
+        }
+        h4 {
+            --font-size: var(--go-ui-font-size-lg);
+        }
+        h5 {
+            --font-size: var(--go-ui-font-size-md);
+        }
+        h6 {
+            --font-size: var(--go-ui-font-size-sm);
+        }
+
+        /* Styles from go-ui Button */
+
+        button,
+        .btn {
+            --color-border: transparent;
+            --color-text: inherit;
+            --color-background: transparent;
+            --font-size: inherit;
+            --border-radius: var(--go-ui-border-radius-full);
+            --text-transform: none;
+            --cursor: pointer;
+            --padding: var(--go-ui-spacing-3xs) var(--go-ui-spacing-lg);
+
+            display: inline-flex;
+            position: relative;
+            align-items: center;
+            border: var(--go-ui-width-separator-sm) solid var(--color-border);
+            border-radius: var(--border-radius);
+            background-color: var(--color-background);
+            cursor: var(--cursor);
+            padding: var(--padding);
+            width: fit-content;
+            max-width: 100%;
+            overflow: hidden;
+            text-transform: var(--text-transform);
+            line-height: var(--go-ui-line-height-xs);
+            color: var(--color-text);
+            font-family: inherit;
+            font-size: var(--font-size);
+            font-weight: var(--go-ui-font-weight-medium);
+
+            text-align: center;
+        }
+
+        .btn-primary {
+            /* Primary */
+            --color-border: var(--go-ui-color-primary-red);
+            --color-background: var(--go-ui-color-primary-red);
+            --color-text: var(--go-ui-color-white);
+        }
+
+        .btn-default, .btn-success, .btn-info, .btn-warning, .btn-danger, .btn-link {
+            /* Secondary */
+            --color-border: var(--go-ui-color-primary-red);
+            --color-background: var(--go-ui-color-white);
+            --color-text: var(--go-ui-color-primary-red);
+        }
+
+        :not(.btn-primary, .btn-default, .btn-success, .btn-info, .btn-warning, .btn-danger, .btn-link) {
+            /* Tertiary */
+            --color-border: transparent;
+            --color-background: transparent;
+            --color-text: inherit;
+            --padding: 0;
+            --border-radius: unset;
+        }
+
+        /* Styles from go-ui Input */
+
+        form label {
+            text-transform: capitalize;
+            padding: 0 var(--go-ui-spacing-2xs);
+            color: var(--go-ui-color-gray-70);
+        }
+
+        form input[type="password"],
+        form input[type="text"] {
+            margin: unset;
+            outline: unset;
+            border: unset;
+            width: 100%;
+            color: inherit;
+            font-family: inherit;
+            font-size: inherit;
+            font-weight: inherit;
+
+            border-bottom: var(--go-ui-width-separator-thin) solid transparent;
+            border-radius: var(--go-ui-border-radius-md);
+            background-color: var(--go-ui-color-element-background);
+            padding: var(--go-ui-spacing-xs) var(--go-ui-spacing-sm);
+        }
+
+        /* Styles from app/src/index.css */
+        /* NOTE: Styles from index.html: no need to be included as all of them are overridden */
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            margin: 0;
+            padding: 0;
+            scrollbar-gutter: stable;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            line-height: var(--go-ui-line-height-md);
+            color: var(--go-ui-color-text);
+            font-family: var(--go-ui-font-family-sans-serif);
+            font-size: var(--go-ui-font-size-md);
+            font-weight: var(--go-ui-font-weight-normal);
+            background-color: var(--go-ui-color-background);
+        }
+
+        ul, ol, p {
+            margin: 0;
+        }
+
+        /* Overriding styles */
+
+        @keyframes slide-up {
+            0% {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        #go-logo {
+            height: var(--go-ui-height-brand-icon);
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: var(--go-ui-spacing-lg);
+            align-items: center;
+            justify-content: center;
+            animation: slide-up var(--go-ui-duration-transition-medium) var(--go-ui-duration-transition-medium) ease-in forwards;
+            opacity: 0;
+            width: 100%;
+            max-width: 30rem;
+        }
+
+        .block-center {
+            width: 100%;
+            background-color: #ffffff;
+            padding: var(--go-ui-spacing-lg);
+            border-radius: var(--go-ui-border-radius-lg);
+            box-shadow: var(--go-ui-box-shadow-lg);
+        }
+
+        .block-center form {
+            display: flex;
+            flex-direction: column;
+            gap: var(--go-ui-spacing-md);
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-end;
+        }
+
+        .control-group .controls {
+            display: flex;
+            gap: var(--go-ui-spacing-sm);
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <img id="go-logo" alt="IFRC GO" src="{% static 'images/logo/go-logo-2020-6cdc2b0c.svg' %}" />
+    {% block content %}
+    {% endblock content %}
+</div>
+</body>
+</html>

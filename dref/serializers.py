@@ -16,6 +16,7 @@ from api.serializers import (
     MiniDistrictSerializer,
     UserNameSerializer,
 )
+from deployments.models import Sector
 from dref.models import (
     Dref,
     DrefFile,
@@ -25,6 +26,7 @@ from dref.models import (
     NationalSocietyAction,
     PlannedIntervention,
     PlannedInterventionIndicators,
+    ProposedAction,
     RiskSecurity,
     SourceInformation,
 )
@@ -51,6 +53,17 @@ class SourceInformationSerializer(ModelSerializer):
 class PlannedInterventionIndicatorsSerializer(ModelSerializer):
     class Meta:
         model = PlannedInterventionIndicators
+        fields = "__all__"
+
+
+class ProposedActionSerializer(serializers.ModelSerializer):
+
+    proposed_type_display = serializers.CharField(source="get_proposed_type_display", read_only=True)
+    activity = serializers.PrimaryKeyRelatedField(queryset=Sector.objects.all(), required=True)
+    budget = serializers.IntegerField(required=True)
+
+    class Meta:
+        model = ProposedAction
         fields = "__all__"
 
 
@@ -332,6 +345,10 @@ class MiniDrefFinalReportSerializer(ModelSerializer):
 
 
 class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
+    SUB_TOTAL = 75000
+    SURGE_DEPLOYMENT_COST = 10000
+    INDIRECT_COST_SURGE = 5800
+    INDIRECT_COST_NO_SURGE = 5000
     MAX_NUMBER_OF_IMAGES = 2
     ALLOWED_BUDGET_FILE_EXTENSIONS = ["pdf"]
     ALLOWED_ASSESSMENT_REPORT_EXTENSIONS = ["pdf", "docx", "pptx"]
@@ -371,10 +388,21 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
     modified_at = serializers.DateTimeField(required=False)
     dref_access_user_list = serializers.SerializerMethodField()
     source_information = SourceInformationSerializer(many=True, required=False)
+    # NOTE: Commenting out for reverting dref imminent new flow
+    # scenario_analysis_supporting_document_details = DrefFileSerializer(
+    #     source="scenario_analysis_supporting_document", read_only=True, required=False, allow_null=True
+    # )
+    # contingency_plans_supporting_document_details = DrefFileSerializer(
+    #     source="contingency_plans_supporting_document", read_only=True, required=False, allow_null=True
+    # )
 
     class Meta:
         model = Dref
-        read_only_fields = ("modified_by", "created_by", "budget_file_preview")
+        read_only_fields = (
+            "modified_by",
+            "created_by",
+            "budget_file_preview",
+        )
         exclude = (
             "cover_image",
             "event_map",
@@ -429,6 +457,75 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
                 gettext("Operation timeframe can't be greater than %s for assessment_report" % self.MAX_OPERATION_TIMEFRAME)
             )
         return data
+
+        # NOTE: Validation for type DREF Imminent
+        # NOTE: Commenting out the validation for DREF IMMINENT as of now
+        # if data.get("type_of_dref") == Dref.DrefType.IMMINENT:
+        #     is_surge_personnel_deployed = data.get("is_surge_personnel_deployed")
+        #     sub_total = data.get("sub_total")
+        #     surge_deployment_cost = data.get("surge_deployment_cost")
+        #     indirect_cost = data.get("indirect_cost")
+        #     total = data.get("total")
+        #     proposed_actions = data.get("proposed_action", [])
+
+        #     if not proposed_actions:
+        #         raise serializers.ValidationError(
+        #             {"proposed_action": gettext("Proposed Action is required for type DREF Imminent")}
+        #         )
+        #     if not sub_total:
+        #         raise serializers.ValidationError({"sub_total": gettext("Sub-total is required for Imminent DREF")})
+        #     if sub_total != self.SUB_TOTAL:
+        #         raise serializers.ValidationError(
+        #             {"sub_total": gettext("Sub-total should be equal to %s for Imminent DREF" % self.SUB_TOTAL)}
+        #         )
+        #     if is_surge_personnel_deployed and not surge_deployment_cost:
+        #         raise serializers.ValidationError(
+        #             {"surge_deployment_cost": gettext("Surge Deployment is required for Imminent DREF")}
+        #         )
+        #     if not indirect_cost:
+        #         raise serializers.ValidationError({"indirect_cost": gettext("Indirect Cost is required for Imminent DREF")})
+        #     if not total:
+        #         raise serializers.ValidationError({"total": gettext("Total is required for Imminent DREF")})
+
+        #     proposed_budget = sum(action.get("budget", 0) for action in proposed_actions)
+        #     if proposed_budget != sub_total:
+        #         raise serializers.ValidationError("Sub-total should be equal to proposed budget")
+
+        #     if is_surge_personnel_deployed:
+        #         if surge_deployment_cost != self.SURGE_DEPLOYMENT_COST:
+        #             raise serializers.ValidationError(
+        #                 {
+        #                     "surge_deployment_cost": gettext(
+        #                         "Surge Deployment Cost should be equal to %s for Surge Personnel Deployed"
+        #                         % self.SURGE_DEPLOYMENT_COST
+        #                     )
+        #                 }
+        #             )
+        #         if indirect_cost != self.INDIRECT_COST_SURGE:
+        #             raise serializers.ValidationError(
+        #                 {
+        #                     "indirect_cost": gettext(
+        #                         "Indirect Cost should be equal to %s for Surge Personnel Deployed" % self.INDIRECT_COST_SURGE
+        #                     )
+        #                 }
+        #             )
+        #         expected_total = surge_deployment_cost + indirect_cost + sub_total
+        #     else:
+        #         if indirect_cost != self.INDIRECT_COST_NO_SURGE:
+        #             raise serializers.ValidationError(
+        #                 {
+        #                     "indirect_cost": gettext(
+        #                         "Indirect Cost should be equal to %s for No Surge Personnel Deployed"
+        #                         % self.INDIRECT_COST_NO_SURGE
+        #                     )
+        #                 }
+        #             )
+        #         expected_total = indirect_cost + sub_total
+
+        #     if expected_total != total:
+        #         raise serializers.ValidationError(
+        #             {"total": gettext("Total should be equal to sum of Sub-total, Surge Deployment Cost and Indirect Cost")}
+        #         )
 
     def validate_images(self, images):
         # Don't allow images more than MAX_NUMBER_OF_IMAGES
@@ -590,8 +687,18 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
 
     class Meta:
         model = DrefOperationalUpdate
-        read_only_fields = ("operational_update_number", "modified_by", "created_by")
-        exclude = ("images", "photos", "event_map", "cover_image", "users")
+        read_only_fields = (
+            "operational_update_number",
+            "modified_by",
+            "created_by",
+        )
+        exclude = (
+            "images",
+            "photos",
+            "event_map",
+            "cover_image",
+            "users",
+        )
 
     def validate(self, data):
         dref = data.get("dref")
@@ -904,7 +1011,11 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
 
     class Meta:
         model = DrefFinalReport
-        read_only_fields = ("modified_by", "created_by", "financial_report_preview")
+        read_only_fields = (
+            "modified_by",
+            "created_by",
+            "financial_report_preview",
+        )
         exclude = (
             "images",
             "photos",

@@ -3,7 +3,7 @@ from datetime import datetime
 import pytz
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Prefetch, Q
+from django.db.models import Count, F, Prefetch, Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils.translation import get_language as django_get_language
@@ -20,7 +20,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
-from api.models import Country
+from api.models import Country, Region
 from deployments.models import SectorTag
 from main.permissions import DenyGuestUserMutationPermission, DenyGuestUserPermission
 from main.utils import SpreadSheetContentNegotiation
@@ -82,6 +82,7 @@ from .serializers import (
     OpsLearningInSerializer,
     OpsLearningOrganizationTypeSerializer,
     OpsLearningSerializer,
+    OpsLearningStatSerializer,
     OpsLearningSummarySerializer,
     PerAssessmentSerializer,
     PerDocumentUploadSerializer,
@@ -169,10 +170,18 @@ class FormAreaViewset(viewsets.ReadOnlyModelViewSet):
 
 class FormComponentFilter(filters.FilterSet):
     area_id = filters.NumberFilter(field_name="area__id", lookup_expr="exact")
+    exclude_subcomponents = filters.BooleanFilter(
+        method="get_exclude_subcomponents",
+    )
 
     class Meta:
         model = FormComponent
         fields = {"area": ("exact",)}
+
+    def get_exclude_subcomponents(self, queryset, name, value):
+        if value:
+            return queryset.exclude(component_num=14, is_parent__isnull=True)
+        return queryset
 
 
 class FormComponentViewset(viewsets.ReadOnlyModelViewSet):
@@ -920,6 +929,78 @@ class OpsLearningViewset(viewsets.ModelViewSet):
             )
         )
         return response.Response(OpsLearningSummarySerializer(ops_learning_summary_instance).data)
+
+    @extend_schema(
+        request=None,
+        filters=True,
+        responses=OpsLearningStatSerializer,
+    )
+    @action(
+        detail=False,
+        methods=["GET"],
+        permission_classes=[DenyGuestUserMutationPermission, OpsLearningPermission],
+        url_path="stats",
+    )
+    def stats(self, request):
+        """
+        Get the Ops Learning stats based on the filters
+        """
+        queryset = self.filter_queryset(self.get_queryset()).filter(is_validated=True)
+        ops_data = queryset.aggregate(
+            operations_included=Count("appeal_code", distinct=True),
+            learning_extracts=Count("id", distinct=True),
+            sector_covered=Count("sector_validated", distinct=True),
+            source_used=Count("appeal_document_id", distinct=True),
+        )
+
+        learning_by_sector_qs = (
+            SectorTag.objects.filter(validated_sectors__in=queryset, title__isnull=False)
+            .annotate(sector_id=F("id"), count=Count("validated_sectors", distinct=True))
+            .values("sector_id", "title", "count")
+        )
+
+        # NOTE: Queryset is unbounded, we may need to add some start_date filter.
+        sources_overtime_qs = (
+            queryset.filter(appeal_document_id__isnull=False)
+            .annotate(
+                atype=F("appeal_code__atype"),
+                date=F("appeal_code__start_date"),
+                count=Count("appeal_document_id", distinct=True),
+            )
+            .values("atype", "date", "count")
+        )
+
+        learning_by_region_qs = (
+            Region.objects.filter(appeal__opslearning__in=queryset)
+            .annotate(
+                region_id=F("id"),
+                region_name=F("label"),
+                count=Count("appeal__opslearning", distinct=True),
+            )
+            .values("region_id", "region_name", "count")
+        )
+
+        learning_by_country_qs = (
+            Country.objects.filter(appeal__opslearning__in=queryset)
+            .annotate(
+                country_id=F("id"),
+                country_name=F("name"),
+                count=Count("appeal__opslearning", distinct=True),
+            )
+            .values("country_id", "country_name", "count")
+        )
+
+        data = {
+            "operations_included": ops_data["operations_included"],
+            "learning_extracts": ops_data["learning_extracts"],
+            "sectors_covered": ops_data["sector_covered"],
+            "sources_used": ops_data["source_used"],
+            "learning_by_region": learning_by_region_qs,
+            "learning_by_sector": learning_by_sector_qs,
+            "sources_overtime": sources_overtime_qs,
+            "learning_by_country": learning_by_country_qs,
+        }
+        return response.Response(OpsLearningStatSerializer(data).data)
 
 
 class PerDocumentUploadViewSet(viewsets.ModelViewSet):
