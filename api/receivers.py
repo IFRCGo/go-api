@@ -195,7 +195,11 @@ def handle_fr_for_erp(sender, instance, using, **kwargs):
             push_fr_data(instance)
             return
 
-        req_ass_exists = FieldReport.objects.filter(Q(event_id=instance.event_id) & Q(ns_request_assistance=True)).exists()
+        req_ass_exists = (
+            instance.event_id
+            and FieldReport.objects.filter(Q(event_id=instance.event_id) & Q(ns_request_assistance=True)).exists()
+            or False
+        )
         if not instance.ns_request_assistance and req_ass_exists:
             # If assistance request was dropped, set retired to yes
             push_fr_data(instance, retired=True)
