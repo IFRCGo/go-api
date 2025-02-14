@@ -112,6 +112,7 @@ def push_fr_data(data, retired=False):
             },
         }
     }
+    logger.info(payload)
 
     headers = {
         "Content-Type": "application/json",
