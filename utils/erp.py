@@ -92,7 +92,7 @@ def push_fr_data(data, retired=False):
             "EmergencyId": 0 if data.event_id is None else data.event_id,  # Emergency ID, RequestId
             "EmergencyTitle": requestTitle,  # Emergency name, RequestTitle
             "DisasterStartDate": disasterStartDate,  # Emergency DisasterStartDate
-            "DisasterTypeId": data.dtype.name,  # dtype name. Not dtype_id!
+            "DisasterTypeId": data.dtype.name_en,  # dtype name. Not dtype_id!
             "DataAreaId": "ifrc",
             "FieldReport": {
                 "RequestRetired": retired,  # Not sure if this will be needed/used at all
