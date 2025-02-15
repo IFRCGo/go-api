@@ -1652,7 +1652,9 @@ class MiniSubscriptionSerializer(ModelSerializer):
 class UserSerializer(ModelSerializer):
     profile = ProfileSerializer()
     subscription = MiniSubscriptionSerializer(many=True)
+    # NOTE: This field is annotated in the viewset
     is_ifrc_admin = serializers.BooleanField(read_only=True)
+    is_local_unit_global_validator = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = User
@@ -1666,6 +1668,7 @@ class UserSerializer(ModelSerializer):
             "subscription",
             "is_superuser",
             "is_ifrc_admin",
+            "is_local_unit_global_validator",
         )
 
     def create(self, _):
