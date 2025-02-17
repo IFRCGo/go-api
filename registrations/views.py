@@ -68,9 +68,9 @@ class VerifyEmail(APIView):
             for admin in admins:
                 token = pending_user.admin_token_1
                 email_context = {
-                    "validation_link": "https://%s/validate_user/?token=%s&user=%s"
+                    "validation_link": "%s/validate_user/?token=%s&user=%s"
                     % (
-                        settings.BASE_URL,  # on PROD it should point to goadmin...
+                        settings.GO_API_URL,  # on PROD it should point to goadmin...
                         token,
                         user,
                     ),
