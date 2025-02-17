@@ -36,7 +36,7 @@ class Command(BaseCommand):
         project_id = parsed_url.path.strip("/")
         api_key = parsed_url.username
 
-        SENTRY_INGEST = f"https://{parsed_url.hostname}"
+        SENTRY_INGEST = f"{parsed_url.scheme}://{parsed_url.hostname}"
 
         for cronjob in SentryMonitor.choices:
             job, schedule = cronjob
