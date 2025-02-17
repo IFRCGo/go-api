@@ -15,8 +15,10 @@ x-server: &base_server_setup
     # Other development defaults configs
     DJANGO_DEBUG: ${DJANGO_DEBUG:-true}
     GO_ENVIRONMENT: ${GO_ENVIRONMENT:-development}
-    API_FQDN: ${API_FQDN:-localhost:8000}
-    FRONTEND_URL: ${FRONTEND_URL:-localhost:3000}
+    API_FQDN: ${API_FQDN:-http://localhost:8000}
+    FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+    GO_WEB_INTERNAL_URL: ${GO_WEB_INTERNAL_URL:-http://host.docker.internal:3000}
+    DJANGO_ADDITIONAL_ALLOWED_HOSTS: ${DJANGO_ADDITIONAL_ALLOWED_HOSTS:-host.docker.internal}
     DEBUG_EMAIL: ${DEBUG_EMAIL:-true}
     MOLNIX_API_BASE: ${MOLNIX_API_BASE:-https://api.ifrc-staging.rpm.molnix.com/api/}
     ERP_API_ENDPOINT: ${ERP_API_ENDPOINT:-https://ifrctintapim001.azure-api.net/GoAPI/ExtractGoEmergency}

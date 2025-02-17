@@ -32,6 +32,7 @@ env = environ.Env(
     #
     API_FQDN=str,  # https://goadmin.ifrc.org
     FRONTEND_URL=str,  # https://go.ifrc.org
+    GO_WEB_INTERNAL_URL=(str, None),  # http://host.docker.internal
     # Database
     DJANGO_DB_NAME=str,
     DJANGO_DB_USER=str,
@@ -130,12 +131,18 @@ env = environ.Env(
 
 # Requires uppercase variable https://docs.djangoproject.com/en/2.1/topics/settings/#creating-your-own-settings
 
+def find_env_with_value(*keys: str) -> None | str:
+    for key in keys:
+        if env(key):
+            return key
 
-def parse_domain(env_key: str) -> str:
+
+def parse_domain(*env_keys: str) -> str:
     """
     NOTE: This is used for to avoid breaking due to existing config value
     Update this using django validation
     """
+    env_key = find_env_with_value(*env_keys)
     raw_domain = env(env_key)
     domain = raw_domain
     if not domain.startswith("http"):
@@ -146,6 +153,9 @@ def parse_domain(env_key: str) -> str:
 
 GO_API_URL = parse_domain("API_FQDN")
 GO_WEB_URL = parse_domain("FRONTEND_URL")
+# NOTE: Used in local development to get to the frontend service from within go-api container
+#  GO_WEB_URL will be used if GO_WEB_INTERNAL_URL is not provided
+GO_WEB_INTERNAL_URL = parse_domain("GO_WEB_INTERNAL_URL", "FRONTEND_URL")
 FRONTEND_URL = urlparse(GO_WEB_URL).hostname  # XXX: Deprecated. Slowly remove this from codebase
 
 INTERNAL_IPS = ["127.0.0.1"]

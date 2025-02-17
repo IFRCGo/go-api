@@ -25,7 +25,7 @@ def build_storage_state(tmp_dir, user, token):
     state = {
         "origins": [
             {
-                "origin": "https://" + settings.FRONTEND_URL + "/",
+                "origin": settings.GO_WEB_INTERNAL_URL + "/",
                 "localStorage": [
                     {
                         "name": "user",
