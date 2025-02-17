@@ -3,6 +3,7 @@ import logging
 import os
 import sys
 from datetime import datetime
+from urllib.parse import urlparse
 
 import environ
 import pytz
@@ -29,8 +30,8 @@ env = environ.Env(
     DJANGO_ADDITIONAL_ALLOWED_HOSTS=(list, []),  # Eg: api.go.ifrc.org, goadmin.ifrc.org, dsgocdnapi.azureedge.net
     GO_ENVIRONMENT=(str, "development"),  # staging, production
     #
-    API_FQDN=str,  # sub-domain.domain.domain-extension
     FRONTEND_URL=str,
+    API_FQDN=str,  # https://goadmin.ifrc.org
     # Database
     DJANGO_DB_NAME=str,
     DJANGO_DB_USER=str,
@@ -128,8 +129,22 @@ env = environ.Env(
 
 
 # Requires uppercase variable https://docs.djangoproject.com/en/2.1/topics/settings/#creating-your-own-settings
-BASE_URL = GO_API_FQDN = env("API_FQDN")
 
+
+def parse_domain(env_key: str) -> str:
+    """
+    NOTE: This is used for to avoid breaking due to existing config value
+    Update this using django validation
+    """
+    raw_domain = env(env_key)
+    domain = raw_domain
+    if not domain.startswith("http"):
+        domain = f"https://{domain}"  # Add https as default
+        logger.warning(f"Provided {env_key}: {raw_domain} is missing schema.. Adding https -> {domain}")
+    return domain.strip("/")
+
+
+GO_API_URL = parse_domain("API_FQDN")
 INTERNAL_IPS = ["127.0.0.1"]
 if env("DOCKER_HOST_IP"):
     INTERNAL_IPS.append(env("DOCKER_HOST_IP"))
@@ -146,7 +161,7 @@ DEBUG_TOOLBAR_CONFIG = {
 ALLOWED_HOSTS = [
     "localhost",
     "0.0.0.0",
-    GO_API_FQDN,
+    urlparse(GO_API_URL).hostname,
     *env("DJANGO_ADDITIONAL_ALLOWED_HOSTS"),
 ]
 
@@ -645,7 +660,7 @@ SENTRY_CONFIG = {
     "environment": GO_ENVIRONMENT,
     "debug": DEBUG,
     "tags": {
-        "site": GO_API_FQDN,
+        "site": GO_API_URL,
     },
 }
 if SENTRY_DSN:
