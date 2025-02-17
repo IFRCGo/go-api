@@ -30,8 +30,8 @@ env = environ.Env(
     DJANGO_ADDITIONAL_ALLOWED_HOSTS=(list, []),  # Eg: api.go.ifrc.org, goadmin.ifrc.org, dsgocdnapi.azureedge.net
     GO_ENVIRONMENT=(str, "development"),  # staging, production
     #
-    FRONTEND_URL=str,
     API_FQDN=str,  # https://goadmin.ifrc.org
+    FRONTEND_URL=str,  # https://go.ifrc.org
     # Database
     DJANGO_DB_NAME=str,
     DJANGO_DB_USER=str,
@@ -145,6 +145,9 @@ def parse_domain(env_key: str) -> str:
 
 
 GO_API_URL = parse_domain("API_FQDN")
+GO_WEB_URL = parse_domain("FRONTEND_URL")
+FRONTEND_URL = urlparse(GO_WEB_URL).hostname  # XXX: Deprecated. Slowly remove this from codebase
+
 INTERNAL_IPS = ["127.0.0.1"]
 if env("DOCKER_HOST_IP"):
     INTERNAL_IPS.append(env("DOCKER_HOST_IP"))
@@ -627,8 +630,6 @@ GO_FTPUSER = env("GO_FTPUSER")
 GO_FTPPASS = env("GO_FTPPASS")
 GO_DBPASS = env("GO_DBPASS")
 
-# MISC
-FRONTEND_URL = env("FRONTEND_URL")
 
 # COUNTRY PAGE
 NS_CONTACT_USERNAME = env("NS_CONTACT_USERNAME")
