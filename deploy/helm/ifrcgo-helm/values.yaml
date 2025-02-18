@@ -84,6 +84,24 @@ secretsAdditional:
   # Additional secrets
   # EXAMPLE: MY_SECRET: "my-secret-value"
 
+redis:
+  enabled: true
+  architecture: standalone
+  fullnameOverride: go-redis
+  auth:
+    enabled: false
+  master:
+    persistence:
+      enabled: true
+      size: 1Gi
+    resources:
+      requests:
+        cpu: "0.5"
+        memory: 1Gi
+      limits:
+        cpu: "1"
+        memory: 2Gi
+
 api:
   domain: "go-staging.ifrc.org"
   tls:
@@ -103,16 +121,6 @@ api:
     limits:
       cpu: "2"
       memory: 4Gi
-
-redis:
-  enabled: true
-  resources:
-    requests:
-      cpu: "0.5"
-      memory: 1Gi
-    limits:
-      cpu: "1"
-      memory: 2Gi
 
 celery:
   enabled: true

@@ -5,3 +5,9 @@ version: 0.0.2-SET-BY-CICD
 
 sources:
   - https://github.com/IFRCGo/go-api
+
+dependencies:
+  - name: redis
+    version: "20.7.1"
+    repository: https://charts.bitnami.com/bitnami
+    condition: redis.enabled
