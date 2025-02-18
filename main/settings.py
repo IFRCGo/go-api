@@ -46,6 +46,14 @@ env = environ.Env(
     AZURE_STORAGE_KEY=(str, None),
     AZURE_STORAGE_TOKEN_CREDENTIAL=(str, None),
     AZURE_STORAGE_MANAGED_IDENTITY=(bool, False),
+    # -- S3 storage
+    AWS_S3_ENABLED=(bool, False),
+    AWS_S3_ENDPOINT_URL=(str, None),
+    AWS_S3_ACCESS_KEY_ID=str,
+    AWS_S3_SECRET_ACCESS_KEY=str,
+    AWS_S3_REGION_NAME=str,
+    AWS_S3_MEDIA_BUCKET_NAME=str,
+    AWS_S3_STATIC_BUCKET_NAME=str,
     # -- Filesystem (default) XXX: Don't use for production
     DJANGO_MEDIA_ROOT=(str, os.path.join(BASE_DIR, "media")),
     DJANGO_STATIC_ROOT=(str, os.path.join(BASE_DIR, "static")),
@@ -500,6 +508,38 @@ if env("AZURE_STORAGE_ENABLED"):
         #     },
         # },
     }
+
+# NOTE: This is used for instances outside azure environment
+elif env("AWS_S3_ENABLED"):
+    AWS_S3_CONFIG_OPTIONS = {
+        "endpoint_url": env("AWS_S3_ENDPOINT_URL"),
+        "access_key": env("AWS_S3_ACCESS_KEY_ID"),
+        "secret_key": env("AWS_S3_SECRET_ACCESS_KEY"),
+        "region_name": env("AWS_S3_REGION_NAME"),
+    }
+
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+            "OPTIONS": {
+                **AWS_S3_CONFIG_OPTIONS,
+                "bucket_name": env("AWS_S3_MEDIA_BUCKET_NAME"),
+                "location": "media/",
+                "file_overwrite": False,
+            },
+        },
+        "staticfiles": {
+            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+            "OPTIONS": {
+                **AWS_S3_CONFIG_OPTIONS,
+                "bucket_name": env("AWS_S3_STATIC_BUCKET_NAME"),
+                "querystring_auth": False,
+                "location": "static/",
+                "file_overwrite": True,
+            },
+        },
+    }
+
 else:
     # Filesystem
     MEDIA_ROOT = env("DJANGO_MEDIA_ROOT")
