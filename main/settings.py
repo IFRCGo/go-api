@@ -7,6 +7,7 @@ from urllib.parse import urlparse
 
 import environ
 import pytz
+from azure.identity import DefaultAzureCredential
 from corsheaders.defaults import default_headers
 from django.utils.translation import gettext_lazy as _
 from urllib3.util.retry import Retry
@@ -24,9 +25,7 @@ env = environ.Env(
     DOCKER_HOST_IP=(str, None),
     DJANGO_SECRET_KEY=str,
     DJANGO_MEDIA_URL=(str, "/media/"),
-    DJANGO_MEDIA_ROOT=(str, os.path.join(BASE_DIR, "media")),
     DJANGO_STATIC_URL=(str, "/static/"),
-    DJANGO_STATIC_ROOT=(str, os.path.join(BASE_DIR, "static")),
     DJANGO_ADDITIONAL_ALLOWED_HOSTS=(list, []),  # Eg: api.go.ifrc.org, goadmin.ifrc.org, dsgocdnapi.azureedge.net
     GO_ENVIRONMENT=(str, "development"),  # staging, production
     #
@@ -39,9 +38,17 @@ env = environ.Env(
     DJANGO_DB_PASS=str,
     DJANGO_DB_HOST=str,
     DJANGO_DB_PORT=(int, 5432),
-    # Azure storage
+    # Storage
+    # -- Azure storage
+    AZURE_STORAGE_ENABLED=(bool, False),
+    AZURE_STORAGE_CONNECTION_STRING=(str, None),
     AZURE_STORAGE_ACCOUNT=(str, None),
     AZURE_STORAGE_KEY=(str, None),
+    AZURE_STORAGE_TOKEN_CREDENTIAL=(str, None),
+    AZURE_STORAGE_MANAGED_IDENTITY=(bool, False),
+    # -- Filesystem (default) XXX: Don't use for production
+    DJANGO_MEDIA_ROOT=(str, os.path.join(BASE_DIR, "media")),
+    DJANGO_STATIC_ROOT=(str, os.path.join(BASE_DIR, "static")),
     # Email
     EMAIL_USE_TLS=(bool, True),
     FORCE_USE_SMTP=(bool, False),
@@ -131,6 +138,7 @@ env = environ.Env(
 
 
 # Requires uppercase variable https://docs.djangoproject.com/en/2.1/topics/settings/#creating-your-own-settings
+
 
 def find_env_with_value(*keys: str) -> None | str:
     for key in keys:
@@ -437,39 +445,65 @@ AUTO_TRANSLATION_TRANSLATOR = env("AUTO_TRANSLATION_TRANSLATOR")
 IFRC_TRANSLATION_DOMAIN = env("IFRC_TRANSLATION_DOMAIN")
 IFRC_TRANSLATION_HEADER_API_KEY = env("IFRC_TRANSLATION_HEADER_API_KEY")
 
-MEDIA_URL = env("DJANGO_MEDIA_URL")
-MEDIA_ROOT = env("DJANGO_MEDIA_ROOT")
-
-STATIC_URL = env("DJANGO_STATIC_URL")
-STATIC_ROOT = env("DJANGO_STATIC_ROOT")
-
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "go-static"),
-]
-
 # Needed to generate correct https links when running behind a reverse proxy
 # when SSL is terminated at the proxy
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_SCHEME", "https")
 
+# Storage
+MEDIA_URL = env("DJANGO_MEDIA_URL")
+STATIC_URL = env("DJANGO_STATIC_URL")
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "go-static"),
+]
+
+# NOTE: This is used by api/logger.py which sends logs to azure storage
+# FIXME: Do we need this? We are also using loki for log collections
 AZURE_STORAGE_ACCOUNT = env("AZURE_STORAGE_ACCOUNT")
 AZURE_STORAGE_KEY = env("AZURE_STORAGE_KEY")
 
-AZURE_STORAGE = {
-    "CONTAINER": "api",
-    "ACCOUNT_NAME": AZURE_STORAGE_ACCOUNT,
-    "ACCOUNT_KEY": AZURE_STORAGE_KEY,
-    "CDN_HOST": None,
-    "USE_SSL": False,
-}
-# instead of: if AZURE_STORAGE_ACCOUNT: DEFAULT_FILE_STORAGE = "api.storage.AzureStorage"
-# > https://django-storages.readthedocs.io/en/latest/backends/azure.html
+if env("AZURE_STORAGE_ENABLED"):
 
-AZURE_ACCOUNT_NAME = env("AZURE_STORAGE_ACCOUNT")
-AZURE_ACCOUNT_KEY = env("AZURE_STORAGE_KEY")
-AZURE_CONTAINER = "api"
-if AZURE_STORAGE_ACCOUNT:
-    DEFAULT_FILE_STORAGE = "storages.backends.azure_storage.AzureStorage"
+    AZURE_STORAGE_CONFIG_OPTIONS = {
+        "connection_string": env("AZURE_STORAGE_CONNECTION_STRING"),
+        "overwrite_files": False,
+    }
+
+    if not env("AZURE_STORAGE_CONNECTION_STRING"):
+        AZURE_STORAGE_CONFIG_OPTIONS.update(
+            {
+                "account_name": env("AZURE_STORAGE_ACCOUNT"),
+                "account_key": env("AZURE_STORAGE_KEY"),
+                "token_credential": env("AZURE_STORAGE_TOKEN_CREDENTIAL"),
+            }
+        )
+
+        if env("AZURE_STORAGE_MANAGED_IDENTITY"):
+            AZURE_STORAGE_CONFIG_OPTIONS["token_credential"] = DefaultAzureCredential()
+
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.azure_storage.AzureStorage",
+            "OPTIONS": {
+                **AZURE_STORAGE_CONFIG_OPTIONS,
+                "azure_container": "api",
+            },
+        },
+        # TODO: Use this instead of nginx for staticfiles
+        # "staticfiles": {
+        #     "BACKEND": "storages.backends.azure_storage.AzureStorage",
+        #     "OPTIONS": {
+        #         **AZURE_STORAGE_CONFIG_OPTIONS,
+        #         "azure_container": env("AZURE_STORAGE_STATIC_CONTAINER"),
+        #         "overwrite_files": True,
+        #     },
+        # },
+    }
+else:
+    # Filesystem
+    MEDIA_ROOT = env("DJANGO_MEDIA_ROOT")
+    STATIC_ROOT = env("DJANGO_STATIC_ROOT")
 
 # Email config
 FORCE_USE_SMTP = env("FORCE_USE_SMTP")
