@@ -1,4 +1,4 @@
-apiVersion: v1
+apiVersion: v2
 description: "Helm Chart to deploy the IFRC GO Infrastructure"
 name: ifrcgo-helm
 version: 0.0.2-SET-BY-CICD
