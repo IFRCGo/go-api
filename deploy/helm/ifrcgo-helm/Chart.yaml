@@ -11,3 +11,7 @@ dependencies:
     version: "20.7.1"
     repository: https://charts.bitnami.com/bitnami
     condition: redis.enabled
+  - name: postgresql
+    version: 16.4.9
+    condition: postgresql.enabled
+    repository: https://charts.bitnami.com/bitnami
