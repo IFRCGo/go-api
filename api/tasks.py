@@ -12,10 +12,11 @@ from django.utils import timezone
 from playwright.sync_api import sync_playwright
 from rest_framework.authtoken.models import Token
 
+from main.utils import logger_context
+
 from .logger import logger
 from .models import Export
-
-# from .utils import DebugPlaywright
+from .utils import DebugPlaywright
 
 
 def build_storage_state(tmp_dir, user, token):
@@ -51,9 +52,10 @@ def build_storage_state(tmp_dir, user, token):
 
 @shared_task
 def generate_url(url, export_id, user, title):
-    export = Export.objects.filter(id=export_id).first()
-    user = User.objects.filter(id=user).first()
+    export = Export.objects.get(id=export_id)
+    user = User.objects.get(id=user)
     token = Token.objects.filter(user=user).last()
+
     footer_template = """
         <div class="footer" style="width: 100%;font-size: 8px;color: #FEFEFE; bottom: 10px; position: absolute;">
         <div style="float: left; margin-top: 10px; margin-left: 40px;">
@@ -80,6 +82,7 @@ def generate_url(url, export_id, user, title):
         </div>
         </div>
     """  # noqa: E501
+
     try:
         with tempfile.TemporaryDirectory() as tmp_dir:
             with sync_playwright() as p:
@@ -103,7 +106,8 @@ def generate_url(url, export_id, user, title):
                 )
                 context = browser.new_context(storage_state=storage_state)
                 page = context.new_page()
-                # DebugPlaywright.debug(page)
+                if settings.DEBUG_PLAYWRIGHT:
+                    DebugPlaywright.debug(page)
                 timeout = 300000
                 page.goto(url, timeout=timeout)
                 time.sleep(5)
@@ -131,7 +135,11 @@ def generate_url(url, export_id, user, title):
                     "completed_at",
                 ]
             )
-    except Exception as e:
-        logger.error(e)
+    except Exception:
+        logger.error(
+            "Failed to export PDF",
+            exc_info=True,
+            extra=logger_context(dict(export_id=export.pk)),
+        )
         export.status = Export.ExportStatus.ERRORED
         export.save(update_fields=["status"])

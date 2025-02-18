@@ -82,6 +82,7 @@ env = environ.Env(
     FDRS_CREDENTIAL=(str, None),
     HPC_CREDENTIAL=(str, None),
     APPLICATION_INSIGHTS_INSTRUMENTATION_KEY=(str, None),
+    DEBUG_PLAYWRIGHT=(bool, False),
     # Pytest (Only required when running tests)
     PYTEST_XDIST_WORKER=(str, None),
     # Elastic-Cache
@@ -180,6 +181,7 @@ ALLOWED_HOSTS = [
 
 SECRET_KEY = env("DJANGO_SECRET_KEY")
 DEBUG = env("DJANGO_DEBUG")
+DEBUG_PLAYWRIGHT = env("DEBUG_PLAYWRIGHT")
 GO_ENVIRONMENT = env("GO_ENVIRONMENT")
 
 # See if we are inside a test environment

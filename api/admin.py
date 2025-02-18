@@ -1044,5 +1044,5 @@ admin.site.register(models.UserRegion, UserRegionAdmin)
 admin.site.register(models.CountryOfFieldReportToReview, CountryOfFieldReportToReviewAdmin)
 # admin.site.register(Revision, RevisionAdmin)
 
-admin.site.site_url = "https://" + settings.FRONTEND_URL
+admin.site.site_url = settings.GO_WEB_URL
 admin.widgets.RelatedFieldWidgetWrapper.template_name = "related_widget_wrapper.html"
