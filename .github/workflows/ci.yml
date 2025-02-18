@@ -136,8 +136,16 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v4
 
+      - name: 🐳 Helm dependency
+        working-directory: deploy/helm/ifrcgo-helm
+        run: |
+          yq --indent 0 '.dependencies | map(["helm", "repo", "add", .name, .repository] | join(" ")) | .[]' ./Chart.lock | sh --
+          helm dependency build ./
+
       - name: 🐳 Helm lint
-        run: helm lint deploy/helm/ifrcgo-helm --values ./deploy/helm/ifrcgo-helm/values-staging.yaml
+        working-directory: deploy/helm/ifrcgo-helm
+        run: helm lint ./ --values ./values-staging.yaml
 
       - name: 🐳 Helm template
-        run: helm template deploy/helm/ifrcgo-helm --values ./deploy/helm/ifrcgo-helm/values-staging.yaml
+        working-directory: deploy/helm/ifrcgo-helm
+        run: helm template ./ --values ./values-staging.yaml
