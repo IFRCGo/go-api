@@ -102,6 +102,15 @@ redis:
         cpu: "1"
         memory: 2Gi
 
+postgresql:
+  enabled: false  # XXX: Used for alpha instances running outside Azure
+  fullnameOverride: "go-pg"
+  architecture: standalone
+  primary:
+    persistence:
+      enabled: true
+      size: 8Gi
+
 api:
   domain: "go-staging.ifrc.org"
   tls:
