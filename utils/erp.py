@@ -7,9 +7,11 @@ from django.conf import settings
 
 from api.logger import logger
 from api.models import ERPGUID, RequestChoices
+from main.utils import logger_context
 
 ERP_API_ENDPOINT = settings.ERP_API_ENDPOINT
 ERP_API_SUBSCRIPTION_KEY = settings.ERP_API_SUBSCRIPTION_KEY
+ERP_API_MAX_REQ_TIMEOUT = settings.ERP_API_MAX_REQ_TIMEOUT
 
 
 def push_fr_data(data, retired=False):
@@ -119,8 +121,27 @@ def push_fr_data(data, retired=False):
         "Ocp-Apim-Trace": "true",
         "Ocp-Apim-Subscription-Key": ERP_API_SUBSCRIPTION_KEY,
     }
-    # The response contains the GUID (res.text)
-    res = requests.post(ERP_API_ENDPOINT, json=payload, headers=headers)
+
+    # NOTE: Change this to an asynchronous call
+    try:
+        # The response contains the GUID (res.text)
+        res = requests.post(ERP_API_ENDPOINT, json=payload, headers=headers, timeout=ERP_API_MAX_REQ_TIMEOUT)
+    except requests.exceptions.Timeout:
+        error_context = logger_context(
+            {
+                "field_report_id": data.id,
+                "url": ERP_API_ENDPOINT,
+                "payload": payload,
+                "content": res.content,
+                "headers": headers,
+                "status_code": res.status_code,
+            }
+        )
+        logger.error(
+            "Request to ERP API timed out.",
+            exc_info=True,
+            extra=error_context,
+        )
 
     if res.status_code == 200:
         res_text = res.text.replace('"', "")
