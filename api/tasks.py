@@ -137,7 +137,7 @@ def generate_url(url, export_id, user, title):
             )
     except Exception:
         logger.error(
-            "Failed to export PDF",
+            f"Failed to export PDF: {export.export_type}",
             exc_info=True,
             extra=logger_context(dict(export_id=export.pk)),
         )

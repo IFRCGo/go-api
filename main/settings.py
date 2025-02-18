@@ -54,7 +54,7 @@ env = environ.Env(
     AWS_S3_REGION_NAME=str,
     AWS_S3_MEDIA_BUCKET_NAME=str,
     AWS_S3_STATIC_BUCKET_NAME=str,
-    # -- Filesystem (default) XXX: Don't use for production
+    # -- Filesystem (default) XXX: Don't use in production
     DJANGO_MEDIA_ROOT=(str, os.path.join(BASE_DIR, "media")),
     DJANGO_STATIC_ROOT=(str, os.path.join(BASE_DIR, "static")),
     # Email
@@ -155,10 +155,7 @@ def find_env_with_value(*keys: str) -> None | str:
 
 
 def parse_domain(*env_keys: str) -> str:
-    """
-    NOTE: This is used for to avoid breaking due to existing config value
-    Update this using django validation
-    """
+    # FIXME: This is for backward compatibility for the existing config value
     env_key = find_env_with_value(*env_keys)
     raw_domain = env(env_key)
     domain = raw_domain
@@ -170,10 +167,10 @@ def parse_domain(*env_keys: str) -> str:
 
 GO_API_URL = parse_domain("API_FQDN")
 GO_WEB_URL = parse_domain("FRONTEND_URL")
-# NOTE: Used in local development to get to the frontend service from within go-api container
-#  GO_WEB_URL will be used if GO_WEB_INTERNAL_URL is not provided
+# NOTE: Used in local development to point to the frontend service from within go-api container
+#  Default to GO_WEB_URL if GO_WEB_INTERNAL_URL is not provided
 GO_WEB_INTERNAL_URL = parse_domain("GO_WEB_INTERNAL_URL", "FRONTEND_URL")
-FRONTEND_URL = urlparse(GO_WEB_URL).hostname  # XXX: Deprecated. Slowly remove this from codebase
+FRONTEND_URL = urlparse(GO_WEB_URL).hostname  # FIXME: Deprecated. Slowly remove this from codebase
 
 INTERNAL_IPS = ["127.0.0.1"]
 if env("DOCKER_HOST_IP"):
@@ -498,7 +495,7 @@ if env("AZURE_STORAGE_ENABLED"):
                 "azure_container": "api",
             },
         },
-        # TODO: Use this instead of nginx for staticfiles
+        # FIXME: Use this instead of nginx for staticfiles
         # "staticfiles": {
         #     "BACKEND": "storages.backends.azure_storage.AzureStorage",
         #     "OPTIONS": {
