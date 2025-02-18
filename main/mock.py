@@ -1,7 +1,7 @@
 from unittest.mock import Mock
 
 
-def erp_request_side_effect_mock(url, json, headers):
+def erp_request_side_effect_mock(url, json, headers, timeout):
     def _generate_mock(status_code, json, headers):
         response_mock = Mock()
         response_mock.text = "FindThisGUID"

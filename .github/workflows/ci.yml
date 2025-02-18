@@ -62,13 +62,16 @@ jobs:
         run: |
           BRANCH_NAME=$(echo $GITHUB_REF_NAME | sed 's|:|-|' | tr '[:upper:]' '[:lower:]' | sed 's/_/-/g' | cut -c1-100 | sed 's/-*$//')
 
+          # NOTE: `c` is to avoid error by helm if GITHUB_SHA[:7] has only numbers
+          GIT_HASH="c$(echo $GITHUB_SHA | head -c7)"
+
           # XXX: Check if there is a slash in the BRANCH_NAME eg: project/add-docker
           if [[ "$BRANCH_NAME" == *"/"* ]]; then
               # XXX: Change the docker image package to -alpha
               IMAGE_NAME="$IMAGE_NAME-alpha"
-              TAG="$(echo "$BRANCH_NAME" | sed 's|/|-|g').$(echo $GITHUB_SHA | head -c7)"
+              TAG="$(echo "$BRANCH_NAME" | sed 's|/|-|g').$(echo $GIT_HASH)"
           else
-              TAG="$BRANCH_NAME.$(echo $GITHUB_SHA | head -c7)"
+              TAG="$BRANCH_NAME.$(echo $GIT_HASH)"
           fi
 
           IMAGE_NAME=$(echo $IMAGE_NAME | tr '[:upper:]' '[:lower:]')
