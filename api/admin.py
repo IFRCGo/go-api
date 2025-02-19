@@ -304,6 +304,11 @@ class FieldReportContactInline(admin.TabularInline):
 
 
 class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
+
+    def assist(self, obj):
+        return obj.ns_request_assistance or False
+
+    assist.boolean = True
     country_in = "countries__pk__in"
     region_in = "regions__pk__in"
 
@@ -311,6 +316,7 @@ class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAd
     list_display = (
         "summary",
         "event",
+        "assist",
         "visibility",
     )
     list_select_related = ("event",)
