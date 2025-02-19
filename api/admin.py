@@ -249,12 +249,14 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
                 "field_reports",
                 "auto_generated_source",
                 "parent_event",
+                "name",
             )
         else:
             self.readonly_fields = (
                 "appeals",
                 "field_reports",
                 "auto_generated_source",
+                "name",
             )
 
         return super(EventAdmin, self).changeform_view(request, *args, **kwargs)
