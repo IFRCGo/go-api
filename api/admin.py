@@ -304,6 +304,11 @@ class FieldReportContactInline(admin.TabularInline):
 
 
 class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
+
+    def assist(self, obj):
+        return "+" if obj.ns_request_assistance else ""
+
+    assist.boolean = ""
     country_in = "countries__pk__in"
     region_in = "regions__pk__in"
 
@@ -311,6 +316,8 @@ class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAd
     list_display = (
         "summary",
         "event",
+        "created_at",
+        "assist",
         "visibility",
     )
     list_select_related = ("event",)
@@ -328,7 +335,7 @@ class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAd
     )
 
     readonly_fields = ("report_date", "created_at", "updated_at", "summary", "fr_num")
-    list_filter = [MembershipFilter]
+    list_filter = [MembershipFilter, "ns_request_assistance"]
     actions = [
         "create_events",
         "export_field_reports",
