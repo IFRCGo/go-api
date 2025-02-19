@@ -875,11 +875,11 @@ class Event(models.Model):
 
     def generate_formatted_name(self):
         country_iso3 = self.countries.first().iso3 if self.id and self.countries.first() else "N/A"
-        start_date = timezone.now().strftime("%m-%Y")
+        disaster_start_date = self.disaster_start_date.strftime("%m-%Y")
         for lang in AVAILABLE_LANGUAGES:
             with translation_override(lang):
                 dtype = self.dtype.name if self.dtype else "N/A"
-                self.name = f"{country_iso3}: {dtype} - {start_date} - {self.title}"
+                self.name = f"{country_iso3}: {dtype} - {disaster_start_date} - {self.title}"
                 yield build_localized_fieldname("name", lang)
 
     def save(self, *args, **kwargs):
