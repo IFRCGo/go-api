@@ -29,6 +29,7 @@ from dref.models import (
     PlannedIntervention,
     PlannedInterventionIndicators,
     ProposedAction,
+    ProposedActionActivities,
     RiskSecurity,
     SourceInformation,
 )
@@ -58,15 +59,39 @@ class PlannedInterventionIndicatorsSerializer(ModelSerializer):
         fields = "__all__"
 
 
+class ProposedActionActivitySerializer(ModelSerializer):
+    sector = serializers.PrimaryKeyRelatedField(queryset=Sector.objects.all(), required=True)
+
+    class Meta:
+        model = ProposedActionActivities
+        fields = "__all__"
+
+
 class ProposedActionSerializer(serializers.ModelSerializer):
 
     proposed_type_display = serializers.CharField(source="get_proposed_type_display", read_only=True)
-    activity = serializers.PrimaryKeyRelatedField(queryset=Sector.objects.all(), required=True)
-    budget = serializers.IntegerField(required=True)
+    activities = ProposedActionActivitySerializer(many=True, required=False)
+    total_budget = serializers.IntegerField(required=True)
 
     class Meta:
         model = ProposedAction
         fields = "__all__"
+
+    def create(self, validated_data):
+        activities = validated_data.pop("activities", [])
+        proposed_action = super().create(validated_data)
+        for activity in activities:
+            activity_object = ProposedActionActivities.objects.create(**activity)
+            proposed_action.activities.add(activity_object)
+        return proposed_action
+
+    def update(self, instance, validated_data):
+        activities = validated_data.pop("activities", [])
+        proposed_action = super().update(instance, validated_data)
+        for activity in activities:
+            activity_object = ProposedActionActivities.objects.get_or_create(**activity)
+            proposed_action.activities.add(activity_object)
+        return proposed_action
 
 
 class DrefFileInputSerializer(serializers.Serializer):
@@ -356,10 +381,10 @@ class MiniDrefFinalReportSerializer(ModelSerializer):
 
 
 class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
-    SUB_TOTAL = 75000
+    SUB_TOTAL_COST = 75000
     SURGE_DEPLOYMENT_COST = 10000
-    INDIRECT_COST_SURGE = 5800
-    INDIRECT_COST_NO_SURGE = 5000
+    SURGE_INDIRECT_COST = 5800
+    NO_SURGE_INDIRECT_COST = 5000
     MAX_NUMBER_OF_IMAGES = 4
     ALLOWED_BUDGET_FILE_EXTENSIONS = ["pdf"]
     ALLOWED_ASSESSMENT_REPORT_EXTENSIONS = ["pdf", "docx", "pptx", "xlsx"]
@@ -399,13 +424,13 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
     modified_at = serializers.DateTimeField(required=False)
     dref_access_user_list = serializers.SerializerMethodField()
     source_information = SourceInformationSerializer(many=True, required=False)
-    # NOTE: Commenting out for reverting dref imminent new flow
-    # scenario_analysis_supporting_document_details = DrefFileSerializer(
-    #     source="scenario_analysis_supporting_document", read_only=True, required=False, allow_null=True
-    # )
-    # contingency_plans_supporting_document_details = DrefFileSerializer(
-    #     source="contingency_plans_supporting_document", read_only=True, required=False, allow_null=True
-    # )
+    scenario_analysis_supporting_document_details = DrefFileSerializer(
+        source="scenario_analysis_supporting_document", read_only=True, required=False, allow_null=True
+    )
+    contingency_plans_supporting_document_details = DrefFileSerializer(
+        source="contingency_plans_supporting_document", read_only=True, required=False, allow_null=True
+    )
+    proposed_action = ProposedActionSerializer(many=True, required=False)
 
     class Meta:
         model = Dref
@@ -467,76 +492,75 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
             raise serializers.ValidationError(
                 gettext("Operation timeframe can't be greater than %s for assessment_report" % self.MAX_OPERATION_TIMEFRAME)
             )
-        return data
 
         # NOTE: Validation for type DREF Imminent
-        # NOTE: Commenting out the validation for DREF IMMINENT as of now
-        # if data.get("type_of_dref") == Dref.DrefType.IMMINENT:
-        #     is_surge_personnel_deployed = data.get("is_surge_personnel_deployed")
-        #     sub_total = data.get("sub_total")
-        #     surge_deployment_cost = data.get("surge_deployment_cost")
-        #     indirect_cost = data.get("indirect_cost")
-        #     total = data.get("total")
-        #     proposed_actions = data.get("proposed_action", [])
+        if data.get("type_of_dref") == Dref.DrefType.IMMINENT:
+            is_surge_personnel_deployed = data.get("is_surge_personnel_deployed")
+            sub_total_cost = data.get("sub_total_cost")
+            surge_deployment_cost = data.get("surge_deployment_cost")
+            indirect_cost = data.get("indirect_cost")
+            total_cost = data.get("total_cost")
+            proposed_actions = data.get("proposed_action", [])
 
-        #     if not proposed_actions:
-        #         raise serializers.ValidationError(
-        #             {"proposed_action": gettext("Proposed Action is required for type DREF Imminent")}
-        #         )
-        #     if not sub_total:
-        #         raise serializers.ValidationError({"sub_total": gettext("Sub-total is required for Imminent DREF")})
-        #     if sub_total != self.SUB_TOTAL:
-        #         raise serializers.ValidationError(
-        #             {"sub_total": gettext("Sub-total should be equal to %s for Imminent DREF" % self.SUB_TOTAL)}
-        #         )
-        #     if is_surge_personnel_deployed and not surge_deployment_cost:
-        #         raise serializers.ValidationError(
-        #             {"surge_deployment_cost": gettext("Surge Deployment is required for Imminent DREF")}
-        #         )
-        #     if not indirect_cost:
-        #         raise serializers.ValidationError({"indirect_cost": gettext("Indirect Cost is required for Imminent DREF")})
-        #     if not total:
-        #         raise serializers.ValidationError({"total": gettext("Total is required for Imminent DREF")})
+            if not proposed_actions:
+                raise serializers.ValidationError(
+                    {"proposed_action": gettext("Proposed Action is required for type DREF Imminent")}
+                )
+            if not sub_total_cost:
+                raise serializers.ValidationError({"sub_total_cost": gettext("Sub-total is required for Imminent DREF")})
+            if sub_total_cost != self.SUB_TOTAL_COST:
+                raise serializers.ValidationError(
+                    {"sub_total": gettext("Sub-total should be equal to %s for Imminent DREF" % self.SUB_TOTAL_COST)}
+                )
+            if is_surge_personnel_deployed and not surge_deployment_cost:
+                raise serializers.ValidationError(
+                    {"surge_deployment_cost": gettext("Surge Deployment is required for Imminent DREF")}
+                )
+            if not indirect_cost:
+                raise serializers.ValidationError({"indirect_cost": gettext("Indirect Cost is required for Imminent DREF")})
+            if not total_cost:
+                raise serializers.ValidationError({"total_cost": gettext("Total is required for Imminent DREF")})
 
-        #     proposed_budget = sum(action.get("budget", 0) for action in proposed_actions)
-        #     if proposed_budget != sub_total:
-        #         raise serializers.ValidationError("Sub-total should be equal to proposed budget")
+            total_proposed_budget = sum(action.get("total_budget", 0) for action in proposed_actions)
+            if total_proposed_budget != sub_total_cost:
+                raise serializers.ValidationError("Sub-total should be equal to proposed budget")
 
-        #     if is_surge_personnel_deployed:
-        #         if surge_deployment_cost != self.SURGE_DEPLOYMENT_COST:
-        #             raise serializers.ValidationError(
-        #                 {
-        #                     "surge_deployment_cost": gettext(
-        #                         "Surge Deployment Cost should be equal to %s for Surge Personnel Deployed"
-        #                         % self.SURGE_DEPLOYMENT_COST
-        #                     )
-        #                 }
-        #             )
-        #         if indirect_cost != self.INDIRECT_COST_SURGE:
-        #             raise serializers.ValidationError(
-        #                 {
-        #                     "indirect_cost": gettext(
-        #                         "Indirect Cost should be equal to %s for Surge Personnel Deployed" % self.INDIRECT_COST_SURGE
-        #                     )
-        #                 }
-        #             )
-        #         expected_total = surge_deployment_cost + indirect_cost + sub_total
-        #     else:
-        #         if indirect_cost != self.INDIRECT_COST_NO_SURGE:
-        #             raise serializers.ValidationError(
-        #                 {
-        #                     "indirect_cost": gettext(
-        #                         "Indirect Cost should be equal to %s for No Surge Personnel Deployed"
-        #                         % self.INDIRECT_COST_NO_SURGE
-        #                     )
-        #                 }
-        #             )
-        #         expected_total = indirect_cost + sub_total
+            if is_surge_personnel_deployed:
+                if surge_deployment_cost != self.SURGE_DEPLOYMENT_COST:
+                    raise serializers.ValidationError(
+                        {
+                            "surge_deployment_cost": gettext(
+                                "Surge Deployment Cost should be equal to %s for Surge Personnel Deployed"
+                                % self.SURGE_DEPLOYMENT_COST
+                            )
+                        }
+                    )
+                if indirect_cost != self.SURGE_INDIRECT_COST:
+                    raise serializers.ValidationError(
+                        {
+                            "indirect_cost": gettext(
+                                "Indirect Cost should be equal to %s for Surge Personnel Deployed" % self.SURGE_INDIRECT_COST
+                            )
+                        }
+                    )
+                expected_total = surge_deployment_cost + indirect_cost + sub_total_cost
+            else:
+                if indirect_cost != self.NO_SURGE_INDIRECT_COST:
+                    raise serializers.ValidationError(
+                        {
+                            "indirect_cost": gettext(
+                                "Indirect Cost should be equal to %s for No Surge Personnel Deployed"
+                                % self.NO_SURGE_INDIRECT_COST
+                            )
+                        }
+                    )
+                expected_total = indirect_cost + sub_total_cost
 
-        #     if expected_total != total:
-        #         raise serializers.ValidationError(
-        #             {"total": gettext("Total should be equal to sum of Sub-total, Surge Deployment Cost and Indirect Cost")}
-        #         )
+            if expected_total != total_cost:
+                raise serializers.ValidationError(
+                    {"total_cost": gettext("Total should be equal to sum of Sub-total, Surge Deployment Cost and Indirect Cost")}
+                )
+        return data
 
     def validate_images_file(self, images):
         # Don't allow images more than MAX_NUMBER_OF_IMAGES
