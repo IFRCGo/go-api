@@ -165,7 +165,7 @@ class HayStackSearch(APIView):
                     emergency_response = (
                         SearchQuerySet()
                         .models(Event)
-                        .filter(SQ(name__content=phrase) | SQ(iso3__content=phrase))
+                        .filter(SQ(name__content=phrase) | SQ(iso3__content=phrase) | SQ(countries__content=phrase))
                         .order_by("-_score")
                     )
                     fieldreport_response = (
@@ -215,7 +215,10 @@ class HayStackSearch(APIView):
                     emergency_response = (
                         SearchQuerySet()
                         .models(Event)
-                        .filter((SQ(name__content=phrase) | SQ(iso3__content=phrase)) & ~SQ(visibility="IFRC Only"))
+                        .filter(
+                            (SQ(name__content=phrase) | SQ(country__iso3__content=phrase) | SQ(countries__content=phrase))
+                            & ~SQ(visibility="IFRC Only")
+                        )
                         .order_by("-_score")
                     )
                     fieldreport_response = (

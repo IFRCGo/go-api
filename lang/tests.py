@@ -244,6 +244,8 @@ class TranslatorMockTest(unittest.TestCase):
         ]:
             with override_settings(
                 AUTO_TRANSLATION_TRANSLATOR="lang.translation.IfrcTranslator",
+                IFRC_TRANSLATION_DOMAIN=None,
+                IFRC_TRANSLATION_API_KEY=None,
                 **settings_params,
             ):
                 with self.assertRaises(Exception):

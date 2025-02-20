@@ -26,14 +26,14 @@ class EventTest(TestCase):
 
     def setUp(self):
         dtype = models.DisasterType.objects.get(pk=1)
-        models.Event.objects.create(title="disaster1", summary="test disaster", dtype=dtype)
-        event = models.Event.objects.create(title="disaster2", summary="another test disaster", dtype=dtype)
+        models.Event.objects.create(name="disaster1", summary="test disaster", dtype=dtype)
+        event = models.Event.objects.create(name="disaster2", summary="another test disaster", dtype=dtype)
         models.KeyFigure.objects.create(event=event, number=7, deck="things", source="website")
         models.Snippet.objects.create(event=event, snippet="this is a snippet")
 
     def test_disaster_create(self):
-        obj1 = models.Event.objects.get(title="disaster1")
-        obj2 = models.Event.objects.get(title="disaster2")
+        obj1 = models.Event.objects.get(name="disaster1")
+        obj2 = models.Event.objects.get(name="disaster2")
         self.assertEqual(obj1.summary, "test disaster")
         self.assertEqual(obj2.summary, "another test disaster")
         keyfig = obj2.key_figures.all()
@@ -68,7 +68,7 @@ class ProfileTest(TestCase):
 class AppealTest(APITestCase):
     def setUp(self):
         # An appeal with needs_confirmation=True should not return the event in the API response.
-        event = models.Event.objects.create(title="associated event", summary="foo")
+        event = models.Event.objects.create(name="associated event", summary="foo")
         country = models.Country.objects.create(name="country")
         models.Appeal.objects.create(
             aid="test1", name="appeal", atype=1, code="abc", needs_confirmation=True, event=event, country=country
@@ -87,13 +87,13 @@ class FieldReportTest(TestCase):
 
     def setUp(self):
         dtype = models.DisasterType.objects.get(pk=1)
-        event = models.Event.objects.create(title="disaster1", summary="test disaster", dtype=dtype)
+        event = models.Event.objects.create(name="disaster1", summary="test disaster", dtype=dtype)
         country = models.Country.objects.create(name="country")
         report = models.FieldReport.objects.create(rid="test1", event=event, dtype=dtype)
         report.countries.add(country)
 
     def test_field_report_create(self):
-        event = models.Event.objects.get(title="disaster1")
+        event = models.Event.objects.get(name="disaster1")
         country = models.Country.objects.get(name="country")
         self.assertEqual(event.field_reports.all()[0].countries.all()[0], country)
         obj = models.FieldReport.objects.get(rid="test1")

@@ -204,7 +204,7 @@ class TestProjectAPI(SnapshotTestCase):
             slug="event-slug",
             districts=[district1.id, district2.id],
             dtype=dtype,
-            title="event-1",
+            name="event-1",
         )
         ProjectFactory.create_batch(
             10,
