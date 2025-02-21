@@ -84,6 +84,64 @@ secretsAdditional:
   # Additional secrets
   # EXAMPLE: MY_SECRET: "my-secret-value"
 
+redis:
+  enabled: true
+  architecture: standalone
+  fullnameOverride: go-redis
+  auth:
+    enabled: false
+  master:
+    persistence:
+      enabled: true
+      size: 1Gi
+    resources:
+      requests:
+        cpu: "0.5"
+        memory: 1Gi
+      limits:
+        cpu: "1"
+        memory: 2Gi
+
+# https://artifacthub.io/packages/helm/bitnami/minio
+# extraEnvVars: https://github.com/bitnami/containers/blob/main/bitnami/minio/README.md#environment-variables
+minio:
+  enabled: false  # XXX: Used for alpha instances running outside Azure
+  disableWebUI: true
+  mode: standalone
+  fullnameOverride: go-minio
+  global:
+    defaultStorageClass:
+  apiIngress:
+    enabled: true
+    ingressClassName:
+    hostname:
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+  auth:
+    forceNewKeys: True
+    rootUser: go
+    rootPassword:
+  persistence:
+    enabled: true
+    size: 1Gi
+  defaultBuckets: go-data,go-static
+  provisioning:
+    enabled: true
+    resourcesPreset: "nano"
+    cleanupAfterFinished:
+      enabled: true
+    extraCommands:
+      - "mc anonymous set download provisioning/go-static"
+
+postgresql:
+  enabled: false  # XXX: Used for alpha instances running outside Azure
+  fullnameOverride: "go-pg"
+  architecture: standalone
+  primary:
+    persistence:
+      enabled: true
+      size: 8Gi
+
 api:
   domain: "go-staging.ifrc.org"
   tls:
@@ -103,16 +161,6 @@ api:
     limits:
       cpu: "2"
       memory: 4Gi
-
-redis:
-  enabled: true
-  resources:
-    requests:
-      cpu: "0.5"
-      memory: 1Gi
-    limits:
-      cpu: "1"
-      memory: 2Gi
 
 celery:
   enabled: true

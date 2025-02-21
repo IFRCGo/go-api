@@ -42,7 +42,7 @@ jobs:
     - name: 🐳 Helm dependency
       working-directory: deploy/helm/ifrcgo-helm
       run: |
-        yq --indent 0 '.dependencies | map(["helm", "repo", "add", .name, .repository] | join(" ")) | .[]' ./helm/Chart.lock  | sh --
+        yq --indent 0 '.dependencies | map(["helm", "repo", "add", .name, .repository] | join(" ")) | .[]' ./Chart.lock | sh --
         helm dependency build ./
 
     - name: Tag docker image in Helm Chart values.yaml

@@ -2436,9 +2436,9 @@ class ExportSerializer(serializers.ModelSerializer):
             title = "Export"
         user = self.context["request"].user
         if export_type == Export.ExportType.PER:
-            validated_data["url"] = f"https://{settings.FRONTEND_URL}/countries/{country_id}/{export_type}/{export_id}/export/"
+            validated_data["url"] = f"{settings.GO_WEB_INTERNAL_URL}/countries/{country_id}/{export_type}/{export_id}/export/"
         else:
-            validated_data["url"] = f"https://{settings.FRONTEND_URL}/{export_type}/{export_id}/export/"
+            validated_data["url"] = f"{settings.GO_WEB_INTERNAL_URL}/{export_type}/{export_id}/export/"
 
         # Adding is_pga to the url
         is_pga = validated_data.pop("is_pga")

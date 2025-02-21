@@ -41,7 +41,7 @@ django-modeltranslation = "==0.17.5"
 django-read-only = "==1.12.0"
 django-reversion-compare = "==0.16.2"
 django-reversion = "==5.0.12"
-django-storages = "==1.11.1"
+django-storages = { version = "==1.11.1", extras = ["s3", "azure"] }
 django-tinymce = "==4.1.0"
 django-oauth-toolkit = "3.0.1"
 djangorestframework-csv = "==2.1.1"
@@ -88,7 +88,7 @@ drf-spectacular = "*"
 pyjwt = "*"
 shapely = "*"
 colorlog = "*"
-
+azure-identity = "*"  # Required by django-storages[azure] if used
 mapbox-tilesets = "*"
 ipython = "*"
 tiktoken = "*"

@@ -7,8 +7,21 @@ metadata:
     environment: {{ .Values.environment }}
     release: {{ .Release.Name }}
 data:
-  CELERY_REDIS_URL: "redis://{{ template "ifrcgo-helm.fullname" . }}-redis:6379/0"
-  CACHE_REDIS_URL: "redis://{{ template "ifrcgo-helm.fullname" . }}-redis:6379/1"
+  # Redis
+  {{- if .Values.redis.enabled }}
+  CELERY_REDIS_URL: "redis://{{ printf "%s-master" (include "common.names.fullname" .Subcharts.redis) }}:6379/0"
+  CACHE_REDIS_URL: "redis://{{ printf "%s-master" (include "common.names.fullname" .Subcharts.redis) }}:6379/1"
+  {{- else }}
+  CELERY_REDIS_URL: {{ required "env.CELERY_REDIS_URL" .Values.env.CELERY_REDIS_URL | quote }}
+  CACHE_REDIS_URL: {{ required "env.CACHE_REDIS_URL" .Values.env.CACHE_REDIS_URL | quote }}
+  {{- end }}
+
+  {{- if .Values.minio.enabled }}
+  AWS_S3_ENABLED: "true"
+  {{- else }}
+  AZURE_STORAGE_ENABLED: "true"
+  {{- end }}
+
   CACHE_MIDDLEWARE_SECONDS: {{ .Values.env.CACHE_MIDDLEWARE_SECONDS | quote }}
   DJANGO_DEBUG: {{ .Values.env.DJANGO_DEBUG | quote }}
   ELASTIC_SEARCH_HOST: {{ default (printf "elasticsearch://%s-elasticsearch:9200" (include "ifrcgo-helm.fullname" .)) .Values.env.ELASTIC_SEARCH_HOST | quote }}
