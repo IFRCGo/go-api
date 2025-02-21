@@ -7,7 +7,8 @@ from urllib.parse import urlparse
 
 import environ
 import pytz
-from azure.identity import DefaultAzureCredential
+
+# from azure.identity import DefaultAzureCredential
 from corsheaders.defaults import default_headers
 from django.utils.translation import gettext_lazy as _
 from urllib3.util.retry import Retry
@@ -470,6 +471,7 @@ AZURE_STORAGE_KEY = env("AZURE_STORAGE_KEY")
 
 if env("AZURE_STORAGE_ENABLED"):
 
+    STATIC_ROOT = env("DJANGO_STATIC_ROOT")
     AZURE_STORAGE_CONFIG_OPTIONS = {
         "connection_string": env("AZURE_STORAGE_CONNECTION_STRING"),
         "overwrite_files": False,
@@ -484,8 +486,8 @@ if env("AZURE_STORAGE_ENABLED"):
             }
         )
 
-        if env("AZURE_STORAGE_MANAGED_IDENTITY"):
-            AZURE_STORAGE_CONFIG_OPTIONS["token_credential"] = DefaultAzureCredential()
+        # if env("AZURE_STORAGE_MANAGED_IDENTITY"):
+        #     AZURE_STORAGE_CONFIG_OPTIONS["token_credential"] = DefaultAzureCredential()
 
     STORAGES = {
         "default": {
@@ -495,15 +497,16 @@ if env("AZURE_STORAGE_ENABLED"):
                 "azure_container": "api",
             },
         },
-        # FIXME: Use this instead of nginx for staticfiles
-        # "staticfiles": {
-        #     "BACKEND": "storages.backends.azure_storage.AzureStorage",
-        #     "OPTIONS": {
-        #         **AZURE_STORAGE_CONFIG_OPTIONS,
-        #         "azure_container": env("AZURE_STORAGE_STATIC_CONTAINER"),
-        #         "overwrite_files": True,
-        #     },
-        # },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+            # FIXME: Use this instead of nginx for staticfiles
+            # "BACKEND": "storages.backends.azure_storage.AzureStorage",
+            # "OPTIONS": {
+            #     **AZURE_STORAGE_CONFIG_OPTIONS,
+            #     "azure_container": env("AZURE_STORAGE_STATIC_CONTAINER"),
+            #     "overwrite_files": True,
+            # },
+        },
     }
 
 # NOTE: This is used for instances outside azure environment
