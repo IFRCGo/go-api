@@ -16,6 +16,12 @@ data:
   CACHE_REDIS_URL: {{ required "env.CACHE_REDIS_URL" .Values.env.CACHE_REDIS_URL | quote }}
   {{- end }}
 
+  {{- if .Values.minio.enabled }}
+  AWS_S3_ENABLED: "true"
+  {{- else }}
+  AZURE_STORAGE_ENABLED: "true"
+  {{- end }}
+
   CACHE_MIDDLEWARE_SECONDS: {{ .Values.env.CACHE_MIDDLEWARE_SECONDS | quote }}
   DJANGO_DEBUG: {{ .Values.env.DJANGO_DEBUG | quote }}
   ELASTIC_SEARCH_HOST: {{ default (printf "elasticsearch://%s-elasticsearch:9200" (include "ifrcgo-helm.fullname" .)) .Values.env.ELASTIC_SEARCH_HOST | quote }}
