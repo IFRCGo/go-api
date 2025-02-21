@@ -293,3 +293,7 @@ To import GEC codes along with country ids, run `python manage.py import-gec-cod
 ## SSO setup
 
 For more info checkout [GO-SSO](./docs/go-sso.md)
+
+## Playwright exports
+
+For more info checkout [Playwright exports](./docs/playwright-exports.md)
