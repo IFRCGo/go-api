@@ -44,7 +44,9 @@ class TestProjectAPI(SnapshotTestCase):
     def test_project_list_one(self):
         # create instance
         sct = SectorFactory()
-        ProjectFactory.create(visibility=VisibilityCharChoices.PUBLIC, primary_sector=sct)
+        _country = country.CountryFactory(name="country-1", society_name="society-name-1", iso3="NPL")
+        event = EventFactory(title="event-1", countries=[_country.id])
+        ProjectFactory.create(visibility=VisibilityCharChoices.PUBLIC, primary_sector=sct, event=event)
 
         # submit list request
         response = self.client.get("/api/v2/project/")
@@ -56,7 +58,9 @@ class TestProjectAPI(SnapshotTestCase):
     def test_project_list_two(self):
         # create instances
         sct = SectorFactory()
-        ProjectFactory.create_batch(2, visibility=VisibilityCharChoices.PUBLIC, primary_sector=sct)
+        _country = country.CountryFactory(name="country-1", society_name="society-name-1", iso3="NPL")
+        event = EventFactory(title="event-1", countries=[_country.id])
+        ProjectFactory.create_batch(2, event=event, visibility=VisibilityCharChoices.PUBLIC, primary_sector=sct)
 
         # submit list request
         response = self.client.get("/api/v2/project/")
@@ -109,7 +113,9 @@ class TestProjectAPI(SnapshotTestCase):
     def test_project_read(self):
         # create instance
         sct = SectorFactory()
-        new_project = ProjectFactory.create(visibility=VisibilityCharChoices.PUBLIC, primary_sector=sct)
+        _country = country.CountryFactory(name="country-1", society_name="society-name-1", iso3="NPL")
+        event = EventFactory(title="event-1", countries=[_country.id])
+        new_project = ProjectFactory.create(event=event, visibility=VisibilityCharChoices.PUBLIC, primary_sector=sct)
 
         # submit read request
         response = self.client.get(f"/api/v2/project/{new_project.pk}/")
@@ -121,7 +127,9 @@ class TestProjectAPI(SnapshotTestCase):
     def test_project_update(self):
         # create instance
         sct = SectorFactory()
-        new_project = ProjectFactory.create(visibility=VisibilityCharChoices.PUBLIC, primary_sector=sct)
+        _country = country.CountryFactory(name="country-1", society_name="society-name-1", iso3="NPL")
+        event = EventFactory(title="event-1", countries=[_country.id])
+        new_project = ProjectFactory.create(event=event, visibility=VisibilityCharChoices.PUBLIC, primary_sector=sct)
 
         # authenticate
         self.authenticate()
@@ -191,7 +199,7 @@ class TestProjectAPI(SnapshotTestCase):
         self.assertMatchSnapshot(resp.content.decode("utf-8"))
 
     def test_project_csv_api(self):
-        _country = country.CountryFactory(name="country-1", society_name="society-name-1")
+        _country = country.CountryFactory(name="country-1", society_name="society-name-1", iso3="NPL")
         sct = SectorFactory(title="sect-1", order=1)
         sct_1 = SectorTagFactory(title="sec-tag-1", order=2)
         sct_2 = SectorTagFactory(title="sec-tag-2", order=3)
@@ -204,7 +212,7 @@ class TestProjectAPI(SnapshotTestCase):
             slug="event-slug",
             districts=[district1.id, district2.id],
             dtype=dtype,
-            name="event-1",
+            title="event-1",
         )
         ProjectFactory.create_batch(
             10,

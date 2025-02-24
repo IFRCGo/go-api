@@ -308,7 +308,7 @@ class SituationReportTypeTest(APITestCase):
         type1 = models.SituationReportType.objects.create(type="Lyric")
         type2 = models.SituationReportType.objects.create(type="Epic")
         dtype1 = models.DisasterType.objects.get(pk=1)
-        event1 = models.Event.objects.create(name="disaster1", summary="test disaster1", dtype=dtype1)
+        event1 = models.Event.objects.create(title="disaster1", summary="test disaster1", dtype=dtype1)
 
         models.SituationReport.objects.create(name="test1", event=event1, type=type1, visibility=3)
         models.SituationReport.objects.create(name="test2", event=event1, type=type2, visibility=3)
@@ -386,7 +386,7 @@ class FieldReportTest(APITestCase):
         self.assertEqual(created.title_en, "test")
 
         # created an emergency automatically
-        self.assertEqual(created.event.name, response["summary"])
+        self.assertEqual(created.event.title, "test")
         # event_pk = created.event.id
 
         # body['countries'] = [country2.id]

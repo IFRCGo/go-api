@@ -741,6 +741,19 @@ def snippet_image_path(instance, filename):
 class Event(models.Model):
     """A disaster, which could cover multiple countries"""
 
+    title = models.CharField(
+        max_length=256,
+        blank=True,
+        help_text=_(
+            "Title is used to generate the name of the Emergency. </br>"
+            "The name is constructed as: "
+            "<b><i>Country IS03 or Name: Disaster Type - Start Date - Title</b><i>"
+        ),
+    )
+    skip_auto_generate_name = models.BooleanField(
+        default=False,
+        help_text=_("<b>If checked, the name of the Emergency will not be auto-generated. </b>"),
+    )
     name = models.CharField(verbose_name=_("name"), max_length=256)
     dtype = models.ForeignKey(DisasterType, verbose_name=_("disaster type"), null=True, on_delete=models.SET_NULL)
     disaster_start_date = models.DateTimeField(verbose_name=_("disaster start date"))
@@ -872,6 +885,22 @@ class Event(models.Model):
     def to_dict(self):
         return to_dict(self)
 
+    def generate_formatted_name(self):
+        disaster_start_date = self.disaster_start_date.strftime("%m-%Y")
+        # NOTE: using the country name if the iso3 is not available eg: Africa Region
+        country_iso3_or_name = (
+            self.countries.first().iso3 or self.countries.first().name if self.id and self.countries.first() else "N/A"
+        )
+        for lang in AVAILABLE_LANGUAGES:
+            with translation_override(lang):
+                dtype = self.dtype.name if self.dtype else "N/A"
+                # NOTE: Skip Auto generating name if the skip_auto_generate_name is True
+                if self.skip_auto_generate_name:
+                    self.name = self.title
+                else:
+                    self.name = f"{country_iso3_or_name}: {dtype} - {disaster_start_date} - {self.title}"
+                yield build_localized_fieldname("name", lang)
+
     def save(self, *args, **kwargs):
 
         # Make the slug lowercase
@@ -881,6 +910,15 @@ class Event(models.Model):
         # On save, if `disaster_start_date` is not set, make it the current time
         if not self.id and not self.disaster_start_date:
             self.disaster_start_date = timezone.now()
+
+        updated_name_fields = list(self.generate_formatted_name())
+
+        # Updating the updated_fields with the fields that are updated
+        if kwargs.get("update_fields"):
+            kwargs["update_fields"] = (
+                *kwargs["update_fields"],
+                *updated_name_fields,
+            )
 
         return super(Event, self).save(*args, **kwargs)
 

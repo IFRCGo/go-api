@@ -248,12 +248,14 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
                 "field_reports",
                 "auto_generated_source",
                 "parent_event",
+                "name",
             )
         else:
             self.readonly_fields = (
                 "appeals",
                 "field_reports",
                 "auto_generated_source",
+                "name",
             )
 
         return super(EventAdmin, self).changeform_view(request, *args, **kwargs)
@@ -337,7 +339,7 @@ class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAd
     def create_events(self, request, queryset):
         for report in queryset:
             event = models.Event.objects.create(
-                name=report.summary,
+                title=report.title,
                 dtype=getattr(report, "dtype"),
                 disaster_start_date=getattr(report, "created_at"),
                 auto_generated=True,
