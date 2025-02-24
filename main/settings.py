@@ -3,9 +3,12 @@ import logging
 import os
 import sys
 from datetime import datetime
+from urllib.parse import urlparse
 
 import environ
 import pytz
+
+# from azure.identity import DefaultAzureCredential
 from corsheaders.defaults import default_headers
 from django.utils.translation import gettext_lazy as _
 from urllib3.util.retry import Retry
@@ -23,23 +26,38 @@ env = environ.Env(
     DOCKER_HOST_IP=(str, None),
     DJANGO_SECRET_KEY=str,
     DJANGO_MEDIA_URL=(str, "/media/"),
-    DJANGO_MEDIA_ROOT=(str, os.path.join(BASE_DIR, "media")),
     DJANGO_STATIC_URL=(str, "/static/"),
-    DJANGO_STATIC_ROOT=(str, os.path.join(BASE_DIR, "static")),
     DJANGO_ADDITIONAL_ALLOWED_HOSTS=(list, []),  # Eg: api.go.ifrc.org, goadmin.ifrc.org, dsgocdnapi.azureedge.net
     GO_ENVIRONMENT=(str, "development"),  # staging, production
     #
-    API_FQDN=str,  # sub-domain.domain.domain-extension
-    FRONTEND_URL=str,
+    API_FQDN=str,  # https://goadmin.ifrc.org
+    FRONTEND_URL=str,  # https://go.ifrc.org
+    GO_WEB_INTERNAL_URL=(str, None),  # http://host.docker.internal
     # Database
     DJANGO_DB_NAME=str,
     DJANGO_DB_USER=str,
     DJANGO_DB_PASS=str,
     DJANGO_DB_HOST=str,
     DJANGO_DB_PORT=(int, 5432),
-    # Azure storage
+    # Storage
+    # -- Azure storage
+    AZURE_STORAGE_ENABLED=(bool, False),
+    AZURE_STORAGE_CONNECTION_STRING=(str, None),
     AZURE_STORAGE_ACCOUNT=(str, None),
     AZURE_STORAGE_KEY=(str, None),
+    AZURE_STORAGE_TOKEN_CREDENTIAL=(str, None),
+    AZURE_STORAGE_MANAGED_IDENTITY=(bool, False),
+    # -- S3 storage
+    AWS_S3_ENABLED=(bool, False),
+    AWS_S3_ENDPOINT_URL=(str, None),
+    AWS_S3_ACCESS_KEY_ID=str,
+    AWS_S3_SECRET_ACCESS_KEY=str,
+    AWS_S3_REGION_NAME=str,
+    AWS_S3_MEDIA_BUCKET_NAME=str,
+    AWS_S3_STATIC_BUCKET_NAME=str,
+    # -- Filesystem (default) XXX: Don't use in production
+    DJANGO_MEDIA_ROOT=(str, os.path.join(BASE_DIR, "media")),
+    DJANGO_STATIC_ROOT=(str, os.path.join(BASE_DIR, "static")),
     # Email
     EMAIL_USE_TLS=(bool, True),
     FORCE_USE_SMTP=(bool, False),
@@ -80,6 +98,7 @@ env = environ.Env(
     FDRS_CREDENTIAL=(str, None),
     HPC_CREDENTIAL=(str, None),
     APPLICATION_INSIGHTS_INSTRUMENTATION_KEY=(str, None),
+    DEBUG_PLAYWRIGHT=(bool, False),
     # Pytest (Only required when running tests)
     PYTEST_XDIST_WORKER=(str, None),
     # Elastic-Cache
@@ -128,7 +147,31 @@ env = environ.Env(
 
 
 # Requires uppercase variable https://docs.djangoproject.com/en/2.1/topics/settings/#creating-your-own-settings
-BASE_URL = GO_API_FQDN = env("API_FQDN")
+
+
+def find_env_with_value(*keys: str) -> None | str:
+    for key in keys:
+        if env(key):
+            return key
+
+
+def parse_domain(*env_keys: str) -> str:
+    # FIXME: This is for backward compatibility for the existing config value
+    env_key = find_env_with_value(*env_keys)
+    raw_domain = env(env_key)
+    domain = raw_domain
+    if not domain.startswith("http"):
+        domain = f"https://{domain}"  # Add https as default
+        logger.warning(f"Provided {env_key}: {raw_domain} is missing schema.. Adding https -> {domain}")
+    return domain.strip("/")
+
+
+GO_API_URL = parse_domain("API_FQDN")
+GO_WEB_URL = parse_domain("FRONTEND_URL")
+# NOTE: Used in local development to point to the frontend service from within go-api container
+#  Default to GO_WEB_URL if GO_WEB_INTERNAL_URL is not provided
+GO_WEB_INTERNAL_URL = parse_domain("GO_WEB_INTERNAL_URL", "FRONTEND_URL")
+FRONTEND_URL = urlparse(GO_WEB_URL).hostname  # FIXME: Deprecated. Slowly remove this from codebase
 
 INTERNAL_IPS = ["127.0.0.1"]
 if env("DOCKER_HOST_IP"):
@@ -146,12 +189,13 @@ DEBUG_TOOLBAR_CONFIG = {
 ALLOWED_HOSTS = [
     "localhost",
     "0.0.0.0",
-    GO_API_FQDN,
+    urlparse(GO_API_URL).hostname,
     *env("DJANGO_ADDITIONAL_ALLOWED_HOSTS"),
 ]
 
 SECRET_KEY = env("DJANGO_SECRET_KEY")
 DEBUG = env("DJANGO_DEBUG")
+DEBUG_PLAYWRIGHT = env("DEBUG_PLAYWRIGHT")
 GO_ENVIRONMENT = env("GO_ENVIRONMENT")
 
 # See if we are inside a test environment
@@ -407,39 +451,99 @@ AUTO_TRANSLATION_TRANSLATOR = env("AUTO_TRANSLATION_TRANSLATOR")
 IFRC_TRANSLATION_DOMAIN = env("IFRC_TRANSLATION_DOMAIN")
 IFRC_TRANSLATION_HEADER_API_KEY = env("IFRC_TRANSLATION_HEADER_API_KEY")
 
-MEDIA_URL = env("DJANGO_MEDIA_URL")
-MEDIA_ROOT = env("DJANGO_MEDIA_ROOT")
-
-STATIC_URL = env("DJANGO_STATIC_URL")
-STATIC_ROOT = env("DJANGO_STATIC_ROOT")
-
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "go-static"),
-]
-
 # Needed to generate correct https links when running behind a reverse proxy
 # when SSL is terminated at the proxy
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_SCHEME", "https")
 
+# Storage
+MEDIA_URL = env("DJANGO_MEDIA_URL")
+STATIC_URL = env("DJANGO_STATIC_URL")
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "go-static"),
+]
+
+# NOTE: This is used by api/logger.py which sends logs to azure storage
+# FIXME: Do we need this? We are also using loki for log collections
 AZURE_STORAGE_ACCOUNT = env("AZURE_STORAGE_ACCOUNT")
 AZURE_STORAGE_KEY = env("AZURE_STORAGE_KEY")
 
-AZURE_STORAGE = {
-    "CONTAINER": "api",
-    "ACCOUNT_NAME": AZURE_STORAGE_ACCOUNT,
-    "ACCOUNT_KEY": AZURE_STORAGE_KEY,
-    "CDN_HOST": None,
-    "USE_SSL": False,
-}
-# instead of: if AZURE_STORAGE_ACCOUNT: DEFAULT_FILE_STORAGE = "api.storage.AzureStorage"
-# > https://django-storages.readthedocs.io/en/latest/backends/azure.html
+if env("AZURE_STORAGE_ENABLED"):
 
-AZURE_ACCOUNT_NAME = env("AZURE_STORAGE_ACCOUNT")
-AZURE_ACCOUNT_KEY = env("AZURE_STORAGE_KEY")
-AZURE_CONTAINER = "api"
-if AZURE_STORAGE_ACCOUNT:
-    DEFAULT_FILE_STORAGE = "storages.backends.azure_storage.AzureStorage"
+    STATIC_ROOT = env("DJANGO_STATIC_ROOT")
+    AZURE_STORAGE_CONFIG_OPTIONS = {
+        "connection_string": env("AZURE_STORAGE_CONNECTION_STRING"),
+        "overwrite_files": False,
+    }
+
+    if not env("AZURE_STORAGE_CONNECTION_STRING"):
+        AZURE_STORAGE_CONFIG_OPTIONS.update(
+            {
+                "account_name": env("AZURE_STORAGE_ACCOUNT"),
+                "account_key": env("AZURE_STORAGE_KEY"),
+                "token_credential": env("AZURE_STORAGE_TOKEN_CREDENTIAL"),
+            }
+        )
+
+        # if env("AZURE_STORAGE_MANAGED_IDENTITY"):
+        #     AZURE_STORAGE_CONFIG_OPTIONS["token_credential"] = DefaultAzureCredential()
+
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.azure_storage.AzureStorage",
+            "OPTIONS": {
+                **AZURE_STORAGE_CONFIG_OPTIONS,
+                "azure_container": "api",
+            },
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+            # FIXME: Use this instead of nginx for staticfiles
+            # "BACKEND": "storages.backends.azure_storage.AzureStorage",
+            # "OPTIONS": {
+            #     **AZURE_STORAGE_CONFIG_OPTIONS,
+            #     "azure_container": env("AZURE_STORAGE_STATIC_CONTAINER"),
+            #     "overwrite_files": True,
+            # },
+        },
+    }
+
+# NOTE: This is used for instances outside azure environment
+elif env("AWS_S3_ENABLED"):
+    AWS_S3_CONFIG_OPTIONS = {
+        "endpoint_url": env("AWS_S3_ENDPOINT_URL"),
+        "access_key": env("AWS_S3_ACCESS_KEY_ID"),
+        "secret_key": env("AWS_S3_SECRET_ACCESS_KEY"),
+        "region_name": env("AWS_S3_REGION_NAME"),
+    }
+
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+            "OPTIONS": {
+                **AWS_S3_CONFIG_OPTIONS,
+                "bucket_name": env("AWS_S3_MEDIA_BUCKET_NAME"),
+                "location": "media/",
+                "file_overwrite": False,
+            },
+        },
+        "staticfiles": {
+            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+            "OPTIONS": {
+                **AWS_S3_CONFIG_OPTIONS,
+                "bucket_name": env("AWS_S3_STATIC_BUCKET_NAME"),
+                "querystring_auth": False,
+                "location": "static/",
+                "file_overwrite": True,
+            },
+        },
+    }
+
+else:
+    # Filesystem
+    MEDIA_ROOT = env("DJANGO_MEDIA_ROOT")
+    STATIC_ROOT = env("DJANGO_STATIC_ROOT")
 
 # Email config
 FORCE_USE_SMTP = env("FORCE_USE_SMTP")
@@ -612,8 +716,6 @@ GO_FTPUSER = env("GO_FTPUSER")
 GO_FTPPASS = env("GO_FTPPASS")
 GO_DBPASS = env("GO_DBPASS")
 
-# MISC
-FRONTEND_URL = env("FRONTEND_URL")
 
 # COUNTRY PAGE
 NS_CONTACT_USERNAME = env("NS_CONTACT_USERNAME")
@@ -645,7 +747,7 @@ SENTRY_CONFIG = {
     "environment": GO_ENVIRONMENT,
     "debug": DEBUG,
     "tags": {
-        "site": GO_API_FQDN,
+        "site": GO_API_URL,
     },
 }
 if SENTRY_DSN:

@@ -22,7 +22,7 @@ WORKDIR $HOME
 COPY pyproject.toml poetry.lock $HOME/
 
 # Upgrade pip and install python packages for code
-RUN pip install --upgrade --no-cache-dir pip poetry \
+RUN pip install --upgrade --no-cache-dir pip "poetry>=2.1,<2.2" \
     && poetry --version \
     # Configure to use system instead of virtualenvs
     && poetry config virtualenvs.create false \

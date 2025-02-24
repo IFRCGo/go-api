@@ -1,6 +1,7 @@
 {% extends "admin/base.html" %}
 
 {% load i18n %}
+{% load static %}
 
 {% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
 
@@ -8,7 +9,7 @@
 
 <h1 id="site-name">
     <a href="{% url 'admin:index' %}">
-        <img height="40" src="/static/images/logo/go-logo-2020-6cdc2b0c.svg">
+        <img height="40" src="{% static "images/logo/go-logo-2020-6cdc2b0c.svg" %}" />
     </a>
     {% if HAVING_INGEST_ISSUE and request.user.is_superuser %}
         <span title="Ingest issue – please check erroneous api/CronJob item">

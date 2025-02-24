@@ -1164,7 +1164,6 @@ class ListEventCsvSerializer(serializers.ModelSerializer):
             "dtype",
             "countries",
             "summary",
-            "title",
             "num_affected",
             "ifrc_severity_level",
             "ifrc_severity_level_display",
@@ -1300,7 +1299,6 @@ class DetailEventSerializer(ModelSerializer):
             "countries",
             "districts",
             "summary",
-            "title",
             "num_affected",
             "tab_two_title",
             "tab_three_title",
@@ -2058,7 +2056,7 @@ class FieldReportSerializer(
 
     def create_event(self, report):
         event = Event.objects.create(
-            title=report.title,
+            name=report.summary,
             dtype=report.dtype,
             summary=report.description or "",
             disaster_start_date=report.start_date,
@@ -2438,9 +2436,9 @@ class ExportSerializer(serializers.ModelSerializer):
             title = "Export"
         user = self.context["request"].user
         if export_type == Export.ExportType.PER:
-            validated_data["url"] = f"https://{settings.FRONTEND_URL}/countries/{country_id}/{export_type}/{export_id}/export/"
+            validated_data["url"] = f"{settings.GO_WEB_INTERNAL_URL}/countries/{country_id}/{export_type}/{export_id}/export/"
         else:
-            validated_data["url"] = f"https://{settings.FRONTEND_URL}/{export_type}/{export_id}/export/"
+            validated_data["url"] = f"{settings.GO_WEB_INTERNAL_URL}/{export_type}/{export_id}/export/"
 
         # Adding is_pga to the url
         is_pga = validated_data.pop("is_pga")

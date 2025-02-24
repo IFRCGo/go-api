@@ -742,6 +742,16 @@ class Event(models.Model):
     """A disaster, which could cover multiple countries"""
 
     name = models.CharField(verbose_name=_("name"), max_length=256)
+    dtype = models.ForeignKey(DisasterType, verbose_name=_("disaster type"), null=True, on_delete=models.SET_NULL)
+    disaster_start_date = models.DateTimeField(verbose_name=_("disaster start date"))
+    regions = models.ManyToManyField(Region, verbose_name=_("regions"))
+    countries = models.ManyToManyField(Country, verbose_name=_("countries"))
+    countries_for_preview = models.ManyToManyField(
+        Country, verbose_name=_("countries for preview"), blank=True, related_name="countries_for_preview"
+    )
+    districts = models.ManyToManyField(District, verbose_name=_("districts"), blank=True)
+    # visibility
+    visibility = models.IntegerField(choices=VisibilityChoices.choices, verbose_name=_("visibility"), default=1)
     # Obsolete: slug is not editable until we resolve https://github.com/IFRCGo/go-frontend/issues/1013
     slug = models.CharField(
         verbose_name=_("slug"),
@@ -758,13 +768,6 @@ class Event(models.Model):
             " Recommend using hyphens over underscores. Special characters like # is not allowed."
         ),
     )
-    dtype = models.ForeignKey(DisasterType, verbose_name=_("disaster type"), null=True, on_delete=models.SET_NULL)
-    districts = models.ManyToManyField(District, verbose_name=_("districts"), blank=True)
-    countries = models.ManyToManyField(Country, verbose_name=_("countries"))
-    countries_for_preview = models.ManyToManyField(
-        Country, verbose_name=_("countries for preview"), blank=True, related_name="countries_for_preview"
-    )
-    regions = models.ManyToManyField(Region, verbose_name=_("regions"))
     parent_event = models.ForeignKey(
         "self",
         null=True,
@@ -778,7 +781,6 @@ class Event(models.Model):
     )
     image = models.ImageField(verbose_name=_("image"), null=True, blank=True, upload_to=snippet_image_path)
     summary = HTMLField(verbose_name=_("summary"), blank=True, default="")
-    title = models.CharField(max_length=256, blank=True)
 
     num_injured = models.IntegerField(verbose_name=_("number of injured"), null=True, blank=True)
     num_dead = models.IntegerField(verbose_name=_("number of dead"), null=True, blank=True)
@@ -789,7 +791,6 @@ class Event(models.Model):
     ifrc_severity_level = models.IntegerField(choices=AlertLevel.choices, default=0, verbose_name=_("IFRC Severity level"))
     glide = models.CharField(verbose_name=_("glide"), max_length=18, blank=True)
 
-    disaster_start_date = models.DateTimeField(verbose_name=_("disaster start date"))
     created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
     updated_at = models.DateTimeField(verbose_name=_("updated at"), auto_now=True)
     previous_update = models.DateTimeField(verbose_name=_("previous update"), null=True, blank=True)
@@ -816,8 +817,6 @@ class Event(models.Model):
     tab_two_title = models.CharField(verbose_name=_("tab two title"), max_length=50, null=True, blank=True)
     tab_three_title = models.CharField(verbose_name=_("tab three title"), max_length=50, null=True, blank=True)
 
-    # visibility
-    visibility = models.IntegerField(choices=VisibilityChoices.choices, verbose_name=_("visibility"), default=1)
     emergency_response_contact_email = models.CharField(
         verbose_name=_("emergency response contact email"), null=True, blank=True, max_length=255
     )
@@ -873,15 +872,6 @@ class Event(models.Model):
     def to_dict(self):
         return to_dict(self)
 
-    def generate_formatted_name(self):
-        country_iso3 = self.countries.first().iso3 if self.id and self.countries.first() else "N/A"
-        disaster_start_date = self.disaster_start_date.strftime("%m-%Y")
-        for lang in AVAILABLE_LANGUAGES:
-            with translation_override(lang):
-                dtype = self.dtype.name if self.dtype else "N/A"
-                self.name = f"{country_iso3}: {dtype} - {disaster_start_date} - {self.title}"
-                yield build_localized_fieldname("name", lang)
-
     def save(self, *args, **kwargs):
 
         # Make the slug lowercase
@@ -891,15 +881,6 @@ class Event(models.Model):
         # On save, if `disaster_start_date` is not set, make it the current time
         if not self.id and not self.disaster_start_date:
             self.disaster_start_date = timezone.now()
-
-        updated_name_fields = list(self.generate_formatted_name())
-
-        # Updating the updated_fields with the fields that are updated
-        if kwargs.get("update_fields"):
-            kwargs["update_fields"] = (
-                *kwargs["update_fields"],
-                *updated_name_fields,
-            )
 
         return super(Event, self).save(*args, **kwargs)
 
@@ -1479,21 +1460,31 @@ class FieldReport(models.Model):
         default=False,
         help_text=_("Is this a Field Report specific to the COVID-19 emergency?"),
     )
-
-    # Used to differentiate reports that have and have not been synced from DMIS
-    rid = models.CharField(verbose_name=_("r id"), max_length=100, null=True, blank=True, editable=False)
-    summary = models.TextField(verbose_name=_("summary"), blank=True)
     # Title field is used for the translation and later adding formated into the summary
-    title = models.CharField(max_length=256, blank=True)
-    fr_num = models.IntegerField(verbose_name=_("field report number"), null=True, blank=True)
+    title = models.CharField(
+        max_length=256,
+        blank=True,
+        help_text=_(
+            "Title is used to generate the summary/name of the Field Report. </br>"
+            "The summary is constructed as: "
+            "<b><i>Country IS03: Disaster Type - Start Date - Title - Field Report Number - (date)</b><i>"
+        ),
+    )
     description = HTMLField(verbose_name=_("description"), blank=True, default="")
     dtype = models.ForeignKey(DisasterType, verbose_name=_("disaster type"), on_delete=models.PROTECT)
     event = models.ForeignKey(
         Event, verbose_name=_("event"), related_name="field_reports", null=True, blank=True, on_delete=models.SET_NULL
     )
-    districts = models.ManyToManyField(District, verbose_name=_("districts"), blank=True)
-    countries = models.ManyToManyField(Country, verbose_name=_("countries"))
     regions = models.ManyToManyField(Region, verbose_name=_("regions"), blank=True)
+    countries = models.ManyToManyField(Country, verbose_name=_("countries"))
+    districts = models.ManyToManyField(District, verbose_name=_("districts"), blank=True)
+    # visibility
+    visibility = models.IntegerField(choices=VisibilityChoices.choices, verbose_name=_("visibility"), default=1)
+    # Used to differentiate reports that have and have not been synced from DMIS
+    rid = models.CharField(verbose_name=_("r id"), max_length=100, null=True, blank=True, editable=False)
+    summary = models.TextField(verbose_name=_("summary"), blank=True)
+
+    fr_num = models.IntegerField(verbose_name=_("field report number"), null=True, blank=True)
     # This entity is more a type than a status, so let's label it this way on admin page:
     status = models.IntegerField(
         choices=Status.choices,
@@ -1581,9 +1572,6 @@ class FieldReport(models.Model):
 
     # actions taken
     actions_others = models.TextField(verbose_name=_("actions taken (others)"), null=True, blank=True)
-
-    # visibility
-    visibility = models.IntegerField(choices=VisibilityChoices.choices, verbose_name=_("visibility"), default=1)
 
     # information
     bulletin = models.IntegerField(choices=RequestChoices.choices, verbose_name=_("bulletin"), default=0, null=True)

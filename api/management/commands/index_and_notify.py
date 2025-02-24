@@ -264,8 +264,8 @@ class Command(BaseCommand):
             RecordType.SURGE_DEPLOYMENT_MESSAGES: "deployments/personneldeployment",
             RecordType.SURGE_ALERT: "notifications/surgealert",
         }[rtype]
-        return "https://%s/admin/%s/%s/change" % (
-            settings.BASE_URL,
+        return "%s/admin/%s/%s/change" % (
+            settings.GO_API_URL,
             admin_page,
             record.id,
         )
@@ -960,8 +960,8 @@ class Command(BaseCommand):
                 (
                     "Ingest issue(s) occured, one of them is "
                     + ingestor_name
-                    + ", via CronJob log record id: https://"
-                    + settings.BASE_URL
+                    + ", via CronJob log record id: "
+                    + settings.GO_API_URL
                     + "/admin/api/cronjob/"
                     + str(ingest_issue_id)
                     + ". Please fix it ASAP."

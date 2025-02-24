@@ -165,7 +165,7 @@ class HayStackSearch(APIView):
                     emergency_response = (
                         SearchQuerySet()
                         .models(Event)
-                        .filter(SQ(name__content=phrase) | SQ(iso3__content=phrase))
+                        .filter(SQ(name__content=phrase) | SQ(iso3__content=phrase) | SQ(countries__content=phrase))
                         .order_by("-_score")
                     )
                     fieldreport_response = (
@@ -215,7 +215,10 @@ class HayStackSearch(APIView):
                     emergency_response = (
                         SearchQuerySet()
                         .models(Event)
-                        .filter((SQ(name__content=phrase) | SQ(iso3__content=phrase)) & ~SQ(visibility="IFRC Only"))
+                        .filter(
+                            (SQ(name__content=phrase) | SQ(country__iso3__content=phrase) | SQ(countries__content=phrase))
+                            & ~SQ(visibility="IFRC Only")
+                        )
                         .order_by("-_score")
                     )
                     fieldreport_response = (
@@ -955,9 +958,9 @@ class ResendValidation(APIView):
 
                 # Construct and re-send the email
                 email_context = {
-                    "confirmation_link": "https://%s/verify_email/?token=%s&user=%s"
+                    "confirmation_link": "%s/verify_email/?token=%s&user=%s"
                     % (
-                        settings.BASE_URL,  # on PROD it should point to goadmin...
+                        settings.GO_API_URL,  # on PROD it should point to goadmin...
                         pending_user.token,
                         username,
                     )
