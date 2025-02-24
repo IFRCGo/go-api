@@ -33,9 +33,6 @@ RUN --mount=type=cache,target=$UV_CACHE_DIR \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     uv sync --frozen --no-install-project --all-groups
 
-RUN playwright install \
-    && playwright install-deps
-
 # To avoid some SyntaxWarnings ("is" with a literal), still needed on 20241024:
 ENV AZUREROOT=/usr/local/lib/python3.11/site-packages/azure/storage/
 RUN perl -pi -e 's/ is 0 / == 0 /'      ${AZUREROOT}blob/_upload_chunking.py
