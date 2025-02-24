@@ -96,7 +96,7 @@ dev = [
   "django-stubs",
 ]
 celery = [
-  "playwright==1.50.0"  # NOTE: Make sure this matches with running playwright server instance
+  "playwright==1.50.0"  # NOTE: Make sure this matches with root docker-compose and helm
 ]
 
 [tool.pyright]

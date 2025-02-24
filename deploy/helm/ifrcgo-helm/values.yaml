@@ -149,6 +149,23 @@ postgresql:
       enabled: true
       size: 8Gi
 
+playwright:
+  enabled: rue
+  replicaCount: 1
+  containerPort: 3000
+  image:
+    # NOTE: Make sure this matches with pyproject playwright dependency and root docker-compose
+    name: 'mcr.microsoft.com/playwright'
+    tag: 'v1.50.0-noble'
+    pullPolicy: 'IfNotPresent'
+  resources:
+    requests:
+      cpu: "0.1"
+      memory: 1Gi
+    limits:
+      cpu: "2"
+      memory: 2Gi
+
 api:
   domain: "go-staging.ifrc.org"
   tls:
