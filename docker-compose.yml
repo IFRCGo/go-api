@@ -19,6 +19,7 @@ x-server: &base_server_setup
     GO_ENVIRONMENT: ${GO_ENVIRONMENT:-development}
     API_FQDN: ${API_FQDN:-http://localhost:8000}
     FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+    PLAYWRIGHT_SERVER_URL: ${PLAYWRIGHT_SERVER_URL:-ws://playwright:3000/}
     GO_WEB_INTERNAL_URL: ${GO_WEB_INTERNAL_URL:-http://host.docker.internal:3000}
     DJANGO_ADDITIONAL_ALLOWED_HOSTS: ${DJANGO_ADDITIONAL_ALLOWED_HOSTS:-host.docker.internal}
     DEBUG_EMAIL: ${DEBUG_EMAIL:-true}
@@ -57,7 +58,7 @@ x-server: &base_server_setup
     - db
     - redis
     - elasticsearch
-
+    - playwright
 
 services:
   db:
@@ -76,7 +77,15 @@ services:
     volumes:
       - redis-data:/data
 
-  # NOTE: Used Only for local development
+  # NOTE: Make sure this matches with pyproject playwright dependency
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.50.0-noble
+    working_dir: /home/pwuser
+    user: pwuser
+    command: bash -c "npx -y playwright@1.50.0 run-server --port 3000 --host 0.0.0.0"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.0.0
     container_name: elasticsearch
@@ -96,7 +105,6 @@ services:
     ports:
       - 9200:9200
 
-  # NOTE: Used Only for local development
   kibana:
     image: 'docker.elastic.co/kibana/kibana:7.0.0'
     container_name: kibana
