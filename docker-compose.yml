@@ -77,12 +77,16 @@ services:
     volumes:
       - redis-data:/data
 
-  # NOTE: Make sure this matches with pyproject playwright dependency
+  # NOTE: Make sure this matches with pyproject playwright dependency and helm
   playwright:
     image: mcr.microsoft.com/playwright:v1.50.0-noble
     working_dir: /home/pwuser
     user: pwuser
-    command: bash -c "npx -y playwright@1.50.0 run-server --port 3000 --host 0.0.0.0"
+    command: >
+      bash -xc "
+        PLAYWRIGHT_VERSION=$(cat /ms-playwright/.docker-info | grep -oP '\"driverVersion\": \"\\K[^\"]+')
+        npx -y playwright@$$PLAYWRIGHT_VERSION run-server --port 3000 --host 0.0.0.0
+      "
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
