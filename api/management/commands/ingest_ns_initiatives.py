@@ -18,12 +18,21 @@ class Command(BaseCommand):
     @transaction.atomic
     def handle(self, *args, **kwargs):
         logger.info("Starting NS Inititatives")
+        production = settings.GO_ENVIRONMENT == "production"
         api_key = settings.NS_INITIATIVES_API_KEY
-        urls = [
-            f"https://data-api.ifrc.org/api/esf?apikey={api_key}",
-            f"https://data-api.ifrc.org/api/nsia?apikey={api_key}",
-            f"https://data-api.ifrc.org/api/cbf?apikey={api_key}",
-        ]
+        if production:
+            urls = [
+                # languageCode can be en, es, fr, ar. If omitted, defaults to en.
+                f"https://data.ifrc.org/ESF_API/api/approvedApplications?languageCode=en&apiKey={api_key}",
+                f"https://data.ifrc.org/NSIA_API/api/approvedApplications?languageCode=en&apiKey={api_key}",
+                f"https://data.ifrc.org/CBF_API/api/approvedApplications?languageCode=en&apiKey={api_key}",
+            ]
+        else:
+            urls = [
+                f"https://data-staging.ifrc.org/ESF_API/api/approvedApplications?languageCode=en&apiKey={api_key}",
+                f"https://data-staging.ifrc.org/NSIA_API/api/approvedApplications?languageCode=en&apiKey={api_key}",
+                f"https://data-staging.ifrc.org/CBF_API/api/approvedApplications?languageCode=en&apiKey={api_key}",
+            ]
 
         responses = []
         for url in urls:
