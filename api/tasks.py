@@ -55,6 +55,7 @@ def generate_url(url, export_id, user, title):
     export = Export.objects.get(id=export_id)
     user = User.objects.get(id=user)
     token = Token.objects.filter(user=user).last()
+    logger.info(f"Starting export: {export.pk}")
 
     footer_template = """
         <div class="footer" style="width: 100%;font-size: 8px;color: #FEFEFE; bottom: 10px; position: absolute;">
@@ -86,19 +87,7 @@ def generate_url(url, export_id, user, title):
     try:
         with tempfile.TemporaryDirectory() as tmp_dir:
             with sync_playwright() as p:
-                browser = p.chromium.launch(
-                    headless=True,
-                    args=[
-                        # https://github.com/microsoft/playwright-python/issues/1453
-                        # Usually required when running AWS lambda
-                        # "--single-process",
-                        "--no-zygote",
-                        "--no-sandbox",
-                        "--disable-setuid-sandbox",
-                        "--disable-dev-shm-usage",
-                    ],
-                    devtools=False,
-                )
+                browser = p.chromium.connect(settings.PLAYWRIGHT_SERVER_URL)
                 storage_state = build_storage_state(
                     tmp_dir,
                     user,
@@ -108,7 +97,8 @@ def generate_url(url, export_id, user, title):
                 page = context.new_page()
                 if settings.DEBUG_PLAYWRIGHT:
                     DebugPlaywright.debug(page)
-                timeout = 300000
+                # FIXME: Use of Timeout correct?
+                timeout = 300_000  # 5 min
                 page.goto(url, timeout=timeout)
                 time.sleep(5)
                 page.wait_for_selector("#pdf-preview-ready", state="attached", timeout=timeout)
@@ -143,3 +133,4 @@ def generate_url(url, export_id, user, title):
         )
         export.status = Export.ExportStatus.ERRORED
         export.save(update_fields=["status"])
+    logger.info(f"End export: {export.pk}")

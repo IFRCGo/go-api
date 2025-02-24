@@ -33,6 +33,7 @@ env = environ.Env(
     API_FQDN=str,  # https://goadmin.ifrc.org
     FRONTEND_URL=str,  # https://go.ifrc.org
     GO_WEB_INTERNAL_URL=(str, None),  # http://host.docker.internal
+    PLAYWRIGHT_SERVER_URL=str,  # ws://playwright:3000/
     # Database
     DJANGO_DB_NAME=str,
     DJANGO_DB_USER=str,
@@ -172,6 +173,8 @@ GO_WEB_URL = parse_domain("FRONTEND_URL")
 #  Default to GO_WEB_URL if GO_WEB_INTERNAL_URL is not provided
 GO_WEB_INTERNAL_URL = parse_domain("GO_WEB_INTERNAL_URL", "FRONTEND_URL")
 FRONTEND_URL = urlparse(GO_WEB_URL).hostname  # FIXME: Deprecated. Slowly remove this from codebase
+
+PLAYWRIGHT_SERVER_URL = env("PLAYWRIGHT_SERVER_URL")
 
 INTERNAL_IPS = ["127.0.0.1"]
 if env("DOCKER_HOST_IP"):
