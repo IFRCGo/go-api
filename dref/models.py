@@ -450,6 +450,9 @@ class Dref(models.Model):
     end_date = models.DateField(verbose_name=_("end date"), null=True, blank=True)
     publishing_date = models.DateField(verbose_name=_("publishing date"), null=True, blank=True)
     operation_timeframe = models.IntegerField(verbose_name=_("operation timeframe"), null=True, blank=True)
+    operation_timeframe_imminent = models.IntegerField(
+        verbose_name=_("operation timeframe for imminent type"), null=True, blank=True
+    )
     appeal_code = models.CharField(verbose_name=_("appeal code"), max_length=255, null=True, blank=True)
     glide_code = models.CharField(verbose_name=_("glide number"), max_length=255, null=True, blank=True)
     ifrc_appeal_manager_name = models.CharField(verbose_name=_("ifrc appeal manager name"), max_length=255, null=True, blank=True)
