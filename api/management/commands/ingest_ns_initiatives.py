@@ -19,19 +19,24 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         logger.info("Starting NS Inititatives")
         production = settings.GO_ENVIRONMENT == "production"
-        api_key = settings.NS_INITIATIVES_API_KEY
+        # Requires string1|string2|string3 for the three subsystems (NSIA, ESF, CBF):
+        api_keys = settings.NS_INITIATIVES_API_KEY.split("|")
+        if len(api_keys) != 3:
+            logger.info("No proper api-keys are provided. Quitting.")
+            return
+
         if production:
             urls = [
                 # languageCode can be en, es, fr, ar. If omitted, defaults to en.
-                f"https://data.ifrc.org/ESF_API/api/approvedApplications?languageCode=en&apiKey={api_key}",
-                f"https://data.ifrc.org/NSIA_API/api/approvedApplications?languageCode=en&apiKey={api_key}",
-                f"https://data.ifrc.org/CBF_API/api/approvedApplications?languageCode=en&apiKey={api_key}",
+                f"https://data.ifrc.org/NSIA_API/api/approvedApplications?languageCode=en&apiKey={api_keys[0]}",
+                f"https://data.ifrc.org/ESF_API/api/approvedApplications?languageCode=en&apiKey={api_keys[1]}",
+                f"https://data.ifrc.org/CBF_API/api/approvedApplications?languageCode=en&apiKey={api_keys[2]}",
             ]
         else:
             urls = [
-                f"https://data-staging.ifrc.org/ESF_API/api/approvedApplications?languageCode=en&apiKey={api_key}",
-                f"https://data-staging.ifrc.org/NSIA_API/api/approvedApplications?languageCode=en&apiKey={api_key}",
-                f"https://data-staging.ifrc.org/CBF_API/api/approvedApplications?languageCode=en&apiKey={api_key}",
+                f"https://data-staging.ifrc.org/NSIA_API/api/approvedApplications?languageCode=en&apiKey={api_keys[0]}",
+                f"https://data-staging.ifrc.org/ESF_API/api/approvedApplications?languageCode=en&apiKey={api_keys[1]}",
+                f"https://data-staging.ifrc.org/CBF_API/api/approvedApplications?languageCode=en&apiKey={api_keys[2]}",
             ]
 
         responses = []
