@@ -5,6 +5,7 @@ from unittest import mock
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
+from django.core import management
 
 from api.models import Country, DisasterType, District, Region, RegionName
 from deployments.factories.project import SectorFactory
@@ -1352,3 +1353,53 @@ class DrefTestCase(APITestCase):
         response = self.client.post(url, data, format="json")
         self.assert_201(response)
         self.assertEqual(Dref.objects.count(), old_count + 2)
+
+    def test_migrate_operation_timeframe_imminent(self):
+        dref_1 = DrefFactory.create(
+            title="Test Title 1",
+            type_of_dref=Dref.DrefType.IMMINENT,
+            date_of_approval="2021-10-10",
+            operation_timeframe=1,
+            end_date="2021-11-20",
+            created_by=self.user,
+        )
+        dref_2 = DrefFactory.create(
+            title="Test Title 2",
+            type_of_dref=Dref.DrefType.IMMINENT,
+            date_of_approval="2021-10-10",
+            operation_timeframe=2,
+            end_date="2021-12-30",
+            created_by=self.user,
+        )
+        dref_3 = DrefFactory.create(
+            title="Test Title 3",
+            type_of_dref=Dref.DrefType.IMMINENT,
+            date_of_approval="2021-10-10",
+            operation_timeframe=3,
+            end_date="2022-01-30",
+            created_by=self.user,
+        )
+
+        # migrate operation timeframe for dref imminent
+        management.call_command("migrate_operation_timeframe_imminent")
+
+        dref_1.refresh_from_db()
+        dref_2.refresh_from_db()
+        dref_3.refresh_from_db()
+
+        self.assertIsNotNone(dref_1.operation_timeframe_imminent)
+        self.assertIsNotNone(dref_2.operation_timeframe_imminent)
+        self.assertIsNotNone(dref_3.operation_timeframe_imminent)
+
+        self.assertEqual(
+            {
+                dref_1.operation_timeframe_imminent,
+                dref_2.operation_timeframe_imminent,
+                dref_3.operation_timeframe_imminent,
+            },
+            {
+                (dref_1.end_date - dref_1.date_of_approval).days,
+                (dref_2.end_date - dref_2.date_of_approval).days,
+                (dref_3.end_date - dref_3.date_of_approval).days,
+            },
+        )
