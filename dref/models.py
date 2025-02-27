@@ -450,6 +450,7 @@ class Dref(models.Model):
     end_date = models.DateField(verbose_name=_("end date"), null=True, blank=True)
     publishing_date = models.DateField(verbose_name=_("publishing date"), null=True, blank=True)
     operation_timeframe = models.IntegerField(verbose_name=_("operation timeframe"), null=True, blank=True)
+    # NOTE: Operation Timeframe for Imminent Type: Days
     operation_timeframe_imminent = models.IntegerField(
         verbose_name=_("operation timeframe for imminent type"), null=True, blank=True
     )
@@ -623,10 +624,8 @@ class Dref(models.Model):
     surge_deployment_cost = models.PositiveIntegerField(verbose_name=_("Surge Deployment Cost"), null=True, blank=True)
     indirect_cost = models.PositiveIntegerField(verbose_name=_("Indirect Cost"), null=True, blank=True)
     total_cost = models.PositiveIntegerField(verbose_name=_("Total Cost"), null=True, blank=True)
-    hazard_date_and_location = models.TextField(
-        verbose_name=_("Hazard Date and Location"),
-        max_length=255,
-        help_text=_("When and where is the hazard expected to happen?"),
+    hazard_date = models.DateField(
+        verbose_name=_("When is the hazard expected to happen?"),
         null=True,
         blank=True,
     )
