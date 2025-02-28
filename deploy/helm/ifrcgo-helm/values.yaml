@@ -101,6 +101,13 @@ redis:
       limits:
         cpu: "1"
         memory: 2Gi
+  resources:
+    requests:
+      cpu: "0.5"
+      memory: 1Gi
+    limits:
+      cpu: "1"
+      memory: 2Gi
 
 # https://artifacthub.io/packages/helm/bitnami/minio
 # extraEnvVars: https://github.com/bitnami/containers/blob/main/bitnami/minio/README.md#environment-variables
