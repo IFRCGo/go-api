@@ -211,6 +211,15 @@ class SourceInformation(models.Model):
     source_link = models.CharField(verbose_name=_("Source Link"), null=True, blank=True, max_length=255)
 
 
+class ProposedActionActivities(models.Model):
+    sector = models.ForeignKey(Sector, verbose_name=_("Sector Tag"), on_delete=models.CASCADE)
+    activity = models.TextField(verbose_name=_("Activity"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("Proposed action activity")
+        verbose_name_plural = _("Proposed action activities")
+
+
 class ProposedAction(models.Model):
     class Action(models.IntegerChoices):
         EARLY_ACTION = 1, _("Early Actions")
@@ -220,11 +229,11 @@ class ProposedAction(models.Model):
         choices=Action.choices,
         verbose_name=_("dref proposed action"),
     )
-    activity = models.ForeignKey(Sector, on_delete=models.CASCADE)
-    budget = models.PositiveIntegerField(verbose_name=_("Purpose Action Budgets"), blank=True, null=True)
+    activities = models.ManyToManyField(ProposedActionActivities, verbose_name=_("Activities"), blank=True)
+    total_budget = models.PositiveIntegerField(verbose_name=_("Total Purpose Action Budget"), blank=True, null=True)
 
     def __str__(self) -> str:
-        return f"{self.get_proposed_type_display()}-{self.budget}"
+        return f"{self.get_proposed_type_display()}-{self.total_budget}"
 
 
 @reversion.register()
@@ -441,6 +450,10 @@ class Dref(models.Model):
     end_date = models.DateField(verbose_name=_("end date"), null=True, blank=True)
     publishing_date = models.DateField(verbose_name=_("publishing date"), null=True, blank=True)
     operation_timeframe = models.IntegerField(verbose_name=_("operation timeframe"), null=True, blank=True)
+    # NOTE: Operation Timeframe for Imminent Type: Days
+    operation_timeframe_imminent = models.IntegerField(
+        verbose_name=_("operation timeframe for imminent type"), null=True, blank=True
+    )
     appeal_code = models.CharField(verbose_name=_("appeal code"), max_length=255, null=True, blank=True)
     glide_code = models.CharField(verbose_name=_("glide number"), max_length=255, null=True, blank=True)
     ifrc_appeal_manager_name = models.CharField(verbose_name=_("ifrc appeal manager name"), max_length=255, null=True, blank=True)
@@ -607,14 +620,12 @@ class Dref(models.Model):
     is_active = models.BooleanField(verbose_name=_("Is Active"), null=True, blank=True)
     source_information = models.ManyToManyField(SourceInformation, blank=True, verbose_name=_("Source Information"))
     proposed_action = models.ManyToManyField(ProposedAction, verbose_name=_("Proposed Action"), blank=True)
-    sub_total = models.PositiveIntegerField(verbose_name=_("Sub total"), blank=True, null=True)
+    sub_total_cost = models.PositiveIntegerField(verbose_name=_("Sub total Cost"), blank=True, null=True)
     surge_deployment_cost = models.PositiveIntegerField(verbose_name=_("Surge Deployment Cost"), null=True, blank=True)
     indirect_cost = models.PositiveIntegerField(verbose_name=_("Indirect Cost"), null=True, blank=True)
-    total = models.PositiveIntegerField(verbose_name=_("Total"), null=True, blank=True)
-    hazard_date_and_location = models.TextField(
-        verbose_name=_("Hazard Date and Location"),
-        max_length=255,
-        help_text=_("When and where is the hazard expected to happen?"),
+    total_cost = models.PositiveIntegerField(verbose_name=_("Total Cost"), null=True, blank=True)
+    hazard_date = models.DateField(
+        verbose_name=_("When is the hazard expected to happen?"),
         null=True,
         blank=True,
     )
