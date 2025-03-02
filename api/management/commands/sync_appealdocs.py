@@ -77,7 +77,8 @@ class Command(BaseCommand):
                 if appeal_id:
                     # Filter BaseDirectory + BaseFileName == document_url and via code, like 'MGR00001':
                     pre = "https://www.ifrc.org" if result["BaseDirectory"][:21] == "/docs/appeals/Active/" else ""
-                    document_url = pre + result["BaseDirectory"] + result["BaseFileName"]
+                    document_url = pre + result["BaseDirectory"] + result["BaseFileName"].replace(" ", "-")
+                    # Andras Lazar suggested to use dashes instead the spaces in the appealdoc filenames – 2025.02.28
                     already_exists = AppealDocument.objects.filter(document_url=document_url).filter(appeal_id=appeal_id)
                     if already_exists:
                         existing.append(document_url)

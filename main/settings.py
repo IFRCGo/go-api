@@ -406,9 +406,9 @@ TINYMCE_DEFAULT_CONFIG = {
         | link visualchars charmap image hr nonbreaking | code preview fullscreen
         """,
     "paste_data_images": False,
-    "force_p_newlines": True,  # TODO: could be False?
-    "force_br_newlines": True,  # TODO: could be False?
-    "forced_root_block": "",
+    "force_p_newlines": False,
+    "force_br_newlines": True,
+    "forced_root_block": "-",
     "contextmenu": "formats | link",
     "menubar": False,
     "statusbar": False,

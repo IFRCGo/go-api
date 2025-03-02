@@ -18,12 +18,26 @@ class Command(BaseCommand):
     @transaction.atomic
     def handle(self, *args, **kwargs):
         logger.info("Starting NS Inititatives")
-        api_key = settings.NS_INITIATIVES_API_KEY
-        urls = [
-            f"https://data-api.ifrc.org/api/esf?apikey={api_key}",
-            f"https://data-api.ifrc.org/api/nsia?apikey={api_key}",
-            f"https://data-api.ifrc.org/api/cbf?apikey={api_key}",
-        ]
+        production = settings.GO_ENVIRONMENT == "production"
+        # Requires string1|string2|string3 for the three subsystems (NSIA, ESF, CBF):
+        api_keys = settings.NS_INITIATIVES_API_KEY.split("|")
+        if len(api_keys) != 3:
+            logger.info("No proper api-keys are provided. Quitting.")
+            return
+
+        if production:
+            urls = [
+                # languageCode can be en, es, fr, ar. If omitted, defaults to en.
+                f"https://data.ifrc.org/NSIA_API/api/approvedApplications?languageCode=en&apiKey={api_keys[0]}",
+                f"https://data.ifrc.org/ESF_API/api/approvedApplications?languageCode=en&apiKey={api_keys[1]}",
+                f"https://data.ifrc.org/CBF_API/api/approvedApplications?languageCode=en&apiKey={api_keys[2]}",
+            ]
+        else:
+            urls = [
+                f"https://data-staging.ifrc.org/NSIA_API/api/approvedApplications?languageCode=en&apiKey={api_keys[0]}",
+                f"https://data-staging.ifrc.org/ESF_API/api/approvedApplications?languageCode=en&apiKey={api_keys[1]}",
+                f"https://data-staging.ifrc.org/CBF_API/api/approvedApplications?languageCode=en&apiKey={api_keys[2]}",
+            ]
 
         responses = []
         for url in urls:
