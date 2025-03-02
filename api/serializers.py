@@ -1164,6 +1164,7 @@ class ListEventCsvSerializer(serializers.ModelSerializer):
             "dtype",
             "countries",
             "summary",
+            "title",
             "num_affected",
             "ifrc_severity_level",
             "ifrc_severity_level_display",
@@ -1215,6 +1216,7 @@ class ListEventForPersonnelCsvSerializer(serializers.ModelSerializer):
             "dtype_name",
             "countries",
             "summary",
+            "title",
             "num_affected",
             "ifrc_severity_level",
             "glide",
@@ -1299,6 +1301,7 @@ class DetailEventSerializer(ModelSerializer):
             "countries",
             "districts",
             "summary",
+            "title",
             "num_affected",
             "tab_two_title",
             "tab_three_title",
@@ -2056,7 +2059,7 @@ class FieldReportSerializer(
 
     def create_event(self, report):
         event = Event.objects.create(
-            name=report.summary,
+            title=report.title,
             dtype=report.dtype,
             summary=report.description or "",
             disaster_start_date=report.start_date,

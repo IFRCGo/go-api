@@ -127,11 +127,12 @@ class Command(BaseCommand):
                     summary = data["description"] + " (" + data["category"] + ")"
 
                 fields = {
-                    "name": title,
+                    "title": title,
                     "summary": summary,
                     "disaster_start_date": date,
                     "auto_generated": True,
                     "auto_generated_source": data["guid"],
+                    "skip_auto_generate_name": True,
                     "ifrc_severity_level": alert_level,
                 }
                 # TODO: fields['name'] sometimes exceeds 100 maxlength, so will need some altering if this will be used
