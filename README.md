@@ -58,22 +58,15 @@ Access the site at http://localhost:8000
 
      $ docker-compose build
 
-### Using [poetry](https://python-poetry.org/docs/) (python package manager)
-- Install used python version using pyenv
+### Using [uv](https://docs.astral.sh/uv/) (python package manager)
+- Install uv using this documentation https://docs.astral.sh/uv/getting-started/installation/
+- Sync packages using uv
     ```bash
-    pyenv install $(cat .python-version)
+    uv sync
     ```
-- Install poetry packages in host
+- Add new package in pyproject.toml and generate lock
     ```bash
-    poetry install
-    ```
-- Add new package
-    ```bash
-    poetry add <package-name>
-    ```
-- Update lock file
-    ```bash
-    poetry update --lock
+    uv lock
     ```
 
 ## Adding/Updating translations (Django static)

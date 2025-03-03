@@ -27,12 +27,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@main
-      - name: Install poetry
-        run: pipx install poetry
-      - uses: actions/setup-python@main
+      - uses: astral-sh/setup-uv@v5
         with:
-          cache: 'poetry'
-      - run: poetry install --no-root
+          enable-cache: true
+      - name: Sync
+        run: uv sync --all-extras
       - uses: pre-commit/action@main
 
   test:
