@@ -22,6 +22,12 @@ data:
   AZURE_STORAGE_ENABLED: "true"
   {{- end }}
 
+  {{- if .Values.playwright.enabled }}
+  PLAYWRIGHT_SERVER_URL: "ws://{{ template "ifrcgo-helm.fullname" . }}-playwright:{{ .Values.playwright.containerPort }}/"
+  {{- else }}
+  PLAYWRIGHT_SERVER_URL: {{ required "env.PLAYWRIGHT_SERVER_URL" .Values.env.PLAYWRIGHT_SERVER_URL | quote }}
+  {{- end }}
+
   CACHE_MIDDLEWARE_SECONDS: {{ .Values.env.CACHE_MIDDLEWARE_SECONDS | quote }}
   DJANGO_DEBUG: {{ .Values.env.DJANGO_DEBUG | quote }}
   ELASTIC_SEARCH_HOST: {{ default (printf "elasticsearch://%s-elasticsearch:9200" (include "ifrcgo-helm.fullname" .)) .Values.env.ELASTIC_SEARCH_HOST | quote }}
