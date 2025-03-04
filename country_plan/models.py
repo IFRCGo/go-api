@@ -71,6 +71,7 @@ class CountryPlan(CountryPlanAbstract):
         blank=True,
         null=True,
     )
+    internal_plan_url = models.URLField(verbose_name=_("internal_plan_url"), blank=True, null=True)
     public_plan_file = models.FileField(
         verbose_name=_("Country Plan"),
         validators=[FileExtensionValidator(["pdf"])],
@@ -78,6 +79,7 @@ class CountryPlan(CountryPlanAbstract):
         blank=True,
         null=True,
     )
+    public_plan_url = models.URLField(verbose_name=_("public_plan_url"), blank=True, null=True)
     requested_amount = models.FloatField(verbose_name=_("Requested Amount"), blank=True, null=True)
     people_targeted = models.IntegerField(verbose_name=_("People Targeted"), blank=True, null=True)
     is_publish = models.BooleanField(default=False, verbose_name=_("Published"))

@@ -103,10 +103,18 @@ class Command(BaseCommand):
             file_field,
         )
         country_plan.is_publish = True
+        if "public" in file_field:
+            country_plan.public_plan_url = plan_url.replace(" ", "%20")
+            # Maybe urllib.parse.urlencode would be more general
+            url_field = "public_plan_url"
+        else:
+            country_plan.internal_plan_url = plan_url.replace(" ", "%20")
+            url_field = "internal_plan_url"
         country_plan.save(
             update_fields=(
                 field_inserted_date_field,
                 file_field,  # By load_file_to_country_plan
+                url_field,
                 "is_publish",
             )
         )

@@ -43,6 +43,7 @@ class CountryPlanSerializer(serializers.ModelSerializer):
     strategic_priorities = StrategicPrioritySerializer(source="country_plan_sp", many=True, read_only=True)
     membership_coordinations = MembershipCoordinationSerializer(source="full_country_plan_mc", many=True, read_only=True)
     internal_plan_file = serializers.SerializerMethodField()
+    public_plan_file = serializers.SerializerMethodField()
 
     class Meta:
         model = CountryPlan
@@ -61,7 +62,18 @@ class CountryPlanSerializer(serializers.ModelSerializer):
     def get_internal_plan_file(self, obj):
         file = obj.internal_plan_file
         request = self.context["request"]
-        if request.user.is_authenticated and file.name:
+        if request.user.is_authenticated:
+            if obj.internal_plan_url:
+                return obj.internal_plan_url
+            elif file.name:
+                return request.build_absolute_uri(serializers.FileField().to_representation(file))
+
+    def get_public_plan_file(self, obj):
+        file = obj.public_plan_file
+        request = self.context["request"]
+        if obj.public_plan_url:
+            return obj.public_plan_url
+        elif file.name:
             return request.build_absolute_uri(serializers.FileField().to_representation(file))
 
     def validate_internal_plan_file(self, internal_plan_file):
