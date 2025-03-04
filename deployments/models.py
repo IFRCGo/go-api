@@ -914,6 +914,54 @@ class EmergencyProjectActivity(models.Model):
 
 
 # -------------- Emergency 3W [END]
+# -------------- ERU Readiness [Start]
+class ERUReadinessType(models.Model):
+    """
+    ERU Readiness Type
+    Stores the readiness of ERU types
+    """
+
+    class ReadinessAction(models.IntegerChoices):
+        READY = 1, _("Ready")
+        CAN_CONTRIBUTE_CAPACITY = 2, _("Can contribute capacity")
+        NO_CAPACITY = 3, _("No capacity")
+
+    type = models.IntegerField(choices=ERUType.choices, verbose_name=_("ERU type"), default=0)
+    equipment_readiness = models.IntegerField(
+        choices=ReadinessAction.choices,
+        verbose_name=_("equipment readiness"),
+        default=0,
+    )
+    people_readiness = models.IntegerField(
+        choices=ReadinessAction.choices,
+        verbose_name=_("people readiness"),
+        default=0,
+    )
+    funding_readiness = models.IntegerField(
+        choices=ReadinessAction.choices,
+        verbose_name=_("funding readiness"),
+        default=0,
+    )
+    comment = models.TextField(verbose_name=_("comment"), blank=True, null=True)
+    has_capacity_to_lead = models.BooleanField(
+        verbose_name=_("capacity to lead this ERU"),
+        help_text=_("Confirm that you have the capacity to lead this type of ERU?"),
+        default=False,
+    )
+    has_capacity_to_support = models.BooleanField(
+        verbose_name=_("capacity to support this ERU"),
+        help_text=_("Confirm that you have the capacity to support this type of ERU?"),
+        default=False,
+    )
+
+    class Meta:
+        verbose_name = _("ERU Readiness Type")
+        verbose_name_plural = _("NS-es ERU Readiness Types")
+
+    def __str__(self):
+        return f"{self.get_type_display()}- Readiness"
+
+
 @reversion.register()
 class ERUReadiness(models.Model):
     """ERU Readiness concerning personnel and equipment"""
@@ -921,9 +969,11 @@ class ERUReadiness(models.Model):
     national_society = models.ForeignKey(
         Country, verbose_name=_("national society"), null=True, blank=True, on_delete=models.SET_NULL
     )
-    ERU_type = models.IntegerField(choices=ERUType.choices, verbose_name=_("ERU type"), default=0)
-    is_personnel = models.BooleanField(verbose_name=_("is personnel?"), default=False)
-    is_equipment = models.BooleanField(verbose_name=_("is equipment?"), default=False)
+    eru_types = models.ManyToManyField(
+        ERUReadinessType,
+        verbose_name=_("ERU types with readiness"),
+        blank=True,
+    )
     updated_at = models.DateTimeField(verbose_name=_("updated at"), auto_now=True)
 
     class Meta:
@@ -939,8 +989,10 @@ class ERUReadiness(models.Model):
             name = None
         else:
             name = self.national_society
-        return f"{self.get_ERU_type_display()} ({name})"
+        return f"ERU Readiness - ({name})"
 
+
+# -------------- ERU Readiness [END]
 
 ###############################################################################
 ####################### Deprecated tables ##################################### noqa: E266
