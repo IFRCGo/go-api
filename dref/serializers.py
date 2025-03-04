@@ -68,12 +68,17 @@ class ProposedActionActivitySerializer(ModelSerializer):
 class ProposedActionSerializer(serializers.ModelSerializer):
 
     proposed_type_display = serializers.CharField(source="get_proposed_type_display", read_only=True)
-    activities = ProposedActionActivitySerializer(many=True, required=False)
+    activities = ProposedActionActivitySerializer(many=True, required=True)
     total_budget = serializers.IntegerField(required=True)
 
     class Meta:
         model = ProposedAction
         fields = "__all__"
+
+    def validate_activities(self, activities):
+        if not activities:
+            raise serializers.ValidationError("At least one activity is required")
+        return activities
 
     def create(self, validated_data):
         activities = validated_data.pop("activities", [])
