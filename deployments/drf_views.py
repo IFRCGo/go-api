@@ -21,6 +21,7 @@ from rest_framework.views import APIView
 from reversion.views import RevisionMixin
 
 from api.models import Country, Event, Region
+from api.utils import bad_request
 from api.view_filters import ListFilter
 from api.visibility_class import ReadOnlyVisibilityViewsetMixin
 from main.permissions import DenyGuestUserPermission
@@ -34,6 +35,7 @@ from .models import (
     EmergencyProjectActivityAction,
     EmergencyProjectActivitySector,
     ERUOwner,
+    ERUReadiness,
     OperationTypes,
     PartnerSocietyDeployment,
     Personnel,
@@ -52,6 +54,7 @@ from .serializers import (
     EmergencyProjectOptionsSerializer,
     EmergencyProjectSerializer,
     ERUOwnerSerializer,
+    ERUReadinessSerializer,
     ERUSerializer,
     GlobalProjectNSOngoingProjectsStatsSerializer,
     GlobalProjectOverviewSerializer,
@@ -946,3 +949,15 @@ class EmergencyProjectViewSet(
                 )
             ).data
         )
+
+
+class ERUReadinessViewSet(RevisionMixin, viewsets.ModelViewSet):
+    queryset = ERUReadiness.objects.prefetch_related("eru_types").all()
+    serializer_class = ERUReadinessSerializer
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        return bad_request("Create method not allowed")
+
+    def delete(self, request, *args, **kwargs):
+        return bad_request("Delete method not allowed")
