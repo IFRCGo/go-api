@@ -470,14 +470,24 @@ AZURE_STORAGE_ACCOUNT = env("AZURE_STORAGE_ACCOUNT")
 AZURE_STORAGE_KEY = env("AZURE_STORAGE_KEY")
 
 if env("AZURE_STORAGE_ENABLED"):
+    if AZURE_STORAGE_ACCOUNT and AZURE_STORAGE_KEY:
+        AZURE_STORAGE_CONNECTION_STRING = (
+            "DefaultEndpointsProtocol=https;AccountName="
+            + AZURE_STORAGE_ACCOUNT
+            + ";AccountKey="
+            + AZURE_STORAGE_KEY
+            + ";EndpointSuffix=core.windows.net"
+        )
+    else:
+        AZURE_STORAGE_CONNECTION_STRING = env("AZURE_STORAGE_CONNECTION_STRING")
 
     STATIC_ROOT = env("DJANGO_STATIC_ROOT")
     AZURE_STORAGE_CONFIG_OPTIONS = {
-        "connection_string": env("AZURE_STORAGE_CONNECTION_STRING"),
+        "connection_string": AZURE_STORAGE_CONNECTION_STRING,
         "overwrite_files": False,
     }
 
-    if not env("AZURE_STORAGE_CONNECTION_STRING"):
+    if not AZURE_STORAGE_CONNECTION_STRING:
         AZURE_STORAGE_CONFIG_OPTIONS.update(
             {
                 "account_name": env("AZURE_STORAGE_ACCOUNT"),

@@ -5,6 +5,129 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+ - Use country_plan document_url if possible – or the downloaded file
+ - Fix truncated appealdoc URL-s
+ - Use 3 api keys for ingest_ns_initiatives
+ - Forbid p-wrapping for TinyMCE (for iframes also)
+ - Replace poetry with uv
+ - ESF, NSIA, CBF URL change
+ - Add missing pytz
+ - Revert back azure blob dependencies
+ - Pin poetry version in Dockerfile
+ - Default to AZURE_STORAGE in helm chart config
+ - Add missing static template tag
+ - Add documentation for playwright exports
+ - Remove title generation for emergency
+ - NS-requests-assistance sign/filter to Admin listing page
+ - Add country name on search for emergency
+ - Fix start-date on emergency and add name on readonly fields
+ - Fix Snapshot test cases
+ - Use static template tags for go-logo in admin panel
+ - Set ERP_API_MAX_REQ_TIMEOUT to 1 min
+ - Replace custom redis with bitnami redis with persistence storage
+ - Playwright task updates
+ - Azure blob storage additional config
+ - Add support for S3 storage backend
+ - Add helm dependencies step in CI
+ - Add char c in docker/helm TAG
+ - Add bitnami postgresql as helm dependency
+ - Change GO_API_FQDN/BASE_URL to GO_API_URL
+ - add request timeout for erp api endpoint
+ - Add GO_WEB_URL to replace FRONTEND_URL internally
+ - Add GO_WEB_INTERNAL_URL for local development
+ - Use English dtype name for ERP sending
+ - Log ERP payload
+ - Temporary send_notification disabling on LU-s
+ - Fix Translation for disaster on fieldreport and event
+ - FieldReports visibility in reviewed countries
+ - Add filter for appeal_type in EventFilter.
+ - Use docker build from CI for helm publish
+ - Remove json wrapped content from openAI completions response
+ - Change GH worflow job names to better visibility in PR
+ - Regenerating fr num for field report
+ - Filter option for country_to in PersonnelFilter
+ - Set fr_num to None if event changed
+ - Search option for role in PersonnelFilter
+ - Fix prompt generation and add instruction to sector and component
+ - Some more ordering fields. Pinned sitreps first.
+ - Type column to appealdocs listing
+ - Add validation for budget and update test cases
+ - Refactor appeal type in search
+ - fix sources stats on ops learning
+ - Add test cases for dref imminent and purposed_action
+ - Add validation check for the surge deployment
+ - Option to temporary disabling email sending
+ - Fix error message on email notification Replace error on exception to warning
+ - Change activities to activity
+ - Change sync_molnix schedule
+ - Add styles from IFRC GO base styles and UI components
+ - Molnix data structure change
+ - Add docs for using SSO (local development)
+ - Add config to disable OIDC
+ - Add cleartokens cronjob to clear expired tokens
+ - Add login form page and logout page
+ - Add logic to remove subcomponent of component14
+ - Add logic to migrate fieldreport number
+ - Bump django from 4.2.17 to 4.2.18
+ - Fix status code and message
+ - Add start_date field in MicroAppealSerializer
+ - Handle is_pga to pdf-export url
+ - Remove unused fields from dreffinal and operational serializer
+ - Add changes on purposed action and fix test cases
+ - Add new fields and supporting files in dref application
+ - Reduce cpu request for api deployment
+ - Change created_at auto_now to auto_now_add
+ - tool.poetry.group.dev.dependencies instead of tool.poetry.dev-dependencies
+ - Fix links in email notifications
+ - Add fields for hazard-related questions and guidance
+ - Separate api calls for secondary summaries
+ - fix grouping issue on secondary summary generation
+ - Change excerpt priotization logic
+ - Add proposed action fields and validation
+ - Add local unit local branch name in email context
+ - Fix synx_molnix position_id issue
+ - Add additionalenv in configmap
+ - Allow field report fields to be blank on admin
+ - Generate title api for field report
+ - Email Implementation on local units
+ - Install django-oauth-toolkit
+ - Fix logging issue
+ - Add Oauth openid configurations
+ - Set readonly fields on LocalUnit Admin panel
+ - Fix issue on deprecare reason overview
+ - Validate the local unit on revert
+ - Remove filter on latest change request api
+ - Operational learning stats API
+ - Change field name in option api and add exclude deprecated local unit
+ - Fix typing issue on previous_data (JsonField)
+ - Add Validators level check in permission
+ - Add location_json field for location coordinate
+ - Add API to deprecate local unit
+ - Add admin panel for localunit snapshot and restrict mutation
+ - Add permission for the region level validator and change location_json field
+ - LocalUnit: Create, Update, Revert, Latest changes Apis
+ - Bump django from 4.2.16 to 4.2.17
+ - Add new fields and Snapshot model for localunit
+ - Add 5 columns to districts
+ - Fix icrc scraping for country group Add list of mismatch name countries
+ - Add organization type api and enum for learning type
+ - Add dummydata for project csv api snapshot test
+ - Use dtype, country and region to filter notifications. Tests.
+ - Fix snapshot tests
+ - Add post processing to check excerpts in summary
+ - Add filters for operational learning and refine summary content
+ - Add fieldreport number logic and suffic for covid
+ - Add regenerate summary action in admin
+ - Fix icrc ingestion operation scraping logic
+ - Admin dark-mode issue fix
+ - fix translation issue on primary summary Add Lazytranslation flag for translation
+ - Fix log noise + translation limit error beyond 50000 chars
+ - Fix fts-hpc-issue and sentry issue
+ - Add Admin panel for ops learning summary and SectorTag translation
+ - Change label in per excel export
+ - Add validation check for the validated extracts and fix sentry issue
+ - Fix usages for self in classmethod
+ - Add missing translation trigger for Ops learning
 
 ## 1.1.503
 
