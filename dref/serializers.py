@@ -59,7 +59,8 @@ class PlannedInterventionIndicatorsSerializer(ModelSerializer):
         fields = "__all__"
 
 
-class ProposedActionActivitySerializer(ModelSerializer):
+class ProposedActionActivitySerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
     sector = serializers.PrimaryKeyRelatedField(queryset=Sector.objects.all(), required=True)
 
     class Meta:
@@ -67,8 +68,8 @@ class ProposedActionActivitySerializer(ModelSerializer):
         fields = "__all__"
 
 
-class ProposedActionSerializer(serializers.ModelSerializer):
-
+class ProposedActionSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
     proposed_type_display = serializers.CharField(source="get_proposed_type_display", read_only=True)
     activities = ProposedActionActivitySerializer(many=True, required=True)
     total_budget = serializers.IntegerField(required=True)
@@ -81,22 +82,6 @@ class ProposedActionSerializer(serializers.ModelSerializer):
         if not activities:
             raise serializers.ValidationError("At least one activity is required")
         return activities
-
-    def create(self, validated_data):
-        activities = validated_data.pop("activities", [])
-        proposed_action = super().create(validated_data)
-        for activity in activities:
-            activity_object = ProposedActionActivities.objects.create(**activity)
-            proposed_action.activities.add(activity_object)
-        return proposed_action
-
-    def update(self, instance, validated_data):
-        activities = validated_data.pop("activities", [])
-        proposed_action = super().update(instance, validated_data)
-        for activity in activities:
-            activity_object = ProposedActionActivities.objects.get_or_create(**activity)
-            proposed_action.activities.add(activity_object)
-        return proposed_action
 
 
 class DrefFileInputSerializer(serializers.Serializer):
