@@ -90,6 +90,7 @@ class ERUFilter(filters.FilterSet):
     type = filters.NumberFilter(field_name="type", lookup_expr="exact")
     event = filters.NumberFilter(field_name="event", lookup_expr="exact")
     event__in = ListFilter(field_name="event")
+    disaster_type = filters.NumberFilter(field_name="event__dtype", lookup_expr="exact")
 
     class Meta:
         model = ERU
