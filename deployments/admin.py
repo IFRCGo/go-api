@@ -345,14 +345,14 @@ class ProjectImportAdmin(admin.ModelAdmin):
 
 
 class ERUReadinessAdmin(CompareVersionAdmin, admin.ModelAdmin):
-    search_fields = ("national_society",)
+    search_fields = ("eru_owner__national_society_country__name",)
 
     def get_queryset(self, request):
         return (
             super()
             .get_queryset(request)
             .select_related(
-                "national_society",
+                "eru_owner",
             )
             .prefetch_related(
                 "eru_types",
