@@ -903,9 +903,10 @@ class EmergencyProjectSerializer(
 
 
 class AggregateDeploymentsSerializer(serializers.Serializer):
-    active_deployments = serializers.IntegerField(required=False)
-    active_erus = serializers.IntegerField(required=False)
-    deployments_this_year = serializers.IntegerField(required=False)
+    rapid_response_deployment_this_year = serializers.IntegerField(required=False)
+    active_emergency_response_units = serializers.IntegerField(required=False)
+    emergency_response_units_deployed_this_year = serializers.IntegerField(required=False)
+    active_rapid_response_personal = serializers.IntegerField(required=False)
 
 
 class ProjectPerSector(serializers.Serializer):

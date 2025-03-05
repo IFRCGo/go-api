@@ -327,19 +327,21 @@ class AggregateDeployments(APIView):
             event_id = request.GET.get("event")
             deployments_qset = deployments_qset.filter(deployment__event_deployed_to=event_id)
             eru_qset = eru_qset.filter(event=event_id)
-        active_deployments = deployments_qset.filter(
+        rapid_response_deployment_this_year = deployments_qset.filter(
             type=Personnel.TypeChoices.RR, start_date__date__lte=today, end_date__date__gte=today, is_active=True
         ).count()
-        active_erus = eru_qset.filter(deployed_to__isnull=False).count()
-        deployments_this_year = deployments_qset.filter(
+        active_emergency_response_units = eru_qset.filter(deployed_to__isnull=False).count()
+        emergency_response_units_deployed_this_year = deployments_qset.filter(
             is_active=True, start_date__year__lte=this_year, end_date__year__gte=this_year
         ).count()
+        active_rapid_response_personal = deployments_qset.filter(type=Personnel.TypeChoices.RR, is_active=True).count()
         return Response(
             AggregateDeploymentsSerializer(
                 dict(
-                    active_deployments=active_deployments,
-                    active_erus=active_erus,
-                    deployments_this_year=deployments_this_year,
+                    active_rapid_response_personal=active_rapid_response_personal,
+                    rapid_response_deployment_this_year=rapid_response_deployment_this_year,
+                    active_emergency_response_units=active_emergency_response_units,
+                    emergency_response_units_deployed_this_year=emergency_response_units_deployed_this_year,
                 )
             ).data
         )
