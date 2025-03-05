@@ -45,6 +45,11 @@ RUN perl -pi -e "s/ is '' / == '' /"    ${AZUREROOT}_connection.py
 ENV OPENCENSUSINIT=/usr/local/lib/python3.11/site-packages/opencensus/common/schedule/__init__.py
 RUN perl -pi -e "s/logger.warning.*/pass/" ${OPENCENSUSINIT} 2>/dev/null
 
+# To avoid 'NoneType' object has no attribute 'get' in clickjacking.py, 20250305:
+ENV CLICKJACKING=/usr/local/lib/python3.11/site-packages/django/middleware/clickjacking.py
+RUN perl -pi -e "s/if response.get/if response is None:\n            return\n\n        if response.get/" ${CLICKJACKING} 2>/dev/null
+
+
 COPY main/nginx.conf /etc/nginx/sites-available/
 RUN \
 	ln -s /etc/nginx/sites-available/nginx.conf /etc/nginx/sites-enabled; \
