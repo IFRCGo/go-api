@@ -921,26 +921,23 @@ class ERUReadinessType(models.Model):
     Stores the readiness of ERU types
     """
 
-    class ReadinessAction(models.IntegerChoices):
+    class ReadinessStatus(models.IntegerChoices):
         READY = 1, _("Ready")
         CAN_CONTRIBUTE_CAPACITY = 2, _("Can contribute capacity")
         NO_CAPACITY = 3, _("No capacity")
 
-    type = models.IntegerField(choices=ERUType.choices, verbose_name=_("ERU type"), default=0)
+    type = models.IntegerField(choices=ERUType.choices, verbose_name=_("ERU type"))
     equipment_readiness = models.IntegerField(
-        choices=ReadinessAction.choices,
+        choices=ReadinessStatus.choices,
         verbose_name=_("equipment readiness"),
-        default=0,
     )
     people_readiness = models.IntegerField(
-        choices=ReadinessAction.choices,
+        choices=ReadinessStatus.choices,
         verbose_name=_("people readiness"),
-        default=0,
     )
     funding_readiness = models.IntegerField(
-        choices=ReadinessAction.choices,
+        choices=ReadinessStatus.choices,
         verbose_name=_("funding readiness"),
-        default=0,
     )
     comment = models.TextField(verbose_name=_("comment"), blank=True, null=True)
     has_capacity_to_lead = models.BooleanField(
@@ -956,7 +953,7 @@ class ERUReadinessType(models.Model):
 
     class Meta:
         verbose_name = _("ERU Readiness Type")
-        verbose_name_plural = _("NS-es ERU Readiness Types")
+        verbose_name_plural = _("ERU Readiness Types")
 
     def __str__(self):
         return f"{self.get_type_display()}- Readiness"
@@ -966,9 +963,7 @@ class ERUReadinessType(models.Model):
 class ERUReadiness(models.Model):
     """ERU Readiness concerning personnel and equipment"""
 
-    national_society = models.ForeignKey(
-        Country, verbose_name=_("national society"), null=True, blank=True, on_delete=models.SET_NULL
-    )
+    eru_owner = models.ForeignKey(ERUOwner, verbose_name=_("national society"), null=True, blank=True, on_delete=models.SET_NULL)
     eru_types = models.ManyToManyField(
         ERUReadinessType,
         verbose_name=_("ERU types with readiness"),
@@ -979,17 +974,17 @@ class ERUReadiness(models.Model):
     class Meta:
         ordering = (
             "updated_at",
-            "national_society",
+            "eru_owner",
         )
         verbose_name = _("ERU Readiness")
-        verbose_name_plural = _("NS-es ERU Readiness")
+        verbose_name_plural = _("ERU Readiness")
 
     def __str__(self):
-        if self.national_society is None:
+        if self.eru_owner is None:
             name = None
         else:
-            name = self.national_society
-        return f"ERU Readiness - ({name})"
+            name = self.eru_owner
+        return f"ERU Readiness - {name}"
 
 
 # -------------- ERU Readiness [END]
