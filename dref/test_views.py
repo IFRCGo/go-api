@@ -1307,7 +1307,7 @@ class DrefTestCase(APITestCase):
                     "activities": [
                         {
                             "sector": sct_1.id,
-                            "activity": "test activity 2",
+                            "activity": "test activity 1",
                         },
                         {
                             "sector": sct_2.id,
@@ -1325,7 +1325,7 @@ class DrefTestCase(APITestCase):
                     "activities": [
                         {
                             "sector": sct_1.id,
-                            "activity": "test activity 2",
+                            "activity": "test activity 1",
                         },
                         {
                             "sector": sct_2.id,
@@ -1353,6 +1353,76 @@ class DrefTestCase(APITestCase):
         response = self.client.post(url, data, format="json")
         self.assert_201(response)
         self.assertEqual(Dref.objects.count(), old_count + 2)
+        response_id = response.data["id"]
+        print("Before", response.data["proposed_action"])
+
+        # update the dref with proposed action
+        url = f"/api/v2/dref/{response_id}/"
+        data = {
+            "modified_at": datetime.now(),
+            **data,
+            "proposed_action": [
+                {
+                    "id": response.data["proposed_action"][0]["id"],
+                    "proposed_type": ProposedAction.Action.EARLY_ACTION.value,
+                    "activities": [
+                        {
+                            "id": response.data["proposed_action"][0]["activities"][0]["id"],
+                            "sector": sct_1.id,
+                            "activity": "1 changed",
+                        },
+                        {
+                            "id": response.data["proposed_action"][0]["activities"][1]["id"],
+                            "sector": sct_1.id,
+                            "activity": "Sector changed",
+                        },
+                    ],
+                    "total_budget": 70000,
+                },
+                {
+                    "id": response.data["proposed_action"][1]["id"],
+                    "proposed_type": ProposedAction.Action.EARLY_RESPONSE.value,
+                    "activities": [
+                        {
+                            "id": response.data["proposed_action"][1]["activities"][0]["id"],
+                            "sector": sct_2.id,
+                            "activity": "Seconda activity changed Sector",
+                        },
+                        {
+                            "id": response.data["proposed_action"][1]["activities"][1]["id"],
+                            "sector": sct_2.id,
+                            "activity": "test activity 2",
+                        },
+                    ],
+                    "total_budget": 5000,
+                },
+            ],
+        }
+        response = self.client.patch(url, data, format="json")
+        self.assert_200(response)
+
+        self.assertEqual(
+            {
+                response.data["proposed_action"][0]["id"],
+                response.data["proposed_action"][1]["id"],
+            },
+            {
+                data["proposed_action"][0]["id"],
+                data["proposed_action"][1]["id"],
+            },
+        )
+
+        # Check for activity update id should be same
+        self.assertEqual(
+            {
+                response.data["proposed_action"][0]["activities"][0]["id"],
+                response.data["proposed_action"][0]["activities"][1]["id"],
+            },
+            {
+                data["proposed_action"][0]["activities"][0]["id"],
+                data["proposed_action"][0]["activities"][1]["id"],
+            },
+        )
 
     def test_migrate_operation_timeframe_imminent(self):
         dref_1 = DrefFactory.create(
