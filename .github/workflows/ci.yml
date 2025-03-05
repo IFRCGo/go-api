@@ -30,8 +30,16 @@ jobs:
       - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
-      - name: Sync
+
+      - name: Setup uv python environment
+        run: uv venv
+
+      - name: uv lock check
+        run: uv lock --locked --offline
+
+      - name: uv sync
         run: uv sync --all-extras
+
       - uses: pre-commit/action@main
 
   test:
