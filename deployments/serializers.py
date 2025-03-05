@@ -1046,6 +1046,7 @@ class ProjectRegionMovementActivitiesSerializer(serializers.Serializer):
 
 
 class ERUReadinessTypeSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=True)
     type_display = serializers.CharField(source="get_type_display", read_only=True)
     equipment_readiness_display = serializers.CharField(source="get_equipment_readiness_display", read_only=True)
     people_readiness_display = serializers.CharField(source="get_people_readiness_display", read_only=True)
@@ -1056,14 +1057,22 @@ class ERUReadinessTypeSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class ERUReadinessSerializer(serializers.ModelSerializer):
-    national_society = serializers.PrimaryKeyRelatedField(
-        queryset=Country.objects.all(),
+class ERUReadinessSerializer(
+    NestedCreateMixin,
+    NestedUpdateMixin,
+    serializers.ModelSerializer,
+):
+    id = serializers.IntegerField(required=True)
+    eru_owner = serializers.PrimaryKeyRelatedField(
+        queryset=ERUOwner.objects.all(),
         required=True,
         write_only=True,
     )
-    national_society_details = MiniCountrySerializer()
-    eru_types = ERUReadinessTypeSerializer(many=True, required=True)
+    eru_owner_details = MiniCountrySerializer(source="eru_owner", read_only=True)
+    eru_types = ERUReadinessTypeSerializer(
+        many=True,
+        required=True,
+    )
 
     class Meta:
         model = ERUReadiness

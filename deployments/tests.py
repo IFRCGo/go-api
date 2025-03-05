@@ -12,6 +12,8 @@ from deployments.factories.emergency_project import (
     EmergencyProjectActivitySectorFactory,
     EruFactory,
     ERUOwnerFactory,
+    ERUReadinessFactory,
+    ERUReadinessTypeFactory,
 )
 from deployments.factories.project import (
     ProjectFactory,
@@ -23,6 +25,8 @@ from deployments.factories.user import UserFactory
 from deployments.models import (
     EmergencyProject,
     EmergencyProjectActivity,
+    ERUReadinessType,
+    ERUType,
     OperationTypes,
     Personnel,
     ProgrammeTypes,
@@ -333,6 +337,57 @@ class TestEmergencyProjectAPI(APITestCase):
         self.assert_201(response)
         self.assertEqual(EmergencyProject.objects.count(), old_emergency_project_count + 1)
         self.assertEqual(EmergencyProjectActivity.objects.count(), old_emergency_project_activity_count + 1)
+
+
+class TestERUReadinessAPI(APITestCase):
+    def test_eru_readiness_update(self):
+        eru_readiness_type_common = {
+            "equipment_readiness": ERUReadinessType.ReadinessStatus.READY,
+            "people_readiness": ERUReadinessType.ReadinessStatus.READY,
+            "funding_readiness": ERUReadinessType.ReadinessStatus.READY,
+        }
+        eru_readiness_type_1 = ERUReadinessTypeFactory.create(
+            type=ERUType.BASECAMP_L,
+            **eru_readiness_type_common,
+        )
+        eru_readiness_type_2 = ERUReadinessTypeFactory.create(
+            type=ERUType.BASECAMP_M,
+            **eru_readiness_type_common,
+        )
+        eru_owner = ERUOwnerFactory.create()
+        eru_readiness_1 = ERUReadinessFactory.create(eru_owner=eru_owner, eru_types=[eru_readiness_type_1, eru_readiness_type_2])
+
+        # Update ERU readiness and types
+        url = f"/api/v2/eru-readiness/{eru_readiness_1.id}/"
+
+        data = {
+            "id": eru_readiness_1.id,
+            "eru_owner": eru_owner.id,
+            "eru_types": [
+                {
+                    "id": eru_readiness_type_1.id,
+                    "type": eru_readiness_type_1.type,
+                    "equipment_readiness": ERUReadinessType.ReadinessStatus.NO_CAPACITY,
+                    "people_readiness": ERUReadinessType.ReadinessStatus.NO_CAPACITY,
+                    "funding_readiness": ERUReadinessType.ReadinessStatus.NO_CAPACITY,
+                },
+                {
+                    "id": eru_readiness_type_2.id,
+                    "type": eru_readiness_type_2.type,
+                    "equipment_readiness": ERUReadinessType.ReadinessStatus.READY,
+                    "people_readiness": ERUReadinessType.ReadinessStatus.READY,
+                    "funding_readiness": ERUReadinessType.ReadinessStatus.READY,
+                },
+            ],
+        }
+
+        self.authenticate()
+        response = self.client.put(url, data=data, format="json")
+        self.assert_200(response)
+        self.assertEqual(response.data["id"], eru_readiness_1.id)
+        self.assertEqual(response.data["eru_owner_details"]["id"], eru_owner.id)
+        self.assertEqual(len(response.data["eru_types"]), 2)
+        self.assertEqual(response.data["eru_types"][0]["equipment_readiness"], ERUReadinessType.ReadinessStatus.NO_CAPACITY)
 
 
 class AggregatedERUAndRapidResponseViewSetTestCase(APITestCase):
