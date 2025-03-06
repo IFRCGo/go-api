@@ -24,6 +24,7 @@ from api.models import Country, Event, Region
 from api.utils import bad_request
 from api.view_filters import ListFilter
 from api.visibility_class import ReadOnlyVisibilityViewsetMixin
+from deployments.permissions import ERUReadinessPermission
 from main.permissions import DenyGuestUserPermission
 from main.serializers import CsvListMixin
 from main.utils import is_tableau
@@ -36,6 +37,7 @@ from .models import (
     EmergencyProjectActivitySector,
     ERUOwner,
     ERUReadiness,
+    ERUReadinessType,
     OperationTypes,
     PartnerSocietyDeployment,
     Personnel,
@@ -58,6 +60,7 @@ from .serializers import (
     ERUSerializer,
     GlobalProjectNSOngoingProjectsStatsSerializer,
     GlobalProjectOverviewSerializer,
+    MiniERUReadinessTypeSerializer,
     PartnerDeploymentSerializer,
     PartnerDeploymentTableauSerializer,
     PersonnelCsvSerializer,
@@ -951,13 +954,33 @@ class EmergencyProjectViewSet(
         )
 
 
+class ERUReadinessFilter(filters.FilterSet):
+    eru_owner = filters.NumberFilter(field_name="eru_owner", lookup_expr="exact")
+    eru_type = filters.NumberFilter(field_name="eru_types__type", lookup_expr="exact")
+    eru_type__in = ListFilter(field_name="eru_types__type")
+
+
 class ERUReadinessViewSet(RevisionMixin, viewsets.ModelViewSet):
     queryset = ERUReadiness.objects.prefetch_related("eru_types").all()
     serializer_class = ERUReadinessSerializer
-    permission_classes = [IsAuthenticated]
-
-    def create(self, request, *args, **kwargs):
-        return bad_request("Create method not allowed")
+    filterset_class = ERUReadinessFilter
+    permission_classes = [IsAuthenticated, ERUReadinessPermission]
 
     def delete(self, request, *args, **kwargs):
         return bad_request("Delete method not allowed")
+
+
+class ERUReadinessTypeFilter(filters.FilterSet):
+    eru_owner = filters.NumberFilter(field_name="erureadiness__eru_owner", lookup_expr="exact")
+    type = filters.NumberFilter(field_name="type", lookup_expr="exact")
+
+
+class ERUReadinessTypeViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ReadOnlyModelViewSet):
+    queryset = ERUReadinessType.objects.all()
+    serializer_class = MiniERUReadinessTypeSerializer
+    filterset_class = ERUReadinessTypeFilter
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        return qs.filter(erureadiness__isnull=False).prefetch_related("erureadiness_set").distinct()
