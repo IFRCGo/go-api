@@ -54,6 +54,7 @@ from .serializers import (
     ERUSerializer,
     GlobalProjectNSOngoingProjectsStatsSerializer,
     GlobalProjectOverviewSerializer,
+    OnGoingERUSerializer,
     PartnerDeploymentSerializer,
     PartnerDeploymentTableauSerializer,
     PersonnelCsvSerializer,
@@ -126,6 +127,39 @@ class ERUViewset(viewsets.ReadOnlyModelViewSet):
         "eru_owner__national_society_country__society_name",
         "available",
     )
+
+
+class EruTtypFilter(filters.FilterSet):
+    eru_type = filters.NumberFilter(field_name="type", lookup_expr="exact")
+
+
+class OnGoingEruDeployment(viewsets.ReadOnlyModelViewSet):
+    serializer_class = OnGoingERUSerializer
+    filterset_class = EruTtypFilter
+
+    def get_queryset(self):
+        return (
+            ERU.objects.filter(
+                deployed_to__isnull=False,
+            )
+            .select_related("event", "deployed_to")
+            .annotate(
+                event_name=models.F("event__name"),
+                organisation=models.F("deployed_to__name"),
+                disaster_start_date=models.F("event__disaster_start_date"),
+            )
+            .order_by("event__disaster_start_date")
+            .values(
+                "id",
+                "type",
+                "start_date",
+                "end_date",
+                "event_id",
+                "event_name",
+                "disaster_start_date",
+                "organisation",
+            )
+        )
 
 
 class PersonnelDeploymentFilter(filters.FilterSet):

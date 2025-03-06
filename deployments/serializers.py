@@ -109,6 +109,31 @@ class ERUSerializer(ModelSerializer):
         )
 
 
+class OnGoingERUSerializer(ModelSerializer):
+    type_display = serializers.CharField(source="get_type_display", read_only=True)
+    id = serializers.IntegerField()
+    event_id = serializers.IntegerField()
+    start_date = serializers.DateTimeField()
+    end_date = serializers.DateTimeField()
+    event_name = serializers.CharField()
+    disaster_start_date = serializers.DateTimeField()
+    organisation = serializers.CharField()
+
+    class Meta:
+        model = ERU
+        fields = (
+            "type",
+            "type_display",
+            "id",
+            "start_date",
+            "end_date",
+            "event_id",
+            "event_name",
+            "disaster_start_date",
+            "organisation",
+        )
+
+
 class ERUOwnerMiniSerializer(ModelSerializer):
     national_society_country_details = MiniCountrySerializer(source="national_society_country", read_only=True)
 
