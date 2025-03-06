@@ -1046,7 +1046,7 @@ class ProjectRegionMovementActivitiesSerializer(serializers.Serializer):
 
 
 class ERUReadinessTypeSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(required=True)
+    id = serializers.IntegerField(required=False)
     type_display = serializers.CharField(source="get_type_display", read_only=True)
     equipment_readiness_display = serializers.CharField(source="get_equipment_readiness_display", read_only=True)
     people_readiness_display = serializers.CharField(source="get_people_readiness_display", read_only=True)
@@ -1062,7 +1062,6 @@ class ERUReadinessSerializer(
     NestedUpdateMixin,
     serializers.ModelSerializer,
 ):
-    id = serializers.IntegerField(required=True)
     eru_owner = serializers.PrimaryKeyRelatedField(
         queryset=ERUOwner.objects.all(),
         required=True,
@@ -1076,4 +1075,25 @@ class ERUReadinessSerializer(
 
     class Meta:
         model = ERUReadiness
+        fields = "__all__"
+
+
+class MiniERUReadinessSerializer(serializers.ModelSerializer):
+    eru_owner_details = MiniCountrySerializer(source="eru_owner", read_only=True)
+
+    class Meta:
+        model = ERUReadiness
+        fields = (
+            "id",
+            "eru_owner_details",
+            "updated_at",
+        )
+
+
+# Creating different serializer to avoid circular serializer(eru_types:M2M)
+class MiniERUReadinessTypeSerializer(serializers.ModelSerializer):
+    eru_readiness = MiniERUReadinessSerializer(source="erureadiness_set", read_only=True)
+
+    class Meta:
+        model = ERUReadinessType
         fields = "__all__"

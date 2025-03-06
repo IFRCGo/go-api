@@ -2,10 +2,13 @@ import datetime
 import json
 
 import pydash
+from django.contrib.auth.models import Group, Permission
+from django.core import management
 
 import api.models as models
 from api.factories import country, district
 from api.factories.event import DisasterTypeFactory, EventFactory
+from api.models import Country, Region
 from deployments.factories.emergency_project import (
     EmergencyProjectActivityActionFactory,
     EmergencyProjectActivityFactory,
@@ -340,6 +343,21 @@ class TestEmergencyProjectAPI(APITestCase):
 
 
 class TestERUReadinessAPI(APITestCase):
+    def setUp(self):
+        super().setUp()
+        self.region = Region.objects.create(name=2)
+        self.country = Country.objects.create(name="Nepal", iso3="NLP", region=self.region)
+
+        # Create permissions
+        management.call_command("make_permissions")
+
+        self.user_admin = UserFactory.create()
+        self.country_admin_permission = Permission.objects.filter(codename="country_admin_%s" % self.country.id).first()
+        country_group = Group.objects.filter(name="%s Admins" % self.country.name).first()
+
+        self.user_admin.user_permissions.add(self.country_admin_permission)
+        self.user_admin.groups.add(country_group)
+
     def test_eru_readiness_update(self):
         eru_readiness_type_common = {
             "equipment_readiness": ERUReadinessType.ReadinessStatus.READY,
@@ -354,7 +372,9 @@ class TestERUReadinessAPI(APITestCase):
             type=ERUType.BASECAMP_M,
             **eru_readiness_type_common,
         )
-        eru_owner = ERUOwnerFactory.create()
+        eru_owner = ERUOwnerFactory.create(
+            national_society_country=self.country,
+        )
         eru_readiness_1 = ERUReadinessFactory.create(eru_owner=eru_owner, eru_types=[eru_readiness_type_1, eru_readiness_type_2])
 
         # Update ERU readiness and types
@@ -381,7 +401,7 @@ class TestERUReadinessAPI(APITestCase):
             ],
         }
 
-        self.authenticate()
+        self.authenticate(self.user_admin)
         response = self.client.put(url, data=data, format="json")
         self.assert_200(response)
         self.assertEqual(response.data["id"], eru_readiness_1.id)
