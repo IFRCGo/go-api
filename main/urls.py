@@ -90,7 +90,7 @@ router.register(r"domainwhitelist", registration_views.DomainWhitelistViewset)
 router.register(r"eru", deployment_views.ERUViewset, basename="eru")
 router.register(
     r"aggregated_eru_and_rapid_response",
-    deployment_views.AggregatedERUAndRapidResponseDataViewSet,
+    deployment_views.AggregatedERUAndRapidResponseViewSet,
     basename="aggregated_eru_and_rapid_response",
 )
 router.register(r"eru_owner", deployment_views.ERUOwnerViewset, basename="eru_owner")

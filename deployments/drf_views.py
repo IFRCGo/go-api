@@ -129,22 +129,24 @@ class ERUViewset(viewsets.ReadOnlyModelViewSet):
     )
 
 
-class AggregatedERUAndRapidResponseDataViewSet(viewsets.ReadOnlyModelViewSet):
+class AggregatedERUAndRapidResponseViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = AggregatedERUAndRapidResponseSerializer
 
     def get_queryset(self):
-        return (
+        queryset = (
             Event.objects.prefetch_related(
-                "personneldeployment_set__personnel_set",
+                "personneldeployment_set__personnel_set__country_from",
                 "eru_set",
                 "appeals",
             )
             .annotate(
-                role=models.F("personneldeployment__personnel__role"),
-                organisation=models.F("personneldeployment__personnel__country_from__name"),
-                operation_start_date=models.F("appeals__start_date"),
-                eru_type=models.F("eru__type"),
-                eru_count=Count("eru"),
+                eru_count=Count(
+                    "personneldeployment__personnel",
+                    filter=Q(
+                        personneldeployment__personnel__type=Personnel.TypeChoices.ERU,
+                        personneldeployment__personnel__is_active=True,
+                    ),
+                ),
                 personnel_count=Count(
                     "personneldeployment__personnel",
                     filter=Q(
@@ -154,18 +156,8 @@ class AggregatedERUAndRapidResponseDataViewSet(viewsets.ReadOnlyModelViewSet):
                 ),
             )
             .order_by("-disaster_start_date")
-            .values(
-                "id",
-                "name",
-                "disaster_start_date",
-                "role",
-                "organisation",
-                "eru_count",
-                "personnel_count",
-                "eru_type",
-                "operation_start_date",
-            )
         )
+        return queryset
 
 
 class PersonnelDeploymentFilter(filters.FilterSet):
