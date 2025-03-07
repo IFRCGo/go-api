@@ -57,6 +57,7 @@ from api.visibility_class import (
 from country_plan.models import CountryPlan
 from databank.serializers import CountryOverviewSerializer
 from deployments.models import Personnel
+from deployments.serializers import ListDeployedERUByEventSerializer
 from main.enums import GlobalEnumSerializer, get_enum_values
 from main.filters import NullsLastOrderingFilter
 from main.permissions import DenyGuestUserMutationPermission, DenyGuestUserPermission
@@ -210,6 +211,30 @@ class EventDeploymentsViewset(viewsets.ReadOnlyModelViewSet):
                 "disaster_start_date",
                 "organization_from",
             )
+        )
+
+
+class DeployedERUFilter(rest_filters.FilterSet):
+    eru_type = rest_filters.NumberFilter(field_name="eru__type", lookup_expr="exact")
+
+
+class DeployedERUByEventViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = ListDeployedERUByEventSerializer
+    filterset_class = DeployedERUFilter
+
+    def get_queryset(self):
+        return (
+            Event.objects.filter(
+                eru__deployed_to__isnull=False,
+            )
+            .prefetch_related(
+                "appeals",
+                "eru_set__eru_owner__national_society_country",
+            )
+            .order_by(
+                "-disaster_start_date",
+            )
+            .distinct()
         )
 
 
