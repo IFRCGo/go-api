@@ -5,7 +5,7 @@ from datetime import date
 from django.contrib.postgres.aggregates.general import ArrayAgg
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -20,7 +20,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from reversion.views import RevisionMixin
 
-from api.models import Country, Region
+from api.models import Country, Event, Region
 from api.view_filters import ListFilter
 from api.visibility_class import ReadOnlyVisibilityViewsetMixin
 from main.permissions import DenyGuestUserPermission
@@ -46,6 +46,7 @@ from .models import (
 )
 from .serializers import (
     AggregateDeploymentsSerializer,
+    AggregatedERUAndRapidResponseSerializer,
     DeploymentByNSSerializer,
     DeploymentsByMonthSerializer,
     EmergencyProjectOptionsSerializer,
@@ -54,7 +55,6 @@ from .serializers import (
     ERUSerializer,
     GlobalProjectNSOngoingProjectsStatsSerializer,
     GlobalProjectOverviewSerializer,
-    OnGoingERUSerializer,
     PartnerDeploymentSerializer,
     PartnerDeploymentTableauSerializer,
     PersonnelCsvSerializer,
@@ -129,35 +129,41 @@ class ERUViewset(viewsets.ReadOnlyModelViewSet):
     )
 
 
-class EruTtypFilter(filters.FilterSet):
-    eru_type = filters.NumberFilter(field_name="type", lookup_expr="exact")
-
-
-class OnGoingEruDeployment(viewsets.ReadOnlyModelViewSet):
-    serializer_class = OnGoingERUSerializer
-    filterset_class = EruTtypFilter
+class AggregatedERUAndRapidResponseDataViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = AggregatedERUAndRapidResponseSerializer
 
     def get_queryset(self):
         return (
-            ERU.objects.filter(
-                deployed_to__isnull=False,
+            Event.objects.prefetch_related(
+                "personneldeployment_set__personnel_set",
+                "eru_set",
+                "appeals",
             )
-            .select_related("event", "deployed_to")
             .annotate(
-                event_name=models.F("event__name"),
-                organisation=models.F("deployed_to__name"),
-                disaster_start_date=models.F("event__disaster_start_date"),
+                role=models.F("personneldeployment__personnel__role"),
+                organisation=models.F("personneldeployment__personnel__country_from__name"),
+                operation_start_date=models.F("appeals__start_date"),
+                eru_type=models.F("eru__type"),
+                eru_count=Count("eru"),
+                personnel_count=Count(
+                    "personneldeployment__personnel",
+                    filter=Q(
+                        personneldeployment__personnel__type=Personnel.TypeChoices.RR,
+                        personneldeployment__personnel__is_active=True,
+                    ),
+                ),
             )
-            .order_by("event__disaster_start_date")
+            .order_by("-disaster_start_date")
             .values(
                 "id",
-                "type",
-                "start_date",
-                "end_date",
-                "event_id",
-                "event_name",
+                "name",
                 "disaster_start_date",
+                "role",
                 "organisation",
+                "eru_count",
+                "personnel_count",
+                "eru_type",
+                "operation_start_date",
             )
         )
 
