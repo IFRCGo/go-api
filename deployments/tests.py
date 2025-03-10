@@ -1,3 +1,4 @@
+import datetime
 import json
 
 import pydash
@@ -29,7 +30,7 @@ from deployments.models import (
 )
 from main.test_case import APITestCase, SnapshotTestCase
 
-from .factories.personnel import PersonnelFactory
+from .factories.personnel import PersonnelDeploymentFactory, PersonnelFactory
 
 
 class TestProjectAPI(SnapshotTestCase):
@@ -330,3 +331,63 @@ class TestEmergencyProjectAPI(APITestCase):
         self.assert_201(response)
         self.assertEqual(EmergencyProject.objects.count(), old_emergency_project_count + 1)
         self.assertEqual(EmergencyProjectActivity.objects.count(), old_emergency_project_activity_count + 1)
+
+
+class AggregatedERUAndRapidResponseViewSetTestCase(APITestCase):
+
+    def setUp(self):
+        super().setUp()
+
+        self.event = EventFactory(
+            name="Test Event",
+            disaster_start_date=datetime.datetime(2025, 3, 1),
+        )
+
+        self.country1 = country.CountryFactory(name="Test Country1")
+        self.country2 = country.CountryFactory(name="Test Country2")
+        self.country3 = country.CountryFactory(name="Test Country3")
+
+        self.personnel_eru = PersonnelFactory(
+            type="eru",
+            is_active=True,
+            country_from=self.country3,
+            deployment=PersonnelDeploymentFactory(
+                event_deployed_to=self.event,
+            ),
+        )
+
+        self.personnel_rr = PersonnelFactory(
+            type="rr",
+            is_active=True,
+            country_from=self.country2,
+            deployment=PersonnelDeploymentFactory(
+                event_deployed_to=self.event,
+            ),
+        )
+
+        self.personnel_rr2 = PersonnelFactory(
+            type="rr",
+            is_active=True,
+            country_from=self.country1,
+            deployment=PersonnelDeploymentFactory(
+                event_deployed_to=self.event,
+            ),
+        )
+        self.personnel_inactive2 = PersonnelFactory(
+            name="Inactive Personnel",
+            type="rr",
+            is_active=False,
+            deployment=PersonnelDeploymentFactory(
+                event_deployed_to=self.event,
+            ),
+        )
+
+    def test_get_aggregated_data(self):
+        url = "/api/v2/aggregated_eru_and_rapid_response/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        event_data = data["results"][0]
+
+        self.assertEqual(event_data["eru_count"], 1)
+        self.assertEqual(event_data["personnel_count"], 2)
