@@ -186,31 +186,14 @@ class EventDeploymentsViewset(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         today = timezone.now().date().strftime("%Y-%m-%d")
         return (
-            Personnel.objects.filter(
-                type=Personnel.TypeChoices.RR,
-                start_date__date__lte=today,
-                end_date__date__gte=today,
-                is_active=True,
-            )
+            Personnel.objects.filter(start_date__date__lte=today, end_date__date__gte=today, is_active=True)
             .order_by()
-            .select_related("deployment__event_deployed_to", "country_from")
-            .annotate(
-                event_id=models.F("deployment__event_deployed_to"),
-                event_name=models.F("deployment__event_deployed_to__name"),
-                disaster_start_date=models.F("deployment__event_deployed_to__disaster_start_date"),
-                organization_from=models.F("country_from__name"),
-            )
             .values(
-                "id",
-                "name",
-                "role",
-                "start_date",
-                "end_date",
-                "event_id",
-                "event_name",
-                "disaster_start_date",
-                "organization_from",
+                "deployment__event_deployed_to",
+                "type",
             )
+            .annotate(id=models.F("deployment__event_deployed_to"), deployments=models.Count("type"))
+            .values("id", "type", "deployments")
         )
 
 
