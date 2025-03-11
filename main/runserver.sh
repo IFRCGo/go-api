@@ -9,12 +9,12 @@ python manage.py collectstatic --noinput -l
 #python manage.py make_permissions
 
 # Add server name(s) to django settings and nginx - later maybe only nginx would be enough, and ALLOWED_HOSTS could be "*"
-# TODO: Allow API_FQDN with https
+NGINX_API_FQDN=$(echo $API_FQDN | sed 's|https://||')
 if [ "$GO_ENVIRONMENT"x = productionx ]; then
-    sed -i 's/\$NGINX_SERVER_NAME/'$API_FQDN' api.go.ifrc.org/g' /etc/nginx/sites-available/nginx.conf
+    sed -i 's/\$NGINX_SERVER_NAME/'$NGINX_API_FQDN' api.go.ifrc.org/g' /etc/nginx/sites-available/nginx.conf
     sed -i 's/CHANGE_ME_BEFORE_START/prod/' /etc/nginx/sites-available/nginx.conf
 else
-    sed -i 's/\$NGINX_SERVER_NAME/'$API_FQDN'/g' /etc/nginx/sites-available/nginx.conf
+    sed -i 's/\$NGINX_SERVER_NAME/'$NGINX_API_FQDN'/g' /etc/nginx/sites-available/nginx.conf
     sed -i 's/CHANGE_ME_BEFORE_START/'$GO_ENVIRONMENT'/' /etc/nginx/sites-available/nginx.conf
 fi
 
