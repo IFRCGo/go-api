@@ -136,16 +136,14 @@ class AggregatedERUAndRapidResponseViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = (
             Event.objects.prefetch_related(
                 "personneldeployment_set__personnel_set__country_from",
-                "eru_set",
+                "eru_set__eru_owner__national_society_country",
                 "appeals",
             )
             .annotate(
                 eru_count=Count(
-                    "personneldeployment__personnel",
-                    filter=Q(
-                        personneldeployment__personnel__type=Personnel.TypeChoices.ERU,
-                        personneldeployment__personnel__is_active=True,
-                    ),
+                    "eru",
+                    filter=Q(eru__deployed_to__isnull=False),
+                    distinct=True,
                 ),
                 personnel_count=Count(
                     "personneldeployment__personnel",
@@ -360,14 +358,23 @@ class AggregateDeployments(APIView):
             event_id = request.GET.get("event")
             deployments_qset = deployments_qset.filter(deployment__event_deployed_to=event_id)
             eru_qset = eru_qset.filter(event=event_id)
-        rapid_response_deployment_this_year = deployments_qset.filter(
+
+        active_rapid_response_personal = deployments_qset.filter(
             type=Personnel.TypeChoices.RR, start_date__date__lte=today, end_date__date__gte=today, is_active=True
         ).count()
-        active_emergency_response_units = eru_qset.filter(deployed_to__isnull=False).count()
-        emergency_response_units_deployed_this_year = deployments_qset.filter(
+
+        rapid_response_deployment_this_year = deployments_qset.filter(
             is_active=True, start_date__year__lte=this_year, end_date__year__gte=this_year
         ).count()
-        active_rapid_response_personal = deployments_qset.filter(type=Personnel.TypeChoices.RR, is_active=True).count()
+        active_emergency_response_units = eru_qset.filter(
+            deployed_to__isnull=False,
+        ).count()
+
+        emergency_response_units_deployed_this_year = eru_qset.filter(
+            deployed_to__isnull=False,
+            start_date__year__lte=this_year,
+            end_date__year__gte=this_year,
+        ).count()
         return Response(
             AggregateDeploymentsSerializer(
                 dict(

@@ -23,6 +23,7 @@ from deployments.models import (
     EmergencyProject,
     EmergencyProjectActivity,
     OperationTypes,
+    Personnel,
     ProgrammeTypes,
     Project,
     Statuses,
@@ -347,17 +348,8 @@ class AggregatedERUAndRapidResponseViewSetTestCase(APITestCase):
         self.country2 = country.CountryFactory(name="Test Country2")
         self.country3 = country.CountryFactory(name="Test Country3")
 
-        self.personnel_eru = PersonnelFactory(
-            type="eru",
-            is_active=True,
-            country_from=self.country3,
-            deployment=PersonnelDeploymentFactory(
-                event_deployed_to=self.event,
-            ),
-        )
-
         self.personnel_rr = PersonnelFactory(
-            type="rr",
+            type=Personnel.TypeChoices.RR,
             is_active=True,
             country_from=self.country2,
             deployment=PersonnelDeploymentFactory(
@@ -366,7 +358,7 @@ class AggregatedERUAndRapidResponseViewSetTestCase(APITestCase):
         )
 
         self.personnel_rr2 = PersonnelFactory(
-            type="rr",
+            type=Personnel.TypeChoices.RR,
             is_active=True,
             country_from=self.country1,
             deployment=PersonnelDeploymentFactory(
@@ -375,12 +367,13 @@ class AggregatedERUAndRapidResponseViewSetTestCase(APITestCase):
         )
         self.personnel_inactive2 = PersonnelFactory(
             name="Inactive Personnel",
-            type="rr",
+            type=Personnel.TypeChoices.RR,
             is_active=False,
             deployment=PersonnelDeploymentFactory(
                 event_deployed_to=self.event,
             ),
         )
+        self.eru = EruFactory(event=self.event, deployed_to=self.country2)
 
     def test_get_aggregated_data(self):
         url = "/api/v2/aggregated_eru_and_rapid_response/"
@@ -388,6 +381,5 @@ class AggregatedERUAndRapidResponseViewSetTestCase(APITestCase):
         self.assertEqual(response.status_code, 200)
         data = response.json()
         event_data = data["results"][0]
-
-        self.assertEqual(event_data["eru_count"], 1)
         self.assertEqual(event_data["personnel_count"], 2)
+        self.assertEqual(event_data["eru_count"], 1)

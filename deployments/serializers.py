@@ -11,6 +11,7 @@ from api.serializers import (
     MiniCountrySerializer,
     MiniDistrictSerializer,
     MiniEventSerializer,
+    MiniPersonnelDeploymentSerializer,
     NanoCountrySerializer,
     RelatedAppealSerializer,
     SmallEventForPersonnelCsvSerializer,
@@ -263,41 +264,10 @@ class PersonnelSerializerAnon(ModelSerializer):
         )
 
 
-class ERUSmallSerializer(ModelSerializer):
-    type_display = serializers.CharField(source="get_type_display", read_only=True)
-
-    class Meta:
-        model = ERU
-        fields = ("id", "type", "type_display")
-
-
-class PersonnelSmallSerializer(ModelSerializer):
-    country_from = MiniCountrySerializer()
-
-    class Meta:
-        model = Personnel
-        fields = (
-            "id",
-            "role",
-            "country_from",
-        )
-
-
-class PressonnelDeploymentSmallSerializer(ModelSerializer):
-    personnel = PersonnelSmallSerializer(source="personnel_set", many=True)
-
-    class Meta:
-        model = PersonnelDeployment
-        fields = (
-            "id",
-            "personnel",
-        )
-
-
 class AggregatedERUAndRapidResponseSerializer(ModelSerializer):
     appeals = RelatedAppealSerializer(many=True, read_only=True)
-    eru_types = ERUSmallSerializer(source="eru_set", many=True, read_only=True)
-    deployments = PressonnelDeploymentSmallSerializer(source="personneldeployment_set", many=True, read_only=True)
+    erus = ERUMiniSerializer(source="eru_set", many=True, read_only=True)
+    deployments = MiniPersonnelDeploymentSerializer(source="personneldeployment_set", many=True, read_only=True)
     eru_count = serializers.IntegerField(read_only=True)
     personnel_count = serializers.IntegerField(read_only=True)
 
@@ -306,10 +276,10 @@ class AggregatedERUAndRapidResponseSerializer(ModelSerializer):
         fields = (
             "id",
             "name",
-            "eru_types",
-            "appeals",
+            "erus",
             "eru_count",
             "personnel_count",
+            "appeals",
             "deployments",
         )
 
