@@ -1063,11 +1063,11 @@ class ERUReadinessSerializer(
     serializers.ModelSerializer,
 ):
     eru_owner = serializers.PrimaryKeyRelatedField(
-        queryset=ERUOwner.objects.all(),
+        queryset=ERUOwner.objects.prefetch_related("national_society_country"),
         required=True,
         write_only=True,
     )
-    eru_owner_details = MiniCountrySerializer(source="eru_owner", read_only=True)
+    eru_owner_details = ERUOwnerMiniSerializer(source="eru_owner", read_only=True)
     eru_types = ERUReadinessTypeSerializer(
         many=True,
         required=True,
@@ -1079,7 +1079,7 @@ class ERUReadinessSerializer(
 
 
 class MiniERUReadinessSerializer(serializers.ModelSerializer):
-    eru_owner_details = MiniCountrySerializer(source="eru_owner", read_only=True)
+    eru_owner_details = ERUOwnerMiniSerializer(source="eru_owner", read_only=True)
 
     class Meta:
         model = ERUReadiness
@@ -1092,7 +1092,7 @@ class MiniERUReadinessSerializer(serializers.ModelSerializer):
 
 # Creating different serializer to avoid circular serializer(eru_types:M2M)
 class MiniERUReadinessTypeSerializer(serializers.ModelSerializer):
-    eru_readiness = MiniERUReadinessSerializer(source="erureadiness_set", read_only=True)
+    eru_readiness = MiniERUReadinessSerializer(source="erureadiness_set", read_only=True, many=True)
 
     class Meta:
         model = ERUReadinessType
