@@ -54,6 +54,7 @@ from .serializers import (
     DeploymentsByMonthSerializer,
     EmergencyProjectOptionsSerializer,
     EmergencyProjectSerializer,
+    ERUOwnerMiniSerializer,
     ERUOwnerSerializer,
     ERUReadinessSerializer,
     ERUSerializer,
@@ -88,6 +89,24 @@ class ERUOwnerViewset(viewsets.ReadOnlyModelViewSet):
     )
     filterset_class = ERUOwnerFilter
     search_fields = ("national_society_country__name",)  # for /docs
+
+    @extend_schema(
+        request=None,
+        responses=ERUOwnerMiniSerializer(many=True),
+    )
+    @action(
+        detail=False,
+        methods=("get",),
+        url_path="mini",
+    )
+    def mini(self, request):
+        queryset = ERUOwner.objects.select_related("national_society_country").all()
+        serializer = ERUOwnerMiniSerializer(queryset, many=True)
+        page = self.paginate_queryset(queryset=queryset)
+        if page is not None:
+            serializer = ERUOwnerMiniSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        return Response(serializer.data)
 
 
 class ERUFilter(filters.FilterSet):
@@ -915,7 +934,7 @@ class ERUReadinessFilter(filters.FilterSet):
 
 
 class ERUReadinessViewSet(RevisionMixin, viewsets.ModelViewSet):
-    queryset = ERUReadiness.objects.prefetch_related("eru_types").all()
+    queryset = ERUReadiness.objects.select_related("eru_owner").prefetch_related("eru_types").all()
     serializer_class = ERUReadinessSerializer
     filterset_class = ERUReadinessFilter
     permission_classes = [IsAuthenticated, ERUReadinessPermission]
