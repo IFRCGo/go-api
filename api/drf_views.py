@@ -57,6 +57,7 @@ from api.visibility_class import (
 from country_plan.models import CountryPlan
 from databank.serializers import CountryOverviewSerializer
 from deployments.models import Personnel
+from deployments.serializers import ListDeployedERUByEventSerializer
 from main.enums import GlobalEnumSerializer, get_enum_values
 from main.filters import NullsLastOrderingFilter
 from main.permissions import DenyGuestUserMutationPermission, DenyGuestUserPermission
@@ -160,22 +161,21 @@ class DeploymentsByEventViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = DeploymentsByEventSerializer
 
     def get_queryset(self):
-        today = timezone.now().date().strftime("%Y-%m-%d")
         return (
-            Event.objects.prefetch_related("personneldeployment_set__personnel_set__country_from")
-            .annotate(
-                personnel_count=Count(
-                    "personneldeployment__personnel",
-                    filter=Q(
-                        personneldeployment__personnel__type=Personnel.TypeChoices.RR,
-                        personneldeployment__personnel__start_date__date__lte=today,
-                        personneldeployment__personnel__end_date__date__gte=today,
-                        personneldeployment__personnel__is_active=True,
-                    ),
-                )
+            Event.objects.filter(
+                personneldeployment__isnull=False,
+                personneldeployment__personnel__type=Personnel.TypeChoices.RR,
+                personneldeployment__personnel__is_active=True,
             )
-            .filter(personnel_count__gt=0)
-            .order_by("-disaster_start_date")
+            .prefetch_related(
+                "appeals",
+                "personneldeployment_set",
+                "personneldeployment_set__personnel_set__country_from",
+            )
+            .order_by(
+                "-disaster_start_date",
+            )
+            .distinct()
         )
 
 
@@ -186,14 +186,55 @@ class EventDeploymentsViewset(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         today = timezone.now().date().strftime("%Y-%m-%d")
         return (
-            Personnel.objects.filter(start_date__date__lte=today, end_date__date__gte=today, is_active=True)
-            .order_by()
-            .values(
-                "deployment__event_deployed_to",
-                "type",
+            Personnel.objects.filter(
+                type=Personnel.TypeChoices.RR,
+                start_date__date__lte=today,
+                end_date__date__gte=today,
+                is_active=True,
             )
-            .annotate(id=models.F("deployment__event_deployed_to"), deployments=models.Count("type"))
-            .values("id", "type", "deployments")
+            .order_by()
+            .select_related("deployment__event_deployed_to", "country_from")
+            .annotate(
+                event_id=models.F("deployment__event_deployed_to"),
+                event_name=models.F("deployment__event_deployed_to__name"),
+                disaster_start_date=models.F("deployment__event_deployed_to__disaster_start_date"),
+                organization_from=models.F("country_from__name"),
+            )
+            .values(
+                "id",
+                "name",
+                "role",
+                "start_date",
+                "end_date",
+                "event_id",
+                "event_name",
+                "disaster_start_date",
+                "organization_from",
+            )
+        )
+
+
+class DeployedERUFilter(rest_filters.FilterSet):
+    eru_type = rest_filters.NumberFilter(field_name="eru__type", lookup_expr="exact")
+
+
+class DeployedERUByEventViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = ListDeployedERUByEventSerializer
+    filterset_class = DeployedERUFilter
+
+    def get_queryset(self):
+        return (
+            Event.objects.filter(
+                eru__deployed_to__isnull=False,
+            )
+            .prefetch_related(
+                "appeals",
+                "eru_set__eru_owner__national_society_country",
+            )
+            .order_by(
+                "-disaster_start_date",
+            )
+            .distinct()
         )
 
 
