@@ -1,8 +1,10 @@
 # NOTE: Used Only for local development
 
 x-server: &base_server_setup
-  image: ifrcgo/go-api:uv-latest
-  build: .
+  build:
+    context: .
+    tags:
+     - ifrcgo/go-api:latest
   # To attach to container with stdin `docker attach <container_name>`
   # Used for python debugging.
   stdin_open: true
