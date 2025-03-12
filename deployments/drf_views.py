@@ -192,6 +192,8 @@ class PersonnelFilter(filters.FilterSet):
     country_to = filters.NumberFilter(field_name="country_to", lookup_expr="exact")
     type = filters.CharFilter(field_name="type", lookup_expr="exact")
     event_deployed_to = filters.NumberFilter(field_name="deployment__event_deployed_to", lookup_expr="exact")
+    is_active = filters.BooleanFilter(field_name="is_active", lookup_expr="exact")
+    dtype = filters.NumberFilter(field_name="deployment__event_deployed_to__dtype", lookup_expr="exact")
 
     class Meta:
         model = Personnel
