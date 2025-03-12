@@ -19,6 +19,8 @@ on:
   pull_request:
   # NOTE: For develop & master, they are run through helm github action ./build-publish-docker-helm.yml
 
+env:
+  COMPOSE_FILE: docker-compose.yml:.github/docker-compose.yml
 
 jobs:
   pre_commit_checks:
@@ -103,11 +105,15 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Docker config setup & Pull docker images
+        env:
+          DOCKER_IMAGE: ${{ steps.prep.outputs.tagged_image }}
         run: |
-          cp .env-sample .env &&
+          touch .env
           docker compose run --rm serve ls
 
       - name: 🕮 Validate if there are no pending django migrations.
+        env:
+          DOCKER_IMAGE: ${{ steps.prep.outputs.tagged_image }}
         run: |
           docker compose run --rm serve ./manage.py makemigrations --check --dry-run || {
             echo 'There are some changes to be reflected in the migration. Make sure to run makemigrations';
@@ -115,6 +121,8 @@ jobs:
           }
 
       - name: 🕮 Validate SentryMonitor config
+        env:
+          DOCKER_IMAGE: ${{ steps.prep.outputs.tagged_image }}
         run: |
           docker compose run --rm serve ./manage.py cron_job_monitor --validate-only || {
             echo 'There are some changes to be reflected in the SentryMonitor. Make sure to update SentryMonitor';
@@ -122,9 +130,13 @@ jobs:
           }
 
       - name: Run django migrations
+        env:
+          DOCKER_IMAGE: ${{ steps.prep.outputs.tagged_image }}
         run: docker compose run --rm serve ./manage.py test --keepdb -v 2 --pattern="test_fake.py"
 
       - name: 🤞 Run Test 🧪
+        env:
+          DOCKER_IMAGE: ${{ steps.prep.outputs.tagged_image }}
         run: docker compose run --rm serve pytest --reuse-db --durations=10
 
       - name: 🐳 Docker push
