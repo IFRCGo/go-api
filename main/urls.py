@@ -89,7 +89,7 @@ router.register(r"district_rmd", api_views.DistrictRMDViewset, basename="distric
 router.register(r"domainwhitelist", registration_views.DomainWhitelistViewset)
 router.register(r"eru", deployment_views.ERUViewset, basename="eru")
 router.register(
-    r"aggregated_eru_and_rapid_response",
+    r"aggregated-eru-and-rapid-response",
     deployment_views.AggregatedERUAndRapidResponseViewSet,
     basename="aggregated_eru_and_rapid_response",
 )

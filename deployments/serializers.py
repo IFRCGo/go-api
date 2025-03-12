@@ -268,8 +268,8 @@ class AggregatedERUAndRapidResponseSerializer(ModelSerializer):
     appeals = RelatedAppealSerializer(many=True, read_only=True)
     erus = ERUMiniSerializer(source="eru_set", many=True, read_only=True)
     deployments = MiniPersonnelDeploymentSerializer(source="personneldeployment_set", many=True, read_only=True)
-    eru_count = serializers.IntegerField(read_only=True)
-    personnel_count = serializers.IntegerField(read_only=True)
+    deployed_eru_count = serializers.IntegerField(read_only=True)
+    deployed_personnel_count = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Event
@@ -277,8 +277,8 @@ class AggregatedERUAndRapidResponseSerializer(ModelSerializer):
             "id",
             "name",
             "erus",
-            "eru_count",
-            "personnel_count",
+            "deployed_eru_count",
+            "deployed_personnel_count",
             "appeals",
             "deployments",
         )
@@ -924,10 +924,10 @@ class EmergencyProjectSerializer(
 
 
 class AggregateDeploymentsSerializer(serializers.Serializer):
-    rapid_response_deployment_this_year = serializers.IntegerField(required=False)
-    active_emergency_response_units = serializers.IntegerField(required=False)
-    emergency_response_units_deployed_this_year = serializers.IntegerField(required=False)
-    active_rapid_response_personal = serializers.IntegerField(required=False)
+    rapid_response_deployments_this_year = serializers.IntegerField(required=True)
+    active_emergency_response_units = serializers.IntegerField(required=True)
+    emergency_response_unit_deployed_this_year = serializers.IntegerField(required=True)
+    active_rapid_response_personnel = serializers.IntegerField(required=True)
 
 
 class ProjectPerSector(serializers.Serializer):

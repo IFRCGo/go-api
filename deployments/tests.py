@@ -11,6 +11,7 @@ from deployments.factories.emergency_project import (
     EmergencyProjectActivityFactory,
     EmergencyProjectActivitySectorFactory,
     EruFactory,
+    ERUOwnerFactory,
 )
 from deployments.factories.project import (
     ProjectFactory,
@@ -348,38 +349,30 @@ class AggregatedERUAndRapidResponseViewSetTestCase(APITestCase):
         self.country2 = country.CountryFactory(name="Test Country2")
         self.country3 = country.CountryFactory(name="Test Country3")
 
-        self.personnel_rr = PersonnelFactory(
-            type=Personnel.TypeChoices.RR,
-            is_active=True,
-            country_from=self.country2,
-            deployment=PersonnelDeploymentFactory(
-                event_deployed_to=self.event,
-            ),
+        self.eru_owner = ERUOwnerFactory()
+
+        self.eru = EruFactory.create_batch(3, event=self.event, eru_owner=self.eru_owner)
+
+        self.deployment1 = PersonnelDeploymentFactory(
+            event_deployed_to=self.event,
         )
 
-        self.personnel_rr2 = PersonnelFactory(
-            type=Personnel.TypeChoices.RR,
-            is_active=True,
-            country_from=self.country1,
-            deployment=PersonnelDeploymentFactory(
-                event_deployed_to=self.event,
-            ),
+        self.personnel_rapid_response = PersonnelFactory(
+            type=Personnel.TypeChoices.RR, is_active=True, country_from=self.country2, deployment=self.deployment1
         )
-        self.personnel_inactive2 = PersonnelFactory(
-            name="Inactive Personnel",
-            type=Personnel.TypeChoices.RR,
-            is_active=False,
-            deployment=PersonnelDeploymentFactory(
-                event_deployed_to=self.event,
-            ),
+
+        self.personnel_rapid_response2 = PersonnelFactory(
+            type=Personnel.TypeChoices.RR, is_active=True, country_from=self.country1, deployment=self.deployment1
         )
-        self.eru = EruFactory(event=self.event, deployed_to=self.country2)
+        self.personnel_rapid_response3 = PersonnelFactory(
+            name="Inactive Personnel", type=Personnel.TypeChoices.RR, is_active=False, deployment=self.deployment1
+        )
 
     def test_get_aggregated_data(self):
-        url = "/api/v2/aggregated_eru_and_rapid_response/"
+        url = "/api/v2/aggregated-eru-and-rapid-response/"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         data = response.json()
         event_data = data["results"][0]
-        self.assertEqual(event_data["personnel_count"], 2)
-        self.assertEqual(event_data["eru_count"], 1)
+        self.assertEqual(event_data["deployed_personnel_count"], 2)
+        self.assertEqual(event_data["deployed_eru_count"], 3)

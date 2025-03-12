@@ -140,17 +140,18 @@ class AggregatedERUAndRapidResponseViewSet(viewsets.ReadOnlyModelViewSet):
                 "appeals",
             )
             .annotate(
-                eru_count=Count(
+                deployed_eru_count=Count(
                     "eru",
                     filter=Q(eru__deployed_to__isnull=False),
                     distinct=True,
                 ),
-                personnel_count=Count(
+                deployed_personnel_count=Count(
                     "personneldeployment__personnel",
                     filter=Q(
                         personneldeployment__personnel__type=Personnel.TypeChoices.RR,
                         personneldeployment__personnel__is_active=True,
                     ),
+                    distinct=True,
                 ),
             )
             .order_by("-disaster_start_date")
@@ -359,18 +360,18 @@ class AggregateDeployments(APIView):
             deployments_qset = deployments_qset.filter(deployment__event_deployed_to=event_id)
             eru_qset = eru_qset.filter(event=event_id)
 
-        active_rapid_response_personal = deployments_qset.filter(
+        active_rapid_response_personnel = deployments_qset.filter(
             type=Personnel.TypeChoices.RR, start_date__date__lte=today, end_date__date__gte=today, is_active=True
         ).count()
 
-        rapid_response_deployment_this_year = deployments_qset.filter(
+        rapid_response_deployments_this_year = deployments_qset.filter(
             is_active=True, start_date__year__lte=this_year, end_date__year__gte=this_year
         ).count()
         active_emergency_response_units = eru_qset.filter(
             deployed_to__isnull=False,
         ).count()
 
-        emergency_response_units_deployed_this_year = eru_qset.filter(
+        emergency_response_unit_deployed_this_year = eru_qset.filter(
             deployed_to__isnull=False,
             start_date__year__lte=this_year,
             end_date__year__gte=this_year,
@@ -378,10 +379,10 @@ class AggregateDeployments(APIView):
         return Response(
             AggregateDeploymentsSerializer(
                 dict(
-                    active_rapid_response_personal=active_rapid_response_personal,
-                    rapid_response_deployment_this_year=rapid_response_deployment_this_year,
+                    active_rapid_response_personnel=active_rapid_response_personnel,
+                    rapid_response_deployments_this_year=rapid_response_deployments_this_year,
                     active_emergency_response_units=active_emergency_response_units,
-                    emergency_response_units_deployed_this_year=emergency_response_units_deployed_this_year,
+                    emergency_response_unit_deployed_this_year=emergency_response_unit_deployed_this_year,
                 )
             ).data
         )
