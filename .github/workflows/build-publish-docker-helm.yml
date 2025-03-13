@@ -80,10 +80,8 @@ jobs:
         PACKAGE_FILE=$(ls .helm-charts/*.tgz | head -n 1)
         echo "# Helm Chart" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Tagged Image: **$IMAGE**" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Helm push output" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo '```bash' >> $GITHUB_STEP_SUMMARY
+        echo '```yaml' >> $GITHUB_STEP_SUMMARY
         helm push "$PACKAGE_FILE" $OCI_REPO 2>> $GITHUB_STEP_SUMMARY
         echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "> [!Important]" >> $GITHUB_STEP_SUMMARY
+        echo "> NOTE: Tagged docker image: **$IMAGE**" >> $GITHUB_STEP_SUMMARY
