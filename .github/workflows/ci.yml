@@ -151,8 +151,8 @@ jobs:
 
       - name: 🐳 Helm lint
         working-directory: deploy/helm/ifrcgo-helm
-        run: helm lint ./ --values ./values-staging.yaml
+        run: helm lint ./
 
       - name: 🐳 Helm template
         working-directory: deploy/helm/ifrcgo-helm
-        run: helm template ./ --values ./values-staging.yaml
+        run: helm template ./
