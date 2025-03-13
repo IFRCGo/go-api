@@ -49,6 +49,10 @@ class NationalSocietyAction(models.Model):
         verbose_name = _("national society action")
         verbose_name_plural = _("national society actions")
 
+    def __str__(self) -> str:
+        desc = self.description_en.replace("-", "").strip()[:60] + "..."
+        return "%d (%s) %s" % (self.id, self.title, desc)
+
     @staticmethod
     def get_image_map(title, request):
         title_static_map = {
