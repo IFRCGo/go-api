@@ -30,7 +30,16 @@ class ReadOnlyMixin:
 
 @admin.register(NationalSocietyAction)
 class NationalSocietyActionAdmin(ReadOnlyMixin, admin.ModelAdmin):
-    search_fields = ["title"]
+
+    def descr(self, obj):
+        return obj.description.replace("-", "")[:190]
+
+    def related_dref(self, obj):
+        return "/".join([dref.title for dref in obj.dref_set.all()])
+
+    search_fields = ["title", "description"]
+    list_display = ["id", "title", "descr", "related_dref"]
+    list_filter = ["title"]
 
 
 @admin.register(RiskSecurity)
