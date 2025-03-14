@@ -12,6 +12,7 @@ from api.serializers import (
     MiniDistrictSerializer,
     MiniEventSerializer,
     NanoCountrySerializer,
+    RelatedAppealSerializer,
     SmallEventForPersonnelCsvSerializer,
     SurgeEventSerializer,
 )
@@ -125,7 +126,30 @@ class ERUMiniSerializer(ModelSerializer):
 
     class Meta:
         model = ERU
-        fields = ("id", "type", "type_display", "units", "equipment_units", "eru_owner_details")
+        fields = (
+            "id",
+            "type",
+            "type_display",
+            "units",
+            "equipment_units",
+            "eru_owner_details",
+            "start_date",
+            "end_date",
+        )
+
+
+class ListDeployedERUByEventSerializer(ModelSerializer):
+    appeals = RelatedAppealSerializer(many=True, read_only=True)
+    active_erus = ERUMiniSerializer(source="eru_set", many=True, read_only=True)
+
+    class Meta:
+        model = Event
+        fields = (
+            "id",
+            "name",
+            "appeals",
+            "active_erus",
+        )
 
 
 class PersonnelDeploymentSerializer(ModelSerializer):

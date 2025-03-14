@@ -89,6 +89,7 @@ router.register(r"district_rmd", api_views.DistrictRMDViewset, basename="distric
 router.register(r"domainwhitelist", registration_views.DomainWhitelistViewset)
 router.register(r"eru", deployment_views.ERUViewset, basename="eru")
 router.register(r"eru_owner", deployment_views.ERUOwnerViewset, basename="eru_owner")
+router.register(r"deployed_eru_by_event", api_views.DeployedERUByEventViewSet, basename="deployed_eru_by_event")
 router.register(r"event", api_views.EventViewset, basename="event")
 router.register(r"go-historical", api_views.GoHistoricalViewSet, basename="go_historical")
 router.register(r"featured_event_deployments", api_views.EventDeploymentsViewset, basename="featured_event_deployments")
