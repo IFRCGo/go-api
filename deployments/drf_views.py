@@ -5,7 +5,7 @@ from datetime import date
 from django.contrib.postgres.aggregates.general import ArrayAgg
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -20,7 +20,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from reversion.views import RevisionMixin
 
-from api.models import Country, Region
+from api.models import Country, Event, Region
 from api.view_filters import ListFilter
 from api.visibility_class import ReadOnlyVisibilityViewsetMixin
 from main.permissions import DenyGuestUserPermission
@@ -46,6 +46,7 @@ from .models import (
 )
 from .serializers import (
     AggregateDeploymentsSerializer,
+    AggregatedERUAndRapidResponseSerializer,
     DeploymentByNSSerializer,
     DeploymentsByMonthSerializer,
     EmergencyProjectOptionsSerializer,
@@ -90,6 +91,7 @@ class ERUFilter(filters.FilterSet):
     type = filters.NumberFilter(field_name="type", lookup_expr="exact")
     event = filters.NumberFilter(field_name="event", lookup_expr="exact")
     event__in = ListFilter(field_name="event")
+    disaster_type = filters.NumberFilter(field_name="event__dtype", lookup_expr="exact")
 
     class Meta:
         model = ERU
@@ -127,6 +129,37 @@ class ERUViewset(viewsets.ReadOnlyModelViewSet):
     )
 
 
+class AggregatedERUAndRapidResponseViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = AggregatedERUAndRapidResponseSerializer
+
+    def get_queryset(self):
+        queryset = (
+            Event.objects.prefetch_related(
+                "personneldeployment_set__personnel_set__country_from",
+                "eru_set__eru_owner__national_society_country",
+                "appeals",
+            )
+            .annotate(
+                deployed_eru_count=Count(
+                    "eru",
+                    filter=Q(eru__deployed_to__isnull=False),
+                    distinct=True,
+                ),
+                deployed_personnel_count=Count(
+                    "personneldeployment__personnel",
+                    filter=Q(
+                        personneldeployment__personnel__type=Personnel.TypeChoices.RR,
+                        personneldeployment__personnel__is_active=True,
+                    ),
+                    distinct=True,
+                ),
+            )
+            .exclude(Q(deployed_eru_count=0) & Q(deployed_personnel_count=0))
+            .order_by("-disaster_start_date")
+        )
+        return queryset
+
+
 class PersonnelDeploymentFilter(filters.FilterSet):
     country_deployed_to = filters.NumberFilter(field_name="country_deployed_to", lookup_expr="exact")
     region_deployed_to = filters.NumberFilter(field_name="region_deployed_to", lookup_expr="exact")
@@ -160,6 +193,8 @@ class PersonnelFilter(filters.FilterSet):
     country_to = filters.NumberFilter(field_name="country_to", lookup_expr="exact")
     type = filters.CharFilter(field_name="type", lookup_expr="exact")
     event_deployed_to = filters.NumberFilter(field_name="deployment__event_deployed_to", lookup_expr="exact")
+    is_active = filters.BooleanFilter(field_name="is_active", lookup_expr="exact")
+    dtype = filters.NumberFilter(field_name="deployment__event_deployed_to__dtype", lookup_expr="exact")
 
     class Meta:
         model = Personnel
@@ -327,19 +362,30 @@ class AggregateDeployments(APIView):
             event_id = request.GET.get("event")
             deployments_qset = deployments_qset.filter(deployment__event_deployed_to=event_id)
             eru_qset = eru_qset.filter(event=event_id)
-        active_deployments = deployments_qset.filter(
+
+        active_rapid_response_personnel = deployments_qset.filter(
             type=Personnel.TypeChoices.RR, start_date__date__lte=today, end_date__date__gte=today, is_active=True
         ).count()
-        active_erus = eru_qset.filter(deployed_to__isnull=False).count()
-        deployments_this_year = deployments_qset.filter(
+
+        rapid_response_deployments_this_year = deployments_qset.filter(
             is_active=True, start_date__year__lte=this_year, end_date__year__gte=this_year
+        ).count()
+        active_emergency_response_units = eru_qset.filter(
+            deployed_to__isnull=False,
+        ).count()
+
+        emergency_response_unit_deployed_this_year = eru_qset.filter(
+            deployed_to__isnull=False,
+            start_date__year__lte=this_year,
+            end_date__year__gte=this_year,
         ).count()
         return Response(
             AggregateDeploymentsSerializer(
                 dict(
-                    active_deployments=active_deployments,
-                    active_erus=active_erus,
-                    deployments_this_year=deployments_this_year,
+                    active_rapid_response_personnel=active_rapid_response_personnel,
+                    rapid_response_deployments_this_year=rapid_response_deployments_this_year,
+                    active_emergency_response_units=active_emergency_response_units,
+                    emergency_response_unit_deployed_this_year=emergency_response_unit_deployed_this_year,
                 )
             ).data
         )

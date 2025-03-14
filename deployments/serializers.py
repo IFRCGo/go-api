@@ -11,6 +11,7 @@ from api.serializers import (
     MiniCountrySerializer,
     MiniDistrictSerializer,
     MiniEventSerializer,
+    MiniPersonnelDeploymentSerializer,
     NanoCountrySerializer,
     RelatedAppealSerializer,
     SmallEventForPersonnelCsvSerializer,
@@ -260,6 +261,26 @@ class PersonnelSerializerAnon(ModelSerializer):
             "gender",
             "location",
             "name",
+        )
+
+
+class AggregatedERUAndRapidResponseSerializer(ModelSerializer):
+    appeals = RelatedAppealSerializer(many=True, read_only=True)
+    erus = ERUMiniSerializer(source="eru_set", many=True, read_only=True)
+    deployments = MiniPersonnelDeploymentSerializer(source="personneldeployment_set", many=True, read_only=True)
+    deployed_eru_count = serializers.IntegerField(read_only=True)
+    deployed_personnel_count = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Event
+        fields = (
+            "id",
+            "name",
+            "erus",
+            "deployed_eru_count",
+            "deployed_personnel_count",
+            "appeals",
+            "deployments",
         )
 
 
@@ -903,9 +924,10 @@ class EmergencyProjectSerializer(
 
 
 class AggregateDeploymentsSerializer(serializers.Serializer):
-    active_deployments = serializers.IntegerField(required=False)
-    active_erus = serializers.IntegerField(required=False)
-    deployments_this_year = serializers.IntegerField(required=False)
+    rapid_response_deployments_this_year = serializers.IntegerField(required=True)
+    active_emergency_response_units = serializers.IntegerField(required=True)
+    emergency_response_unit_deployed_this_year = serializers.IntegerField(required=True)
+    active_rapid_response_personnel = serializers.IntegerField(required=True)
 
 
 class ProjectPerSector(serializers.Serializer):
