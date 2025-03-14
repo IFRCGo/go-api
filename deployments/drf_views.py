@@ -154,6 +154,7 @@ class AggregatedERUAndRapidResponseViewSet(viewsets.ReadOnlyModelViewSet):
                     distinct=True,
                 ),
             )
+            .exclude(Q(deployed_eru_count=0) & Q(deployed_personnel_count=0))
             .order_by("-disaster_start_date")
         )
         return queryset
