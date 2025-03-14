@@ -65,7 +65,9 @@ class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         queryset = (
-            Dref.objects.prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
+            Dref.objects.prefetch_related(
+                "planned_interventions", "needs_identified", "national_society_actions", "users", "proposed_action"
+            )
             .order_by("-created_at")
             .distinct()
         )
