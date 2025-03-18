@@ -158,10 +158,32 @@ class AggregatedERUAndRapidResponseViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = AggregatedERUAndRapidResponseSerializer
 
     def get_queryset(self):
+        today = timezone.now().date().strftime("%Y-%m-%d")
+        active_personnel_prefetch = models.Prefetch(
+            "personneldeployment_set__personnel_set",
+            queryset=(
+                Personnel.objects.filter(
+                    type=Personnel.TypeChoices.RR,
+                    start_date__date__lte=today,
+                    end_date__date__gte=today,
+                    is_active=True,
+                ).select_related("country_from")
+            ),
+        )
+        active_eru_prefetch = models.Prefetch(
+            "eru_set",
+            queryset=(
+                ERU.objects.filter(
+                    deployed_to__isnull=False,
+                ).select_related(
+                    "eru_owner__national_society_country",
+                )
+            ),
+        )
         queryset = (
             Event.objects.prefetch_related(
-                "personneldeployment_set__personnel_set__country_from",
-                "eru_set__eru_owner__national_society_country",
+                active_personnel_prefetch,
+                active_eru_prefetch,
                 "appeals",
             )
             .annotate(
@@ -175,6 +197,8 @@ class AggregatedERUAndRapidResponseViewSet(viewsets.ReadOnlyModelViewSet):
                     filter=Q(
                         personneldeployment__personnel__type=Personnel.TypeChoices.RR,
                         personneldeployment__personnel__is_active=True,
+                        personneldeployment__personnel__start_date__date__lte=today,
+                        personneldeployment__personnel__end_date__date__gte=today,
                     ),
                     distinct=True,
                 ),
@@ -996,6 +1020,9 @@ class ERUReadinessViewSet(RevisionMixin, viewsets.ModelViewSet):
                 "eru_types",
             )
         )
+
+    def create(self, request, *args, **kwargs):
+        return bad_request("Create method not allowed")
 
     def delete(self, request, *args, **kwargs):
         return bad_request("Delete method not allowed")

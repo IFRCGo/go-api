@@ -13,7 +13,7 @@ class ERUReadinessPermission(permissions.BasePermission):
             return True
 
         # Check if the user is country admin or region admin
-        if request.method in ["POST", "PUT", "PATCH"]:
+        if request.method in ["PUT", "PATCH"]:
             eru_owner = ERUOwner.objects.filter(id=request.data.get("eru_owner")).first()
             if not eru_owner:
                 return False

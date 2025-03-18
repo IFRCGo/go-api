@@ -272,6 +272,7 @@ class AggregatedERUAndRapidResponseSerializer(ModelSerializer):
     deployments = MiniPersonnelDeploymentSerializer(source="personneldeployment_set", many=True, read_only=True)
     deployed_eru_count = serializers.IntegerField(read_only=True)
     deployed_personnel_count = serializers.IntegerField(read_only=True)
+    ifrc_severity_level_display = serializers.CharField(source="get_ifrc_severity_level_display", read_only=True)
 
     class Meta:
         model = Event
@@ -283,6 +284,8 @@ class AggregatedERUAndRapidResponseSerializer(ModelSerializer):
             "deployed_personnel_count",
             "appeals",
             "deployments",
+            "ifrc_severity_level",
+            "ifrc_severity_level_display",
         )
 
 

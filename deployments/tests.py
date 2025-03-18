@@ -358,49 +358,6 @@ class TestERUReadinessAPI(APITestCase):
         self.user_admin.user_permissions.add(self.country_admin_permission)
         self.user_admin.groups.add(country_group)
 
-    def test_eru_readiness_create(self):
-        eru_owner = ERUOwnerFactory.create(
-            national_society_country=self.country,
-        )
-        eru_readiness_type_common = {
-            "equipment_readiness": ERUReadinessType.ReadinessStatus.READY,
-            "people_readiness": ERUReadinessType.ReadinessStatus.READY,
-            "funding_readiness": ERUReadinessType.ReadinessStatus.READY,
-        }
-        eru_readiness_type_1 = ERUReadinessTypeFactory.create(
-            type=ERUType.BASECAMP_L,
-            **eru_readiness_type_common,
-        )
-        eru_readiness_type_2 = ERUReadinessTypeFactory.create(
-            type=ERUType.BASECAMP_M,
-            **eru_readiness_type_common,
-        )
-
-        data = {
-            "eru_owner": eru_owner.id,
-            "eru_types": [
-                {
-                    "type": eru_readiness_type_1.type,
-                    "equipment_readiness": eru_readiness_type_1.equipment_readiness,
-                    "people_readiness": eru_readiness_type_1.people_readiness,
-                    "funding_readiness": eru_readiness_type_1.funding_readiness,
-                },
-                {
-                    "type": eru_readiness_type_2.type,
-                    "equipment_readiness": eru_readiness_type_2.equipment_readiness,
-                    "people_readiness": eru_readiness_type_2.people_readiness,
-                    "funding_readiness": eru_readiness_type_2.funding_readiness,
-                },
-            ],
-        }
-
-        url = "/api/v2/eru-readiness/"
-        self.authenticate(self.user_admin)
-        response = self.client.post(url, data=data, format="json")
-        self.assert_201(response)
-        self.assertEqual(response.data["eru_owner_details"]["id"], eru_owner.id)
-        self.assertEqual(len(response.data["eru_types"]), 2)
-
     def test_eru_readiness_update(self):
         eru_readiness_type_common = {
             "equipment_readiness": ERUReadinessType.ReadinessStatus.READY,
@@ -467,23 +424,41 @@ class AggregatedERUAndRapidResponseViewSetTestCase(APITestCase):
         self.country2 = country.CountryFactory(name="Test Country2")
         self.country3 = country.CountryFactory(name="Test Country3")
 
-        self.eru_owner = ERUOwnerFactory()
+        self.eru_owner = ERUOwnerFactory(
+            national_society_country=self.country1,
+        )
 
-        self.eru = EruFactory.create_batch(3, event=self.event, eru_owner=self.eru_owner)
+        self.eru = EruFactory.create_batch(3, event=self.event, deployed_to=self.country1, eru_owner=self.eru_owner)
 
-        self.deployment1 = PersonnelDeploymentFactory(
+        self.personnel_deployment1 = PersonnelDeploymentFactory(
             event_deployed_to=self.event,
         )
 
+        # Active
         self.personnel_rapid_response = PersonnelFactory(
-            type=Personnel.TypeChoices.RR, is_active=True, country_from=self.country2, deployment=self.deployment1
+            type=Personnel.TypeChoices.RR,
+            is_active=True,
+            country_from=self.country2,
+            deployment=self.personnel_deployment1,
+            start_date=datetime.datetime(2024, 1, 1),
+            end_date=datetime.datetime(2037, 3, 10),
         )
 
         self.personnel_rapid_response2 = PersonnelFactory(
-            type=Personnel.TypeChoices.RR, is_active=True, country_from=self.country1, deployment=self.deployment1
+            type=Personnel.TypeChoices.RR,
+            is_active=True,
+            country_from=self.country1,
+            deployment=self.personnel_deployment1,
+            start_date=datetime.datetime(2024, 1, 1),
+            end_date=datetime.datetime(2037, 3, 10),
         )
+        # Not Active
         self.personnel_rapid_response3 = PersonnelFactory(
-            name="Inactive Personnel", type=Personnel.TypeChoices.RR, is_active=False, deployment=self.deployment1
+            type=Personnel.TypeChoices.RR,
+            is_active=False,
+            deployment=self.personnel_deployment1,
+            start_date=datetime.datetime(2022, 1, 1),
+            end_date=datetime.datetime(2023, 3, 10),
         )
 
     def test_get_aggregated_data(self):
@@ -491,6 +466,7 @@ class AggregatedERUAndRapidResponseViewSetTestCase(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         data = response.json()
+        self.assertEqual(data["count"], 1)
         event_data = data["results"][0]
         self.assertEqual(event_data["deployed_personnel_count"], 2)
         self.assertEqual(event_data["deployed_eru_count"], 3)
