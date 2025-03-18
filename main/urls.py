@@ -88,6 +88,11 @@ router.register(r"district", api_views.DistrictViewset, basename="district")
 router.register(r"district_rmd", api_views.DistrictRMDViewset, basename="district_rmd")
 router.register(r"domainwhitelist", registration_views.DomainWhitelistViewset)
 router.register(r"eru", deployment_views.ERUViewset, basename="eru")
+router.register(
+    r"aggregated-eru-and-rapid-response",
+    deployment_views.AggregatedERUAndRapidResponseViewSet,
+    basename="aggregated_eru_and_rapid_response",
+)
 router.register(r"eru_owner", deployment_views.ERUOwnerViewset, basename="eru_owner")
 router.register(r"deployed_eru_by_event", api_views.DeployedERUByEventViewSet, basename="deployed_eru_by_event")
 router.register(r"event", api_views.EventViewset, basename="event")
