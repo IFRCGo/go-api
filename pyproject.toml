@@ -1,106 +1,103 @@
-[tool.poetry]
+[project]
 name = "go-api"
 version = "1.1.419"
 description = ""
-authors = ["go-dev <go-dev@ifrc.org>"]
-license = "MIT License"
-package-mode = false
+authors = [{ name = "GO Dev", email = "go-dev@ifrc.org" }]
+license = { text = "MIT License" }
+requires-python = "~=3.11"
+readme = "README.md"
+dependencies = [
+    "Django>=4.2,<5.0",
+    "Markdown==3.3.4",
+    "Pillow==10.3.0",
+    "PyPDF2==1.27.9",
+    "pdf2image==1.16.0",
+    "beautifulsoup4==4.6.3",
+    "boto3==1.20.38",
+    "choicesenum==0.7.0",
+    "coreapi==2.3.3",
+    "coreschema==0.0.4",
+    "coverage==4.4.2",
+    "cryptography==44.0.1",
+    "django-admin-autocomplete-filter",
+    "django-admin-list-filter-dropdown",
+    "django-cors-headers==3.11.0",
+    "django-coverage==1.2.4",
+    "django-enumfield==2.0.2",
+    "django-extensions==2.0.6",
+    "django-filter==2.4.0",
+    "django-guardian==2.4.0",
+    "django-graphql-geojson==0.1.4",
+    "django-modeltranslation==0.17.5",
+    "django-read-only==1.12.0",
+    "django-reversion-compare==0.16.2",
+    "django-reversion==5.0.12",
+    "django-storages[s3,azure]==1.14.5",
+    "django-tinymce==4.1.0",
+    "django-oauth-toolkit==3.0.1",
+    "djangorestframework-csv==2.1.1",
+    "djangorestframework-guardian==0.1.1",
+    "djangorestframework==3.14.0",
+    "djangorestframework-camel-case==1.2.0",
+    "django-environ==0.8.1",
+    # upgrade elasticsearch? Keep synched with init-es.sh: a new docker image (es vm) is also needed. Then manage.py index_elasticsearch!
+    "elasticsearch==7.0.0",
+    "factory_boy==2.12.0",
+    "fuzzywuzzy==0.17.0",
+    "graphene",
+    "graphene-django==2.16.0",
+    "gunicorn==22.0.0",
+    "numpy<=2.0.0",
+    "opencensus-ext-azure==1.0.7",
+    "opencensus-ext-django==0.7.4",
+    "pandas~=2.2.3",
+    "pdfminer.six==20191110",
+    "pytidylib==0.3.2",
+    "polib==1.1.0",
+    "psycopg2-binary",
+    "pycountry==19.8.18",
+    "pydash==8.0.4",
+    "python-Levenshtein==0.12.1",
+    "python-dateutil",
+    "python-magic==0.4.27",
+    "python-mimeparse==1.6.0",
+    "pytz",
+    "openpyxl==3.0.10",
+    "requests==2.32.2",
+    "tabula-py==1.2.0",
+    "typing==3.6.2",
+    # urllib3=1.26.12",
+    "xmltodict==0.11.0",
+    "xhtml2pdf==0.2.15",
+    "reportlab",  # XXX: Used by xhtml2pdf reportlab==3.6.7 breaks for now
+    "celery[redis]==5.1.2",
+    "django-redis==5.0.0",
+    "sentry-sdk",
+    "django-haystack[elasticsearch]",
+    "drf-spectacular",
+    "pyjwt",
+    "shapely",
+    "colorlog",
+    "azure-identity",  # Required by django-storages[azure] if used
+    "mapbox-tilesets",
+    "ipython",
+    "tiktoken",
+    "openai",
+]
 
-[tool.poetry.dependencies]
-python = "^3.11"
-# Better than a wired-in subversion:
-Django = ">=4.2,<5.0"
-Markdown = "==3.3.4"
-Pillow = "==10.3.0"
-PyPDF2 = "==1.27.9"
-pdf2image = "==1.16.0"
-azure-storage = "==0.36.0"
-azure-common = "==1.1.19"
-azure-nspkg = "==3.0.2"
-azure-storage-blob = "==1.5.0"
-azure-storage-common = "==1.4.0"
-azure-storage-logging = "==0.5.1"
-azure-storage-nspkg = "==3.1.0"
-beautifulsoup4 = "==4.6.3"
-boto3 = "==1.20.38"
-choicesenum = "==0.7.0"
-coreapi = "==2.3.3"
-coreschema = "==0.0.4"
-coverage = "==4.4.2"
-cryptography = "==44.0.1"
-django-admin-autocomplete-filter = "*"
-django-admin-list-filter-dropdown = "*"
-django-cors-headers = "==3.11.0"
-django-coverage = "==1.2.4"
-django-enumfield = "==2.0.2"
-django-extensions = "==2.0.6"
-django-filter = "==2.4.0"
-django-guardian = "==2.4.0"
-django-graphql-geojson = "==0.1.4"
-django-modeltranslation = "==0.17.5"
-django-read-only = "==1.12.0"
-django-reversion-compare = "==0.16.2"
-django-reversion = "==5.0.12"
-django-storages = { version = "==1.11.1", extras = ["s3"] }  # FIXME: Add "azure"
-django-tinymce = "==4.1.0"
-django-oauth-toolkit = "3.0.1"
-djangorestframework-csv = "==2.1.1"
-djangorestframework-guardian = "==0.1.1"
-djangorestframework = "==3.14.0"
-djangorestframework-camel-case = "==1.2.0"
-django-environ = "==0.8.1"
-# upgrade elasticsearch? Keep synched with init-es.sh: a new docker image (es vm) is also needed. Then manage.py index_elasticsearch!"
-elasticsearch = "==7.0.0"
-factory_boy = "==2.12.0"
-fuzzywuzzy = "==0.17.0"
-graphene-django = "^2.15.0"
-graphene = "^2.0"
-graphql-core = "^2.0"
-gunicorn = "==22.0.0"
-numpy = "<2.0.0"
-opencensus-ext-azure = "==1.0.7"
-opencensus-ext-django = "==0.7.4"
-pandas = "==1.3.5"
-"pdfminer.six" = "==20191110"
-pytidylib = "==0.3.2"
-polib = "==1.1.0"
-psycopg2-binary = "*"
-pycountry = "==19.8.18"
-pydash = "==8.0.4"
-python-Levenshtein = "==0.12.1"
-python-dateutil = "==2.8.0"
-python-magic = "==0.4.27"
-python-mimeparse = "==1.6.0"
-pytz = "==2019.1"
-openpyxl = "==3.0.10"
-requests = "==2.32.2"
-tabula-py = "==1.2.0"
-typing = "==3.6.2"
-# urllib3 = "==1.26.12"
-xmltodict = "==0.11.0"
-xhtml2pdf = "^0.2.15"
-reportlab = "*"  # XXX: Used by xhtml2pdf reportlab==3.6.7 breaks for now
-celery = { version = "==5.1.2", extras = ["redis"] }
-django-redis = "==5.0.0"
-sentry-sdk = "*"
-django-haystack = { version = "*", extras = ["elasticsearch"] }
-drf-spectacular = "*"
-pyjwt = "*"
-shapely = "*"
-colorlog = "*"
-# azure-identity = "*"  # Required by django-storages[azure] if used
-mapbox-tilesets = "*"
-ipython = "*"
-tiktoken = "*"
-openai = "*"
-
-[tool.poetry.group.dev.dependencies]
-pytest-profiling = "*"
-pytest-ordering = "*"
-pytest-django = "*"
-snapshottest = "==0.6.0"
-django-debug-toolbar = "==4.1.0"
-django-stubs = { version = "*", allow-prereleases = true }
+[dependency-groups]
+dev = [
+  "pytest",
+  "pytest-profiling",
+  "pytest-ordering",
+  "pytest-django",
+  "snapshottest==0.6.0",
+  "django-debug-toolbar==4.1.0",
+  "django-stubs",
+]
+celery = [
+  "playwright==1.50.0"  # NOTE: Make sure this matches with running playwright server instance
+]
 
 [tool.pyright]
 extraPaths = ["apps"]
@@ -144,7 +141,3 @@ skip = [
     "legacy/",
     "**/migrations/*.py",
 ]
-
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"

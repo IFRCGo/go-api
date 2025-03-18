@@ -1,12 +1,20 @@
 FROM python:3.11-bullseye
+COPY --from=ghcr.io/astral-sh/uv:0.6.2 /uv /uvx /bin/
 
+LABEL maintainer="GO Dev <go-dev@ifrc.org>"
 LABEL org.opencontainers.image.source="https://github.com/IFRCGo/go-api"
 
 ENV PYTHONUNBUFFERED=1
+
+ENV UV_COMPILE_BYTECODE=1
+ENV UV_LINK_MODE=copy
+ENV UV_PROJECT_ENVIRONMENT="/usr/local/"
+ENV UV_CACHE_DIR="/root/.cache/uv"
+
 EXPOSE 80
 EXPOSE 443
 
-RUN apt-get update && \
+RUN apt-get update -y && \
     apt-get install -y --no-install-recommends \
         # FIXME: Make sure all packages are used/required
         nginx mdbtools vim tidy less gettext \
@@ -19,17 +27,11 @@ RUN apt-get update && \
 ENV HOME=/home/ifrc
 WORKDIR $HOME
 
-COPY pyproject.toml poetry.lock $HOME/
-
 # Upgrade pip and install python packages for code
-RUN pip install --upgrade --no-cache-dir pip "poetry>=2.1,<2.2" \
-    && poetry --version \
-    # Configure to use system instead of virtualenvs
-    && poetry config virtualenvs.create false \
-    && poetry install --no-root \
-    && poetry add playwright \
-    # Clean-up
-    && pip uninstall -y poetry virtualenv-clone virtualenv
+RUN --mount=type=cache,target=$UV_CACHE_DIR \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --frozen --no-install-project --all-groups
 
 RUN playwright install \
     && playwright install-deps
