@@ -5,11 +5,18 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+
+## 1.1.504
+
+### Added
+ - Listing page for DREF national society actions
+ - Remove obsolete azure storage code
+ - Build AZURE_STORAGE_CONNECTION_STRING from bricks
  - Use country_plan document_url if possible – or the downloaded file
  - Fix truncated appealdoc URL-s
  - Use 3 api keys for ingest_ns_initiatives
  - Forbid p-wrapping for TinyMCE (for iframes also)
- - Replace poetry with uv
+ - Replace poetry with uv, check outdated uv.lock
  - ESF, NSIA, CBF URL change
  - Add missing pytz
  - Revert back azure blob dependencies
@@ -2643,7 +2650,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.503...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.504...HEAD
+[1.1.504]: https://github.com/IFRCGo/go-api/compare/1.1.503...1.1.504
 [1.1.503]: https://github.com/IFRCGo/go-api/compare/1.1.502...1.1.503
 [1.1.502]: https://github.com/IFRCGo/go-api/compare/1.1.501...1.1.502
 [1.1.501]: https://github.com/IFRCGo/go-api/compare/1.1.500...1.1.501
