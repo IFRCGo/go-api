@@ -346,6 +346,7 @@ class ProjectImportAdmin(admin.ModelAdmin):
 
 class ERUReadinessAdmin(CompareVersionAdmin, admin.ModelAdmin):
     search_fields = ("eru_owner__national_society_country__name",)
+    readonly_fields = ("eru_types",)
 
     def get_queryset(self, request):
         return (
