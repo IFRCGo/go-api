@@ -58,6 +58,8 @@ class Command(BaseCommand):
                 "Categories",
                 "AllocationInCHF",
                 "FundingPeriodInMonths",
+                "FundingType",  # ?
+                "FundingPeriodInYears",  # ?
             ],
         )
         funding_data = funding_data.replace({np.nan: None})
