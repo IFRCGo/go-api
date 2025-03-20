@@ -1021,9 +1021,6 @@ class ERUReadinessViewSet(RevisionMixin, viewsets.ModelViewSet):
             )
         )
 
-    def create(self, request, *args, **kwargs):
-        return bad_request("Create method not allowed")
-
     def delete(self, request, *args, **kwargs):
         return bad_request("Delete method not allowed")
 

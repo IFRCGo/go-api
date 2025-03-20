@@ -358,6 +358,49 @@ class TestERUReadinessAPI(APITestCase):
         self.user_admin.user_permissions.add(self.country_admin_permission)
         self.user_admin.groups.add(country_group)
 
+    def test_eru_readiness_create(self):
+        eru_owner = ERUOwnerFactory.create(
+            national_society_country=self.country,
+        )
+        eru_readiness_type_common = {
+            "equipment_readiness": ERUReadinessType.ReadinessStatus.READY,
+            "people_readiness": ERUReadinessType.ReadinessStatus.READY,
+            "funding_readiness": ERUReadinessType.ReadinessStatus.READY,
+        }
+        eru_readiness_type_1 = ERUReadinessTypeFactory.create(
+            type=ERUType.BASECAMP_L,
+            **eru_readiness_type_common,
+        )
+        eru_readiness_type_2 = ERUReadinessTypeFactory.create(
+            type=ERUType.BASECAMP_M,
+            **eru_readiness_type_common,
+        )
+
+        data = {
+            "eru_owner": eru_owner.id,
+            "eru_types": [
+                {
+                    "type": eru_readiness_type_1.type,
+                    "equipment_readiness": eru_readiness_type_1.equipment_readiness,
+                    "people_readiness": eru_readiness_type_1.people_readiness,
+                    "funding_readiness": eru_readiness_type_1.funding_readiness,
+                },
+                {
+                    "type": eru_readiness_type_2.type,
+                    "equipment_readiness": eru_readiness_type_2.equipment_readiness,
+                    "people_readiness": eru_readiness_type_2.people_readiness,
+                    "funding_readiness": eru_readiness_type_2.funding_readiness,
+                },
+            ],
+        }
+
+        url = "/api/v2/eru-readiness/"
+        self.authenticate(self.user_admin)
+        response = self.client.post(url, data=data, format="json")
+        self.assert_201(response)
+        self.assertEqual(response.data["eru_owner_details"]["id"], eru_owner.id)
+        self.assertEqual(len(response.data["eru_types"]), 2)
+
     def test_eru_readiness_update(self):
         eru_readiness_type_common = {
             "equipment_readiness": ERUReadinessType.ReadinessStatus.READY,
