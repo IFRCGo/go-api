@@ -5,7 +5,7 @@ from datetime import date
 from django.contrib.postgres.aggregates.general import ArrayAgg
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -20,9 +20,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from reversion.views import RevisionMixin
 
-from api.models import Country, Region
+from api.models import Country, Event, Region
+from api.utils import bad_request
 from api.view_filters import ListFilter
 from api.visibility_class import ReadOnlyVisibilityViewsetMixin
+from deployments.permissions import ERUReadinessPermission
 from main.permissions import DenyGuestUserPermission
 from main.serializers import CsvListMixin
 from main.utils import is_tableau
@@ -34,6 +36,8 @@ from .models import (
     EmergencyProjectActivityAction,
     EmergencyProjectActivitySector,
     ERUOwner,
+    ERUReadiness,
+    ERUReadinessType,
     OperationTypes,
     PartnerSocietyDeployment,
     Personnel,
@@ -46,14 +50,18 @@ from .models import (
 )
 from .serializers import (
     AggregateDeploymentsSerializer,
+    AggregatedERUAndRapidResponseSerializer,
     DeploymentByNSSerializer,
     DeploymentsByMonthSerializer,
     EmergencyProjectOptionsSerializer,
     EmergencyProjectSerializer,
+    ERUOwnerMiniSerializer,
     ERUOwnerSerializer,
+    ERUReadinessSerializer,
     ERUSerializer,
     GlobalProjectNSOngoingProjectsStatsSerializer,
     GlobalProjectOverviewSerializer,
+    MiniERUReadinessTypeSerializer,
     PartnerDeploymentSerializer,
     PartnerDeploymentTableauSerializer,
     PersonnelCsvSerializer,
@@ -83,6 +91,24 @@ class ERUOwnerViewset(viewsets.ReadOnlyModelViewSet):
     filterset_class = ERUOwnerFilter
     search_fields = ("national_society_country__name",)  # for /docs
 
+    @extend_schema(
+        request=None,
+        responses=ERUOwnerMiniSerializer(many=True),
+    )
+    @action(
+        detail=False,
+        methods=("get",),
+        url_path="mini",
+    )
+    def mini(self, request):
+        queryset = ERUOwner.objects.select_related("national_society_country").all()
+        serializer = ERUOwnerMiniSerializer(queryset, many=True)
+        page = self.paginate_queryset(queryset=queryset)
+        if page is not None:
+            serializer = ERUOwnerMiniSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        return Response(serializer.data)
+
 
 class ERUFilter(filters.FilterSet):
     deployed_to__isnull = filters.BooleanFilter(field_name="deployed_to", lookup_expr="isnull")
@@ -90,6 +116,7 @@ class ERUFilter(filters.FilterSet):
     type = filters.NumberFilter(field_name="type", lookup_expr="exact")
     event = filters.NumberFilter(field_name="event", lookup_expr="exact")
     event__in = ListFilter(field_name="event")
+    disaster_type = filters.NumberFilter(field_name="event__dtype", lookup_expr="exact")
 
     class Meta:
         model = ERU
@@ -127,6 +154,61 @@ class ERUViewset(viewsets.ReadOnlyModelViewSet):
     )
 
 
+class AggregatedERUAndRapidResponseViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = AggregatedERUAndRapidResponseSerializer
+
+    def get_queryset(self):
+        today = timezone.now().date().strftime("%Y-%m-%d")
+        active_personnel_prefetch = models.Prefetch(
+            "personneldeployment_set__personnel_set",
+            queryset=(
+                Personnel.objects.filter(
+                    type=Personnel.TypeChoices.RR,
+                    start_date__date__lte=today,
+                    end_date__date__gte=today,
+                    is_active=True,
+                ).select_related("country_from")
+            ),
+        )
+        active_eru_prefetch = models.Prefetch(
+            "eru_set",
+            queryset=(
+                ERU.objects.filter(
+                    deployed_to__isnull=False,
+                ).select_related(
+                    "eru_owner__national_society_country",
+                )
+            ),
+        )
+        queryset = (
+            Event.objects.prefetch_related(
+                active_personnel_prefetch,
+                active_eru_prefetch,
+                "appeals",
+            )
+            .annotate(
+                deployed_eru_count=Count(
+                    "eru",
+                    filter=Q(eru__deployed_to__isnull=False),
+                    distinct=True,
+                ),
+                deployed_personnel_count=Count(
+                    "personneldeployment__personnel",
+                    filter=Q(
+                        personneldeployment__personnel__type=Personnel.TypeChoices.RR,
+                        personneldeployment__personnel__is_active=True,
+                        personneldeployment__personnel__start_date__date__lte=today,
+                        personneldeployment__personnel__end_date__date__gte=today,
+                    ),
+                    distinct=True,
+                ),
+            )
+            .exclude(Q(deployed_eru_count=0) & Q(deployed_personnel_count=0))
+            .order_by("-disaster_start_date")
+        )
+        return queryset
+
+
 class PersonnelDeploymentFilter(filters.FilterSet):
     country_deployed_to = filters.NumberFilter(field_name="country_deployed_to", lookup_expr="exact")
     region_deployed_to = filters.NumberFilter(field_name="region_deployed_to", lookup_expr="exact")
@@ -160,6 +242,8 @@ class PersonnelFilter(filters.FilterSet):
     country_to = filters.NumberFilter(field_name="country_to", lookup_expr="exact")
     type = filters.CharFilter(field_name="type", lookup_expr="exact")
     event_deployed_to = filters.NumberFilter(field_name="deployment__event_deployed_to", lookup_expr="exact")
+    is_active = filters.BooleanFilter(field_name="is_active", lookup_expr="exact")
+    dtype = filters.NumberFilter(field_name="deployment__event_deployed_to__dtype", lookup_expr="exact")
 
     class Meta:
         model = Personnel
@@ -327,19 +411,30 @@ class AggregateDeployments(APIView):
             event_id = request.GET.get("event")
             deployments_qset = deployments_qset.filter(deployment__event_deployed_to=event_id)
             eru_qset = eru_qset.filter(event=event_id)
-        active_deployments = deployments_qset.filter(
+
+        active_rapid_response_personnel = deployments_qset.filter(
             type=Personnel.TypeChoices.RR, start_date__date__lte=today, end_date__date__gte=today, is_active=True
         ).count()
-        active_erus = eru_qset.filter(deployed_to__isnull=False).count()
-        deployments_this_year = deployments_qset.filter(
+
+        rapid_response_deployments_this_year = deployments_qset.filter(
             is_active=True, start_date__year__lte=this_year, end_date__year__gte=this_year
+        ).count()
+        active_emergency_response_units = eru_qset.filter(
+            deployed_to__isnull=False,
+        ).count()
+
+        emergency_response_unit_deployed_this_year = eru_qset.filter(
+            deployed_to__isnull=False,
+            start_date__year__lte=this_year,
+            end_date__year__gte=this_year,
         ).count()
         return Response(
             AggregateDeploymentsSerializer(
                 dict(
-                    active_deployments=active_deployments,
-                    active_erus=active_erus,
-                    deployments_this_year=deployments_this_year,
+                    active_rapid_response_personnel=active_rapid_response_personnel,
+                    rapid_response_deployments_this_year=rapid_response_deployments_this_year,
+                    active_emergency_response_units=active_emergency_response_units,
+                    emergency_response_unit_deployed_this_year=emergency_response_unit_deployed_this_year,
                 )
             ).data
         )
@@ -899,4 +994,56 @@ class EmergencyProjectViewSet(
                     actions=EmergencyProjectActivityAction.objects.prefetch_related("supplies").all(),
                 )
             ).data
+        )
+
+
+class ERUReadinessFilter(filters.FilterSet):
+    eru_owner = filters.NumberFilter(field_name="eru_owner", lookup_expr="exact")
+    eru_type = filters.NumberFilter(field_name="eru_types__type", lookup_expr="exact")
+    eru_type__in = ListFilter(field_name="eru_types__type")
+
+
+class ERUReadinessViewSet(RevisionMixin, viewsets.ModelViewSet):
+    queryset = ERUReadiness.objects.all()
+    serializer_class = ERUReadinessSerializer
+    filterset_class = ERUReadinessFilter
+    permission_classes = [IsAuthenticated, ERUReadinessPermission]
+
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .select_related(
+                "eru_owner__national_society_country",
+            )
+            .prefetch_related(
+                "eru_types",
+            )
+        )
+
+    def delete(self, request, *args, **kwargs):
+        return bad_request("Delete method not allowed")
+
+
+class ERUReadinessTypeFilter(filters.FilterSet):
+    eru_owner = filters.NumberFilter(field_name="erureadiness__eru_owner", lookup_expr="exact")
+    type = filters.NumberFilter(field_name="type", lookup_expr="exact")
+
+
+class ERUReadinessTypeViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ReadOnlyModelViewSet):
+    queryset = ERUReadinessType.objects.all()
+    serializer_class = MiniERUReadinessTypeSerializer
+    filterset_class = ERUReadinessTypeFilter
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        return (
+            qs.filter(
+                erureadiness__isnull=False,
+            )
+            .prefetch_related(
+                "erureadiness_set__eru_owner__national_society_country",
+            )
+            .distinct()
         )
