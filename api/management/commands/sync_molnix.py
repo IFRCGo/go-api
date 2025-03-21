@@ -292,7 +292,7 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
             p.save()
 
     # Create Personnel objects
-    for md in molnix_deployments:
+    for md in molnix_deployments:  # LOOP1
         if "position_id" not in md:  # changed structure §
             md2 = molnix_api.get_deployment(md["id"])
             md |= md2["deployment"]
@@ -465,7 +465,7 @@ def sync_open_positions(molnix_positions, molnix_api, countries):
     successful_creates = 0
     successful_updates = 0
 
-    for position in molnix_positions:
+    for position in molnix_positions:  # LOOP2
         logger.warning("× " + str(position["id"]))
         if skip_this(position["tags"]):
             warning = "Position id %d skipped due to No-GO" % position["id"]
@@ -479,14 +479,19 @@ def sync_open_positions(molnix_positions, molnix_api, countries):
             logger.warning(warning)
             warnings.append(warning)
             # Do not skip these countryless positions, remove "continue" from code.
-        # If no valid GO Emergency tag is found, skip Position
-        if not event:
-            warning = "Position id %d does not have a valid Emergency tag." % position["id"]
-            prt("Position does not have a valid Emergency tag", 0, position["id"])
-            logger.warning(warning)
-            warnings.append(warning)
-            continue
         go_alert, created = SurgeAlert.objects.get_or_create(molnix_id=position["id"])
+        event = get_go_event(position["tags"])
+        if event:
+            go_alert.event = event
+            # When no Emergency (= event) found, we do not overwrite the previously (maybe) existing one
+        else:
+            if created:
+                # If no valid GO Emergency tag is found, skip Position – in case of a NEW Position.
+                warning = "Position id %d does not have a valid Emergency tag." % position["id"]
+                prt("Position does not have a valid Emergency tag", 0, position["id"])
+                logger.warning(warning)
+                warnings.append(warning)
+                continue
         # We set all Alerts coming from Molnix to RR / Alert
         go_alert.atype = SurgeAlertType.RAPID_RESPONSE
         go_alert.category = SurgeAlertCategory.ALERT
@@ -494,7 +499,6 @@ def sync_open_positions(molnix_positions, molnix_api, countries):
         go_alert.molnix_id = position["id"]
         go_alert.message = position["name"]
         go_alert.molnix_status = SurgeAlert.parse_molnix_status(position["status"])
-        go_alert.event = event
         go_alert.country = country
         go_alert.opens = get_datetime(position["opens"])
         go_alert.closes = get_datetime(position["closes"])
