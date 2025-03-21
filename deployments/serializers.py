@@ -34,6 +34,8 @@ from .models import (
     EmergencyProjectActivityLocation,
     EmergencyProjectActivitySector,
     ERUOwner,
+    ERUReadiness,
+    ERUReadinessType,
     Event,
     MolnixTag,
     OperationTypes,
@@ -270,6 +272,7 @@ class AggregatedERUAndRapidResponseSerializer(ModelSerializer):
     deployments = MiniPersonnelDeploymentSerializer(source="personneldeployment_set", many=True, read_only=True)
     deployed_eru_count = serializers.IntegerField(read_only=True)
     deployed_personnel_count = serializers.IntegerField(read_only=True)
+    ifrc_severity_level_display = serializers.CharField(source="get_ifrc_severity_level_display", read_only=True)
 
     class Meta:
         model = Event
@@ -281,6 +284,8 @@ class AggregatedERUAndRapidResponseSerializer(ModelSerializer):
             "deployed_personnel_count",
             "appeals",
             "deployments",
+            "ifrc_severity_level",
+            "ifrc_severity_level_display",
         )
 
 
@@ -1041,3 +1046,57 @@ class ProjectRegionMovementActivitiesSerializer(serializers.Serializer):
     countries_count = ProjectRegionMovementActivitiesCountrySerializer(many=True)
     country_ns_sector_count = ProjectRegionMovementActivitiesCountrySectorSerializer(many=True)
     supporting_ns = ProjectRegionMovementActivitiesSupportingNSSerializer(many=True)
+
+
+class ERUReadinessTypeSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
+    type_display = serializers.CharField(source="get_type_display", read_only=True)
+    equipment_readiness_display = serializers.CharField(source="get_equipment_readiness_display", read_only=True)
+    people_readiness_display = serializers.CharField(source="get_people_readiness_display", read_only=True)
+    funding_readiness_display = serializers.CharField(source="get_funding_readiness_display", read_only=True)
+
+    class Meta:
+        model = ERUReadinessType
+        fields = "__all__"
+
+
+class ERUReadinessSerializer(
+    NestedCreateMixin,
+    NestedUpdateMixin,
+    serializers.ModelSerializer,
+):
+    eru_owner = serializers.PrimaryKeyRelatedField(
+        queryset=ERUOwner.objects.prefetch_related("national_society_country"),
+        required=True,
+        write_only=True,
+    )
+    eru_owner_details = ERUOwnerMiniSerializer(source="eru_owner", read_only=True)
+    eru_types = ERUReadinessTypeSerializer(
+        many=True,
+        required=True,
+    )
+
+    class Meta:
+        model = ERUReadiness
+        fields = "__all__"
+
+
+class MiniERUReadinessSerializer(serializers.ModelSerializer):
+    eru_owner_details = ERUOwnerMiniSerializer(source="eru_owner", read_only=True)
+
+    class Meta:
+        model = ERUReadiness
+        fields = (
+            "id",
+            "eru_owner_details",
+            "updated_at",
+        )
+
+
+# Creating different serializer to avoid circular serializer(eru_types:M2M)
+class MiniERUReadinessTypeSerializer(serializers.ModelSerializer):
+    eru_readiness = MiniERUReadinessSerializer(source="erureadiness_set", read_only=True, many=True)
+
+    class Meta:
+        model = ERUReadinessType
+        fields = "__all__"

@@ -1250,14 +1250,8 @@ class SmallEventForPersonnelCsvSerializer(serializers.ModelSerializer):
 
 class ListEventDeploymentsSerializer(serializers.Serializer):
     id = serializers.IntegerField()
-    name = serializers.CharField()
-    role = serializers.CharField()
-    start_date = serializers.DateTimeField()
-    end_date = serializers.DateTimeField()
-    event_id = serializers.IntegerField()
-    event_name = serializers.CharField()
-    disaster_start_date = serializers.DateTimeField()
-    organization_from = serializers.CharField()
+    type = serializers.CharField()
+    deployments = serializers.IntegerField()
 
 
 class MiniPersonnelSerializer(serializers.ModelSerializer):
