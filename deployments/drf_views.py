@@ -1007,7 +1007,7 @@ class ERUReadinessViewSet(RevisionMixin, viewsets.ModelViewSet):
     queryset = ERUReadiness.objects.all()
     serializer_class = ERUReadinessSerializer
     filterset_class = ERUReadinessFilter
-    permission_classes = [IsAuthenticated, ERUReadinessPermission]
+    permission_classes = [ERUReadinessPermission]
 
     def get_queryset(self):
         return (
@@ -1034,7 +1034,6 @@ class ERUReadinessTypeViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ReadOnlyM
     queryset = ERUReadinessType.objects.all()
     serializer_class = MiniERUReadinessTypeSerializer
     filterset_class = ERUReadinessTypeFilter
-    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         qs = super().get_queryset()
