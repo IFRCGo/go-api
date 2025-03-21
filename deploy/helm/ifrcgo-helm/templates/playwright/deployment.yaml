@@ -1,0 +1,56 @@
+{{- if .Values.playwright.enabled }}
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "ifrcgo-helm.fullname" . }}-playwright
+  labels:
+    component: playwright-deployment
+    environment: {{ .Values.environment }}
+    release: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.playwright.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "ifrcgo-helm.name" . }}
+      release: {{ .Release.Name }}
+      run: {{ .Release.Name }}-playwright
+  template:
+    metadata:
+      labels:
+        app: {{ template "ifrcgo-helm.name" . }}
+        release: {{ .Release.Name }}
+        run: {{ .Release.Name }}-playwright
+    spec:
+      containers:
+        - name: playwright
+          image: "{{ .Values.playwright.image.name }}:{{ .Values.playwright.image.tag }}"
+          workingDir: /home/pwuser
+          securityContext:
+            runAsUser: 1001  # pwuser
+            runAsNonRoot: true
+          command:
+            - "bash"
+            - "-xc"
+            - |
+              PLAYWRIGHT_VERSION=$(cat /ms-playwright/.docker-info | grep -oP '"driverVersion": "\K[^"]+')
+              npx -y playwright@$$PLAYWRIGHT_VERSION run-server --host 0.0.0.0 --port {{ .Values.playwright.containerPort }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.playwright.containerPort }}
+              protocol: TCP
+          # livenessProbe:  # TODO:
+          #   httpGet:
+          #     path: /
+          #     port: {{ .Values.playwright.containerPort }}
+          #   initialDelaySeconds: 10180
+          #   periodSeconds: 5
+          resources:
+            requests:
+              cpu: {{ .Values.playwright.resources.requests.cpu }}
+              memory: {{ .Values.playwright.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.playwright.resources.limits.cpu }}
+              memory: {{ .Values.playwright.resources.limits.memory }}
+
+{{- end }}

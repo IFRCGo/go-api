@@ -1,0 +1,8 @@
+services:
+  serve:
+    image: $DOCKER_IMAGE
+    build: !reset null
+    env_file: !reset null
+    environment:
+      CI: "true"
+      DJANGO_SECRET_KEY: RANDOM-STRING-FOR-SECRET-KEYS
