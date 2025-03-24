@@ -447,7 +447,7 @@ class HayStackSearch(APIView):
                     "score": data.score,
                     "countries": [{"id": id, "name": name} for id, name in zip(data.countries_id, data.countries)],
                     "severity_level_display": data.crisis_categorization,
-                    "appeals": [{"id": id, "atype": atype} for id, atype in zip(data.appeals_id, data.appeals_type)],
+                    "appeals": [{"id": id, "atype": atype} for id, atype in zip(data.appeals_id or [], data.appeals_type or [])],
                     "severity_level": data.severity_level,
                 }
                 for data in emergency_response[:50]
