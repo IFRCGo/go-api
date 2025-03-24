@@ -358,6 +358,43 @@ class TestERUReadinessAPI(APITestCase):
         self.user_admin.user_permissions.add(self.country_admin_permission)
         self.user_admin.groups.add(country_group)
 
+    def test_eru_readiness_list(self):
+        eru_readiness_type_common = {
+            "equipment_readiness": ERUReadinessType.ReadinessStatus.READY,
+            "people_readiness": ERUReadinessType.ReadinessStatus.READY,
+            "funding_readiness": ERUReadinessType.ReadinessStatus.READY,
+        }
+        eru_readiness_type_1, eru_readiness_type_2 = ERUReadinessTypeFactory.create_batch(
+            2,
+            type=ERUType.BASECAMP_L,
+            **eru_readiness_type_common,
+        )
+        eru_owner_1 = ERUOwnerFactory.create(
+            national_society_country=self.country,
+        )
+        ERUReadinessFactory.create(
+            eru_owner=eru_owner_1,
+            eru_types=[
+                eru_readiness_type_1,
+                eru_readiness_type_2,
+            ],
+        )
+        eru_owner_2 = ERUOwnerFactory.create(
+            national_society_country=self.country,
+        )
+        ERUReadinessFactory.create(
+            eru_owner=eru_owner_2,
+            eru_types=[
+                eru_readiness_type_1,
+                eru_readiness_type_2,
+            ],
+        )
+
+        url = "/api/v2/eru-readiness/"
+        response = self.client.get(url)
+        self.assert_200(response)
+        self.assertEqual(len(response.data["results"]), 2)
+
     def test_eru_readiness_create(self):
         eru_owner = ERUOwnerFactory.create(
             national_society_country=self.country,
