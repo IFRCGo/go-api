@@ -1080,6 +1080,27 @@ class ERUReadinessSerializer(
         model = ERUReadiness
         fields = "__all__"
 
+    def validate_eru_types(self, value):
+        eru_types = [eru_type["type"] for eru_type in value]
+
+        if len(eru_types) != len(set(eru_types)):
+            raise serializers.ValidationError({"eru_types": gettext("eru type should be unique")})
+        return value
+
+    def validate(self, attrs):
+        eru_readiness_types = attrs.get("eru_types")
+
+        # Check if ERU Readiness type is already used in another ERUReadiness
+        if self.instance and eru_readiness_types:
+            eru_types_id = [eru_type["id"] for eru_type in eru_readiness_types]
+            if (
+                len(eru_types_id) != len(set(eru_types_id))
+                or ERUReadiness.objects.filter(eru_types__in=eru_types_id).exclude(id=self.instance.id).exists()
+            ):
+                raise serializers.ValidationError({"eru_types": gettext("one or more eru readiness type is already used.")})
+
+        return attrs
+
 
 class MiniERUReadinessSerializer(serializers.ModelSerializer):
     eru_owner_details = ERUOwnerMiniSerializer(source="eru_owner", read_only=True)
