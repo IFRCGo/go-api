@@ -71,7 +71,7 @@ class Command(BaseCommand):
                 nsd_initiatives, created = NSDInitiatives.objects.get_or_create(
                     country=country,
                     year=data[1],
-                    fund_type=f"{data[2]} ({data[7]})" if data[7] else data[2],
+                    fund_type=f"{data[2]} – {data[7]}" if data[7] else data[2],
                     defaults={
                         "title": data[3],
                         "categories": data[4],
