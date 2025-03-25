@@ -1089,7 +1089,6 @@ class ERUReadinessSerializer(
 
     def validate(self, attrs):
         eru_readiness_types = attrs.get("eru_types", [])
-
         # Check if ERU Readiness type is already used in another ERUReadiness
         if self.instance and eru_readiness_types:
             eru_types_id = [eru_type["id"] for eru_type in eru_readiness_types if "id" in eru_type]
@@ -1117,6 +1116,10 @@ class MiniERUReadinessSerializer(serializers.ModelSerializer):
 # Creating different serializer to avoid circular serializer(eru_types:M2M)
 class MiniERUReadinessTypeSerializer(serializers.ModelSerializer):
     eru_readiness = MiniERUReadinessSerializer(source="erureadiness_set", read_only=True, many=True)
+    type_display = serializers.CharField(source="get_type_display", read_only=True)
+    equipment_readiness_display = serializers.CharField(source="get_equipment_readiness_display", read_only=True)
+    people_readiness_display = serializers.CharField(source="get_people_readiness_display", read_only=True)
+    funding_readiness_display = serializers.CharField(source="get_funding_readiness_display", read_only=True)
 
     class Meta:
         model = ERUReadinessType
