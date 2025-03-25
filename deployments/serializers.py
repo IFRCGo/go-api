@@ -1088,11 +1088,11 @@ class ERUReadinessSerializer(
         return value
 
     def validate(self, attrs):
-        eru_readiness_types = attrs.get("eru_types")
+        eru_readiness_types = attrs.get("eru_types", [])
 
         # Check if ERU Readiness type is already used in another ERUReadiness
         if self.instance and eru_readiness_types:
-            eru_types_id = [eru_type["id"] for eru_type in eru_readiness_types]
+            eru_types_id = [eru_type["id"] for eru_type in eru_readiness_types if "id" in eru_type]
             if (
                 len(eru_types_id) != len(set(eru_types_id))
                 or ERUReadiness.objects.filter(eru_types__in=eru_types_id).exclude(id=self.instance.id).exists()

@@ -1026,11 +1026,11 @@ class ERUReadinessViewSet(RevisionMixin, viewsets.ModelViewSet):
 
 
 class ERUReadinessTypeFilter(filters.FilterSet):
-    eru_owner = filters.NumberFilter(field_name="erureadiness__eru_owner", lookup_expr="exact")
+    eru_owner = filters.NumberFilter(field_name="erureadiness__eru_owner", lookup_expr="exact", label="ERU Owner")
     type = filters.NumberFilter(field_name="type", lookup_expr="exact")
 
 
-class ERUReadinessTypeViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ReadOnlyModelViewSet):
+class ERUReadinessTypeViewset(viewsets.ReadOnlyModelViewSet):
     queryset = ERUReadinessType.objects.all()
     serializer_class = MiniERUReadinessTypeSerializer
     filterset_class = ERUReadinessTypeFilter

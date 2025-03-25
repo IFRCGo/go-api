@@ -478,6 +478,13 @@ class TestERUReadinessAPI(APITestCase):
                     "people_readiness": ERUReadinessType.ReadinessStatus.READY,
                     "funding_readiness": ERUReadinessType.ReadinessStatus.READY,
                 },
+                # Add new ERU type
+                {
+                    "type": ERUType.BASECAMP,
+                    "equipment_readiness": ERUReadinessType.ReadinessStatus.CAN_CONTRIBUTE_CAPACITY,
+                    "people_readiness": ERUReadinessType.ReadinessStatus.CAN_CONTRIBUTE_CAPACITY,
+                    "funding_readiness": ERUReadinessType.ReadinessStatus.CAN_CONTRIBUTE_CAPACITY,
+                },
             ],
         }
 
@@ -486,8 +493,44 @@ class TestERUReadinessAPI(APITestCase):
         self.assert_200(response)
         self.assertEqual(response.data["id"], eru_readiness_1.id)
         self.assertEqual(response.data["eru_owner_details"]["id"], eru_owner.id)
-        self.assertEqual(len(response.data["eru_types"]), 2)
-        self.assertEqual(response.data["eru_types"][0]["equipment_readiness"], ERUReadinessType.ReadinessStatus.NO_CAPACITY)
+        self.assertEqual(len(response.data["eru_types"]), 3)
+
+        # Check ids of Updated ERU types
+        self.assertEqual(
+            {
+                response.data["eru_types"][0]["id"],
+                response.data["eru_types"][1]["id"],
+            },
+            {
+                eru_readiness_type_1.id,
+                eru_readiness_type_2.id,
+            },
+        )
+
+        self.assertEqual(
+            {
+                response.data["eru_types"][0]["equipment_readiness"],
+                response.data["eru_types"][0]["people_readiness"],
+                response.data["eru_types"][0]["funding_readiness"],
+                response.data["eru_types"][1]["equipment_readiness"],
+                response.data["eru_types"][1]["people_readiness"],
+                response.data["eru_types"][1]["funding_readiness"],
+                response.data["eru_types"][2]["equipment_readiness"],
+                response.data["eru_types"][2]["people_readiness"],
+                response.data["eru_types"][2]["funding_readiness"],
+            },
+            {
+                ERUReadinessType.ReadinessStatus.NO_CAPACITY,
+                ERUReadinessType.ReadinessStatus.NO_CAPACITY,
+                ERUReadinessType.ReadinessStatus.NO_CAPACITY,
+                ERUReadinessType.ReadinessStatus.READY,
+                ERUReadinessType.ReadinessStatus.READY,
+                ERUReadinessType.ReadinessStatus.READY,
+                ERUReadinessType.ReadinessStatus.CAN_CONTRIBUTE_CAPACITY,
+                ERUReadinessType.ReadinessStatus.CAN_CONTRIBUTE_CAPACITY,
+                ERUReadinessType.ReadinessStatus.CAN_CONTRIBUTE_CAPACITY,
+            },
+        )
 
 
 class AggregatedERUAndRapidResponseViewSetTestCase(APITestCase):
