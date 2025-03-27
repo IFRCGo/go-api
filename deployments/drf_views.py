@@ -1008,6 +1008,7 @@ class ERUReadinessViewSet(RevisionMixin, viewsets.ModelViewSet):
     serializer_class = ERUReadinessSerializer
     filterset_class = ERUReadinessFilter
     permission_classes = [ERUReadinessPermission]
+    ordering_fields = "__all__"
 
     def get_queryset(self):
         return (
@@ -1019,6 +1020,7 @@ class ERUReadinessViewSet(RevisionMixin, viewsets.ModelViewSet):
             .prefetch_related(
                 "eru_types",
             )
+            .order_by("-updated_at")
         )
 
     def delete(self, request, *args, **kwargs):
@@ -1034,6 +1036,7 @@ class ERUReadinessTypeViewset(viewsets.ReadOnlyModelViewSet):
     queryset = ERUReadinessType.objects.all()
     serializer_class = MiniERUReadinessTypeSerializer
     filterset_class = ERUReadinessTypeFilter
+    ordering_fields = "__all__"
 
     def get_queryset(self):
         qs = super().get_queryset()
