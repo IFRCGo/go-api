@@ -27,15 +27,25 @@ def prefetch():
 
     g_sheet_data = list(csv.DictReader(io.StringIO(g_sheet_data.text)))
 
-    gho_data = {
-        f"{d['Country #country+code'].upper()}-{d['Year #date+year']}": {
-            "people_in_need": d["PIN #inneed"],
-            "people_targeted": d["PT #targeted"],
-            "funding_total_usd": d["Funding #value+required+total+usd"],
-            "funding_required_usd": d["Requirements #value+funding+required+usd"],
-        }
-        for d in g_sheet_data
-    }
+    gho_data = {}
+    for d in g_sheet_data:
+        if (
+            "Country #country+code" in d
+            and "Year #date+year" in d
+            and "PIN #inneed" in d
+            and "PT #targeted" in d
+            and "Funding #value+required+total+usd" in d
+            and "Requirements #value+funding+required+usd" in d
+        ):
+            key = f"{d['Country #country+code'].upper()}-{d['Year #date+year']}"
+            gho_data[key] = {
+                "people_in_need": d["PIN #inneed"],
+                "people_targeted": d["PT #targeted"],
+                "funding_total_usd": d["Funding #value+required+total+usd"],
+                "funding_required_usd": d["Requirements #value+funding+required+usd"],
+            }
+        else:
+            print(f"Warning: Skipping FTS_HPC data due to missing keys: {d}")
 
     return gho_data, len(gho_data), GOOGLE_SHEET_URL
 
