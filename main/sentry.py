@@ -107,7 +107,7 @@ class SentryMonitor(models.TextChoices):
 
     INDEX_AND_NOTIFY = "index_and_notify", "*/5 * * * *"
     SYNC_MOLNIX = "sync_molnix", "10 */2 * * *"
-    INGEST_APPEALS = "ingest_appeals", "45 */2 * * *"
+    INGEST_APPEALS = "ingest_appeals", "*/30 * * * *"
     SYNC_APPEALDOCS = "sync_appealdocs", "15 * * * *"
     REVOKE_STAFF_STATUS = "revoke_staff_status", "51 * * * *"
     UPDATE_PROJECT_STATUS = "update_project_status", "1 3 * * *"

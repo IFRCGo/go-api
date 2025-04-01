@@ -215,7 +215,7 @@ cronjobs:
   - command: 'sync_molnix'
     schedule: '10 */2 * * *'
   - command: 'ingest_appeals'
-    schedule: '45 */2 * * *'
+    schedule: '*/30 * * * *'
   - command: 'sync_appealdocs'
     schedule: '15 * * * *'
   - command: 'revoke_staff_status'
