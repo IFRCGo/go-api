@@ -1271,12 +1271,14 @@ class MiniPersonnelSerializer(serializers.ModelSerializer):
 
 class MiniPersonnelDeploymentSerializer(serializers.ModelSerializer):
     personnel = MiniPersonnelSerializer(source="personnel_set", many=True)
+    country_deployed_to = MiniCountrySerializer()
 
     class Meta:
         model = PersonnelDeployment
         fields = (
             "id",
             "personnel",
+            "country_deployed_to",
         )
 
 

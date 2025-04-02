@@ -126,6 +126,7 @@ class ERUOwnerMiniSerializer(ModelSerializer):
 class ERUMiniSerializer(ModelSerializer):
     eru_owner_details = ERUOwnerMiniSerializer(source="eru_owner", read_only=True)
     type_display = serializers.CharField(source="get_type_display", read_only=True)
+    deployed_to = MiniCountrySerializer()
 
     class Meta:
         model = ERU
@@ -136,6 +137,7 @@ class ERUMiniSerializer(ModelSerializer):
             "units",
             "equipment_units",
             "eru_owner_details",
+            "deployed_to",
             "start_date",
             "end_date",
         )
