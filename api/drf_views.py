@@ -172,7 +172,7 @@ class DeploymentsByEventViewset(viewsets.ReadOnlyModelViewSet):
             )
             .prefetch_related(
                 "appeals",
-                "personneldeployment_set",
+                "personneldeployment_set__country_deployed_to",
                 "personneldeployment_set__personnel_set__country_from",
             )
             .order_by(
@@ -216,6 +216,7 @@ class DeployedERUByEventViewSet(viewsets.ReadOnlyModelViewSet):
             .prefetch_related(
                 "appeals",
                 "eru_set__eru_owner__national_society_country",
+                "eru_set__deployed_to",
             )
             .order_by(
                 "-disaster_start_date",
