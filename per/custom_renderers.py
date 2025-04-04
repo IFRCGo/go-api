@@ -23,6 +23,12 @@ class NarrowCSVRenderer(PaginatedCSVRenderer):
             else:
                 # we have a collections.OrderedDict (from a wide-scope query)
                 data = data.get(self.results_field, [])
+                if data and "organization" not in data[0]:
+                    # e.g. ops-learning/organization-type or other tricky subquery of ops-learning:
+                    data2 = [",".join(str(v) for v in data[0].keys()) + "\n"]
+                    for i, d in enumerate(data):
+                        data2.append(",".join(str(v) for v in d.values()) + "\n")
+                    return data2
             data2 = []
             for i, d in enumerate(data):
                 for orgn in d["organization"].split(SEP):
