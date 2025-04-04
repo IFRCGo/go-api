@@ -344,11 +344,21 @@ class ProjectImportAdmin(admin.ModelAdmin):
             )
 
 
-class ERUReadinessAdmin(CompareVersionAdmin):
-    search_fields = ("national_society",)
+class ERUReadinessAdmin(CompareVersionAdmin, admin.ModelAdmin):
+    search_fields = ("eru_owner__national_society_country__name",)
+    readonly_fields = ("eru_types",)
 
     def get_queryset(self, request):
-        return super().get_queryset(request).select_related("national_society")
+        return (
+            super()
+            .get_queryset(request)
+            .select_related(
+                "eru_owner",
+            )
+            .prefetch_related(
+                "eru_types",
+            )
+        )
 
 
 # ----- Emergency Project ----- [Start]
@@ -409,6 +419,7 @@ admin.site.register(models.Project, ProjectAdmin)
 admin.site.register(models.ProjectImport, ProjectImportAdmin)
 admin.site.register(models.RegionalProject, RegionalProjectAdmin)
 admin.site.register(models.ERUReadiness, ERUReadinessAdmin)
+admin.site.register(models.ERUReadinessType)
 admin.site.register(models.Sector, SectorAdmin)
 admin.site.register(models.SectorTag, SectorTagAdmin)
 admin.site.register(models.MolnixTagGroup, MolnixTagGroupAdmin)
