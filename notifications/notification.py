@@ -139,6 +139,9 @@ def send_notification(subject, recipients, html, mailtype="", files=None):
         "TemplateName": "",
         "TemplateLanguage": "",
     }
+    if len(to_addresses) == 1:
+        payload["ToAsBase64"] = payload["BccAsBase64"]  # if 1 addressee, no BCC anonimization needed.
+        payload["BccAsBase64"] = ""
 
     # The response contains the GUID (res.text)
     res = requests.post(settings.EMAIL_API_ENDPOINT, json=payload)
