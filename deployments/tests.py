@@ -600,38 +600,44 @@ class AggregatedERUAndRapidResponseViewSetTestCase(APITestCase):
 class ExportERUReadinessViewTest(APITestCase):
     def setUp(self):
         super().setUp()
-        self.country = Country.objects.create(
+        self.country1 = Country.objects.create(
             name="Nepal",
             iso3="NLP",
         )
-
-        eru_readiness_type_common = {
+        self.country2 = Country.objects.create(name="India", iso3="IND")
+        eru_readiness_type_common1 = {
             "equipment_readiness": ERUReadinessType.ReadinessStatus.READY,
+            "people_readiness": ERUReadinessType.ReadinessStatus.NO_CAPACITY,
+            "funding_readiness": ERUReadinessType.ReadinessStatus.READY,
+        }
+        eru_readiness_type_common2 = {
+            "equipment_readiness": ERUReadinessType.ReadinessStatus.NO_CAPACITY,
             "people_readiness": ERUReadinessType.ReadinessStatus.READY,
             "funding_readiness": ERUReadinessType.ReadinessStatus.READY,
         }
         eru_readiness_type_1 = ERUReadinessTypeFactory.create(
             type=ERUType.BASECAMP,
-            **eru_readiness_type_common,
+            **eru_readiness_type_common1,
             comment="Test comment1",
-            has_capacity_to_lead=True,
-            has_capacity_to_support=True,
         )
         eru_readiness_type_2 = ERUReadinessTypeFactory.create(
             type=ERUType.TELECOM,
-            **eru_readiness_type_common,
+            **eru_readiness_type_common1,
             comment="Test comment2",
-            has_capacity_to_lead=False,
-            has_capacity_to_support=False,
         )
-
-        eru_owner = ERUOwnerFactory.create(
-            national_society_country=self.country,
+        eru_readiness_type_3 = ERUReadinessTypeFactory.create(
+            type=ERUType.BASECAMP,
+            **eru_readiness_type_common2,
+            comment="Test comment3",
         )
-        readiness_updated_at = datetime.datetime(2025, 4, 4)  #
-        ERUReadinessFactory.create(
-            eru_owner=eru_owner, updated_at=readiness_updated_at, eru_types=[eru_readiness_type_1, eru_readiness_type_2]
+        eru_owner1 = ERUOwnerFactory.create(
+            national_society_country=self.country1,
         )
+        eru_owner2 = ERUOwnerFactory.create(
+            national_society_country=self.country2,
+        )
+        ERUReadinessFactory.create(eru_owner=eru_owner1, eru_types=[eru_readiness_type_1, eru_readiness_type_2])
+        ERUReadinessFactory.create(eru_owner=eru_owner2, eru_types=[eru_readiness_type_3])
 
     def test_export_response(self):
         url = "/api/v2/export-eru-readiness/"
@@ -642,28 +648,30 @@ class ExportERUReadinessViewTest(APITestCase):
         wb = load_workbook(filename=BytesIO(response.content))
         ws = wb.active
 
-        # Verify headers (row 1 should contain the main headers and row 2 sub headers)
-
         self.assertEqual(ws["A1"].value, "National Society")
         self.assertEqual(ws["B1"].value, "Updated Date")
         self.assertEqual(ws["C1"].value, "Basecamp")
-        self.assertEqual(ws["I1"].value, "IT & Telecom")
+        self.assertEqual(ws["G1"].value, "IT & Telecom")
 
         # Check sub-headers
-        self.assertEqual(ws["C2"].value, "Equipment Readiness")
-        self.assertEqual(ws["D2"].value, "People Readiness")
-        self.assertEqual(ws["E2"].value, "Funding Readiness")
+        self.assertEqual(ws["C2"].value, "Equipment")
+        self.assertEqual(ws["D2"].value, "People")
+        self.assertEqual(ws["E2"].value, "Funding")
         self.assertEqual(ws["F2"].value, "Comment")
-        self.assertEqual(ws["G2"].value, "Has Capacity To Lead")
-        self.assertEqual(ws["H2"].value, "Has Capacity To Support")
 
         row1 = list(ws.iter_rows(min_row=3))[0]
-
-        self.assertEqual(row1[1].value, "2025-04-04")
-
         self.assertEqual(row1[2].value, "Ready")
-        self.assertEqual(row1[3].value, "Ready")
+        self.assertEqual(row1[3].value, "No capacity")
         self.assertEqual(row1[4].value, "Ready")
         self.assertEqual(row1[5].value, "Test comment1")
-        self.assertEqual(row1[6].value, "Yes")
-        self.assertEqual(row1[7].value, "Yes")
+
+        self.assertEqual(row1[6].value, "Ready")
+        self.assertEqual(row1[7].value, "No capacity")
+        self.assertEqual(row1[8].value, "Ready")
+        self.assertEqual(row1[9].value, "Test comment2")
+
+        row2 = list(ws.iter_rows(min_row=4))[0]
+        self.assertEqual(row2[2].value, "No capacity")
+        self.assertEqual(row2[3].value, "Ready")
+        self.assertEqual(row2[4].value, "Ready")
+        self.assertEqual(row2[5].value, "Test comment3")

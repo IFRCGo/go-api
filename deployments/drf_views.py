@@ -1063,12 +1063,10 @@ class ExportERUReadinessView(APIView):
         main_headers = ["National Society", "Updated Date"]
         sub_headers = ["", ""]
         readiness_columns = [
-            "Equipment Readiness",
-            "People Readiness",
-            "Funding Readiness",
+            "Equipment",
+            "People",
+            "Funding",
             "Comment",
-            "Has Capacity To Lead",
-            "Has Capacity To Support",
         ]
 
         for eru_type in ERUType.choices:
@@ -1100,8 +1098,6 @@ class ExportERUReadinessView(APIView):
                     "people": eru_readiness_type.get_people_readiness_display(),
                     "funding": eru_readiness_type.get_funding_readiness_display(),
                     "comment": eru_readiness_type.comment if eru_readiness_type.comment else "",
-                    "lead": "Yes" if eru_readiness_type.has_capacity_to_lead else "",
-                    "support": "Yes" if eru_readiness_type.has_capacity_to_support else "",
                 }
                 for eru_readiness_type in eru_readiness.eru_types.all()
             }
