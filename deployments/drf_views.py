@@ -1069,9 +1069,8 @@ class ExportERUReadinessView(APIView):
             "Comment",
         ]
 
-        for eru_type in ERUType.choices:
-            type_label = str(eru_type[1])
-            main_headers.append(type_label)
+        for type_label in ERUType.labels:
+            main_headers.append(str(type_label))
             main_headers.extend([""] * (len(readiness_columns) - 1))
             sub_headers.extend(readiness_columns)
 
@@ -1084,14 +1083,18 @@ class ExportERUReadinessView(APIView):
             ws.merge_cells(start_row=1, start_column=column_start, end_row=1, end_column=column_end)
             column_start += len(readiness_columns)
 
-        eru_readiness_queryset = ERUReadiness.objects.select_related("eru_owner__national_society_country").prefetch_related(
-            "eru_types"
+        eru_readiness_queryset = ERUReadiness.objects.select_related(
+            "eru_owner__national_society_country",
+        ).prefetch_related(
+            "eru_types",
         )
 
-        for eru_readiness in eru_readiness_queryset:
-            row_data = [str(eru_readiness.eru_owner), eru_readiness.updated_at.strftime("%Y-%m-%d")]
+        for eru_readiness in eru_readiness_queryset.iterator():
+            row_data = [
+                eru_readiness.eru_owner.national_society_country.name,
+                eru_readiness.updated_at.strftime("%Y-%m-%d"),
+            ]
 
-            # Create data mapping for each ERU type
             readiness_data_mapping = {
                 eru_readiness_type.type: {
                     "equipment": eru_readiness_type.get_equipment_readiness_display(),
@@ -1102,7 +1105,7 @@ class ExportERUReadinessView(APIView):
                 for eru_readiness_type in eru_readiness.eru_types.all()
             }
 
-            for eru_type_value, _ in ERUType.choices:
+            for eru_type_value in ERUType.values:
                 if eru_type_value in readiness_data_mapping:
                     row_data.extend(readiness_data_mapping[eru_type_value].values())
                 else:

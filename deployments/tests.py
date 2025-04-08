@@ -643,35 +643,36 @@ class ExportERUReadinessViewTest(APITestCase):
         url = "/api/v2/export-eru-readiness/"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
+        with BytesIO(response.content) as excel_file:
+            wb = load_workbook(filename=excel_file)
+            ws = wb.active
 
-        # Load the workbook
-        wb = load_workbook(filename=BytesIO(response.content))
-        ws = wb.active
+            self.assertEqual(ws["A1"].value, "National Society")
+            self.assertEqual(ws["B1"].value, "Updated Date")
+            self.assertEqual(ws["C1"].value, "Basecamp")
+            self.assertEqual(ws["G1"].value, "IT & Telecom")
 
-        self.assertEqual(ws["A1"].value, "National Society")
-        self.assertEqual(ws["B1"].value, "Updated Date")
-        self.assertEqual(ws["C1"].value, "Basecamp")
-        self.assertEqual(ws["G1"].value, "IT & Telecom")
+            # Check sub-headers
+            self.assertEqual(ws["C2"].value, "Equipment")
+            self.assertEqual(ws["D2"].value, "People")
+            self.assertEqual(ws["E2"].value, "Funding")
+            self.assertEqual(ws["F2"].value, "Comment")
 
-        # Check sub-headers
-        self.assertEqual(ws["C2"].value, "Equipment")
-        self.assertEqual(ws["D2"].value, "People")
-        self.assertEqual(ws["E2"].value, "Funding")
-        self.assertEqual(ws["F2"].value, "Comment")
+            row1 = list(ws.iter_rows(min_row=3))[0]
+            self.assertEqual(row1[0].value, "Nepal")
+            self.assertEqual(row1[2].value, "Ready")
+            self.assertEqual(row1[3].value, "No capacity")
+            self.assertEqual(row1[4].value, "Ready")
+            self.assertEqual(row1[5].value, "Test comment1")
 
-        row1 = list(ws.iter_rows(min_row=3))[0]
-        self.assertEqual(row1[2].value, "Ready")
-        self.assertEqual(row1[3].value, "No capacity")
-        self.assertEqual(row1[4].value, "Ready")
-        self.assertEqual(row1[5].value, "Test comment1")
+            self.assertEqual(row1[6].value, "Ready")
+            self.assertEqual(row1[7].value, "No capacity")
+            self.assertEqual(row1[8].value, "Ready")
+            self.assertEqual(row1[9].value, "Test comment2")
 
-        self.assertEqual(row1[6].value, "Ready")
-        self.assertEqual(row1[7].value, "No capacity")
-        self.assertEqual(row1[8].value, "Ready")
-        self.assertEqual(row1[9].value, "Test comment2")
-
-        row2 = list(ws.iter_rows(min_row=4))[0]
-        self.assertEqual(row2[2].value, "No capacity")
-        self.assertEqual(row2[3].value, "Ready")
-        self.assertEqual(row2[4].value, "Ready")
-        self.assertEqual(row2[5].value, "Test comment3")
+            row2 = list(ws.iter_rows(min_row=4))[0]
+            self.assertEqual(row2[0].value, "India")
+            self.assertEqual(row2[2].value, "No capacity")
+            self.assertEqual(row2[3].value, "Ready")
+            self.assertEqual(row2[4].value, "Ready")
+            self.assertEqual(row2[5].value, "Test comment3")
