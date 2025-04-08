@@ -91,4 +91,23 @@ class Migration(migrations.Migration):
                 verbose_name="ERU type",
             ),
         ),
+        migrations.AlterField(
+            model_name="erureadinesstype",
+            name="equipment",
+            field=models.IntegerField(
+                choices=[(1, "Ready"), (2, "Partial capacity"), (3, "No capacity")], verbose_name="equipment"
+            ),
+        ),
+        migrations.AlterField(
+            model_name="erureadinesstype",
+            name="funding",
+            field=models.IntegerField(
+                choices=[(1, "Ready"), (2, "Partial capacity"), (3, "No capacity")], verbose_name="funding"
+            ),
+        ),
+        migrations.AlterField(
+            model_name="erureadinesstype",
+            name="people",
+            field=models.IntegerField(choices=[(1, "Ready"), (2, "Partial capacity"), (3, "No capacity")], verbose_name="people"),
+        ),
     ]
