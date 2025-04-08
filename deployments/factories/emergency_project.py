@@ -112,9 +112,7 @@ class ERUReadinessTypeFactory(factory.django.DjangoModelFactory):
         model = ERUReadinessType
 
     type = fuzzy.FuzzyChoice(ERUType)
-    equipment_readiness = fuzzy.FuzzyChoice(ERUReadinessType.ReadinessStatus)
-    people_readiness = fuzzy.FuzzyChoice(ERUReadinessType.ReadinessStatus)
-    funding_readiness = fuzzy.FuzzyChoice(ERUReadinessType.ReadinessStatus)
+    equipment = fuzzy.FuzzyChoice(ERUReadinessType.ReadinessStatus)
+    people = fuzzy.FuzzyChoice(ERUReadinessType.ReadinessStatus)
+    funding = fuzzy.FuzzyChoice(ERUReadinessType.ReadinessStatus)
     comment = fuzzy.FuzzyText(length=10, prefix="comment-")
-    has_capacity_to_lead = fuzzy.FuzzyChoice([True, False])
-    has_capacity_to_support = fuzzy.FuzzyChoice([True, False])

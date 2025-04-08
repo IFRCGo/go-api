@@ -32,9 +32,9 @@ class ERUType(models.IntegerChoices):
     EMERGENCY_HOSPITAL = 3, _("RCRC Emergency Hospital")
     EMERGENCY_CLINIC = 4, _("RCRC Emergency Clinic")
     RELIEF = 5, _("Relief")
-    WASH_15 = 6, _("Wash M15")
-    WASH_20 = 7, _("Wash MSM20")
-    WASH_40 = 8, _("Wash M40")
+    WASH_15 = 6, _("WASH M15")
+    WASH_20 = 7, _("WASH MSM20")
+    WASH_40 = 8, _("WASH M40")
     WATER_SUPPLY = 9, _("Water Supply and rehabilitation")
     WATER_TREATMENT = 10, _("Household Water Treatment and safe storage")
     COLERA_MANAGEMENT = 11, _("Cholera Case management at Community level")
@@ -923,33 +923,23 @@ class ERUReadinessType(models.Model):
 
     class ReadinessStatus(models.IntegerChoices):
         READY = 1, _("Ready")
-        CAN_CONTRIBUTE_CAPACITY = 2, _("Can contribute capacity")
+        PARTIAL_CAPACITY = 2, _("Partial capacity")
         NO_CAPACITY = 3, _("No capacity")
 
     type = models.IntegerField(choices=ERUType.choices, verbose_name=_("ERU type"))
-    equipment_readiness = models.IntegerField(
+    equipment = models.IntegerField(
         choices=ReadinessStatus.choices,
-        verbose_name=_("equipment readiness"),
+        verbose_name=_("equipment"),
     )
-    people_readiness = models.IntegerField(
+    people = models.IntegerField(
         choices=ReadinessStatus.choices,
-        verbose_name=_("people readiness"),
+        verbose_name=_("people"),
     )
-    funding_readiness = models.IntegerField(
+    funding = models.IntegerField(
         choices=ReadinessStatus.choices,
-        verbose_name=_("funding readiness"),
+        verbose_name=_("funding"),
     )
     comment = models.TextField(verbose_name=_("comment"), blank=True, null=True)
-    has_capacity_to_lead = models.BooleanField(
-        verbose_name=_("capacity to lead this ERU"),
-        help_text=_("Confirm that you have the capacity to lead this type of ERU?"),
-        default=False,
-    )
-    has_capacity_to_support = models.BooleanField(
-        verbose_name=_("capacity to support this ERU"),
-        help_text=_("Confirm that you have the capacity to support this type of ERU?"),
-        default=False,
-    )
 
     class Meta:
         verbose_name = _("ERU Readiness Type")

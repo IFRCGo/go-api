@@ -360,9 +360,9 @@ class TestERUReadinessAPI(APITestCase):
 
     def test_eru_readiness_list(self):
         eru_readiness_type_common = {
-            "equipment_readiness": ERUReadinessType.ReadinessStatus.READY,
-            "people_readiness": ERUReadinessType.ReadinessStatus.READY,
-            "funding_readiness": ERUReadinessType.ReadinessStatus.READY,
+            "equipment": ERUReadinessType.ReadinessStatus.READY,
+            "people": ERUReadinessType.ReadinessStatus.READY,
+            "funding": ERUReadinessType.ReadinessStatus.READY,
         }
         eru_readiness_type_1, eru_readiness_type_2 = ERUReadinessTypeFactory.create_batch(
             2,
@@ -400,9 +400,9 @@ class TestERUReadinessAPI(APITestCase):
             national_society_country=self.country,
         )
         eru_readiness_type_common = {
-            "equipment_readiness": ERUReadinessType.ReadinessStatus.READY,
-            "people_readiness": ERUReadinessType.ReadinessStatus.READY,
-            "funding_readiness": ERUReadinessType.ReadinessStatus.READY,
+            "equipment": ERUReadinessType.ReadinessStatus.READY,
+            "people": ERUReadinessType.ReadinessStatus.READY,
+            "funding": ERUReadinessType.ReadinessStatus.READY,
         }
         eru_readiness_type_1 = ERUReadinessTypeFactory.create(
             type=ERUType.BASECAMP_L,
@@ -418,15 +418,15 @@ class TestERUReadinessAPI(APITestCase):
             "eru_types": [
                 {
                     "type": eru_readiness_type_1.type,
-                    "equipment_readiness": eru_readiness_type_1.equipment_readiness,
-                    "people_readiness": eru_readiness_type_1.people_readiness,
-                    "funding_readiness": eru_readiness_type_1.funding_readiness,
+                    "equipment": eru_readiness_type_1.equipment,
+                    "people": eru_readiness_type_1.people,
+                    "funding": eru_readiness_type_1.funding,
                 },
                 {
                     "type": eru_readiness_type_2.type,
-                    "equipment_readiness": eru_readiness_type_2.equipment_readiness,
-                    "people_readiness": eru_readiness_type_2.people_readiness,
-                    "funding_readiness": eru_readiness_type_2.funding_readiness,
+                    "equipment": eru_readiness_type_2.equipment,
+                    "people": eru_readiness_type_2.people,
+                    "funding": eru_readiness_type_2.funding,
                 },
             ],
         }
@@ -440,9 +440,9 @@ class TestERUReadinessAPI(APITestCase):
 
     def test_eru_readiness_update(self):
         eru_readiness_type_common = {
-            "equipment_readiness": ERUReadinessType.ReadinessStatus.READY,
-            "people_readiness": ERUReadinessType.ReadinessStatus.READY,
-            "funding_readiness": ERUReadinessType.ReadinessStatus.READY,
+            "equipment": ERUReadinessType.ReadinessStatus.READY,
+            "people": ERUReadinessType.ReadinessStatus.READY,
+            "funding": ERUReadinessType.ReadinessStatus.READY,
         }
         eru_readiness_type_1 = ERUReadinessTypeFactory.create(
             type=ERUType.BASECAMP_L,
@@ -467,23 +467,23 @@ class TestERUReadinessAPI(APITestCase):
                 {
                     "id": eru_readiness_type_1.id,
                     "type": eru_readiness_type_1.type,
-                    "equipment_readiness": ERUReadinessType.ReadinessStatus.NO_CAPACITY,
-                    "people_readiness": ERUReadinessType.ReadinessStatus.NO_CAPACITY,
-                    "funding_readiness": ERUReadinessType.ReadinessStatus.NO_CAPACITY,
+                    "equipment": ERUReadinessType.ReadinessStatus.NO_CAPACITY,
+                    "people": ERUReadinessType.ReadinessStatus.NO_CAPACITY,
+                    "funding": ERUReadinessType.ReadinessStatus.NO_CAPACITY,
                 },
                 {
                     "id": eru_readiness_type_2.id,
                     "type": eru_readiness_type_2.type,
-                    "equipment_readiness": ERUReadinessType.ReadinessStatus.READY,
-                    "people_readiness": ERUReadinessType.ReadinessStatus.READY,
-                    "funding_readiness": ERUReadinessType.ReadinessStatus.READY,
+                    "equipment": ERUReadinessType.ReadinessStatus.READY,
+                    "people": ERUReadinessType.ReadinessStatus.READY,
+                    "funding": ERUReadinessType.ReadinessStatus.READY,
                 },
                 # Add new ERU type
                 {
                     "type": ERUType.BASECAMP,
-                    "equipment_readiness": ERUReadinessType.ReadinessStatus.CAN_CONTRIBUTE_CAPACITY,
-                    "people_readiness": ERUReadinessType.ReadinessStatus.CAN_CONTRIBUTE_CAPACITY,
-                    "funding_readiness": ERUReadinessType.ReadinessStatus.CAN_CONTRIBUTE_CAPACITY,
+                    "equipment": ERUReadinessType.ReadinessStatus.PARTIAL_CAPACITY,
+                    "people": ERUReadinessType.ReadinessStatus.PARTIAL_CAPACITY,
+                    "funding": ERUReadinessType.ReadinessStatus.PARTIAL_CAPACITY,
                 },
             ],
         }
@@ -509,15 +509,15 @@ class TestERUReadinessAPI(APITestCase):
 
         self.assertEqual(
             {
-                response.data["eru_types"][0]["equipment_readiness"],
-                response.data["eru_types"][0]["people_readiness"],
-                response.data["eru_types"][0]["funding_readiness"],
-                response.data["eru_types"][1]["equipment_readiness"],
-                response.data["eru_types"][1]["people_readiness"],
-                response.data["eru_types"][1]["funding_readiness"],
-                response.data["eru_types"][2]["equipment_readiness"],
-                response.data["eru_types"][2]["people_readiness"],
-                response.data["eru_types"][2]["funding_readiness"],
+                response.data["eru_types"][0]["equipment"],
+                response.data["eru_types"][0]["people"],
+                response.data["eru_types"][0]["funding"],
+                response.data["eru_types"][1]["equipment"],
+                response.data["eru_types"][1]["people"],
+                response.data["eru_types"][1]["funding"],
+                response.data["eru_types"][2]["equipment"],
+                response.data["eru_types"][2]["people"],
+                response.data["eru_types"][2]["funding"],
             },
             {
                 ERUReadinessType.ReadinessStatus.NO_CAPACITY,
@@ -526,9 +526,9 @@ class TestERUReadinessAPI(APITestCase):
                 ERUReadinessType.ReadinessStatus.READY,
                 ERUReadinessType.ReadinessStatus.READY,
                 ERUReadinessType.ReadinessStatus.READY,
-                ERUReadinessType.ReadinessStatus.CAN_CONTRIBUTE_CAPACITY,
-                ERUReadinessType.ReadinessStatus.CAN_CONTRIBUTE_CAPACITY,
-                ERUReadinessType.ReadinessStatus.CAN_CONTRIBUTE_CAPACITY,
+                ERUReadinessType.ReadinessStatus.PARTIAL_CAPACITY,
+                ERUReadinessType.ReadinessStatus.PARTIAL_CAPACITY,
+                ERUReadinessType.ReadinessStatus.PARTIAL_CAPACITY,
             },
         )
 
