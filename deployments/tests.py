@@ -606,14 +606,14 @@ class ExportERUReadinessViewTest(APITestCase):
         )
         self.country2 = Country.objects.create(name="India", iso3="IND")
         eru_readiness_type_common1 = {
-            "equipment_readiness": ERUReadinessType.ReadinessStatus.READY,
-            "people_readiness": ERUReadinessType.ReadinessStatus.NO_CAPACITY,
-            "funding_readiness": ERUReadinessType.ReadinessStatus.READY,
+            "equipment": ERUReadinessType.ReadinessStatus.READY,
+            "people": ERUReadinessType.ReadinessStatus.NO_CAPACITY,
+            "funding": ERUReadinessType.ReadinessStatus.READY,
         }
         eru_readiness_type_common2 = {
-            "equipment_readiness": ERUReadinessType.ReadinessStatus.NO_CAPACITY,
-            "people_readiness": ERUReadinessType.ReadinessStatus.READY,
-            "funding_readiness": ERUReadinessType.ReadinessStatus.READY,
+            "equipment": ERUReadinessType.ReadinessStatus.NO_CAPACITY,
+            "people": ERUReadinessType.ReadinessStatus.READY,
+            "funding": ERUReadinessType.ReadinessStatus.READY,
         }
         eru_readiness_type_1 = ERUReadinessTypeFactory.create(
             type=ERUType.BASECAMP,

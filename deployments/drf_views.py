@@ -1097,9 +1097,9 @@ class ExportERUReadinessView(APIView):
 
             readiness_data_mapping = {
                 eru_readiness_type.type: {
-                    "equipment": eru_readiness_type.get_equipment_readiness_display(),
-                    "people": eru_readiness_type.get_people_readiness_display(),
-                    "funding": eru_readiness_type.get_funding_readiness_display(),
+                    "equipment": eru_readiness_type.get_equipment_display(),
+                    "people": eru_readiness_type.get_people_display(),
+                    "funding": eru_readiness_type.get_funding_display(),
                     "comment": eru_readiness_type.comment if eru_readiness_type.comment else "",
                 }
                 for eru_readiness_type in eru_readiness.eru_types.all()
