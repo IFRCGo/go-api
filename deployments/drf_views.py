@@ -1060,24 +1060,23 @@ class ExportERUReadinessView(APIView):
         ws = wb.active
         ws.title = "ERU Readiness"
 
-        main_headers = ["National Society", "Updated Date"]
-        sub_headers = ["", ""]
-        readiness_columns = [
-            "Equipment",
-            "People",
-            "Funding",
-            "Comment",
-        ]
+        static_headers = ["National Society", "Updated Date"]
+        main_headers = static_headers.copy()  # Create a separate list to keep static_headers unchanged
+        sub_headers = [""] * len(static_headers)
+        readiness_columns = ["Equipment", "People", "Funding", "Comment"]
 
         for type_label in ERUType.labels:
             main_headers.append(str(type_label))
-            main_headers.extend([""] * (len(readiness_columns) - 1))
+            main_headers.extend(
+                [""] * (len(readiness_columns) - 1)
+            )  # Fill empty cells to align merged ERU type header across subcolumns
+
             sub_headers.extend(readiness_columns)
 
         ws.append(main_headers)
         ws.append(sub_headers)
 
-        column_start = 3
+        column_start = len(static_headers) + 1  # Determine starting column for merging
         for _ in ERUType.choices:
             column_end = column_start + len(readiness_columns) - 1
             ws.merge_cells(start_row=1, start_column=column_start, end_row=1, end_column=column_end)
@@ -1085,9 +1084,7 @@ class ExportERUReadinessView(APIView):
 
         eru_readiness_queryset = ERUReadiness.objects.select_related(
             "eru_owner__national_society_country",
-        ).prefetch_related(
-            "eru_types",
-        )
+        ).prefetch_related("eru_types")
 
         for eru_readiness in eru_readiness_queryset.iterator():
             row_data = [
@@ -1109,13 +1106,11 @@ class ExportERUReadinessView(APIView):
                 if eru_type_value in readiness_data_mapping:
                     row_data.extend(readiness_data_mapping[eru_type_value].values())
                 else:
-                    row_data.extend(["" for _ in readiness_columns])
+                    row_data.extend(["" for _ in readiness_columns])  # Empty placeholders
 
             ws.append(row_data)
 
-        response = HttpResponse(
-            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        )
+        response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
         response["Content-Disposition"] = "attachment; filename=eru_readiness_export.xlsx"
         wb.save(response)
         return response
