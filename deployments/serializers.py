@@ -1053,9 +1053,9 @@ class ProjectRegionMovementActivitiesSerializer(serializers.Serializer):
 class ERUReadinessTypeSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
     type_display = serializers.CharField(source="get_type_display", read_only=True)
-    equipment_readiness_display = serializers.CharField(source="get_equipment_readiness_display", read_only=True)
-    people_readiness_display = serializers.CharField(source="get_people_readiness_display", read_only=True)
-    funding_readiness_display = serializers.CharField(source="get_funding_readiness_display", read_only=True)
+    equipment_display = serializers.CharField(source="get_equipment_display", read_only=True)
+    people_display = serializers.CharField(source="get_people_display", read_only=True)
+    funding_display = serializers.CharField(source="get_funding_display", read_only=True)
 
     class Meta:
         model = ERUReadinessType
@@ -1119,9 +1119,9 @@ class MiniERUReadinessSerializer(serializers.ModelSerializer):
 class MiniERUReadinessTypeSerializer(serializers.ModelSerializer):
     eru_readiness = MiniERUReadinessSerializer(source="erureadiness_set", read_only=True, many=True)
     type_display = serializers.CharField(source="get_type_display", read_only=True)
-    equipment_readiness_display = serializers.CharField(source="get_equipment_readiness_display", read_only=True)
-    people_readiness_display = serializers.CharField(source="get_people_readiness_display", read_only=True)
-    funding_readiness_display = serializers.CharField(source="get_funding_readiness_display", read_only=True)
+    equipment_display = serializers.CharField(source="get_equipment_display", read_only=True)
+    people_display = serializers.CharField(source="get_people_display", read_only=True)
+    funding_display = serializers.CharField(source="get_funding_display", read_only=True)
 
     class Meta:
         model = ERUReadinessType
