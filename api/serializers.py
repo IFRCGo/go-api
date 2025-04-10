@@ -11,7 +11,7 @@ from rest_framework import serializers
 
 # from api.utils import pdf_exporter
 from api.tasks import generate_url
-from deployments.models import EmergencyProject, Personnel
+from deployments.models import EmergencyProject, Personnel, PersonnelDeployment
 from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
 from lang.models import String
 from lang.serializers import ModelSerializer
@@ -801,6 +801,8 @@ class RelatedAppealSerializer(ModelSerializer):
             "status",
             "status_display",
             "start_date",
+            "end_date",
+            "sector",
             "atype",
             "atype_display",
             "id",
@@ -1252,28 +1254,46 @@ class ListEventDeploymentsSerializer(serializers.Serializer):
     deployments = serializers.IntegerField()
 
 
-class DeploymentsByEventSerializer(ModelSerializer):
-    organizations_from = serializers.SerializerMethodField()
-    personnel_count = serializers.IntegerField()
+class MiniPersonnelSerializer(serializers.ModelSerializer):
+    country_from = MiniCountrySerializer()
 
-    @staticmethod
-    def get_organizations_from(obj) -> list:
-        deployments = [d for d in obj.personneldeployment_set.all()]
-        personnels = []
-        for d in deployments:
-            for p in d.personnel_set.filter(end_date__gte=timezone.now(), start_date__lte=timezone.now(), is_active=True):
-                personnels.append(p)
-        return list(
-            set([p.country_from.society_name for p in personnels if p.country_from and p.country_from.society_name != ""])
+    class Meta:
+        model = Personnel
+        fields = (
+            "id",
+            "role",
+            "name",
+            "start_date",
+            "end_date",
+            "country_from",
         )
+
+
+class MiniPersonnelDeploymentSerializer(serializers.ModelSerializer):
+    personnel = MiniPersonnelSerializer(source="personnel_set", many=True)
+    country_deployed_to = MiniCountrySerializer()
+
+    class Meta:
+        model = PersonnelDeployment
+        fields = (
+            "id",
+            "personnel",
+            "country_deployed_to",
+        )
+
+
+class DeploymentsByEventSerializer(ModelSerializer):
+    deployments = MiniPersonnelDeploymentSerializer(source="personneldeployment_set", many=True, read_only=True)
+    appeals = RelatedAppealSerializer(many=True, read_only=True)
 
     class Meta:
         model = Event
         fields = (
             "id",
             "name",
-            "personnel_count",
-            "organizations_from",
+            "disaster_start_date",
+            "deployments",
+            "appeals",
         )
 
 

@@ -556,6 +556,7 @@ class DrefTestCase(APITestCase):
             title="Test Title",
             created_by=self.user,
             is_published=True,
+            type_of_dref=Dref.DrefType.ASSESSMENT,
         )
         dref.users.add(user1)
         old_count = DrefFinalReport.objects.count()
@@ -579,6 +580,7 @@ class DrefTestCase(APITestCase):
             title="Test Title",
             created_by=user1,
             is_published=True,
+            type_of_dref=Dref.DrefType.ASSESSMENT,
         )
         dref.users.add(user1)
         operational_update = DrefOperationalUpdateFactory.create(
