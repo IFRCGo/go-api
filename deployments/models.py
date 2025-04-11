@@ -927,17 +927,17 @@ class ERUReadinessType(models.Model):
         NO_CAPACITY = 3, _("No capacity")
 
     type = models.IntegerField(choices=ERUType.choices, verbose_name=_("ERU type"))
-    equipment = models.IntegerField(
+    equipment_readiness = models.IntegerField(
         choices=ReadinessStatus.choices,
-        verbose_name=_("equipment"),
+        verbose_name=_("equipment readiness"),
     )
-    people = models.IntegerField(
+    people_readiness = models.IntegerField(
         choices=ReadinessStatus.choices,
-        verbose_name=_("people"),
+        verbose_name=_("people readiness"),
     )
-    funding = models.IntegerField(
+    funding_readiness = models.IntegerField(
         choices=ReadinessStatus.choices,
-        verbose_name=_("funding"),
+        verbose_name=_("funding readiness"),
     )
     comment = models.TextField(verbose_name=_("comment"), blank=True, null=True)
 
