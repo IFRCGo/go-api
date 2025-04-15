@@ -10,6 +10,16 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RenameField(
+            model_name="erureadinesstype",
+            old_name="equipment_readiness",
+            new_name="equipment",
+        ),
+        migrations.RenameField(
+            model_name="erureadinesstype",
+            old_name="funding_readiness",
+            new_name="funding",
+        ),
         migrations.RemoveField(
             model_name="erureadinesstype",
             name="has_capacity_to_lead",
@@ -17,6 +27,11 @@ class Migration(migrations.Migration):
         migrations.RemoveField(
             model_name="erureadinesstype",
             name="has_capacity_to_support",
+        ),
+        migrations.RenameField(
+            model_name="erureadinesstype",
+            old_name="people_readiness",
+            new_name="people",
         ),
         migrations.AlterField(
             model_name="eru",
@@ -78,21 +93,21 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterField(
             model_name="erureadinesstype",
-            name="equipment_readiness",
+            name="equipment",
             field=models.IntegerField(
                 choices=[(1, "Ready"), (2, "Partial capacity"), (3, "No capacity")], verbose_name="equipment"
             ),
         ),
         migrations.AlterField(
             model_name="erureadinesstype",
-            name="funding_readiness",
+            name="funding",
             field=models.IntegerField(
                 choices=[(1, "Ready"), (2, "Partial capacity"), (3, "No capacity")], verbose_name="funding"
             ),
         ),
         migrations.AlterField(
             model_name="erureadinesstype",
-            name="people_readiness",
+            name="people",
             field=models.IntegerField(choices=[(1, "Ready"), (2, "Partial capacity"), (3, "No capacity")], verbose_name="people"),
         ),
     ]
