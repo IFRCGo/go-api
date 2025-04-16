@@ -1416,3 +1416,7 @@ class DrefShareUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Dref
         fields = ("id", "users", "users_details")
+
+
+class DrefGlobalFilesSerializer(serializers.Serializer):
+    budget_template_url = serializers.CharField(read_only=True)
