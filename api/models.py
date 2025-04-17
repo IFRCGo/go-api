@@ -1296,7 +1296,7 @@ class AppealDocument(models.Model):
 @reversion.register()
 class AppealFilter(models.Model):
     name = models.CharField(verbose_name=_("name"), max_length=100)
-    value = models.CharField(verbose_name=_("value"), max_length=1000)
+    value = models.CharField(verbose_name=_("value"), max_length=100000)
     notes = models.TextField(verbose_name=_("notes"), null=True, blank=True)
 
     class Meta:
