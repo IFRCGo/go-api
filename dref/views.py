@@ -1,6 +1,7 @@
 import django.utils.timezone as timezone
 from django.contrib.auth.models import Permission
 from django.db import models
+from django.templatetags.static import static
 from django.utils.translation import gettext
 from drf_spectacular.utils import extend_schema
 from rest_framework import (
@@ -30,6 +31,7 @@ from dref.serializers import (
     DrefFileInputSerializer,
     DrefFileSerializer,
     DrefFinalReportSerializer,
+    DrefGlobalFilesSerializer,
     DrefOperationalUpdateSerializer,
     DrefSerializer,
     DrefShareUserSerializer,
@@ -85,6 +87,24 @@ class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
         dref.save(update_fields=["is_published", "status"])
         serializer = DrefSerializer(dref, context={"request": request})
         return response.Response(serializer.data)
+
+    @extend_schema(request=None, responses=DrefGlobalFilesSerializer)
+    @action(
+        detail=False,
+        url_path="global-files",
+        methods=["get"],
+        serializer_class=DrefGlobalFilesSerializer,
+        permission_classes=[permissions.IsAuthenticated, DenyGuestUserPermission],
+    )
+    def get_global_files(self, request, pk=None, version=None):
+        """
+        Dref global files url
+        """
+        return response.Response(
+            DrefGlobalFilesSerializer(
+                {"budget_template_url": request.build_absolute_uri(static("files/dref/budget_template.xlsm"))}
+            ).data
+        )
 
 
 class DrefOperationalUpdateViewSet(RevisionMixin, viewsets.ModelViewSet):
