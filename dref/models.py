@@ -313,8 +313,11 @@ class Dref(models.Model):
     estimated_number_of_affected_female = models.IntegerField(
         verbose_name=_("estimated number of affected female"), blank=True, null=True
     )
-    estimated_number_of_affected_minors = models.IntegerField(
-        verbose_name=_("estimated number of affected minors"), blank=True, null=True
+    estimated_number_of_affected_girls_under_18 = models.IntegerField(
+        verbose_name=_("estimated number of affected girls under 18"), blank=True, null=True
+    )
+    estimated_number_of_affected_boys_under_18 = models.IntegerField(
+        verbose_name=_("estimated number of affected boys under 18"), blank=True, null=True
     )
     amount_requested = models.IntegerField(verbose_name=_("amount requested"), blank=True, null=True)
     people_in_need = models.IntegerField(verbose_name=_("people in need"), blank=True, null=True)
@@ -832,8 +835,11 @@ class DrefOperationalUpdate(models.Model):
     estimated_number_of_affected_female = models.IntegerField(
         verbose_name=_("estimated number of affected female"), blank=True, null=True
     )
-    estimated_number_of_affected_minors = models.IntegerField(
-        verbose_name=_("estimated number of affected minors"), blank=True, null=True
+    estimated_number_of_affected_girls_under_18 = models.IntegerField(
+        verbose_name=_("estimated number of affected girls under 18"), blank=True, null=True
+    )
+    estimated_number_of_affected_boys_under_18 = models.IntegerField(
+        verbose_name=_("estimated number of affected boys under 18"), blank=True, null=True
     )
     dref_allocated_so_far = models.IntegerField(verbose_name=_("Dref allocated so far"), null=True, blank=True)
     additional_allocation = models.IntegerField(verbose_name=_("Additional allocation"), null=True, blank=True)
@@ -1267,8 +1273,11 @@ class DrefFinalReport(models.Model):
     estimated_number_of_affected_female = models.IntegerField(
         verbose_name=_("estimated number of affected female"), blank=True, null=True
     )
-    estimated_number_of_affected_minors = models.IntegerField(
-        verbose_name=_("estimated number of affected minors"), blank=True, null=True
+    estimated_number_of_affected_girls_under_18 = models.IntegerField(
+        verbose_name=_("estimated number of affected girls under 18"), blank=True, null=True
+    )
+    estimated_number_of_affected_boys_under_18 = models.IntegerField(
+        verbose_name=_("estimated number of affected boys under 18"), blank=True, null=True
     )
     total_dref_allocation = models.IntegerField(verbose_name=_("Total dref allocation"), null=True, blank=True)
     date_of_publication = models.DateField(verbose_name=_("Date of publication"), blank=True, null=True)

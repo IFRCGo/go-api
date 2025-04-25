@@ -757,7 +757,8 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["number_of_people_affected"] = dref.num_affected
             validated_data["estimated_number_of_affected_male"] = dref.estimated_number_of_affected_male
             validated_data["estimated_number_of_affected_female"] = dref.estimated_number_of_affected_female
-            validated_data["estimated_number_of_affected_minors"] = dref.estimated_number_of_affected_minors
+            validated_data["estimated_number_of_affected_girls_under_18"] = dref.estimated_number_of_affected_girls_under_18
+            validated_data["estimated_number_of_affected_boys_under_18"] = dref.estimated_number_of_affected_boys_under_18
             validated_data["emergency_appeal_planned"] = dref.emergency_appeal_planned
             validated_data["appeal_code"] = dref.appeal_code
             validated_data["glide_code"] = dref.glide_code
@@ -1115,7 +1116,8 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             validated_data["number_of_people_affected"] = dref_operational_update.number_of_people_affected
             validated_data["estimated_number_of_affected_male"] = dref_operational_update.estimated_number_of_affected_male
             validated_data["estimated_number_of_affected_female"] = dref_operational_update.estimated_number_of_affected_female
-            validated_data["estimated_number_of_affected_minors"] = dref_operational_update.estimated_number_of_affected_minors
+            validated_data["estimated_number_of_affected_girls_under_18"] = dref.estimated_number_of_affected_girls_under_18
+            validated_data["estimated_number_of_affected_boys_under_18"] = dref.estimated_number_of_affected_boys_under_18
             validated_data["total_dref_allocation"] = dref_operational_update.total_dref_allocation
             validated_data["total_operation_timeframe"] = dref_operational_update.total_operation_timeframe
             validated_data["operation_start_date"] = dref_operational_update.dref.date_of_approval
@@ -1241,7 +1243,8 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             validated_data["number_of_people_affected"] = dref.num_affected
             validated_data["estimated_number_of_affected_male"] = dref.estimated_number_of_affected_male
             validated_data["estimated_number_of_affected_female"] = dref.estimated_number_of_affected_female
-            validated_data["estimated_number_of_affected_minors"] = dref.estimated_number_of_affected_minors
+            validated_data["estimated_number_of_affected_girls_under_18"] = dref.estimated_number_of_affected_girls_under_18
+            validated_data["estimated_number_of_affected_boys_under_18"] = dref.estimated_number_of_affected_boys_under_18
             validated_data["total_operation_timeframe"] = dref.operation_timeframe
             validated_data["operation_start_date"] = dref.date_of_approval
             validated_data["appeal_code"] = dref.appeal_code
