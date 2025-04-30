@@ -1,3 +1,6 @@
+{% load static %}
+{% load tags %}
+
 <!DOCTYPE html>
 <html>
     <style>
@@ -36,9 +39,22 @@
           padding-left: 20px;
           text-decoration: none;
       }
+      .figure {
+          display: block;
+          margin: 0;
+          padding: 0;
+          text-align: center;
+      }
       .caption {
           font-size: 13px;
-          padding-left: 6px;
+          display: block;
+          text-align: center;
+      }
+      .image {
+        max-width: 100%;
+        height: 300px;
+        width: auto;
+        margin: 0 auto;
       }
     #situational_overview{
         font-size: 15px;
@@ -54,46 +70,58 @@
         <h2 class="heading">Situational Overview</h2>
         <div id="situational_overview"><p> {{situational_overview|safe}}</p></div>
 
-        <h2 class="heading">Graphics and Maps</h2>
-
         {% if not map_list|length == 0 %}
-        <table>
-            <tr>
+            <h2 class="heading">Graphics and Maps</h2>
             {% for map in map_list %}
-                <td><img style='width:100%; height:100%;' src="{{map.image}}" alt="image"><br><p class='caption'>{{map.caption}}</p></td>
+                <figure class='figure'>
+                    <img class='image' src="{{ map.image | media_full_path }}" alt="image" />
+                    {% if map.caption %}
+                        <figcaption class='caption'>{{map.caption}}</figcaption>
+                    {% endif %}
+                </figure>
             {% endfor %}
-            </tr>
-        </table>
         {% endif %}
 
-        {% if not graphic_list|length == 0 %}
-        <table>
-            <tr>
+        {% if graphic_list|length > 0 %}
             {% for graphic in graphic_list %}
-                <td><img style='width:100%; height:100%;' src="{{graphic.image}}" alt="image"><br><p class='caption'>{{graphic.caption}}</p></td>
+                <figure class="figure">
+                    <img class='image' src="{{ graphic.image | media_full_path}}" alt="image" />
+                    {% if graphic.caption %}
+                        <figcaption class='caption'>{{graphic.caption}}</figcaption>
+                    {% endif %}
+                </figure>
             {% endfor %}
-            </tr>
-        </table>
         {% endif %}
 
-        <h2 class="heading">Actions Taken</h2>
+        {% if not actions_taken|length  == 0 %}
+            <h2 class="heading">Actions Taken</h2>
+            {% for act_taken in actions_taken %}
+                {% if not act_taken.action_details|length == 0 or act_taken.summary %}
+                    <p class="sub-heading">Actions Taken by {{act_taken.organization_display}}</p>
 
-        {% for act_taken in actions_taken %}
-            <p class="sub-heading">Actions Taken by {{act_taken.organization_display}}</p>
+                    {% if act_taken.summary %}
+                        <p class="sub-heading">Descriptions</p>
+                        <span class='desc'>{{act_taken.summary|linebreaks}}</span>
+                    {% endif %}
 
-            <p class="sub-heading">Descriptions</p>
-            <span class='desc'>{{act_taken.summary|linebreaks}}</span>
-
-            <p class="sub-heading">Actions</p>
-            {% for action in act_taken.action_details %}
-                <p class="actions">{{action.name}}</p>
-            {%endfor%}
+                    {% if not act_taken.action_details|length == 0 %}
+                        <p class="sub-heading">Actions</p>
+                        {% for action in act_taken.action_details %}
+                            <p class="actions">{{action.name}}</p>
+                        {%endfor%}
+                    {% endif %}
+                {% endif %}
         {% endfor %}
 
+        {% endif %}
+
+    {% if not resources|length == 0 %}
     <h2 class="heading">Resources</h2>
     {% for resource in resources %}
         <p class="desc">{{resource.date}} <br>
-        {{resource.source_description}} <br>
+        {% if resource.source_description %}
+            {{resource.source_description}} <br>
+        {% endif %}
         {% if resource.url %}
             <a class="actions">{{resource.url}}</a><br>
         {% endif %}
@@ -101,6 +129,7 @@
             <a class="actions" href={{resource.flash_file}}> Download document</a>
         {% endif %}
         </p>
-    {%endfor%}
+    {% endfor %}
+    {% endif %}
     </body>
 </html>
