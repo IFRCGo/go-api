@@ -586,6 +586,8 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
         if type_of_dref and type_of_dref == Dref.DrefType.ASSESSMENT:
             # Previous Operations
             validated_data["lessons_learned"] = None
+            validated_data["complete_child_safeguarding_risk"] = None
+            validated_data["child_safeguarding_risk_level"] = None
             validated_data["did_it_affect_same_area"] = None
             validated_data["did_it_affect_same_population"] = None
             validated_data["did_ns_respond"] = None
@@ -624,6 +626,8 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
         if type_of_dref and type_of_dref == Dref.DrefType.ASSESSMENT:
             # Previous Operations
             validated_data["lessons_learned"] = None
+            validated_data["complete_child_safeguarding_risk"] = None
+            validated_data["child_safeguarding_risk_level"] = None
             validated_data["did_it_affect_same_area"] = None
             validated_data["did_it_affect_same_population"] = None
             validated_data["did_ns_respond"] = None
@@ -751,6 +755,10 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["disaster_category"] = dref.disaster_category
             validated_data["number_of_people_targeted"] = dref.num_assisted
             validated_data["number_of_people_affected"] = dref.num_affected
+            validated_data["estimated_number_of_affected_male"] = dref.estimated_number_of_affected_male
+            validated_data["estimated_number_of_affected_female"] = dref.estimated_number_of_affected_female
+            validated_data["estimated_number_of_affected_girls_under_18"] = dref.estimated_number_of_affected_girls_under_18
+            validated_data["estimated_number_of_affected_boys_under_18"] = dref.estimated_number_of_affected_boys_under_18
             validated_data["emergency_appeal_planned"] = dref.emergency_appeal_planned
             validated_data["appeal_code"] = dref.appeal_code
             validated_data["glide_code"] = dref.glide_code
@@ -766,6 +774,13 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["national_society_contact_email"] = dref.national_society_contact_email
             validated_data["national_society_contact_title"] = dref.national_society_contact_title
             validated_data["national_society_contact_phone_number"] = dref.national_society_contact_phone_number
+            validated_data["national_society_integrity_contact_name"] = dref.national_society_integrity_contact_name
+            validated_data["national_society_integrity_contact_email"] = dref.national_society_integrity_contact_email
+            validated_data["national_society_integrity_contact_title"] = dref.national_society_integrity_contact_title
+            validated_data["national_society_integrity_contact_phone_number"] = (
+                dref.national_society_integrity_contact_phone_number
+            )
+            validated_data["national_society_hotline_phone_number"] = dref.national_society_hotline_phone_number
             validated_data["media_contact_name"] = dref.media_contact_name
             validated_data["media_contact_email"] = dref.media_contact_email
             validated_data["media_contact_title"] = dref.media_contact_title
@@ -809,6 +824,11 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["budget_file"] = dref.budget_file
             validated_data["country"] = dref.country
             validated_data["risk_security_concern"] = dref.risk_security_concern
+            validated_data["has_anti_fraud_corruption_policy"] = dref.has_anti_fraud_corruption_policy
+            validated_data["has_sexual_abuse_policy"] = dref.has_sexual_abuse_policy
+            validated_data["has_child_protection_policy"] = dref.has_child_protection_policy
+            validated_data["has_whistleblower_protection_policy"] = dref.has_whistleblower_protection_policy
+            validated_data["has_anti_sexual_harassment_policy"] = dref.has_anti_sexual_harassment_policy
             validated_data["has_child_safeguarding_risk_analysis_assessment"] = (
                 dref.has_child_safeguarding_risk_analysis_assessment
             )
@@ -818,6 +838,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["total_targeted_population"] = dref.total_targeted_population
             validated_data["is_there_major_coordination_mechanism"] = dref.is_there_major_coordination_mechanism
             validated_data["human_resource"] = dref.human_resource
+            validated_data["is_volunteer_team_diverse"] = dref.is_volunteer_team_diverse
             validated_data["is_surge_personnel_deployed"] = dref.is_surge_personnel_deployed
             validated_data["surge_personnel_deployed"] = dref.surge_personnel_deployed
             validated_data["logistic_capacity_of_ns"] = dref.logistic_capacity_of_ns
@@ -881,6 +902,21 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["national_society_contact_phone_number"] = (
                 dref_operational_update.national_society_contact_phone_number
             )
+            validated_data["national_society_integrity_contact_name"] = (
+                dref_operational_update.national_society_integrity_contact_name
+            )
+            validated_data["national_society_integrity_contact_email"] = (
+                dref_operational_update.national_society_integrity_contact_email
+            )
+            validated_data["national_society_integrity_contact_title"] = (
+                dref_operational_update.national_society_integrity_contact_title
+            )
+            validated_data["national_society_integrity_contact_phone_number"] = (
+                dref_operational_update.national_society_integrity_contact_phone_number
+            )
+            validated_data["national_society_hotline_phone_number"] = (
+                dref_operational_update.national_society_hotline_phone_number
+            )
             validated_data["media_contact_name"] = dref_operational_update.media_contact_name
             validated_data["media_contact_email"] = dref_operational_update.media_contact_email
             validated_data["media_contact_title"] = dref_operational_update.media_contact_title
@@ -925,6 +961,11 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["assessment_report"] = dref_operational_update.assessment_report
             validated_data["country"] = dref_operational_update.country
             validated_data["risk_security_concern"] = dref_operational_update.risk_security_concern
+            validated_data["has_anti_fraud_corruption_policy"] = dref_operational_update.has_anti_fraud_corruption_policy
+            validated_data["has_sexual_abuse_policy"] = dref_operational_update.has_sexual_abuse_policy
+            validated_data["has_child_protection_policy"] = dref_operational_update.has_child_protection_policy
+            validated_data["has_whistleblower_protection_policy"] = dref_operational_update.has_whistleblower_protection_policy
+            validated_data["has_anti_sexual_harassment_policy"] = dref_operational_update.has_anti_sexual_harassment_policy
             validated_data["has_child_safeguarding_risk_analysis_assessment"] = (
                 dref_operational_update.has_child_safeguarding_risk_analysis_assessment
             )
@@ -1073,6 +1114,10 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             validated_data["disaster_category"] = dref_operational_update.disaster_category
             validated_data["number_of_people_targeted"] = dref_operational_update.number_of_people_targeted
             validated_data["number_of_people_affected"] = dref_operational_update.number_of_people_affected
+            validated_data["estimated_number_of_affected_male"] = dref_operational_update.estimated_number_of_affected_male
+            validated_data["estimated_number_of_affected_female"] = dref_operational_update.estimated_number_of_affected_female
+            validated_data["estimated_number_of_affected_girls_under_18"] = dref.estimated_number_of_affected_girls_under_18
+            validated_data["estimated_number_of_affected_boys_under_18"] = dref.estimated_number_of_affected_boys_under_18
             validated_data["total_dref_allocation"] = dref_operational_update.total_dref_allocation
             validated_data["total_operation_timeframe"] = dref_operational_update.total_operation_timeframe
             validated_data["operation_start_date"] = dref_operational_update.dref.date_of_approval
@@ -1091,6 +1136,21 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             validated_data["national_society_contact_title"] = dref_operational_update.national_society_contact_title
             validated_data["national_society_contact_phone_number"] = (
                 dref_operational_update.national_society_contact_phone_number
+            )
+            validated_data["national_society_integrity_contact_name"] = (
+                dref_operational_update.national_society_integrity_contact_name
+            )
+            validated_data["national_society_integrity_contact_email"] = (
+                dref_operational_update.national_society_integrity_contact_email
+            )
+            validated_data["national_society_integrity_contact_title"] = (
+                dref_operational_update.national_society_integrity_contact_title
+            )
+            validated_data["national_society_integrity_contact_phone_number"] = (
+                dref_operational_update.national_society_integrity_contact_phone_number
+            )
+            validated_data["national_society_hotline_phone_number"] = (
+                dref_operational_update.national_society_hotline_phone_number
             )
             validated_data["media_contact_name"] = dref_operational_update.media_contact_name
             validated_data["media_contact_email"] = dref_operational_update.media_contact_email
@@ -1132,6 +1192,11 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             validated_data["event_scope"] = dref_operational_update.event_scope
             validated_data["country"] = dref_operational_update.country
             validated_data["risk_security_concern"] = dref_operational_update.risk_security_concern
+            validated_data["has_anti_fraud_corruption_policy"] = dref_operational_update.has_anti_fraud_corruption_policy
+            validated_data["has_sexual_abuse_policy"] = dref_operational_update.has_sexual_abuse_policy
+            validated_data["has_child_protection_policy"] = dref_operational_update.has_child_protection_policy
+            validated_data["has_whistleblower_protection_policy"] = dref_operational_update.has_whistleblower_protection_policy
+            validated_data["has_anti_sexual_harassment_policy"] = dref_operational_update.has_anti_sexual_harassment_policy
             validated_data["has_child_safeguarding_risk_analysis_assessment"] = (
                 dref_operational_update.has_child_safeguarding_risk_analysis_assessment
             )
@@ -1176,6 +1241,10 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             validated_data["disaster_category"] = dref.disaster_category
             validated_data["number_of_people_targeted"] = dref.num_assisted
             validated_data["number_of_people_affected"] = dref.num_affected
+            validated_data["estimated_number_of_affected_male"] = dref.estimated_number_of_affected_male
+            validated_data["estimated_number_of_affected_female"] = dref.estimated_number_of_affected_female
+            validated_data["estimated_number_of_affected_girls_under_18"] = dref.estimated_number_of_affected_girls_under_18
+            validated_data["estimated_number_of_affected_boys_under_18"] = dref.estimated_number_of_affected_boys_under_18
             validated_data["total_operation_timeframe"] = dref.operation_timeframe
             validated_data["operation_start_date"] = dref.date_of_approval
             validated_data["appeal_code"] = dref.appeal_code
@@ -1233,6 +1302,11 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             validated_data["assessment_report"] = dref.assessment_report
             validated_data["country"] = dref.country
             validated_data["risk_security_concern"] = dref.risk_security_concern
+            validated_data["has_anti_fraud_corruption_policy"] = dref.has_anti_fraud_corruption_policy
+            validated_data["has_sexual_abuse_policy"] = dref.has_sexual_abuse_policy
+            validated_data["has_child_protection_policy"] = dref.has_child_protection_policy
+            validated_data["has_whistleblower_protection_policy"] = dref.has_whistleblower_protection_policy
+            validated_data["has_anti_sexual_harassment_policy"] = dref.has_anti_sexual_harassment_policy
             validated_data["has_child_safeguarding_risk_analysis_assessment"] = (
                 dref.has_child_safeguarding_risk_analysis_assessment
             )
@@ -1345,3 +1419,7 @@ class DrefShareUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Dref
         fields = ("id", "users", "users_details")
+
+
+class DrefGlobalFilesSerializer(serializers.Serializer):
+    budget_template_url = serializers.CharField(read_only=True)

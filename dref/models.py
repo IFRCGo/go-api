@@ -311,6 +311,18 @@ class Dref(models.Model):
     status = models.IntegerField(choices=Status.choices, verbose_name=_("status"), null=True, blank=True)
     num_assisted = models.IntegerField(verbose_name=_("number of assisted"), blank=True, null=True)
     num_affected = models.IntegerField(verbose_name=_("number of affected"), blank=True, null=True)
+    estimated_number_of_affected_male = models.IntegerField(
+        verbose_name=_("estimated number of affected male"), blank=True, null=True
+    )
+    estimated_number_of_affected_female = models.IntegerField(
+        verbose_name=_("estimated number of affected female"), blank=True, null=True
+    )
+    estimated_number_of_affected_girls_under_18 = models.IntegerField(
+        verbose_name=_("estimated number of affected girls under 18"), blank=True, null=True
+    )
+    estimated_number_of_affected_boys_under_18 = models.IntegerField(
+        verbose_name=_("estimated number of affected boys under 18"), blank=True, null=True
+    )
     amount_requested = models.IntegerField(verbose_name=_("amount requested"), blank=True, null=True)
     people_in_need = models.IntegerField(verbose_name=_("people in need"), blank=True, null=True)
     emergency_appeal_planned = models.BooleanField(verbose_name=_("emergency appeal planned "), null=True, blank=True)
@@ -333,6 +345,10 @@ class Dref(models.Model):
     ns_request_text = models.TextField(blank=True, null=True, verbose_name=_("ns request text"))
     dref_recurrent_text = models.TextField(verbose_name=_("dref recurrent text"), blank=True, null=True)
     lessons_learned = models.TextField(verbose_name=_("lessons learned"), blank=True, null=True)
+    complete_child_safeguarding_risk = models.BooleanField(
+        null=True, blank=True, default=False, help_text=_("Did you complete the child safeguarding risk analysis")
+    )
+    child_safeguarding_risk_level = models.TextField(verbose_name=_("Child safeguarding risk level"), blank=True, null=True)
     event_description = models.TextField(verbose_name=_("event description"), blank=True, null=True)
     anticipatory_actions = models.TextField(
         blank=True,
@@ -481,6 +497,21 @@ class Dref(models.Model):
     national_society_contact_phone_number = models.CharField(
         verbose_name=_("national society contact phone number"), max_length=100, null=True, blank=True
     )
+    national_society_integrity_contact_name = models.CharField(
+        verbose_name=_("national society integrity contact name"), max_length=255, null=True, blank=True
+    )
+    national_society_integrity_contact_email = models.CharField(
+        verbose_name=_("national society integrity contact email"), max_length=255, null=True, blank=True
+    )
+    national_society_integrity_contact_title = models.CharField(
+        verbose_name=_("national society integrity contact title"), max_length=255, null=True, blank=True
+    )
+    national_society_integrity_contact_phone_number = models.CharField(
+        verbose_name=_("national society integrity contact phone number"), max_length=100, null=True, blank=True
+    )
+    national_society_hotline_phone_number = models.CharField(
+        verbose_name=_("national society hotline phone number"), max_length=100, null=True, blank=True
+    )
     media_contact_name = models.CharField(verbose_name=_("media contact name"), max_length=255, null=True, blank=True)
     media_contact_email = models.CharField(verbose_name=_("media contact email"), max_length=255, null=True, blank=True)
     media_contact_title = models.CharField(verbose_name=_("media contact title"), max_length=255, null=True, blank=True)
@@ -514,6 +545,12 @@ class Dref(models.Model):
         null=True,
         verbose_name=_("human resource"),
         help_text=_("how many volunteers and staff involved in the response?"),
+    )
+    is_volunteer_team_diverse = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name=_("is volunteer team diverse"),
+        help_text=_("Does your volunteer team reflect the gender, age, and cultural diversity of the people you’re helping?"),
     )
     is_surge_personnel_deployed = models.BooleanField(blank=True, null=True, verbose_name=_("Is surge personnel deployed"))
     surge_personnel_deployed = models.TextField(
@@ -606,6 +643,21 @@ class Dref(models.Model):
         verbose_name=_("Has the child safeguarding risk analysis assessment been completed?"), null=True, blank=True
     )
     risk_security_concern = models.TextField(blank=True, null=True, verbose_name=_("Risk Security Concern"))
+    has_anti_fraud_corruption_policy = models.BooleanField(
+        verbose_name=_("Has anti-fraud and corruption policy"), null=True, blank=True
+    )
+    has_sexual_abuse_policy = models.BooleanField(
+        verbose_name=_("Has prevention of sexual exploitation and abuse policy"), null=True, blank=True
+    )
+    has_child_protection_policy = models.BooleanField(
+        verbose_name=_("Has child protection/child safeguarding policy"), null=True, blank=True
+    )
+    has_whistleblower_protection_policy = models.BooleanField(
+        verbose_name=_("Has whistleblower protection policy"), null=True, blank=True
+    )
+    has_anti_sexual_harassment_policy = models.BooleanField(
+        verbose_name=_("Has anti-sexual harassment policy"), null=True, blank=True
+    )
     is_man_made_event = models.BooleanField(verbose_name=_("Is Man-made Event"), null=True, blank=True)
     __budget_file_id = None
     is_active = models.BooleanField(verbose_name=_("Is Active"), null=True, blank=True)
@@ -781,6 +833,18 @@ class DrefOperationalUpdate(models.Model):
     status = models.IntegerField(choices=Dref.Status.choices, verbose_name=_("status"), null=True, blank=True)
     number_of_people_targeted = models.IntegerField(verbose_name=_("Number of people targeted"), blank=True, null=True)
     number_of_people_affected = models.IntegerField(verbose_name=_("number of people affected"), blank=True, null=True)
+    estimated_number_of_affected_male = models.IntegerField(
+        verbose_name=_("estimated number of affected male"), blank=True, null=True
+    )
+    estimated_number_of_affected_female = models.IntegerField(
+        verbose_name=_("estimated number of affected female"), blank=True, null=True
+    )
+    estimated_number_of_affected_girls_under_18 = models.IntegerField(
+        verbose_name=_("estimated number of affected girls under 18"), blank=True, null=True
+    )
+    estimated_number_of_affected_boys_under_18 = models.IntegerField(
+        verbose_name=_("estimated number of affected boys under 18"), blank=True, null=True
+    )
     dref_allocated_so_far = models.IntegerField(verbose_name=_("Dref allocated so far"), null=True, blank=True)
     additional_allocation = models.IntegerField(verbose_name=_("Additional allocation"), null=True, blank=True)
     total_dref_allocation = models.IntegerField(verbose_name=_("Total dref allocation"), null=True, blank=True)
@@ -874,6 +938,21 @@ class DrefOperationalUpdate(models.Model):
     )
     national_society_contact_phone_number = models.CharField(
         verbose_name=_("national society contact phone number"), max_length=100, null=True, blank=True
+    )
+    national_society_integrity_contact_name = models.CharField(
+        verbose_name=_("national society integrity contact name"), max_length=255, null=True, blank=True
+    )
+    national_society_integrity_contact_email = models.CharField(
+        verbose_name=_("national society integrity contact email"), max_length=255, null=True, blank=True
+    )
+    national_society_integrity_contact_title = models.CharField(
+        verbose_name=_("national society integrity contact title"), max_length=255, null=True, blank=True
+    )
+    national_society_integrity_contact_phone_number = models.CharField(
+        verbose_name=_("national society integrity contact phone number"), max_length=100, null=True, blank=True
+    )
+    national_society_hotline_phone_number = models.CharField(
+        verbose_name=_("national society hotline phone number"), max_length=100, null=True, blank=True
     )
     media_contact_name = models.CharField(verbose_name=_("media contact name"), max_length=255, null=True, blank=True)
     media_contact_email = models.CharField(verbose_name=_("media contact email"), max_length=255, null=True, blank=True)
@@ -1005,6 +1084,21 @@ class DrefOperationalUpdate(models.Model):
     )
     risk_security = models.ManyToManyField(RiskSecurity, blank=True, verbose_name=_("Risk Security"))
     risk_security_concern = models.TextField(blank=True, null=True, verbose_name=_("Risk Security Concern"))
+    has_anti_fraud_corruption_policy = models.BooleanField(
+        verbose_name=_("Has anti-fraud and corruption policy"), null=True, blank=True
+    )
+    has_sexual_abuse_policy = models.BooleanField(
+        verbose_name=_("Has prevention of sexual exploitation and abuse policy"), null=True, blank=True
+    )
+    has_child_protection_policy = models.BooleanField(
+        verbose_name=_("Has child protection/child safeguarding policy"), null=True, blank=True
+    )
+    has_whistleblower_protection_policy = models.BooleanField(
+        verbose_name=_("Has whistleblower protection policy"), null=True, blank=True
+    )
+    has_anti_sexual_harassment_policy = models.BooleanField(
+        verbose_name=_("Has anti-sexual harassment policy"), null=True, blank=True
+    )
     has_child_safeguarding_risk_analysis_assessment = models.BooleanField(
         verbose_name=_("Has the child safeguarding risk analysis assessment been completed?"), null=True, blank=True
     )
@@ -1039,6 +1133,12 @@ class DrefOperationalUpdate(models.Model):
         null=True,
         verbose_name=_("human resource"),
         help_text=_("how many volunteers and staff involved in the response?"),
+    )
+    is_volunteer_team_diverse = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name=_("is volunteer team diverse"),
+        help_text=_("Does your volunteer team reflect the gender, age, and cultural diversity of the people you’re helping?"),
     )
     is_surge_personnel_deployed = models.BooleanField(blank=True, null=True, verbose_name=_("Is surge personnel deployed"))
     surge_personnel_deployed = models.TextField(
@@ -1171,6 +1271,18 @@ class DrefFinalReport(models.Model):
     status = models.IntegerField(choices=Dref.Status.choices, verbose_name=_("status"), null=True, blank=True)
     number_of_people_targeted = models.IntegerField(verbose_name=_("Number of people targeted"), blank=True, null=True)
     number_of_people_affected = models.IntegerField(verbose_name=_("number of people affected"), blank=True, null=True)
+    estimated_number_of_affected_male = models.IntegerField(
+        verbose_name=_("estimated number of affected male"), blank=True, null=True
+    )
+    estimated_number_of_affected_female = models.IntegerField(
+        verbose_name=_("estimated number of affected female"), blank=True, null=True
+    )
+    estimated_number_of_affected_girls_under_18 = models.IntegerField(
+        verbose_name=_("estimated number of affected girls under 18"), blank=True, null=True
+    )
+    estimated_number_of_affected_boys_under_18 = models.IntegerField(
+        verbose_name=_("estimated number of affected boys under 18"), blank=True, null=True
+    )
     total_dref_allocation = models.IntegerField(verbose_name=_("Total dref allocation"), null=True, blank=True)
     date_of_publication = models.DateField(verbose_name=_("Date of publication"), blank=True, null=True)
     total_operation_timeframe = models.IntegerField(verbose_name=_("Total Operation Timeframe"), null=True, blank=True)
@@ -1210,6 +1322,21 @@ class DrefFinalReport(models.Model):
     )
     national_society_contact_phone_number = models.CharField(
         verbose_name=_("national society contact phone number"), max_length=100, null=True, blank=True
+    )
+    national_society_integrity_contact_name = models.CharField(
+        verbose_name=_("national society integrity contact name"), max_length=255, null=True, blank=True
+    )
+    national_society_integrity_contact_email = models.CharField(
+        verbose_name=_("national society integrity contact email"), max_length=255, null=True, blank=True
+    )
+    national_society_integrity_contact_title = models.CharField(
+        verbose_name=_("national society integrity contact title"), max_length=255, null=True, blank=True
+    )
+    national_society_integrity_contact_phone_number = models.CharField(
+        verbose_name=_("national society integrity contact phone number"), max_length=100, null=True, blank=True
+    )
+    national_society_hotline_phone_number = models.CharField(
+        verbose_name=_("national society hotline phone number"), max_length=100, null=True, blank=True
     )
     ifrc_emergency_name = models.CharField(verbose_name=_("ifrc emergency name"), max_length=255, null=True, blank=True)
     ifrc_emergency_email = models.CharField(verbose_name=_("ifrc emergency email"), max_length=255, null=True, blank=True)
@@ -1358,6 +1485,21 @@ class DrefFinalReport(models.Model):
         verbose_name=_("Has the child safeguarding risk analysis assessment been completed?"), null=True, blank=True
     )
     risk_security_concern = models.TextField(blank=True, null=True, verbose_name=_("Risk Security Concern"))
+    has_anti_fraud_corruption_policy = models.BooleanField(
+        verbose_name=_("Has anti-fraud and corruption policy"), null=True, blank=True
+    )
+    has_sexual_abuse_policy = models.BooleanField(
+        verbose_name=_("Has prevention of sexual exploitation and abuse policy"), null=True, blank=True
+    )
+    has_child_protection_policy = models.BooleanField(
+        verbose_name=_("Has child protection/child safeguarding policy"), null=True, blank=True
+    )
+    has_whistleblower_protection_policy = models.BooleanField(
+        verbose_name=_("Has whistleblower protection policy"), null=True, blank=True
+    )
+    has_anti_sexual_harassment_policy = models.BooleanField(
+        verbose_name=_("Has anti-sexual harassment policy"), null=True, blank=True
+    )
     event_date = models.DateField(
         verbose_name=_("event date"), null=True, blank=True, help_text=_("Date of event/Approximate date of impact")
     )

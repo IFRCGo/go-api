@@ -12,10 +12,10 @@ DEBUG_PLAYWRIGHT=True
 Start or update containers with:
 ```bash
 # In the background
-docker compose up -d serve celery
+docker compose up -d serve celery playwright
 
 # In the foreground - Use this to view Playwright logs
-docker compose up serve celery
+docker compose up serve celery playwright
 ```
 
 ## Frontend
@@ -24,7 +24,7 @@ For setup instructions, refer to: https://github.com/IFRCGo/go-web-app/?tab=read
 
 **We need two instances of the go-web-app:**
 1. For the host system (browser) on port 3000.
-2. For Celery workers (Playwright browser) on port 3001.
+2. For playwright container on port 3001.
 
 To start the regular go-web-app:
 ```bash
@@ -36,4 +36,4 @@ For the additional go-web-app instance for Playwright:
 APP_API_ENDPOINT=http://host.docker.internal:8000/ pnpm start:app --host --port 3001
 ```
 > [!IMPORTANT]
-> The backend will be available at `host.docker.internal:8000` inside the Playwright container running within Celery.
+> The backend will be available at `host.docker.internal:8000` inside the Playwright container.
