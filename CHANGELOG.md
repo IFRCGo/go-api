@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+
+## 1.1.505
+
+### Added
+ - New fields for DREFs
  - Skip FTS_HPC processing when no data
  - Fix TypeError of /api/v1/search/
  - Update Molnix alert status even when no event
@@ -2654,7 +2659,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.504...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.505...HEAD
+[1.1.505]: https://github.com/IFRCGo/go-api/compare/1.1.504...1.1.505
 [1.1.504]: https://github.com/IFRCGo/go-api/compare/1.1.503...1.1.504
 [1.1.503]: https://github.com/IFRCGo/go-api/compare/1.1.502...1.1.503
 [1.1.502]: https://github.com/IFRCGo/go-api/compare/1.1.501...1.1.502
