@@ -267,7 +267,7 @@ INSTALLED_APPS = [
     "reversion",
     "reversion_compare",
     # Debug
-    "debug_toolbar",
+    #    "debug_toolbar",
     # GIS
     "django.contrib.gis",
 ]
@@ -298,7 +298,7 @@ REST_FRAMEWORK = {
 # GRAPHENE = {"SCHEMA": "api.schema.schema"}
 
 MIDDLEWARE = [
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
+    #   "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
