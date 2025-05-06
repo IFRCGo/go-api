@@ -90,6 +90,12 @@ python3 manage.py static-translation-export path-to-export.csv --only-new --lang
 python3 manage.py static-translation-import path-to-import.csv
 ```
 
+## Updating openapi schema (openapi-schema.yaml)
+
+```bash
+docker-compose run --rm serve ./manage.py spectacular --file openapi-schema.yaml
+```
+
 ## Note for Django Model translations
 
 ```
