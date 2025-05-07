@@ -18788,15 +18788,15 @@ components:
           type: string
           nullable: true
           title: Overview [en]
+        society_name:
+          type: string
+          nullable: true
+          title: Society name [en]
         additional_tab_name:
           type: string
           nullable: true
           title: Label for Additional Tab [en]
           maxLength: 100
-        society_name:
-          type: string
-          nullable: true
-          title: Society name [en]
         translation_module_original_language:
           allOf:
           - $ref: '#/components/schemas/TranslationModuleOriginalLanguageEnum'
@@ -19572,15 +19572,15 @@ components:
         active_deployments:
           type: integer
           readOnly: true
+        summary:
+          type: string
+          nullable: true
+          title: Summary [en]
         name:
           type: string
           nullable: true
           title: Name [en]
           maxLength: 256
-        summary:
-          type: string
-          nullable: true
-          title: Summary [en]
         translation_module_original_language:
           allOf:
           - $ref: '#/components/schemas/TranslationModuleOriginalLanguageEnum'
@@ -19612,15 +19612,15 @@ components:
         id:
           type: integer
           readOnly: true
+        summary:
+          type: string
+          nullable: true
+          title: Summary [en]
         name:
           type: string
           nullable: true
           title: Name [en]
           maxLength: 100
-        summary:
-          type: string
-          nullable: true
-          title: Summary [en]
         translation_module_original_language:
           allOf:
           - $ref: '#/components/schemas/TranslationModuleOriginalLanguageEnum'
@@ -20398,43 +20398,52 @@ components:
           items:
             type: integer
             title: Proposed Action
-        event_scope:
+        event_text:
           type: string
           nullable: true
-          title: Event scope [en]
-          description: Scope and scale of event
-        ns_request_text:
-          type: string
-          nullable: true
-          title: Ns request text [en]
+          title: Event text [en]
         title:
           type: string
           nullable: true
           title: Title [en]
           maxLength: 255
-        event_text:
+        event_description:
           type: string
           nullable: true
-          title: Event text [en]
-        logistic_capacity_of_ns:
+          title: Event description [en]
+        ifrc:
           type: string
           nullable: true
-          title: Logistic capacity of ns [en]
-          description: what is the logistics capacity of the National Society?
-        major_coordination_mechanism:
+          title: Ifrc [en]
+        surge_personnel_deployed:
           type: string
           nullable: true
-          title: Major coordination mechanism [en]
-          description: List major coordination mechanisms in place
-        pmer:
+          title: Surge personnel deployed [en]
+          description: Will a Surge personnel be deployed?
+        anticipatory_actions:
           type: string
           nullable: true
-          title: Pmer [en]
-          description: Does the NS have PMER capacity?
-        risk_security_concern:
+          title: Anticipatory actions [en]
+          description: Description of anticipatory actions or imminent disaster
+        lessons_learned:
           type: string
           nullable: true
-          title: Risk Security Concern [en]
+          title: Lessons learned [en]
+        is_volunteer_team_diverse:
+          type: string
+          nullable: true
+          title: Is volunteer team diverse [en]
+          description: Does your volunteer team reflect the gender, age, and cultural
+            diversity of the people you’re helping?
+        communication:
+          type: string
+          nullable: true
+          title: Organization [en]
+          description: Does the NS have Communications capacity?
+        icrc:
+          type: string
+          nullable: true
+          title: Icrc [en]
         selection_criteria:
           type: string
           nullable: true
@@ -20445,10 +20454,6 @@ components:
           nullable: true
           title: Human resource [en]
           description: how many volunteers and staff involved in the response?
-        national_authorities:
-          type: string
-          nullable: true
-          title: National authorities [en]
         title_prefix:
           type: string
           nullable: true
@@ -20458,47 +20463,29 @@ components:
           type: string
           nullable: true
           title: Child safeguarding risk level [en]
-        ifrc:
+        partner_national_society:
           type: string
           nullable: true
-          title: Ifrc [en]
-        surge_personnel_deployed:
+          title: Partner national society [en]
+        risk_security_concern:
           type: string
           nullable: true
-          title: Surge personnel deployed [en]
-          description: Will a Surge personnel be deployed?
-        un_or_other_actor:
+          title: Risk Security Concern [en]
+        identified_gaps:
           type: string
           nullable: true
-          title: Un or other [en]
-        response_strategy:
+          title: Identified gaps [en]
+          description: Any identified gaps/limitations in the assessment
+        major_coordination_mechanism:
           type: string
           nullable: true
-          title: Response strategy [en]
-        anticipatory_actions:
+          title: Major coordination mechanism [en]
+          description: List major coordination mechanisms in place
+        pmer:
           type: string
           nullable: true
-          title: Anticipatory actions [en]
-          description: Description of anticipatory actions or imminent disaster
-        is_volunteer_team_diverse:
-          type: string
-          nullable: true
-          title: Is volunteer team diverse [en]
-          description: Does your volunteer team reflect the gender, age, and cultural
-            diversity of the people you’re helping?
-        people_assisted:
-          type: string
-          nullable: true
-          title: People assisted [en]
-        communication:
-          type: string
-          nullable: true
-          title: Organization [en]
-          description: Does the NS have Communications capacity?
-        icrc:
-          type: string
-          nullable: true
-          title: Icrc [en]
+          title: Pmer [en]
+          description: Does the NS have PMER capacity?
         operation_objective:
           type: string
           nullable: true
@@ -20508,23 +20495,36 @@ components:
           type: string
           nullable: true
           title: Dref recurrent text [en]
-        event_description:
+        ns_request_text:
           type: string
           nullable: true
-          title: Event description [en]
-        identified_gaps:
+          title: Ns request text [en]
+        response_strategy:
           type: string
           nullable: true
-          title: Identified gaps [en]
-          description: Any identified gaps/limitations in the assessment
-        lessons_learned:
+          title: Response strategy [en]
+        logistic_capacity_of_ns:
           type: string
           nullable: true
-          title: Lessons learned [en]
-        partner_national_society:
+          title: Logistic capacity of ns [en]
+          description: what is the logistics capacity of the National Society?
+        event_scope:
           type: string
           nullable: true
-          title: Partner national society [en]
+          title: Event scope [en]
+          description: Scope and scale of event
+        un_or_other_actor:
+          type: string
+          nullable: true
+          title: Un or other [en]
+        people_assisted:
+          type: string
+          nullable: true
+          title: People assisted [en]
+        national_authorities:
+          type: string
+          nullable: true
+          title: National authorities [en]
       required:
       - assessment_report_details
       - budget_file_details
@@ -21151,77 +21151,77 @@ components:
           type: array
           items:
             type: integer
-        major_coordination_mechanism:
+        financial_report_description:
           type: string
           nullable: true
-          title: Major coordination mechanism [en]
-        icrc:
-          type: string
-          nullable: true
-          title: Icrc [en]
-        ifrc:
-          type: string
-          nullable: true
-          title: Ifrc [en]
-        risk_security_concern:
-          type: string
-          nullable: true
-          title: Risk Security Concern [en]
-        operation_objective:
-          type: string
-          nullable: true
-          title: Operation objective [en]
+          title: Financial Report Description [en]
         event_scope:
           type: string
           nullable: true
           title: Event scope [en]
-        selection_criteria:
+        major_coordination_mechanism:
           type: string
           nullable: true
-          title: Selection criteria [en]
-          description: Selection criteria for affected people
-        partner_national_society:
+          title: Major coordination mechanism [en]
+        event_text:
           type: string
           nullable: true
-          title: Partner national society [en]
+          title: Event text [en]
         title:
           type: string
           nullable: true
           title: Title [en]
           maxLength: 255
+        icrc:
+          type: string
+          nullable: true
+          title: Icrc [en]
         un_or_other_actor:
           type: string
           nullable: true
           title: Un or other [en]
-        event_description:
-          type: string
-          nullable: true
-          title: Event description [en]
-        response_strategy:
-          type: string
-          nullable: true
-          title: Response strategy [en]
-        event_text:
-          type: string
-          nullable: true
-          title: Event text [en]
-        anticipatory_actions:
-          type: string
-          nullable: true
-          title: Anticipatory actions [en]
-        financial_report_description:
-          type: string
-          nullable: true
-          title: Financial Report Description [en]
-        national_authorities:
-          type: string
-          nullable: true
-          title: National authorities [en]
         title_prefix:
           type: string
           nullable: true
           title: Title prefix [en]
           maxLength: 255
+        selection_criteria:
+          type: string
+          nullable: true
+          title: Selection criteria [en]
+          description: Selection criteria for affected people
+        anticipatory_actions:
+          type: string
+          nullable: true
+          title: Anticipatory actions [en]
+        event_description:
+          type: string
+          nullable: true
+          title: Event description [en]
+        ifrc:
+          type: string
+          nullable: true
+          title: Ifrc [en]
+        partner_national_society:
+          type: string
+          nullable: true
+          title: Partner national society [en]
+        operation_objective:
+          type: string
+          nullable: true
+          title: Operation objective [en]
+        risk_security_concern:
+          type: string
+          nullable: true
+          title: Risk Security Concern [en]
+        national_authorities:
+          type: string
+          nullable: true
+          title: National authorities [en]
+        response_strategy:
+          type: string
+          nullable: true
+          title: Response strategy [en]
         national_society_conducted_description:
           type: string
           nullable: true
@@ -21889,52 +21889,20 @@ components:
           type: array
           items:
             type: integer
-        event_scope:
+        anticipatory_to_response:
           type: string
           nullable: true
-          title: Event scope [en]
+          title: Please explain how is the operation is transitioning from Anticipatory
+            to Response [en]
         title:
           type: string
           nullable: true
           title: Title [en]
           maxLength: 255
-        logistic_capacity_of_ns:
+        event_description:
           type: string
           nullable: true
-          title: Logistic capacity of ns [en]
-          description: what is the logistics capacity of the National Society?
-        major_coordination_mechanism:
-          type: string
-          nullable: true
-          title: Major coordination mechanism [en]
-        risk_security_concern:
-          type: string
-          nullable: true
-          title: Risk Security Concern [en]
-        pmer:
-          type: string
-          nullable: true
-          title: Pmer [en]
-          description: Does the NS have PMER capacity?
-        selection_criteria:
-          type: string
-          nullable: true
-          title: Selection criteria [en]
-          description: Selection criteria for affected people
-        human_resource:
-          type: string
-          nullable: true
-          title: Human resource [en]
-          description: how many volunteers and staff involved in the response?
-        national_authorities:
-          type: string
-          nullable: true
-          title: National authorities [en]
-        title_prefix:
-          type: string
-          nullable: true
-          title: Title prefix [en]
-          maxLength: 255
+          title: Event description [en]
         ifrc:
           type: string
           nullable: true
@@ -21944,19 +21912,6 @@ components:
           nullable: true
           title: Surge personnel deployed [en]
           description: Will a Surge personnel be deployed?
-        un_or_other_actor:
-          type: string
-          nullable: true
-          title: Un or other [en]
-        response_strategy:
-          type: string
-          nullable: true
-          title: Response strategy [en]
-        anticipatory_to_response:
-          type: string
-          nullable: true
-          title: Please explain how is the operation is transitioning from Anticipatory
-            to Response [en]
         anticipatory_actions:
           type: string
           nullable: true
@@ -21972,26 +21927,71 @@ components:
           nullable: true
           title: Organization [en]
           description: Does the NS have Communications capacity?
-        people_assisted:
-          type: string
-          nullable: true
-          title: People assisted [en]
         icrc:
           type: string
           nullable: true
           title: Icrc [en]
-        operation_objective:
+        selection_criteria:
           type: string
           nullable: true
-          title: Operation objective [en]
-        event_description:
+          title: Selection criteria [en]
+          description: Selection criteria for affected people
+        human_resource:
           type: string
           nullable: true
-          title: Event description [en]
+          title: Human resource [en]
+          description: how many volunteers and staff involved in the response?
+        title_prefix:
+          type: string
+          nullable: true
+          title: Title prefix [en]
+          maxLength: 255
         partner_national_society:
           type: string
           nullable: true
           title: Partner national society [en]
+        risk_security_concern:
+          type: string
+          nullable: true
+          title: Risk Security Concern [en]
+        major_coordination_mechanism:
+          type: string
+          nullable: true
+          title: Major coordination mechanism [en]
+        pmer:
+          type: string
+          nullable: true
+          title: Pmer [en]
+          description: Does the NS have PMER capacity?
+        operation_objective:
+          type: string
+          nullable: true
+          title: Operation objective [en]
+        response_strategy:
+          type: string
+          nullable: true
+          title: Response strategy [en]
+        logistic_capacity_of_ns:
+          type: string
+          nullable: true
+          title: Logistic capacity of ns [en]
+          description: what is the logistics capacity of the National Society?
+        event_scope:
+          type: string
+          nullable: true
+          title: Event scope [en]
+        un_or_other_actor:
+          type: string
+          nullable: true
+          title: Un or other [en]
+        people_assisted:
+          type: string
+          nullable: true
+          title: People assisted [en]
+        national_authorities:
+          type: string
+          nullable: true
+          title: National authorities [en]
       required:
       - assessment_report_details
       - budget_file_details
@@ -23899,14 +23899,10 @@ components:
           type: array
           items:
             type: integer
-        other_sources:
+        summary:
           type: string
           nullable: true
-          title: Sources (other) [en]
-        description:
-          type: string
-          nullable: true
-          title: Description [en]
+          title: Summary [en]
         title:
           type: string
           nullable: true
@@ -23915,14 +23911,18 @@ components:
             </br>The summary is constructed as: <b><i>Country IS03: Disaster Type
             - Start Date - Title - Field Report Number - (date)</b><i>'
           maxLength: 256
+        other_sources:
+          type: string
+          nullable: true
+          title: Sources (other) [en]
         actions_others:
           type: string
           nullable: true
           title: Actions taken (others) [en]
-        summary:
+        description:
           type: string
           nullable: true
-          title: Summary [en]
+          title: Description [en]
       required:
       - appeal_display
       - bulletin_display
@@ -24463,27 +24463,27 @@ components:
         has_question_group:
           type: boolean
           nullable: true
-        description:
+        epi_considerations_guidance:
           type: string
           nullable: true
-          title: Description [en]
-        urban_considerations_guidance:
-          type: string
-          nullable: true
-          title: Urban Considerations [en]
+          title: EPI Considerations [en]
         title:
           type: string
           nullable: true
           title: Title [en]
           maxLength: 250
-        epi_considerations_guidance:
-          type: string
-          nullable: true
-          title: EPI Considerations [en]
         climate_environmental_considerations_guidance:
           type: string
           nullable: true
           title: Climate and Environmental Considerations  [en]
+        urban_considerations_guidance:
+          type: string
+          nullable: true
+          title: Urban Considerations [en]
+        description:
+          type: string
+          nullable: true
+          title: Description [en]
         translation_module_original_language:
           allOf:
           - $ref: '#/components/schemas/TranslationModuleOriginalLanguageEnum'
@@ -24518,22 +24518,22 @@ components:
           allOf:
           - $ref: '#/components/schemas/FormComponent'
           readOnly: true
-        urban_considerations:
-          type: string
-          nullable: true
-          title: Urban Considerations [en]
-        epi_considerations:
-          type: string
-          nullable: true
-          title: Epi Considerations [en]
-        climate_environmental_considerations:
-          type: string
-          nullable: true
-          title: Climate Environmental Considerations [en]
         notes:
           type: string
           nullable: true
           title: Notes [en]
+        epi_considerations:
+          type: string
+          nullable: true
+          title: Epi Considerations [en]
+        urban_considerations:
+          type: string
+          nullable: true
+          title: Urban Considerations [en]
+        climate_environmental_considerations:
+          type: string
+          nullable: true
+          title: Climate Environmental Considerations [en]
         translation_module_original_language:
           allOf:
           - $ref: '#/components/schemas/TranslationModuleOriginalLanguageEnum'
@@ -24611,15 +24611,15 @@ components:
         question_group:
           type: integer
           nullable: true
-        description:
-          type: string
-          nullable: true
-          title: Description [en]
         question:
           type: string
           nullable: true
           title: Question [en]
           maxLength: 500
+        description:
+          type: string
+          nullable: true
+          title: Description [en]
         translation_module_original_language:
           allOf:
           - $ref: '#/components/schemas/TranslationModuleOriginalLanguageEnum'
@@ -25738,15 +25738,15 @@ components:
         active_deployments:
           type: integer
           readOnly: true
+        summary:
+          type: string
+          nullable: true
+          title: Summary [en]
         name:
           type: string
           nullable: true
           title: Name [en]
           maxLength: 256
-        summary:
-          type: string
-          nullable: true
-          title: Summary [en]
         translation_module_original_language:
           allOf:
           - $ref: '#/components/schemas/TranslationModuleOriginalLanguageEnum'
@@ -27221,14 +27221,14 @@ components:
             * `6` - Other, potentially
           minimum: -2147483648
           maximum: 2147483647
-        description:
-          type: string
-          nullable: true
-          title: Description [en]
         summary:
           type: string
           nullable: true
           title: Summary [en]
+        description:
+          type: string
+          nullable: true
+          title: Description [en]
         translation_module_original_language:
           allOf:
           - $ref: '#/components/schemas/TranslationModuleOriginalLanguageEnum'
@@ -30375,43 +30375,52 @@ components:
           items:
             type: integer
             title: Proposed Action
-        event_scope:
+        event_text:
           type: string
           nullable: true
-          title: Event scope [en]
-          description: Scope and scale of event
-        ns_request_text:
-          type: string
-          nullable: true
-          title: Ns request text [en]
+          title: Event text [en]
         title:
           type: string
           nullable: true
           title: Title [en]
           maxLength: 255
-        event_text:
+        event_description:
           type: string
           nullable: true
-          title: Event text [en]
-        logistic_capacity_of_ns:
+          title: Event description [en]
+        ifrc:
           type: string
           nullable: true
-          title: Logistic capacity of ns [en]
-          description: what is the logistics capacity of the National Society?
-        major_coordination_mechanism:
+          title: Ifrc [en]
+        surge_personnel_deployed:
           type: string
           nullable: true
-          title: Major coordination mechanism [en]
-          description: List major coordination mechanisms in place
-        pmer:
+          title: Surge personnel deployed [en]
+          description: Will a Surge personnel be deployed?
+        anticipatory_actions:
           type: string
           nullable: true
-          title: Pmer [en]
-          description: Does the NS have PMER capacity?
-        risk_security_concern:
+          title: Anticipatory actions [en]
+          description: Description of anticipatory actions or imminent disaster
+        lessons_learned:
           type: string
           nullable: true
-          title: Risk Security Concern [en]
+          title: Lessons learned [en]
+        is_volunteer_team_diverse:
+          type: string
+          nullable: true
+          title: Is volunteer team diverse [en]
+          description: Does your volunteer team reflect the gender, age, and cultural
+            diversity of the people you’re helping?
+        communication:
+          type: string
+          nullable: true
+          title: Organization [en]
+          description: Does the NS have Communications capacity?
+        icrc:
+          type: string
+          nullable: true
+          title: Icrc [en]
         selection_criteria:
           type: string
           nullable: true
@@ -30422,10 +30431,6 @@ components:
           nullable: true
           title: Human resource [en]
           description: how many volunteers and staff involved in the response?
-        national_authorities:
-          type: string
-          nullable: true
-          title: National authorities [en]
         title_prefix:
           type: string
           nullable: true
@@ -30435,47 +30440,29 @@ components:
           type: string
           nullable: true
           title: Child safeguarding risk level [en]
-        ifrc:
+        partner_national_society:
           type: string
           nullable: true
-          title: Ifrc [en]
-        surge_personnel_deployed:
+          title: Partner national society [en]
+        risk_security_concern:
           type: string
           nullable: true
-          title: Surge personnel deployed [en]
-          description: Will a Surge personnel be deployed?
-        un_or_other_actor:
+          title: Risk Security Concern [en]
+        identified_gaps:
           type: string
           nullable: true
-          title: Un or other [en]
-        response_strategy:
+          title: Identified gaps [en]
+          description: Any identified gaps/limitations in the assessment
+        major_coordination_mechanism:
           type: string
           nullable: true
-          title: Response strategy [en]
-        anticipatory_actions:
+          title: Major coordination mechanism [en]
+          description: List major coordination mechanisms in place
+        pmer:
           type: string
           nullable: true
-          title: Anticipatory actions [en]
-          description: Description of anticipatory actions or imminent disaster
-        is_volunteer_team_diverse:
-          type: string
-          nullable: true
-          title: Is volunteer team diverse [en]
-          description: Does your volunteer team reflect the gender, age, and cultural
-            diversity of the people you’re helping?
-        people_assisted:
-          type: string
-          nullable: true
-          title: People assisted [en]
-        communication:
-          type: string
-          nullable: true
-          title: Organization [en]
-          description: Does the NS have Communications capacity?
-        icrc:
-          type: string
-          nullable: true
-          title: Icrc [en]
+          title: Pmer [en]
+          description: Does the NS have PMER capacity?
         operation_objective:
           type: string
           nullable: true
@@ -30485,23 +30472,36 @@ components:
           type: string
           nullable: true
           title: Dref recurrent text [en]
-        event_description:
+        ns_request_text:
           type: string
           nullable: true
-          title: Event description [en]
-        identified_gaps:
+          title: Ns request text [en]
+        response_strategy:
           type: string
           nullable: true
-          title: Identified gaps [en]
-          description: Any identified gaps/limitations in the assessment
-        lessons_learned:
+          title: Response strategy [en]
+        logistic_capacity_of_ns:
           type: string
           nullable: true
-          title: Lessons learned [en]
-        partner_national_society:
+          title: Logistic capacity of ns [en]
+          description: what is the logistics capacity of the National Society?
+        event_scope:
           type: string
           nullable: true
-          title: Partner national society [en]
+          title: Event scope [en]
+          description: Scope and scale of event
+        un_or_other_actor:
+          type: string
+          nullable: true
+          title: Un or other [en]
+        people_assisted:
+          type: string
+          nullable: true
+          title: People assisted [en]
+        national_authorities:
+          type: string
+          nullable: true
+          title: National authorities [en]
     PatchedDrefFinalReport:
       type: object
       description: Mixin adds update nested feature
@@ -30983,77 +30983,77 @@ components:
           type: array
           items:
             type: integer
-        major_coordination_mechanism:
+        financial_report_description:
           type: string
           nullable: true
-          title: Major coordination mechanism [en]
-        icrc:
-          type: string
-          nullable: true
-          title: Icrc [en]
-        ifrc:
-          type: string
-          nullable: true
-          title: Ifrc [en]
-        risk_security_concern:
-          type: string
-          nullable: true
-          title: Risk Security Concern [en]
-        operation_objective:
-          type: string
-          nullable: true
-          title: Operation objective [en]
+          title: Financial Report Description [en]
         event_scope:
           type: string
           nullable: true
           title: Event scope [en]
-        selection_criteria:
+        major_coordination_mechanism:
           type: string
           nullable: true
-          title: Selection criteria [en]
-          description: Selection criteria for affected people
-        partner_national_society:
+          title: Major coordination mechanism [en]
+        event_text:
           type: string
           nullable: true
-          title: Partner national society [en]
+          title: Event text [en]
         title:
           type: string
           nullable: true
           title: Title [en]
           maxLength: 255
+        icrc:
+          type: string
+          nullable: true
+          title: Icrc [en]
         un_or_other_actor:
           type: string
           nullable: true
           title: Un or other [en]
-        event_description:
-          type: string
-          nullable: true
-          title: Event description [en]
-        response_strategy:
-          type: string
-          nullable: true
-          title: Response strategy [en]
-        event_text:
-          type: string
-          nullable: true
-          title: Event text [en]
-        anticipatory_actions:
-          type: string
-          nullable: true
-          title: Anticipatory actions [en]
-        financial_report_description:
-          type: string
-          nullable: true
-          title: Financial Report Description [en]
-        national_authorities:
-          type: string
-          nullable: true
-          title: National authorities [en]
         title_prefix:
           type: string
           nullable: true
           title: Title prefix [en]
           maxLength: 255
+        selection_criteria:
+          type: string
+          nullable: true
+          title: Selection criteria [en]
+          description: Selection criteria for affected people
+        anticipatory_actions:
+          type: string
+          nullable: true
+          title: Anticipatory actions [en]
+        event_description:
+          type: string
+          nullable: true
+          title: Event description [en]
+        ifrc:
+          type: string
+          nullable: true
+          title: Ifrc [en]
+        partner_national_society:
+          type: string
+          nullable: true
+          title: Partner national society [en]
+        operation_objective:
+          type: string
+          nullable: true
+          title: Operation objective [en]
+        risk_security_concern:
+          type: string
+          nullable: true
+          title: Risk Security Concern [en]
+        national_authorities:
+          type: string
+          nullable: true
+          title: National authorities [en]
+        response_strategy:
+          type: string
+          nullable: true
+          title: Response strategy [en]
         national_society_conducted_description:
           type: string
           nullable: true
@@ -31608,52 +31608,20 @@ components:
           type: array
           items:
             type: integer
-        event_scope:
+        anticipatory_to_response:
           type: string
           nullable: true
-          title: Event scope [en]
+          title: Please explain how is the operation is transitioning from Anticipatory
+            to Response [en]
         title:
           type: string
           nullable: true
           title: Title [en]
           maxLength: 255
-        logistic_capacity_of_ns:
+        event_description:
           type: string
           nullable: true
-          title: Logistic capacity of ns [en]
-          description: what is the logistics capacity of the National Society?
-        major_coordination_mechanism:
-          type: string
-          nullable: true
-          title: Major coordination mechanism [en]
-        risk_security_concern:
-          type: string
-          nullable: true
-          title: Risk Security Concern [en]
-        pmer:
-          type: string
-          nullable: true
-          title: Pmer [en]
-          description: Does the NS have PMER capacity?
-        selection_criteria:
-          type: string
-          nullable: true
-          title: Selection criteria [en]
-          description: Selection criteria for affected people
-        human_resource:
-          type: string
-          nullable: true
-          title: Human resource [en]
-          description: how many volunteers and staff involved in the response?
-        national_authorities:
-          type: string
-          nullable: true
-          title: National authorities [en]
-        title_prefix:
-          type: string
-          nullable: true
-          title: Title prefix [en]
-          maxLength: 255
+          title: Event description [en]
         ifrc:
           type: string
           nullable: true
@@ -31663,19 +31631,6 @@ components:
           nullable: true
           title: Surge personnel deployed [en]
           description: Will a Surge personnel be deployed?
-        un_or_other_actor:
-          type: string
-          nullable: true
-          title: Un or other [en]
-        response_strategy:
-          type: string
-          nullable: true
-          title: Response strategy [en]
-        anticipatory_to_response:
-          type: string
-          nullable: true
-          title: Please explain how is the operation is transitioning from Anticipatory
-            to Response [en]
         anticipatory_actions:
           type: string
           nullable: true
@@ -31691,26 +31646,71 @@ components:
           nullable: true
           title: Organization [en]
           description: Does the NS have Communications capacity?
-        people_assisted:
-          type: string
-          nullable: true
-          title: People assisted [en]
         icrc:
           type: string
           nullable: true
           title: Icrc [en]
-        operation_objective:
+        selection_criteria:
           type: string
           nullable: true
-          title: Operation objective [en]
-        event_description:
+          title: Selection criteria [en]
+          description: Selection criteria for affected people
+        human_resource:
           type: string
           nullable: true
-          title: Event description [en]
+          title: Human resource [en]
+          description: how many volunteers and staff involved in the response?
+        title_prefix:
+          type: string
+          nullable: true
+          title: Title prefix [en]
+          maxLength: 255
         partner_national_society:
           type: string
           nullable: true
           title: Partner national society [en]
+        risk_security_concern:
+          type: string
+          nullable: true
+          title: Risk Security Concern [en]
+        major_coordination_mechanism:
+          type: string
+          nullable: true
+          title: Major coordination mechanism [en]
+        pmer:
+          type: string
+          nullable: true
+          title: Pmer [en]
+          description: Does the NS have PMER capacity?
+        operation_objective:
+          type: string
+          nullable: true
+          title: Operation objective [en]
+        response_strategy:
+          type: string
+          nullable: true
+          title: Response strategy [en]
+        logistic_capacity_of_ns:
+          type: string
+          nullable: true
+          title: Logistic capacity of ns [en]
+          description: what is the logistics capacity of the National Society?
+        event_scope:
+          type: string
+          nullable: true
+          title: Event scope [en]
+        un_or_other_actor:
+          type: string
+          nullable: true
+          title: Un or other [en]
+        people_assisted:
+          type: string
+          nullable: true
+          title: People assisted [en]
+        national_authorities:
+          type: string
+          nullable: true
+          title: National authorities [en]
     PatchedEmergencyProject:
       type: object
       description: Mixin adds update nested feature
@@ -32565,14 +32565,10 @@ components:
           type: array
           items:
             type: integer
-        other_sources:
+        summary:
           type: string
           nullable: true
-          title: Sources (other) [en]
-        description:
-          type: string
-          nullable: true
-          title: Description [en]
+          title: Summary [en]
         title:
           type: string
           nullable: true
@@ -32581,14 +32577,18 @@ components:
             </br>The summary is constructed as: <b><i>Country IS03: Disaster Type
             - Start Date - Title - Field Report Number - (date)</b><i>'
           maxLength: 256
+        other_sources:
+          type: string
+          nullable: true
+          title: Sources (other) [en]
         actions_others:
           type: string
           nullable: true
           title: Actions taken (others) [en]
-        summary:
+        description:
           type: string
           nullable: true
-          title: Summary [en]
+          title: Description [en]
     PatchedFlashUpdate:
       type: object
       description: Mixin adds update nested feature
@@ -34574,31 +34574,31 @@ components:
           type: boolean
           title: Skip auto translation
           description: Skip auto translation operation for this entity?
-        challenges:
-          type: string
-          nullable: true
-          title: Challenges [en]
-        description:
-          type: string
-          nullable: true
-          title: Description [en]
         title:
           allOf:
           - $ref: '#/components/schemas/DrefPlannedInterventionTitleEnumKey'
           nullable: true
           title: Title [en]
-        lessons_learnt:
+        challenges:
           type: string
           nullable: true
-          title: Lessons learnt [en]
-        progress_towards_outcome:
-          type: string
-          nullable: true
-          title: Progress Towards Outcome [en]
+          title: Challenges [en]
         narrative_description_of_achievements:
           type: string
           nullable: true
           title: Narrative description of achievements [en]
+        progress_towards_outcome:
+          type: string
+          nullable: true
+          title: Progress Towards Outcome [en]
+        lessons_learnt:
+          type: string
+          nullable: true
+          title: Lessons learnt [en]
+        description:
+          type: string
+          nullable: true
+          title: Description [en]
       required:
       - id
       - image_url
@@ -35793,15 +35793,15 @@ components:
         id:
           type: integer
           readOnly: true
-        snippet:
-          type: string
-          nullable: true
-          title: Snippet [en]
         title:
           type: string
           nullable: true
           title: Title [en]
           maxLength: 255
+        snippet:
+          type: string
+          nullable: true
+          title: Snippet [en]
         translation_module_original_language:
           allOf:
           - $ref: '#/components/schemas/TranslationModuleOriginalLanguageEnum'
@@ -35911,15 +35911,15 @@ components:
         id:
           type: integer
           readOnly: true
-        snippet:
-          type: string
-          nullable: true
-          title: Snippet [en]
         title:
           type: string
           nullable: true
           title: Title [en]
           maxLength: 255
+        snippet:
+          type: string
+          nullable: true
+          title: Snippet [en]
         translation_module_original_language:
           allOf:
           - $ref: '#/components/schemas/TranslationModuleOriginalLanguageEnum'
@@ -35938,15 +35938,15 @@ components:
         id:
           type: integer
           readOnly: true
-        snippet:
-          type: string
-          nullable: true
-          title: Snippet [en]
         title:
           type: string
           nullable: true
           title: Title [en]
           maxLength: 255
+        snippet:
+          type: string
+          nullable: true
+          title: Snippet [en]
         translation_module_original_language:
           allOf:
           - $ref: '#/components/schemas/TranslationModuleOriginalLanguageEnum'
@@ -37186,15 +37186,15 @@ components:
         molnix_status_display:
           type: string
           readOnly: true
+        message:
+          type: string
+          nullable: true
+          title: Message [en]
         operation:
           type: string
           nullable: true
           title: Operation [en]
           maxLength: 100
-        message:
-          type: string
-          nullable: true
-          title: Message [en]
         translation_module_original_language:
           allOf:
           - $ref: '#/components/schemas/TranslationModuleOriginalLanguageEnum'
@@ -37324,15 +37324,15 @@ components:
           type: string
           nullable: true
           maxLength: 255
+        summary:
+          type: string
+          nullable: true
+          title: Summary [en]
         name:
           type: string
           nullable: true
           title: Name [en]
           maxLength: 256
-        summary:
-          type: string
-          nullable: true
-          title: Summary [en]
         translation_module_original_language:
           allOf:
           - $ref: '#/components/schemas/TranslationModuleOriginalLanguageEnum'
