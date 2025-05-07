@@ -90,11 +90,18 @@ python3 manage.py static-translation-export path-to-export.csv --only-new --lang
 python3 manage.py static-translation-import path-to-import.csv
 ```
 
-## Updating openapi schema (openapi-schema.yaml)
+## Updating OpenAPI Schema (`openapi-schema.yaml`)
+
+To update the OpenAPI schema file, run:
 
 ```bash
 docker-compose run --rm serve ./manage.py spectacular --file openapi-schema.yaml
-```
+````
+
+> [!IMPORTANT]
+> The `openapi-schema.yaml` file is tracked with Git LFS.
+> Make sure Git LFS is set up correctly.
+> See the [Git LFS guide](./docs/git-lfs.md) for more details.
 
 ## Note for Django Model translations
 
