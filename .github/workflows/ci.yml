@@ -124,10 +124,10 @@ jobs:
         env:
           DOCKER_IMAGE: ${{ steps.prep.outputs.tagged_image }}
         run: |
-          docker compose run --rm serve ./manage.py spectacular --file /ci-share/openapi-schema-latest.yaml &&
-          cmp --silent openapi-schema.yaml ./ci-share/openapi-schema-latest.yaml || {
+          docker compose run --rm serve ./manage.py spectacular --file openapi-schema-latest.yaml &&
+          cmp --silent openapi-schema.yaml openapi-schema-latest.yaml || {
             echo 'The openapi-schema.yaml is not up to date with the latest changes. Please update and push latest';
-            diff openapi-schema.yaml ./ci-share/openapi-schema-latest.yaml;
+            diff openapi-schema.yaml openapi-schema-latest.yaml;
             exit 1;
           }
 
