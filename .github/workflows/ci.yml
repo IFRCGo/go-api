@@ -109,7 +109,7 @@ jobs:
           DOCKER_IMAGE: ${{ steps.prep.outputs.tagged_image }}
         run: |
           touch .env
-          docker compose run --rm serve ls
+          docker compose run --rm serve ./manage.py migrate
 
       - name: 🕮 Validate if there are no pending django migrations.
         env:
