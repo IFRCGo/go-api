@@ -13,6 +13,7 @@ email-verification only, is to be found
 ## Requirements
 
 -   docker and docker-compose
+-   Git LFS set up locally — see the [Git LFS guide](./docs/git-lfs.md) for more details
 
 ## Local Development
 
