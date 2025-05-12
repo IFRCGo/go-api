@@ -7,11 +7,13 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import Count, Q
 from django.db.models.functions import Coalesce
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.translation import override as translation_override
 from django_filters import rest_framework as filters
 from drf_spectacular.utils import extend_schema
+from openpyxl import Workbook
 from rest_framework import viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
@@ -38,6 +40,7 @@ from .models import (
     ERUOwner,
     ERUReadiness,
     ERUReadinessType,
+    ERUType,
     OperationTypes,
     PartnerSocietyDeployment,
     Personnel,
@@ -1049,3 +1052,65 @@ class ERUReadinessTypeViewset(viewsets.ReadOnlyModelViewSet):
             )
             .distinct()
         )
+
+
+class ExportERUReadinessView(APIView):
+    def get(self, request, *args, **kwargs):
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "ERU Readiness"
+
+        static_headers = ["National Society", "Updated Date"]
+        main_headers = static_headers.copy()  # Create a separate list to keep static_headers unchanged
+        sub_headers = [""] * len(static_headers)
+        readiness_columns = ["Equipment", "People", "Funding", "Comment"]
+
+        for type_label in ERUType.labels:
+            main_headers.append(str(type_label))
+            main_headers.extend(
+                [""] * (len(readiness_columns) - 1)
+            )  # Fill empty cells to align merged ERU type header across subcolumns
+
+            sub_headers.extend(readiness_columns)
+
+        ws.append(main_headers)
+        ws.append(sub_headers)
+
+        column_start = len(static_headers) + 1  # Determine starting column for merging
+        for _ in ERUType.choices:
+            column_end = column_start + len(readiness_columns) - 1
+            ws.merge_cells(start_row=1, start_column=column_start, end_row=1, end_column=column_end)
+            column_start += len(readiness_columns)
+
+        eru_readiness_queryset = ERUReadiness.objects.select_related(
+            "eru_owner__national_society_country",
+        ).prefetch_related("eru_types")
+
+        for eru_readiness in eru_readiness_queryset.iterator():
+            row_data = [
+                eru_readiness.eru_owner.national_society_country.name,
+                eru_readiness.updated_at.strftime("%Y-%m-%d"),
+            ]
+
+            readiness_data_mapping = {
+                eru_readiness_type.type: {
+                    "equipment": eru_readiness_type.get_equipment_readiness_display(),
+                    "people": eru_readiness_type.get_people_readiness_display(),
+                    "funding": eru_readiness_type.get_funding_readiness_display(),
+                    "comment": eru_readiness_type.comment if eru_readiness_type.comment else "",
+                }
+                for eru_readiness_type in eru_readiness.eru_types.all()
+            }
+
+            for eru_type_value in ERUType.values:
+                if eru_type_value in readiness_data_mapping:
+                    row_data.extend(readiness_data_mapping[eru_type_value].values())
+                else:
+                    row_data.extend(["" for _ in readiness_columns])  # Empty placeholders
+
+            ws.append(row_data)
+
+        response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        response["Content-Disposition"] = "attachment; filename=eru_readiness_export.xlsx"
+        wb.save(response)
+        return response
