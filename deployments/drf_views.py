@@ -123,7 +123,11 @@ class ERUFilter(filters.FilterSet):
 
     class Meta:
         model = ERU
-        fields = ("available",)
+        fields = {
+            "available": ("exact",),
+            "start_date": ("exact", "gt", "gte", "lt", "lte"),
+            "end_date": ("exact", "gt", "gte", "lt", "lte"),
+        }
 
 
 class ERUViewset(viewsets.ReadOnlyModelViewSet):
@@ -178,6 +182,8 @@ class AggregatedERUAndRapidResponseViewSet(viewsets.ReadOnlyModelViewSet):
             queryset=(
                 ERU.objects.filter(
                     deployed_to__isnull=False,
+                    start_date__date__lte=today,
+                    end_date__date__gte=today,
                 ).select_related(
                     "eru_owner__national_society_country",
                 )
@@ -192,7 +198,11 @@ class AggregatedERUAndRapidResponseViewSet(viewsets.ReadOnlyModelViewSet):
             .annotate(
                 deployed_eru_count=Count(
                     "eru",
-                    filter=Q(eru__deployed_to__isnull=False),
+                    filter=Q(
+                        eru__deployed_to__isnull=False,
+                        eru__start_date__date__lte=today,
+                        eru__end_date__date__gte=today,
+                    ),
                     distinct=True,
                 ),
                 deployed_personnel_count=Count(
@@ -416,7 +426,10 @@ class AggregateDeployments(APIView):
             eru_qset = eru_qset.filter(event=event_id)
 
         active_rapid_response_personnel = deployments_qset.filter(
-            type=Personnel.TypeChoices.RR, start_date__date__lte=today, end_date__date__gte=today, is_active=True
+            type=Personnel.TypeChoices.RR,
+            start_date__date__lte=today,
+            end_date__date__gte=today,
+            is_active=True,
         ).count()
 
         rapid_response_deployments_this_year = deployments_qset.filter(
