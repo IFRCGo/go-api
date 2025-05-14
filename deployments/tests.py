@@ -1,6 +1,7 @@
 import datetime
 import json
 from io import BytesIO
+from unittest import mock
 
 import pydash
 from django.contrib.auth.models import Group, Permission
@@ -553,7 +554,14 @@ class AggregatedERUAndRapidResponseViewSetTestCase(APITestCase):
             national_society_country=self.country1,
         )
 
-        self.eru = EruFactory.create_batch(3, event=self.event, deployed_to=self.country1, eru_owner=self.eru_owner)
+        self.eru = EruFactory.create_batch(
+            3,
+            event=self.event,
+            deployed_to=self.country1,
+            eru_owner=self.eru_owner,
+            start_date=datetime.datetime(2022, 3, 1),
+            end_date=datetime.datetime(2037, 3, 10),
+        )
 
         self.personnel_deployment1 = PersonnelDeploymentFactory(
             event_deployed_to=self.event,
@@ -565,7 +573,7 @@ class AggregatedERUAndRapidResponseViewSetTestCase(APITestCase):
             is_active=True,
             country_from=self.country2,
             deployment=self.personnel_deployment1,
-            start_date=datetime.datetime(2024, 1, 1),
+            start_date=datetime.datetime(2022, 1, 1),
             end_date=datetime.datetime(2037, 3, 10),
         )
 
@@ -574,7 +582,7 @@ class AggregatedERUAndRapidResponseViewSetTestCase(APITestCase):
             is_active=True,
             country_from=self.country1,
             deployment=self.personnel_deployment1,
-            start_date=datetime.datetime(2024, 1, 1),
+            start_date=datetime.datetime(2022, 1, 1),
             end_date=datetime.datetime(2037, 3, 10),
         )
         # Not Active
@@ -587,6 +595,11 @@ class AggregatedERUAndRapidResponseViewSetTestCase(APITestCase):
         )
 
     def test_get_aggregated_data(self):
+        # mock Timezone
+        patcher = mock.patch("django.utils.timezone.now")
+        mock_timezone_now = patcher.start()
+        mock_timezone_now.return_value.date.return_value = datetime.date(2022, 11, 11)
+
         url = "/api/v2/aggregated-eru-and-rapid-response/"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
@@ -595,6 +608,7 @@ class AggregatedERUAndRapidResponseViewSetTestCase(APITestCase):
         event_data = data["results"][0]
         self.assertEqual(event_data["deployed_personnel_count"], 2)
         self.assertEqual(event_data["deployed_eru_count"], 3)
+        patcher.stop()
 
 
 class ExportERUReadinessViewTest(APITestCase):
