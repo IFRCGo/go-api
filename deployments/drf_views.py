@@ -424,6 +424,8 @@ class AggregateDeployments(APIView):
         ).count()
         active_emergency_response_units = eru_qset.filter(
             deployed_to__isnull=False,
+            deployed_to__start_date__date__lte=today,
+            deployed_to__end_date__date__gte=today,
         ).count()
 
         emergency_response_unit_deployed_this_year = eru_qset.filter(

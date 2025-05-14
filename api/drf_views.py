@@ -209,9 +209,12 @@ class DeployedERUByEventViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_class = DeployedERUFilter
 
     def get_queryset(self):
+        today = timezone.now().date().strftime("%Y-%m-%d")
         return (
             Event.objects.filter(
                 eru__deployed_to__isnull=False,
+                eru__deployed_to__start_date__date__lte=today,
+                eru__deployed_to__end_date__date__gte=today,
             )
             .prefetch_related(
                 "appeals",
