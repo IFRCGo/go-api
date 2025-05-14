@@ -13,6 +13,9 @@ from deployments.models import (
     EmergencyProjectActivityAction,
     EmergencyProjectActivitySector,
     ERUOwner,
+    ERUReadiness,
+    ERUReadinessType,
+    ERUType,
 )
 
 
@@ -86,3 +89,30 @@ class EmergencyProjectActivityFactory(factory.django.DjangoModelFactory):
         if extracted:
             for point in extracted:
                 self.points.add(point)
+
+
+class ERUReadinessFactory(factory.django.DjangoModelFactory):
+    eru_owner = factory.SubFactory(ERUOwnerFactory)
+
+    class Meta:
+        model = ERUReadiness
+
+    @factory.post_generation
+    def eru_types(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for eru_type in extracted:
+                self.eru_types.add(eru_type)
+
+
+class ERUReadinessTypeFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = ERUReadinessType
+
+    type = fuzzy.FuzzyChoice(ERUType)
+    equipment_readiness = fuzzy.FuzzyChoice(ERUReadinessType.ReadinessStatus)
+    people_readiness = fuzzy.FuzzyChoice(ERUReadinessType.ReadinessStatus)
+    funding_readiness = fuzzy.FuzzyChoice(ERUReadinessType.ReadinessStatus)
+    comment = fuzzy.FuzzyText(length=10, prefix="comment-")

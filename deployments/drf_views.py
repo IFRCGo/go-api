@@ -5,13 +5,15 @@ from datetime import date
 from django.contrib.postgres.aggregates.general import ArrayAgg
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.db.models.functions import Coalesce
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.translation import override as translation_override
 from django_filters import rest_framework as filters
 from drf_spectacular.utils import extend_schema
+from openpyxl import Workbook
 from rest_framework import viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
@@ -20,9 +22,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from reversion.views import RevisionMixin
 
-from api.models import Country, Region
+from api.models import Country, Event, Region
+from api.utils import bad_request
 from api.view_filters import ListFilter
 from api.visibility_class import ReadOnlyVisibilityViewsetMixin
+from deployments.permissions import ERUReadinessPermission
 from main.permissions import DenyGuestUserPermission
 from main.serializers import CsvListMixin
 from main.utils import is_tableau
@@ -34,6 +38,9 @@ from .models import (
     EmergencyProjectActivityAction,
     EmergencyProjectActivitySector,
     ERUOwner,
+    ERUReadiness,
+    ERUReadinessType,
+    ERUType,
     OperationTypes,
     PartnerSocietyDeployment,
     Personnel,
@@ -46,14 +53,18 @@ from .models import (
 )
 from .serializers import (
     AggregateDeploymentsSerializer,
+    AggregatedERUAndRapidResponseSerializer,
     DeploymentByNSSerializer,
     DeploymentsByMonthSerializer,
     EmergencyProjectOptionsSerializer,
     EmergencyProjectSerializer,
+    ERUOwnerMiniSerializer,
     ERUOwnerSerializer,
+    ERUReadinessSerializer,
     ERUSerializer,
     GlobalProjectNSOngoingProjectsStatsSerializer,
     GlobalProjectOverviewSerializer,
+    MiniERUReadinessTypeSerializer,
     PartnerDeploymentSerializer,
     PartnerDeploymentTableauSerializer,
     PersonnelCsvSerializer,
@@ -83,6 +94,24 @@ class ERUOwnerViewset(viewsets.ReadOnlyModelViewSet):
     filterset_class = ERUOwnerFilter
     search_fields = ("national_society_country__name",)  # for /docs
 
+    @extend_schema(
+        request=None,
+        responses=ERUOwnerMiniSerializer(many=True),
+    )
+    @action(
+        detail=False,
+        methods=("get",),
+        url_path="mini",
+    )
+    def mini(self, request):
+        queryset = ERUOwner.objects.select_related("national_society_country").all()
+        serializer = ERUOwnerMiniSerializer(queryset, many=True)
+        page = self.paginate_queryset(queryset=queryset)
+        if page is not None:
+            serializer = ERUOwnerMiniSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        return Response(serializer.data)
+
 
 class ERUFilter(filters.FilterSet):
     deployed_to__isnull = filters.BooleanFilter(field_name="deployed_to", lookup_expr="isnull")
@@ -90,10 +119,15 @@ class ERUFilter(filters.FilterSet):
     type = filters.NumberFilter(field_name="type", lookup_expr="exact")
     event = filters.NumberFilter(field_name="event", lookup_expr="exact")
     event__in = ListFilter(field_name="event")
+    disaster_type = filters.NumberFilter(field_name="event__dtype", lookup_expr="exact")
 
     class Meta:
         model = ERU
-        fields = ("available",)
+        fields = {
+            "available": ("exact",),
+            "start_date": ("exact", "gt", "gte", "lt", "lte"),
+            "end_date": ("exact", "gt", "gte", "lt", "lte"),
+        }
 
 
 class ERUViewset(viewsets.ReadOnlyModelViewSet):
@@ -125,6 +159,67 @@ class ERUViewset(viewsets.ReadOnlyModelViewSet):
         "eru_owner__national_society_country__society_name",
         "available",
     )
+
+
+class AggregatedERUAndRapidResponseViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = AggregatedERUAndRapidResponseSerializer
+
+    def get_queryset(self):
+        today = timezone.now().date().strftime("%Y-%m-%d")
+        active_personnel_prefetch = models.Prefetch(
+            "personneldeployment_set__personnel_set",
+            queryset=(
+                Personnel.objects.filter(
+                    type=Personnel.TypeChoices.RR,
+                    start_date__date__lte=today,
+                    end_date__date__gte=today,
+                    is_active=True,
+                ).select_related("country_from")
+            ),
+        )
+        active_eru_prefetch = models.Prefetch(
+            "eru_set",
+            queryset=(
+                ERU.objects.filter(
+                    deployed_to__isnull=False,
+                    start_date__date__lte=today,
+                    end_date__date__gte=today,
+                ).select_related(
+                    "eru_owner__national_society_country",
+                )
+            ),
+        )
+        queryset = (
+            Event.objects.prefetch_related(
+                active_personnel_prefetch,
+                active_eru_prefetch,
+                "appeals",
+            )
+            .annotate(
+                deployed_eru_count=Count(
+                    "eru",
+                    filter=Q(
+                        eru__deployed_to__isnull=False,
+                        eru__start_date__date__lte=today,
+                        eru__end_date__date__gte=today,
+                    ),
+                    distinct=True,
+                ),
+                deployed_personnel_count=Count(
+                    "personneldeployment__personnel",
+                    filter=Q(
+                        personneldeployment__personnel__type=Personnel.TypeChoices.RR,
+                        personneldeployment__personnel__is_active=True,
+                        personneldeployment__personnel__start_date__date__lte=today,
+                        personneldeployment__personnel__end_date__date__gte=today,
+                    ),
+                    distinct=True,
+                ),
+            )
+            .exclude(Q(deployed_eru_count=0) & Q(deployed_personnel_count=0))
+            .order_by("-disaster_start_date")
+        )
+        return queryset
 
 
 class PersonnelDeploymentFilter(filters.FilterSet):
@@ -160,6 +255,8 @@ class PersonnelFilter(filters.FilterSet):
     country_to = filters.NumberFilter(field_name="country_to", lookup_expr="exact")
     type = filters.CharFilter(field_name="type", lookup_expr="exact")
     event_deployed_to = filters.NumberFilter(field_name="deployment__event_deployed_to", lookup_expr="exact")
+    is_active = filters.BooleanFilter(field_name="is_active", lookup_expr="exact")
+    dtype = filters.NumberFilter(field_name="deployment__event_deployed_to__dtype", lookup_expr="exact")
 
     class Meta:
         model = Personnel
@@ -327,19 +424,35 @@ class AggregateDeployments(APIView):
             event_id = request.GET.get("event")
             deployments_qset = deployments_qset.filter(deployment__event_deployed_to=event_id)
             eru_qset = eru_qset.filter(event=event_id)
-        active_deployments = deployments_qset.filter(
-            type=Personnel.TypeChoices.RR, start_date__date__lte=today, end_date__date__gte=today, is_active=True
+
+        active_rapid_response_personnel = deployments_qset.filter(
+            type=Personnel.TypeChoices.RR,
+            start_date__date__lte=today,
+            end_date__date__gte=today,
+            is_active=True,
         ).count()
-        active_erus = eru_qset.filter(deployed_to__isnull=False).count()
-        deployments_this_year = deployments_qset.filter(
+
+        rapid_response_deployments_this_year = deployments_qset.filter(
             is_active=True, start_date__year__lte=this_year, end_date__year__gte=this_year
+        ).count()
+        active_emergency_response_units = eru_qset.filter(
+            deployed_to__isnull=False,
+            start_date__date__lte=today,
+            end_date__date__gte=today,
+        ).count()
+
+        emergency_response_unit_deployed_this_year = eru_qset.filter(
+            deployed_to__isnull=False,
+            start_date__year__lte=this_year,
+            end_date__year__gte=this_year,
         ).count()
         return Response(
             AggregateDeploymentsSerializer(
                 dict(
-                    active_deployments=active_deployments,
-                    active_erus=active_erus,
-                    deployments_this_year=deployments_this_year,
+                    active_rapid_response_personnel=active_rapid_response_personnel,
+                    rapid_response_deployments_this_year=rapid_response_deployments_this_year,
+                    active_emergency_response_units=active_emergency_response_units,
+                    emergency_response_unit_deployed_this_year=emergency_response_unit_deployed_this_year,
                 )
             ).data
         )
@@ -900,3 +1013,119 @@ class EmergencyProjectViewSet(
                 )
             ).data
         )
+
+
+class ERUReadinessFilter(filters.FilterSet):
+    eru_owner = filters.NumberFilter(field_name="eru_owner", lookup_expr="exact")
+    eru_type = filters.NumberFilter(field_name="eru_types__type", lookup_expr="exact")
+    eru_type__in = ListFilter(field_name="eru_types__type")
+
+
+class ERUReadinessViewSet(RevisionMixin, viewsets.ModelViewSet):
+    queryset = ERUReadiness.objects.all()
+    serializer_class = ERUReadinessSerializer
+    filterset_class = ERUReadinessFilter
+    permission_classes = [ERUReadinessPermission]
+    ordering_fields = "__all__"
+
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .select_related(
+                "eru_owner__national_society_country",
+            )
+            .prefetch_related(
+                "eru_types",
+            )
+            .order_by("-updated_at")
+        )
+
+    def delete(self, request, *args, **kwargs):
+        return bad_request("Delete method not allowed")
+
+
+class ERUReadinessTypeFilter(filters.FilterSet):
+    eru_owner = filters.NumberFilter(field_name="erureadiness__eru_owner", lookup_expr="exact", label="ERU Owner")
+    type = filters.NumberFilter(field_name="type", lookup_expr="exact")
+
+
+class ERUReadinessTypeViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = ERUReadinessType.objects.all()
+    serializer_class = MiniERUReadinessTypeSerializer
+    filterset_class = ERUReadinessTypeFilter
+    ordering_fields = "__all__"
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        return (
+            qs.filter(
+                erureadiness__isnull=False,
+            )
+            .prefetch_related(
+                "erureadiness_set__eru_owner__national_society_country",
+            )
+            .distinct()
+        )
+
+
+class ExportERUReadinessView(APIView):
+    def get(self, request, *args, **kwargs):
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "ERU Readiness"
+
+        static_headers = ["National Society", "Updated Date"]
+        main_headers = static_headers.copy()  # Create a separate list to keep static_headers unchanged
+        sub_headers = [""] * len(static_headers)
+        readiness_columns = ["Equipment", "People", "Funding", "Comment"]
+
+        for type_label in ERUType.labels:
+            main_headers.append(str(type_label))
+            main_headers.extend(
+                [""] * (len(readiness_columns) - 1)
+            )  # Fill empty cells to align merged ERU type header across subcolumns
+
+            sub_headers.extend(readiness_columns)
+
+        ws.append(main_headers)
+        ws.append(sub_headers)
+
+        column_start = len(static_headers) + 1  # Determine starting column for merging
+        for _ in ERUType.choices:
+            column_end = column_start + len(readiness_columns) - 1
+            ws.merge_cells(start_row=1, start_column=column_start, end_row=1, end_column=column_end)
+            column_start += len(readiness_columns)
+
+        eru_readiness_queryset = ERUReadiness.objects.select_related(
+            "eru_owner__national_society_country",
+        ).prefetch_related("eru_types")
+
+        for eru_readiness in eru_readiness_queryset.iterator():
+            row_data = [
+                eru_readiness.eru_owner.national_society_country.name,
+                eru_readiness.updated_at.strftime("%Y-%m-%d"),
+            ]
+
+            readiness_data_mapping = {
+                eru_readiness_type.type: {
+                    "equipment": eru_readiness_type.get_equipment_readiness_display(),
+                    "people": eru_readiness_type.get_people_readiness_display(),
+                    "funding": eru_readiness_type.get_funding_readiness_display(),
+                    "comment": eru_readiness_type.comment if eru_readiness_type.comment else "",
+                }
+                for eru_readiness_type in eru_readiness.eru_types.all()
+            }
+
+            for eru_type_value in ERUType.values:
+                if eru_type_value in readiness_data_mapping:
+                    row_data.extend(readiness_data_mapping[eru_type_value].values())
+                else:
+                    row_data.extend(["" for _ in readiness_columns])  # Empty placeholders
+
+            ws.append(row_data)
+
+        response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        response["Content-Disposition"] = "attachment; filename=eru_readiness_export.xlsx"
+        wb.save(response)
+        return response

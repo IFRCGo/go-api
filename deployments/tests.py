@@ -1,15 +1,25 @@
+import datetime
 import json
+from io import BytesIO
+from unittest import mock
 
 import pydash
+from django.contrib.auth.models import Group, Permission
+from django.core import management
+from openpyxl import load_workbook
 
 import api.models as models
 from api.factories import country, district
 from api.factories.event import DisasterTypeFactory, EventFactory
+from api.models import Country, Region
 from deployments.factories.emergency_project import (
     EmergencyProjectActivityActionFactory,
     EmergencyProjectActivityFactory,
     EmergencyProjectActivitySectorFactory,
     EruFactory,
+    ERUOwnerFactory,
+    ERUReadinessFactory,
+    ERUReadinessTypeFactory,
 )
 from deployments.factories.project import (
     ProjectFactory,
@@ -21,7 +31,10 @@ from deployments.factories.user import UserFactory
 from deployments.models import (
     EmergencyProject,
     EmergencyProjectActivity,
+    ERUReadinessType,
+    ERUType,
     OperationTypes,
+    Personnel,
     ProgrammeTypes,
     Project,
     Statuses,
@@ -29,7 +42,7 @@ from deployments.models import (
 )
 from main.test_case import APITestCase, SnapshotTestCase
 
-from .factories.personnel import PersonnelFactory
+from .factories.personnel import PersonnelDeploymentFactory, PersonnelFactory
 
 
 class TestProjectAPI(SnapshotTestCase):
@@ -330,3 +343,350 @@ class TestEmergencyProjectAPI(APITestCase):
         self.assert_201(response)
         self.assertEqual(EmergencyProject.objects.count(), old_emergency_project_count + 1)
         self.assertEqual(EmergencyProjectActivity.objects.count(), old_emergency_project_activity_count + 1)
+
+
+class TestERUReadinessAPI(APITestCase):
+    def setUp(self):
+        super().setUp()
+        self.region = Region.objects.create(name=2)
+        self.country = Country.objects.create(name="Nepal", iso3="NLP", region=self.region)
+
+        # Create permissions
+        management.call_command("make_permissions")
+
+        self.user_admin = UserFactory.create()
+        self.country_admin_permission = Permission.objects.filter(codename="country_admin_%s" % self.country.id).first()
+        country_group = Group.objects.filter(name="%s Admins" % self.country.name).first()
+
+        self.user_admin.user_permissions.add(self.country_admin_permission)
+        self.user_admin.groups.add(country_group)
+
+    def test_eru_readiness_list(self):
+        eru_readiness_type_common = {
+            "equipment_readiness": ERUReadinessType.ReadinessStatus.READY,
+            "people_readiness": ERUReadinessType.ReadinessStatus.READY,
+            "funding_readiness": ERUReadinessType.ReadinessStatus.READY,
+        }
+        eru_readiness_type_1, eru_readiness_type_2 = ERUReadinessTypeFactory.create_batch(
+            2,
+            type=ERUType.BASECAMP_L,
+            **eru_readiness_type_common,
+        )
+        eru_owner_1 = ERUOwnerFactory.create(
+            national_society_country=self.country,
+        )
+        ERUReadinessFactory.create(
+            eru_owner=eru_owner_1,
+            eru_types=[
+                eru_readiness_type_1,
+                eru_readiness_type_2,
+            ],
+        )
+        eru_owner_2 = ERUOwnerFactory.create(
+            national_society_country=self.country,
+        )
+        ERUReadinessFactory.create(
+            eru_owner=eru_owner_2,
+            eru_types=[
+                eru_readiness_type_1,
+                eru_readiness_type_2,
+            ],
+        )
+
+        url = "/api/v2/eru-readiness/"
+        response = self.client.get(url)
+        self.assert_200(response)
+        self.assertEqual(len(response.data["results"]), 2)
+
+    def test_eru_readiness_create(self):
+        eru_owner = ERUOwnerFactory.create(
+            national_society_country=self.country,
+        )
+        eru_readiness_type_common = {
+            "equipment_readiness": ERUReadinessType.ReadinessStatus.READY,
+            "people_readiness": ERUReadinessType.ReadinessStatus.READY,
+            "funding_readiness": ERUReadinessType.ReadinessStatus.READY,
+        }
+        eru_readiness_type_1 = ERUReadinessTypeFactory.create(
+            type=ERUType.BASECAMP_L,
+            **eru_readiness_type_common,
+        )
+        eru_readiness_type_2 = ERUReadinessTypeFactory.create(
+            type=ERUType.BASECAMP_M,
+            **eru_readiness_type_common,
+        )
+
+        data = {
+            "eru_owner": eru_owner.id,
+            "eru_types": [
+                {
+                    "type": eru_readiness_type_1.type,
+                    "equipment_readiness": eru_readiness_type_1.equipment_readiness,
+                    "people_readiness": eru_readiness_type_1.people_readiness,
+                    "funding_readiness": eru_readiness_type_1.funding_readiness,
+                },
+                {
+                    "type": eru_readiness_type_2.type,
+                    "equipment_readiness": eru_readiness_type_2.equipment_readiness,
+                    "people_readiness": eru_readiness_type_2.people_readiness,
+                    "funding_readiness": eru_readiness_type_2.funding_readiness,
+                },
+            ],
+        }
+
+        url = "/api/v2/eru-readiness/"
+        self.authenticate(self.user_admin)
+        response = self.client.post(url, data=data, format="json")
+        self.assert_201(response)
+        self.assertEqual(response.data["eru_owner_details"]["id"], eru_owner.id)
+        self.assertEqual(len(response.data["eru_types"]), 2)
+
+    def test_eru_readiness_update(self):
+        eru_readiness_type_common = {
+            "equipment_readiness": ERUReadinessType.ReadinessStatus.READY,
+            "people_readiness": ERUReadinessType.ReadinessStatus.READY,
+            "funding_readiness": ERUReadinessType.ReadinessStatus.READY,
+        }
+        eru_readiness_type_1 = ERUReadinessTypeFactory.create(
+            type=ERUType.BASECAMP_L,
+            **eru_readiness_type_common,
+        )
+        eru_readiness_type_2 = ERUReadinessTypeFactory.create(
+            type=ERUType.BASECAMP_M,
+            **eru_readiness_type_common,
+        )
+        eru_owner = ERUOwnerFactory.create(
+            national_society_country=self.country,
+        )
+        eru_readiness_1 = ERUReadinessFactory.create(eru_owner=eru_owner, eru_types=[eru_readiness_type_1, eru_readiness_type_2])
+
+        # Update ERU readiness and types
+        url = f"/api/v2/eru-readiness/{eru_readiness_1.id}/"
+
+        data = {
+            "id": eru_readiness_1.id,
+            "eru_owner": eru_owner.id,
+            "eru_types": [
+                {
+                    "id": eru_readiness_type_1.id,
+                    "type": eru_readiness_type_1.type,
+                    "equipment_readiness": ERUReadinessType.ReadinessStatus.NO_CAPACITY,
+                    "people_readiness": ERUReadinessType.ReadinessStatus.NO_CAPACITY,
+                    "funding_readiness": ERUReadinessType.ReadinessStatus.NO_CAPACITY,
+                },
+                {
+                    "id": eru_readiness_type_2.id,
+                    "type": eru_readiness_type_2.type,
+                    "equipment_readiness": ERUReadinessType.ReadinessStatus.READY,
+                    "people_readiness": ERUReadinessType.ReadinessStatus.READY,
+                    "funding_readiness": ERUReadinessType.ReadinessStatus.READY,
+                },
+                # Add new ERU type
+                {
+                    "type": ERUType.BASECAMP,
+                    "equipment_readiness": ERUReadinessType.ReadinessStatus.PARTIAL_CAPACITY,
+                    "people_readiness": ERUReadinessType.ReadinessStatus.PARTIAL_CAPACITY,
+                    "funding_readiness": ERUReadinessType.ReadinessStatus.PARTIAL_CAPACITY,
+                },
+            ],
+        }
+
+        self.authenticate(self.user_admin)
+        response = self.client.patch(url, data=data, format="json")
+        self.assert_200(response)
+        self.assertEqual(response.data["id"], eru_readiness_1.id)
+        self.assertEqual(response.data["eru_owner_details"]["id"], eru_owner.id)
+        self.assertEqual(len(response.data["eru_types"]), 3)
+
+        # Check ids of Updated ERU types
+        self.assertEqual(
+            {
+                response.data["eru_types"][0]["id"],
+                response.data["eru_types"][1]["id"],
+            },
+            {
+                eru_readiness_type_1.id,
+                eru_readiness_type_2.id,
+            },
+        )
+
+        self.assertEqual(
+            {
+                response.data["eru_types"][0]["equipment_readiness"],
+                response.data["eru_types"][0]["people_readiness"],
+                response.data["eru_types"][0]["funding_readiness"],
+                response.data["eru_types"][1]["equipment_readiness"],
+                response.data["eru_types"][1]["people_readiness"],
+                response.data["eru_types"][1]["funding_readiness"],
+                response.data["eru_types"][2]["equipment_readiness"],
+                response.data["eru_types"][2]["people_readiness"],
+                response.data["eru_types"][2]["funding_readiness"],
+            },
+            {
+                ERUReadinessType.ReadinessStatus.NO_CAPACITY,
+                ERUReadinessType.ReadinessStatus.NO_CAPACITY,
+                ERUReadinessType.ReadinessStatus.NO_CAPACITY,
+                ERUReadinessType.ReadinessStatus.READY,
+                ERUReadinessType.ReadinessStatus.READY,
+                ERUReadinessType.ReadinessStatus.READY,
+                ERUReadinessType.ReadinessStatus.PARTIAL_CAPACITY,
+                ERUReadinessType.ReadinessStatus.PARTIAL_CAPACITY,
+                ERUReadinessType.ReadinessStatus.PARTIAL_CAPACITY,
+            },
+        )
+
+
+class AggregatedERUAndRapidResponseViewSetTestCase(APITestCase):
+
+    def setUp(self):
+        super().setUp()
+
+        self.event = EventFactory(
+            name="Test Event",
+            disaster_start_date=datetime.datetime(2025, 3, 1),
+        )
+
+        self.country1 = country.CountryFactory(name="Test Country1")
+        self.country2 = country.CountryFactory(name="Test Country2")
+        self.country3 = country.CountryFactory(name="Test Country3")
+
+        self.eru_owner = ERUOwnerFactory(
+            national_society_country=self.country1,
+        )
+
+        self.eru = EruFactory.create_batch(
+            3,
+            event=self.event,
+            deployed_to=self.country1,
+            eru_owner=self.eru_owner,
+            start_date=datetime.datetime(2022, 3, 1),
+            end_date=datetime.datetime(2037, 3, 10),
+        )
+
+        self.personnel_deployment1 = PersonnelDeploymentFactory(
+            event_deployed_to=self.event,
+        )
+
+        # Active
+        self.personnel_rapid_response = PersonnelFactory(
+            type=Personnel.TypeChoices.RR,
+            is_active=True,
+            country_from=self.country2,
+            deployment=self.personnel_deployment1,
+            start_date=datetime.datetime(2022, 1, 1),
+            end_date=datetime.datetime(2037, 3, 10),
+        )
+
+        self.personnel_rapid_response2 = PersonnelFactory(
+            type=Personnel.TypeChoices.RR,
+            is_active=True,
+            country_from=self.country1,
+            deployment=self.personnel_deployment1,
+            start_date=datetime.datetime(2022, 1, 1),
+            end_date=datetime.datetime(2037, 3, 10),
+        )
+        # Not Active
+        self.personnel_rapid_response3 = PersonnelFactory(
+            type=Personnel.TypeChoices.RR,
+            is_active=False,
+            deployment=self.personnel_deployment1,
+            start_date=datetime.datetime(2022, 1, 1),
+            end_date=datetime.datetime(2023, 3, 10),
+        )
+
+    def test_get_aggregated_data(self):
+        # mock Timezone
+        patcher = mock.patch("django.utils.timezone.now")
+        mock_timezone_now = patcher.start()
+        mock_timezone_now.return_value.date.return_value = datetime.date(2022, 11, 11)
+
+        url = "/api/v2/aggregated-eru-and-rapid-response/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["count"], 1)
+        event_data = data["results"][0]
+        self.assertEqual(event_data["deployed_personnel_count"], 2)
+        self.assertEqual(event_data["deployed_eru_count"], 3)
+        patcher.stop()
+
+
+class ExportERUReadinessViewTest(APITestCase):
+    def setUp(self):
+        super().setUp()
+        self.country1 = Country.objects.create(
+            name="Nepal",
+            iso3="NLP",
+        )
+        self.country2 = Country.objects.create(name="India", iso3="IND")
+        eru_readiness_type_common1 = {
+            "equipment_readiness": ERUReadinessType.ReadinessStatus.READY,
+            "people_readiness": ERUReadinessType.ReadinessStatus.NO_CAPACITY,
+            "funding_readiness": ERUReadinessType.ReadinessStatus.READY,
+        }
+        eru_readiness_type_common2 = {
+            "equipment_readiness": ERUReadinessType.ReadinessStatus.NO_CAPACITY,
+            "people_readiness": ERUReadinessType.ReadinessStatus.READY,
+            "funding_readiness": ERUReadinessType.ReadinessStatus.READY,
+        }
+        eru_readiness_type_1 = ERUReadinessTypeFactory.create(
+            type=ERUType.BASECAMP,
+            **eru_readiness_type_common1,
+            comment="Test comment1",
+        )
+        eru_readiness_type_2 = ERUReadinessTypeFactory.create(
+            type=ERUType.TELECOM,
+            **eru_readiness_type_common1,
+            comment="Test comment2",
+        )
+        eru_readiness_type_3 = ERUReadinessTypeFactory.create(
+            type=ERUType.BASECAMP,
+            **eru_readiness_type_common2,
+            comment="Test comment3",
+        )
+        eru_owner1 = ERUOwnerFactory.create(
+            national_society_country=self.country1,
+        )
+        eru_owner2 = ERUOwnerFactory.create(
+            national_society_country=self.country2,
+        )
+        ERUReadinessFactory.create(eru_owner=eru_owner1, eru_types=[eru_readiness_type_1, eru_readiness_type_2])
+        ERUReadinessFactory.create(eru_owner=eru_owner2, eru_types=[eru_readiness_type_3])
+
+    def test_export_response(self):
+        url = "/api/v2/export-eru-readiness/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        with BytesIO(response.content) as excel_file:
+            wb = load_workbook(filename=excel_file)
+            ws = wb.active
+
+            self.assertEqual(ws["A1"].value, "National Society")
+            self.assertEqual(ws["B1"].value, "Updated Date")
+            self.assertEqual(ws["C1"].value, "Basecamp")
+            self.assertEqual(ws["G1"].value, "IT & Telecom")
+
+            # Check sub-headers
+            self.assertEqual(ws["C2"].value, "Equipment")
+            self.assertEqual(ws["D2"].value, "People")
+            self.assertEqual(ws["E2"].value, "Funding")
+            self.assertEqual(ws["F2"].value, "Comment")
+
+            row1 = list(ws.iter_rows(min_row=3))[0]
+            self.assertEqual(row1[0].value, "Nepal")
+            self.assertEqual(row1[2].value, "Ready")
+            self.assertEqual(row1[3].value, "No capacity")
+            self.assertEqual(row1[4].value, "Ready")
+            self.assertEqual(row1[5].value, "Test comment1")
+
+            self.assertEqual(row1[6].value, "Ready")
+            self.assertEqual(row1[7].value, "No capacity")
+            self.assertEqual(row1[8].value, "Ready")
+            self.assertEqual(row1[9].value, "Test comment2")
+
+            row2 = list(ws.iter_rows(min_row=4))[0]
+            self.assertEqual(row2[0].value, "India")
+            self.assertEqual(row2[2].value, "No capacity")
+            self.assertEqual(row2[3].value, "Ready")
+            self.assertEqual(row2[4].value, "Ready")
+            self.assertEqual(row2[5].value, "Test comment3")
