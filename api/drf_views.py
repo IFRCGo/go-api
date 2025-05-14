@@ -56,7 +56,7 @@ from api.visibility_class import (
 )
 from country_plan.models import CountryPlan
 from databank.serializers import CountryOverviewSerializer
-from deployments.models import Personnel
+from deployments.models import ERU, Personnel
 from deployments.serializers import ListDeployedERUByEventSerializer
 from main.enums import GlobalEnumSerializer, get_enum_values
 from main.filters import NullsLastOrderingFilter
@@ -210,6 +210,18 @@ class DeployedERUByEventViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         today = timezone.now().date().strftime("%Y-%m-%d")
+        active_eru_prefetch = models.Prefetch(
+            "eru_set",
+            queryset=(
+                ERU.objects.filter(
+                    deployed_to__isnull=False,
+                    start_date__date__lte=today,
+                    end_date__date__gte=today,
+                ).select_related(
+                    "eru_owner__national_society_country",
+                )
+            ),
+        )
         return (
             Event.objects.filter(
                 eru__deployed_to__isnull=False,
@@ -217,9 +229,8 @@ class DeployedERUByEventViewSet(viewsets.ReadOnlyModelViewSet):
                 eru__end_date__date__gte=today,
             )
             .prefetch_related(
+                active_eru_prefetch,
                 "appeals",
-                "eru_set__eru_owner__national_society_country",
-                "eru_set__deployed_to",
             )
             .order_by(
                 "-disaster_start_date",
