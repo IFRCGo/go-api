@@ -25,14 +25,12 @@ spec:
                     name: {{ template "ifrcgo-helm.fullname" $ }}-api-secret
                 - configMapRef:
                     name: {{ template "ifrcgo-helm.fullname" $ }}-api-configmap
-              # We may eventually want these resources to be configurable per job
-              # For most jobs 2Gi is enough, but long-run sync-molnix needs 4Gi
               resources:
-                requests:
-                  cpu: 1
-                  memory: 4Gi
-                limits:
-                  cpu: 1
-                  memory: 4Gi
+                {{- include "ifrcgo-helm.resourcesConfig"
+                    (dict
+                        "Default" $.Values.cronjobsDefaultResources
+                        "Override" $job.resources
+                    ) | nindent 16
+                }}
               #FIXME: Add onFailure policy, retries, etc.
 {{- end }}

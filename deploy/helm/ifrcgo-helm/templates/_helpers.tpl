@@ -30,3 +30,19 @@ Create chart name and version as used by the chart label.
 {{- define "ifrcgo-helm.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
+
+{{/*
+Generate resources metadata
+*/}}
+{{- define "ifrcgo-helm.resourcesConfig" -}}
+{{- $default := deepCopy .Default -}}
+{{- $override := deepCopy (default dict .Override) -}}
+{{
+     (
+        merge
+            (dict)
+            $override
+            $default
+        ) | toYaml
+}}
+{{- end }}
