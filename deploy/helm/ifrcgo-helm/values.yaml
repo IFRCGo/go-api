@@ -209,11 +209,26 @@ argoHooks:
     hook: PostSync
     command: ["./manage.py", "collectstatic", "--noinput"]
 
+cronjobsDefaultResources:
+  requests:
+    cpu: 1
+    memory: 4Gi
+  limits:
+    cpu: 1
+    memory: 4Gi
+
 cronjobs:
   - command: 'index_and_notify'
     schedule: '*/5 * * * *'
   - command: 'sync_molnix'
     schedule: '10 */2 * * *'
+    resources:
+      requests:
+        memory: 6Gi
+        cpu: 2
+      limits:
+        memory: 8Gi
+        cpu: 2
   - command: 'ingest_appeals'
     schedule: '*/30 * * * *'
   - command: 'sync_appealdocs'
