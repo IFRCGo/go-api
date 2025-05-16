@@ -98,16 +98,19 @@ class FlashUpdateFileViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, vie
 class FlashActionViewset(viewsets.ReadOnlyModelViewSet):
     queryset = FlashAction.objects.exclude(is_disabled=True)
     serializer_class = ActionSerializer
+    permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
 
 
 class DonorGroupViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = DonorGroup.objects.all()
     serializer_class = DonorGroupSerializer
+    permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
 
 
 class DonorsViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Donors.objects.all()
     serializer_class = DonorsSerializer
+    permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
 
 
 class ShareFlashUpdateViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
@@ -117,10 +120,7 @@ class ShareFlashUpdateViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin
 
 
 class ExportFlashUpdateView(views.APIView):
-    permission_classes = [
-        permissions.IsAuthenticated,
-        DenyGuestUserPermission,
-    ]
+    permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
 
     @extend_schema(request=None, responses=ExportFlashUpdateViewSerializer)
     def get(self, request, pk, format=None):
