@@ -14,6 +14,7 @@ from rest_framework import (
     viewsets,
 )
 from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound
 from reversion.views import RevisionMixin
 
 from dref.filter_set import (
@@ -274,4 +275,205 @@ class DrefShareUserViewSet(viewsets.ReadOnlyModelViewSet):
             Dref.objects.prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
             .order_by("-created_at")
             .distinct()
+        )
+
+
+class BaseDref2Serializer(serializers.ModelSerializer):
+    appeal_id = serializers.CharField(source="appeal_code", read_only=True)
+    stage = serializers.SerializerMethodField()
+    allocation = serializers.SerializerMethodField()
+    pillar = serializers.SerializerMethodField()
+    appeal_type = serializers.SerializerMethodField()
+    allocation_type = serializers.SerializerMethodField()
+    country = serializers.CharField(source="country.name_en", read_only=True)
+    country_iso3 = serializers.CharField(source="country.iso3", read_only=True)
+    districts = serializers.SerializerMethodField()
+    district_codes = serializers.SerializerMethodField()
+    region = serializers.CharField(source="country.region", read_only=True)
+    disaster_definition = serializers.CharField(source="disaster_type", read_only=True)
+    disaster_name = serializers.CharField(source="title", read_only=True)
+    type_of_onset = serializers.SerializerMethodField()
+
+    def get_stage(self, obj):
+        return self.context.get("stage")
+
+    def get_allocation(self, obj):
+        return self.context.get("allocation")
+
+    def get_pillar(self, obj):
+        return "Anticipatory" if obj.type_of_dref == Dref.DrefType.IMMINENT else "Response"
+
+    def get_appeal_type(self, obj):
+        if obj.type_of_dref == Dref.DrefType.IMMINENT:
+            return "i-DREF"
+        elif obj.type_of_dref == Dref.DrefType.LOAN:
+            return "EA"
+        return "DREF"
+
+    def get_allocation_type(self, obj):
+        return "Loan" if obj.type_of_dref == Dref.DrefType.LOAN else "Grant"
+
+    def get_districts(self, obj):
+        return {d.name for d in obj.district.all()}
+
+    def get_district_codes(self, obj):
+        return {d.code for d in obj.district.all()}
+
+    def get_type_of_onset(self, obj):
+        return Dref.OnsetType(obj.type_of_onset).label
+
+    class Meta:
+        abstract = True
+        fields = [
+            "appeal_id",
+            "stage",
+            "allocation",
+            "pillar",
+            "appeal_type",
+            "allocation_type",
+            "country",
+            "country_iso3",
+            "districts",
+            "district_codes",
+            "region",
+            "disaster_definition",
+            "disaster_name",
+            "type_of_onset",
+        ]
+
+
+class Dref2Serializer(BaseDref2Serializer):
+    class Meta(BaseDref2Serializer.Meta):
+        model = Dref
+
+
+class DrefOperationalUpdate2Serializer(BaseDref2Serializer):
+    class Meta(BaseDref2Serializer.Meta):
+        model = DrefOperationalUpdate
+
+
+class DrefFinalReport2Serializer(BaseDref2Serializer):
+    class Meta(BaseDref2Serializer.Meta):
+        model = DrefFinalReport
+
+
+class Dref2ViewSet(RevisionMixin, viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
+    #    serializer_class = DrefSerializer
+    #    filterset_class = DrefFilter
+    lookup_field = "appeal_code"
+
+    def get_queryset(self):
+        return None
+
+    def get_objects_by_appeal_code(self, appeal_code):
+        results = []
+        user = self.request.user
+        drefs = (
+            Dref.objects.filter(appeal_code=appeal_code)
+            .prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
+            .order_by("-created_at")
+            .distinct()
+        )
+        drefs = filter_dref_queryset_by_user_access(user, drefs)
+        if drefs.exists():
+            results.extend(drefs)
+
+        # Code duplication of the previous "drefs" for "operational_updates" and "final_reports" until ¤¤¤:
+        operational_updates = (
+            DrefOperationalUpdate.objects.filter(appeal_code=appeal_code)
+            .prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
+            .order_by("-created_at")
+            .distinct()
+        )
+        operational_updates = filter_dref_queryset_by_user_access(user, operational_updates)
+        if operational_updates.exists():
+            results.extend(operational_updates)
+
+        final_reports = (
+            DrefFinalReport.objects.filter(appeal_code=appeal_code)
+            .prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
+            .order_by("-created_at")
+            .distinct()
+        )
+        final_reports = filter_dref_queryset_by_user_access(user, final_reports)
+        if final_reports.exists():
+            results.extend(final_reports)
+        # ¤¤¤
+
+        return results
+
+    def retrieve(self, request, *args, **kwargs):
+        code = self.kwargs.get(self.lookup_field)
+        instances = self.get_objects_by_appeal_code(code)
+
+        if not instances:
+            raise NotFound(f"No Dref, Operational Update, or Final Report found with code '{code}'.")
+
+        serialized_data = []
+        ops_update_count = 0
+        for instance in instances:
+            if isinstance(instance, Dref):
+                serializer = Dref2Serializer(instance, context={"stage": "Application", "allocation": "First"})
+            elif isinstance(instance, DrefOperationalUpdate):
+                ops_update_count += 1
+                allocation = "No allocation"
+                if instance.additional_allocation:
+                    if ops_update_count == 1:
+                        allocation = "Second"
+                    elif ops_update_count == 2:
+                        allocation = "Third"
+                    elif ops_update_count == 3:
+                        allocation = "Fourth"
+                serializer = DrefOperationalUpdate2Serializer(
+                    instance,
+                    context={
+                        "stage": "Operational Update " + str(ops_update_count),
+                        "allocation": allocation,
+                    },
+                )
+            elif isinstance(instance, DrefFinalReport):
+                serializer = DrefFinalReport2Serializer(
+                    instance, context={"stage": "Final Report", "allocation": "No allocation"}
+                )
+            else:
+                continue
+            serialized_data.append(serializer.data)
+
+        return response.Response(serialized_data)
+
+    # You would need to consider how other actions (list, create, update, destroy)
+    # would work in this combined viewset.
+
+    @action(
+        detail=True,
+        url_path="publish",
+        methods=["post"],
+        serializer_class=DrefSerializer,
+        permission_classes=[permissions.IsAuthenticated, PublishDrefPermission, DenyGuestUserPermission],
+    )
+    def get_published(self, request, pk=None, version=None):
+        dref = self.get_object()
+        dref.is_published = True
+        dref.status = Dref.Status.COMPLETED
+        dref.save(update_fields=["is_published", "status"])
+        serializer = DrefSerializer(dref, context={"request": request})
+        return response.Response(serializer.data)
+
+    @extend_schema(request=None, responses=DrefGlobalFilesSerializer)
+    @action(
+        detail=False,
+        url_path="global-files",
+        methods=["get"],
+        serializer_class=DrefGlobalFilesSerializer,
+        permission_classes=[permissions.IsAuthenticated, DenyGuestUserPermission],
+    )
+    def get_global_files(self, request, pk=None, version=None):
+        """
+        Dref global files url
+        """
+        return response.Response(
+            DrefGlobalFilesSerializer(
+                {"budget_template_url": request.build_absolute_uri(static("files/dref/budget_template.xlsm"))}
+            ).data
         )
