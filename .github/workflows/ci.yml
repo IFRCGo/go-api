@@ -55,6 +55,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@main
+        with:
+          lfs: 'true'
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -133,6 +135,19 @@ jobs:
         env:
           DOCKER_IMAGE: ${{ steps.prep.outputs.tagged_image }}
         run: docker compose run --rm serve ./manage.py test --keepdb -v 2 --pattern="test_fake.py"
+
+      # NOTE: Schema generation requires a valid database. Therefore, this step must run after "Run Django migrations."
+      - name: 🕮 Validate latest openapi schema
+        env:
+          DOCKER_IMAGE: ${{ steps.prep.outputs.tagged_image }}
+          DJANGO_DB_NAME: "test_test"
+        run: |
+          docker compose run --rm serve ./manage.py spectacular --file openapi-schema-latest.yaml &&
+          cmp --silent openapi-schema.yaml openapi-schema-latest.yaml || {
+            echo 'The openapi-schema.yaml is not up to date with the latest changes. Please update and push latest';
+            diff openapi-schema.yaml openapi-schema-latest.yaml;
+            exit 1;
+          }
 
       - name: 🤞 Run Test 🧪
         env:
