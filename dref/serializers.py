@@ -10,6 +10,7 @@ from django.utils.translation import gettext
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
+from api.models import Appeal
 from api.serializers import (
     DisasterTypeSerializer,
     MiniCountrySerializer,
@@ -1423,3 +1424,468 @@ class DrefShareUserSerializer(serializers.ModelSerializer):
 
 class DrefGlobalFilesSerializer(serializers.Serializer):
     budget_template_url = serializers.CharField(read_only=True)
+
+
+class BaseDref3Serializer(serializers.ModelSerializer):
+    appeal_id = serializers.CharField(source="appeal_code", read_only=True)
+    stage = serializers.SerializerMethodField()
+    allocation = serializers.SerializerMethodField()
+    pillar = serializers.SerializerMethodField()
+    appeal_type = serializers.SerializerMethodField()
+    allocation_type = serializers.SerializerMethodField()
+    country = serializers.CharField(source="country.name_en", read_only=True)
+    country_iso3 = serializers.CharField(source="country.iso3", read_only=True)
+    districts = serializers.SerializerMethodField()
+    district_codes = serializers.SerializerMethodField()
+    region = serializers.CharField(source="country.region", read_only=True)
+    disaster_definition = serializers.CharField(source="disaster_type", read_only=True)
+    disaster_name = serializers.CharField(source="title", read_only=True)
+    type_of_onset = serializers.SerializerMethodField()
+    crisis_categorization = serializers.SerializerMethodField()
+    amount_approved = serializers.SerializerMethodField()
+    total_approved = serializers.SerializerMethodField()
+    date_of_disaster = serializers.CharField(source="event_date", read_only=True)
+    date_of_appeal_request_from_ns = serializers.SerializerMethodField()
+    date_of_approval = serializers.SerializerMethodField()
+    date_of_summary_publication = serializers.SerializerMethodField()
+    end_date_of_operation = serializers.SerializerMethodField()
+    operation_timeframe = serializers.SerializerMethodField()
+    affected_people = serializers.SerializerMethodField()
+    targeted_people = serializers.SerializerMethodField()
+    beneficiaries_assisted = serializers.SerializerMethodField()
+    shelter_and_basic_household_items = serializers.SerializerMethodField()
+    shelter_and_basic_household_items_budget = serializers.SerializerMethodField()
+    shelter_and_basic_household_items_people_targeted = serializers.SerializerMethodField()
+    livelihoods = serializers.SerializerMethodField()
+    livelihoods_budget = serializers.SerializerMethodField()
+    livelihoods_people_targeted = serializers.SerializerMethodField()
+    multi_purpose_cash_grants = serializers.SerializerMethodField()
+    multi_purpose_cash_grants_budget = serializers.SerializerMethodField()
+    multi_purpose_cash_grants_people_targeted = serializers.SerializerMethodField()
+    health = serializers.SerializerMethodField()
+    health_budget = serializers.SerializerMethodField()
+    health_people_targeted = serializers.SerializerMethodField()
+    water_sanitation_and_hygiene = serializers.SerializerMethodField()
+    water_sanitation_and_hygiene_budget = serializers.SerializerMethodField()
+    water_sanitation_and_hygiene_people_targeted = serializers.SerializerMethodField()
+    protection_gender_and_inclusion = serializers.SerializerMethodField()
+    protection_gender_and_inclusion_budget = serializers.SerializerMethodField()
+    protection_gender_and_inclusion_people_targeted = serializers.SerializerMethodField()
+    education = serializers.SerializerMethodField()
+    education_budget = serializers.SerializerMethodField()
+    education_people_targeted = serializers.SerializerMethodField()
+    migration_and_displacement = serializers.SerializerMethodField()
+    migration_and_displacement_budget = serializers.SerializerMethodField()
+    migration_and_displacement_people_targeted = serializers.SerializerMethodField()
+    risk_reduction_climate_adaptation_and_recovery = serializers.SerializerMethodField()
+    risk_reduction_climate_adaptation_and_recovery_budget = serializers.SerializerMethodField()
+    risk_reduction_climate_adaptation_and_recovery_people_targeted = serializers.SerializerMethodField()
+    community_engagement_and_accountability = serializers.SerializerMethodField()
+    community_engagement_and_accountability_budget = serializers.SerializerMethodField()
+    community_engagement_and_accountability_people_targeted = serializers.SerializerMethodField()
+    enviromental_sustainability = serializers.SerializerMethodField()
+    enviromental_sustainability_budget = serializers.SerializerMethodField()
+    enviromental_sustainability_people_targeted = serializers.SerializerMethodField()
+    coordination_and_partnerships = serializers.SerializerMethodField()
+    coordination_and_partnerships_budget = serializers.SerializerMethodField()
+    coordination_and_partnerships_people_targeted = serializers.SerializerMethodField()
+    secretariat_services = serializers.SerializerMethodField()
+    secretariat_services_budget = serializers.SerializerMethodField()
+    secretariat_services_people_targeted = serializers.SerializerMethodField()
+    national_society_strengthening = serializers.SerializerMethodField()
+    national_society_strengthening_budget = serializers.SerializerMethodField()
+    national_society_strengthening_people_targeted = serializers.SerializerMethodField()
+    approved = serializers.SerializerMethodField()
+    indicators_nested_table = serializers.SerializerMethodField()
+    link_to_emergency_page = serializers.SerializerMethodField()
+
+    def get_stage(self, obj):
+        return self.context.get("stage")
+
+    def get_allocation(self, obj):
+        return self.context.get("allocation")
+
+    def get_pillar(self, obj):
+        return "Anticipatory" if obj.type_of_dref == Dref.DrefType.IMMINENT else "Response"
+
+    def get_appeal_type(self, obj):
+        if obj.type_of_dref == Dref.DrefType.IMMINENT:
+            return "i-DREF"
+        elif obj.type_of_dref == Dref.DrefType.LOAN:
+            return "EA"
+        return "DREF"
+
+    def get_allocation_type(self, obj):
+        return "Loan" if obj.type_of_dref == Dref.DrefType.LOAN else "Grant"
+
+    def get_districts(self, obj):
+        return ", ".join(d.name for d in obj.district.all())
+
+    def get_district_codes(self, obj):
+        return ", ".join(d.code for d in obj.district.all())
+
+    def get_type_of_onset(self, obj):
+        return Dref.OnsetType(obj.type_of_onset).label
+
+    def get_crisis_categorization(self, obj):
+        return Dref.DisasterCategory(obj.disaster_category).label
+
+    def get_amount_approved(self, obj):
+        if hasattr(obj, "amount_requested"):
+            return obj.amount_requested
+        if hasattr(obj, "additional_allocation"):
+            return obj.additional_allocation
+        return 0
+
+    def get_total_approved(self, obj):
+        if hasattr(obj, "total_dref_allocation"):
+            return obj.total_dref_allocation
+        if hasattr(obj, "amount_requested"):
+            return obj.amount_requested
+        return 0
+
+    def get_date_of_appeal_request_from_ns(self, obj):
+        if type(obj).__name__ == "Dref" and hasattr(obj, "ns_request_date"):
+            return obj.ns_request_date
+
+    def get_date_of_approval(self, obj):
+        if type(obj).__name__ == "Dref" and hasattr(obj, "date_of_approval"):
+            return obj.date_of_approval
+
+    def get_date_of_summary_publication(self, obj):
+        if type(obj).__name__ == "Dref" and hasattr(obj, "publishing_date"):
+            return obj.publishing_date
+
+    def get_end_date_of_operation(self, obj):
+        t = type(obj).__name__
+        if t == "Dref" and hasattr(obj, "end_date"):
+            return obj.end_date
+        if t == "DrefOperationalUpdate" and hasattr(obj, "new_operational_end_date"):
+            return obj.new_operational_end_date
+        if t == "DrefFinalReport" and hasattr(obj, "operation_end_date"):
+            return obj.operation_end_date
+
+    def get_operation_timeframe(self, obj):
+        t = type(obj).__name__
+        if t == "Dref" and hasattr(obj, "operation_timeframe"):
+            return obj.operation_timeframe
+        if t != "Dref" and hasattr(obj, "total_operation_timeframe"):  # OU + FR:
+            return obj.total_operation_timeframe
+
+    def get_affected_people(self, obj):
+        t = type(obj).__name__
+        if t == "Dref" and hasattr(obj, "num_affected"):
+            return obj.num_affected
+        if t != "Dref" and hasattr(obj, "number_of_people_affected"):  # OU + FR:
+            return obj.number_of_people_affected
+
+    def get_targeted_people(self, obj):
+        t = type(obj).__name__
+        if t == "Dref" and hasattr(obj, "total_targeted_population"):
+            return obj.total_targeted_population
+        if t != "Dref" and hasattr(obj, "number_of_people_targeted"):  # OU + FR:
+            return obj.number_of_people_targeted
+
+    def get_beneficiaries_assisted(self, obj):
+        if type(obj).__name__ == "DrefFinalReport":
+            return obj.num_assisted
+
+    def get_shelter_and_basic_household_items(self, obj):
+        topic = PlannedIntervention.Title.SHELTER_HOUSING_AND_SETTLEMENTS
+        return "Yes" if any(p.title == topic for p in obj.planned_interventions.all()) else "No"
+
+    def get_shelter_and_basic_household_items_budget(self, obj):
+        topic = PlannedIntervention.Title.SHELTER_HOUSING_AND_SETTLEMENTS
+        if obj.planned_interventions.count():
+            return sum([p.budget for p in obj.planned_interventions.all() if p.title == topic])
+
+    def get_shelter_and_basic_household_items_people_targeted(self, obj):
+        topic = PlannedIntervention.Title.SHELTER_HOUSING_AND_SETTLEMENTS
+        if obj.planned_interventions.count():
+            return sum([p.person_targeted for p in obj.planned_interventions.all() if p.person_targeted and p.title == topic])
+
+    def get_livelihoods(self, obj):
+        topic = PlannedIntervention.Title.LIVELIHOODS_AND_BASIC_NEEDS
+        return "Yes" if any(p.title == topic for p in obj.planned_interventions.all()) else "No"
+
+    def get_livelihoods_budget(self, obj):
+        topic = PlannedIntervention.Title.LIVELIHOODS_AND_BASIC_NEEDS
+        if obj.planned_interventions.count():
+            return sum([p.budget for p in obj.planned_interventions.all() if p.title == topic])
+
+    def get_livelihoods_people_targeted(self, obj):
+        topic = PlannedIntervention.Title.LIVELIHOODS_AND_BASIC_NEEDS
+        if obj.planned_interventions.count():
+            return sum([p.person_targeted for p in obj.planned_interventions.all() if p.person_targeted and p.title == topic])
+
+    def get_multi_purpose_cash_grants(self, obj):
+        topic = PlannedIntervention.Title.MULTI_PURPOSE_CASH
+        return "Yes" if any(p.title == topic for p in obj.planned_interventions.all()) else "No"
+
+    def get_multi_purpose_cash_grants_budget(self, obj):
+        topic = PlannedIntervention.Title.MULTI_PURPOSE_CASH
+        if obj.planned_interventions.count():
+            return sum([p.budget for p in obj.planned_interventions.all() if p.title == topic])
+
+    def get_multi_purpose_cash_grants_people_targeted(self, obj):
+        topic = PlannedIntervention.Title.MULTI_PURPOSE_CASH
+        if obj.planned_interventions.count():
+            return sum([p.person_targeted for p in obj.planned_interventions.all() if p.person_targeted and p.title == topic])
+
+    def get_health(self, obj):
+        topic = PlannedIntervention.Title.HEALTH
+        return "Yes" if any(p.title == topic for p in obj.planned_interventions.all()) else "No"
+
+    def get_health_budget(self, obj):
+        topic = PlannedIntervention.Title.HEALTH
+        if obj.planned_interventions.count():
+            return sum([p.budget for p in obj.planned_interventions.all() if p.title == topic])
+
+    def get_health_people_targeted(self, obj):
+        topic = PlannedIntervention.Title.HEALTH
+        if obj.planned_interventions.count():
+            return sum([p.person_targeted for p in obj.planned_interventions.all() if p.person_targeted and p.title == topic])
+
+    def get_water_sanitation_and_hygiene(self, obj):
+        topic = PlannedIntervention.Title.WATER_SANITATION_AND_HYGIENE
+        return "Yes" if any(p.title == topic for p in obj.planned_interventions.all()) else "No"
+
+    def get_water_sanitation_and_hygiene_budget(self, obj):
+        topic = PlannedIntervention.Title.WATER_SANITATION_AND_HYGIENE
+        if obj.planned_interventions.count():
+            return sum([p.budget for p in obj.planned_interventions.all() if p.title == topic])
+
+    def get_water_sanitation_and_hygiene_people_targeted(self, obj):
+        topic = PlannedIntervention.Title.WATER_SANITATION_AND_HYGIENE
+        if obj.planned_interventions.count():
+            return sum([p.person_targeted for p in obj.planned_interventions.all() if p.person_targeted and p.title == topic])
+
+    def get_protection_gender_and_inclusion(self, obj):
+        topic = PlannedIntervention.Title.PROTECTION_GENDER_AND_INCLUSION
+        return "Yes" if any(p.title == topic for p in obj.planned_interventions.all()) else "No"
+
+    def get_protection_gender_and_inclusion_budget(self, obj):
+        topic = PlannedIntervention.Title.PROTECTION_GENDER_AND_INCLUSION
+        if obj.planned_interventions.count():
+            return sum([p.budget for p in obj.planned_interventions.all() if p.title == topic])
+
+    def get_protection_gender_and_inclusion_people_targeted(self, obj):
+        topic = PlannedIntervention.Title.PROTECTION_GENDER_AND_INCLUSION
+        if obj.planned_interventions.count():
+            return sum([p.person_targeted for p in obj.planned_interventions.all() if p.person_targeted and p.title == topic])
+
+    def get_education(self, obj):
+        topic = PlannedIntervention.Title.EDUCATION
+        return "Yes" if any(p.title == topic for p in obj.planned_interventions.all()) else "No"
+
+    def get_education_budget(self, obj):
+        topic = PlannedIntervention.Title.EDUCATION
+        if obj.planned_interventions.count():
+            return sum([p.budget for p in obj.planned_interventions.all() if p.title == topic])
+
+    def get_education_people_targeted(self, obj):
+        topic = PlannedIntervention.Title.EDUCATION
+        if obj.planned_interventions.count():
+            return sum([p.person_targeted for p in obj.planned_interventions.all() if p.person_targeted and p.title == topic])
+
+    def get_migration_and_displacement(self, obj):
+        topic = PlannedIntervention.Title.MIGRATION_AND_DISPLACEMENT
+        return "Yes" if any(p.title == topic for p in obj.planned_interventions.all()) else "No"
+
+    def get_migration_and_displacement_budget(self, obj):
+        topic = PlannedIntervention.Title.MIGRATION_AND_DISPLACEMENT
+        if obj.planned_interventions.count():
+            return sum([p.budget for p in obj.planned_interventions.all() if p.title == topic])
+
+    def get_migration_and_displacement_people_targeted(self, obj):
+        topic = PlannedIntervention.Title.MIGRATION_AND_DISPLACEMENT
+        if obj.planned_interventions.count():
+            return sum([p.person_targeted for p in obj.planned_interventions.all() if p.person_targeted and p.title == topic])
+
+    def get_risk_reduction_climate_adaptation_and_recovery(self, obj):
+        topic = PlannedIntervention.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY
+        return "Yes" if any(p.title == topic for p in obj.planned_interventions.all()) else "No"
+
+    def get_risk_reduction_climate_adaptation_and_recovery_budget(self, obj):
+        topic = PlannedIntervention.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY
+        if obj.planned_interventions.count():
+            return sum([p.budget for p in obj.planned_interventions.all() if p.title == topic])
+
+    def get_risk_reduction_climate_adaptation_and_recovery_people_targeted(self, obj):
+        topic = PlannedIntervention.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY
+        if obj.planned_interventions.count():
+            return sum([p.person_targeted for p in obj.planned_interventions.all() if p.person_targeted and p.title == topic])
+
+    def get_community_engagement_and_accountability(self, obj):
+        topic = PlannedIntervention.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY
+        return "Yes" if any(p.title == topic for p in obj.planned_interventions.all()) else "No"
+
+    def get_community_engagement_and_accountability_budget(self, obj):
+        topic = PlannedIntervention.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY
+        if obj.planned_interventions.count():
+            return sum([p.budget for p in obj.planned_interventions.all() if p.title == topic])
+
+    def get_community_engagement_and_accountability_people_targeted(self, obj):
+        topic = PlannedIntervention.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY
+        if obj.planned_interventions.count():
+            return sum([p.person_targeted for p in obj.planned_interventions.all() if p.person_targeted and p.title == topic])
+
+    def get_enviromental_sustainability(self, obj):
+        topic = PlannedIntervention.Title.ENVIRONMENTAL_SUSTAINABILITY
+        return "Yes" if any(p.title == topic for p in obj.planned_interventions.all()) else "No"
+
+    def get_enviromental_sustainability_budget(self, obj):
+        topic = PlannedIntervention.Title.ENVIRONMENTAL_SUSTAINABILITY
+        if obj.planned_interventions.count():
+            return sum([p.budget for p in obj.planned_interventions.all() if p.title == topic])
+
+    def get_enviromental_sustainability_people_targeted(self, obj):
+        topic = PlannedIntervention.Title.ENVIRONMENTAL_SUSTAINABILITY
+        if obj.planned_interventions.count():
+            return sum([p.person_targeted for p in obj.planned_interventions.all() if p.person_targeted and p.title == topic])
+
+    def get_coordination_and_partnerships(self, obj):
+        topic = PlannedIntervention.Title.COORDINATION_AND_PARTNERSHIPS
+        return "Yes" if any(p.title == topic for p in obj.planned_interventions.all()) else "No"
+
+    def get_coordination_and_partnerships_budget(self, obj):
+        topic = PlannedIntervention.Title.COORDINATION_AND_PARTNERSHIPS
+        if obj.planned_interventions.count():
+            return sum([p.budget for p in obj.planned_interventions.all() if p.title == topic])
+
+    def get_coordination_and_partnerships_people_targeted(self, obj):
+        topic = PlannedIntervention.Title.COORDINATION_AND_PARTNERSHIPS
+        if obj.planned_interventions.count():
+            return sum([p.person_targeted for p in obj.planned_interventions.all() if p.person_targeted and p.title == topic])
+
+    def get_secretariat_services(self, obj):
+        topic = PlannedIntervention.Title.SECRETARIAT_SERVICES
+        return "Yes" if any(p.title == topic for p in obj.planned_interventions.all()) else "No"
+
+    def get_secretariat_services_budget(self, obj):
+        topic = PlannedIntervention.Title.SECRETARIAT_SERVICES
+        if obj.planned_interventions.count():
+            return sum([p.budget for p in obj.planned_interventions.all() if p.title == topic])
+
+    def get_secretariat_services_people_targeted(self, obj):
+        topic = PlannedIntervention.Title.SECRETARIAT_SERVICES
+        if obj.planned_interventions.count():
+            return sum([p.person_targeted for p in obj.planned_interventions.all() if p.person_targeted and p.title == topic])
+
+    def get_national_society_strengthening(self, obj):
+        topic = PlannedIntervention.Title.NATIONAL_SOCIETY_STRENGTHENING
+        return "Yes" if any(p.title == topic for p in obj.planned_interventions.all()) else "No"
+
+    def get_national_society_strengthening_budget(self, obj):
+        topic = PlannedIntervention.Title.NATIONAL_SOCIETY_STRENGTHENING
+        if obj.planned_interventions.count():
+            return sum([p.budget for p in obj.planned_interventions.all() if p.title == topic])
+
+    def get_national_society_strengthening_people_targeted(self, obj):
+        topic = PlannedIntervention.Title.NATIONAL_SOCIETY_STRENGTHENING
+        if obj.planned_interventions.count():
+            return sum([p.person_targeted for p in obj.planned_interventions.all() if p.person_targeted and p.title == topic])
+
+    def get_approved(self, obj):
+        return "Yes" if obj.is_published else "No"
+
+    def get_indicators_nested_table(self, obj):
+        return "???"
+
+    def get_link_to_emergency_page(self, obj):
+        try:
+            appeal = Appeal.objects.get(code=obj.appeal_code)
+        except Appeal.DoesNotExist:
+            return f"No Appeal (and no Event) found with code: {obj.appeal_code}"
+        return f"https://go.ifrc.org/emergencies/{appeal.event_id}/details"
+
+    class Meta:
+        abstract = True
+        fields = [
+            "appeal_id",
+            "stage",
+            "allocation",
+            "pillar",
+            "appeal_type",
+            "allocation_type",
+            "country",
+            "country_iso3",
+            "districts",
+            "district_codes",
+            "region",
+            "disaster_definition",
+            "disaster_name",
+            "type_of_onset",
+            "crisis_categorization",
+            "amount_approved",
+            "total_approved",
+            "date_of_disaster",
+            "date_of_appeal_request_from_ns",
+            "date_of_approval",
+            "date_of_summary_publication",
+            "end_date_of_operation",
+            "operation_timeframe",
+            "affected_people",
+            "targeted_people",
+            "beneficiaries_assisted",
+            "shelter_and_basic_household_items",
+            "shelter_and_basic_household_items_budget",
+            "shelter_and_basic_household_items_people_targeted",
+            "livelihoods",
+            "livelihoods_budget",
+            "livelihoods_people_targeted",
+            "multi_purpose_cash_grants",
+            "multi_purpose_cash_grants_budget",
+            "multi_purpose_cash_grants_people_targeted",
+            "health",
+            "health_budget",
+            "health_people_targeted",
+            "water_sanitation_and_hygiene",
+            "water_sanitation_and_hygiene_budget",
+            "water_sanitation_and_hygiene_people_targeted",
+            "protection_gender_and_inclusion",
+            "protection_gender_and_inclusion_budget",
+            "protection_gender_and_inclusion_people_targeted",
+            "education",
+            "education_budget",
+            "education_people_targeted",
+            "migration_and_displacement",
+            "migration_and_displacement_budget",
+            "migration_and_displacement_people_targeted",
+            "risk_reduction_climate_adaptation_and_recovery",
+            "risk_reduction_climate_adaptation_and_recovery_budget",
+            "risk_reduction_climate_adaptation_and_recovery_people_targeted",
+            "community_engagement_and_accountability",
+            "community_engagement_and_accountability_budget",
+            "community_engagement_and_accountability_people_targeted",
+            "enviromental_sustainability",
+            "enviromental_sustainability_budget",
+            "enviromental_sustainability_people_targeted",
+            "coordination_and_partnerships",
+            "coordination_and_partnerships_budget",
+            "coordination_and_partnerships_people_targeted",
+            "secretariat_services",
+            "secretariat_services_budget",
+            "secretariat_services_people_targeted",
+            "national_society_strengthening",
+            "national_society_strengthening_budget",
+            "national_society_strengthening_people_targeted",
+            "approved",
+            "indicators_nested_table",
+            "link_to_emergency_page",
+        ]
+
+
+class Dref3Serializer(BaseDref3Serializer):
+    class Meta(BaseDref3Serializer.Meta):
+        model = Dref
+
+
+class DrefOperationalUpdate3Serializer(BaseDref3Serializer):
+    class Meta(BaseDref3Serializer.Meta):
+        model = DrefOperationalUpdate
+
+
+class DrefFinalReport3Serializer(BaseDref3Serializer):
+    class Meta(BaseDref3Serializer.Meta):
+        model = DrefFinalReport
