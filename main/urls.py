@@ -166,6 +166,7 @@ router.register(r"completed-dref", dref_views.CompletedDrefOperationsViewSet, ba
 router.register(r"active-dref", dref_views.ActiveDrefOperationsViewSet, basename="active_dref")
 router.register(r"dref-share-user", dref_views.DrefShareUserViewSet, basename="dref_share_user")
 router.register(r"pdf-export", api_views.ExportViewSet, basename="export")
+router.register(r"dref3", dref_views.Dref3ViewSet, basename="dref3")
 
 # Country Plan apis
 router.register(r"country-plan", country_plan_views.CountryPlanViewset, basename="country_plan")
