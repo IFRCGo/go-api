@@ -72,6 +72,7 @@ class DrefFileInputSerializer(serializers.Serializer):
 
 
 class DrefFileSerializer(ModelSerializer):
+    id = serializers.IntegerField(required=False)
     created_by_details = UserNameSerializer(source="created_by", read_only=True)
     file = serializers.FileField(required=False)
 
@@ -349,9 +350,9 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
     SURGE_DEPLOYMENT_COST = 10000
     INDIRECT_COST_SURGE = 5800
     INDIRECT_COST_NO_SURGE = 5000
-    MAX_NUMBER_OF_IMAGES = 2
+    MAX_NUMBER_OF_IMAGES = 4
     ALLOWED_BUDGET_FILE_EXTENSIONS = ["pdf"]
-    ALLOWED_ASSESSMENT_REPORT_EXTENSIONS = ["pdf", "docx", "pptx"]
+    ALLOWED_ASSESSMENT_REPORT_EXTENSIONS = ["pdf", "docx", "pptx", "xlsx"]
     MAX_OPERATION_TIMEFRAME = 30
     ASSESSMENT_REPORT_MAX_OPERATION_TIMEFRAME = 2
     national_society_actions = NationalSocietyActionSerializer(many=True, required=False)
@@ -527,11 +528,11 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
         #             {"total": gettext("Total should be equal to sum of Sub-total, Surge Deployment Cost and Indirect Cost")}
         #         )
 
-    def validate_images(self, images):
+    def validate_images_file(self, images):
         # Don't allow images more than MAX_NUMBER_OF_IMAGES
         if len(images) > self.MAX_NUMBER_OF_IMAGES:
             raise serializers.ValidationError(gettext("Can add utmost %s images" % self.MAX_NUMBER_OF_IMAGES))
-        images_id = [image.id for image in images]
+        images_id = [image["id"] for image in images]
         images_without_access_qs = DrefFile.objects.filter(
             # Not created by current user
             ~models.Q(created_by=self.context["request"].user),
@@ -666,6 +667,7 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
 
 
 class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
+    MAX_NUMBER_OF_IMAGES = 4
     national_society_actions = NationalSocietyActionSerializer(many=True, required=False)
     needs_identified = IdentifiedNeedSerializer(many=True, required=False)
     planned_interventions = PlannedInterventionSerializer(many=True, required=False)
@@ -740,6 +742,11 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
     def validate_budget_file_preview(self, budget_file_preview):
         validate_file_type(budget_file_preview)
         return budget_file_preview
+
+    def validate_images_file(self, images):
+        if images and len(images) > self.MAX_NUMBER_OF_IMAGES:
+            raise serializers.ValidationError("Can add utmost %s images" % self.MAX_NUMBER_OF_IMAGES)
+        return images
 
     def create(self, validated_data):
         dref = validated_data["dref"]
@@ -1026,7 +1033,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
 
 
 class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
-    MAX_NUMBER_OF_PHOTOS = 2
+    MAX_NUMBER_OF_PHOTOS = 4
     national_society_actions = NationalSocietyActionSerializer(many=True, required=False)
     needs_identified = IdentifiedNeedSerializer(many=True, required=False)
     planned_interventions = PlannedInterventionSerializer(many=True, required=False)
@@ -1090,6 +1097,11 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
         if photos and len(photos) > self.MAX_NUMBER_OF_PHOTOS:
             raise serializers.ValidationError("Can add utmost %s photos" % self.MAX_NUMBER_OF_PHOTOS)
         return photos
+
+    def validate_images_file(self, images):
+        if images and len(images) > self.MAX_NUMBER_OF_PHOTOS:
+            raise serializers.ValidationError("Can add utmost %s images" % self.MAX_NUMBER_OF_PHOTOS)
+        return images
 
     def validate_financial_report_preview(self, financial_report_preview):
         validate_file_type(financial_report_preview)
@@ -1414,7 +1426,7 @@ class AddDrefUserSerializer(serializers.Serializer):
         if final_report.exists():
             final_report.first().users.set(users)
 
-        # Sending email to newly added users
+        # Send notification to newly added users
         if unique_emails:
             transaction.on_commit(
                 lambda: send_dref_email.delay(
