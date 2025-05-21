@@ -1,6 +1,6 @@
 import datetime
 import os
-from typing import List
+from typing import List, Optional
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -410,7 +410,7 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
             "users",
         )
 
-    def get_dref_access_user_list(self, obj) -> List[int]:
+    def get_dref_access_user_list(self, obj) -> List[int] | None:
         dref_users_list = get_dref_users()
         for dref in dref_users_list:
             if obj.id == dref["id"]:
@@ -1394,22 +1394,34 @@ class AddDrefUserSerializer(serializers.Serializer):
         users_list = self.validated_data["users"]
         dref = self.validated_data["dref"]
 
-        users = [User.objects.get(id=user_id) for user_id in users_list]
+        users: List[User] = [User.objects.get(id=user_id) for user_id in users_list]
 
         # get the dref and add the users_list to user
-        dref = Dref.objects.filter(id=dref).first()
+        dref: Optional[Dref] = Dref.objects.filter(id=dref).first()
+        unique_emails: set[str] = {
+            user.email for user in users if user.email and user.email not in {t.email for t in dref.users.iterator()}
+        }
         dref.users.set(users)
 
         # lets also add to operational update as well
-        op_updates = DrefOperationalUpdate.objects.filter(dref=dref.id)
+        op_updates: models.QuerySet[DrefOperationalUpdate] = DrefOperationalUpdate.objects.filter(dref=dref.id)
         if op_updates.exists():
             for op in op_updates:
                 op.users.set(users)
 
         # lets also add to the dref_final_report as well
-        final_report = DrefFinalReport.objects.filter(dref=dref.id)
+        final_report: models.QuerySet[DrefFinalReport] = DrefFinalReport.objects.filter(dref=dref.id)
         if final_report.exists():
             final_report.first().users.set(users)
+
+        # Sending email to newly added users
+        if unique_emails:
+            transaction.on_commit(
+                lambda: send_dref_email.delay(
+                    dref.id,
+                    list(unique_emails),
+                )
+            )
 
 
 class DrefShareUserSerializer(serializers.ModelSerializer):
