@@ -75,6 +75,7 @@ class DrefFileSerializer(ModelSerializer):
     id = serializers.IntegerField(required=False)
     created_by_details = UserNameSerializer(source="created_by", read_only=True)
     file = serializers.FileField(required=False)
+    caption = serializers.CharField(required=False, max_length=80)
 
     class Meta:
         model = DrefFile
