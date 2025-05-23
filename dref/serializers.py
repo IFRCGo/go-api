@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from django.db import models, transaction
 from django.utils import timezone
 from django.utils.translation import gettext
+from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
@@ -75,7 +76,6 @@ class DrefFileSerializer(ModelSerializer):
     id = serializers.IntegerField(required=False)
     created_by_details = UserNameSerializer(source="created_by", read_only=True)
     file = serializers.FileField(required=False)
-    caption = serializers.CharField(required=False, max_length=80)
 
     class Meta:
         model = DrefFile
@@ -85,6 +85,14 @@ class DrefFileSerializer(ModelSerializer):
     def validate_file(self, file):
         validate_file_type(file)
         return file
+
+    def get_fields(self, *args, **kwargs):
+        fields = super().get_fields(*args, **kwargs)
+        # XXX: 'caption' is a dynamically added field and not part of the model's declared fields.
+        # Therefore, it can't be defined as a class attribute in the serializer.
+        # We override it here to specify a custom max_length and make it optional.
+        fields["caption"] = serializers.CharField(required=False, max_length=80, label=_("Caption"), allow_null=True)
+        return fields
 
     def create(self, validated_data):
         validated_data["created_by"] = self.context["request"].user
