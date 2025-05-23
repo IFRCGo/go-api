@@ -834,6 +834,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["new_operational_start_date"] = dref.date_of_approval
             validated_data["operational_update_number"] = 1  # if no any dref operational update created so far
             validated_data["dref_allocated_so_far"] = dref.amount_requested
+            validated_data["total_dref_allocation"] = dref.amount_requested
             validated_data["event_description"] = dref.event_description
             validated_data["anticipatory_actions"] = dref.anticipatory_actions
             validated_data["event_scope"] = dref.event_scope
@@ -904,6 +905,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["emergency_appeal_planned"] = dref_operational_update.emergency_appeal_planned
             validated_data["appeal_code"] = dref_operational_update.appeal_code
             validated_data["glide_code"] = dref_operational_update.glide_code
+            validated_data["total_dref_allocation"] = dref_operational_update.total_dref_allocation
             validated_data["ifrc_appeal_manager_name"] = dref_operational_update.ifrc_appeal_manager_name
             validated_data["ifrc_appeal_manager_email"] = dref_operational_update.ifrc_appeal_manager_email
             validated_data["ifrc_appeal_manager_title"] = dref_operational_update.ifrc_appeal_manager_title
