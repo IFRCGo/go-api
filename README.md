@@ -13,7 +13,6 @@ email-verification only, is to be found
 ## Requirements
 
 -   docker and docker-compose
--   Git LFS set up locally — see the [Git LFS guide](./docs/git-lfs.md) for more details
 
 ## Local Development
 
@@ -90,19 +89,6 @@ python3 manage.py static-translation-export path-to-export.csv
 python3 manage.py static-translation-export path-to-export.csv --only-new --languages en es
 python3 manage.py static-translation-import path-to-import.csv
 ```
-
-## Updating OpenAPI Schema (`openapi-schema.yaml`)
-
-To update the OpenAPI schema file, run:
-
-```bash
-docker-compose run --rm serve ./manage.py spectacular --file openapi-schema.yaml
-````
-
-> [!IMPORTANT]
-> The `openapi-schema.yaml` file is tracked with Git LFS.
-> Make sure Git LFS is set up correctly.
-> See the [Git LFS guide](./docs/git-lfs.md) for more details.
 
 ## Note for Django Model translations
 

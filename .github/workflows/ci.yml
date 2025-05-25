@@ -55,8 +55,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@main
-        with:
-          lfs: 'true'
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -66,7 +64,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 🐳 Prepare Docker
+      - name: Prepare
         id: prep
         env:
           IMAGE_NAME: ghcr.io/${{ github.repository }}
@@ -137,17 +135,26 @@ jobs:
         run: docker compose run --rm serve ./manage.py test --keepdb -v 2 --pattern="test_fake.py"
 
       # NOTE: Schema generation requires a valid database. Therefore, this step must run after "Run Django migrations."
-      - name: 🕮 Validate latest openapi schema
+      - name: 🕮 Generate latest openapi schema
         env:
           DOCKER_IMAGE: ${{ steps.prep.outputs.tagged_image }}
           DJANGO_DB_NAME: "test_test"
         run: |
-          docker compose run --rm serve ./manage.py spectacular --file openapi-schema-latest.yaml &&
-          cmp --silent openapi-schema.yaml openapi-schema-latest.yaml || {
-            echo 'The openapi-schema.yaml is not up to date with the latest changes. Please update and push latest';
-            diff openapi-schema.yaml openapi-schema-latest.yaml;
-            exit 1;
-          }
+          docker compose run --rm serve ./manage.py spectacular --file openapi-schema-latest.yaml
+
+      - name: 🕮 Upload latest openapi schema to IFRCGo/go-api-artifacts
+        env:
+          # GIthub
+          GITHUB_TOKEN: ${{ secrets.GO_API_ARTIFACTS_TOKEN }}
+          GITHUB_OWNER: IFRCGo
+          GITHUB_REPO: go-api-artifacts
+          GITHUB_BRANCH: main
+          # File
+          SOURCE_FILE_PATH: openapi-schema-latest.yaml
+        run: |
+          export DEST_FILE_PATH="generated/$GITHUB_SHA/openapi-schema.yaml"
+          export COMMIT_MESSAGE="Add openapi-schema of $GITHUB_REF_NAME@$GITHUB_SHA"
+          .github/go-api-artifacts-add-or-replace.sh
 
       - name: 🤞 Run Test 🧪
         env:
