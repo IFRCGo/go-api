@@ -65,7 +65,7 @@ else
 EOF
 fi
 
-curl -X PUT \
+curl --fail -X PUT \
     $GITHUB_API_URL \
     -H "Authorization: token $GITHUB_TOKEN" \
     -H "Content-Type: application/json" \
