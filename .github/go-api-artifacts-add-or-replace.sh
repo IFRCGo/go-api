@@ -43,13 +43,31 @@ else
     SHA_PART=", \"sha\": \"$EXISTING_FILE_SHA\""
 fi
 
+# To avoid `Argument list too long` error
+TMPFILE=$(mktemp)
+
+if [ -n "$EXISTING_FILE_SHA" ]; then
+  cat > "$TMPFILE" <<EOF
+{
+  "message": "$COMMIT_MESSAGE",
+  "content": "$ENCODED_CONTENT",
+  "branch": "$GITHUB_BRANCH",
+  "sha": "$EXISTING_FILE_SHA"
+}
+EOF
+else
+  cat > "$TMPFILE" <<EOF
+{
+  "message": "$COMMIT_MESSAGE",
+  "content": "$ENCODED_CONTENT",
+  "branch": "$GITHUB_BRANCH"
+}
+EOF
+fi
+
 curl -X PUT \
+    $GITHUB_API_URL \
     -H "Authorization: token $GITHUB_TOKEN" \
     -H "Content-Type: application/json" \
-    $GITHUB_API_URL \
-    -d "{
-        \"message\": \"$COMMIT_MESSAGE\",
-        \"content\": \"$ENCODED_CONTENT\",
-        \"branch\": \"$GITHUB_BRANCH\"
-        $SHA_PART
-    }"
+    -H "Accept: application/vnd.github.v3+json" \
+    -d @"$TMPFILE"
