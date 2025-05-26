@@ -10,13 +10,19 @@ This is a **GitHub repository** used to store and manage **build files**, **gene
   - Keeps the main source code clean by storing big or auto-made files separately.
   - Other projects (like go-web-app) can download the required files as required.
 
-## Creating PAT token
+## Creating a PAT Token
 
-- Token name: **ifrc-go-artifacts**
-- Resource owner: **IFRCGO**
-- Expiration: **No expiration**
-- Repository access: **Only select repositories**
-  - Repository: **IFRCGo/go-api-artifacts**
-- Permissions:
-  - Repository permissions
-    - Contents: **Read and write**
+A GitHub PAT (Personal Access Token) is needed to upload files to the `go-api-artifacts` repository.
+This token is stored in the GitHub Actions secret: `secrets.GO_API_ARTIFACTS_TOKEN`.
+For more details, see [ci.yml](./.github/workflows/ci.yml).
+
+### How to create a new token:
+
+- **Token name**: `ifrc-go-artifacts-xyz` (replace `xyz` as needed)
+- **Resource owner**: `IFRCGO`
+- **Expiration**: No expiration
+- **Repository access**: Only select repositories
+  - Select: `IFRCGo/go-api-artifacts`
+- **Permissions**:
+  - **Repository permissions**:
+    - **Contents**: Read and write
