@@ -16,6 +16,9 @@ A GitHub PAT (Personal Access Token) is needed to upload files to the `go-api-ar
 This token is stored in the GitHub Actions secret: `secrets.GO_API_ARTIFACTS_TOKEN`.
 For more details, see [ci.yml](/.github/workflows/ci.yml).
 
+> [!Important]
+> Currently, the PAT token is created using the https://github.com/ifrcgo-dev account.
+
 ### How to create a new token:
 
 - **Go to**: [GitHub Personal Access Tokens](https://github.com/settings/personal-access-tokens)
