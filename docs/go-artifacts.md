@@ -18,6 +18,7 @@ For more details, see [ci.yml](/.github/workflows/ci.yml).
 
 ### How to create a new token:
 
+- **Go to**: [GitHub Personal Access Tokens](https://github.com/settings/personal-access-tokens)
 - **Token name**: `ifrc-go-artifacts-xyz` (replace `xyz` as needed)
 - **Resource owner**: `IFRCGO`
 - **Expiration**: No expiration
