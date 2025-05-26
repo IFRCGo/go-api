@@ -145,7 +145,7 @@ jobs:
       - name: 🕮 Upload latest openapi schema to IFRCGo/go-api-artifacts
         env:
           # Github
-          # NOTE: GO_API_ARTIFACTS_TOKEN has expiry date, please follow docs/go-artifacts.md to token rotation
+          # NOTE: `GO_API_ARTIFACTS_TOKEN` has an expiry date. Please follow `docs/go-artifacts.md` for token rotation.
           GITHUB_TOKEN: ${{ secrets.GO_API_ARTIFACTS_TOKEN }}
           GITHUB_OWNER: IFRCGo
           GITHUB_REPO: go-api-artifacts
