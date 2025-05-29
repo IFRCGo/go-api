@@ -1,5 +1,7 @@
 import threading
 
+from django.http import HttpResponse
+
 # from reversion.middleware import RevisionMiddleware
 
 
@@ -43,8 +45,8 @@ class RequestMiddleware:
 
         # workaround for safelink check:
         if request.method == "HEAD":
-            return
-        # return response
+            return HttpResponse(status=200)
+
         setattr(_threadlocal, "request", request)
         return self.get_response(request)
 
