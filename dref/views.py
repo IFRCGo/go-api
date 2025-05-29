@@ -14,6 +14,7 @@ from rest_framework import (
     viewsets,
 )
 from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound
 from reversion.views import RevisionMixin
 
 from dref.filter_set import (
@@ -28,10 +29,13 @@ from dref.permissions import PublishDrefPermission
 from dref.serializers import (
     AddDrefUserSerializer,
     CompletedDrefOperationsSerializer,
+    Dref3Serializer,
     DrefFileInputSerializer,
     DrefFileSerializer,
+    DrefFinalReport3Serializer,
     DrefFinalReportSerializer,
     DrefGlobalFilesSerializer,
+    DrefOperationalUpdate3Serializer,
     DrefOperationalUpdateSerializer,
     DrefSerializer,
     DrefShareUserSerializer,
@@ -275,3 +279,104 @@ class DrefShareUserViewSet(viewsets.ReadOnlyModelViewSet):
             .order_by("-created_at")
             .distinct()
         )
+
+
+class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
+    #    serializer_class = DrefSerializer
+    #    filterset_class = DrefFilter
+    lookup_field = "appeal_code"
+
+    def get_queryset(self):
+        # just to give something to rest_framework/generics.py:63 – not used in retrieve
+        return Dref.objects.none()
+
+    def get_serializer_class(self):
+        # just to give something to rest_framework/generics.py:122 – not used in retrieve
+        return Dref3Serializer
+
+    #    def get_renderers(self):
+    #        return [renderer() for renderer in tuple(api_settings.DEFAULT_RENDERER_CLASSES)]
+
+    def get_objects_by_appeal_code(self, appeal_code):
+        results = []
+        user = self.request.user
+        drefs = (
+            Dref.objects.filter(appeal_code=appeal_code)
+            .prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
+            .order_by("-created_at")
+            .distinct()
+        )
+        drefs = filter_dref_queryset_by_user_access(user, drefs)
+        if drefs.exists():
+            results.extend(drefs)
+
+        # Code duplication of the previous "drefs" for "operational_updates" and "final_reports" until ¤¤¤:
+        operational_updates = (
+            DrefOperationalUpdate.objects.filter(appeal_code=appeal_code)
+            .prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
+            .order_by("-created_at")
+            .distinct()
+        )
+        operational_updates = filter_dref_queryset_by_user_access(user, operational_updates)
+        if operational_updates.exists():
+            results.extend(operational_updates)
+
+        final_reports = (
+            DrefFinalReport.objects.filter(appeal_code=appeal_code)
+            .prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
+            .order_by("-created_at")
+            .distinct()
+        )
+        final_reports = filter_dref_queryset_by_user_access(user, final_reports)
+        if final_reports.exists():
+            results.extend(final_reports)
+        # ¤¤¤
+
+        return results
+
+    def retrieve(self, request, *args, **kwargs):
+        code = self.kwargs.get(self.lookup_field)
+        instances = self.get_objects_by_appeal_code(code)
+
+        if not instances:
+            raise NotFound(f"No Dref, Operational Update, or Final Report found with code '{code}'.")
+
+        serialized_data = []
+        ops_update_count = 0
+        a = ["First", "Second", "Third", "Fourth", "Fifth", "Sixth", "Seventh", "Eighth", "Nineth", "Tenth"]
+        for instance in instances:
+            if isinstance(instance, Dref):
+                serializer = Dref3Serializer(instance, context={"stage": "Application", "allocation": a[0]})
+            elif isinstance(instance, DrefOperationalUpdate):
+                ops_update_count += 1
+                if instance.additional_allocation and len(a) > ops_update_count:
+                    allocation = a[ops_update_count]
+                else:
+                    allocation = "No allocation"
+                serializer = DrefOperationalUpdate3Serializer(
+                    instance,
+                    context={
+                        "stage": "Operational Update " + str(ops_update_count),
+                        "allocation": allocation,
+                    },
+                )
+            elif isinstance(instance, DrefFinalReport):
+                serializer = DrefFinalReport3Serializer(
+                    instance, context={"stage": "Final Report", "allocation": "No allocation"}
+                )
+            else:
+                continue
+            serialized_data.append(serializer.data)
+
+        return response.Response(serialized_data)
+
+    def get_renderer_context(self):
+        context = super().get_renderer_context()
+        context["header"] = Dref3Serializer.Meta.fields
+        return context
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.method in ("GET", "HEAD"):
+            return super().dispatch(request, *args, **kwargs)
+        return response.Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
