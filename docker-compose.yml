@@ -64,13 +64,13 @@ x-server: &base_server_setup
 
 services:
   db:
-    image: postgis/postgis:15-3.4-alpine
+    image: postgis/postgis:17-3.5-alpine
     environment:
       POSTGRES_PASSWORD: test
       POSTGRES_USER: test
       POSTGRES_DB: test
     volumes:
-      - './.db/pg-15:/var/lib/postgresql/data'
+      - './.db/pg-17:/var/lib/postgresql/data'
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
