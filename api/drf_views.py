@@ -162,6 +162,17 @@ class DeploymentsByEventViewset(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         today = timezone.now().date().strftime("%Y-%m-%d")
+        active_personnel_prefetch = models.Prefetch(
+            "personneldeployment_set__personnel_set",
+            queryset=(
+                Personnel.objects.filter(
+                    type=Personnel.TypeChoices.RR,
+                    start_date__date__lte=today,
+                    end_date__date__gte=today,
+                    is_active=True,
+                ).select_related("country_from")
+            ),
+        )
         return (
             Event.objects.filter(
                 personneldeployment__isnull=False,
@@ -171,9 +182,9 @@ class DeploymentsByEventViewset(viewsets.ReadOnlyModelViewSet):
                 personneldeployment__personnel__end_date__date__gte=today,
             )
             .prefetch_related(
-                "appeals",
+                active_personnel_prefetch,
                 "personneldeployment_set__country_deployed_to",
-                "personneldeployment_set__personnel_set__country_from",
+                "appeals",
             )
             .order_by(
                 "-disaster_start_date",
