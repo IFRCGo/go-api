@@ -1,12 +1,13 @@
 import datetime
 import os
-from typing import List
+from typing import List, Optional
 
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models, transaction
 from django.utils import timezone
 from django.utils.translation import gettext
+from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
@@ -73,6 +74,7 @@ class DrefFileInputSerializer(serializers.Serializer):
 
 
 class DrefFileSerializer(ModelSerializer):
+    id = serializers.IntegerField(required=False)
     created_by_details = UserNameSerializer(source="created_by", read_only=True)
     file = serializers.FileField(required=False)
 
@@ -84,6 +86,14 @@ class DrefFileSerializer(ModelSerializer):
     def validate_file(self, file):
         validate_file_type(file)
         return file
+
+    def get_fields(self, *args, **kwargs):
+        fields = super().get_fields(*args, **kwargs)
+        # XXX: 'caption' is a dynamically added field and not part of the model's declared fields.
+        # Therefore, it can't be defined as a class attribute in the serializer.
+        # We override it here to specify a custom max_length and make it optional.
+        fields["caption"] = serializers.CharField(required=False, max_length=80, label=_("Caption"), allow_null=True)
+        return fields
 
     def create(self, validated_data):
         validated_data["created_by"] = self.context["request"].user
@@ -350,9 +360,9 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
     SURGE_DEPLOYMENT_COST = 10000
     INDIRECT_COST_SURGE = 5800
     INDIRECT_COST_NO_SURGE = 5000
-    MAX_NUMBER_OF_IMAGES = 2
+    MAX_NUMBER_OF_IMAGES = 4
     ALLOWED_BUDGET_FILE_EXTENSIONS = ["pdf"]
-    ALLOWED_ASSESSMENT_REPORT_EXTENSIONS = ["pdf", "docx", "pptx"]
+    ALLOWED_ASSESSMENT_REPORT_EXTENSIONS = ["pdf", "docx", "pptx", "xlsx"]
     MAX_OPERATION_TIMEFRAME = 30
     ASSESSMENT_REPORT_MAX_OPERATION_TIMEFRAME = 2
     national_society_actions = NationalSocietyActionSerializer(many=True, required=False)
@@ -411,7 +421,7 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
             "users",
         )
 
-    def get_dref_access_user_list(self, obj) -> List[int]:
+    def get_dref_access_user_list(self, obj) -> List[int] | None:
         dref_users_list = get_dref_users()
         for dref in dref_users_list:
             if obj.id == dref["id"]:
@@ -528,11 +538,11 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
         #             {"total": gettext("Total should be equal to sum of Sub-total, Surge Deployment Cost and Indirect Cost")}
         #         )
 
-    def validate_images(self, images):
+    def validate_images_file(self, images):
         # Don't allow images more than MAX_NUMBER_OF_IMAGES
         if len(images) > self.MAX_NUMBER_OF_IMAGES:
             raise serializers.ValidationError(gettext("Can add utmost %s images" % self.MAX_NUMBER_OF_IMAGES))
-        images_id = [image.id for image in images]
+        images_id = [image["id"] for image in images]
         images_without_access_qs = DrefFile.objects.filter(
             # Not created by current user
             ~models.Q(created_by=self.context["request"].user),
@@ -667,6 +677,7 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
 
 
 class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
+    MAX_NUMBER_OF_IMAGES = 4
     national_society_actions = NationalSocietyActionSerializer(many=True, required=False)
     needs_identified = IdentifiedNeedSerializer(many=True, required=False)
     planned_interventions = PlannedInterventionSerializer(many=True, required=False)
@@ -741,6 +752,11 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
     def validate_budget_file_preview(self, budget_file_preview):
         validate_file_type(budget_file_preview)
         return budget_file_preview
+
+    def validate_images_file(self, images):
+        if images and len(images) > self.MAX_NUMBER_OF_IMAGES:
+            raise serializers.ValidationError("Can add utmost %s images" % self.MAX_NUMBER_OF_IMAGES)
+        return images
 
     def create(self, validated_data):
         dref = validated_data["dref"]
@@ -819,6 +835,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["new_operational_start_date"] = dref.date_of_approval
             validated_data["operational_update_number"] = 1  # if no any dref operational update created so far
             validated_data["dref_allocated_so_far"] = dref.amount_requested
+            validated_data["total_dref_allocation"] = dref.amount_requested
             validated_data["event_description"] = dref.event_description
             validated_data["anticipatory_actions"] = dref.anticipatory_actions
             validated_data["event_scope"] = dref.event_scope
@@ -889,6 +906,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["emergency_appeal_planned"] = dref_operational_update.emergency_appeal_planned
             validated_data["appeal_code"] = dref_operational_update.appeal_code
             validated_data["glide_code"] = dref_operational_update.glide_code
+            validated_data["total_dref_allocation"] = dref_operational_update.total_dref_allocation
             validated_data["ifrc_appeal_manager_name"] = dref_operational_update.ifrc_appeal_manager_name
             validated_data["ifrc_appeal_manager_email"] = dref_operational_update.ifrc_appeal_manager_email
             validated_data["ifrc_appeal_manager_title"] = dref_operational_update.ifrc_appeal_manager_title
@@ -1027,7 +1045,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
 
 
 class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
-    MAX_NUMBER_OF_PHOTOS = 2
+    MAX_NUMBER_OF_PHOTOS = 4
     national_society_actions = NationalSocietyActionSerializer(many=True, required=False)
     needs_identified = IdentifiedNeedSerializer(many=True, required=False)
     planned_interventions = PlannedInterventionSerializer(many=True, required=False)
@@ -1091,6 +1109,11 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
         if photos and len(photos) > self.MAX_NUMBER_OF_PHOTOS:
             raise serializers.ValidationError("Can add utmost %s photos" % self.MAX_NUMBER_OF_PHOTOS)
         return photos
+
+    def validate_images_file(self, images):
+        if images and len(images) > self.MAX_NUMBER_OF_PHOTOS:
+            raise serializers.ValidationError("Can add utmost %s images" % self.MAX_NUMBER_OF_PHOTOS)
+        return images
 
     def validate_financial_report_preview(self, financial_report_preview):
         validate_file_type(financial_report_preview)
@@ -1395,22 +1418,34 @@ class AddDrefUserSerializer(serializers.Serializer):
         users_list = self.validated_data["users"]
         dref = self.validated_data["dref"]
 
-        users = [User.objects.get(id=user_id) for user_id in users_list]
+        users: List[User] = [User.objects.get(id=user_id) for user_id in users_list]
 
         # get the dref and add the users_list to user
-        dref = Dref.objects.filter(id=dref).first()
+        dref: Optional[Dref] = Dref.objects.filter(id=dref).first()
+        unique_emails: set[str] = {
+            user.email for user in users if user.email and user.email not in {t.email for t in dref.users.iterator()}
+        }
         dref.users.set(users)
 
         # lets also add to operational update as well
-        op_updates = DrefOperationalUpdate.objects.filter(dref=dref.id)
+        op_updates: models.QuerySet[DrefOperationalUpdate] = DrefOperationalUpdate.objects.filter(dref=dref.id)
         if op_updates.exists():
             for op in op_updates:
                 op.users.set(users)
 
         # lets also add to the dref_final_report as well
-        final_report = DrefFinalReport.objects.filter(dref=dref.id)
+        final_report: models.QuerySet[DrefFinalReport] = DrefFinalReport.objects.filter(dref=dref.id)
         if final_report.exists():
             final_report.first().users.set(users)
+
+        # Send notification to newly added users
+        if unique_emails:
+            transaction.on_commit(
+                lambda: send_dref_email.delay(
+                    dref.id,
+                    list(unique_emails),
+                )
+            )
 
 
 class DrefShareUserSerializer(serializers.ModelSerializer):
