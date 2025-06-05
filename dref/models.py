@@ -1524,6 +1524,26 @@ class DrefFinalReport(models.Model):
         verbose_name=_("financial preview"), null=True, blank=True, upload_to="dref/images/"
     )
     num_assisted = models.IntegerField(verbose_name=_("number of assisted"), blank=True, null=True)
+    assisted_num_of_women = models.IntegerField(
+        verbose_name=_("Number of women assisted"),
+        blank=True,
+        null=True,
+    )
+    assisted_num_of_men = models.IntegerField(
+        verbose_name=_("Number of men assisted"),
+        blank=True,
+        null=True,
+    )
+    assisted_num_of_girls_under_18 = models.IntegerField(
+        verbose_name=_("Number of girls under 18 assisted"),
+        blank=True,
+        null=True,
+    )
+    assisted_num_of_boys_under_18 = models.IntegerField(
+        verbose_name=_("Number of boys under 18 assisted"),
+        blank=True,
+        null=True,
+    )
     has_national_society_conducted = models.BooleanField(
         verbose_name=_("Has national society conducted any intervention"), null=True, blank=True
     )
