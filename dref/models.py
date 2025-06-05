@@ -298,6 +298,12 @@ class Dref(models.Model):
     )
     type_of_dref = models.IntegerField(choices=DrefType.choices, verbose_name=_("dref type"), null=True, blank=True)
     type_of_onset = models.IntegerField(choices=OnsetType.choices, verbose_name=_("onset type"), null=True, blank=True)
+    # NOTE: Flag to indicate if this is an new dref imminent type
+    is_dref_imminent_v2 = models.BooleanField(
+        verbose_name=_("Is DREF Imminent V2?"),
+        default=False,
+        help_text=_("Is this DREF Imminent V2? If yes, it will be used for the new dref imminent type."),
+    )
     disaster_category = models.IntegerField(
         choices=DisasterCategory.choices, verbose_name=_("disaster category"), null=True, blank=True
     )
