@@ -82,6 +82,7 @@ from .models import (
     DisasterType,
     District,
     Event,
+    EventFeaturedDocument,
     Export,
     ExternalPartner,
     FieldReport,
@@ -708,6 +709,7 @@ class EventViewset(ReadOnlyVisibilityViewset):
                         "districts", "countries", "regions", "contacts"
                     ),
                 ),
+                Prefetch("featured_documents", queryset=EventFeaturedDocument.objects.order_by("-id")),
             )
             .annotate(
                 active_deployments=Count(
@@ -740,13 +742,17 @@ class EventViewset(ReadOnlyVisibilityViewset):
     def retrieve(self, request, pk=None, *args, **kwargs):
         if pk:
             try:
-                FR = Prefetch(
-                    "field_reports",
-                    queryset=FieldReport.objects.prefetch_related("countries", "contacts"),
-                )
+                prefetches = [
+                    "regions",
+                    Prefetch("appeals", queryset=Appeal.objects.select_related("dtype", "event", "country", "region")),
+                    Prefetch("countries", queryset=Country.objects.select_related("region")),
+                    Prefetch("districts", queryset=District.objects.select_related("country")),
+                    Prefetch("field_reports", queryset=FieldReport.objects.prefetch_related("countries", "contacts")),
+                    Prefetch("featured_documents", queryset=EventFeaturedDocument.objects.order_by("-id")),
+                ]
                 if self.request.user.is_authenticated and not self.request.user.profile.limit_access_to_guest:
                     if is_user_ifrc(self.request.user):
-                        instance = Event.objects.prefetch_related(FR).get(pk=pk)
+                        instance = Event.objects.prefetch_related(*prefetches).get(pk=pk)
                     else:
                         user_countries = (
                             UserCountry.objects.filter(user=request.user.id)
@@ -754,13 +760,13 @@ class EventViewset(ReadOnlyVisibilityViewset):
                             .union(Profile.objects.filter(user=request.user.id).values("country"))
                         )
                         instance = (
-                            Event.objects.prefetch_related(FR)
+                            Event.objects.prefetch_related(*prefetches)
                             .exclude(visibility=VisibilityChoices.IFRC)
                             .exclude(Q(visibility=VisibilityChoices.IFRC_NS) & ~Q(countries__id__in=user_countries))
                             .get(pk=pk)
                         )
                 else:
-                    instance = Event.objects.prefetch_related(FR).filter(visibility=VisibilityChoices.PUBLIC).get(pk=pk)
+                    instance = Event.objects.prefetch_related(*prefetches).filter(visibility=VisibilityChoices.PUBLIC).get(pk=pk)
                 # instance = Event.get_for(request.user).get(pk=pk)
             except Exception:
                 raise Http404
