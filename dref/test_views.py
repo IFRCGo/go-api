@@ -6,12 +6,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
-<<<<<<< HEAD
-from rest_framework import status
-||||||| parent of 27d5f9b7 (Script to migrate dref imminents operation timeframe in days)
-=======
 from django.core import management
->>>>>>> 27d5f9b7 (Script to migrate dref imminents operation timeframe in days)
 
 from api.models import Country, DisasterType, District, Region, RegionName
 from deployments.factories.project import SectorFactory
@@ -1498,6 +1493,32 @@ class DrefTestCase(APITestCase):
                 (dref_3.end_date - dref_3.date_of_approval).days,
             },
         )
+
+    def test_dref_operation_imminent_create(self):
+        user1, _ = UserFactory.create_batch(2)
+        dref = DrefFactory.create(
+            title="Test Title",
+            type_of_dref=Dref.DrefType.IMMINENT,
+            created_by=self.user,
+            is_published=True,
+        )
+        dref.users.add(user1)
+        self.country1 = Country.objects.create(name="abc")
+        self.district1 = District.objects.create(name="test district1", country=self.country1)
+        old_count = DrefOperationalUpdate.objects.count()
+        url = "/api/v2/dref-op-update/"
+        data = {
+            "dref": dref.id,
+            "country": self.country1.id,
+            "district": [self.district1.id],
+        }
+        self.authenticate(self.user)
+        response = self.client.post(url, data=data)
+        self.assert_201(response)
+        self.assertEqual(DrefOperationalUpdate.objects.count(), old_count + 1)
+        # DrefOperational
+        # Check if the type of dref on DrefOperationalUpdate is RESPONSE
+        self.assertEqual(response.data["type_of_dref"], Dref.DrefType.RESPONSE)
 
 
 User = get_user_model()

@@ -783,6 +783,10 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["disaster_type"] = dref.disaster_type
             validated_data["type_of_onset"] = dref.type_of_onset
             validated_data["type_of_dref"] = dref.type_of_dref
+            # NOTE: Change the type_of_dref to RESPONSE if it is IMMINENT
+            validated_data["type_of_dref"] = (
+                Dref.DrefType.RESPONSE if dref.type_of_dref == Dref.DrefType.IMMINENT else dref.type_of_dref
+            )
             validated_data["disaster_category"] = dref.disaster_category
             validated_data["number_of_people_targeted"] = dref.num_assisted
             validated_data["number_of_people_affected"] = dref.num_affected
@@ -914,6 +918,12 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["disaster_type"] = dref_operational_update.disaster_type
             validated_data["type_of_onset"] = dref_operational_update.type_of_onset
             validated_data["type_of_dref"] = dref.type_of_dref
+            # NOTE: Change the type_of_dref for OpsUpdate to RESPONSE if it is IMMINENT
+            validated_data["type_of_dref"] = (
+                Dref.DrefType.RESPONSE
+                if dref_operational_update.type_of_dref == Dref.DrefType.IMMINENT
+                else dref_operational_update.type_of_dref
+            )
             validated_data["disaster_category"] = dref_operational_update.disaster_category
             validated_data["number_of_people_targeted"] = dref_operational_update.number_of_people_targeted
             validated_data["number_of_people_affected"] = dref_operational_update.number_of_people_affected
@@ -1149,6 +1159,12 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             validated_data["disaster_type"] = dref_operational_update.disaster_type
             validated_data["type_of_onset"] = dref_operational_update.type_of_onset
             validated_data["type_of_dref"] = dref_operational_update.type_of_dref
+            # NOTE: Change the type_of_dref of Final Report to RESPONSE if it is IMMINENT
+            validated_data["type_of_dref"] = (
+                Dref.DrefType.RESPONSE
+                if dref_operational_update.type_of_dref == Dref.DrefType.IMMINENT
+                else dref_operational_update.type_of_dref
+            )
             validated_data["disaster_category"] = dref_operational_update.disaster_category
             validated_data["number_of_people_targeted"] = dref_operational_update.number_of_people_targeted
             validated_data["number_of_people_affected"] = dref_operational_update.number_of_people_affected
@@ -1276,6 +1292,10 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             validated_data["disaster_type"] = dref.disaster_type
             validated_data["type_of_onset"] = dref.type_of_onset
             validated_data["type_of_dref"] = dref.type_of_dref
+            # NOTE: Change the type_of_dref Final Report to RESPONSE if it is IMMINENT
+            validated_data["type_of_dref"] = (
+                Dref.DrefType.RESPONSE if dref.type_of_dref == Dref.DrefType.IMMINENT else dref.type_of_dref
+            )
             validated_data["disaster_category"] = dref.disaster_category
             validated_data["number_of_people_targeted"] = dref.num_assisted
             validated_data["number_of_people_affected"] = dref.num_affected
