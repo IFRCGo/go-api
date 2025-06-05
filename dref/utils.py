@@ -12,7 +12,7 @@ def get_email_context(instance):
     email_context = {
         "id": dref_data["id"],
         "title": dref_data["title"],
-        "frontend_url": settings.FRONTEND_URL,
+        "frontend_url": settings.GO_WEB_URL,
     }
     return email_context
 
