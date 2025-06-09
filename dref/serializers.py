@@ -855,8 +855,12 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["created_by"] = self.context["request"].user
             validated_data["new_operational_start_date"] = dref.date_of_approval
             validated_data["operational_update_number"] = 1  # if no any dref operational update created so far
-            validated_data["dref_allocated_so_far"] = dref.amount_requested
-            validated_data["total_dref_allocation"] = dref.amount_requested
+            validated_data["dref_allocated_so_far"] = (
+                dref.total_cost if dref.type_of_dref == Dref.DrefType.IMMINENT else dref.amount_requested
+            )
+            validated_data["total_dref_allocation"] = (
+                dref.total_cost if dref.type_of_dref == Dref.DrefType.IMMINENT else dref.amount_requested
+            )
             validated_data["event_description"] = dref.event_description
             validated_data["anticipatory_actions"] = dref.anticipatory_actions
             validated_data["event_scope"] = dref.event_scope
@@ -1297,7 +1301,9 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             validated_data["total_operation_timeframe"] = dref.operation_timeframe
             validated_data["operation_start_date"] = dref.date_of_approval
             validated_data["appeal_code"] = dref.appeal_code
-            validated_data["total_dref_allocation"] = dref.amount_requested
+            validated_data["total_dref_allocation"] = (
+                dref.total_cost if dref.type_of_dref == Dref.DrefType.IMMINENT else dref.amount_requested
+            )
             validated_data["glide_code"] = dref.glide_code
             validated_data["ifrc_appeal_manager_name"] = dref.ifrc_appeal_manager_name
             validated_data["ifrc_appeal_manager_email"] = dref.ifrc_appeal_manager_email
