@@ -17,6 +17,8 @@ from dref.factories.dref import (
     DrefFileFactory,
     DrefFinalReportFactory,
     DrefOperationalUpdateFactory,
+    ProposedActionActivitiesFactory,
+    ProposedActionFactory,
 )
 from dref.models import (
     Dref,
@@ -1375,7 +1377,6 @@ class DrefTestCase(APITestCase):
         self.assert_201(response)
         self.assertEqual(Dref.objects.count(), old_count + 2)
         response_id = response.data["id"]
-        print("Before", response.data["proposed_action"])
 
         # update the dref with proposed action
         url = f"/api/v2/dref/{response_id}/"
@@ -1493,6 +1494,79 @@ class DrefTestCase(APITestCase):
                 (dref_2.end_date - dref_2.date_of_approval).days,
                 (dref_3.end_date - dref_3.date_of_approval).days,
             },
+        )
+
+    def test_dref_total_allocation_for_imminent(self):
+        sector = SectorFactory.create(title="test sector")
+        activity1 = ProposedActionActivitiesFactory.create(
+            sector=sector,
+            activity="Test activity 1",
+        )
+        activity2 = ProposedActionActivitiesFactory.create(
+            sector=sector,
+            activity="Test activity 2",
+        )
+        proposed_action_1 = ProposedActionFactory.create(
+            proposed_type=ProposedAction.Action.EARLY_ACTION,
+            total_budget=70000,
+        )
+        proposed_action_1.activities.set([activity1])
+        proposed_action_2 = ProposedActionFactory.create(
+            proposed_type=ProposedAction.Action.EARLY_RESPONSE,
+            total_budget=5000,
+        )
+        proposed_action_2.activities.set([activity2])
+        dref1 = DrefFactory.create(
+            title="Test Title",
+            type_of_dref=Dref.DrefType.IMMINENT,
+            created_by=self.user,
+            is_published=True,
+            sub_total_cost=75000,
+            indirect_cost=5000,
+            total_cost=80000,
+        )
+        dref1.proposed_action.set([proposed_action_1, proposed_action_2])
+
+        # Create Dref Operational Update
+        url = "/api/v2/dref-op-update/"
+        data = {
+            "dref": dref1.id,
+        }
+        self.authenticate(self.user)
+        response = self.client.post(url, data=data)
+        self.assert_201(response)
+        self.assertEqual(
+            {
+                response.data["type_of_dref"],
+                response.data["dref_allocated_so_far"],
+                response.data["total_dref_allocation"],
+            },
+            {
+                Dref.DrefType.RESPONSE,
+                dref1.total_cost,
+                dref1.total_cost,
+            },
+        )
+        # For Old final Report from Dref imminent
+        dref2 = DrefFactory.create(
+            title="Test Title",
+            type_of_dref=Dref.DrefType.IMMINENT,
+            created_by=self.user,
+            is_published=True,
+            sub_total_cost=75000,
+            indirect_cost=5000,
+            total_cost=80000,
+        )
+        dref2.proposed_action.set([proposed_action_1, proposed_action_2])
+        url = "/api/v2/dref-final-report/"
+        data = {
+            "dref": dref2.id,
+        }
+        response = self.client.post(url, data=data)
+        self.assert_201(response)
+        self.assertEqual(
+            response.data["total_dref_allocation"],
+            dref2.total_cost,
         )
 
     def test_dref_operation_imminent_create(self):
