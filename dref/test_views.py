@@ -1494,14 +1494,12 @@ class DrefTestCase(APITestCase):
         )
 
     def test_dref_operation_imminent_create(self):
-        user1, _ = UserFactory.create_batch(2)
         dref = DrefFactory.create(
             title="Test Title",
             type_of_dref=Dref.DrefType.IMMINENT,
             created_by=self.user,
             is_published=True,
         )
-        dref.users.add(user1)
         self.country1 = Country.objects.create(name="abc")
         self.district1 = District.objects.create(name="test district1", country=self.country1)
         old_count = DrefOperationalUpdate.objects.count()
@@ -1518,3 +1516,61 @@ class DrefTestCase(APITestCase):
         # DrefOperational
         # Check if the type of dref on DrefOperationalUpdate is RESPONSE
         self.assertEqual(response.data["type_of_dref"], Dref.DrefType.RESPONSE)
+
+    def test_dref_imminent_v2_final_report(self):
+        dref1 = DrefFactory.create(
+            title="Test Title",
+            type_of_dref=Dref.DrefType.IMMINENT,
+            created_by=self.user,
+            is_published=True,
+            is_dref_imminent_v2=True,
+        )
+        url = "/api/v2/dref-final-report/"
+        data = {
+            "dref": dref1.id,
+        }
+        self.authenticate(self.user)
+        response = self.client.post(url, data=data)
+        self.assert_400(response)
+
+        # Create Operational Update for Newly created Dref of type IMMINENT
+        DrefOperationalUpdateFactory.create(
+            dref=dref1,
+            type_of_dref=Dref.DrefType.RESPONSE,
+            created_by=self.user,
+            is_published=True,
+            operational_update_number=1,
+        )
+        # Now create Final Report for the same Dref
+        response = self.client.post(url, data=data)
+        self.assert_201(response)
+        self.assertEqual(DrefFinalReport.objects.count(), 1)
+        self.assertEqual(response.data["type_of_dref"], Dref.DrefType.RESPONSE)
+
+        # Check for existing Dref of type IMMINENT
+        dref2 = DrefFactory.create(
+            title="Test Title 2",
+            type_of_dref=Dref.DrefType.IMMINENT,
+            created_by=self.user,
+            is_published=True,
+        )
+        response = self.client.post(url, data={"dref": dref2.id})
+        self.assert_201(response)
+
+        # Check for existing Dref of type IMMINENT with Operational Update
+        dref3 = DrefFactory.create(
+            title="Test Title 3",
+            type_of_dref=Dref.DrefType.IMMINENT,
+            created_by=self.user,
+            is_published=True,
+        )
+        DrefOperationalUpdateFactory.create(
+            dref=dref3,
+            type_of_dref=Dref.DrefType.IMMINENT,
+            created_by=self.user,
+            is_published=True,
+            operational_update_number=1,
+        )
+        response = self.client.post(url, data={"dref": dref3.id})
+        self.assert_201(response)
+        self.assertEqual(response.data["type_of_dref"], Dref.DrefType.IMMINENT)
