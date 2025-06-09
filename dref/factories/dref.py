@@ -3,6 +3,7 @@ from django.core.files.base import ContentFile
 from factory import fuzzy
 
 from api.factories.country import CountryFactory
+from deployments.factories.project import SectorFactory
 from dref.models import (
     Dref,
     DrefFile,
@@ -12,6 +13,8 @@ from dref.models import (
     NationalSocietyAction,
     PlannedIntervention,
     PlannedInterventionIndicators,
+    ProposedAction,
+    ProposedActionActivities,
 )
 
 
@@ -180,3 +183,18 @@ class DrefFinalReportFactory(factory.django.DjangoModelFactory):
         if extracted:
             for need_identified in extracted:
                 self.needs_identified.add(need_identified)
+
+
+class ProposedActionActivitiesFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = ProposedActionActivities
+
+    sector = factory.SubFactory(SectorFactory)
+    activity = fuzzy.FuzzyText(length=10, prefix="activity-")
+
+
+class ProposedActionFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = ProposedAction
+
+    proposed_type = fuzzy.FuzzyChoice(ProposedAction.Action)
