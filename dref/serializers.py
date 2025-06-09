@@ -1126,10 +1126,6 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
                     )
                 )
 
-        # NOTE: Newly Created Dref of type IMMINENT should not allow to create final report
-        if not self.instance and dref and dref.is_dref_imminent_v2 and dref.type_of_dref == Dref.DrefType.IMMINENT:
-            raise serializers.ValidationError(gettext("Can't create Final Report for DREF of type IMMINENT type %s." % dref.id))
-
         if self.instance and self.instance.is_published:
             raise serializers.ValidationError(gettext("Can't update published final report %s." % self.instance.id))
         return data
@@ -1372,6 +1368,12 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
 
             if validated_data["type_of_dref"] == Dref.DrefType.LOAN:
                 raise serializers.ValidationError(gettext("Can't create final report for dref type %s" % Dref.DrefType.LOAN))
+
+            # TODO: Remove me! After final report is implemented for drefs IMMINENT
+            if validated_data["type_of_dref"] == Dref.DrefType.IMMINENT and dref.is_dref_imminent_v2:
+                raise serializers.ValidationError(
+                    gettext("Can't create final report for newly created dref type %s" % Dref.DrefType.IMMINENT)
+                )
             dref_final_report = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
             nested_serialized_file_fields = [
