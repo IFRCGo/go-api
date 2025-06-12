@@ -1,0 +1,5 @@
+env:
+  # NOTE: This will disable the commands in `runserver.sh`, as they are now handled through ArgoCD hooks.
+  DISABLE_AUTO_DEPLOY_COMMANDS: True
+
+argoHooksEnabled: true

@@ -1,12 +1,16 @@
 #!/bin/bash
 mkdir -p $HOME/logs $HOME/static
 
-# apply migrations, load fixture data, collect static files
-python manage.py migrate
-#python manage.py loaddata Regions Countries Districts DisasterTypes Actions #Needed only in case of empty database – otherwise it can cause conflicts
-python manage.py collectstatic --noinput --clear
-python manage.py collectstatic --noinput -l
-#python manage.py make_permissions
+if [ "$DISABLE_AUTO_DEPLOY_COMMANDS" != "True" ]; then
+    # apply migrations, load fixture data, collect static files
+    python manage.py migrate
+    #python manage.py loaddata Regions Countries Districts DisasterTypes Actions #Needed only in case of empty database – otherwise it can cause conflicts
+    python manage.py collectstatic --noinput --clear
+    python manage.py collectstatic --noinput -l
+    #python manage.py make_permissions
+else
+    echo "Skipping auto deploy commands as DISABLE_AUTO_DEPLOY_COMMANDS is set to True"
+fi
 
 # Add server name(s) to django settings and nginx - later maybe only nginx would be enough, and ALLOWED_HOSTS could be "*"
 NGINX_API_FQDN=$(echo $API_FQDN | sed 's|https://||')
