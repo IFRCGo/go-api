@@ -72,6 +72,16 @@ envAdditional:
   # Additional configs
   # EXAMPLE: MY_CONFIG: "my-value"
 
+# ---- Azure deployment specific configurations ------
+
+# Azure configurations
+azure:
+  aksSecretsProviderAvailable: false
+  keyvault:
+    name: ""
+    clientId: ""
+    tenantId: ""
+
 secrets:
   API_TLS_CRT: ''
   API_TLS_KEY: ''

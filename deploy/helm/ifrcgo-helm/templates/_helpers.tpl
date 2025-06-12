@@ -46,3 +46,14 @@ Generate resources metadata
         ) | toYaml
 }}
 {{- end }}
+
+{{/*
+Create the name of the secret to be used by the ifrcgo-helm
+*/}}
+{{- define "ifrcgo-helm.secretname" -}}
+{{- if .Values.secretsName }}
+  {{- .Values.secretsName -}}
+{{- else }}
+  {{- printf "%s-secret" (include "ifrcgo-helm.fullname" .) -}}
+{{- end -}}
+{{- end -}}

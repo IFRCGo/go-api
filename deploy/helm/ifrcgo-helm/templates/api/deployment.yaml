@@ -16,9 +16,11 @@ spec:
       run: {{ .Release.Name }}-api
   template:
     metadata:
+      {{ if not .Values.azure.aksSecretsProviderAvailable }}
       annotations:
         checksum/secret: {{ include (print .Template.BasePath "/config/secret.yaml") . | sha256sum }}
         checksum/configmap: {{ include (print .Template.BasePath "/config/configmap.yaml") . | sha256sum }}
+      {{- end }}
       labels:
         app: {{ template "ifrcgo-helm.name" . }}
         release: {{ .Release.Name }}
@@ -52,5 +54,10 @@ spec:
                 name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
             - configMapRef:
                 name: {{ template "ifrcgo-helm.fullname" . }}-api-configmap
-
+          {{ if not .Values.azure.aksSecretsProviderAvailable }}
+          volumeMounts:
+            - name: {{ include "ifrcgo-helm.secretname" . }}
+              mountPath: /mnt/secrets-store
+              readOnly: true
+          {{- end }}
 {{- end }}
