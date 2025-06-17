@@ -749,6 +749,8 @@ class CountryRelationSerializer(ModelSerializer):
             "icrc_presence",
             "disaster_law_url",
             "country_delegation",
+            "independent",
+            "sovereign_state_id",
         )
 
     @staticmethod
