@@ -214,6 +214,7 @@ class MiniDrefSerializer(serializers.ModelSerializer):
             "id",
             "title",
             "is_published",
+            "is_dref_imminent_v2",
             "national_society",
             "disaster_type",
             "type_of_onset",
