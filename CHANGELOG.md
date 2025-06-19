@@ -6,6 +6,35 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.506
+
+### Added
+ - Package upgrades
+ - Extended country data for country pages redirect
+ - Wire out notification images
+ - Fix image issue on dref notification
+ - Prefetches for EventViewset, mainly for better ordering Featured Documents
+ - Change the redirect url for dref notifications
+ - Add assisted number fields in Dref final report
+ - Chore(personnel): Update filtering for personnel by event
+ - Avoid returning nothing as middleware response
+ - Add migration command for total dref allocation on dref-operational
+ - Validation issue on dref file
+ - Copy over amount_requested and total_dref_allocation to total_dref_allocation
+ - Update dref file caption character limit
+ - Add validation checks for images
+ - Feat(dref): Send notification on adding users to dref
+ - Implementing a new DREF endpoint with simplified data structure
+ - Donors info only for authenticated users
+ - Add support for custom resources per cronjobs
+ - Add filters option on ERU - Update filtering for eru by emergencies
+ - Update ongoing eru deployments and aggregate for deployments
+ - Filter for eru deployments
+ - Update test on ERU and rapid response aggregate
+ - Fix(migration): Remove redundant migration and merge migration files
+ - Add api for export eru readiness to xlsx file (#2461)
+ - Nginx – remove unrequired headers
+
 ## 1.1.505
 
 ### Added
@@ -2659,7 +2688,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.505...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.506...HEAD
+[1.1.506]: https://github.com/IFRCGo/go-api/compare/1.1.505...1.1.506
 [1.1.505]: https://github.com/IFRCGo/go-api/compare/1.1.504...1.1.505
 [1.1.504]: https://github.com/IFRCGo/go-api/compare/1.1.503...1.1.504
 [1.1.503]: https://github.com/IFRCGo/go-api/compare/1.1.502...1.1.503
