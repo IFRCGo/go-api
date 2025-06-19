@@ -1542,7 +1542,7 @@ class DrefTestCase(APITestCase):
                 response.data["total_dref_allocation"],
             },
             {
-                Dref.DrefType.RESPONSE,
+                Dref.DrefType.IMMINENT,
                 dref1.total_cost,
                 dref1.total_cost,
             },
@@ -1589,8 +1589,25 @@ class DrefTestCase(APITestCase):
         response = self.client.post(url, data=data)
         self.assert_201(response)
         self.assertEqual(DrefOperationalUpdate.objects.count(), old_count + 1)
-        # DrefOperational
-        # Check if the type of dref on DrefOperationalUpdate is RESPONSE
+        # NOTE: Should be same type for existing drefs
+        self.assertEqual(response.data["type_of_dref"], Dref.DrefType.IMMINENT)
+
+        # NOTE: New Dref of type IMMINENT with is_dref_imminent_v2
+        dref1 = DrefFactory.create(
+            title="Test Title",
+            type_of_dref=Dref.DrefType.IMMINENT,
+            created_by=self.user,
+            is_published=True,
+            is_dref_imminent_v2=True,
+        )
+        data = {
+            "dref": dref1.id,
+            "country": self.country1.id,
+            "district": [self.district1.id],
+        }
+        response = self.client.post(url, data=data)
+        self.assert_201(response)
+        # DrefOperationalUpdate should be of type RESPONSE for new Dref of type IMMINENT with is_dref_imminent_v2
         self.assertEqual(response.data["type_of_dref"], Dref.DrefType.RESPONSE)
 
     def test_dref_imminent_v2_final_report(self):
