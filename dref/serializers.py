@@ -787,9 +787,11 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["national_society"] = dref.national_society
             validated_data["disaster_type"] = dref.disaster_type
             validated_data["type_of_onset"] = dref.type_of_onset
-            # NOTE: Change the type_of_dref to RESPONSE if it is IMMINENT
+            # NOTE: Change the type_of_dref to RESPONSE if it is newly created DREF IMMINENT
             validated_data["type_of_dref"] = (
-                Dref.DrefType.RESPONSE if dref.type_of_dref == Dref.DrefType.IMMINENT else dref.type_of_dref
+                Dref.DrefType.RESPONSE
+                if dref.type_of_dref == Dref.DrefType.IMMINENT and dref.is_dref_imminent_v2
+                else dref.type_of_dref
             )
             validated_data["disaster_category"] = dref.disaster_category
             validated_data["number_of_people_targeted"] = dref.num_assisted
@@ -855,13 +857,16 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["response_strategy"] = dref.response_strategy
             validated_data["created_by"] = self.context["request"].user
             validated_data["new_operational_start_date"] = dref.date_of_approval
+            validated_data["new_operational_end_date"] = dref.end_date
             validated_data["operational_update_number"] = 1  # if no any dref operational update created so far
-            validated_data["dref_allocated_so_far"] = (
-                dref.total_cost if dref.type_of_dref == Dref.DrefType.IMMINENT else dref.amount_requested
-            )
-            validated_data["total_dref_allocation"] = (
-                dref.total_cost if dref.type_of_dref == Dref.DrefType.IMMINENT else dref.amount_requested
-            )
+            validated_data["dref_allocated_so_far"] = dref.amount_requested
+            validated_data["total_dref_allocation"] = dref.amount_requested
+            if dref.type_of_dref == Dref.DrefType.IMMINENT:
+                validated_data["dref_allocated_so_far"] = dref.total_cost
+                validated_data["total_dref_allocation"] = dref.total_cost
+                # NOTE:These field should be blank for operational update
+                validated_data["total_operation_timeframe"] = None
+                validated_data["new_operational_end_date"] = None
             validated_data["event_description"] = dref.event_description
             validated_data["anticipatory_actions"] = dref.anticipatory_actions
             validated_data["event_scope"] = dref.event_scope
@@ -925,9 +930,11 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["national_society"] = dref_operational_update.national_society
             validated_data["disaster_type"] = dref_operational_update.disaster_type
             validated_data["type_of_onset"] = dref_operational_update.type_of_onset
-            # NOTE: Change the type_of_dref for OpsUpdate to RESPONSE if it is IMMINENT
+            # NOTE: Change the type_of_dref for OpsUpdate to RESPONSE if it is newly created DREF IMMINENT
             validated_data["type_of_dref"] = (
-                Dref.DrefType.RESPONSE if dref.type_of_dref == Dref.DrefType.IMMINENT else dref.type_of_dref
+                Dref.DrefType.RESPONSE
+                if dref.type_of_dref == Dref.DrefType.IMMINENT and dref.is_dref_imminent_v2
+                else dref.type_of_dref
             )
             validated_data["disaster_category"] = dref_operational_update.disaster_category
             validated_data["number_of_people_targeted"] = dref_operational_update.number_of_people_targeted
@@ -1001,6 +1008,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["created_by"] = self.context["request"].user
             validated_data["operational_update_number"] = dref_operational_update.operational_update_number + 1
             validated_data["new_operational_start_date"] = dref_operational_update.dref.date_of_approval
+            validated_data["new_operational_end_date"] = dref_operational_update.new_operational_end_date
             validated_data["dref_allocated_so_far"] = dref_operational_update.total_dref_allocation
             validated_data["event_description"] = dref_operational_update.event_description
             validated_data["anticipatory_actions"] = dref_operational_update.anticipatory_actions
@@ -1175,6 +1183,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             validated_data["total_dref_allocation"] = dref_operational_update.total_dref_allocation
             validated_data["total_operation_timeframe"] = dref_operational_update.total_operation_timeframe
             validated_data["operation_start_date"] = dref_operational_update.dref.date_of_approval
+            validated_data["operation_end_date"] = dref_operational_update.new_operational_end_date
             validated_data["appeal_code"] = dref_operational_update.appeal_code
             validated_data["glide_code"] = dref_operational_update.glide_code
             validated_data["ifrc_appeal_manager_name"] = dref_operational_update.ifrc_appeal_manager_name
@@ -1240,7 +1249,6 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             validated_data["operation_objective"] = dref_operational_update.operation_objective
             validated_data["response_strategy"] = dref_operational_update.response_strategy
             validated_data["created_by"] = self.context["request"].user
-            validated_data["operation_start_date"] = dref_operational_update.dref.date_of_approval
             validated_data["event_description"] = dref_operational_update.event_description
             validated_data["anticipatory_actions"] = dref_operational_update.anticipatory_actions
             validated_data["event_scope"] = dref_operational_update.event_scope
@@ -1265,6 +1273,12 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
 
             if validated_data["type_of_dref"] == Dref.DrefType.LOAN:
                 raise serializers.ValidationError(gettext("Can't create final report for dref type %s" % Dref.DrefType.LOAN))
+
+            # TODO: Remove me! After final report is implemented for drefs IMMINENT
+            if validated_data["type_of_dref"] == Dref.DrefType.IMMINENT and dref.is_dref_imminent_v2:
+                raise serializers.ValidationError(
+                    gettext("Can't create final report for newly created dref type %s" % Dref.DrefType.IMMINENT.label)
+                )
             dref_final_report = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
             nested_serialized_file_fields = [
@@ -1301,10 +1315,14 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             validated_data["estimated_number_of_affected_boys_under_18"] = dref.estimated_number_of_affected_boys_under_18
             validated_data["total_operation_timeframe"] = dref.operation_timeframe
             validated_data["operation_start_date"] = dref.date_of_approval
+            validated_data["operation_end_date"] = dref.end_date
             validated_data["appeal_code"] = dref.appeal_code
-            validated_data["total_dref_allocation"] = (
-                dref.total_cost if dref.type_of_dref == Dref.DrefType.IMMINENT else dref.amount_requested
-            )
+            validated_data["total_dref_allocation"] = dref.amount_requested
+            if dref.type_of_dref == Dref.DrefType.IMMINENT:
+                validated_data["total_dref_allocation"] = dref.total_cost
+                # NOTE:These field should be blank for final report
+                validated_data["total_operation_timeframe"] = None
+                validated_data["operation_end_date"] = None
             validated_data["glide_code"] = dref.glide_code
             validated_data["ifrc_appeal_manager_name"] = dref.ifrc_appeal_manager_name
             validated_data["ifrc_appeal_manager_email"] = dref.ifrc_appeal_manager_email
