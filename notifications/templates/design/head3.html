@@ -1,3 +1,4 @@
+{% load custom_tags %}
 <html>
   <head>
     <!--[if gte mso 9]>
@@ -404,7 +405,11 @@
                             <table width="100%" border="0" cellspacing="0" cellpadding="0">
                               <tr>
                                 <td class="img text-left">
-                                  <img src="https://goadmin-stage.ifrc.org/static/images/logo/go-logo-2020-6cdc2b0c.svg" alt="Logo: International Federation of Red Cross and Red Crescent Societies" height="40" border="0" style="-ms-interpolation-mode:bicubic;" />
+                                  <img height="40" border="0"
+                                    src="{{ 'images/logo/go-logo.png' | static_full_path }}"
+                                    alt="Logo: International Federation of Red Cross and Red Crescent Societies"
+                                    style="-ms-interpolation-mode:bicubic;"
+                                  />
                                 </td>
                               </tr>
                             </table>
@@ -415,7 +420,11 @@
 {% for record in records|slice:":1" %}
                                 <td class="text-header text-default text-right" style="display:block; text-align: right;">
                                   <a href="https://{{ record.resource_uri }}" target="_blank" class="link"
-                                  ><img src="https://goadmin-stage.ifrc.org/static/images/email/OpenInGO.png"></a>
+                                  ><img
+                                    src="{{ 'images/email/OpenInGO.png' | static_full_path }}"
+                                    alt="Open in GO"
+                                    style="-ms-interpolation-mode:bicubic;"
+                                  /></a>
                                 </td>
 {% endfor %}
                               </tr>

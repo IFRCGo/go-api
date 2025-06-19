@@ -1095,7 +1095,8 @@ class DrefTestCase(APITestCase):
         self.assert_201(response)
         self.assertEqual(DrefFinalReport.objects.count(), old_count + 1)
 
-    def test_dref_share(self):
+    @mock.patch("dref.tasks.send_dref_email")
+    def test_dref_share(self, send_dref_email):
         user1 = UserFactory.create(
             username="user1@test.com",
             first_name="Test",
@@ -1155,6 +1156,8 @@ class DrefTestCase(APITestCase):
             set(list(DrefOperationalUpdate.objects.filter(id=op_update.id).values_list("users", flat=True))),
             set([user2.id, user3.id, user4.id]),
         )
+        # check if the notification is called
+        self.assertTrue(send_dref_email.is_called())
 
     def test_completed_dref_operations(self):
         country_1 = Country.objects.create(name="country1")

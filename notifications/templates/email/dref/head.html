@@ -1,3 +1,5 @@
+{% load custom_tags %}
+
 <html>
   <head>
     <!--[if gte mso 9]>
@@ -389,7 +391,11 @@
                             <table width="100%" border="0" cellspacing="0" cellpadding="0">
                               <tr>
                                 <td class="img text-left">
-                                  <img src="https://goadmin-stage.ifrc.org/static/images/logo/go-logo-2020-6cdc2b0c.svg" alt="Logo: International Federation of Red Cross and Red Crescent Societies" height="40" border="0" style="-ms-interpolation-mode:bicubic;" />
+                                  <img
+                                    src="{{ 'images/logo/go-logo.png' | static_full_path }}"
+                                    alt="Logo: International Federation of Red Cross and Red Crescent Societies" height="40" border="0"
+                                    style="-ms-interpolation-mode:bicubic;"
+                                    />
                                 </td>
                               </tr>
                             </table>
@@ -399,7 +405,7 @@
                               <tr>
 
                                 <td class="text-header text-default text-right" style="text-align: right;color: #000000;font-family:'Lato', Arial, sans-serif;">
-                                    <a href="{{ frontend_url }}/dref-application/{{ id }}/edit/" target="_blank" class="link" style="font-family: 'Lato', Arial, sans-serif;text-decoration: underline;color: #000;">Open in GO</a>
+                                    <a href="{{ frontend_url }}/dref-applications/{{ id }}/edit/" target="_blank" class="link" style="font-family: 'Lato', Arial, sans-serif;text-decoration: underline;color: #000;">Open in GO</a>
                                   </td>
 
                               </tr>
