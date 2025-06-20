@@ -14,25 +14,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Wire out notification images
  - Fix image issue on dref notification
  - Prefetches for EventViewset, mainly for better ordering Featured Documents
- - Change the redirect url for dref notifications
- - Add assisted number fields in Dref final report
- - Chore(personnel): Update filtering for personnel by event
+ - Change the redirect url for DREF notifications
+ - Add assisted number fields in DREF final report
+ - Update filtering for personnel by event
  - Avoid returning nothing as middleware response
- - Add migration command for total dref allocation on dref-operational
- - Validation issue on dref file
+ - Add migration command for total DREF allocation on operational-updates
+ - Validation issue on DREF file
  - Copy over amount_requested and total_dref_allocation to total_dref_allocation
- - Update dref file caption character limit
+ - Update DREF file caption character limit
  - Add validation checks for images
- - Feat(dref): Send notification on adding users to dref
+ - Send notification on adding users to DREF
  - Implementing a new DREF endpoint with simplified data structure
  - Donors info only for authenticated users
  - Add support for custom resources per cronjobs
  - Add filters option on ERU - Update filtering for eru by emergencies
- - Update ongoing eru deployments and aggregate for deployments
- - Filter for eru deployments
+ - Update ongoing ERU deployments and aggregate for deployments
+ - Filter for ERU deployments
  - Update test on ERU and rapid response aggregate
- - Fix(migration): Remove redundant migration and merge migration files
- - Add api for export eru readiness to xlsx file (#2461)
+ - Remove redundant migration and merge migration files
+ - Add API endpoint for export ERU readiness to xlsx file
  - Nginx – remove unrequired headers
 
 ## 1.1.505
