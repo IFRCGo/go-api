@@ -1560,10 +1560,13 @@ class BaseDref3Serializer(serializers.ModelSerializer):
         return ", ".join(d.code for d in obj.district.all())
 
     def get_type_of_onset(self, obj):
-        return Dref.OnsetType(obj.type_of_onset).label
+        type_of_onset = obj.type_of_onset if obj.type_of_onset != 0 else 1  # Default to "Slow Onset" if not set
+        return Dref.OnsetType(type_of_onset).label
 
     def get_crisis_categorization(self, obj):
-        return Dref.DisasterCategory(obj.disaster_category).label
+        if obj.disaster_category:
+            return Dref.DisasterCategory(obj.disaster_category).label
+        return "Unknown category"
 
     def get_amount_approved(self, obj):
         if hasattr(obj, "amount_requested"):
@@ -1632,12 +1635,12 @@ class BaseDref3Serializer(serializers.ModelSerializer):
     def get_shelter_and_basic_household_items_budget(self, obj):
         topic = PlannedIntervention.Title.SHELTER_HOUSING_AND_SETTLEMENTS
         if obj.planned_interventions.count():
-            return sum([p.budget for p in obj.planned_interventions.all() if p.title == topic])
+            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
     def get_shelter_and_basic_household_items_people_targeted(self, obj):
         topic = PlannedIntervention.Title.SHELTER_HOUSING_AND_SETTLEMENTS
         if obj.planned_interventions.count():
-            return sum([p.person_targeted for p in obj.planned_interventions.all() if p.person_targeted and p.title == topic])
+            return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
     def get_livelihoods(self, obj):
         topic = PlannedIntervention.Title.LIVELIHOODS_AND_BASIC_NEEDS
@@ -1646,12 +1649,12 @@ class BaseDref3Serializer(serializers.ModelSerializer):
     def get_livelihoods_budget(self, obj):
         topic = PlannedIntervention.Title.LIVELIHOODS_AND_BASIC_NEEDS
         if obj.planned_interventions.count():
-            return sum([p.budget for p in obj.planned_interventions.all() if p.title == topic])
+            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
     def get_livelihoods_people_targeted(self, obj):
         topic = PlannedIntervention.Title.LIVELIHOODS_AND_BASIC_NEEDS
         if obj.planned_interventions.count():
-            return sum([p.person_targeted for p in obj.planned_interventions.all() if p.person_targeted and p.title == topic])
+            return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
     def get_multi_purpose_cash_grants(self, obj):
         topic = PlannedIntervention.Title.MULTI_PURPOSE_CASH
@@ -1660,12 +1663,12 @@ class BaseDref3Serializer(serializers.ModelSerializer):
     def get_multi_purpose_cash_grants_budget(self, obj):
         topic = PlannedIntervention.Title.MULTI_PURPOSE_CASH
         if obj.planned_interventions.count():
-            return sum([p.budget for p in obj.planned_interventions.all() if p.title == topic])
+            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
     def get_multi_purpose_cash_grants_people_targeted(self, obj):
         topic = PlannedIntervention.Title.MULTI_PURPOSE_CASH
         if obj.planned_interventions.count():
-            return sum([p.person_targeted for p in obj.planned_interventions.all() if p.person_targeted and p.title == topic])
+            return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
     def get_health(self, obj):
         topic = PlannedIntervention.Title.HEALTH
@@ -1674,12 +1677,12 @@ class BaseDref3Serializer(serializers.ModelSerializer):
     def get_health_budget(self, obj):
         topic = PlannedIntervention.Title.HEALTH
         if obj.planned_interventions.count():
-            return sum([p.budget for p in obj.planned_interventions.all() if p.title == topic])
+            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
     def get_health_people_targeted(self, obj):
         topic = PlannedIntervention.Title.HEALTH
         if obj.planned_interventions.count():
-            return sum([p.person_targeted for p in obj.planned_interventions.all() if p.person_targeted and p.title == topic])
+            return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
     def get_water_sanitation_and_hygiene(self, obj):
         topic = PlannedIntervention.Title.WATER_SANITATION_AND_HYGIENE
@@ -1688,12 +1691,12 @@ class BaseDref3Serializer(serializers.ModelSerializer):
     def get_water_sanitation_and_hygiene_budget(self, obj):
         topic = PlannedIntervention.Title.WATER_SANITATION_AND_HYGIENE
         if obj.planned_interventions.count():
-            return sum([p.budget for p in obj.planned_interventions.all() if p.title == topic])
+            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
     def get_water_sanitation_and_hygiene_people_targeted(self, obj):
         topic = PlannedIntervention.Title.WATER_SANITATION_AND_HYGIENE
         if obj.planned_interventions.count():
-            return sum([p.person_targeted for p in obj.planned_interventions.all() if p.person_targeted and p.title == topic])
+            return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
     def get_protection_gender_and_inclusion(self, obj):
         topic = PlannedIntervention.Title.PROTECTION_GENDER_AND_INCLUSION
@@ -1702,12 +1705,12 @@ class BaseDref3Serializer(serializers.ModelSerializer):
     def get_protection_gender_and_inclusion_budget(self, obj):
         topic = PlannedIntervention.Title.PROTECTION_GENDER_AND_INCLUSION
         if obj.planned_interventions.count():
-            return sum([p.budget for p in obj.planned_interventions.all() if p.title == topic])
+            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
     def get_protection_gender_and_inclusion_people_targeted(self, obj):
         topic = PlannedIntervention.Title.PROTECTION_GENDER_AND_INCLUSION
         if obj.planned_interventions.count():
-            return sum([p.person_targeted for p in obj.planned_interventions.all() if p.person_targeted and p.title == topic])
+            return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
     def get_education(self, obj):
         topic = PlannedIntervention.Title.EDUCATION
@@ -1716,12 +1719,12 @@ class BaseDref3Serializer(serializers.ModelSerializer):
     def get_education_budget(self, obj):
         topic = PlannedIntervention.Title.EDUCATION
         if obj.planned_interventions.count():
-            return sum([p.budget for p in obj.planned_interventions.all() if p.title == topic])
+            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
     def get_education_people_targeted(self, obj):
         topic = PlannedIntervention.Title.EDUCATION
         if obj.planned_interventions.count():
-            return sum([p.person_targeted for p in obj.planned_interventions.all() if p.person_targeted and p.title == topic])
+            return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
     def get_migration_and_displacement(self, obj):
         topic = PlannedIntervention.Title.MIGRATION_AND_DISPLACEMENT
@@ -1730,12 +1733,12 @@ class BaseDref3Serializer(serializers.ModelSerializer):
     def get_migration_and_displacement_budget(self, obj):
         topic = PlannedIntervention.Title.MIGRATION_AND_DISPLACEMENT
         if obj.planned_interventions.count():
-            return sum([p.budget for p in obj.planned_interventions.all() if p.title == topic])
+            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
     def get_migration_and_displacement_people_targeted(self, obj):
         topic = PlannedIntervention.Title.MIGRATION_AND_DISPLACEMENT
         if obj.planned_interventions.count():
-            return sum([p.person_targeted for p in obj.planned_interventions.all() if p.person_targeted and p.title == topic])
+            return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
     def get_risk_reduction_climate_adaptation_and_recovery(self, obj):
         topic = PlannedIntervention.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY
@@ -1744,12 +1747,12 @@ class BaseDref3Serializer(serializers.ModelSerializer):
     def get_risk_reduction_climate_adaptation_and_recovery_budget(self, obj):
         topic = PlannedIntervention.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY
         if obj.planned_interventions.count():
-            return sum([p.budget for p in obj.planned_interventions.all() if p.title == topic])
+            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
     def get_risk_reduction_climate_adaptation_and_recovery_people_targeted(self, obj):
         topic = PlannedIntervention.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY
         if obj.planned_interventions.count():
-            return sum([p.person_targeted for p in obj.planned_interventions.all() if p.person_targeted and p.title == topic])
+            return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
     def get_community_engagement_and_accountability(self, obj):
         topic = PlannedIntervention.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY
@@ -1758,12 +1761,12 @@ class BaseDref3Serializer(serializers.ModelSerializer):
     def get_community_engagement_and_accountability_budget(self, obj):
         topic = PlannedIntervention.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY
         if obj.planned_interventions.count():
-            return sum([p.budget for p in obj.planned_interventions.all() if p.title == topic])
+            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
     def get_community_engagement_and_accountability_people_targeted(self, obj):
         topic = PlannedIntervention.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY
         if obj.planned_interventions.count():
-            return sum([p.person_targeted for p in obj.planned_interventions.all() if p.person_targeted and p.title == topic])
+            return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
     def get_enviromental_sustainability(self, obj):
         topic = PlannedIntervention.Title.ENVIRONMENTAL_SUSTAINABILITY
@@ -1772,12 +1775,12 @@ class BaseDref3Serializer(serializers.ModelSerializer):
     def get_enviromental_sustainability_budget(self, obj):
         topic = PlannedIntervention.Title.ENVIRONMENTAL_SUSTAINABILITY
         if obj.planned_interventions.count():
-            return sum([p.budget for p in obj.planned_interventions.all() if p.title == topic])
+            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
     def get_enviromental_sustainability_people_targeted(self, obj):
         topic = PlannedIntervention.Title.ENVIRONMENTAL_SUSTAINABILITY
         if obj.planned_interventions.count():
-            return sum([p.person_targeted for p in obj.planned_interventions.all() if p.person_targeted and p.title == topic])
+            return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
     def get_coordination_and_partnerships(self, obj):
         topic = PlannedIntervention.Title.COORDINATION_AND_PARTNERSHIPS
@@ -1786,12 +1789,12 @@ class BaseDref3Serializer(serializers.ModelSerializer):
     def get_coordination_and_partnerships_budget(self, obj):
         topic = PlannedIntervention.Title.COORDINATION_AND_PARTNERSHIPS
         if obj.planned_interventions.count():
-            return sum([p.budget for p in obj.planned_interventions.all() if p.title == topic])
+            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
     def get_coordination_and_partnerships_people_targeted(self, obj):
         topic = PlannedIntervention.Title.COORDINATION_AND_PARTNERSHIPS
         if obj.planned_interventions.count():
-            return sum([p.person_targeted for p in obj.planned_interventions.all() if p.person_targeted and p.title == topic])
+            return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
     def get_secretariat_services(self, obj):
         topic = PlannedIntervention.Title.SECRETARIAT_SERVICES
@@ -1800,12 +1803,12 @@ class BaseDref3Serializer(serializers.ModelSerializer):
     def get_secretariat_services_budget(self, obj):
         topic = PlannedIntervention.Title.SECRETARIAT_SERVICES
         if obj.planned_interventions.count():
-            return sum([p.budget for p in obj.planned_interventions.all() if p.title == topic])
+            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
     def get_secretariat_services_people_targeted(self, obj):
         topic = PlannedIntervention.Title.SECRETARIAT_SERVICES
         if obj.planned_interventions.count():
-            return sum([p.person_targeted for p in obj.planned_interventions.all() if p.person_targeted and p.title == topic])
+            return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
     def get_national_society_strengthening(self, obj):
         topic = PlannedIntervention.Title.NATIONAL_SOCIETY_STRENGTHENING
@@ -1814,12 +1817,12 @@ class BaseDref3Serializer(serializers.ModelSerializer):
     def get_national_society_strengthening_budget(self, obj):
         topic = PlannedIntervention.Title.NATIONAL_SOCIETY_STRENGTHENING
         if obj.planned_interventions.count():
-            return sum([p.budget for p in obj.planned_interventions.all() if p.title == topic])
+            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
     def get_national_society_strengthening_people_targeted(self, obj):
         topic = PlannedIntervention.Title.NATIONAL_SOCIETY_STRENGTHENING
         if obj.planned_interventions.count():
-            return sum([p.person_targeted for p in obj.planned_interventions.all() if p.person_targeted and p.title == topic])
+            return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
     def get_approved(self, obj):
         return "Yes" if obj.is_published else "No"

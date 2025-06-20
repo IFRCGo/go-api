@@ -3,8 +3,10 @@ from datetime import datetime, timedelta
 from unittest import mock
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
+from rest_framework import status
 
 from api.models import Country, DisasterType, District, Region, RegionName
 from deployments.factories.user import UserFactory
@@ -1343,3 +1345,23 @@ class DrefTestCase(APITestCase):
     #     response = self.client.post(url, data, format="json")
     #     self.assert_201(response)
     #     self.assertEqual(Dref.objects.count(), old_count + 2)
+
+
+User = get_user_model()
+
+
+class Dref3ViewSetTests(APITestCase):
+    def setUp(self):
+        self.superuser = User.objects.create_superuser("admin", "admin@example.com", "password")
+        self.user = User.objects.create_user("user", "user@example.com", "password")
+        self.url = "/api/v2/dref3/"
+
+    def test_superuser_can_access_list(self):
+        self.client.force_authenticate(user=self.superuser)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_normal_user_cannot_access_list(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

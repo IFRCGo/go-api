@@ -12,6 +12,14 @@ class ModifyBySuperAdminOnly(permissions.BasePermission):
         return self.has_permission(request, view)
 
 
+class UseBySuperAdminOnly(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_superuser
+
+    def has_object_permission(self, request, view, obj):
+        return self.has_permission(request, view)
+
+
 class DenyGuestUserMutationPermission(permissions.BasePermission):
     """
     Custom permission to deny mutation actions for logged-in guest users.

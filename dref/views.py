@@ -41,7 +41,7 @@ from dref.serializers import (
     DrefShareUserSerializer,
     MiniDrefSerializer,
 )
-from main.permissions import DenyGuestUserPermission
+from main.permissions import DenyGuestUserPermission, UseBySuperAdminOnly
 
 
 def filter_dref_queryset_by_user_access(user, queryset):
@@ -282,7 +282,7 @@ class DrefShareUserViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
+    permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission, UseBySuperAdminOnly]
     #    serializer_class = DrefSerializer
     #    filterset_class = DrefFilter
     lookup_field = "appeal_code"
@@ -290,6 +290,59 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):
     def get_queryset(self):
         # just to give something to rest_framework/generics.py:63 – not used in retrieve
         return Dref.objects.none()
+
+    def list(self, request):
+        # === First approach – would be nice to work like this, but recent definitons are more complex than that:
+        # # Aggregate all appeal-codes from the three models
+        # drefs = Dref.objects.all()
+        # ops = DrefOperationalUpdate.objects.all()
+        # finals = DrefFinalReport.objects.all()
+        # data = Dref3Serializer(list(drefs) + list(ops) + list(finals), many=True).data
+        # return response.Response(data)
+
+        # === Second approach:
+        # Get appeal_codes – then self.retrieve
+
+        codes_qs = Dref.objects.exclude(appeal_code="").values_list("appeal_code", flat=True).distinct().order_by("appeal_code")
+
+        # Filtering by appeal_code prefix
+        appeal_code_prefix = request.query_params.get("appeal_code_prefix")
+        if appeal_code_prefix:
+            codes_qs = codes_qs.filter(appeal_code__startswith=appeal_code_prefix)
+
+        # Filtering by different date ranges
+        for field in [
+            "event_date",
+            "ns_respond_date",
+            "government_requested_assistance_date",
+            "ns_request_date",
+            "submission_to_geneva",
+            "date_of_approval",
+            "publishing_date",
+            "hazard_date_and_location",
+            "end_date",
+        ]:
+            from_param = f"{field}_from"
+            to_param = f"{field}_to"
+            from_value = request.query_params.get(from_param)
+            to_value = request.query_params.get(to_param)
+            if from_value:
+                codes_qs = codes_qs.filter(**{f"{field}__gte": from_value})
+            if to_value:
+                codes_qs = codes_qs.filter(**{f"{field}__lte": to_value})
+
+        codes = list(codes_qs)
+
+        data = []
+        old_kwargs = getattr(self, "kwargs", {}).copy()
+        for code in codes:
+            self.kwargs = {self.lookup_field: code}
+            resp = self.retrieve(request)
+            if resp.status_code == 200:
+                for item in resp.data if isinstance(resp.data, list) else [resp.data]:
+                    data.append(item)
+        self.kwargs = old_kwargs  # Restore old kwargs
+        return response.Response(data)
 
     def get_serializer_class(self):
         # just to give something to rest_framework/generics.py:122 – not used in retrieve
