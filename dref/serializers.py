@@ -29,6 +29,7 @@ from dref.models import (
     PlannedIntervention,
     PlannedInterventionIndicators,
     ProposedAction,
+    ProposedActionActivities,
     RiskSecurity,
     SourceInformation,
 )
@@ -58,15 +59,29 @@ class PlannedInterventionIndicatorsSerializer(ModelSerializer):
         fields = "__all__"
 
 
-class ProposedActionSerializer(serializers.ModelSerializer):
+class ProposedActionActivitySerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
+    sector = serializers.PrimaryKeyRelatedField(queryset=Sector.objects.all(), required=True)
 
+    class Meta:
+        model = ProposedActionActivities
+        fields = "__all__"
+
+
+class ProposedActionSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
     proposed_type_display = serializers.CharField(source="get_proposed_type_display", read_only=True)
-    activity = serializers.PrimaryKeyRelatedField(queryset=Sector.objects.all(), required=True)
-    budget = serializers.IntegerField(required=True)
+    activities = ProposedActionActivitySerializer(many=True, required=True)
+    total_budget = serializers.IntegerField(required=True)
 
     class Meta:
         model = ProposedAction
         fields = "__all__"
+
+    def validate_activities(self, activities):
+        if not activities:
+            raise serializers.ValidationError("At least one activity is required")
+        return activities
 
 
 class DrefFileInputSerializer(serializers.Serializer):
@@ -199,6 +214,7 @@ class MiniDrefSerializer(serializers.ModelSerializer):
             "id",
             "title",
             "is_published",
+            "is_dref_imminent_v2",
             "national_society",
             "disaster_type",
             "type_of_onset",
@@ -356,10 +372,10 @@ class MiniDrefFinalReportSerializer(ModelSerializer):
 
 
 class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
-    SUB_TOTAL = 75000
+    SUB_TOTAL_COST = 75000
     SURGE_DEPLOYMENT_COST = 10000
-    INDIRECT_COST_SURGE = 5800
-    INDIRECT_COST_NO_SURGE = 5000
+    SURGE_INDIRECT_COST = 5800
+    NO_SURGE_INDIRECT_COST = 5000
     MAX_NUMBER_OF_IMAGES = 4
     ALLOWED_BUDGET_FILE_EXTENSIONS = ["pdf"]
     ALLOWED_ASSESSMENT_REPORT_EXTENSIONS = ["pdf", "docx", "pptx", "xlsx"]
@@ -399,13 +415,13 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
     modified_at = serializers.DateTimeField(required=False)
     dref_access_user_list = serializers.SerializerMethodField()
     source_information = SourceInformationSerializer(many=True, required=False)
-    # NOTE: Commenting out for reverting dref imminent new flow
-    # scenario_analysis_supporting_document_details = DrefFileSerializer(
-    #     source="scenario_analysis_supporting_document", read_only=True, required=False, allow_null=True
-    # )
-    # contingency_plans_supporting_document_details = DrefFileSerializer(
-    #     source="contingency_plans_supporting_document", read_only=True, required=False, allow_null=True
-    # )
+    scenario_analysis_supporting_document_details = DrefFileSerializer(
+        source="scenario_analysis_supporting_document", read_only=True, required=False, allow_null=True
+    )
+    contingency_plans_supporting_document_details = DrefFileSerializer(
+        source="contingency_plans_supporting_document", read_only=True, required=False, allow_null=True
+    )
+    proposed_action = ProposedActionSerializer(many=True, required=False)
 
     class Meta:
         model = Dref
@@ -467,76 +483,75 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
             raise serializers.ValidationError(
                 gettext("Operation timeframe can't be greater than %s for assessment_report" % self.MAX_OPERATION_TIMEFRAME)
             )
-        return data
 
         # NOTE: Validation for type DREF Imminent
-        # NOTE: Commenting out the validation for DREF IMMINENT as of now
-        # if data.get("type_of_dref") == Dref.DrefType.IMMINENT:
-        #     is_surge_personnel_deployed = data.get("is_surge_personnel_deployed")
-        #     sub_total = data.get("sub_total")
-        #     surge_deployment_cost = data.get("surge_deployment_cost")
-        #     indirect_cost = data.get("indirect_cost")
-        #     total = data.get("total")
-        #     proposed_actions = data.get("proposed_action", [])
+        if data.get("type_of_dref") == Dref.DrefType.IMMINENT:
+            is_surge_personnel_deployed = data.get("is_surge_personnel_deployed")
+            sub_total_cost = data.get("sub_total_cost")
+            surge_deployment_cost = data.get("surge_deployment_cost")
+            indirect_cost = data.get("indirect_cost")
+            total_cost = data.get("total_cost")
+            proposed_actions = data.get("proposed_action", [])
 
-        #     if not proposed_actions:
-        #         raise serializers.ValidationError(
-        #             {"proposed_action": gettext("Proposed Action is required for type DREF Imminent")}
-        #         )
-        #     if not sub_total:
-        #         raise serializers.ValidationError({"sub_total": gettext("Sub-total is required for Imminent DREF")})
-        #     if sub_total != self.SUB_TOTAL:
-        #         raise serializers.ValidationError(
-        #             {"sub_total": gettext("Sub-total should be equal to %s for Imminent DREF" % self.SUB_TOTAL)}
-        #         )
-        #     if is_surge_personnel_deployed and not surge_deployment_cost:
-        #         raise serializers.ValidationError(
-        #             {"surge_deployment_cost": gettext("Surge Deployment is required for Imminent DREF")}
-        #         )
-        #     if not indirect_cost:
-        #         raise serializers.ValidationError({"indirect_cost": gettext("Indirect Cost is required for Imminent DREF")})
-        #     if not total:
-        #         raise serializers.ValidationError({"total": gettext("Total is required for Imminent DREF")})
+            if not proposed_actions:
+                raise serializers.ValidationError(
+                    {"proposed_action": gettext("Proposed Action is required for type DREF Imminent")}
+                )
+            if not sub_total_cost:
+                raise serializers.ValidationError({"sub_total_cost": gettext("Sub-total is required for Imminent DREF")})
+            if sub_total_cost != self.SUB_TOTAL_COST:
+                raise serializers.ValidationError(
+                    {"sub_total": gettext("Sub-total should be equal to %s for Imminent DREF" % self.SUB_TOTAL_COST)}
+                )
+            if is_surge_personnel_deployed and not surge_deployment_cost:
+                raise serializers.ValidationError(
+                    {"surge_deployment_cost": gettext("Surge Deployment is required for Imminent DREF")}
+                )
+            if not indirect_cost:
+                raise serializers.ValidationError({"indirect_cost": gettext("Indirect Cost is required for Imminent DREF")})
+            if not total_cost:
+                raise serializers.ValidationError({"total_cost": gettext("Total is required for Imminent DREF")})
 
-        #     proposed_budget = sum(action.get("budget", 0) for action in proposed_actions)
-        #     if proposed_budget != sub_total:
-        #         raise serializers.ValidationError("Sub-total should be equal to proposed budget")
+            total_proposed_budget = sum(action.get("total_budget", 0) for action in proposed_actions)
+            if total_proposed_budget != sub_total_cost:
+                raise serializers.ValidationError("Sub-total should be equal to proposed budget")
 
-        #     if is_surge_personnel_deployed:
-        #         if surge_deployment_cost != self.SURGE_DEPLOYMENT_COST:
-        #             raise serializers.ValidationError(
-        #                 {
-        #                     "surge_deployment_cost": gettext(
-        #                         "Surge Deployment Cost should be equal to %s for Surge Personnel Deployed"
-        #                         % self.SURGE_DEPLOYMENT_COST
-        #                     )
-        #                 }
-        #             )
-        #         if indirect_cost != self.INDIRECT_COST_SURGE:
-        #             raise serializers.ValidationError(
-        #                 {
-        #                     "indirect_cost": gettext(
-        #                         "Indirect Cost should be equal to %s for Surge Personnel Deployed" % self.INDIRECT_COST_SURGE
-        #                     )
-        #                 }
-        #             )
-        #         expected_total = surge_deployment_cost + indirect_cost + sub_total
-        #     else:
-        #         if indirect_cost != self.INDIRECT_COST_NO_SURGE:
-        #             raise serializers.ValidationError(
-        #                 {
-        #                     "indirect_cost": gettext(
-        #                         "Indirect Cost should be equal to %s for No Surge Personnel Deployed"
-        #                         % self.INDIRECT_COST_NO_SURGE
-        #                     )
-        #                 }
-        #             )
-        #         expected_total = indirect_cost + sub_total
+            if is_surge_personnel_deployed:
+                if surge_deployment_cost != self.SURGE_DEPLOYMENT_COST:
+                    raise serializers.ValidationError(
+                        {
+                            "surge_deployment_cost": gettext(
+                                "Surge Deployment Cost should be equal to %s for Surge Personnel Deployed"
+                                % self.SURGE_DEPLOYMENT_COST
+                            )
+                        }
+                    )
+                if indirect_cost != self.SURGE_INDIRECT_COST:
+                    raise serializers.ValidationError(
+                        {
+                            "indirect_cost": gettext(
+                                "Indirect Cost should be equal to %s for Surge Personnel Deployed" % self.SURGE_INDIRECT_COST
+                            )
+                        }
+                    )
+                expected_total = surge_deployment_cost + indirect_cost + sub_total_cost
+            else:
+                if indirect_cost != self.NO_SURGE_INDIRECT_COST:
+                    raise serializers.ValidationError(
+                        {
+                            "indirect_cost": gettext(
+                                "Indirect Cost should be equal to %s for No Surge Personnel Deployed"
+                                % self.NO_SURGE_INDIRECT_COST
+                            )
+                        }
+                    )
+                expected_total = indirect_cost + sub_total_cost
 
-        #     if expected_total != total:
-        #         raise serializers.ValidationError(
-        #             {"total": gettext("Total should be equal to sum of Sub-total, Surge Deployment Cost and Indirect Cost")}
-        #         )
+            if expected_total != total_cost:
+                raise serializers.ValidationError(
+                    {"total_cost": gettext("Total should be equal to sum of Sub-total, Surge Deployment Cost and Indirect Cost")}
+                )
+        return data
 
     def validate_images_file(self, images):
         # Don't allow images more than MAX_NUMBER_OF_IMAGES
@@ -619,6 +634,10 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
             dref_assessment_report = super().create(validated_data)
             dref_assessment_report.needs_identified.clear()
             return dref_assessment_report
+        # NOTE: Setting flag for only newly created DREF of type IMMINENT
+        if type_of_dref == Dref.DrefType.IMMINENT:
+            validated_data["is_dref_imminent_v2"] = True
+
         if "users" in validated_data:
             to = {u.email for u in validated_data["users"]}
         else:
@@ -768,7 +787,12 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["national_society"] = dref.national_society
             validated_data["disaster_type"] = dref.disaster_type
             validated_data["type_of_onset"] = dref.type_of_onset
-            validated_data["type_of_dref"] = dref.type_of_dref
+            # NOTE: Change the type_of_dref to RESPONSE if it is newly created DREF IMMINENT
+            validated_data["type_of_dref"] = (
+                Dref.DrefType.RESPONSE
+                if dref.type_of_dref == Dref.DrefType.IMMINENT and dref.is_dref_imminent_v2
+                else dref.type_of_dref
+            )
             validated_data["disaster_category"] = dref.disaster_category
             validated_data["number_of_people_targeted"] = dref.num_assisted
             validated_data["number_of_people_affected"] = dref.num_affected
@@ -833,9 +857,16 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["response_strategy"] = dref.response_strategy
             validated_data["created_by"] = self.context["request"].user
             validated_data["new_operational_start_date"] = dref.date_of_approval
+            validated_data["new_operational_end_date"] = dref.end_date
             validated_data["operational_update_number"] = 1  # if no any dref operational update created so far
             validated_data["dref_allocated_so_far"] = dref.amount_requested
             validated_data["total_dref_allocation"] = dref.amount_requested
+            if dref.type_of_dref == Dref.DrefType.IMMINENT:
+                validated_data["dref_allocated_so_far"] = dref.total_cost
+                validated_data["total_dref_allocation"] = dref.total_cost
+                # NOTE:These field should be blank for operational update
+                validated_data["total_operation_timeframe"] = None
+                validated_data["new_operational_end_date"] = None
             validated_data["event_description"] = dref.event_description
             validated_data["anticipatory_actions"] = dref.anticipatory_actions
             validated_data["event_scope"] = dref.event_scope
@@ -899,7 +930,12 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["national_society"] = dref_operational_update.national_society
             validated_data["disaster_type"] = dref_operational_update.disaster_type
             validated_data["type_of_onset"] = dref_operational_update.type_of_onset
-            validated_data["type_of_dref"] = dref.type_of_dref
+            # NOTE: Change the type_of_dref for OpsUpdate to RESPONSE if it is newly created DREF IMMINENT
+            validated_data["type_of_dref"] = (
+                Dref.DrefType.RESPONSE
+                if dref.type_of_dref == Dref.DrefType.IMMINENT and dref.is_dref_imminent_v2
+                else dref.type_of_dref
+            )
             validated_data["disaster_category"] = dref_operational_update.disaster_category
             validated_data["number_of_people_targeted"] = dref_operational_update.number_of_people_targeted
             validated_data["number_of_people_affected"] = dref_operational_update.number_of_people_affected
@@ -972,6 +1008,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["created_by"] = self.context["request"].user
             validated_data["operational_update_number"] = dref_operational_update.operational_update_number + 1
             validated_data["new_operational_start_date"] = dref_operational_update.dref.date_of_approval
+            validated_data["new_operational_end_date"] = dref_operational_update.new_operational_end_date
             validated_data["dref_allocated_so_far"] = dref_operational_update.total_dref_allocation
             validated_data["event_description"] = dref_operational_update.event_description
             validated_data["anticipatory_actions"] = dref_operational_update.anticipatory_actions
@@ -1101,6 +1138,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
                         % ",".join(map(str, dref_operational_update))
                     )
                 )
+
         if self.instance and self.instance.is_published:
             raise serializers.ValidationError(gettext("Can't update published final report %s." % self.instance.id))
         return data
@@ -1145,6 +1183,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             validated_data["total_dref_allocation"] = dref_operational_update.total_dref_allocation
             validated_data["total_operation_timeframe"] = dref_operational_update.total_operation_timeframe
             validated_data["operation_start_date"] = dref_operational_update.dref.date_of_approval
+            validated_data["operation_end_date"] = dref_operational_update.new_operational_end_date
             validated_data["appeal_code"] = dref_operational_update.appeal_code
             validated_data["glide_code"] = dref_operational_update.glide_code
             validated_data["ifrc_appeal_manager_name"] = dref_operational_update.ifrc_appeal_manager_name
@@ -1210,7 +1249,6 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             validated_data["operation_objective"] = dref_operational_update.operation_objective
             validated_data["response_strategy"] = dref_operational_update.response_strategy
             validated_data["created_by"] = self.context["request"].user
-            validated_data["operation_start_date"] = dref_operational_update.dref.date_of_approval
             validated_data["event_description"] = dref_operational_update.event_description
             validated_data["anticipatory_actions"] = dref_operational_update.anticipatory_actions
             validated_data["event_scope"] = dref_operational_update.event_scope
@@ -1235,6 +1273,12 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
 
             if validated_data["type_of_dref"] == Dref.DrefType.LOAN:
                 raise serializers.ValidationError(gettext("Can't create final report for dref type %s" % Dref.DrefType.LOAN))
+
+            # TODO: Remove me! After final report is implemented for drefs IMMINENT
+            if validated_data["type_of_dref"] == Dref.DrefType.IMMINENT and dref.is_dref_imminent_v2:
+                raise serializers.ValidationError(
+                    gettext("Can't create final report for newly created dref type %s" % Dref.DrefType.IMMINENT.label)
+                )
             dref_final_report = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
             nested_serialized_file_fields = [
@@ -1271,8 +1315,14 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             validated_data["estimated_number_of_affected_boys_under_18"] = dref.estimated_number_of_affected_boys_under_18
             validated_data["total_operation_timeframe"] = dref.operation_timeframe
             validated_data["operation_start_date"] = dref.date_of_approval
+            validated_data["operation_end_date"] = dref.end_date
             validated_data["appeal_code"] = dref.appeal_code
             validated_data["total_dref_allocation"] = dref.amount_requested
+            if dref.type_of_dref == Dref.DrefType.IMMINENT:
+                validated_data["total_dref_allocation"] = dref.total_cost
+                # NOTE:These field should be blank for final report
+                validated_data["total_operation_timeframe"] = None
+                validated_data["operation_end_date"] = None
             validated_data["glide_code"] = dref.glide_code
             validated_data["ifrc_appeal_manager_name"] = dref.ifrc_appeal_manager_name
             validated_data["ifrc_appeal_manager_email"] = dref.ifrc_appeal_manager_email
@@ -1342,7 +1392,15 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             validated_data["ns_respond_date"] = dref.ns_respond_date
 
             if validated_data["type_of_dref"] == Dref.DrefType.LOAN:
-                raise serializers.ValidationError(gettext("Can't create final report for dref type %s" % Dref.DrefType.LOAN))
+                raise serializers.ValidationError(
+                    gettext("Can't create final report for dref type %s" % Dref.DrefType.LOAN.label)
+                )
+
+            # TODO: Remove me! After final report is implemented for drefs IMMINENT
+            if validated_data["type_of_dref"] == Dref.DrefType.IMMINENT and dref.is_dref_imminent_v2:
+                raise serializers.ValidationError(
+                    gettext("Can't create final report for newly created dref type %s" % Dref.DrefType.IMMINENT.label)
+                )
             dref_final_report = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
             nested_serialized_file_fields = [
