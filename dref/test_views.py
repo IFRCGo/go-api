@@ -6,8 +6,8 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
-from rest_framework import status
 from django.core import management
+from rest_framework import status
 
 from api.models import Country, DisasterType, District, Region, RegionName
 from deployments.factories.project import SectorFactory
@@ -1372,7 +1372,7 @@ class DrefTestCase(APITestCase):
         data["is_surge_personnel_deployed"] = True
         data["surge_deployment_cost"] = 10000
         data["indirect_cost"] = 5800
-        data["total"] = 90800
+        data["total_cost"] = 90800
         response = self.client.post(url, data, format="json")
         self.assert_201(response)
         self.assertEqual(Dref.objects.count(), old_count + 2)
@@ -1542,7 +1542,7 @@ class DrefTestCase(APITestCase):
                 response.data["total_dref_allocation"],
             },
             {
-                Dref.DrefType.RESPONSE,
+                Dref.DrefType.IMMINENT,
                 dref1.total_cost,
                 dref1.total_cost,
             },
@@ -1589,8 +1589,25 @@ class DrefTestCase(APITestCase):
         response = self.client.post(url, data=data)
         self.assert_201(response)
         self.assertEqual(DrefOperationalUpdate.objects.count(), old_count + 1)
-        # DrefOperational
-        # Check if the type of dref on DrefOperationalUpdate is RESPONSE
+        # NOTE: Should be same type for existing drefs
+        self.assertEqual(response.data["type_of_dref"], Dref.DrefType.IMMINENT)
+
+        # NOTE: New Dref of type IMMINENT with is_dref_imminent_v2
+        dref1 = DrefFactory.create(
+            title="Test Title",
+            type_of_dref=Dref.DrefType.IMMINENT,
+            created_by=self.user,
+            is_published=True,
+            is_dref_imminent_v2=True,
+        )
+        data = {
+            "dref": dref1.id,
+            "country": self.country1.id,
+            "district": [self.district1.id],
+        }
+        response = self.client.post(url, data=data)
+        self.assert_201(response)
+        # DrefOperationalUpdate should be of type RESPONSE for new Dref of type IMMINENT with is_dref_imminent_v2
         self.assertEqual(response.data["type_of_dref"], Dref.DrefType.RESPONSE)
 
     def test_dref_imminent_v2_final_report(self):
