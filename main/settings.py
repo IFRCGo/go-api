@@ -288,11 +288,17 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_RENDERER_CLASSES": (
         "rest_framework.renderers.JSONRenderer",
-        "rest_framework.renderers.BrowsableAPIRenderer",
         "rest_framework_csv.renderers.PaginatedCSVRenderer",
     ),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
+
+if DEBUG:
+    # Allow BrowsableAPIRenderer with DEBUG
+    REST_FRAMEWORK["DEFAULT_RENDERER_CLASSES"] = [
+        *REST_FRAMEWORK["DEFAULT_RENDERER_CLASSES"],
+        "rest_framework.renderers.BrowsableAPIRenderer",
+    ]
 
 # Not ready yet to use
 # GRAPHENE = {"SCHEMA": "api.schema.schema"}

@@ -4,12 +4,13 @@ kind: Ingress
 metadata:
   name: {{ template "ifrcgo-helm.fullname" . }}-ingress-api
   annotations:
-    kubernetes.io/ingress.class: nginx
     nginx.ingress.kubernetes.io/proxy-body-size: "300m"
     nginx.ingress.kubernetes.io/proxy-connect-timeout: "360s"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "360s"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "360s"
 spec:
+  ingressClassName:
+    nginx
   {{- if .Values.api.tls.enabled }}
   tls:
     - hosts:
