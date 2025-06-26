@@ -196,6 +196,7 @@ class OpsLearningAdmin(GotoNextModelAdmin):
     list_display = ("learning", "appeal_code", "is_validated", "modified_at")
     change_form_template = "admin/opslearning_change_form.html"
     actions = ["export_selected_records"]
+    _original_is_validated = False
 
     def get_fields(self, request, obj=None):
         if obj and obj.is_validated:
@@ -221,19 +222,23 @@ class OpsLearningAdmin(GotoNextModelAdmin):
             )
         return ("learning", "appeal_code", "appeal_document_id", "type", "organization", "sector", "per_component")
 
-    def save_model(self, request, obj, form, change):
-        if change:
-            orig_obj = models.OpsLearning.objects.get(pk=obj.pk)
-            if obj and obj.is_validated and obj.is_validated != orig_obj.is_validated:
-                # Validation happened just now:
-                print("Moving data to validated fields for OpsLearning id: %d" % obj.pk)
-                obj.learning_validated = obj.learning
-                obj.type_validated = obj.type
-                obj.organization_validated.add(*[x[0] for x in obj.organization.values_list()])
-                obj.sector_validated.add(*[x[0] for x in obj.sector.values_list()])
-                obj.per_component_validated.add(*[x[0] for x in obj.per_component.values_list()])
+    def get_form(self, request, obj=None, **kwargs):
+        if obj is not None:
+            self._original_is_validated = obj.is_validated
+        else:
+            self._original_is_validated = False
+        return super().get_form(request, obj, **kwargs)
 
-        super().save_model(request, obj, form, change)
+    def save_related(self, request, form, formsets, change):
+        super().save_related(request, form, formsets, change)
+        obj = form.instance
+        if change and obj.is_validated and not getattr(self, "_original_is_validated", False):
+            obj.learning_validated = obj.learning
+            obj.type_validated = obj.type
+            obj.organization_validated.set(obj.organization.all())
+            obj.sector_validated.set(obj.sector.all())
+            obj.per_component_validated.set(obj.per_component.all())
+            obj.save()
 
     def export_selected_records(self, request, queryset):
         """
