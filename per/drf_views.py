@@ -792,10 +792,10 @@ class OpsLearningViewset(viewsets.ModelViewSet):
                 "appeal_code",
             ).prefetch_related(
                 "sector",
-                "organization",
-                "per_component",
                 "sector_validated",
+                "organization",
                 "organization_validated",
+                "per_component",
                 "per_component_validated",
                 "appeal_code__event__countries_for_preview",
             )
@@ -806,10 +806,10 @@ class OpsLearningViewset(viewsets.ModelViewSet):
             )
             .prefetch_related(
                 "sector",
-                "organization",
-                "per_component",
                 "sector_validated",
+                "organization",
                 "organization_validated",
+                "per_component",
                 "per_component_validated",
                 "appeal_code__event__countries_for_preview",
             )

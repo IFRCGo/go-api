@@ -198,6 +198,23 @@ class OpsLearningAdmin(GotoNextModelAdmin):
     actions = ["export_selected_records"]
     _original_is_validated = False
 
+    def get_queryset(self, request):
+        return (
+            super()
+            .get_queryset(request)
+            .select_related(
+                "appeal_code",
+            )
+            .prefetch_related(
+                "sector",
+                "sector_validated",
+                "organization",
+                "organization_validated",
+                "per_component",
+                "per_component_validated",
+            )
+        )
+
     def get_fields(self, request, obj=None):
         if obj and obj.is_validated:
             return (
