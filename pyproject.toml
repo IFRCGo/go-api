@@ -63,7 +63,7 @@ dependencies = [
     "python-mimeparse==1.6.0",
     "pytz",
     "openpyxl==3.0.10",
-    "requests==2.32.2",
+    "requests==2.32.4",
     "tabula-py==1.2.0",
     "typing==3.6.2",
     # urllib3=1.26.12",
