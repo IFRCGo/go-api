@@ -65,6 +65,8 @@ x-server: &base_server_setup
 services:
   db:
     image: postgis/postgis:15-3.4-alpine
+    ports:
+      - "5432:5432" 
     environment:
       POSTGRES_PASSWORD: test
       POSTGRES_USER: test
