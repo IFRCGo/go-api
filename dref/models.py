@@ -691,6 +691,12 @@ class Dref(models.Model):
         null=True,
         blank=True,
     )
+    hazard_date_and_location = models.TextField(
+        verbose_name=_("Hazard Date and Location"),
+        help_text=_("When and where is the hazard expected to happen?"),
+        null=True,
+        blank=True,
+    )
     hazard_vulnerabilities_and_risks = models.TextField(
         verbose_name=_("Hazard Vulnerabilities and Risks"),
         help_text=_("Explain the underlying vulnerabilities and risks the hazard poses for at-risk communities?"),
