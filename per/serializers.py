@@ -608,6 +608,7 @@ class PerProcessSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "assessment_number",
+            "date_of_orientation",
             "date_of_assessment",
             "country",
             "country_details",
@@ -658,6 +659,7 @@ class PublicPerProcessSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "assessment_number",
+            "date_of_orientation",
             "date_of_assessment",
             "country",
             "country_details",
