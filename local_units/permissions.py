@@ -36,3 +36,12 @@ class IsAuthenticatedForLocalUnit(permissions.BasePermission):
         if request.method in ["POST", "PUT", "PATCH"]:
             return request.user and request.user.is_authenticated
         return True
+
+
+class ExternallyManagedLocalUnitPermission(permissions.BasePermission):
+    message = "You need to be super user"
+
+    def has_permission(self, request, view):
+        if request.method in ["POST", "PUT", "PATCH", "DELETE"]:
+            return request.user and request.user.is_superuser
+        return True

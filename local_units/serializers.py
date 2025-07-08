@@ -16,6 +16,7 @@ from .models import (
     BloodService,
     DelegationOffice,
     DelegationOfficeType,
+    ExternallyManagedLocalUnit,
     FacilityType,
     Functionality,
     GeneralMedicalService,
@@ -590,3 +591,31 @@ class LocalUnitDeprecateSerializer(serializers.ModelSerializer):
         )
         instance.save(update_fields=["is_deprecated", "deprecated_reason", "deprecated_reason_overview"])
         return instance
+
+
+class ExternallyManagedLocalUnitSerializer(serializers.ModelSerializer):
+    country = serializers.PrimaryKeyRelatedField(
+        queryset=Country.objects.filter(is_deprecated=False, independent=True, iso3__isnull=False)
+    )
+    local_unit_type = serializers.PrimaryKeyRelatedField(queryset=LocalUnitType.objects.all())
+    country_details = LocalUnitCountrySerializer(source="country", read_only=True)
+    local_unit_type_details = LocalUnitTypeSerializer(source="local_unit_type", read_only=True)
+
+    class Meta:
+        model = ExternallyManagedLocalUnit
+        fields = (
+            "country",
+            "local_unit_type",
+            "enabled",
+            "country_details",
+            "local_unit_type_details",
+        )
+
+    def create(self, validated_data):
+        validated_data["created_by"] = self.context["request"].user
+        validated_data["updated_by"] = self.context["request"].user
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        validated_data["updated_by"] = self.context["request"].user
+        return super().update(instance, validated_data)
