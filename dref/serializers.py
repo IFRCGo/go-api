@@ -429,6 +429,7 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
             "modified_by",
             "created_by",
             "budget_file_preview",
+            "is_dref_imminent_v2",
         )
         exclude = (
             "cover_image",
@@ -1083,6 +1084,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
 
 class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
     MAX_NUMBER_OF_PHOTOS = 4
+    SUB_TOTAL_COST = 75000
     national_society_actions = NationalSocietyActionSerializer(many=True, required=False)
     needs_identified = IdentifiedNeedSerializer(many=True, required=False)
     planned_interventions = PlannedInterventionSerializer(many=True, required=False)
@@ -1105,6 +1107,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
     modified_by_details = UserNameSerializer(source="modified_by", read_only=True)
     disaster_type_details = DisasterTypeSerializer(source="disaster_type", read_only=True)
     source_information = SourceInformationSerializer(many=True, required=False)
+    proposed_action = ProposedActionSerializer(many=True, required=False)
 
     class Meta:
         model = DrefFinalReport
@@ -1112,6 +1115,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             "modified_by",
             "created_by",
             "financial_report_preview",
+            "is_dref_imminent_v2",
         )
         exclude = (
             "images",
@@ -1123,7 +1127,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
 
     def validate(self, data):
         dref = data.get("dref")
-        # check if dref is published and operational_update associated with it is also published
+        # Check if dref is published and operational_update associated with it is also published
         if not self.instance and dref:
             if not dref.is_published:
                 raise serializers.ValidationError(gettext("Can't create Final Report for not published dref %s." % dref.id))
@@ -1141,6 +1145,68 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
 
         if self.instance and self.instance.is_published:
             raise serializers.ValidationError(gettext("Can't update published final report %s." % self.instance.id))
+
+        # NOTE: Validation for type DREF Imminent
+        if self.instance and self.instance.is_dref_imminent_v2 and data.get("type_of_dref") == Dref.DrefType.IMMINENT:
+            sub_total_cost = data.get("sub_total_cost")
+            sub_total_expenditure_cost = data.get("sub_total_expenditure_cost")
+            surge_deployment_expenditure_cost = data.get("surge_deployment_expenditure_cost") or 0
+            indirect_cost = data.get("indirect_cost")
+            indirect_expenditure_cost = data.get("indirect_expenditure_cost")
+            total_cost = data.get("total_cost")
+            total_expenditure_cost = data.get("total_expenditure_cost")
+            proposed_actions = data.get("proposed_action", [])
+
+            if not proposed_actions:
+                raise serializers.ValidationError(
+                    {"proposed_action": gettext("Proposed Action is required for type DREF Imminent")}
+                )
+            if not sub_total_cost:
+                raise serializers.ValidationError({"sub_total_cost": gettext("Sub-total is required for Imminent DREF")})
+            if not sub_total_expenditure_cost:
+                raise serializers.ValidationError(
+                    {"sub_total_expenditure_cost": gettext("Sub-total Expenditure is required for Imminent DREF")}
+                )
+            if sub_total_cost != self.SUB_TOTAL_COST:
+                raise serializers.ValidationError(
+                    {"sub_total": gettext("Sub-total should be equal to %s for Imminent DREF" % self.SUB_TOTAL_COST)}
+                )
+            if not indirect_cost:
+                raise serializers.ValidationError({"indirect_cost": gettext("Indirect Cost is required for Imminent DREF")})
+            if not indirect_expenditure_cost:
+                raise serializers.ValidationError(
+                    {"indirect_expenditure_cost": gettext("Indirect Expenditure is required for Imminent DREF")}
+                )
+            if not total_cost:
+                raise serializers.ValidationError({"total_cost": gettext("Total is required for Imminent DREF")})
+            if not total_expenditure_cost:
+                raise serializers.ValidationError(
+                    {"total_expenditure_cost": gettext("Total Expenditure is required for Imminent DREF")}
+                )
+
+            total_proposed_budget: int = 0
+            total_proposed_expenditure: int = 0
+            for action in proposed_actions:
+                total_proposed_budget += action.get("total_budget", 0)
+                total_proposed_expenditure += action.get("total_expenditure", 0)
+            if total_proposed_budget != sub_total_cost:
+                raise serializers.ValidationError({"sub_total_cost": gettext("Sub-total should be equal to proposed budget.")})
+            if total_proposed_expenditure != sub_total_expenditure_cost:
+                raise serializers.ValidationError(
+                    {"sub_total_expenditure_cost": gettext("Sub-total Expenditure should be equal to proposed expenditure.")}
+                )
+            expected_total_expenditure_cost: int = (
+                sub_total_expenditure_cost + surge_deployment_expenditure_cost + indirect_expenditure_cost
+            )
+            if expected_total_expenditure_cost != total_expenditure_cost:
+                raise serializers.ValidationError(
+                    {
+                        "total_expenditure_cost": gettext(
+                            "Total Expenditure Cost should be equal to sum of Sub-total Expenditure, "
+                            "Surge Deployment Expenditure and Indirect Expenditure Cost."
+                        )
+                    }
+                )
         return data
 
     def validate_photos(self, photos):
@@ -1274,11 +1340,6 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             if validated_data["type_of_dref"] == Dref.DrefType.LOAN:
                 raise serializers.ValidationError(gettext("Can't create final report for dref type %s" % Dref.DrefType.LOAN))
 
-            # TODO: Remove me! After final report is implemented for drefs IMMINENT
-            if validated_data["type_of_dref"] == Dref.DrefType.IMMINENT and dref.is_dref_imminent_v2:
-                raise serializers.ValidationError(
-                    gettext("Can't create final report for newly created dref type %s" % Dref.DrefType.IMMINENT.label)
-                )
             dref_final_report = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
             nested_serialized_file_fields = [
@@ -1395,12 +1456,26 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
                 raise serializers.ValidationError(
                     gettext("Can't create final report for dref type %s" % Dref.DrefType.LOAN.label)
                 )
-
-            # TODO: Remove me! After final report is implemented for drefs IMMINENT
+            # NOTE: Checks for the new dref final reports of new dref imminents
             if validated_data["type_of_dref"] == Dref.DrefType.IMMINENT and dref.is_dref_imminent_v2:
-                raise serializers.ValidationError(
-                    gettext("Can't create final report for newly created dref type %s" % Dref.DrefType.IMMINENT.label)
-                )
+                validated_data["is_dref_imminent_v2"] = True
+                validated_data["sub_total_cost"] = dref.sub_total_cost
+                validated_data["surge_deployment_cost"] = dref.surge_deployment_cost
+                validated_data["surge_deployment_expenditure_cost"] = dref.surge_deployment_cost
+                validated_data["indirect_cost"] = dref.indirect_cost
+                validated_data["indirect_expenditure_cost"] = dref.indirect_cost
+                validated_data["total_cost"] = dref.total_cost
+
+            # NOTE: Checks for the new dref final reports of new dref imminents
+            if validated_data["type_of_dref"] == Dref.DrefType.IMMINENT and dref.is_dref_imminent_v2:
+                validated_data["is_dref_imminent_v2"] = True
+                validated_data["sub_total_cost"] = dref.sub_total_cost
+                validated_data["surge_deployment_cost"] = dref.surge_deployment_cost
+                validated_data["surge_deployment_expenditure_cost"] = dref.surge_deployment_cost
+                validated_data["indirect_cost"] = dref.indirect_cost
+                validated_data["indirect_expenditure_cost"] = dref.indirect_cost
+                validated_data["total_cost"] = dref.total_cost
+
             dref_final_report = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
             nested_serialized_file_fields = [
@@ -1420,6 +1495,8 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             dref_final_report.users.add(*dref.users.all())
             dref_final_report.national_society_actions.add(*dref.national_society_actions.all())
             dref_final_report.source_information.add(*dref.source_information.all())
+            if dref_final_report.type_of_dref == Dref.DrefType.IMMINENT and dref_final_report.is_dref_imminent_v2:
+                dref_final_report.proposed_action.add(*dref.proposed_action.all())
             # also update is_final_report_created for dref
             dref.is_final_report_created = True
             dref.save(update_fields=["is_final_report_created"])
