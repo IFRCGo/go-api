@@ -1640,8 +1640,10 @@ class DrefTestCase(APITestCase):
             is_published=True,
             is_dref_imminent_v2=True,
             sub_total_cost=75000,
-            indirect_cost=5000,
-            total_cost=80000,
+            indirect_cost=5800,
+            is_surge_personnel_deployed=True,
+            surge_deployment_cost=10000,
+            total_cost=90800,
         )
         dref1.proposed_action.set([proposed_action_1, proposed_action_2])
         url = "/api/v2/dref-final-report/"
@@ -1663,11 +1665,15 @@ class DrefTestCase(APITestCase):
                 response.data["sub_total_cost"],
                 response.data["indirect_cost"],
                 response.data["total_cost"],
+                response.data["surge_deployment_expenditure_cost"],
+                response.data["indirect_expenditure_cost"],
             },
             {
                 dref1.sub_total_cost,
                 dref1.indirect_cost,
                 dref1.total_cost,
+                dref1.surge_deployment_cost,
+                dref1.indirect_cost,
             },
         )
 
@@ -1688,8 +1694,8 @@ class DrefTestCase(APITestCase):
             ],
             "sub_total_expenditure_cost": 55000,
             "surge_deployment_expenditure_cost": 10000,
-            "indirect_expenditure_cost": 5000,
-            "total_expenditure_cost": 60000,
+            "indirect_expenditure_cost": 5800,
+            "total_expenditure_cost": 70800,
         }
         url = f"/api/v2/dref-final-report/{response.data['id']}/"
         response = self.client.patch(url, data=data)
@@ -1760,6 +1766,27 @@ class DrefTestCase(APITestCase):
         response = self.client.post(url, data={"dref": dref4.id})
         self.assert_201(response)
         self.assertEqual(response.data["type_of_dref"], Dref.DrefType.IMMINENT)
+
+        # Update existing dref final report
+        url = f"/api/v2/dref-final-report/{response.data['id']}/"
+        data = {
+            "title": "Old Title",
+            "modified_at": datetime.now(),
+        }
+        response = self.client.patch(url, data=data)
+        self.assert_200(response)
+        self.assertEqual(
+            {
+                response.data["title"],
+                response.data["type_of_dref"],
+                response.data["is_dref_imminent_v2"],
+            },
+            {
+                data["title"],
+                Dref.DrefType.IMMINENT,
+                False,  # is_dref_imminent_v2 should be False for existing Dref of type IMMINENT
+            },
+        )
 
 
 User = get_user_model()

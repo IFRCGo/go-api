@@ -1232,6 +1232,16 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             DrefOperationalUpdate.objects.filter(dref=dref, is_published=True).order_by("-operational_update_number").first()
         )
         validated_data["created_by"] = self.context["request"].user
+        # NOTE: Checks and common fields for the new dref final reports of new dref imminents
+        if dref.type_of_dref == Dref.DrefType.IMMINENT and dref.is_dref_imminent_v2:
+            validated_data["is_dref_imminent_v2"] = True
+            validated_data["sub_total_cost"] = dref.sub_total_cost
+            validated_data["surge_deployment_cost"] = dref.surge_deployment_cost
+            validated_data["surge_deployment_expenditure_cost"] = dref.surge_deployment_cost
+            validated_data["indirect_cost"] = dref.indirect_cost
+            validated_data["indirect_expenditure_cost"] = dref.indirect_cost
+            validated_data["total_cost"] = dref.total_cost
+
         if dref_operational_update:
             validated_data["title"] = dref_operational_update.title
             validated_data["title_prefix"] = dref_operational_update.title_prefix
@@ -1360,6 +1370,8 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             dref_final_report.risk_security.add(*dref_operational_update.risk_security.all())
             dref_final_report.users.add(*dref_operational_update.users.all())
             dref_final_report.source_information.add(*dref_operational_update.source_information.all())
+            if dref_final_report.is_dref_imminent_v2:
+                dref_final_report.proposed_action.add(*dref.proposed_action.all())
         else:
             validated_data["title"] = dref.title
             validated_data["title_prefix"] = dref.title_prefix
@@ -1456,15 +1468,6 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
                 raise serializers.ValidationError(
                     gettext("Can't create final report for dref type %s" % Dref.DrefType.LOAN.label)
                 )
-            # NOTE: Checks for the new dref final reports of new dref imminents
-            if validated_data["type_of_dref"] == Dref.DrefType.IMMINENT and dref.is_dref_imminent_v2:
-                validated_data["is_dref_imminent_v2"] = True
-                validated_data["sub_total_cost"] = dref.sub_total_cost
-                validated_data["surge_deployment_cost"] = dref.surge_deployment_cost
-                validated_data["surge_deployment_expenditure_cost"] = dref.surge_deployment_cost
-                validated_data["indirect_cost"] = dref.indirect_cost
-                validated_data["indirect_expenditure_cost"] = dref.indirect_cost
-                validated_data["total_cost"] = dref.total_cost
 
             # NOTE: Checks for the new dref final reports of new dref imminents
             if validated_data["type_of_dref"] == Dref.DrefType.IMMINENT and dref.is_dref_imminent_v2:
