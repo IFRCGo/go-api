@@ -600,7 +600,7 @@ class ExternallyManagedLocalUnitSerializer(serializers.ModelSerializer):
         ),
         write_only=True,
     )
-    local_unit_type = serializers.PrimaryKeyRelatedField(queryset=LocalUnitType.objects.all())
+    local_unit_type = serializers.PrimaryKeyRelatedField(queryset=LocalUnitType.objects.all(), write_only=True)
     country_details = LocalUnitCountrySerializer(source="country", read_only=True)
     local_unit_type_details = LocalUnitTypeSerializer(source="local_unit_type", read_only=True)
 
