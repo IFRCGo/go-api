@@ -13,6 +13,7 @@ from local_units.models import (
     Affiliation,
     BloodService,
     DelegationOffice,
+    ExternallyManagedLocalUnit,
     FacilityType,
     Functionality,
     GeneralMedicalService,
@@ -28,11 +29,13 @@ from local_units.models import (
     VisibilityChoices,
 )
 from local_units.permissions import (
+    ExternallyManagedLocalUnitPermission,
     IsAuthenticatedForLocalUnit,
     ValidateLocalUnitPermission,
 )
 from local_units.serializers import (
     DelegationOfficeSerializer,
+    ExternallyManagedLocalUnitSerializer,
     LocalUnitChangeRequestSerializer,
     LocalUnitDeprecateSerializer,
     LocalUnitDetailSerializer,
@@ -366,4 +369,13 @@ class DelegationOfficeDetailAPIView(RetrieveAPIView):
     permission_classes = [
         permissions.IsAuthenticated,
         DenyGuestUserPermission,
+    ]
+
+
+class ExternallyManagedLocalUnitViewSet(viewsets.ModelViewSet):
+    queryset = ExternallyManagedLocalUnit.objects.select_related("country", "local_unit_type")
+    serializer_class = ExternallyManagedLocalUnitSerializer
+    permission_classes = [
+        permissions.IsAuthenticated,
+        ExternallyManagedLocalUnitPermission,
     ]
