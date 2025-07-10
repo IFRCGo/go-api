@@ -76,6 +76,7 @@ class LocalUnitAdmin(CompareVersionAdmin, admin.OSMGeoAdmin):
 class ExternallyManagedLocalUnitAdmin(admin.ModelAdmin):
     list_display = ("local_unit_type", "created_at", "updated_at")
     search_fields = ("country__name",)
+    list_select_related = True
     autocomplete_fields = (
         "country",
         "local_unit_type",
@@ -84,9 +85,6 @@ class ExternallyManagedLocalUnitAdmin(admin.ModelAdmin):
         AutocompleteFilterFactory("Country", "country"),
         AutocompleteFilterFactory("Type", "local_unit_type"),
     )
-
-    def get_queryset(self, request):
-        return super().get_queryset(request).select_related("country")
 
 
 @admin.register(LocalUnitChangeRequest)

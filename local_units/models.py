@@ -361,7 +361,7 @@ class LocalUnit(models.Model):
     deprecated_reason_overview = models.TextField(
         verbose_name=_("Explain the reason why the local unit is being deleted"), blank=True, null=True
     )
-    update_reason_summery = models.TextField(
+    update_reason_overview = models.TextField(
         verbose_name=_("Explain the reason why the local unit is being updated"), blank=True, null=True
     )
     last_sent_validator_type = models.IntegerField(
