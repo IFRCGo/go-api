@@ -1,5 +1,6 @@
 from django.contrib.auth.models import Permission
 from rest_framework import permissions
+from rest_framework.permissions import SAFE_METHODS
 
 
 class ValidateLocalUnitPermission(permissions.BasePermission):
@@ -42,6 +43,6 @@ class ExternallyManagedLocalUnitPermission(permissions.BasePermission):
     message = "You need to be super user"
 
     def has_permission(self, request, view):
-        if request.method in ["POST", "PUT", "PATCH", "DELETE"]:
-            return request.user and request.user.is_superuser
-        return True
+        if request.method in SAFE_METHODS:
+            return True
+        return request.user and request.user.is_superuser

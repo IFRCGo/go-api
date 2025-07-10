@@ -8,7 +8,7 @@ from rest_framework import serializers
 from reversion.models import Version
 from shapely.geometry import MultiPolygon, Point, Polygon
 
-from api.models import Country
+from api.models import Country, CountryType
 from main.writable_nested_serializers import NestedCreateMixin, NestedUpdateMixin
 
 from .models import (
@@ -595,7 +595,9 @@ class LocalUnitDeprecateSerializer(serializers.ModelSerializer):
 
 class ExternallyManagedLocalUnitSerializer(serializers.ModelSerializer):
     country = serializers.PrimaryKeyRelatedField(
-        queryset=Country.objects.filter(is_deprecated=False, independent=True, iso3__isnull=False),
+        queryset=Country.objects.filter(
+            is_deprecated=False, independent=True, iso3__isnull=False, record_type=CountryType.COUNTRY
+        ),
         write_only=True,
     )
     local_unit_type = serializers.PrimaryKeyRelatedField(queryset=LocalUnitType.objects.all(), write_only=True)
@@ -614,7 +616,6 @@ class ExternallyManagedLocalUnitSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data["created_by"] = self.context["request"].user
-        validated_data["updated_by"] = self.context["request"].user
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
