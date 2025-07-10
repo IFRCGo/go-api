@@ -91,7 +91,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
             status=LocalUnitChangeRequest.Status.PENDING,
             triggered_by=request.user,
         )
-        transaction.on_commit(lambda: send_local_unit_email(serializer.instance.id, new=True))
+        transaction.on_commit(lambda: send_local_unit_email.delay(serializer.instance.id, new=True))
         return response.Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
@@ -114,7 +114,6 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(local_unit, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-
         # Creating a new change request for the local unit
         LocalUnitChangeRequest.objects.create(
             local_unit=local_unit,
@@ -122,6 +121,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
             status=LocalUnitChangeRequest.Status.PENDING,
             triggered_by=request.user,
         )
+
         transaction.on_commit(lambda: send_local_unit_email(local_unit.id, new=False))
         return response.Response(serializer.data)
 

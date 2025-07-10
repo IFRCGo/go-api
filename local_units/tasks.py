@@ -2,19 +2,17 @@ from celery import shared_task
 from django.template.loader import render_to_string
 
 from local_units.models import LocalUnit, LocalUnitChangeRequest
+from notifications.notification import send_notification
 
-from .utils import get_email_context, get_local_admins
-
-# from notifications.notification import send_notification
+from .utils import get_email_context, get_validators
 
 
 @shared_task
 def send_local_unit_email(local_unit_id: int, new: bool = True):
     if not local_unit_id:
         return None
-
     instance = LocalUnit.objects.get(id=local_unit_id)
-    users = get_local_admins(instance)
+    users = get_validators(instance)
     email_context = get_email_context(instance)
     email_context["new_local_unit"] = True
     email_subject = "Action Required: New Local Unit Pending Validation"
@@ -31,8 +29,7 @@ def send_local_unit_email(local_unit_id: int, new: bool = True):
         email_context["validator_email"] = user.email
         email_context["full_name"] = user.get_full_name()
         email_body = render_to_string("email/local_units/local_unit.html", email_context)
-        print(email_subject, user.email, email_body, email_type)  # send_notification disabling
-    return email_context
+        send_notification(email_subject, user.email, email_body, email_type)
 
 
 @shared_task
@@ -49,7 +46,7 @@ def send_validate_success_email(local_unit_id: int, message: str = ""):
     email_body = render_to_string("email/local_units/local_unit.html", email_context)
     email_type = f"{message} Local Unit"
 
-    print(email_subject, user.email, email_body, email_type)  # send_notification disabling
+    send_notification(email_subject, user.email, email_body, email_type)
     return email_context
 
 
@@ -68,7 +65,7 @@ def send_revert_email(local_unit_id: int, change_request_id: int):
     email_body = render_to_string("email/local_units/local_unit.html", email_context)
     email_type = "Revert Local Unit"
 
-    print(email_subject, user.email, email_body, email_type)  # send_notification disabling
+    send_notification(email_subject, user.email, email_body, email_type)
     return email_context
 
 
@@ -87,5 +84,5 @@ def send_deprecate_email(local_unit_id: int):
     email_body = render_to_string("email/local_units/local_unit.html", email_context)
     email_type = "Deprecate Local Unit"
 
-    print(email_subject, user.email, email_body, email_type)  # send_notification disabling
+    send_notification(email_subject, user.email, email_body, email_type)
     return email_context
