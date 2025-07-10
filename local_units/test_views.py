@@ -7,7 +7,7 @@ from django.core import management
 from factory import fuzzy
 
 from api.factories.country import CountryFactory
-from api.models import Country, Region
+from api.models import Country, CountryType, Region
 from deployments.factories.user import UserFactory
 from main.test_case import APITestCase
 
@@ -723,64 +723,98 @@ class TestLocalUnitCreate(APITestCase):
 
 class TestExternallyManagedLocalUnit(APITestCase):
     def setUp(self):
+        super().setUp()
         self.user = UserFactory.create()
-        self.super_user = UserFactory.create(
-            is_superuser=True,
-        )
         self.region = Region.objects.create(name=2)
-        self.country = CountryFactory.create(
+        self.country1 = CountryFactory.create(
             name="Nepal",
             iso3="NLP",
             region=self.region,
             is_deprecated=False,
             independent=True,
+            record_type=CountryType.COUNTRY,
+        )
+        self.country2 = CountryFactory.create(
+            name="India",
+            iso3="IND",
+            region=self.region,
+            is_deprecated=False,
+            independent=True,
+            record_type=CountryType.COUNTRY,
         )
         self.local_unit_type = LocalUnitType.objects.create(code=1, name="Code 0")
 
         self.externally_managed_local_unit = ExternallyManagedLocalUnitFactory.create(
-            country=self.country,
+            country=self.country1,
             local_unit_type=self.local_unit_type,
             enabled=True,
             created_by=self.user,
             updated_by=self.user,
         )
 
+    def test_externally_managed_local_unit(self):
+        # Without authentication
+        response = self.client.get("/api/v2/externally-managed-local-unit/")
+        self.assertEqual(response.status_code, 401)
+        # With normal user
+        self.client.force_authenticate(self.user)
+        response = self.client.get("/api/v2/externally-managed-local-unit/")
+        self.assertEqual(response.status_code, 200)
+        # With superuser
+        self.client.force_authenticate(self.root_user)
+        response = self.client.get("/api/v2/externally-managed-local-unit/")
+        self.assertEqual(response.status_code, 200)
+
     def test_create_externally_managed_local_unit(self):
-        self.client.force_authenticate(self.super_user)
+        url = "/api/v2/externally-managed-local-unit/"
         data = {
-            "country": self.country.id,
+            "country": self.country1.id,
             "local_unit_type": self.local_unit_type.id,
             "enabled": False,
         }
-        response = self.client.post("/api/v2/externally-managed-local-unit/", data=data)
+
+        # Without authentication
+        response = self.client.post(url, data=data)
+        self.assertEqual(response.status_code, 401)
+        # With normal user
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(url, data=data)
+        self.assertEqual(response.status_code, 403)
+        # With superuser
+        self.client.force_authenticate(user=self.root_user)
+        response = self.client.post(url, data=data)
         self.assertEqual(response.status_code, 201)
 
-    def test_create_externally_managed_local_unit_by_normal_user(self):
+    def test_update_externally_managed_local_unit(self):
+        url = f"/api/v2/externally-managed-local-unit/{self.externally_managed_local_unit.id}/"
+        update_data = {"country": self.country2.id, "enabled": False}
+        # Without authentication
+        response = self.client.patch(url, update_data, format="json")
+        self.assertEqual(response.status_code, 401)
+
+        # With normal user
         self.client.force_authenticate(user=self.user)
-        data = {
-            "country": self.country.id,
-            "local_unit_type": self.local_unit_type.id,
-            "enabled": False,
-        }
-        response = self.client.post("/api/v2/externally-managed-local-unit/", data=data)
+        response = self.client.patch(url, update_data, format="json")
         self.assertEqual(response.status_code, 403)
 
-    def test_update_externally_managed_local_unit(self):
-        self.client.force_authenticate(self.super_user)
-        url = f"/api/v2/externally-managed-local-unit/{self.externally_managed_local_unit.id}/"
-        response = self.client.patch(url, {"enabled": False}, format="json")
+        # With superuser
+        self.client.force_authenticate(user=self.root_user)
+        response = self.client.patch(url, update_data, format="json")
         self.assertEqual(response.status_code, 200)
+
         self.externally_managed_local_unit.refresh_from_db()
         self.assertFalse(self.externally_managed_local_unit.enabled)
 
-    def test_delete_externally_managed_local_unit_by_normal_user(self):
-        self.client.force_authenticate(user=self.user)
-        url = f"/api/v2/externally-managed-local-unit/{self.externally_managed_local_unit.id}/"
-        response = self.client.delete(url, format="json")
-        self.assertEqual(response.status_code, 403)
-
     def test_delete_externally_managed_local_unit(self):
-        self.client.force_authenticate(self.super_user)
         url = f"/api/v2/externally-managed-local-unit/{self.externally_managed_local_unit.id}/"
-        response = self.client.delete(url, format="json")
-        self.assert_204(response)
+        # Without authentication
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 401)
+        # With normal user
+        self.client.force_authenticate(user=self.user)
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 403)
+        # With superuser
+        self.client.force_authenticate(user=self.root_user)
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 204)
