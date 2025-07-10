@@ -8,12 +8,11 @@ from sentry_sdk.crons import monitor
 from local_units.models import LocalUnit, Validator
 from local_units.utils import (
     get_email_context,
-    get_global_validators,
-    get_region_admins,
+    get_global_validators_by_type,
+    get_region_validators_by_type,
 )
 from main.sentry import SentryMonitor
-
-# from notifications.notification import send_notification
+from notifications.notification import send_notification
 
 
 class Command(BaseCommand):
@@ -28,7 +27,7 @@ class Command(BaseCommand):
             validated=False,
             is_deprecated=False,
             last_sent_validator_type=Validator.LOCAL,
-            created_at__lte=timezone.now() - timedelta(days=14),
+            created_at__lte=timezone.now() - timedelta(days=7),
         )
 
         # Global Validators: 28 days
@@ -36,7 +35,7 @@ class Command(BaseCommand):
             validated=False,
             is_deprecated=False,
             last_sent_validator_type=Validator.REGIONAL,
-            created_at__lte=timezone.now() - timedelta(days=28),
+            created_at__lte=timezone.now() - timedelta(days=14),
         )
 
         for local_unit in queryset_for_regional_validators:
@@ -46,11 +45,11 @@ class Command(BaseCommand):
             email_subject = "Action Required: Local Unit Pending Validation"
             email_type = "Local Unit"
 
-            for region_admin_validator in get_region_admins(local_unit):
+            for region_admin_validator in get_region_validators_by_type(local_unit):
                 try:
                     email_context["full_name"] = region_admin_validator.get_full_name()
                     email_body = render_to_string("email/local_units/local_unit.html", email_context)
-                    print(email_subject, region_admin_validator.email, email_body, email_type)  # send_notification disabling
+                    send_notification(email_subject, region_admin_validator.email, email_body, email_type)
                     local_unit.last_sent_validator_type = Validator.REGIONAL
                     local_unit.save(update_fields=["last_sent_validator_type"])
                 except Exception as e:
@@ -68,11 +67,11 @@ class Command(BaseCommand):
             email_subject = "Action Required: Local Unit Pending Validation"
             email_type = "Local Unit"
 
-            for global_validator in get_global_validators():
+            for global_validator in get_global_validators_by_type(local_unit):
                 try:
                     email_context["full_name"] = global_validator.get_full_name()
                     email_body = render_to_string("email/local_units/local_unit.html", email_context)
-                    print(email_subject, global_validator.email, email_body, email_type)  # send_notification disabling
+                    send_notification(email_subject, global_validator.email, email_body, email_type)
                     local_unit.last_sent_validator_type = Validator.GLOBAL
                     local_unit.save(update_fields=["last_sent_validator_type"])
                 except Exception as e:
