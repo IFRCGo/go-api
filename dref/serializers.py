@@ -1150,7 +1150,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
         if self.instance and self.instance.is_dref_imminent_v2 and data.get("type_of_dref") == Dref.DrefType.IMMINENT:
             sub_total_cost = data.get("sub_total_cost")
             sub_total_expenditure_cost = data.get("sub_total_expenditure_cost")
-            surge_deployment_expenditure_cost = data.get("surge_deployment_expenditure_cost")
+            surge_deployment_expenditure_cost = data.get("surge_deployment_expenditure_cost", 0)
             indirect_cost = data.get("indirect_cost")
             indirect_expenditure_cost = data.get("indirect_expenditure_cost")
             total_cost = data.get("total_cost")
