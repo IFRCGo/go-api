@@ -51,26 +51,3 @@ def get_global_validators_by_type(instance):
     codename = f"local_unit_global_validator_{type_name}"
     global_validators_by_type = User.objects.filter(groups__permissions__codename=codename).distinct()
     return global_validators_by_type
-
-
-def get_validators(instance):
-    """
-    Return users based on permission:
-    1. Country + Type
-    2. Region + Type
-    3. Global + Type
-    4. Superusers
-    """
-    users = get_local_unit_validators_by_type(instance)
-    if users.exists():
-        return users
-
-    users = get_region_validators_by_type(instance)
-    if users.exists():
-        return users
-
-    users = get_global_validators_by_type(instance)
-    if users.exists():
-        return users
-
-    return User.objects.filter(is_superuser=True)

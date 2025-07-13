@@ -1,10 +1,18 @@
 from celery import shared_task
+from django.contrib.auth import get_user_model
 from django.template.loader import render_to_string
 
 from local_units.models import LocalUnit, LocalUnitChangeRequest
 from notifications.notification import send_notification
 
-from .utils import get_email_context, get_validators
+from .utils import (
+    get_email_context,
+    get_global_validators_by_type,
+    get_local_unit_validators_by_type,
+    get_region_validators_by_type,
+)
+
+User = get_user_model()
 
 
 @shared_task
@@ -12,7 +20,14 @@ def send_local_unit_email(local_unit_id: int, new: bool = True):
     if not local_unit_id:
         return None
     instance = LocalUnit.objects.get(id=local_unit_id)
-    users = get_validators(instance)
+    users = get_local_unit_validators_by_type(instance)
+    if not users:
+        users = get_region_validators_by_type(instance)
+    elif not users:
+        users = get_global_validators_by_type(instance)
+    elif not users:
+        users = User.objects.filter(is_superuser=True)
+
     email_context = get_email_context(instance)
     email_context["new_local_unit"] = True
     email_subject = "Action Required: New Local Unit Pending Validation"
@@ -45,7 +60,6 @@ def send_validate_success_email(local_unit_id: int, message: str = ""):
     email_subject = "Your Local Unit Addition Request: Approved"
     email_body = render_to_string("email/local_units/local_unit.html", email_context)
     email_type = f"{message} Local Unit"
-
     send_notification(email_subject, user.email, email_body, email_type)
     return email_context
 
@@ -83,6 +97,5 @@ def send_deprecate_email(local_unit_id: int):
     email_subject = "Your Local Unit Addition Request: Deprecated"
     email_body = render_to_string("email/local_units/local_unit.html", email_context)
     email_type = "Deprecate Local Unit"
-
     send_notification(email_subject, user.email, email_body, email_type)
     return email_context
