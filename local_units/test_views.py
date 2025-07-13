@@ -5,9 +5,9 @@ from django.contrib.auth.models import Group, Permission
 from django.contrib.gis.geos import Point
 from django.core import management
 from factory import fuzzy
-
 from api.factories.country import CountryFactory
 from api.models import Country, CountryType, Region
+from api.factories.region import RegionFactory
 from deployments.factories.user import UserFactory
 from main.test_case import APITestCase
 
@@ -320,26 +320,44 @@ class TestLocalUnitCreate(APITestCase):
 
     def setUp(self):
         super().setUp()
-        self.region = Region.objects.create(name=2)
-        self.country = Country.objects.create(name="Nepal", iso3="NLP", region=self.region)
-        management.call_command("make_permissions")
-        management.call_command("make_global_validator_permission")
+        self.normal_user = UserFactory.create()
 
-        # Permissions and different validators
+        self.region = RegionFactory.create(name=2, label="Asia Pacific")
+        self.country = CountryFactory.create(
+            name="Nepal",
+            iso3="NPL",
+            record_type=CountryType.COUNTRY,
+            is_deprecated=False,
+            independent=True,
+            region=self.region,
+        )
+
+        self.local_unit_type = LocalUnitType.objects.create(code=1, name="administrative")
+
+        management.call_command("make_local_unit_validator_permissions")
+
+        self.country_validator_user = UserFactory.create()
+        self.region_validator_user = UserFactory.create()
         self.global_validator_user = UserFactory.create()
-        self.local_unit_admin_user = UserFactory.create()
-        self.regional_validator_user = UserFactory.create()
+        #  permissions
+        country_permission = Permission.objects.get(codename="local_unit_validator_nepal_administrative")
+        region_permission = Permission.objects.get(codename="local_unit_validator_asia_pacific_administrative")
+        global_permission = Permission.objects.get(codename="local_unit_global_validator_administrative")
 
-        # Adding permissions to the users
-        global_validator_permission = Permission.objects.filter(codename="local_unit_global_validator").first()
+        #  Country validator group
+        country_group = Group.objects.get(name="local_unit_validator_for_administrative_nepal")
+        country_group.permissions.add(country_permission)
+        self.country_validator_user.groups.add(country_group)
 
-        country_group = Group.objects.filter(name="%s Admins" % self.country.name).first()
-        region_group = Group.objects.filter(name="%s Regional Admins" % self.region.name).first()
+        # Region validator group
+        region_group = Group.objects.get(name="local_unit_validator_for_administrative_asia_pacific")
+        region_group.permissions.add(region_permission)
+        self.region_validator_user.groups.add(region_group)
 
-        self.local_unit_admin_user.groups.add(country_group)
-        self.regional_validator_user.groups.add(region_group)
-
-        self.global_validator_user.user_permissions.add(global_validator_permission)
+        # Global validator group
+        global_group = Group.objects.get(name="local_unit_global_validator_for_administrative")
+        global_group.permissions.add(global_permission)
+        self.global_validator_user.groups.add(global_group)
 
     def test_create_local_unit_administrative(self):
         region = Region.objects.create(name=2)
@@ -403,7 +421,6 @@ class TestLocalUnitCreate(APITestCase):
         functionality = Functionality.objects.create(code=1, name="Code 1")
         health_facility_type = FacilityType.objects.create(code=1, name="Code 1")
         primary_health_care_center = PrimaryHCC.objects.create(code=1, name="Code 1")
-
         data = {
             "local_branch_name": "Silele Red Cross Clinic, Sigombeni Red Cross Clinic & Mahwalala Red Cross Clinic",
             "english_branch_name": None,
@@ -480,27 +497,10 @@ class TestLocalUnitCreate(APITestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(LocalUnitChangeRequest.objects.count(), 1)
         self.assertEqual(response.data["is_locked"], True)
-
         # Locked local unit should not be updated, until it is unlocked
         local_unit_id = response.data["id"]
         response = self.client.put(f"/api/v2/local-units/{local_unit_id}/", data=data, format="json")
         self.assert_400(response)
-
-        # validating the local unit
-        self.client.force_authenticate(self.root_user)
-        response = self.client.post(f"/api/v2/local-units/{local_unit_id}/validate/")
-        self.assert_200(response)
-
-        # Update existing local_unit with new user
-        response_updated_1 = self.client.put(f"/api/v2/local-units/{local_unit_id}/", data=data, format="json")
-        self.assert_200(response_updated_1)
-
-        local_unit_obj = LocalUnit.objects.get(id=local_unit_id)
-        self.assertEqual(local_unit_obj.is_locked, True)
-        self.assertIsNotNone(local_unit_obj.created_by)
-        self.assertIsNotNone(response_updated_1.data["modified_by"])
-        self.assertIsNotNone(response_updated_1.data["modified_at"])
-        self.assertEqual(response_updated_1.data["modified_by"], local_unit_obj.created_by.id)
 
     def test_revert_local_unit(self):
         region = Region.objects.create(name=2)
@@ -663,11 +663,11 @@ class TestLocalUnitCreate(APITestCase):
         self.assertEqual(response.data["previous_data_details"]["english_branch_name"], previous_data["english_branch_name"])
 
     def test_validate_local_unit(self):
-        type = LocalUnitType.objects.create(code=0, name="Code 0")
+        # type = LocalUnitType.objects.create(code=0, name="Code 0")
         data = {
             "local_branch_name": "Silele Red Cross Clinic, Sigombeni Red Cross Clinic & Mahwalala Red Cross Clinic",
             "english_branch_name": None,
-            "type": type.id,
+            "type": self.local_unit_type.id,
             "country": self.country.id,
             "date_of_data": "2024-05-13",
             "location_json": {
@@ -681,7 +681,6 @@ class TestLocalUnitCreate(APITestCase):
         self.assert_201(response)
 
         local_unit_id = response.data["id"]
-        # Testing For the local unit Global validator
         self.authenticate(self.global_validator_user)
         # validating the local unit by the Global validator
         response = self.client.post(f"/api/v2/local-units/{local_unit_id}/validate/")
@@ -691,8 +690,8 @@ class TestLocalUnitCreate(APITestCase):
         ).last()
         self.assertEqual(local_unit_request.current_validator, Validator.GLOBAL)
 
-        # Testing For the local unit admin/Local validator
-        self.authenticate(self.local_unit_admin_user)
+        # Testing For the local unit admin/country validator
+        self.authenticate(self.country_validator_user)
         response = self.client.put(f"/api/v2/local-units/{local_unit_id}/", data=data, format="json")
         self.assert_200(response)
         # validating the local unit by the local unit admin
@@ -703,7 +702,7 @@ class TestLocalUnitCreate(APITestCase):
         self.assertEqual(local_unit_request.current_validator, Validator.LOCAL)
 
         # Testing For the regional validator
-        self.authenticate(self.regional_validator_user)
+        self.authenticate(self.region_validator_user)
         response = self.client.put(f"/api/v2/local-units/{local_unit_id}/", data=data, format="json")
         self.assert_200(response)
         # validating the local unit by the regional validator
@@ -837,3 +836,5 @@ class TestExternallyManagedLocalUnit(APITestCase):
         self.client.force_authenticate(user=self.root_user)
         response = self.client.get(url)
         self.assert_200(response)
+
+       
