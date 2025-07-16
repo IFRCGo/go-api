@@ -3,8 +3,9 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
-from rest_framework import permissions, response, status, views, viewsets
+from rest_framework import mixins, permissions, response, status, views, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 
 from api.utils import bad_request
@@ -29,13 +30,14 @@ from local_units.models import (
     VisibilityChoices,
 )
 from local_units.permissions import (
-    ExternallyManagedLocalUnitPermission,
     IsAuthenticatedForLocalUnit,
     ValidateLocalUnitPermission,
 )
 from local_units.serializers import (
     DelegationOfficeSerializer,
     ExternallyManagedLocalUnitSerializer,
+    ExternallyManagedLocalUnitUpdateInputSerializer,
+    ExternallyManagedMiniSerializer,
     LocalUnitChangeRequestSerializer,
     LocalUnitDeprecateSerializer,
     LocalUnitDetailSerializer,
@@ -51,7 +53,7 @@ from local_units.tasks import (
     send_revert_email,
     send_validate_success_email,
 )
-from main.permissions import DenyGuestUserPermission
+from main.permissions import DenyGuestUserPermission, UseBySuperAdminOnly
 
 
 class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
@@ -99,11 +101,12 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         # TODO: This should be moved to a permission class and validators can update the local unit
         if local_unit.is_locked:
             return bad_request("Local unit is locked and cannot be updated")
-
+        update_reason = request.data.get("update_reason_overview")
         # NOTE: Locking the local unit after the change request is created
         local_unit.is_locked = True
         local_unit.validated = False
-        local_unit.save(update_fields=["is_locked", "validated"])
+        local_unit.update_reason_overview = update_reason
+        local_unit.save(update_fields=["is_locked", "validated", "update_reason_overview"])
         serializer = self.get_serializer(local_unit, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
@@ -372,10 +375,65 @@ class DelegationOfficeDetailAPIView(RetrieveAPIView):
     ]
 
 
-class ExternallyManagedLocalUnitViewSet(viewsets.ModelViewSet):
+class ExternallyManagedLocalUnitViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
     queryset = ExternallyManagedLocalUnit.objects.select_related("country", "local_unit_type")
+    permission_classes = [permissions.IsAuthenticated, UseBySuperAdminOnly]
     serializer_class = ExternallyManagedLocalUnitSerializer
-    permission_classes = [
-        permissions.IsAuthenticated,
-        ExternallyManagedLocalUnitPermission,
-    ]
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return ExternallyManagedLocalUnitSerializer
+        elif self.action == "get_by_country":
+            return ExternallyManagedMiniSerializer
+        elif self.action == "update_by_country":
+            return ExternallyManagedLocalUnitUpdateInputSerializer
+        return super().get_serializer_class()
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save(created_by=request.user)
+        return response.Response(ExternallyManagedLocalUnitSerializer(instance).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=["patch"], url_path="update-by-country/(?P<country_id>[^/.]+)")
+    def update_by_country(self, request, country_id=None):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        local_unit_type = serializer.validated_data["local_unit_type"]
+        externally_managed = serializer.validated_data["externally_managed"]
+
+        instance = get_object_or_404(
+            ExternallyManagedLocalUnit,
+            country_id=country_id,
+            local_unit_type=local_unit_type,
+        )
+
+        instance.enabled = externally_managed
+        instance.updated_by = request.user
+        instance.save()
+
+        return response.Response(
+            {"local_unit_type_id": instance.local_unit_type_id, "externally_managed": instance.enabled}, status=status.HTTP_200_OK
+        )
+
+    @action(
+        detail=False,
+        permission_classes=[permissions.IsAuthenticated],
+        methods=["get"],
+        url_path="get-by-country/(?P<country_id>[^/.]+)",
+    )
+    def get_by_country(self, request, country_id):
+        queryset = ExternallyManagedLocalUnit.objects.filter(country=country_id).select_related("local_unit_type")
+        if not queryset.exists():
+            raise NotFound("No externally managed Local Units found for this country.")
+        local_unit = []
+        for obj in queryset.iterator():
+            item = {
+                "local_unit_type_id": obj.local_unit_type_id,
+                "local_unit_type_name": obj.local_unit_type.name,
+                "externally_managed": obj.enabled,
+            }
+            local_unit.append(item)
+        serializer = ExternallyManagedMiniSerializer(local_unit, many=True)
+        return response.Response({"externally_managed": serializer.data})

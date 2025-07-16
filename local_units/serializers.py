@@ -299,6 +299,7 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
             "created_by_details",
             "version_id",
             "is_locked",
+            "update_reason_overview",
         )
 
     def get_location_geojson(self, unit) -> dict:
@@ -603,21 +604,29 @@ class ExternallyManagedLocalUnitSerializer(serializers.ModelSerializer):
     local_unit_type = serializers.PrimaryKeyRelatedField(queryset=LocalUnitType.objects.all(), write_only=True)
     country_details = LocalUnitCountrySerializer(source="country", read_only=True)
     local_unit_type_details = LocalUnitTypeSerializer(source="local_unit_type", read_only=True)
+    enabled = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = ExternallyManagedLocalUnit
         fields = (
             "country",
             "local_unit_type",
-            "enabled",
             "country_details",
             "local_unit_type_details",
+            "enabled",
         )
 
     def create(self, validated_data):
         validated_data["created_by"] = self.context["request"].user
         return super().create(validated_data)
 
-    def update(self, instance, validated_data):
-        validated_data["updated_by"] = self.context["request"].user
-        return super().update(instance, validated_data)
+
+class ExternallyManagedLocalUnitUpdateInputSerializer(serializers.Serializer):
+    local_unit_type = serializers.PrimaryKeyRelatedField(queryset=LocalUnitType.objects.all())
+    externally_managed = serializers.BooleanField()
+
+
+class ExternallyManagedMiniSerializer(serializers.Serializer):
+    local_unit_type_id = serializers.IntegerField()
+    local_unit_type_name = serializers.CharField()
+    externally_managed = serializers.BooleanField()

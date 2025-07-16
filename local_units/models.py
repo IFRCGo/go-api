@@ -404,6 +404,9 @@ class ExternallyManagedLocalUnit(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     enabled = models.BooleanField(default=False)
 
+    class Meta:
+        unique_together = ("country", "local_unit_type")
+
 
 class LocalUnitChangeRequest(models.Model):
 
