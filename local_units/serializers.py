@@ -8,7 +8,7 @@ from rest_framework import serializers
 from reversion.models import Version
 from shapely.geometry import MultiPolygon, Point, Polygon
 
-from api.models import Country
+from api.models import Country, CountryType
 from main.writable_nested_serializers import NestedCreateMixin, NestedUpdateMixin
 
 from .models import (
@@ -22,6 +22,7 @@ from .models import (
     HealthData,
     HospitalType,
     LocalUnit,
+    LocalUnitBulkUpload,
     LocalUnitChangeRequest,
     LocalUnitLevel,
     LocalUnitType,
@@ -590,3 +591,47 @@ class LocalUnitDeprecateSerializer(serializers.ModelSerializer):
         )
         instance.save(update_fields=["is_deprecated", "deprecated_reason", "deprecated_reason_overview"])
         return instance
+
+
+class LocalUnitBulkUploadSerializer(serializers.ModelSerializer):
+    file_size = serializers.IntegerField(read_only=True)
+    country = serializers.PrimaryKeyRelatedField(
+        queryset=Country.objects.filter(
+            is_deprecated=False, independent=True, iso3__isnull=False, record_type=CountryType.COUNTRY
+        ),
+        write_only=True,
+    )
+    local_unit_type = serializers.PrimaryKeyRelatedField(queryset=LocalUnitType.objects.all(), write_only=True)
+    country_details = LocalUnitCountrySerializer(source="country", read_only=True)
+    local_unit_type_details = LocalUnitTypeSerializer(source="local_unit_type", read_only=True)
+    triggered_by_details = LocalUnitMiniUserSerializer(source="triggered_by", read_only=True)
+
+    class Meta:
+        model = LocalUnitBulkUpload
+        fields = [
+            "id",
+            "country",
+            "local_unit_type",
+            "success_count",
+            "failed_count",
+            "file_size",
+            "status",
+            "triggered_by",
+            "triggered_at",
+            "file",
+            "error_file",
+            "local_unit_type_details",
+            "country_details",
+            "triggered_by_details",
+        ]
+
+    def create(self, validated_data):
+        request = self.context.get("request")
+        if request and request.user and not validated_data.get("triggered_by"):
+            validated_data["triggered_by"] = request.user
+
+        upload_file = validated_data.get("file")
+        if upload_file:
+            validated_data["file_size"] = upload_file.size
+
+        return super().create(validated_data)
