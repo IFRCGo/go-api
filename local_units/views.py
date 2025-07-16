@@ -8,10 +8,12 @@ from rest_framework.decorators import action
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 
 from api.utils import bad_request
+
 from local_units.filterset import (
     DelegationOfficeFilters,
     ExternallyManagedLocalUnitFilters,
     LocalUnitFilters,
+    LocalUnitBulkUploadFilters,
 )
 from local_units.models import (
     Affiliation,
@@ -23,6 +25,7 @@ from local_units.models import (
     GeneralMedicalService,
     HospitalType,
     LocalUnit,
+    LocalUnitBulkUpload,
     LocalUnitChangeRequest,
     LocalUnitLevel,
     LocalUnitType,
@@ -38,6 +41,7 @@ from local_units.permissions import (
 from local_units.serializers import (
     DelegationOfficeSerializer,
     ExternallyManagedLocalUnitSerializer,
+    LocalUnitBulkUploadSerializer,
     LocalUnitChangeRequestSerializer,
     LocalUnitDeprecateSerializer,
     LocalUnitDetailSerializer,
@@ -389,3 +393,16 @@ class ExternallyManagedLocalUnitViewSet(
     serializer_class = ExternallyManagedLocalUnitSerializer
     filterset_class = ExternallyManagedLocalUnitFilters
     permission_classes = [permissions.IsAuthenticated, UseBySuperAdminOnly]
+
+
+class LocalUnitBulkUploadViewSet(viewsets.ModelViewSet):
+    queryset = LocalUnitBulkUpload.objects.select_related("country", "local_unit_type", "triggered_by")
+    permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
+    serializer_class = LocalUnitBulkUploadSerializer
+    filterset_class = LocalUnitBulkUploadFilters
+
+    def destroy(self, request, *args, **kwargs):
+        return bad_request("Delete method not allowed")
+
+    def update(self, request, *args, **kwargs):
+        return bad_request("Update method not allowed")

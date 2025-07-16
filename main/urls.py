@@ -179,7 +179,7 @@ router.register(
     local_units_views.ExternallyManagedLocalUnitViewSet,
     basename="externally_managed_local_unit",
 )
-
+router.register(r"bulk-upload-local-unit", local_units_views.LocalUnitBulkUploadViewSet, basename="bulk_upload_local_unit")
 # Databank
 router.register(r"country-income", data_bank_views.FDRSIncomeViewSet, basename="country_income")
 
