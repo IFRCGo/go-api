@@ -318,6 +318,7 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
         return version_id
 
     def validate(self, data):
+        request = self.context.get("request")
         local_branch_name = data.get("local_branch_name")
         english_branch_name = data.get("english_branch_name")
         if (not local_branch_name) and (not english_branch_name):
@@ -326,6 +327,12 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
         health = data.get("health")
         if type.code == 1 and health:
             raise serializers.ValidationError({"Can't have health data for type %s" % type.code})
+
+        if request and request.method in ["PUT", "PATCH"]:
+            reason = data.get("update_reason_overview") or request.data.get("update_reason_overview")
+            if not reason:
+                raise serializers.ValidationError({"update_reason_overview": gettext("Please provide a reason for the update.")})
+
         return data
 
     def create(self, validated_data):
@@ -604,11 +611,11 @@ class ExternallyManagedLocalUnitSerializer(serializers.ModelSerializer):
     local_unit_type = serializers.PrimaryKeyRelatedField(queryset=LocalUnitType.objects.all(), write_only=True)
     country_details = LocalUnitCountrySerializer(source="country", read_only=True)
     local_unit_type_details = LocalUnitTypeSerializer(source="local_unit_type", read_only=True)
-    enabled = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = ExternallyManagedLocalUnit
         fields = (
+            "id",
             "country",
             "local_unit_type",
             "country_details",
@@ -619,14 +626,3 @@ class ExternallyManagedLocalUnitSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data["created_by"] = self.context["request"].user
         return super().create(validated_data)
-
-
-class ExternallyManagedLocalUnitUpdateInputSerializer(serializers.Serializer):
-    local_unit_type = serializers.PrimaryKeyRelatedField(queryset=LocalUnitType.objects.all())
-    externally_managed = serializers.BooleanField()
-
-
-class ExternallyManagedMiniSerializer(serializers.Serializer):
-    local_unit_type_id = serializers.IntegerField()
-    local_unit_type_name = serializers.CharField()
-    externally_managed = serializers.BooleanField()

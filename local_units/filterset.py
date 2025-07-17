@@ -1,6 +1,6 @@
 from django_filters import rest_framework as filters
 
-from .models import DelegationOffice, LocalUnit
+from .models import DelegationOffice, ExternallyManagedLocalUnit, LocalUnit
 
 
 class LocalUnitFilters(filters.FilterSet):
@@ -25,4 +25,14 @@ class DelegationOfficeFilters(filters.FilterSet):
             "country__iso3",
             "country__iso",
             "dotype__code",
+        )
+
+
+class ExternallyManagedLocalUnitFilters(filters.FilterSet):
+    class Meta:
+        model = ExternallyManagedLocalUnit
+        fields = (
+            "country__name",
+            "country__iso3",
+            "country__iso",
         )

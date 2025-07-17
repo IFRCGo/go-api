@@ -730,6 +730,7 @@ class TestExternallyManagedLocalUnit(APITestCase):
         self.country1 = CountryFactory.create(
             name="Nepal",
             iso3="NLP",
+            iso="NP",
             region=self.region,
             is_deprecated=False,
             independent=True,
@@ -748,43 +749,67 @@ class TestExternallyManagedLocalUnit(APITestCase):
         self.externally_managed_local_unit = ExternallyManagedLocalUnitFactory.create(
             country=self.country1,
             local_unit_type=self.local_unit_type,
-            enabled=True,
             created_by=self.user,
             updated_by=self.user,
         )
 
+    def test_filter_by_country_name(self):
+        self.client.force_authenticate(user=self.root_user)
+        url = "/api/v2/externally-managed-local-unit/?country__name=Nepal"
+        response = self.client.get(url)
+        self.assert_200(response)
+        self.assertEqual(response.data["count"], 1)
+
+    def test_filter_by_country_iso3(self):
+        self.client.force_authenticate(user=self.root_user)
+        url = "/api/v2/externally-managed-local-unit/?country__iso3=IND"
+        response = self.client.get(url)
+        self.assert_200(response)
+        self.assertEqual(response.data["count"], 0)
+
+    def test_filter_by_country_iso_invalid(self):
+        self.client.force_authenticate(user=self.root_user)
+        url = "/api/v2/externally-managed-local-unit/?country__iso=PH"
+        response = self.client.get(url)
+        self.assert_200(response)
+        self.assertEqual(response.data["count"], 0)
+
     def test_create_externally_managed_local_unit(self):
         url = "/api/v2/externally-managed-local-unit/"
-        data = {
-            "country": self.country2.id,
-            "local_unit_type": self.local_unit_type.id,
-        }
+        data = {"country": self.country2.id, "local_unit_type": self.local_unit_type.id, "enabled": True}
         # Without authentication
         response = self.client.patch(url, data=data, format="json")
         self.assert_401(response)
 
-        #  normal user
+        # Normal user
         self.client.force_authenticate(user=self.user)
         response = self.client.post(url, data=data)
         self.assert_403(response)
+
         # Superuser
         self.client.force_authenticate(user=self.root_user)
         response = self.client.post(url, data=data)
         self.assert_201(response)
 
+        # Try to create the duplicate
+        self.client.force_authenticate(user=self.root_user)
+        response = self.client.post(url, data=data, format="json")
+        self.assertEqual(response.status_code, 400)
+
     def test_update_externally_managed_local_unit(self):
-        url = f"/api/v2/externally-managed-local-unit/update-by-country/{self.country1.id}/"
+        url = f"/api/v2/externally-managed-local-unit/{self.externally_managed_local_unit.id}/"
         data = {
-            "local_unit_type": self.local_unit_type.id,
-            "externally_managed": True,
+            "enabled": True,
         }
         # Without authentication
         response = self.client.patch(url, data=data, format="json")
         self.assert_401(response)
+
         # Normal user
         self.client.force_authenticate(user=self.user)
         response = self.client.patch(url, data=data, format="json")
         self.assert_403(response)
+
         # Superuser
         self.client.force_authenticate(user=self.root_user)
         response = self.client.patch(url, data=data, format="json")
@@ -793,15 +818,17 @@ class TestExternallyManagedLocalUnit(APITestCase):
         self.externally_managed_local_unit.refresh_from_db()
         self.assertTrue(self.externally_managed_local_unit.enabled)
 
-    def test_get_externally_managed_local_unit_by_country(self):
-        url = f"/api/v2/externally-managed-local-unit/get-by-country/{self.country1.id}/"
+    def test_get_externally_managed_local_unit(self):
+        url = "/api/v2/externally-managed-local-unit/"
         # Without authentication
         response = self.client.get(url)
         self.assert_401(response)
+
         # Normal user
         self.client.force_authenticate(user=self.user)
         response = self.client.get(url)
-        self.assert_200(response)
+        self.assert_403(response)
+
         # Superuser
         self.client.force_authenticate(user=self.root_user)
         response = self.client.get(url)
