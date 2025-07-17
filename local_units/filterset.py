@@ -31,8 +31,8 @@ class DelegationOfficeFilters(filters.FilterSet):
 class ExternallyManagedLocalUnitFilters(filters.FilterSet):
     class Meta:
         model = ExternallyManagedLocalUnit
-        fields = (
-            "country__name",
-            "country__iso3",
-            "country__iso",
-        )
+        fields = {
+            "country__name": ["exact", "in"],
+            "country__iso3": ["exact", "in"],
+            "country__iso": ["exact", "in"],
+        }

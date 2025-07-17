@@ -1,9 +1,10 @@
 from django.contrib.auth.models import Permission
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
-from rest_framework import permissions, response, status, views, viewsets
+from rest_framework import mixins, permissions, response, status, views, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 
@@ -103,6 +104,8 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         if local_unit.is_locked:
             return bad_request("Local unit is locked and cannot be updated")
         update_reason = request.data.get("update_reason_overview")
+        if not update_reason:
+            raise ValidationError({"update_reason_overview": "Update reason is required."})
         # NOTE: Locking the local unit after the change request is created
         local_unit.is_locked = True
         local_unit.validated = False
@@ -376,11 +379,10 @@ class DelegationOfficeDetailAPIView(RetrieveAPIView):
     ]
 
 
-class ExternallyManagedLocalUnitViewSet(viewsets.ModelViewSet):
+class ExternallyManagedLocalUnitViewSet(
+    mixins.CreateModelMixin, mixins.UpdateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet
+):
     queryset = ExternallyManagedLocalUnit.objects.select_related("country", "local_unit_type")
     serializer_class = ExternallyManagedLocalUnitSerializer
     filterset_class = ExternallyManagedLocalUnitFilters
     permission_classes = [permissions.IsAuthenticated, UseBySuperAdminOnly]
-
-    def destroy(self, request, *args, **kwargs):
-        return bad_request("Delete method not allowed")

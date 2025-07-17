@@ -425,6 +425,7 @@ class TestLocalUnitCreate(APITestCase):
             "subtype": "",
             "date_of_data": "2024-05-13",
             "level": level.id,
+            "update_reason_overview": "Needed update for testing",
             "location_json": {
                 "lat": 42.066667,
                 "lng": 19.983333,
@@ -532,6 +533,7 @@ class TestLocalUnitCreate(APITestCase):
             "subtype": "",
             "date_of_data": "2024-05-13",
             "level": level.id,
+            "update_reason_overview": "Needed update for testing",
             "location_json": {
                 "lat": 42.066667,
                 "lng": 19.983333,
@@ -620,6 +622,7 @@ class TestLocalUnitCreate(APITestCase):
             "date_of_data": "2024-05-13",
             "level": level.id,
             "address_loc": "Silele Clinic is is in Hosea Inkhundla under the Shiselweni, Sigombeni is in Nkom'iyahlaba Inkhundla under the Manzini region and Mahwalala is in the Mbabane West Inkhundla under the Hhohho region.",  # noqa: E501
+            "update_reason_overview": "Needed update for testing",
             "location_json": {
                 "lat": 42.066667,
                 "lng": 19.983333,
@@ -671,6 +674,7 @@ class TestLocalUnitCreate(APITestCase):
                 "lat": 42.066667,
                 "lng": 19.983333,
             },
+            "update_reason_overview": "Needed update for testing",
         }
         self.authenticate()
         response = self.client.post("/api/v2/local-units/", data=data, format="json")
