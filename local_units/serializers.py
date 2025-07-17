@@ -318,7 +318,6 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
         return version_id
 
     def validate(self, data):
-        request = self.context.get("request")
         local_branch_name = data.get("local_branch_name")
         english_branch_name = data.get("english_branch_name")
         if (not local_branch_name) and (not english_branch_name):
@@ -327,12 +326,6 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
         health = data.get("health")
         if type.code == 1 and health:
             raise serializers.ValidationError({"Can't have health data for type %s" % type.code})
-
-        if request and request.method in ["PUT", "PATCH"]:
-            reason = data.get("update_reason_overview") or request.data.get("update_reason_overview")
-            if not reason:
-                raise serializers.ValidationError({"update_reason_overview": gettext("Please provide a reason for the update.")})
-
         return data
 
     def create(self, validated_data):
