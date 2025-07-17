@@ -1622,9 +1622,9 @@ class BaseDref3Serializer(serializers.ModelSerializer):
         return Dref.OnsetType(type_of_onset).label
 
     def get_crisis_categorization(self, obj):
-        if obj.disaster_category:
+        if hasattr(obj, "disaster_category") and obj.disaster_category is not None:
             return Dref.DisasterCategory(obj.disaster_category).label
-        return "Unknown category"
+        return "Yellow (?)"
 
     def get_amount_approved(self, obj):
         if hasattr(obj, "amount_requested"):
@@ -1677,9 +1677,9 @@ class BaseDref3Serializer(serializers.ModelSerializer):
 
     def get_targeted_people(self, obj):
         t = type(obj).__name__
-        if t == "Dref" and hasattr(obj, "total_targeted_population"):
+        if t != "DrefOperationalUpdate" and hasattr(obj, "total_targeted_population"):  # A + FR:
             return obj.total_targeted_population
-        if t != "Dref" and hasattr(obj, "number_of_people_targeted"):  # OU + FR:
+        if t == "DrefOperationalUpdate" and hasattr(obj, "number_of_people_targeted"):
             return obj.number_of_people_targeted
 
     def get_beneficiaries_assisted(self, obj):
