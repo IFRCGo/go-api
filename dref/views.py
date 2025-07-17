@@ -359,7 +359,7 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):
         drefs = (
             Dref.objects.filter(appeal_code=appeal_code)
             .prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
-            .order_by("-created_at")
+            .order_by("created_at")
             .distinct()
         )
         drefs = filter_dref_queryset_by_user_access(user, drefs)
@@ -370,7 +370,7 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):
         operational_updates = (
             DrefOperationalUpdate.objects.filter(appeal_code=appeal_code)
             .prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
-            .order_by("-created_at")
+            .order_by("created_at")
             .distinct()
         )
         operational_updates = filter_dref_queryset_by_user_access(user, operational_updates)
@@ -380,7 +380,7 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):
         final_reports = (
             DrefFinalReport.objects.filter(appeal_code=appeal_code)
             .prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
-            .order_by("-created_at")
+            .order_by("created_at")
             .distinct()
         )
         final_reports = filter_dref_queryset_by_user_access(user, final_reports)
@@ -399,14 +399,16 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):
 
         serialized_data = []
         ops_update_count = 0
-        a = ["First", "Second", "Third", "Fourth", "Fifth", "Sixth", "Seventh", "Eighth", "Nineth", "Tenth"]
+        allocation_count = 1  # Dref Application is always the first allocation
+        a = ["First", "Second", "Third", "Fourth", "Fifth", "Sixth", "Seventh", "Eighth", "Ninth", "Tenth"]
         for instance in instances:
             if isinstance(instance, Dref):
                 serializer = Dref3Serializer(instance, context={"stage": "Application", "allocation": a[0]})
             elif isinstance(instance, DrefOperationalUpdate):
                 ops_update_count += 1
-                if instance.additional_allocation and len(a) > ops_update_count:
-                    allocation = a[ops_update_count]
+                if instance.additional_allocation and len(a) > allocation_count:
+                    allocation = a[allocation_count]
+                    allocation_count += 1
                 else:
                     allocation = "No allocation"
                 serializer = DrefOperationalUpdate3Serializer(
