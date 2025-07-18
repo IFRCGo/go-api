@@ -23,15 +23,11 @@ from local_units.models import (
     PrimaryHCC,
     ProfessionalTrainingFacility,
     SpecializedMedicalService,
-    Validator,
     VisibilityChoices,
 )
 from local_units.permissions import (
     IsAuthenticatedForLocalUnit,
     ValidateLocalUnitPermission,
-    get_global_validators_by_type,
-    get_local_unit_validators_by_type,
-    get_region_validators_by_type,
 )
 from local_units.serializers import (
     DelegationOfficeSerializer,
@@ -50,6 +46,7 @@ from local_units.tasks import (
     send_revert_email,
     send_validate_success_email,
 )
+from local_units.utils import get_user_validator_level
 from main.permissions import DenyGuestUserPermission
 
 
@@ -134,17 +131,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        if get_local_unit_validators_by_type(local_unit).filter(id=user.id):
-            validator = Validator.LOCAL
-        elif get_region_validators_by_type(local_unit).filter(id=user.id):
-            validator = Validator.REGIONAL
-        elif user.is_superuser or get_global_validators_by_type(local_unit).filter(id=user.id):
-            validator = Validator.GLOBAL
-        else:
-            return response.Response(
-                {"message": "You do not have permission to validate this local unit."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
+        validator = get_user_validator_level(user, local_unit)
 
         change_request_instance.current_validator = validator
         change_request_instance.status = LocalUnitChangeRequest.Status.APPROVED

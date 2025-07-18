@@ -1,26 +1,24 @@
 from rest_framework import permissions
 
 from local_units.utils import (
-    get_global_validators_by_type,
-    get_local_unit_validators_by_type,
-    get_region_validators_by_type,
+    get_local_unit_country_validators,
+    get_local_unit_global_validators,
+    get_local_unit_region_validators,
 )
 
 
 class ValidateLocalUnitPermission(permissions.BasePermission):
-    message = "You need to be super user/ global validator/ region validator/ country validator to validate local unit"
+    message = "You don't have permissions to validate"
 
     def has_object_permission(self, request, view, obj):
         user = request.user
         if user.is_superuser:
             return True
-        elif get_global_validators_by_type(obj).filter(id=user.id):
-            return True
-        elif get_region_validators_by_type(obj).filter(id=user.id):
-            return True
-        elif get_local_unit_validators_by_type(obj).filter(id=user.id):
-            return True
-        return False
+        return (
+            get_local_unit_country_validators(obj).filter(id=user.id).exists()
+            or get_local_unit_region_validators(obj).filter(id=user.id).exists()
+            or get_local_unit_global_validators(obj).filter(id=user.id).exists()
+        )
 
 
 class IsAuthenticatedForLocalUnit(permissions.BasePermission):
@@ -36,7 +34,7 @@ class IsAuthenticatedForLocalUnit(permissions.BasePermission):
             return True
 
         return (
-            get_local_unit_validators_by_type(obj).filter(id=user.id).exists()
-            or get_region_validators_by_type(obj).filter(id=user.id).exists()
-            or get_global_validators_by_type(obj).filter(id=user.id).exists()
+            get_local_unit_country_validators(obj).filter(id=user.id).exists()
+            or get_local_unit_region_validators(obj).filter(id=user.id).exists()
+            or get_local_unit_global_validators(obj).filter(id=user.id).exists()
         )
