@@ -340,22 +340,34 @@ class TestLocalUnitCreate(APITestCase):
         self.region_validator_user = UserFactory.create()
         self.global_validator_user = UserFactory.create()
         #  permissions
-        country_permission = Permission.objects.get(codename="local_unit_validator_nepal_administrative")
-        region_permission = Permission.objects.get(codename="local_unit_validator_asia_pacific_administrative")
-        global_permission = Permission.objects.get(codename="local_unit_global_validator_administrative")
+        country_codename = "local_unit_country_validator_%s_%s" % (self.local_unit_type.id, self.country.id)
+
+        region_codename = "local_unit_region_validator_%s_%s" % (self.local_unit_type.id, self.region.id)
+
+        global_codename = "local_unit_global_validator_%s" % self.local_unit_type.id
+
+        country_permission = Permission.objects.get(codename=country_codename)
+        region_permission = Permission.objects.get(codename=region_codename)
+        global_permission = Permission.objects.get(codename=global_codename)
 
         #  Country validator group
-        country_group = Group.objects.get(name="local_unit_validator_for_administrative_nepal")
+        country_group_name = "Local unit validator for %s %s" % (self.local_unit_type.name, self.country.name)
+
+        country_group = Group.objects.get(name=country_group_name)
         country_group.permissions.add(country_permission)
         self.country_validator_user.groups.add(country_group)
 
         # Region validator group
-        region_group = Group.objects.get(name="local_unit_validator_for_administrative_asia_pacific")
+        region_group_name = "Local unit validator for %s %s" % (self.local_unit_type.name, self.region.get_name_display())
+
+        region_group = Group.objects.get(name=region_group_name)
         region_group.permissions.add(region_permission)
         self.region_validator_user.groups.add(region_group)
 
         # Global validator group
-        global_group = Group.objects.get(name="local_unit_global_validator_for_administrative")
+        global_group_name = "Local unit global validator for %s" % self.local_unit_type.name
+
+        global_group = Group.objects.get(name=global_group_name)
         global_group.permissions.add(global_permission)
         self.global_validator_user.groups.add(global_group)
 
@@ -694,7 +706,8 @@ class TestLocalUnitCreate(APITestCase):
         self.authenticate(self.country_validator_user)
         response = self.client.put(f"/api/v2/local-units/{local_unit_id}/", data=data, format="json")
         self.assert_200(response)
-        # validating the local unit by the local unit admin
+        # validating the local unit by the local unit region admin
+        self.authenticate(self.country_validator_user)
         response = self.client.post(f"/api/v2/local-units/{local_unit_id}/validate/")
         local_unit_request = LocalUnitChangeRequest.objects.filter(
             local_unit=local_unit_id, status=LocalUnitChangeRequest.Status.APPROVED

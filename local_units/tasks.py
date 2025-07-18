@@ -7,9 +7,9 @@ from notifications.notification import send_notification
 
 from .utils import (
     get_email_context,
-    get_global_validators_by_type,
-    get_local_unit_validators_by_type,
-    get_region_validators_by_type,
+    get_local_unit_country_validators,
+    get_local_unit_global_validators,
+    get_local_unit_region_validators,
 )
 
 User = get_user_model()
@@ -20,13 +20,12 @@ def send_local_unit_email(local_unit_id: int, new: bool = True):
     if not local_unit_id:
         return None
     instance = LocalUnit.objects.get(id=local_unit_id)
-    users = get_local_unit_validators_by_type(instance)
-    if not users:
-        users = get_region_validators_by_type(instance)
-    elif not users:
-        users = get_global_validators_by_type(instance)
-    elif not users:
-        users = User.objects.filter(is_superuser=True)
+    users = (
+        get_local_unit_country_validators(instance)
+        or get_local_unit_region_validators(instance)
+        or get_local_unit_global_validators(instance)
+        or User.objects.filter(is_superuser=True)
+    )
 
     email_context = get_email_context(instance)
     email_context["new_local_unit"] = True
