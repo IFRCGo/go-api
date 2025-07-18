@@ -1,18 +1,24 @@
 from django.contrib.auth.models import Permission
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
-from rest_framework import permissions, response, status, views, viewsets
+from rest_framework import mixins, permissions, response, status, views, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 
 from api.utils import bad_request
-from local_units.filterset import DelegationOfficeFilters, LocalUnitFilters
+from local_units.filterset import (
+    DelegationOfficeFilters,
+    ExternallyManagedLocalUnitFilters,
+    LocalUnitFilters,
+)
 from local_units.models import (
     Affiliation,
     BloodService,
     DelegationOffice,
+    ExternallyManagedLocalUnit,
     FacilityType,
     Functionality,
     GeneralMedicalService,
@@ -33,6 +39,7 @@ from local_units.permissions import (
 )
 from local_units.serializers import (
     DelegationOfficeSerializer,
+    ExternallyManagedLocalUnitSerializer,
     LocalUnitChangeRequestSerializer,
     LocalUnitDeprecateSerializer,
     LocalUnitDetailSerializer,
@@ -48,7 +55,7 @@ from local_units.tasks import (
     send_revert_email,
     send_validate_success_email,
 )
-from main.permissions import DenyGuestUserPermission
+from main.permissions import DenyGuestUserPermission, UseBySuperAdminOnly
 
 
 class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
@@ -96,11 +103,14 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         # TODO: This should be moved to a permission class and validators can update the local unit
         if local_unit.is_locked:
             return bad_request("Local unit is locked and cannot be updated")
-
+        update_reason = request.data.get("update_reason_overview")
+        if not update_reason:
+            raise ValidationError({"update_reason_overview": "Update reason is required."})
         # NOTE: Locking the local unit after the change request is created
         local_unit.is_locked = True
         local_unit.validated = False
-        local_unit.save(update_fields=["is_locked", "validated"])
+        local_unit.update_reason_overview = update_reason
+        local_unit.save(update_fields=["is_locked", "validated", "update_reason_overview"])
         serializer = self.get_serializer(local_unit, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
@@ -367,3 +377,12 @@ class DelegationOfficeDetailAPIView(RetrieveAPIView):
         permissions.IsAuthenticated,
         DenyGuestUserPermission,
     ]
+
+
+class ExternallyManagedLocalUnitViewSet(
+    mixins.CreateModelMixin, mixins.UpdateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet
+):
+    queryset = ExternallyManagedLocalUnit.objects.select_related("country", "local_unit_type")
+    serializer_class = ExternallyManagedLocalUnitSerializer
+    filterset_class = ExternallyManagedLocalUnitFilters
+    permission_classes = [permissions.IsAuthenticated, UseBySuperAdminOnly]

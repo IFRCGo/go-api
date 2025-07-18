@@ -10,6 +10,7 @@ from .models import (
     BloodService,
     DelegationOffice,
     DelegationOfficeType,
+    ExternallyManagedLocalUnit,
     FacilityType,
     Functionality,
     GeneralMedicalService,
@@ -69,6 +70,21 @@ class LocalUnitAdmin(CompareVersionAdmin, admin.OSMGeoAdmin):
         if obj.type.code == 1 and obj.health:
             raise ValidationError({"Can't have health data for type %s" % obj.type.code})
         super().save_model(request, obj, form, change)
+
+
+@admin.register(ExternallyManagedLocalUnit)
+class ExternallyManagedLocalUnitAdmin(admin.ModelAdmin):
+    list_display = ("local_unit_type", "created_at", "updated_at")
+    search_fields = ("country__name",)
+    list_select_related = True
+    autocomplete_fields = (
+        "country",
+        "local_unit_type",
+    )
+    list_filter = (
+        AutocompleteFilterFactory("Country", "country"),
+        AutocompleteFilterFactory("Type", "local_unit_type"),
+    )
 
 
 @admin.register(LocalUnitChangeRequest)

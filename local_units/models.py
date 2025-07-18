@@ -4,6 +4,7 @@ import reversion
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db.models import UniqueConstraint
 from django.templatetags.static import static
 from django.utils.translation import gettext_lazy as _
 
@@ -361,7 +362,9 @@ class LocalUnit(models.Model):
     deprecated_reason_overview = models.TextField(
         verbose_name=_("Explain the reason why the local unit is being deleted"), blank=True, null=True
     )
-
+    update_reason_overview = models.TextField(
+        verbose_name=_("Explain the reason why the local unit is being updated"), blank=True, null=True
+    )
     last_sent_validator_type = models.IntegerField(
         choices=Validator.choices,
         verbose_name=_("Last email sent validator type"),
@@ -380,6 +383,30 @@ class LocalUnit(models.Model):
             "lat": self.location.y,
             "lng": self.location.x,
         }
+
+
+class ExternallyManagedLocalUnit(models.Model):
+    country = models.ForeignKey(
+        Country,
+        on_delete=models.CASCADE,
+        verbose_name=_("Country"),
+        related_name="externally_managed_local_unit_country",
+    )
+    local_unit_type = models.ForeignKey(
+        LocalUnitType, on_delete=models.CASCADE, verbose_name=_("Type"), related_name="externally_managed_local_unit_type"
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="created_external_local_units"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="updated_external_local_units"
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+    enabled = models.BooleanField(default=False)
+
+    class Meta:
+        constraints = [UniqueConstraint(fields=["country", "local_unit_type"], name="unique_country_local_unit_type")]
 
 
 class LocalUnitChangeRequest(models.Model):
