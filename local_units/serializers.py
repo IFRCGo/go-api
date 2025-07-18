@@ -1,14 +1,17 @@
 import json
+from datetime import datetime
 
 import reversion
 from django.contrib.auth.models import User
 from django.contrib.gis.geos import GEOSGeometry
+from django.db import transaction
 from django.utils.translation import gettext
 from rest_framework import serializers
 from reversion.models import Version
 from shapely.geometry import MultiPolygon, Point, Polygon
 
-from api.models import Country, CountryType
+from api.models import Country, CountryType, VisibilityChoices
+from local_units.tasks import process_bulk_upload_local_unit
 from main.writable_nested_serializers import NestedCreateMixin, NestedUpdateMixin
 
 from .models import (
@@ -648,7 +651,6 @@ class ExternallyManagedLocalUnitSerializer(serializers.ModelSerializer):
 
 
 class LocalUnitBulkUploadSerializer(serializers.ModelSerializer):
-    file_size = serializers.IntegerField(read_only=True)
     country = serializers.PrimaryKeyRelatedField(
         queryset=Country.objects.filter(
             is_deprecated=False, independent=True, iso3__isnull=False, record_type=CountryType.COUNTRY
@@ -662,30 +664,108 @@ class LocalUnitBulkUploadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LocalUnitBulkUpload
-        fields = [
-            "id",
-            "country",
-            "local_unit_type",
+        fields = "__all__"
+        read_only_fields = (
             "success_count",
             "failed_count",
             "file_size",
             "status",
-            "triggered_by",
-            "triggered_at",
-            "file",
             "error_file",
-            "local_unit_type_details",
-            "country_details",
-            "triggered_by_details",
-        ]
+            "triggered_by",
+        )
+
+    def validate_file(self, file):
+        if not file.name.endswith(".csv"):
+            raise serializers.ValidationError(gettext("File must be a CSV file."))
+        return file
 
     def create(self, validated_data):
-        request = self.context.get("request")
-        if request and request.user and not validated_data.get("triggered_by"):
-            validated_data["triggered_by"] = request.user
-
+        validated_data["triggered_by"] = self.context["request"].user
         upload_file = validated_data.get("file")
-        if upload_file:
-            validated_data["file_size"] = upload_file.size
+        # TODO(@susilnem): Find a better way to get the file size
+        validated_data["file_size"] = upload_file.size
+        validated_data["status"] = LocalUnitBulkUpload.Status.PENDING
+        instance = super().create(validated_data)
 
-        return super().create(validated_data)
+        transaction.on_commit(lambda: process_bulk_upload_local_unit.delay(instance.id))
+        return instance
+
+
+# <---  Bulk upload serializers start  --->
+
+
+# NOTE: The `LocalUnitBulkUploadDetailSerializer` is used to validate the data for bulk upload of local units.
+class LocalUnitBulkUploadDetailSerializer(serializers.ModelSerializer):
+    location = serializers.CharField(required=False)
+    latitude = serializers.FloatField(write_only=True, required=False)
+    longitude = serializers.FloatField(write_only=True, required=False)
+    visibility = serializers.CharField(required=True, allow_blank=True)
+    date_of_data = serializers.CharField(required=False, allow_null=True)
+
+    class Meta:
+        model = LocalUnit
+        fields = "__all__"
+
+    def validate_date_of_data(self, value: str):
+        today = datetime.today().strftime("%Y-%m-%d")
+        if not value:
+            return today
+
+        possible_formats = ("%d-%b-%y", "%m/%d/%Y", "%Y-%m-%d")
+        for date_format in possible_formats:
+            try:
+                return datetime.strptime(value.strip(), date_format).strftime("%Y-%m-%d")
+            except ValueError:
+                continue
+        # If no format matched, return today's date
+        return today
+
+    def validate_visibility(self, value: str):
+        if not value:
+            return VisibilityChoices.MEMBERSHIP
+
+        visibility = value.lower()
+        if visibility == "public":
+            return VisibilityChoices.PUBLIC
+
+        # return default visibility if not matched
+        return VisibilityChoices.MEMBERSHIP
+
+    def validate(self, validated_data):
+        if not validated_data.get("local_branch_name") and not validated_data.get("english_branch_name"):
+            raise serializers.ValidationError(gettext("Branch Name Combination is required."))
+
+        # Country location validation
+        latitude = validated_data.pop("latitude")
+        longitude = validated_data.pop("longitude")
+        if not latitude or not longitude:
+            raise serializers.ValidationError(gettext("Latitude and Longitude are required."))
+        country = validated_data.get("country")
+        if not country:
+            raise serializers.ValidationError(gettext("Country is required."))
+
+        input_point = Point(longitude, latitude)
+        if country.bbox:
+            country_json = json.loads(country.countrygeoms.geom.geojson)
+            coordinates = country_json["coordinates"]
+            # Convert to Shapely Polygons
+            polygons = []
+            for polygon_coords in coordinates:
+                exterior = polygon_coords[0]
+                interiors = polygon_coords[1:] if len(polygon_coords) > 1 else []
+                polygon = Polygon(exterior, interiors)
+                polygons.append(polygon)
+
+            # Create a Shapely MultiPolygon
+            shapely_multipolygon = MultiPolygon(polygons)
+            if not input_point.within(shapely_multipolygon):
+                raise serializers.ValidationError(
+                    {"location": gettext("Input coordinates is outside country %s boundary" % country.name)}
+                )
+
+        validated_data["location"] = GEOSGeometry("POINT(%f %f)" % (longitude, latitude))
+        validated_data["validated"] = True
+        return validated_data
+
+
+# <---  Bulk upload serializers end --->
