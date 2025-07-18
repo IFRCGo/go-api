@@ -174,6 +174,7 @@ router.register(r"country-plan", country_plan_views.CountryPlanViewset, basename
 # Local Units apis
 router.register(r"local-units", local_units_views.PrivateLocalUnitViewSet, basename="local_units")
 router.register(r"public-local-units", local_units_views.LocalUnitViewSet, basename="public_local_units")
+router.register(r"bulk-upload-local-unit", local_units_views.LocalUnitBulkUploadViewSet, basename="bulk_upload_local_unit")
 
 # Databank
 router.register(r"country-income", data_bank_views.FDRSIncomeViewSet, basename="country_income")

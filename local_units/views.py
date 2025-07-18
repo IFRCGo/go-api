@@ -3,12 +3,16 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
-from rest_framework import permissions, response, status, views, viewsets
+from rest_framework import mixins, permissions, response, status, views, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 
 from api.utils import bad_request
-from local_units.filterset import DelegationOfficeFilters, LocalUnitFilters
+from local_units.filterset import (
+    DelegationOfficeFilters,
+    LocalUnitBulkUploadFilters,
+    LocalUnitFilters,
+)
 from local_units.models import (
     Affiliation,
     BloodService,
@@ -18,6 +22,7 @@ from local_units.models import (
     GeneralMedicalService,
     HospitalType,
     LocalUnit,
+    LocalUnitBulkUpload,
     LocalUnitChangeRequest,
     LocalUnitLevel,
     LocalUnitType,
@@ -33,6 +38,7 @@ from local_units.permissions import (
 )
 from local_units.serializers import (
     DelegationOfficeSerializer,
+    LocalUnitBulkUploadSerializer,
     LocalUnitChangeRequestSerializer,
     LocalUnitDeprecateSerializer,
     LocalUnitDetailSerializer,
@@ -367,3 +373,14 @@ class DelegationOfficeDetailAPIView(RetrieveAPIView):
         permissions.IsAuthenticated,
         DenyGuestUserPermission,
     ]
+
+
+class LocalUnitBulkUploadViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
+    queryset = LocalUnitBulkUpload.objects.select_related("country", "local_unit_type", "triggered_by")
+    permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
+    serializer_class = LocalUnitBulkUploadSerializer
+    filterset_class = LocalUnitBulkUploadFilters
