@@ -281,6 +281,7 @@ class LocalUnitBulkUpload(models.Model):
     class Status(models.IntegerChoices):
         SUCCESS = 1, _("Success")
         FAILED = 2, _("Failed")
+        PENDING = 3, _("Pending")
 
     country = models.ForeignKey(
         Country,
@@ -316,6 +317,23 @@ class LocalUnitBulkUpload(models.Model):
         blank=True,
         verbose_name=_("Error File"),
     )
+
+    # Type hints
+    pk: int
+    country_id: int
+    local_unit_type_id: int
+    triggered_by_id: int
+
+    def __str__(self):
+        return f"Bulk Upload - {self.country_id} - ({self.local_unit_type_id}) - {self.status}"
+
+    def update_status(self, status: Status, commit: bool = True) -> None:
+        """
+        Update the status of the bulk upload.
+        """
+        self.status = status
+        if commit:
+            self.save(update_fields=["status"])
 
 
 class Validator(models.IntegerChoices):
