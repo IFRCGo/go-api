@@ -3,7 +3,7 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
-from rest_framework import permissions, response, status, views, viewsets
+from rest_framework import mixins, permissions, response, status, views, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 
@@ -375,14 +375,12 @@ class DelegationOfficeDetailAPIView(RetrieveAPIView):
     ]
 
 
-class LocalUnitBulkUploadViewSet(viewsets.ModelViewSet):
+class LocalUnitBulkUploadViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
     queryset = LocalUnitBulkUpload.objects.select_related("country", "local_unit_type", "triggered_by")
     permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
     serializer_class = LocalUnitBulkUploadSerializer
     filterset_class = LocalUnitBulkUploadFilters
-
-    def destroy(self, request, *args, **kwargs):
-        return bad_request("Delete method not allowed")
-
-    def update(self, request, *args, **kwargs):
-        return bad_request("Update method not allowed")
