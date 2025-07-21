@@ -1,4 +1,5 @@
 import logging
+import threading
 
 import boto3
 import requests
@@ -11,6 +12,9 @@ logger = logging.getLogger(__name__)
 
 # Array of language : ['en', 'es', 'fr', ....]
 AVAILABLE_LANGUAGES = [lang for lang, _ in settings.LANGUAGES]
+
+IFRC_TRANSLATION_CALL_COUNT = 0
+IFRC_TRANSLATION_CALL_LOCK = threading.Lock()
 
 
 class BaseTranslator:
@@ -99,6 +103,11 @@ class IfrcTranslator(BaseTranslator):
             # NOTE: Mocking for test purpose
             return self._fake_translation(text, dest_language, source_language)
 
+        global IFRC_TRANSLATION_CALL_COUNT
+        with IFRC_TRANSLATION_CALL_LOCK:
+            IFRC_TRANSLATION_CALL_COUNT += 1
+            logger.info(f"IFRC translation API call count: {IFRC_TRANSLATION_CALL_COUNT}")
+
         # A dirty workaround to handle oversized HTML+CSS texts, usually tables:
         textTail = ""
         if len(text) > settings.AZURE_TRANSL_LIMIT:
@@ -124,6 +133,7 @@ class IfrcTranslator(BaseTranslator):
             # NOTE: Sending 'text' throws 500 from IFRC translation endpoint
             # So only sending if html
             payload["textType"] = "html"
+        logger.info(f"IFRC translation API call content: {text[:30]}... to {dest_language} from {source_language}")
         response = requests.post(
             self.url,
             headers=self.headers,

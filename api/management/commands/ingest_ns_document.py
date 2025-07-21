@@ -76,7 +76,8 @@ class Command(BaseCommand):
         if not data:
             return None
         documents = []
-        for item in data["documents"]:
+        items = data[0]["documents"] if len(data) == 1 else data["documents"]
+        for item in items:
             document_info = {
                 "name": item["name"],
                 "url": item["url"],
