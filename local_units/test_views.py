@@ -672,7 +672,6 @@ class TestLocalUnitCreate(APITestCase):
         self.assertEqual(response.data["previous_data_details"]["english_branch_name"], previous_data["english_branch_name"])
 
     def test_validate_local_unit(self):
-        # type = LocalUnitType.objects.create(code=0, name="Code 0")
         data = {
             "local_branch_name": "Silele Red Cross Clinic, Sigombeni Red Cross Clinic & Mahwalala Red Cross Clinic",
             "english_branch_name": None,
