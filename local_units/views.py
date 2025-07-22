@@ -53,14 +53,8 @@ from local_units.tasks import (
     send_revert_email,
     send_validate_success_email,
 )
-<<<<<<< HEAD
-from main.permissions import DenyGuestUserPermission, UseBySuperAdminOnly
-||||||| parent of f10be387 (fix(permission): update permission creation logic)
-from main.permissions import DenyGuestUserPermission
-=======
 from local_units.utils import get_user_validator_level
-from main.permissions import DenyGuestUserPermission
->>>>>>> f10be387 (fix(permission): update permission creation logic)
+from main.permissions import DenyGuestUserPermission, UseBySuperAdminOnly
 
 
 class PrivateLocalUnitViewSet(viewsets.ModelViewSet):

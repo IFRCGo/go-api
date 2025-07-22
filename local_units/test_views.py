@@ -5,9 +5,10 @@ from django.contrib.auth.models import Group, Permission
 from django.contrib.gis.geos import Point
 from django.core import management
 from factory import fuzzy
+
 from api.factories.country import CountryFactory
-from api.models import Country, CountryType, Region
 from api.factories.region import RegionFactory
+from api.models import Country, CountryType, Region
 from deployments.factories.user import UserFactory
 from main.test_case import APITestCase
 
@@ -790,6 +791,13 @@ class TestExternallyManagedLocalUnit(APITestCase):
         self.assert_200(response)
         self.assertEqual(response.data["count"], 0)
 
+    def test_filter_by_country_id(self):
+        self.client.force_authenticate(user=self.root_user)
+        url = f"/api/v2/externally-managed-local-unit/?country__id={self.country1.id}"
+        response = self.client.get(url)
+        self.assert_200(response)
+        self.assertEqual(response.data["count"], 1)
+
     def test_create_externally_managed_local_unit(self):
         url = "/api/v2/externally-managed-local-unit/"
         data = {"country": self.country2.id, "local_unit_type": self.local_unit_type.id, "enabled": True}
@@ -849,5 +857,3 @@ class TestExternallyManagedLocalUnit(APITestCase):
         self.client.force_authenticate(user=self.root_user)
         response = self.client.get(url)
         self.assert_200(response)
-
-       
