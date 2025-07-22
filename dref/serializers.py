@@ -1409,6 +1409,13 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             validated_data["national_society_contact_email"] = dref.national_society_contact_email
             validated_data["national_society_contact_title"] = dref.national_society_contact_title
             validated_data["national_society_contact_phone_number"] = dref.national_society_contact_phone_number
+            validated_data["national_society_integrity_contact_name"] = dref.national_society_integrity_contact_name
+            validated_data["national_society_integrity_contact_email"] = dref.national_society_integrity_contact_email
+            validated_data["national_society_integrity_contact_title"] = dref.national_society_integrity_contact_title
+            validated_data["national_society_integrity_contact_phone_number"] = (
+                dref.national_society_integrity_contact_phone_number
+            )
+            validated_data["national_society_hotline_phone_number"] = dref.national_society_hotline_phone_number
             validated_data["media_contact_name"] = dref.media_contact_name
             validated_data["media_contact_email"] = dref.media_contact_email
             validated_data["media_contact_title"] = dref.media_contact_title
