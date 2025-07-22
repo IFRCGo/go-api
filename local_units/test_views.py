@@ -341,32 +341,28 @@ class TestLocalUnitCreate(APITestCase):
         self.region_validator_user = UserFactory.create()
         self.global_validator_user = UserFactory.create()
         #  permissions
-        country_codename = "local_unit_country_validator_%s_%s" % (self.local_unit_type.id, self.country.id)
-
-        region_codename = "local_unit_region_validator_%s_%s" % (self.local_unit_type.id, self.region.id)
-
-        global_codename = "local_unit_global_validator_%s" % self.local_unit_type.id
+        country_codename = f"local_unit_country_validator_{self.local_unit_type.id}_{self.country.id}"
+        region_codename = f"local_unit_region_validator_{self.local_unit_type.id}_{self.region.id}"
+        global_codename = f"local_unit_global_validator_{self.local_unit_type.id}"
 
         country_permission = Permission.objects.get(codename=country_codename)
         region_permission = Permission.objects.get(codename=region_codename)
         global_permission = Permission.objects.get(codename=global_codename)
 
         #  Country validator group
-        country_group_name = "Local unit validator for %s %s" % (self.local_unit_type.name, self.country.name)
-
+        country_group_name = f"Local unit validator for {self.local_unit_type.name} {self.country.name}"
         country_group = Group.objects.get(name=country_group_name)
         country_group.permissions.add(country_permission)
         self.country_validator_user.groups.add(country_group)
 
         # Region validator group
-        region_group_name = "Local unit validator for %s %s" % (self.local_unit_type.name, self.region.get_name_display())
-
+        region_group_name = f"Local unit validator for {self.local_unit_type.name} {self.region.get_name_display()}"
         region_group = Group.objects.get(name=region_group_name)
         region_group.permissions.add(region_permission)
         self.region_validator_user.groups.add(region_group)
 
         # Global validator group
-        global_group_name = "Local unit global validator for %s" % self.local_unit_type.name
+        global_group_name = f"Local unit global validator for {self.local_unit_type.name}"
 
         global_group = Group.objects.get(name=global_group_name)
         global_group.permissions.add(global_permission)

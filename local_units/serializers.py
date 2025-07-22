@@ -616,6 +616,19 @@ class ExternallyManagedLocalUnitSerializer(serializers.ModelSerializer):
             "enabled",
         )
 
+    def validate(self, validated_data):
+        if (
+            not self.instance
+            and ExternallyManagedLocalUnit.objects.filter(
+                country=validated_data["country"],
+                local_unit_type=validated_data["local_unit_type"],
+            ).first()
+        ):
+            raise serializers.ValidationError(
+                gettext("An externally managed local unit with this country and type already exists.")
+            )
+        return validated_data
+
     def create(self, validated_data):
         validated_data["created_by"] = self.context["request"].user
         return super().create(validated_data)

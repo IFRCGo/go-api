@@ -14,67 +14,59 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         content_type = ContentType.objects.get_for_model(LocalUnit)
         local_unit_types = LocalUnitType.objects.all()
-        regions = Region.objects.all()
-        countries = Country.objects.filter(
-            is_deprecated=False, independent=True, iso3__isnull=False, record_type=CountryType.COUNTRY
-        )
+
         # Global level Permissions and Groups
-        self.stdout.write(self.style.NOTICE("Creating/Updating global validators permissions and groups"))
+        self.stdout.write(self.style.NOTICE("\n--- Creating/Updating GLOBAL validator permissions and groups"))
         for local_unit_type in local_unit_types.iterator():
-            codename = "local_unit_global_validator_%s" % local_unit_type.id
-            name = "Local unit global validator for %s" % local_unit_type.name
+            codename = f"local_unit_global_validator_{local_unit_type.id}"
+            name = f"Global validator for {local_unit_type.name}"
             permission, _ = Permission.objects.get_or_create(
                 codename=codename,
                 content_type=content_type,
                 defaults=dict(name=name),
             )
-            group_name = "Local unit global validator for %s" % local_unit_type.name
+            group_name = f"Local unit global validator for {local_unit_type.name}"
             group, _ = Group.objects.get_or_create(name=group_name)
             group.permissions.add(permission)
-            self.stdout.write(
-                self.style.SUCCESS(
-                    "Local unit global validator for %s permission and group created successfully" % local_unit_type.name
-                )
-            )
+            self.stdout.write(self.style.SUCCESS(f"\t--> {local_unit_type.name}"))
 
         # Region level Permissions and Groups
-        self.stdout.write(self.style.NOTICE("Creating/Updating region-level permissions and groups"))
+        self.stdout.write(self.style.NOTICE("\n--- Creating/Updating REGION-LEVEL validator permissions and groups"))
+        regions = Region.objects.all()
         for region in regions.iterator():
+            region_name = region.get_name_display()
+            self.stdout.write(self.style.NOTICE(f"--> Region: {region_name}"))
             for local_unit_type in local_unit_types.iterator():
-                codename = "local_unit_region_validator_%s_%s" % (local_unit_type.id, region.id)
-                name = "Local unit validator for %s %s" % (local_unit_type.name, region.get_name_display())
+                codename = f"local_unit_region_validator_{local_unit_type.id}_{region.id}"
+                name = f"Local unit validator for {local_unit_type.name} {region_name}"
                 permission, _ = Permission.objects.get_or_create(
                     codename=codename,
                     content_type=content_type,
                     defaults=dict(name=name),
                 )
-                group_name = "Local unit validator for %s %s" % (local_unit_type.name, region.get_name_display())
+                group_name = f"Local unit validator for {local_unit_type.name} {region_name}"
                 group, _ = Group.objects.get_or_create(name=group_name)
                 group.permissions.add(permission)
-                self.stdout.write(
-                    self.style.SUCCESS(
-                        "Local unit validator in %s for %s permission and group created successfully"
-                        % (region.get_name_display(), local_unit_type.name)
-                    )
-                )
+                self.stdout.write(self.style.SUCCESS(f"\t--> {local_unit_type.name}"))
 
         # Country level Permissions and Groups
-        self.stdout.write(self.style.NOTICE("Creating/Updating country-level permissions and groups"))
+        self.stdout.write(self.style.NOTICE("\n--- Creating/Updating COUNTRY-LEVEL validator permissions and groups"))
+        countries = Country.objects.filter(
+            is_deprecated=False, independent=True, iso3__isnull=False, record_type=CountryType.COUNTRY
+        )
         for country in countries.iterator():
+            self.stdout.write(self.style.NOTICE(f"--> Country: {country.name}"))
             for local_unit_type in local_unit_types.iterator():
-                codename = "local_unit_country_validator_%s_%s" % (local_unit_type.id, country.id)
-                name = "Local unit validator for %s %s" % (local_unit_type.name, country.name)
+                codename = f"local_unit_country_validator_{local_unit_type.id}_{country.id}"
+                name = f"Local unit validator for {local_unit_type.name} {country.name}"
                 permission, _ = Permission.objects.get_or_create(
                     codename=codename,
                     content_type=content_type,
                     defaults=dict(name=name),
                 )
-                group_name = "Local unit validator for %s %s" % (local_unit_type.name, country.name)
+                group_name = f"Local unit validator for {local_unit_type.name} {country.name}"
                 group, _ = Group.objects.get_or_create(name=group_name)
                 group.permissions.add(permission)
-                self.stdout.write(
-                    self.style.SUCCESS(
-                        "Local unit validator in %s for %s permission and group created successfully"
-                        % (country.name, local_unit_type.name)
-                    )
-                )
+                self.stdout.write(self.style.SUCCESS(f"\t--> {local_unit_type.name}"))
+
+        self.stdout.write(self.style.SUCCESS("\n All permissions and groups created/updated successfully\n"))
