@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dref', '0082_dreffinalreport_indirect_cost_and_more'),
+        ("dref", "0082_dreffinalreport_indirect_cost_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='dreffinalreport',
-            name='total_operation_timeframe_imminent',
-            field=models.IntegerField(blank=True, null=True, verbose_name='total operation timeframe for imminent type'),
+            model_name="dreffinalreport",
+            name="total_operation_timeframe_imminent",
+            field=models.IntegerField(blank=True, null=True, verbose_name="total operation timeframe for imminent type"),
         ),
     ]
