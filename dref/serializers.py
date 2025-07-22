@@ -1395,7 +1395,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
                 validated_data["total_dref_allocation"] = dref.total_cost
                 # NOTE:These field should be blank for final report
                 validated_data["total_operation_timeframe"] = None
-                validated_data["operation_end_date"] = None
+                validated_data["total_operation_timeframe_imminent"] = dref.operation_timeframe_imminent
             validated_data["glide_code"] = dref.glide_code
             validated_data["ifrc_appeal_manager_name"] = dref.ifrc_appeal_manager_name
             validated_data["ifrc_appeal_manager_email"] = dref.ifrc_appeal_manager_email
