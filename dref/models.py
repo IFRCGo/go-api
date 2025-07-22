@@ -1315,6 +1315,10 @@ class DrefFinalReport(models.Model):
     total_dref_allocation = models.IntegerField(verbose_name=_("Total dref allocation"), null=True, blank=True)
     date_of_publication = models.DateField(verbose_name=_("Date of publication"), blank=True, null=True)
     total_operation_timeframe = models.IntegerField(verbose_name=_("Total Operation Timeframe"), null=True, blank=True)
+    # NOTE: Total operation Timeframe for Imminent Type: Days
+    total_operation_timeframe_imminent = models.IntegerField(
+        verbose_name=_("total operation timeframe for imminent type"), null=True, blank=True
+    )
     operation_start_date = models.DateField(verbose_name=_("Operation Start Date"), null=True, blank=True)
     appeal_code = models.CharField(verbose_name=_("appeal code"), max_length=255, null=True, blank=True)
     glide_code = models.CharField(verbose_name=_("glide number"), max_length=255, null=True, blank=True)
