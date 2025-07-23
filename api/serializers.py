@@ -1759,6 +1759,10 @@ class UserMeSerializer(UserSerializer):
     user_countries_regions = serializers.SerializerMethodField()
     limit_access_to_guest = serializers.BooleanField(read_only=True, source="profile.limit_access_to_guest")
 
+    local_unit_country_validators = serializers.SerializerMethodField()
+    local_unit_region_validators = serializers.SerializerMethodField()
+    local_unit_global_validators = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = UserSerializer.Meta.fields + (
@@ -1770,6 +1774,9 @@ class UserMeSerializer(UserSerializer):
             "is_per_admin_for_countries",
             "user_countries_regions",
             "limit_access_to_guest",
+            "local_unit_country_validators",
+            "local_unit_region_validators",
+            "local_unit_global_validators",
         )
 
     @staticmethod
@@ -1832,6 +1839,49 @@ class UserMeSerializer(UserSerializer):
     def get_user_countries_regions(user):
         qs = UserCountry.objects.filter(user=user).distinct("country")
         return UserCountrySerializer(qs, many=True).data
+
+    @staticmethod
+    def get_local_unit_global_validators(user) -> List[int]:
+        data = list(
+            Permission.objects.filter(codename__startswith="local_unit_global_validator", group__user=user).values_list(
+                "codename", flat=True
+            )
+        )
+        global_validators = []
+        for code in data:
+            type_id = code.split("_")[-1]
+            global_validators.append((int(type_id)))
+        return global_validators
+
+    @staticmethod
+    def get_local_unit_region_validators(user) -> List[tuple[int, int]]:
+        data = list(
+            Permission.objects.filter(codename__startswith="local_unit_region_validator", group__user=user).values_list(
+                "codename", flat=True
+            )
+        )
+        region_validators = []
+        for code in data:
+            parts = code.split("_")[-2:]
+            if len(parts) == 2 and all(p.isdigit() for p in parts):
+                type_id, region_id = map(int, parts)
+                region_validators.append((type_id, region_id))
+        return region_validators
+
+    @staticmethod
+    def get_local_unit_country_validators(user) -> List[tuple[int, int]]:
+        data = list(
+            Permission.objects.filter(codename__startswith="local_unit_country_validator", group__user=user).values_list(
+                "codename", flat=True
+            )
+        )
+        country_validators = []
+        for code in data:
+            parts = code.split("_")[-2:]
+            if len(parts) == 2 and all(p.isdigit() for p in parts):
+                type_id, country_id = map(int, parts)
+                country_validators.append((type_id, country_id))
+        return country_validators
 
 
 class ActionSerializer(ModelSerializer):
