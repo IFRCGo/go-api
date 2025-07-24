@@ -1,6 +1,11 @@
 from django_filters import rest_framework as filters
 
-from .models import DelegationOffice, ExternallyManagedLocalUnit, LocalUnit, LocalUnitBulkUpload
+from .models import (
+    DelegationOffice,
+    ExternallyManagedLocalUnit,
+    LocalUnit,
+    LocalUnitBulkUpload,
+)
 
 
 class LocalUnitFilters(filters.FilterSet):
@@ -33,6 +38,7 @@ class DelegationOfficeFilters(filters.FilterSet):
             "dotype__code",
         )
 
+
 class ExternallyManagedLocalUnitFilters(filters.FilterSet):
     class Meta:
         model = ExternallyManagedLocalUnit
@@ -43,11 +49,13 @@ class ExternallyManagedLocalUnitFilters(filters.FilterSet):
             "country__id": ["exact", "in"],
         }
 
+
 class LocalUnitBulkUploadFilters(filters.FilterSet):
     class Meta:
         model = LocalUnitBulkUpload
-        fields = (
-            "country__name",
-            "country__iso3",
-            "country__iso",
-        )
+        fields = {
+            "country__name": ["exact", "in"],
+            "country__iso3": ["exact", "in"],
+            "country__iso": ["exact", "in"],
+            "country__id": ["exact", "in"],
+        }

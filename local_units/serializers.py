@@ -12,6 +12,7 @@ from shapely.geometry import MultiPolygon, Point, Polygon
 
 from api.models import Country, CountryType, VisibilityChoices
 from local_units.tasks import process_bulk_upload_local_unit
+from local_units.utils import normalize_bool, numerize, wash_data
 from main.writable_nested_serializers import NestedCreateMixin, NestedUpdateMixin
 
 from .models import (
@@ -605,7 +606,6 @@ class LocalUnitDeprecateSerializer(serializers.ModelSerializer):
         return instance
 
 
-
 class ExternallyManagedLocalUnitSerializer(serializers.ModelSerializer):
     country = serializers.PrimaryKeyRelatedField(
         queryset=Country.objects.filter(
@@ -679,6 +679,17 @@ class LocalUnitBulkUploadSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(gettext("File must be a CSV file."))
         return file
 
+    def validate(self, attrs):
+
+        country = attrs.get("country")
+        local_unit_type = attrs.get("local_unit_type")
+        is_externally_managed = ExternallyManagedLocalUnit.objects.filter(
+            country=country, local_unit_type=local_unit_type, enabled=True
+        )
+        if not is_externally_managed:
+            raise serializers.ValidationError(gettext("Country and local unit type are not externally managed."))
+        return attrs
+
     def create(self, validated_data):
         validated_data["triggered_by"] = self.context["request"].user
         upload_file = validated_data.get("file")
@@ -689,6 +700,11 @@ class LocalUnitBulkUploadSerializer(serializers.ModelSerializer):
 
         transaction.on_commit(lambda: process_bulk_upload_local_unit.delay(instance.id))
         return instance
+
+
+class LocalUnitTemplateFilesSerializer(serializers.Serializer):
+    health_template_url = serializers.CharField(read_only=True)
+    default_template_url = serializers.CharField(read_only=True)
 
 
 # <---  Bulk upload serializers start  --->
@@ -768,4 +784,127 @@ class LocalUnitBulkUploadDetailSerializer(serializers.ModelSerializer):
         return validated_data
 
 
-# <---  Bulk upload serializers end --->
+class HealthDataBulkUploadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HealthData
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Prefetch FK
+        self.affiliation_map = self._build_map(Affiliation)
+        self.functionality_map = self._build_map(Functionality)
+        self.facilitytype_map = self._build_map(FacilityType)
+        self.primaryhcc_map = self._build_map(PrimaryHCC)
+        self.hospitaltype_map = self._build_map(HospitalType)
+
+        # M2M maps
+        self.generalmedicalservice_map = self._build_map(GeneralMedicalService)
+        self.specializedmedicalservice_map = self._build_map(SpecializedMedicalService)
+        self.bloodservice_map = self._build_map(BloodService)
+        self.professionaltrainingfacility_map = self._build_map(ProfessionalTrainingFacility)
+
+        self._m2m_data = {}
+
+    def _build_map(self, model):
+        """Builds a washed name to object map."""
+        return {wash_data(obj.name): obj for obj in model.objects.all()}
+
+    def _resolve_required_fk(self, data, field_name, mapping):
+        """Resolves required foreign keys."""
+        key = wash_data(data.get(field_name))
+        if not key:
+            raise serializers.ValidationError({field_name: f"{field_name.replace('_', ' ').title()} is required."})
+        instance = mapping.get(key)
+        if not instance:
+            raise serializers.ValidationError(
+                {field_name: f"{field_name.replace('_', ' ').title()} '{data.get(field_name)}' not found"}
+            )
+        data[field_name] = instance.pk
+
+    def _resolve_optional_fk(self, data, field_name, mapping):
+        """Resolves optional foreign keys."""
+        key = wash_data(data.get(field_name))
+        instance = mapping.get(key) if key else None
+        data[field_name] = instance.pk if instance else None
+
+    def to_internal_value(self, data):
+        data = data.copy()
+
+        self._resolve_required_fk(data, "affiliation", self.affiliation_map)
+        self._resolve_required_fk(data, "functionality", self.functionality_map)
+        self._resolve_required_fk(data, "health_facility_type", self.facilitytype_map)
+
+        self._resolve_optional_fk(data, "primary_health_care_center", self.primaryhcc_map)
+        self._resolve_optional_fk(data, "hospital_type", self.hospitaltype_map)
+
+        # Normalize booleans
+        for bool_field in [
+            "is_teaching_hospital",
+            "is_in_patient_capacity",
+            "is_isolation_rooms_wards",
+            "is_warehousing",
+            "is_cold_chain",
+            "other_medical_heal",
+        ]:
+            if bool_field in data:
+                data[bool_field] = normalize_bool(data.get(bool_field))
+
+        # Normalize integers
+        for int_field in [
+            "maximum_capacity",
+            "number_of_isolation_rooms",
+            "ambulance_type_a",
+            "ambulance_type_b",
+            "ambulance_type_c",
+            "total_number_of_human_resource",
+            "general_practitioner",
+            "specialist",
+            "residents_doctor",
+            "nurse",
+            "dentist",
+            "nursing_aid",
+            "midwife",
+        ]:
+            if int_field in data:
+                val = data.get(int_field)
+                converted = numerize(val)
+                if val and converted is None:
+                    raise serializers.ValidationError({int_field: f"Invalid integer value: {val}"})
+                data[int_field] = converted
+
+        # Parse M2M string fields
+        def parse_m2m(field_name, mapping):
+            raw = data.get(field_name, "")
+            ids = []
+            if raw:
+                for val in raw.split(","):
+                    key = wash_data(val)
+                    if key in mapping:
+                        ids.append(mapping[key].id)
+                    else:
+                        raise serializers.ValidationError({field_name: f"Invalid value '{val}'"})
+            self._m2m_data[field_name] = ids
+            data.pop(field_name, None)
+
+        parse_m2m("general_medical_services", self.generalmedicalservice_map)
+        parse_m2m("specialized_medical_beyond_primary_level", self.specializedmedicalservice_map)
+        parse_m2m("blood_services", self.bloodservice_map)
+        parse_m2m("professional_training_facilities", self.professionaltrainingfacility_map)
+
+        return super().to_internal_value(data)
+
+    def create(self, validated_data):
+        m2m_data = self._m2m_data or {}
+        instance = super().create(validated_data)
+        for field, ids in m2m_data.items():
+            getattr(instance, field).set(ids)
+        return instance
+
+    def update(self, instance, validated_data):
+        m2m_data = self._m2m_data or {}
+        instance = super().update(instance, validated_data)
+        for field, ids in m2m_data.items():
+            getattr(instance, field).set(ids)
+        return instance
