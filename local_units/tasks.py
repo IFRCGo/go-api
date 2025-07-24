@@ -3,7 +3,7 @@ import logging
 from celery import shared_task
 from django.template.loader import render_to_string
 
-from local_units.bulk_upload import BaseBulkUploadLocalUnit
+from local_units.bulk_upload import BaseBulkUploadHealthData, BaseBulkUploadLocalUnit
 from local_units.models import LocalUnit, LocalUnitBulkUpload, LocalUnitChangeRequest
 
 from .utils import get_email_context, get_local_admins
@@ -99,12 +99,16 @@ def send_deprecate_email(local_unit_id: int):
 @shared_task
 def process_bulk_upload_local_unit(bulk_upload_id: int) -> None:
     bulk_upload: LocalUnitBulkUpload | None = LocalUnitBulkUpload.objects.filter(id=bulk_upload_id).first()
+
     if not bulk_upload:
         logger.error(f"BulkUploadLocalUnit:'{bulk_upload_id}' Not found.", exc_info=True)
         return
-
     try:
-        BaseBulkUploadLocalUnit(bulk_upload).run()
+        if bulk_upload.local_unit_type.name.lower() == "health care":
+            BaseBulkUploadHealthData(bulk_upload).run()
+        else:
+            BaseBulkUploadLocalUnit(bulk_upload).run()
+
     except Exception as exc:
         logger.error(f"BulkUploadLocalUnit:'{bulk_upload_id}' Failed with exception: {exc}", exc_info=True)
         bulk_upload.update_status(LocalUnitBulkUpload.Status.FAILED)

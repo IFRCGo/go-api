@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.db import models
 
 User = get_user_model()
 
@@ -39,3 +40,38 @@ def get_global_validators():
     """
     global_validators = User.objects.filter(groups__permissions__codename="local_unit_global_validator")
     return global_validators
+
+
+def get_model_field_names(model: type[models.Model]) -> list[str]:
+    """
+    Returns all field names of a model including ForeignKey and ManyToMany fields.
+    """
+    return [field.name for field in model._meta.get_fields() if not field.auto_created]
+
+
+def wash_data(s):
+    if not s:
+        return ""
+    return s.lower().replace("/", "").replace("_", "").replace(",", "").replace(" ", "")
+
+
+def numerize(value):
+    try:
+        if value in [None, ""]:
+            return None
+        return int(value)
+    except (ValueError, TypeError):
+        return None
+
+
+def normalize_bool(value):
+    if isinstance(value, bool):
+        return value
+    if not value:
+        return False
+    val = str(value).strip().lower()
+    if val in ("true", "1", "yes", "y"):
+        return True
+    if val in ("false", "0", "no", "n"):
+        return False
+    return False

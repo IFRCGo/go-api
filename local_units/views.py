@@ -2,6 +2,7 @@ from django.contrib.auth.models import Permission
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.shortcuts import get_object_or_404
+from django.templatetags.static import static
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
 from rest_framework import mixins, permissions, response, status, views, viewsets
@@ -9,12 +10,11 @@ from rest_framework.decorators import action
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 
 from api.utils import bad_request
-
 from local_units.filterset import (
     DelegationOfficeFilters,
     ExternallyManagedLocalUnitFilters,
-    LocalUnitFilters,
     LocalUnitBulkUploadFilters,
+    LocalUnitFilters,
 )
 from local_units.models import (
     Affiliation,
@@ -49,6 +49,7 @@ from local_units.serializers import (
     LocalUnitDetailSerializer,
     LocalUnitOptionsSerializer,
     LocalUnitSerializer,
+    LocalUnitTemplateFilesSerializer,
     PrivateLocalUnitDetailSerializer,
     PrivateLocalUnitSerializer,
     RejectedReasonSerialzier,
@@ -401,3 +402,15 @@ class LocalUnitBulkUploadViewSet(
     permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
     serializer_class = LocalUnitBulkUploadSerializer
     filterset_class = LocalUnitBulkUploadFilters
+
+    @extend_schema(request=None, responses=LocalUnitTemplateFilesSerializer)
+    @action(detail=False, methods=["get"], url_path="get-bulk-upload-health-template")
+    def get_bulk_upload_health_template(self, request):
+        file_url = request.build_absolute_uri(static("files/local_units/local-unit-helth-template.xlsx"))
+        return response.Response(LocalUnitTemplateFilesSerializer({"health_template_url": file_url}).data)
+
+    @extend_schema(request=None, responses=LocalUnitTemplateFilesSerializer)
+    @action(detail=False, methods=["get"], url_path="get-bulk-upload-template")
+    def get_bulk_upload_template(self, request):
+        file_url = request.build_absolute_uri(static("files/local_units/local-unit-bulk-upload-template.xlsx"))
+        return response.Response(LocalUnitTemplateFilesSerializer({"default_template_url": file_url}).data)
