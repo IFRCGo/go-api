@@ -406,11 +406,11 @@ class LocalUnitBulkUploadViewSet(
     @extend_schema(request=None, responses=LocalUnitTemplateFilesSerializer)
     @action(detail=False, methods=["get"], url_path="get-bulk-upload-health-template")
     def get_bulk_upload_health_template(self, request):
-        file_url = request.build_absolute_uri(static("files/local_units/local-unit-helth-template.xlsx"))
+        file_url = request.build_absolute_uri(static("files/local_units/local-unit-helth-template.csv"))
         return response.Response(LocalUnitTemplateFilesSerializer({"health_template_url": file_url}).data)
 
     @extend_schema(request=None, responses=LocalUnitTemplateFilesSerializer)
     @action(detail=False, methods=["get"], url_path="get-bulk-upload-template")
     def get_bulk_upload_template(self, request):
-        file_url = request.build_absolute_uri(static("files/local_units/local-unit-bulk-upload-template.xlsx"))
+        file_url = request.build_absolute_uri(static("files/local_units/local-unit-bulk-upload-template.csv"))
         return response.Response(LocalUnitTemplateFilesSerializer({"default_template_url": file_url}).data)
