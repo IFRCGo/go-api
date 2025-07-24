@@ -257,6 +257,7 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
     created_by_details = LocalUnitMiniUserSerializer(source="created_by", read_only=True)
     version_id = serializers.SerializerMethodField()
     is_locked = serializers.BooleanField(read_only=True)
+    is_new_local_unit = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = LocalUnit
@@ -300,6 +301,7 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
             "version_id",
             "is_locked",
             "update_reason_overview",
+            "is_new_local_unit",
         )
 
     def get_location_geojson(self, unit) -> dict:

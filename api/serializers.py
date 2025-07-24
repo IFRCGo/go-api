@@ -1,4 +1,5 @@
 import json
+from collections import defaultdict
 from typing import List, Union
 
 from django.conf import settings
@@ -11,6 +12,7 @@ from rest_framework import serializers
 
 # from api.utils import pdf_exporter
 from api.tasks import generate_url
+from api.utils import CountryValidator, RegionValidator
 from deployments.models import EmergencyProject, Personnel, PersonnelDeployment
 from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
 from lang.models import String
@@ -1842,46 +1844,46 @@ class UserMeSerializer(UserSerializer):
 
     @staticmethod
     def get_local_unit_global_validators(user) -> List[int]:
-        data = list(
-            Permission.objects.filter(codename__startswith="local_unit_global_validator", group__user=user).values_list(
-                "codename", flat=True
-            )
-        )
-        global_validators = []
-        for code in data:
-            type_id = code.split("_")[-1]
-            global_validators.append((int(type_id)))
-        return global_validators
+        permission_codenames = Permission.objects.filter(
+            codename__startswith="local_unit_global_validator", group__user=user
+        ).values_list("codename", flat=True)
+        global_validators = {int(code.split("_")[-1]) for code in permission_codenames}
+        return list(global_validators)
 
     @staticmethod
-    def get_local_unit_region_validators(user) -> List[tuple[int, int]]:
-        data = list(
-            Permission.objects.filter(codename__startswith="local_unit_region_validator", group__user=user).values_list(
-                "codename", flat=True
-            )
-        )
-        region_validators = []
-        for code in data:
+    def get_local_unit_region_validators(user) -> list[RegionValidator]:
+        permission_codenames = Permission.objects.filter(
+            codename__startswith="local_unit_region_validator",
+            group__user=user,
+        ).values_list("codename", flat=True)
+        region_validators = defaultdict(set)
+        for code in permission_codenames:
             parts = code.split("_")[-2:]
             if len(parts) == 2 and all(p.isdigit() for p in parts):
-                type_id, region_id = map(int, parts)
-                region_validators.append((type_id, region_id))
-        return region_validators
+                local_unit_type_id = int(parts[0])
+                region_id = int(parts[1])
+                region_validators[region_id].add(local_unit_type_id)
+        return [
+            {"region": region, "local_unit_types": list(local_unit_types)}
+            for region, local_unit_types in region_validators.items()
+        ]
 
     @staticmethod
-    def get_local_unit_country_validators(user) -> List[tuple[int, int]]:
-        data = list(
-            Permission.objects.filter(codename__startswith="local_unit_country_validator", group__user=user).values_list(
-                "codename", flat=True
-            )
-        )
-        country_validators = []
-        for code in data:
+    def get_local_unit_country_validators(user) -> list[CountryValidator]:
+        permission_codenames = Permission.objects.filter(
+            codename__startswith="local_unit_country_validator", group__user=user
+        ).values_list("codename", flat=True)
+        country_validator = defaultdict(set)
+        for code in permission_codenames:
             parts = code.split("_")[-2:]
             if len(parts) == 2 and all(p.isdigit() for p in parts):
-                type_id, country_id = map(int, parts)
-                country_validators.append((type_id, country_id))
-        return country_validators
+                local_unit_type_id = int(parts[0])
+                country_id = int(parts[1])
+                country_validator[country_id].add(local_unit_type_id)
+        return [
+            {"country": country, "local_unit_types": list(local_unit_types)}
+            for country, local_unit_types in country_validator.items()
+        ]
 
 
 class ActionSerializer(ModelSerializer):
