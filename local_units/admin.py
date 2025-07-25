@@ -56,6 +56,7 @@ class LocalUnitAdmin(CompareVersionAdmin, admin.OSMGeoAdmin):
     readonly_fields = (
         "validated",
         "is_locked",
+        "is_new_local_unit",
     )
     list_filter = (
         AutocompleteFilterFactory("Country", "country"),
