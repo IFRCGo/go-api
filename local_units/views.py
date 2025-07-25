@@ -1,4 +1,3 @@
-from django.contrib.auth.models import Permission
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.shortcuts import get_object_or_404
@@ -30,7 +29,6 @@ from local_units.models import (
     PrimaryHCC,
     ProfessionalTrainingFacility,
     SpecializedMedicalService,
-    Validator,
     VisibilityChoices,
 )
 from local_units.permissions import (
@@ -55,16 +53,21 @@ from local_units.tasks import (
     send_revert_email,
     send_validate_success_email,
 )
+from local_units.utils import get_user_validator_level
 from main.permissions import DenyGuestUserPermission, UseBySuperAdminOnly
 
 
 class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
-    queryset = LocalUnit.objects.select_related(
-        "health",
-        "country",
-        "type",
-        "level",
-    ).exclude(is_deprecated=True)
+    queryset = (
+        LocalUnit.objects.select_related(
+            "health",
+            "country",
+            "type",
+            "level",
+        )
+        .exclude(is_deprecated=True)
+        .order_by("validated")
+    )
     filterset_class = LocalUnitFilters
     search_fields = (
         "local_branch_name",
@@ -91,30 +94,35 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
             status=LocalUnitChangeRequest.Status.PENDING,
             triggered_by=request.user,
         )
-        transaction.on_commit(lambda: send_local_unit_email(serializer.instance.id, new=True))
+        transaction.on_commit(lambda: send_local_unit_email.delay(serializer.instance.id, new=True))
         return response.Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
         local_unit = self.get_object()
 
-        previous_data = PrivateLocalUnitDetailSerializer(local_unit, context={"request": request}).data
-
-        # NOTE: Checking if the local unit is locked.
-        # TODO: This should be moved to a permission class and validators can update the local unit
         if local_unit.is_locked:
             return bad_request("Local unit is locked and cannot be updated")
         update_reason = request.data.get("update_reason_overview")
         if not update_reason:
             raise ValidationError({"update_reason_overview": "Update reason is required."})
+
         # NOTE: Locking the local unit after the change request is created
+        previous_data = PrivateLocalUnitDetailSerializer(local_unit, context={"request": request}).data
         local_unit.is_locked = True
         local_unit.validated = False
         local_unit.update_reason_overview = update_reason
-        local_unit.save(update_fields=["is_locked", "validated", "update_reason_overview"])
+        local_unit.is_new_local_unit = False
+        local_unit.save(
+            update_fields=[
+                "is_locked",
+                "validated",
+                "update_reason_overview",
+                "is_new_local_unit",
+            ]
+        )
         serializer = self.get_serializer(local_unit, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-
         # Creating a new change request for the local unit
         LocalUnitChangeRequest.objects.create(
             local_unit=local_unit,
@@ -122,7 +130,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
             status=LocalUnitChangeRequest.Status.PENDING,
             triggered_by=request.user,
         )
-        transaction.on_commit(lambda: send_local_unit_email(local_unit.id, new=False))
+        transaction.on_commit(lambda: send_local_unit_email.delay(local_unit.id, new=False))
         return response.Response(serializer.data)
 
     @extend_schema(request=None, responses=PrivateLocalUnitSerializer)
@@ -135,46 +143,39 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
     )
     def get_validate(self, request, pk=None, version=None):
         local_unit = self.get_object()
-
+        user = request.user
         # NOTE: Updating the change request with the approval status
         change_request_instance = LocalUnitChangeRequest.objects.filter(
             local_unit=local_unit,
             status=LocalUnitChangeRequest.Status.PENDING,
         ).last()
-
         if not change_request_instance:
             return response.Response(
                 {"message": "No change request found to validate"},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        # Checking the validator type
-        validator = Validator.LOCAL
-        if request.user.is_superuser or request.user.has_perm("local_units.local_unit_global_validator"):
-            validator = Validator.GLOBAL
-        else:
-            region_admin_ids = [
-                int(codename.replace("region_admin_", ""))
-                for codename in Permission.objects.filter(
-                    group__user=request.user,
-                    codename__startswith="region_admin_",
-                ).values_list("codename", flat=True)
-            ]
-            if local_unit.country.region_id in region_admin_ids:
-                validator = Validator.REGIONAL
+        validator = get_user_validator_level(user, local_unit)
 
         change_request_instance.current_validator = validator
         change_request_instance.status = LocalUnitChangeRequest.Status.APPROVED
-        change_request_instance.updated_by = request.user
+        change_request_instance.updated_by = user
         change_request_instance.updated_at = timezone.now()
         change_request_instance.save(update_fields=["status", "updated_by", "updated_at", "current_validator"])
 
         # Validate the local unit
         local_unit.validated = True
         local_unit.is_locked = False
-        local_unit.save(update_fields=["validated", "is_locked"])
+        local_unit.is_new_local_unit = False
+        local_unit.save(
+            update_fields=[
+                "validated",
+                "is_locked",
+                "is_new_local_unit",
+            ]
+        )
         serializer = PrivateLocalUnitSerializer(local_unit, context={"request": request})
-        transaction.on_commit(lambda: send_validate_success_email(local_unit_id=local_unit.id, message="Approved"))
+        transaction.on_commit(lambda: send_validate_success_email.delay(local_unit_id=local_unit.id, message="Approved"))
         return response.Response(serializer.data)
 
     @extend_schema(request=RejectedReasonSerialzier, responses=PrivateLocalUnitDetailSerializer)
@@ -233,7 +234,8 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         # NOTE: Unlocking the reverted local unit
         local_unit.is_locked = False
         local_unit.validated = True
-        local_unit.save(update_fields=["is_locked", "validated"])
+        local_unit.is_new_local_unit = False
+        local_unit.save(update_fields=["is_locked", "validated", "is_new_local_unit"])
 
         # reverting the previous data of change request to local unit by passing through serializer
         serializer = PrivateLocalUnitDetailSerializer(
@@ -245,7 +247,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         transaction.on_commit(
-            lambda: send_revert_email(local_unit_id=local_unit.id, change_request_id=change_request_instance.id)
+            lambda: send_revert_email.delay(local_unit_id=local_unit.id, change_request_id=change_request_instance.id)
         )
         return response.Response(serializer.data)
 
@@ -255,7 +257,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         url_path="latest-change-request",
         methods=["get"],
         serializer_class=LocalUnitChangeRequestSerializer,
-        permission_classes=[permissions.IsAuthenticated, IsAuthenticatedForLocalUnit, DenyGuestUserPermission],
+        permission_classes=[permissions.IsAuthenticated, DenyGuestUserPermission],
     )
     def get_latest_changes(self, request, pk=None, version=None):
         local_unit = self.get_object()
@@ -287,7 +289,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         serializer = LocalUnitDeprecateSerializer(instance, data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-        transaction.on_commit(lambda: send_deprecate_email(instance.id))
+        transaction.on_commit(lambda: send_deprecate_email.delay(instance.id))
         return response.Response(
             {"message": "Local unit object deprecated successfully."},
             status=status.HTTP_200_OK,
@@ -306,7 +308,8 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         local_unit.is_deprecated = False
         local_unit.deprecated_reason = None
         local_unit.deprecated_reason_overview = ""
-        local_unit.save(update_fields=["is_deprecated", "deprecated_reason", "deprecated_reason_overview"])
+        local_unit.is_new_local_unit = False
+        local_unit.save(update_fields=["is_deprecated", "deprecated_reason", "deprecated_reason_overview", "is_new_local_unit"])
         serializer = PrivateLocalUnitSerializer(local_unit, context={"request": request})
         return response.Response(serializer.data)
 

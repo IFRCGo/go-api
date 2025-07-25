@@ -35,4 +35,5 @@ class ExternallyManagedLocalUnitFilters(filters.FilterSet):
             "country__name": ["exact", "in"],
             "country__iso3": ["exact", "in"],
             "country__iso": ["exact", "in"],
+            "country__id": ["exact", "in"],
         }

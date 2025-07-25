@@ -1,6 +1,6 @@
 import base64
 import typing
-from typing import Optional
+from typing import Optional, TypedDict
 
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -146,3 +146,13 @@ def generate_field_report_title(
     else:
         summary = f"{country.iso3}: {dtype.name} - {start_date} - {title} {suffix}"
     return summary
+
+
+class RegionValidator(TypedDict):
+    region: int
+    local_unit_types: list[int]
+
+
+class CountryValidator(TypedDict):
+    country: int
+    local_unit_types: list[int]

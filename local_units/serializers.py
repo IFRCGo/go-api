@@ -257,6 +257,7 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
     created_by_details = LocalUnitMiniUserSerializer(source="created_by", read_only=True)
     version_id = serializers.SerializerMethodField()
     is_locked = serializers.BooleanField(read_only=True)
+    is_new_local_unit = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = LocalUnit
@@ -300,6 +301,7 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
             "version_id",
             "is_locked",
             "update_reason_overview",
+            "is_new_local_unit",
         )
 
     def get_location_geojson(self, unit) -> dict:
@@ -354,6 +356,7 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
         validated_data["location"] = GEOSGeometry("POINT(%f %f)" % (lng, lat))
         validated_data["created_by"] = self.context["request"].user
         validated_data["is_locked"] = True
+        validated_data["is_new_local_unit"] = True
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
@@ -615,6 +618,19 @@ class ExternallyManagedLocalUnitSerializer(serializers.ModelSerializer):
             "local_unit_type_details",
             "enabled",
         )
+
+    def validate(self, validated_data):
+        if (
+            not self.instance
+            and ExternallyManagedLocalUnit.objects.filter(
+                country=validated_data["country"],
+                local_unit_type=validated_data["local_unit_type"],
+            ).first()
+        ):
+            raise serializers.ValidationError(
+                gettext("An externally managed local unit with this country and type already exists.")
+            )
+        return validated_data
 
     def create(self, validated_data):
         validated_data["created_by"] = self.context["request"].user
