@@ -659,16 +659,16 @@ class LocalUnitBulkUploadSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(gettext("File must be a CSV file."))
         return file
 
-    def validate(self, validate_data):
+    def validate(self, attrs):
 
-        country = validate_data.get("country")
-        local_unit_type = validate_data.get("local_unit_type")
+        country = attrs.get("country")
+        local_unit_type = attrs.get("local_unit_type")
         is_externally_managed = ExternallyManagedLocalUnit.objects.filter(
             country=country, local_unit_type=local_unit_type, enabled=True
         )
         if not is_externally_managed:
             raise serializers.ValidationError(gettext("Country and local unit type are not externally managed."))
-        return validate_data
+        return attrs
 
     def create(self, validated_data):
         validated_data["triggered_by"] = self.context["request"].user
