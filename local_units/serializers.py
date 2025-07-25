@@ -8,7 +8,7 @@ from rest_framework import serializers
 from reversion.models import Version
 from shapely.geometry import MultiPolygon, Point, Polygon
 
-from api.models import Country
+from api.models import Country, CountryType
 from main.writable_nested_serializers import NestedCreateMixin, NestedUpdateMixin
 
 from .models import (
@@ -16,6 +16,7 @@ from .models import (
     BloodService,
     DelegationOffice,
     DelegationOfficeType,
+    ExternallyManagedLocalUnit,
     FacilityType,
     Functionality,
     GeneralMedicalService,
@@ -256,6 +257,7 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
     created_by_details = LocalUnitMiniUserSerializer(source="created_by", read_only=True)
     version_id = serializers.SerializerMethodField()
     is_locked = serializers.BooleanField(read_only=True)
+    is_new_local_unit = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = LocalUnit
@@ -298,6 +300,8 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
             "created_by_details",
             "version_id",
             "is_locked",
+            "update_reason_overview",
+            "is_new_local_unit",
         )
 
     def get_location_geojson(self, unit) -> dict:
@@ -352,6 +356,7 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
         validated_data["location"] = GEOSGeometry("POINT(%f %f)" % (lng, lat))
         validated_data["created_by"] = self.context["request"].user
         validated_data["is_locked"] = True
+        validated_data["is_new_local_unit"] = True
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
@@ -590,3 +595,47 @@ class LocalUnitDeprecateSerializer(serializers.ModelSerializer):
         )
         instance.save(update_fields=["is_deprecated", "deprecated_reason", "deprecated_reason_overview"])
         return instance
+
+
+class ExternallyManagedLocalUnitSerializer(serializers.ModelSerializer):
+    country = serializers.PrimaryKeyRelatedField(
+        queryset=Country.objects.filter(
+            is_deprecated=False, independent=True, iso3__isnull=False, record_type=CountryType.COUNTRY
+        ),
+        write_only=True,
+    )
+    local_unit_type = serializers.PrimaryKeyRelatedField(queryset=LocalUnitType.objects.all(), write_only=True)
+    country_details = LocalUnitCountrySerializer(source="country", read_only=True)
+    local_unit_type_details = LocalUnitTypeSerializer(source="local_unit_type", read_only=True)
+
+    class Meta:
+        model = ExternallyManagedLocalUnit
+        fields = (
+            "id",
+            "country",
+            "local_unit_type",
+            "country_details",
+            "local_unit_type_details",
+            "enabled",
+        )
+
+    def validate(self, validated_data):
+        if (
+            not self.instance
+            and ExternallyManagedLocalUnit.objects.filter(
+                country=validated_data["country"],
+                local_unit_type=validated_data["local_unit_type"],
+            ).first()
+        ):
+            raise serializers.ValidationError(
+                gettext("An externally managed local unit with this country and type already exists.")
+            )
+        return validated_data
+
+    def create(self, validated_data):
+        validated_data["created_by"] = self.context["request"].user
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        validated_data["updated_by"] = self.context["request"].user
+        return super().update(instance, validated_data)
