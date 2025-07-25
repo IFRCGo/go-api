@@ -2,8 +2,9 @@ from django.contrib.auth.models import Permission
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.shortcuts import get_object_or_404
+from django.templatetags.static import static
 from django.utils import timezone
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import mixins, permissions, response, status, views, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import ListAPIView, RetrieveAPIView
@@ -12,6 +13,7 @@ from api.utils import bad_request
 from local_units.filterset import (
     DelegationOfficeFilters,
     ExternallyManagedLocalUnitFilters,
+    LocalUnitBulkUploadFilters,
     LocalUnitFilters,
 )
 from local_units.models import (
@@ -24,6 +26,7 @@ from local_units.models import (
     GeneralMedicalService,
     HospitalType,
     LocalUnit,
+    LocalUnitBulkUpload,
     LocalUnitChangeRequest,
     LocalUnitLevel,
     LocalUnitType,
@@ -40,11 +43,13 @@ from local_units.permissions import (
 from local_units.serializers import (
     DelegationOfficeSerializer,
     ExternallyManagedLocalUnitSerializer,
+    LocalUnitBulkUploadSerializer,
     LocalUnitChangeRequestSerializer,
     LocalUnitDeprecateSerializer,
     LocalUnitDetailSerializer,
     LocalUnitOptionsSerializer,
     LocalUnitSerializer,
+    LocalUnitTemplateFilesSerializer,
     PrivateLocalUnitDetailSerializer,
     PrivateLocalUnitSerializer,
     RejectedReasonSerialzier,
@@ -386,3 +391,37 @@ class ExternallyManagedLocalUnitViewSet(
     serializer_class = ExternallyManagedLocalUnitSerializer
     filterset_class = ExternallyManagedLocalUnitFilters
     permission_classes = [permissions.IsAuthenticated, UseBySuperAdminOnly]
+
+
+class LocalUnitBulkUploadViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
+    queryset = LocalUnitBulkUpload.objects.select_related("country", "local_unit_type", "triggered_by")
+    permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
+    serializer_class = LocalUnitBulkUploadSerializer
+    filterset_class = LocalUnitBulkUploadFilters
+
+    @extend_schema(
+        request=None,
+        responses=LocalUnitTemplateFilesSerializer,
+        parameters=[
+            OpenApiParameter(
+                name="bulk_upload_template",
+                description="Type of template for local unit or local unit health care bulk upload",
+                required=False,
+                type=str,
+                enum=["local_unit", "health_care"],
+            )
+        ],
+    )
+    @action(detail=False, methods=["get"], url_path="get-bulk-upload-template")
+    def get_bulk_upload_template(self, request):
+        template_type = request.query_params.get("bulk_upload_template", "local_unit")
+        if template_type == "health_care":
+            file_url = request.build_absolute_uri(static("files/local_units/local-unit-health-template.csv"))
+        else:
+            file_url = request.build_absolute_uri(static("files/local_units/local-unit-bulk-upload-template.csv"))
+        template = {"template_url": file_url}
+        return response.Response(LocalUnitTemplateFilesSerializer(template).data)
