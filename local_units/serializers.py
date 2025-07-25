@@ -703,8 +703,7 @@ class LocalUnitBulkUploadSerializer(serializers.ModelSerializer):
 
 
 class LocalUnitTemplateFilesSerializer(serializers.Serializer):
-    health_template_url = serializers.CharField(read_only=True)
-    default_template_url = serializers.CharField(read_only=True)
+    template_url = serializers.CharField(read_only=True)
 
 
 # <---  Bulk upload serializers start  --->

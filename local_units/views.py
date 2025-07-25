@@ -3,7 +3,7 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.templatetags.static import static
 from django.utils import timezone
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import mixins, permissions, response, status, views, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import ListAPIView, RetrieveAPIView
@@ -406,14 +406,25 @@ class LocalUnitBulkUploadViewSet(
     serializer_class = LocalUnitBulkUploadSerializer
     filterset_class = LocalUnitBulkUploadFilters
 
-    @extend_schema(request=None, responses=LocalUnitTemplateFilesSerializer)
-    @action(detail=False, methods=["get"], url_path="get-bulk-upload-health-template")
-    def get_bulk_upload_health_template(self, request):
-        file_url = request.build_absolute_uri(static("files/local_units/local-unit-helth-template.csv"))
-        return response.Response(LocalUnitTemplateFilesSerializer({"health_template_url": file_url}).data)
-
-    @extend_schema(request=None, responses=LocalUnitTemplateFilesSerializer)
+    @extend_schema(
+        request=None,
+        responses=LocalUnitTemplateFilesSerializer,
+        parameters=[
+            OpenApiParameter(
+                name="bulk_upload_template",
+                description="Type of template for local unit or local unit health care bulk upload",
+                required=False,
+                type=str,
+                enum=["local_unit", "health_care"],
+            )
+        ],
+    )
     @action(detail=False, methods=["get"], url_path="get-bulk-upload-template")
     def get_bulk_upload_template(self, request):
-        file_url = request.build_absolute_uri(static("files/local_units/local-unit-bulk-upload-template.csv"))
-        return response.Response(LocalUnitTemplateFilesSerializer({"default_template_url": file_url}).data)
+        template_type = request.query_params.get("bulk_upload_template", "local_unit")
+        if template_type == "health_care":
+            file_url = request.build_absolute_uri(static("files/local_units/local-unit-health-template.csv"))
+        else:
+            file_url = request.build_absolute_uri(static("files/local_units/local-unit-bulk-upload-template.csv"))
+        template = {"template_url": file_url}
+        return response.Response(LocalUnitTemplateFilesSerializer(template).data)
