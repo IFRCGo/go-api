@@ -356,6 +356,7 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
         validated_data["location"] = GEOSGeometry("POINT(%f %f)" % (lng, lat))
         validated_data["created_by"] = self.context["request"].user
         validated_data["is_locked"] = True
+        validated_data["is_new_local_unit"] = True
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
