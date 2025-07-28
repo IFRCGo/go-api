@@ -1,4 +1,5 @@
 import json
+import os
 from datetime import datetime
 
 import reversion
@@ -263,7 +264,6 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
     created_by_details = LocalUnitMiniUserSerializer(source="created_by", read_only=True)
     version_id = serializers.SerializerMethodField()
     is_locked = serializers.BooleanField(read_only=True)
-    is_new_local_unit = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = LocalUnit
@@ -459,6 +459,7 @@ class PrivateLocalUnitSerializer(serializers.ModelSerializer):
             "modified_at",
             "modified_by_details",
             "is_locked",
+            "is_new_local_unit",
         )
 
     def get_location_geojson(self, unit) -> dict:
@@ -661,6 +662,7 @@ class LocalUnitBulkUploadSerializer(serializers.ModelSerializer):
     country_details = LocalUnitCountrySerializer(source="country", read_only=True)
     local_unit_type_details = LocalUnitTypeSerializer(source="local_unit_type", read_only=True)
     triggered_by_details = LocalUnitMiniUserSerializer(source="triggered_by", read_only=True)
+    file_name = serializers.SerializerMethodField()
 
     class Meta:
         model = LocalUnitBulkUpload
@@ -672,12 +674,16 @@ class LocalUnitBulkUploadSerializer(serializers.ModelSerializer):
             "status",
             "error_file",
             "triggered_by",
+            "file_name",
         )
 
     def validate_file(self, file):
         if not file.name.endswith(".csv"):
             raise serializers.ValidationError(gettext("File must be a CSV file."))
         return file
+
+    def get_file_name(self, obj):
+        return os.path.basename(obj.file.name) if obj.file else None
 
     def validate(self, attrs):
 

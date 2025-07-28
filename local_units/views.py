@@ -402,7 +402,11 @@ class LocalUnitBulkUploadViewSet(
     viewsets.GenericViewSet,
 ):
     queryset = LocalUnitBulkUpload.objects.select_related("country", "local_unit_type", "triggered_by")
-    permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
+    permission_classes = [
+        permissions.IsAuthenticated,
+        DenyGuestUserPermission,
+        ValidateLocalUnitPermission,
+    ]
     serializer_class = LocalUnitBulkUploadSerializer
     filterset_class = LocalUnitBulkUploadFilters
 
@@ -423,7 +427,7 @@ class LocalUnitBulkUploadViewSet(
     def get_bulk_upload_template(self, request):
         template_type = request.query_params.get("bulk_upload_template", "local_unit")
         if template_type == "health_care":
-            file_url = request.build_absolute_uri(static("files/local_units/local-unit-health-template.csv"))
+            file_url = request.build_absolute_uri(static("files/local_units/local-unit-health-bulk-upload-template.csv"))
         else:
             file_url = request.build_absolute_uri(static("files/local_units/local-unit-bulk-upload-template.csv"))
         template = {"template_url": file_url}
