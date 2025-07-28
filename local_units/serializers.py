@@ -715,21 +715,24 @@ class HealthDataBulkUploadSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._m2m_data = {}
+        self._maps_loaded = False
 
-        # Prefetch FK
+    def _load_maps(self):
+        """Only load model lookups when needed, after DB is fully ready."""
+        if self._maps_loaded:
+            return
         self.affiliation_map = self._build_map(Affiliation)
         self.functionality_map = self._build_map(Functionality)
         self.facilitytype_map = self._build_map(FacilityType)
         self.primaryhcc_map = self._build_map(PrimaryHCC)
         self.hospitaltype_map = self._build_map(HospitalType)
 
-        # M2M maps
         self.generalmedicalservice_map = self._build_map(GeneralMedicalService)
         self.specializedmedicalservice_map = self._build_map(SpecializedMedicalService)
         self.bloodservice_map = self._build_map(BloodService)
         self.professionaltrainingfacility_map = self._build_map(ProfessionalTrainingFacility)
-
-        self._m2m_data = {}
+        self._maps_loaded = True
 
     def _build_map(self, model):
         mapping = {}
@@ -746,7 +749,6 @@ class HealthDataBulkUploadSerializer(serializers.ModelSerializer):
         return mapping
 
     def _resolve_required_fk(self, data, field_name, mapping):
-        """Resolves required foreign keys."""
         key = wash(data.get(field_name))
         if not key:
             raise serializers.ValidationError({field_name: f"{field_name.replace('_', ' ').title()} is required."})
@@ -758,12 +760,12 @@ class HealthDataBulkUploadSerializer(serializers.ModelSerializer):
         data[field_name] = instance.pk
 
     def _resolve_optional_fk(self, data, field_name, mapping):
-        """Resolves optional foreign keys."""
         key = wash(data.get(field_name))
         instance = mapping.get(key) if key else None
         data[field_name] = instance.pk if instance else None
 
     def to_internal_value(self, data):
+        self._load_maps()
         data = data.copy()
 
         self._resolve_required_fk(data, "affiliation", self.affiliation_map)
@@ -773,7 +775,6 @@ class HealthDataBulkUploadSerializer(serializers.ModelSerializer):
         self._resolve_optional_fk(data, "primary_health_care_center", self.primaryhcc_map)
         self._resolve_optional_fk(data, "hospital_type", self.hospitaltype_map)
 
-        # Normalize booleans
         for bool_field in [
             "is_teaching_hospital",
             "is_in_patient_capacity",
@@ -785,7 +786,6 @@ class HealthDataBulkUploadSerializer(serializers.ModelSerializer):
             if bool_field in data:
                 data[bool_field] = normalize_bool(data.get(bool_field))
 
-        # Normalize integers
         for int_field in [
             "maximum_capacity",
             "number_of_isolation_rooms",
@@ -808,7 +808,6 @@ class HealthDataBulkUploadSerializer(serializers.ModelSerializer):
                     raise serializers.ValidationError({int_field: f"Invalid integer value: {val}"})
                 data[int_field] = converted
 
-        # Parse M2M string fields
         def parse_m2m(field_name, mapping):
             raw = data.get(field_name, "")
             ids = []
