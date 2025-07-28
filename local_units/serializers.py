@@ -13,7 +13,7 @@ from shapely.geometry import MultiPolygon, Point, Polygon
 
 from api.models import Country, CountryType, VisibilityChoices
 from local_units.tasks import process_bulk_upload_local_unit
-from local_units.utils import normalize_bool, numerize, wash_data
+from local_units.utils import normalize_bool, numerize, wash, wash_data
 from main.writable_nested_serializers import NestedCreateMixin, NestedUpdateMixin
 
 from .models import (
@@ -708,83 +708,6 @@ class LocalUnitTemplateFilesSerializer(serializers.Serializer):
     template_url = serializers.CharField(read_only=True)
 
 
-# <---  Bulk upload serializers start  --->
-
-
-# NOTE: The `LocalUnitBulkUploadDetailSerializer` is used to validate the data for bulk upload of local units.
-class LocalUnitBulkUploadDetailSerializer(serializers.ModelSerializer):
-    location = serializers.CharField(required=False)
-    latitude = serializers.FloatField(write_only=True, required=False)
-    longitude = serializers.FloatField(write_only=True, required=False)
-    visibility = serializers.CharField(required=True, allow_blank=True)
-    date_of_data = serializers.CharField(required=False, allow_null=True)
-
-    class Meta:
-        model = LocalUnit
-        fields = "__all__"
-
-    def validate_date_of_data(self, value: str):
-        today = datetime.today().strftime("%Y-%m-%d")
-        if not value:
-            return today
-
-        possible_formats = ("%d-%b-%y", "%m/%d/%Y", "%Y-%m-%d")
-        for date_format in possible_formats:
-            try:
-                return datetime.strptime(value.strip(), date_format).strftime("%Y-%m-%d")
-            except ValueError:
-                continue
-        # If no format matched, return today's date
-        return today
-
-    def validate_visibility(self, value: str):
-        if not value:
-            return VisibilityChoices.MEMBERSHIP
-
-        visibility = value.lower()
-        if visibility == "public":
-            return VisibilityChoices.PUBLIC
-
-        # return default visibility if not matched
-        return VisibilityChoices.MEMBERSHIP
-
-    def validate(self, validated_data):
-        if not validated_data.get("local_branch_name") and not validated_data.get("english_branch_name"):
-            raise serializers.ValidationError(gettext("Branch Name Combination is required."))
-
-        # Country location validation
-        latitude = validated_data.pop("latitude")
-        longitude = validated_data.pop("longitude")
-        if not latitude or not longitude:
-            raise serializers.ValidationError(gettext("Latitude and Longitude are required."))
-        country = validated_data.get("country")
-        if not country:
-            raise serializers.ValidationError(gettext("Country is required."))
-
-        input_point = Point(longitude, latitude)
-        if country.bbox:
-            country_json = json.loads(country.countrygeoms.geom.geojson)
-            coordinates = country_json["coordinates"]
-            # Convert to Shapely Polygons
-            polygons = []
-            for polygon_coords in coordinates:
-                exterior = polygon_coords[0]
-                interiors = polygon_coords[1:] if len(polygon_coords) > 1 else []
-                polygon = Polygon(exterior, interiors)
-                polygons.append(polygon)
-
-            # Create a Shapely MultiPolygon
-            shapely_multipolygon = MultiPolygon(polygons)
-            if not input_point.within(shapely_multipolygon):
-                raise serializers.ValidationError(
-                    {"location": gettext("Input coordinates is outside country %s boundary" % country.name)}
-                )
-
-        validated_data["location"] = GEOSGeometry("POINT(%f %f)" % (longitude, latitude))
-        validated_data["validated"] = True
-        return validated_data
-
-
 class HealthDataBulkUploadSerializer(serializers.ModelSerializer):
     class Meta:
         model = HealthData
@@ -809,12 +732,22 @@ class HealthDataBulkUploadSerializer(serializers.ModelSerializer):
         self._m2m_data = {}
 
     def _build_map(self, model):
-        """Builds a washed name to object map."""
-        return {wash_data(obj.name): obj for obj in model.objects.all()}
+        mapping = {}
+        for obj in model.objects.all():
+            if not obj.name:
+                continue
+            name_key = wash(obj.name)
+            mapping[name_key] = obj
+
+            if hasattr(obj, "code") and obj.code is not None:
+                mapping[str(obj.code).strip()] = obj
+                label = f"{obj.name} ({obj.code})"
+                mapping[wash(label)] = obj
+        return mapping
 
     def _resolve_required_fk(self, data, field_name, mapping):
         """Resolves required foreign keys."""
-        key = wash_data(data.get(field_name))
+        key = wash(data.get(field_name))
         if not key:
             raise serializers.ValidationError({field_name: f"{field_name.replace('_', ' ').title()} is required."})
         instance = mapping.get(key)
@@ -826,7 +759,7 @@ class HealthDataBulkUploadSerializer(serializers.ModelSerializer):
 
     def _resolve_optional_fk(self, data, field_name, mapping):
         """Resolves optional foreign keys."""
-        key = wash_data(data.get(field_name))
+        key = wash(data.get(field_name))
         instance = mapping.get(key) if key else None
         data[field_name] = instance.pk if instance else None
 
@@ -903,9 +836,103 @@ class HealthDataBulkUploadSerializer(serializers.ModelSerializer):
             getattr(instance, field).set(ids)
         return instance
 
-    def update(self, instance, validated_data):
-        m2m_data = self._m2m_data or {}
-        instance = super().update(instance, validated_data)
-        for field, ids in m2m_data.items():
-            getattr(instance, field).set(ids)
-        return instance
+
+# NOTE: The `LocalUnitBulkUploadDetailSerializer` is used to validate the data for bulk upload of local units.
+class LocalUnitBulkUploadDetailSerializer(serializers.ModelSerializer):
+    location = serializers.CharField(required=False)
+    latitude = serializers.FloatField(write_only=True, required=False)
+    longitude = serializers.FloatField(write_only=True, required=False)
+    visibility = serializers.CharField(required=True, allow_blank=True)
+    date_of_data = serializers.CharField(required=False, allow_null=True)
+    level = serializers.CharField(required=False, allow_null=True)
+    health = HealthDataBulkUploadSerializer(required=False)
+
+    class Meta:
+        model = LocalUnit
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.level_map = {lvl.name.lower(): lvl for lvl in LocalUnitLevel.objects.all()}
+
+    def validate_date_of_data(self, value: str):
+        today = datetime.today().strftime("%Y-%m-%d")
+        if not value:
+            return today
+
+        possible_formats = ("%d-%b-%y", "%m/%d/%Y", "%Y-%m-%d")
+        for date_format in possible_formats:
+            try:
+                return datetime.strptime(value.strip(), date_format).strftime("%Y-%m-%d")
+            except ValueError:
+                continue
+        # If no format matched, return today's date
+        return today
+
+    def validate_visibility(self, value: str):
+        if not value:
+            return VisibilityChoices.MEMBERSHIP
+
+        visibility = value.lower()
+        if visibility == "public":
+            return VisibilityChoices.PUBLIC
+
+        # return default visibility if not matched
+        return VisibilityChoices.MEMBERSHIP
+
+    def validate_level(self, value):
+        if not value:
+            return None
+        level_name = value.strip().lower()
+        level_id = self.level_map.get(level_name)
+        if not level_id:
+            raise serializers.ValidationError({"Level": gettext("Level '{value}' is not valid")})
+        return level_id
+
+    def validate(self, validated_data):
+        # self._validate_health_data(validated_data)
+        if not validated_data.get("local_branch_name") and not validated_data.get("english_branch_name"):
+            raise serializers.ValidationError(gettext("Branch Name Combination is required."))
+
+        # Country location validation
+        latitude = validated_data.pop("latitude")
+        longitude = validated_data.pop("longitude")
+        if not latitude or not longitude:
+            raise serializers.ValidationError(gettext("Latitude and Longitude are required."))
+        country = validated_data.get("country")
+        if not country:
+            raise serializers.ValidationError(gettext("Country is required."))
+
+        input_point = Point(longitude, latitude)
+        if country.bbox:
+            country_json = json.loads(country.countrygeoms.geom.geojson)
+            coordinates = country_json["coordinates"]
+            # Convert to Shapely Polygons
+            polygons = []
+            for polygon_coords in coordinates:
+                exterior = polygon_coords[0]
+                interiors = polygon_coords[1:] if len(polygon_coords) > 1 else []
+                polygon = Polygon(exterior, interiors)
+                polygons.append(polygon)
+
+            # Create a Shapely MultiPolygon
+            shapely_multipolygon = MultiPolygon(polygons)
+            if not input_point.within(shapely_multipolygon):
+                raise serializers.ValidationError(
+                    {"location": gettext("Input coordinates is outside country %s boundary" % country.name)}
+                )
+
+        validated_data["location"] = GEOSGeometry("POINT(%f %f)" % (longitude, latitude))
+        validated_data["validated"] = True
+        return validated_data
+
+    def create(self, validated_data):
+        health_data = validated_data.pop("health", None)
+
+        if health_data:
+            health_data["created_by"] = self.context["created_by_instance"]
+            health_instance = HealthData.objects.create(**health_data)
+            validated_data["health"] = health_instance
+
+        validated_data["created_by"] = self.context["created_by_instance"]
+        return super().create(validated_data)

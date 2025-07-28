@@ -9,7 +9,6 @@ from django.db import transaction
 from rest_framework.serializers import Serializer
 
 from local_units.models import HealthData, LocalUnit, LocalUnitBulkUpload
-from local_units.utils import get_model_field_names
 from main.managers import BulkCreateManager
 
 logger = logging.getLogger(__name__)
@@ -142,18 +141,24 @@ class BaseBulkUploadLocalUnit(BaseBulkUpload[LocalUnitUploadContext]):
         return super().run()
 
 
-class BaseBulkUploadHealthData(BaseBulkUpload[LocalUnitUploadContext]):
+def get_model_field_names(
+    model,
+):
+    return [field.name for field in model._meta.get_fields() if not field.auto_created and field.name]
+
+
+class BulkUploadHealthData(BaseBulkUpload[LocalUnitUploadContext]):
     def __init__(self, bulk_upload: LocalUnitBulkUpload):
-        from local_units.serializers import (
-            HealthDataBulkUploadSerializer,
-            LocalUnitBulkUploadDetailSerializer,
-        )
+        from local_units.serializers import LocalUnitBulkUploadDetailSerializer
 
-        self.health_data_fields = get_model_field_names(HealthData)
-        self.local_unit_fields = set(LocalUnitBulkUploadDetailSerializer().get_fields().keys())
+        self.serializer_class = LocalUnitBulkUploadDetailSerializer
+        self.created_by = bulk_upload.triggered_by
 
-        self.serializer_class = HealthDataBulkUploadSerializer
         super().__init__(bulk_upload)
+
+        self.health_field_names = get_model_field_names(
+            HealthData,
+        )
 
     def get_context(self) -> LocalUnitUploadContext:
         return LocalUnitUploadContext(
@@ -162,30 +167,35 @@ class BaseBulkUploadHealthData(BaseBulkUpload[LocalUnitUploadContext]):
             created_by=self.bulk_upload.triggered_by_id,
         )
 
-    def process(self, data: dict[str, Any]) -> None:
-        context = self.get_context()
+    def delete_existing_local_unit(self):
+        with transaction.atomic():
+            existing_local_units = LocalUnit.objects.filter(
+                country_id=self.bulk_upload.country_id,
+                type_id=self.bulk_upload.local_unit_type_id,
+            )
+            count = existing_local_units.count()
+            if count:
+                existing_local_units.delete()
+                logger.info(f"Deleted {count} existing local units and continue with upload")
+            else:
+                logger.info("No existing local units found, continuing with upload")
 
-        health_data = {k: v for k, v in data.items() if k in self.health_data_fields}
-        local_unit = {k: v for k, v in data.items() if k in self.local_unit_fields}
+    def process(self, data: dict[str, any]) -> None:
+        health_data = {k: data.pop(k) for k in list(data.keys()) if k in self.health_field_names}
+        if health_data:
+            data["health"] = health_data
 
-        from local_units.serializers import (
-            HealthDataBulkUploadSerializer,
-            LocalUnitBulkUploadDetailSerializer,
+        serializer = self.serializer_class(
+            data=data,
+            context={
+                "created_by_instance": self.bulk_upload.triggered_by,
+                "created_by_pk": self.bulk_upload.triggered_by_id,
+            },
         )
-
-        health_data_serializer = HealthDataBulkUploadSerializer(data=health_data, context=context)
-        if not health_data_serializer.is_valid():
-            raise ValueError({"health_data": health_data_serializer.errors})
-        health_data = health_data_serializer.save()
-
-        local_unit["health"] = health_data.pk  # add health before serializer
-
-        local_unit_serializer = LocalUnitBulkUploadDetailSerializer(data=local_unit, context=context)
-        if not local_unit_serializer.is_valid():
-            raise ValueError({"local_unit": local_unit_serializer.errors})
-
-        local_unit_instance = LocalUnit(**local_unit_serializer.validated_data)
-        self.bulk_manager.add(local_unit_instance)
+        serializer.is_valid(raise_exception=True)
+        with transaction.atomic():
+            serializer.save()
 
     def run(self) -> None:
+        self.delete_existing_local_unit()
         return super().run()

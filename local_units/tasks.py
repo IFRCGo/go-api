@@ -4,9 +4,9 @@ from celery import shared_task
 from django.contrib.auth import get_user_model
 from django.template.loader import render_to_string
 
-from notifications.notification import send_notification
-from local_units.bulk_upload import BaseBulkUploadHealthData, BaseBulkUploadLocalUnit
+from local_units.bulk_upload import BaseBulkUploadLocalUnit, BulkUploadHealthData
 from local_units.models import LocalUnit, LocalUnitBulkUpload, LocalUnitChangeRequest
+from notifications.notification import send_notification
 
 from .utils import (
     get_email_context,
@@ -113,8 +113,10 @@ def process_bulk_upload_local_unit(bulk_upload_id: int) -> None:
         logger.error(f"BulkUploadLocalUnit:'{bulk_upload_id}' Not found.", exc_info=True)
         return
     try:
-        if bulk_upload.local_unit_type.name.lower() == "health care":
-            BaseBulkUploadHealthData(bulk_upload).run()
+        if (
+            bulk_upload.local_unit_type.name.lower() == "health care"
+        ):  # FIXME(@sudip-khanal): add enum after the LocalUnitTypeEnum implementation
+            BulkUploadHealthData(bulk_upload).run()
         else:
             BaseBulkUploadLocalUnit(bulk_upload).run()
 

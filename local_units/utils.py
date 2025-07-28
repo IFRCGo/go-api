@@ -1,8 +1,10 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from rest_framework.exceptions import PermissionDenied
-from local_units.models import Validator
 from django.db import models
+from rest_framework.exceptions import PermissionDenied
+
+from local_units.models import Validator
+
 User = get_user_model()
 
 
@@ -76,15 +78,6 @@ def wash_data(s):
     return s.lower().replace("/", "").replace("_", "").replace(",", "").replace(" ", "")
 
 
-def numerize(value):
-    try:
-        if value in [None, ""]:
-            return None
-        return int(value)
-    except (ValueError, TypeError):
-        return None
-
-
 def normalize_bool(value):
     if isinstance(value, bool):
         return value
@@ -96,3 +89,32 @@ def normalize_bool(value):
     if val in ("false", "0", "no", "n"):
         return False
     return False
+
+
+def wash(string):
+    if string is None:
+        return None
+    return str(string).lower().replace("/", "").replace("_", "").replace(",", "").replace(" ", "")
+
+
+def parse_boolean(value: str):
+    if value is None or str(value).strip() == "":
+        return None
+    val = str(value).strip().lower()
+    if val in ("yes", "true", "1"):
+        return True
+    if val in ("no", "false", "0"):
+        return False
+    return None
+
+
+def numerize(value):
+    if value is None or str(value).strip() == "":
+        return None
+    try:
+        return int(value)
+    except ValueError:
+        try:
+            return float(value)
+        except ValueError:
+            raise ValueError(f"Could not convert '{value}' to a number.")
