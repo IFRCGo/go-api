@@ -286,7 +286,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         methods=["post"],
         url_path="deprecate",
         serializer_class=LocalUnitDeprecateSerializer,
-        permission_classes=[permissions.IsAuthenticated, DenyGuestUserPermission],
+        permission_classes=[permissions.IsAuthenticated, DenyGuestUserPermission, ValidateLocalUnitPermission],
     )
     def deprecate(self, request, pk=None):
         """Deprecate local unit object object"""
