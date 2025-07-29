@@ -335,6 +335,16 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
         health = data.get("health")
         if type.code == 1 and health:
             raise serializers.ValidationError({"Can't have health data for type %s" % type.code})
+
+        # Externally managed check
+        country = data.get("country")
+        type = data.get("type")
+        qs = ExternallyManagedLocalUnit.objects.filter(country=country, local_unit_type=type, enabled=True)
+        if qs.exists():
+            raise serializers.ValidationError(
+                {gettext("Country and Local unit Type is externally managed cannot be created manually.")}
+            )
+
         return data
 
     def create(self, validated_data):
@@ -723,7 +733,7 @@ class HealthDataBulkUploadSerializer(serializers.ModelSerializer):
         self._maps_loaded = False
 
     def _load_maps(self):
-        """Only load model lookups when needed, after DB is fully ready."""
+        """Only load model lookups when needed"""
         if self._maps_loaded:
             return
         self.affiliation_map = self._build_map(Affiliation)

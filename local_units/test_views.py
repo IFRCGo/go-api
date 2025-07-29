@@ -734,6 +734,57 @@ class TestLocalUnitCreate(APITestCase):
         self.assertEqual(local_unit_request.current_validator, Validator.GLOBAL)
         self.assertEqual(response.data["status"], LocalUnit.Status.VALIDATED)
 
+    def test_create_local_unit_for_externally_managed_country(self):
+        # Externally managed
+        country = CountryFactory.create(
+            name="India",
+            iso3="IND",
+            record_type=CountryType.COUNTRY,
+            is_deprecated=False,
+            independent=True,
+            region=self.region,
+        )
+
+        local_unit_type = LocalUnitType.objects.create(code=6, name="other")
+        level = LocalUnitLevel.objects.create(level=1, name="Code 1")
+        ExternallyManagedLocalUnitFactory.create(country=country, local_unit_type=local_unit_type, enabled=True)
+
+        data = {
+            "local_branch_name": "Test branch name",
+            "english_brancself.h_name": "Test branch name",
+            "type": local_unit_type.id,
+            "country": country.id,
+            "draft": False,
+            "validated": True,
+            "postcode": "4407",
+            "address_loc": "4407",
+            "address_en": "",
+            "city_loc": "",
+            "city_en": "Pukë",
+            "link": "",
+            "location_json": {
+                "lat": 20.5937,
+                "lng": 78.9629,
+            },
+            "source_loc": "",
+            "source_en": "",
+            "subtype": "District Office",
+            "date_of_data": "2024-05-13",
+            "level": level.id,
+            "focal_person_loc": "Test Name",
+            "focal_person_en": "Test Name",
+            "email": "",
+            "phone": "",
+        }
+        # without authentication
+        response = self.client.post("/api/v2/local-units/", data=data, format="json")
+        self.assertEqual(response.status_code, 401)
+        # with super user
+        self.client.force_authenticate(user=self.root_user)
+        response = self.client.post("/api/v2/local-units/", data=data, format="json")
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(LocalUnitChangeRequest.objects.count(), 0)
+
 
 class TestExternallyManagedLocalUnit(APITestCase):
     def setUp(self):
