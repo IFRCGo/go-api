@@ -4,6 +4,11 @@
   <head>
     <title>{% block title %}{% endblock %}</title>
     <link rel="stylesheet" type="text/css" href="{% block stylesheet %}{% static "admin/css/base.css" %}{% endblock %}" />
+    {% if GO_ENVIRONMENT != 'production' %}
+    <link rel="icon" type="image/svg+xml" href="{% static 'images/logo/go-admin-staging.svg' %}">
+    {% else %}
+    <link rel="icon" type="image/svg+xml" href="{% static 'images/logo/go-admin-prod.svg' %}">
+    {% endif %}
     {% block dark-mode-vars %}
       <link rel="stylesheet" href="{% static "admin/css/dark_mode.css" %}">
       <script src="{% static "admin/js/theme.js" %}" defer></script>

@@ -7,6 +7,8 @@ from bs4 import BeautifulSoup
 from django.conf import settings
 from django.utils.module_loading import import_string
 
+from .models import TranslationCache
+
 logger = logging.getLogger(__name__)
 
 
@@ -133,7 +135,21 @@ class IfrcTranslator(BaseTranslator):
             # NOTE: Sending 'text' throws 500 from IFRC translation endpoint
             # So only sending if html
             payload["textType"] = "html"
-        logger.info(f"IFRC translation API call content: {text[:30]}... to {dest_language} from {source_language}")
+
+        # Try cache at first (for shorter texts)
+        use_cache = len(text) < 200
+
+        if use_cache:
+            cache = TranslationCache.objects.filter(
+                text=text,
+                source_language=source_language or "",  # source_language can be "detected"
+                dest_language=dest_language,
+            ).first()
+            if cache:
+                logger.info(f"translation cache hit: {text[:30]}... {source_language}>{dest_language}")
+                return cache.translated_text
+
+        logger.info(f"IFRC translation API call: {text[:30]}... {source_language}>{dest_language}")
         response = requests.post(
             self.url,
             headers=self.headers,
@@ -142,7 +158,17 @@ class IfrcTranslator(BaseTranslator):
 
         # Not using == 200 – it would break tests with MagicMock name=requests.post() results
         if response.status_code != 500:
-            return response.json()[0]["translations"][0]["text"] + textTail
+            translated = response.json()[0]["translations"][0]["text"]
+
+            # Cache the translation if original text was short enough
+            if use_cache:
+                TranslationCache.objects.create(
+                    text=text,
+                    source_language=source_language or "",  # source_language can be "detected"
+                    dest_language=dest_language,
+                    translated_text=translated,
+                )
+            return translated + textTail
 
 
 def get_translator_class():

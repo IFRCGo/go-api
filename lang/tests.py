@@ -1,6 +1,7 @@
 import unittest
 from unittest import mock
 
+import pytest
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.core import management
@@ -227,6 +228,7 @@ class LangTest(APITestCase):
 
 class TranslatorMockTest(unittest.TestCase):
 
+    @pytest.mark.django_db
     @mock.patch("lang.translation.requests")
     def test_ifrc_translator(self, requests_mock):
         # Simple mock test where we define what the expected response is from provider
