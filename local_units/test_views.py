@@ -52,8 +52,8 @@ class TestLocalUnitsListView(APITestCase):
     def setUp(self):
         super().setUp()
         region = Region.objects.create(name=2)
-        country = Country.objects.create(name="Nepal", iso3="NLP", iso="NP", region=region)
-        country_1 = Country.objects.create(
+        country = CountryFactory.create(name="Nepal", iso3="NLP", iso="NP", region=region)
+        country_1 = CountryFactory.create(
             name="Philippines",
             iso3="PHL",
             iso="PH",
@@ -64,11 +64,60 @@ class TestLocalUnitsListView(APITestCase):
         LocalUnitFactory.create_batch(5, country=country, type=type, draft=True, validated=False, date_of_data="2023-09-09")
         LocalUnitFactory.create_batch(5, country=country_1, type=type_1, draft=False, validated=True, date_of_data="2023-08-08")
 
+        # test with Permission
+        self.country2 = CountryFactory.create(
+            name="India",
+            iso3="IND",
+            record_type=CountryType.COUNTRY,
+            is_deprecated=False,
+            independent=True,
+            region=region,
+        )
+        self.type_3 = LocalUnitType.objects.create(code=3, name="Code 3")
+        self.local_unit = LocalUnitFactory.create(
+            country=self.country2, type=self.type_3, validated=False, date_of_data="2025-09-09"
+        )
+        self.local_unit_2 = LocalUnitFactory.create(
+            country=self.country2, type=self.type_3, validated=False, date_of_data="2025-09-09"
+        )
+        management.call_command("make_local_unit_validator_permissions")
+        self.normal_user = UserFactory.create()
+        self.country_validator_user = UserFactory.create()
+        self.region_validator_user = UserFactory.create()
+        self.global_validator_user = UserFactory.create()
+        #  permissions
+        country_codename = f"local_unit_country_validator_{self.type_3.id}_{self.country2.id}"
+        region_codename = f"local_unit_region_validator_{self.type_3.id}_{region.id}"
+        global_codename = f"local_unit_global_validator_{self.type_3.id}"
+
+        country_permission = Permission.objects.get(codename=country_codename)
+        region_permission = Permission.objects.get(codename=region_codename)
+        global_permission = Permission.objects.get(codename=global_codename)
+
+        #  Country validator group
+        country_group_name = f"Local unit validator for {self.type_3.name} {self.country2.name}"
+        country_group = Group.objects.get(name=country_group_name)
+        country_group.permissions.add(country_permission)
+        self.country_validator_user.groups.add(country_group)
+
+        # Region validator group
+        region_group_name = f"Local unit validator for {self.type_3.name} {region.get_name_display()}"
+        region_group = Group.objects.get(name=region_group_name)
+        region_group.permissions.add(region_permission)
+        self.region_validator_user.groups.add(region_group)
+
+        # Global validator group
+        global_group_name = f"Local unit global validator for {self.type_3.name}"
+
+        global_group = Group.objects.get(name=global_group_name)
+        global_group.permissions.add(global_permission)
+        self.global_validator_user.groups.add(global_group)
+
     def test_list(self):
         self.authenticate()
         response = self.client.get("/api/v2/local-units/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["count"], 10)
+        self.assertEqual(response.data["count"], 12)
         # TODO: fix these asaywltdi
         # self.assertEqual(response.data['results'][0]['location_details']['coordinates'], [12, 38])
         # self.assertEqual(response.data['results'][0]['country_details']['name'], 'Nepal')
@@ -77,20 +126,16 @@ class TestLocalUnitsListView(APITestCase):
         # self.assertEqual(response.data['results'][0]['type_details']['code'], 0)
 
     def test_deprecate_local_unit(self):
-        country = Country.objects.all().first()
-        type = LocalUnitType.objects.all().first()
-        local_unit_obj = LocalUnitFactory.create(
-            country=country, type=type, draft=True, validated=False, date_of_data="2023-09-09"
-        )
 
-        self.authenticate()
-        url = f"/api/v2/local-units/{local_unit_obj.id}/deprecate/"
+        # test with country validator Permission
+        self.client.force_authenticate(self.country_validator_user)
+        url = f"/api/v2/local-units/{self.local_unit.id}/deprecate/"
         data = {
             "deprecated_reason": LocalUnit.DeprecateReason.INCORRECTLY_ADDED,
             "deprecated_reason_overview": "test reason",
         }
         response = self.client.post(url, data=data)
-        local_unit_obj = LocalUnit.objects.get(id=local_unit_obj.id)
+        local_unit_obj = LocalUnit.objects.get(id=self.local_unit.id)
 
         self.assert_200(response)
         self.assertEqual(local_unit_obj.is_deprecated, True)
@@ -100,12 +145,30 @@ class TestLocalUnitsListView(APITestCase):
         response = self.client.post(url, data=data)
         self.assert_404(response)
 
+        # Test revert deprecate
+        self.client.force_authenticate(self.country_validator_user)
+        url = f"/api/v2/local-units/{self.local_unit.id}/revert-deprecate/"
+        response = self.client.post(url)
+        local_unit_obj = LocalUnit.objects.get(id=self.local_unit.id)
+        self.assert_200(response)
+        self.assertEqual(local_unit_obj.is_deprecated, False)
+        self.assertEqual(local_unit_obj.deprecated_reason, None)
+        self.assertEqual(local_unit_obj.deprecated_reason_overview, "")
+
+        # Test with super user
         self.client.force_authenticate(self.root_user)
-        # test revert deprecate
-        data = {}
-        url = f"/api/v2/local-units/{local_unit_obj.id}/revert-deprecate/"
+        url = f"/api/v2/local-units/{self.local_unit_2.id}/deprecate/"
         response = self.client.post(url, data=data)
-        local_unit_obj = LocalUnit.objects.get(id=local_unit_obj.id)
+        local_unit_obj = LocalUnit.objects.get(id=self.local_unit_2.id)
+        self.assert_200(response)
+        self.assertEqual(local_unit_obj.is_deprecated, True)
+        self.assertEqual(local_unit_obj.deprecated_reason, LocalUnit.DeprecateReason.INCORRECTLY_ADDED)
+
+        # Test revert deprecate
+        self.client.force_authenticate(self.root_user)
+        url = f"/api/v2/local-units/{self.local_unit_2.id}/revert-deprecate/"
+        response = self.client.post(url)
+        local_unit_obj = LocalUnit.objects.get(id=self.local_unit_2.id)
         self.assert_200(response)
         self.assertEqual(local_unit_obj.is_deprecated, False)
         self.assertEqual(local_unit_obj.deprecated_reason, None)
@@ -159,7 +222,7 @@ class TestLocalUnitsListView(APITestCase):
 
         response = self.client.get("/api/v2/local-units/?draft=false")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["count"], 5)
+        self.assertEqual(response.data["count"], 7)
 
         response = self.client.get("/api/v2/local-units/?validated=true")
         self.assertEqual(response.status_code, 200)
@@ -167,7 +230,7 @@ class TestLocalUnitsListView(APITestCase):
 
         response = self.client.get("/api/v2/local-units/?validated=false")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["count"], 5)
+        self.assertEqual(response.data["count"], 7)
 
 
 class TestLocalUnitsDetailView(APITestCase):
@@ -734,7 +797,7 @@ class TestLocalUnitCreate(APITestCase):
         self.assertEqual(local_unit_request.current_validator, Validator.GLOBAL)
         self.assertEqual(response.data["status"], LocalUnit.Status.VALIDATED)
 
-    def test_create_local_unit_for_externally_managed_country(self):
+    def test_create_local_unit_with_externally_managed_country_and_type(self):
         # Externally managed
         country = CountryFactory.create(
             name="India",

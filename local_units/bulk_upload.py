@@ -9,6 +9,7 @@ from django.db import transaction
 from rest_framework.serializers import Serializer
 
 from local_units.models import HealthData, LocalUnit, LocalUnitBulkUpload
+from local_units.utils import get_model_field_names
 from main.managers import BulkCreateManager
 
 logger = logging.getLogger(__name__)
@@ -57,7 +58,7 @@ class BaseBulkUpload(Generic[ContextType]):
     def process(self, data: Dict[str, Any]) -> None:
         serializer = self.serializer_class(data=data)
         if serializer.is_valid(raise_exception=True):
-            self.bulk_manager.add(LocalUnit(**serializer.validated_data))
+            self.bulk_manager.add(LocalUnit(**serializer.validated_data, bulk_upload=self.bulk_upload))
 
     def run(self) -> None:
         with self.bulk_upload.file.open("r") as file:
@@ -141,12 +142,6 @@ class BaseBulkUploadLocalUnit(BaseBulkUpload[LocalUnitUploadContext]):
         return super().run()
 
 
-def get_model_field_names(
-    model,
-):
-    return [field.name for field in model._meta.get_fields() if not field.auto_created and field.name]
-
-
 class BulkUploadHealthData(BaseBulkUpload[LocalUnitUploadContext]):
     def __init__(self, bulk_upload: LocalUnitBulkUpload):
         from local_units.serializers import LocalUnitBulkUploadDetailSerializer
@@ -173,12 +168,11 @@ class BulkUploadHealthData(BaseBulkUpload[LocalUnitUploadContext]):
                 country_id=self.bulk_upload.country_id,
                 type_id=self.bulk_upload.local_unit_type_id,
             )
-            count = existing_local_units.count()
-            if count:
+            if existing_local_units.exists():
+                count_existing_local_units = existing_local_units.count()
                 existing_local_units.delete()
-                logger.info(f"Deleted {count} existing local units and continue with upload")
-            else:
-                logger.info("No existing local units found, continuing with upload")
+                logger.info(f"Deleted {count_existing_local_units} existing local units and continue with upload")
+            logger.info("existing local units not found continue with bulk upload")
 
     def process(self, data: dict[str, any]) -> None:
         health_data = {k: data.pop(k) for k in list(data.keys()) if k in self.health_field_names}

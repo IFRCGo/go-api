@@ -13,7 +13,7 @@ from shapely.geometry import MultiPolygon, Point, Polygon
 
 from api.models import Country, CountryType, VisibilityChoices
 from local_units.tasks import process_bulk_upload_local_unit
-from local_units.utils import normalize_bool, numerize, wash, wash_data
+from local_units.utils import normalize_bool, numerize, wash
 from main.writable_nested_serializers import NestedCreateMixin, NestedUpdateMixin
 
 from .models import (
@@ -827,7 +827,7 @@ class HealthDataBulkUploadSerializer(serializers.ModelSerializer):
             ids = []
             if raw:
                 for val in raw.split(","):
-                    key = wash_data(val)
+                    key = wash(val)
                     if key in mapping:
                         ids.append(mapping[key].id)
                     else:
