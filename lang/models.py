@@ -33,3 +33,20 @@ class String(models.Model):
         return {
             lang_code: user.has_perm(cls._get_permission_per_language_codename(lang_code)) for lang_code, _ in settings.LANGUAGES
         }
+
+
+class TranslationCache(models.Model):
+    text = models.TextField()
+    source_language = models.CharField(max_length=16)
+    dest_language = models.CharField(max_length=16)
+    translated_text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("text", "source_language", "dest_language")
+        indexes = [
+            models.Index(fields=["text", "source_language", "dest_language"]),
+        ]
+
+    def __str__(self):
+        return f"{self.source_language}>{self.dest_language}: {self.text[:30]}..."
