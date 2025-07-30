@@ -1,7 +1,5 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.db import models
-from rest_framework.exceptions import PermissionDenied
 
 from local_units.models import Validator
 
@@ -62,20 +60,12 @@ def get_user_validator_level(user, local_unit):
         return Validator.REGIONAL
     elif user.is_superuser or get_local_unit_global_validators(local_unit).filter(id=user.id).exists():
         return Validator.GLOBAL
-    raise PermissionDenied("You do not have permission to validate this local unit..")
 
 
-def get_model_field_names(model: type[models.Model]) -> list[str]:
-    """
-    Returns all field names of a model including ForeignKey and ManyToMany fields.
-    """
-    return [field.name for field in model._meta.get_fields() if not field.auto_created]
-
-
-def wash_data(s):
-    if not s:
-        return ""
-    return s.lower().replace("/", "").replace("_", "").replace(",", "").replace(" ", "")
+def get_model_field_names(
+    model,
+):
+    return [field.name for field in model._meta.get_fields() if not field.auto_created and field.name]
 
 
 def normalize_bool(value):
@@ -95,17 +85,6 @@ def wash(string):
     if string is None:
         return None
     return str(string).lower().replace("/", "").replace("_", "").replace(",", "").replace(" ", "")
-
-
-def parse_boolean(value: str):
-    if value is None or str(value).strip() == "":
-        return None
-    val = str(value).strip().lower()
-    if val in ("yes", "true", "1"):
-        return True
-    if val in ("no", "false", "0"):
-        return False
-    return None
 
 
 def numerize(value):
