@@ -35,6 +35,7 @@ from local_units.models import (
     VisibilityChoices,
 )
 from local_units.permissions import (
+    BulkUploadValidatorPermission,
     IsAuthenticatedForLocalUnit,
     ValidateLocalUnitPermission,
 )
@@ -71,7 +72,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
             "level",
         )
         .exclude(is_deprecated=True)
-        .order_by("validated")
+        .order_by("validated", "modified_at")
     )
     filterset_class = LocalUnitFilters
     search_fields = (
@@ -405,7 +406,7 @@ class LocalUnitBulkUploadViewSet(
     permission_classes = [
         permissions.IsAuthenticated,
         DenyGuestUserPermission,
-        ValidateLocalUnitPermission,
+        BulkUploadValidatorPermission,
     ]
     serializer_class = LocalUnitBulkUploadSerializer
     filterset_class = LocalUnitBulkUploadFilters
