@@ -98,6 +98,9 @@ router.register(r"deployed_eru_by_event", api_views.DeployedERUByEventViewSet, b
 router.register(r"eru-readiness", deployment_views.ERUReadinessViewSet, basename="eru_readiness")
 router.register(r"eru-readiness-type", deployment_views.ERUReadinessTypeViewset, basename="eru_readiness_type")
 router.register(r"event", api_views.EventViewset, basename="event")
+router.register(
+    r"event-severity-level-history", api_views.EventSeverityLevelHistoryViewSet, basename="event_severity_level_history"
+)
 router.register(r"go-historical", api_views.GoHistoricalViewSet, basename="go_historical")
 router.register(r"featured_event_deployments", api_views.EventDeploymentsViewset, basename="featured_event_deployments")
 router.register(r"field-report", api_views.FieldReportViewset, basename="field_report")

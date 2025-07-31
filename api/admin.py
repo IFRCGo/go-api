@@ -6,6 +6,7 @@ from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 from django.contrib.gis import admin as geoadmin
+from django.core.exceptions import ValidationError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 from django.utils.html import format_html, format_html_join
@@ -271,6 +272,28 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
                 self.message_user(request, "Could not notify subscribers.", level=messages.ERROR)
             return HttpResponseRedirect(".")
         return super().response_change(request, obj)
+
+    def save_model(self, request, obj, form, change):
+        if change:
+            # Fetch original object from DB to compare
+            original = models.Event.objects.get(pk=obj.pk)
+
+            severity_changed = original.ifrc_severity_level != obj.ifrc_severity_level
+            update_date_changed = original.ifrc_severity_level_update_date != obj.ifrc_severity_level_update_date
+
+            if severity_changed and not update_date_changed:
+                messages.error(request, "You must update the 'IFRC Severity Level Update Date' when changing the severity level.")
+                raise ValidationError("Cannot change severity level without updating the update date.")
+
+            if severity_changed and update_date_changed:
+                models.EventSeverityLevelHistory.objects.create(
+                    event=obj,
+                    ifrc_severity_level=obj.ifrc_severity_level,
+                    ifrc_severity_level_update_date=obj.ifrc_severity_level_update_date,
+                    created_by=request.user,
+                )
+
+        super().save_model(request, obj, form, change)
 
     def field_reports(self, instance):
         if getattr(instance, "field_reports").exists():
@@ -1012,6 +1035,16 @@ class CountryOfFieldReportToReviewAdmin(admin.ModelAdmin):
     @classmethod
     def has_add_permission(cls, request, obj=None):
         return request.user.is_superuser
+
+
+@admin.register(models.EventSeverityLevelHistory)
+class EventSeverityLevelHistoryAdmin(admin.ModelAdmin):
+    list_select_related = True
+    list_display = ["event", "ifrc_severity_level", "created_by", "created_at"]
+    autocomplete_fields = (
+        "event",
+        "created_by",
+    )
 
 
 @admin.register(models.Export)

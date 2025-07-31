@@ -42,6 +42,7 @@ from api.filter_set import (
     DistrictFilter,
     DistrictRMDFilter,
     EventFilter,
+    EventSeverityLevelHistoryFilter,
     EventSnippetFilter,
     FieldReportFilter,
     GoHistoricalFilter,
@@ -83,6 +84,7 @@ from .models import (
     District,
     Event,
     EventFeaturedDocument,
+    EventSeverityLevelHistory,
     Export,
     ExternalPartner,
     FieldReport,
@@ -123,6 +125,7 @@ from .serializers import (  # AppealSerializer,; Tableau Serializers; AppealTabl
     DisasterTypeSerializer,
     DistrictSerializer,
     DistrictSerializerRMD,
+    EventSeverityLevelHistorySerializer,
     ExportSerializer,
     ExternalPartnerSerializer,
     FieldReportGeneratedTitleSerializer,
@@ -210,6 +213,12 @@ class EventDeploymentsViewset(viewsets.ReadOnlyModelViewSet):
             .annotate(id=models.F("deployment__event_deployed_to"), deployments=models.Count("type"))
             .values("id", "type", "deployments")
         )
+
+
+class EventSeverityLevelHistoryViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = EventSeverityLevelHistory.objects.select_related("event", "created_by").order_by("-created_at")
+    serializer_class = EventSeverityLevelHistorySerializer
+    filter_class = EventSeverityLevelHistoryFilter
 
 
 class DeployedERUFilter(rest_filters.FilterSet):

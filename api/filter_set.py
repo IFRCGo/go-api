@@ -16,6 +16,7 @@ from api.models import (
     CountrySupportingPartner,
     District,
     Event,
+    EventSeverityLevelHistory,
     FieldReport,
     Region,
     RegionKeyFigure,
@@ -38,6 +39,19 @@ class UserFilterSet(filters.FilterSet):
     class Meta:
         model = User
         fields = ()
+
+
+class EventSeverityLevelHistoryFilter(filters.FilterSet):
+    # NOTE: Adding this fixed N + 1 for some reason
+    # Getting this issue: NO SCROLL CURSOR WITH HOLD FOR SELECT
+    event = filters.NumberFilter(field_name="event", lookup_expr="exact")
+
+    class Meta:
+        model = EventSeverityLevelHistory
+        fields = {
+            "id": ("exact", "in"),
+            "event": ("exact", "in"),
+        }
 
 
 class CountryFilter(filters.FilterSet):
