@@ -103,6 +103,7 @@ class FormComponentSerializer(NestedCreateMixin, NestedUpdateMixin, ModelSeriali
             "epi_considerations_guidance",
             "climate_environmental_considerations_guidance",
             "urban_considerations_guidance",
+            "migration_considerations_guidance",
         )
 
 
@@ -738,6 +739,7 @@ class FormComponentResponseSerializer(NestedCreateMixin, NestedUpdateMixin, Mode
             "urban_considerations",
             "epi_considerations",
             "climate_environmental_considerations",
+            "migration_considerations",
         )
 
 

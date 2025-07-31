@@ -292,6 +292,7 @@ class ExportPerView(views.APIView):
             "Epidemic Considerations",
             "Urban Considerations",
             "Climate and env considerations",
+            "Migration Considerations",
             "PER process cycle",
             "Work-plan development date planned",
             "Work-plan revision date planned",
@@ -332,6 +333,7 @@ class ExportPerView(views.APIView):
                 per.assess_preparedness_of_country,
                 per.assess_urban_aspect_of_country,
                 per.assess_climate_environment_of_country,
+                per.assess_migration_aspect_of_country,
                 per.assessment_number,
                 per.workplan_development_date,
                 per.workplan_revision_date,
@@ -369,6 +371,7 @@ class ExportPerView(views.APIView):
             "Consideration notes epidemic",
             "Consideration notes urban",
             "Consideration notes climate",
+            "Consideration notes migration",
             "Component rating",
             "Component notes",
         ]
@@ -422,6 +425,7 @@ class ExportPerView(views.APIView):
                             co.epi_considerations,
                             co.urban_considerations,
                             co.climate_environmental_considerations,
+                            co.migration_considerations,
                             co.rating.title if co.rating else None,
                             co.notes,
                         ]
