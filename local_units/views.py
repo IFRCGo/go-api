@@ -36,6 +36,7 @@ from local_units.models import (
 )
 from local_units.permissions import (
     BulkUploadValidatorPermission,
+    ExternallyManagedLocalUnitPermission,
     IsAuthenticatedForLocalUnit,
     ValidateLocalUnitPermission,
 )
@@ -60,7 +61,7 @@ from local_units.tasks import (
     send_validate_success_email,
 )
 from local_units.utils import get_user_validator_level
-from main.permissions import DenyGuestUserPermission, UseBySuperAdminOnly
+from main.permissions import DenyGuestUserPermission
 
 
 class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
@@ -394,7 +395,7 @@ class ExternallyManagedLocalUnitViewSet(
     queryset = ExternallyManagedLocalUnit.objects.select_related("country", "local_unit_type")
     serializer_class = ExternallyManagedLocalUnitSerializer
     filterset_class = ExternallyManagedLocalUnitFilters
-    permission_classes = [permissions.IsAuthenticated, UseBySuperAdminOnly]
+    permission_classes = [permissions.IsAuthenticated, ExternallyManagedLocalUnitPermission]
 
 
 class LocalUnitBulkUploadViewSet(
