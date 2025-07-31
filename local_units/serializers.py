@@ -342,7 +342,7 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
         qs = ExternallyManagedLocalUnit.objects.filter(country=country, local_unit_type=type, enabled=True)
         if qs.exists():
             raise serializers.ValidationError(
-                {gettext("Country and Local unit Type is externally managed cannot be created manually.")}
+                gettext("Country and Local unit Type is externally managed cannot be created manually.")
             )
 
         return data

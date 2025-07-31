@@ -885,28 +885,28 @@ class TestExternallyManagedLocalUnit(APITestCase):
         )
 
     def test_filter_by_country_name(self):
-        self.client.force_authenticate(user=self.root_user)
+        self.client.force_authenticate(user=self.user)
         url = "/api/v2/externally-managed-local-unit/?country__name=Nepal"
         response = self.client.get(url)
         self.assert_200(response)
         self.assertEqual(response.data["count"], 1)
 
     def test_filter_by_country_iso3(self):
-        self.client.force_authenticate(user=self.root_user)
+        self.client.force_authenticate(user=self.user)
         url = "/api/v2/externally-managed-local-unit/?country__iso3=IND"
         response = self.client.get(url)
         self.assert_200(response)
         self.assertEqual(response.data["count"], 0)
 
     def test_filter_by_country_iso_invalid(self):
-        self.client.force_authenticate(user=self.root_user)
+        self.client.force_authenticate(user=self.user)
         url = "/api/v2/externally-managed-local-unit/?country__iso=PH"
         response = self.client.get(url)
         self.assert_200(response)
         self.assertEqual(response.data["count"], 0)
 
     def test_filter_by_country_id(self):
-        self.client.force_authenticate(user=self.root_user)
+        self.client.force_authenticate(user=self.user)
         url = f"/api/v2/externally-managed-local-unit/?country__id={self.country1.id}"
         response = self.client.get(url)
         self.assert_200(response)
@@ -965,7 +965,7 @@ class TestExternallyManagedLocalUnit(APITestCase):
         # Normal user
         self.client.force_authenticate(user=self.user)
         response = self.client.get(url)
-        self.assert_403(response)
+        self.assert_200(response)
 
         # Superuser
         self.client.force_authenticate(user=self.root_user)

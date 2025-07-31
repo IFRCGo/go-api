@@ -42,6 +42,14 @@ class IsAuthenticatedForLocalUnit(permissions.BasePermission):
         )
 
 
+class ExternallyManagedLocalUnitPermission(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        return request.user.is_superuser
+
+
 class BulkUploadValidatorPermission(permissions.BasePermission):
     message = "You do not have permission to create bulk uploads for this country and local unit type."
 
