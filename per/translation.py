@@ -38,6 +38,7 @@ class FormComponentTO(TranslationOptions):
         "urban_considerations_guidance",
         "epi_considerations_guidance",
         "climate_environmental_considerations_guidance",
+        "migration_considerations_guidance",
     )
 
 
@@ -73,7 +74,13 @@ class OverviewTO(TranslationOptions):
 
 @register(FormComponentResponse)
 class FormComponentResponseTO(TranslationOptions):
-    fields = ("urban_considerations", "epi_considerations", "climate_environmental_considerations", "notes")
+    fields = (
+        "urban_considerations",
+        "epi_considerations",
+        "climate_environmental_considerations",
+        "migration_considerations",
+        "notes",
+    )
 
 
 @register(PerComponentRating)
