@@ -73,7 +73,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
             "level",
         )
         .exclude(is_deprecated=True)
-        .order_by("validated", "modified_at")
+        .order_by("validated", "-modified_at")
     )
     filterset_class = LocalUnitFilters
     search_fields = (
@@ -403,7 +403,7 @@ class LocalUnitBulkUploadViewSet(
     mixins.ListModelMixin,
     viewsets.GenericViewSet,
 ):
-    queryset = LocalUnitBulkUpload.objects.select_related("country", "local_unit_type", "triggered_by")
+    queryset = LocalUnitBulkUpload.objects.select_related("country", "local_unit_type", "triggered_by").order_by("-triggered_at")
     permission_classes = [
         permissions.IsAuthenticated,
         DenyGuestUserPermission,
