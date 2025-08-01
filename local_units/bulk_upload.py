@@ -37,7 +37,7 @@ class ErrorWriter:
         return self._has_errors
 
     def to_content_file(self) -> ContentFile:
-        return ContentFile(self._output.getvalue())
+        return ContentFile(self._output.getvalue().encode("utf-8"))
 
 
 class BaseBulkUpload(Generic[ContextType]):
