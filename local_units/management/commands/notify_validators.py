@@ -8,8 +8,8 @@ from sentry_sdk.crons import monitor
 from local_units.models import LocalUnit, Validator
 from local_units.utils import (
     get_email_context,
-    get_global_validators_by_type,
-    get_region_validators_by_type,
+    get_local_unit_global_validators,
+    get_local_unit_region_validators,
 )
 from main.sentry import SentryMonitor
 from notifications.notification import send_notification
@@ -45,7 +45,7 @@ class Command(BaseCommand):
             email_subject = "Action Required: Local Unit Pending Validation"
             email_type = "Local Unit"
 
-            for region_admin_validator in get_region_validators_by_type(local_unit):
+            for region_admin_validator in get_local_unit_region_validators(local_unit):
                 try:
                     email_context["full_name"] = region_admin_validator.get_full_name()
                     email_body = render_to_string("email/local_units/local_unit.html", email_context)
@@ -67,7 +67,7 @@ class Command(BaseCommand):
             email_subject = "Action Required: Local Unit Pending Validation"
             email_type = "Local Unit"
 
-            for global_validator in get_global_validators_by_type(local_unit):
+            for global_validator in get_local_unit_global_validators(local_unit):
                 try:
                     email_context["full_name"] = global_validator.get_full_name()
                     email_body = render_to_string("email/local_units/local_unit.html", email_context)
