@@ -629,6 +629,7 @@ class DrefTestCase(APITestCase):
         dref = DrefFactory.create(
             title="Test Title",
             created_by=user1,
+            type_of_dref=Dref.DrefType.ASSESSMENT,
         )
         DrefFinalReportFactory.create(
             dref=dref,
@@ -645,7 +646,7 @@ class DrefTestCase(APITestCase):
             title="Test Title",
             created_by=user1,
             is_published=True,
-            type_of_dref=Dref.DrefType.ASSESSMENT,
+            type_of_dref=Dref.DrefType.IMMINENT,
         )
         url = "/api/v2/dref-final-report/"
         data = {"dref": dref.id}
@@ -661,6 +662,7 @@ class DrefTestCase(APITestCase):
         country = Country.objects.create(name="country1", region=region)
         dref = DrefFactory.create(
             title="Test Title",
+            type_of_dref=Dref.DrefType.ASSESSMENT,
             created_by=user1,
             is_published=True,
             country=country,
@@ -669,6 +671,7 @@ class DrefTestCase(APITestCase):
             title="Test title",
             dref=dref,
             country=country,
+            type_of_dref=Dref.DrefType.RESPONSE,
         )
         final_report.users.set([user1])
         # try to publish this report
@@ -1611,62 +1614,179 @@ class DrefTestCase(APITestCase):
         self.assertEqual(response.data["type_of_dref"], Dref.DrefType.RESPONSE)
 
     def test_dref_imminent_v2_final_report(self):
+        sector = SectorFactory.create(title="test sector")
+        activity1 = ProposedActionActivitiesFactory.create(
+            sector=sector,
+            activity="Test activity 1",
+        )
+        activity2 = ProposedActionActivitiesFactory.create(
+            sector=sector,
+            activity="Test activity 2",
+        )
+        proposed_action_1 = ProposedActionFactory.create(
+            proposed_type=ProposedAction.Action.EARLY_ACTION,
+            total_budget=70000,
+        )
+        proposed_action_1.activities.set([activity1])
+        proposed_action_2 = ProposedActionFactory.create(
+            proposed_type=ProposedAction.Action.EARLY_RESPONSE,
+            total_budget=5000,
+        )
+        proposed_action_2.activities.set([activity2])
         dref1 = DrefFactory.create(
             title="Test Title",
             type_of_dref=Dref.DrefType.IMMINENT,
             created_by=self.user,
             is_published=True,
             is_dref_imminent_v2=True,
+            sub_total_cost=75000,
+            indirect_cost=5800,
+            is_surge_personnel_deployed=True,
+            surge_deployment_cost=10000,
+            total_cost=90800,
         )
+        dref1.proposed_action.set([proposed_action_1, proposed_action_2])
         url = "/api/v2/dref-final-report/"
         data = {
             "dref": dref1.id,
         }
         self.authenticate(self.user)
         response = self.client.post(url, data=data)
-        self.assert_400(response)
+        self.assert_201(response)
+        self.assertTrue(response.data["is_dref_imminent_v2"])
 
+        # Check for the proposed_action
+        self.assertEqual(
+            dref1.proposed_action.count(),
+            len(response.data["proposed_action"]),
+        )
+        self.assertEqual(
+            {
+                response.data["sub_total_cost"],
+                response.data["indirect_cost"],
+                response.data["total_cost"],
+                response.data["surge_deployment_expenditure_cost"],
+                response.data["indirect_expenditure_cost"],
+            },
+            {
+                dref1.sub_total_cost,
+                dref1.indirect_cost,
+                dref1.total_cost,
+                dref1.surge_deployment_cost,
+                dref1.indirect_cost,
+            },
+        )
+
+        # Update dref final report
+        data = {
+            "title": "Updated Title",
+            "modified_at": datetime.now(),
+            # Add total_expenditure on the existing proposed_action
+            "proposed_action": [
+                {
+                    "id": response.data["proposed_action"][0]["id"],
+                    "total_expenditure": 50000,
+                },
+                {
+                    "id": response.data["proposed_action"][1]["id"],
+                    "total_expenditure": 5000,
+                },
+            ],
+            "sub_total_expenditure_cost": 55000,
+            "surge_deployment_expenditure_cost": 10000,
+            "indirect_expenditure_cost": 5800,
+            "total_expenditure_cost": 70800,
+        }
+        url = f"/api/v2/dref-final-report/{response.data['id']}/"
+        response = self.client.patch(url, data=data)
+        self.assert_200(response)
+        self.assertEqual(
+            {
+                response.data["title"],
+                response.data["sub_total_expenditure_cost"],
+                response.data["indirect_expenditure_cost"],
+                response.data["total_expenditure_cost"],
+            },
+            {
+                data["title"],
+                data["sub_total_expenditure_cost"],
+                data["indirect_expenditure_cost"],
+                data["total_expenditure_cost"],
+            },
+        )
+
+        dref2 = DrefFactory.create(
+            title="Test Title",
+            type_of_dref=Dref.DrefType.IMMINENT,
+            created_by=self.user,
+            is_published=True,
+            is_dref_imminent_v2=True,
+        )
         # Create Operational Update for Newly created Dref of type IMMINENT
         DrefOperationalUpdateFactory.create(
-            dref=dref1,
+            dref=dref2,
             type_of_dref=Dref.DrefType.RESPONSE,
             created_by=self.user,
             is_published=True,
             operational_update_number=1,
         )
-        # Now create Final Report for the same Dref
+        data = {
+            "dref": dref2.id,
+        }
+        url = "/api/v2/dref-final-report/"
         response = self.client.post(url, data=data)
         self.assert_201(response)
-        self.assertEqual(DrefFinalReport.objects.count(), 1)
+        self.assertEqual(DrefFinalReport.objects.count(), 2)
         self.assertEqual(response.data["type_of_dref"], Dref.DrefType.RESPONSE)
 
         # Check for existing Dref of type IMMINENT
-        dref2 = DrefFactory.create(
+        dref3 = DrefFactory.create(
             title="Test Title 2",
             type_of_dref=Dref.DrefType.IMMINENT,
             created_by=self.user,
             is_published=True,
         )
-        response = self.client.post(url, data={"dref": dref2.id})
+        response = self.client.post(url, data={"dref": dref3.id})
         self.assert_201(response)
 
         # Check for existing Dref of type IMMINENT with Operational Update
-        dref3 = DrefFactory.create(
+        dref4 = DrefFactory.create(
             title="Test Title 3",
             type_of_dref=Dref.DrefType.IMMINENT,
             created_by=self.user,
             is_published=True,
         )
         DrefOperationalUpdateFactory.create(
-            dref=dref3,
+            dref=dref4,
             type_of_dref=Dref.DrefType.IMMINENT,
             created_by=self.user,
             is_published=True,
             operational_update_number=1,
         )
-        response = self.client.post(url, data={"dref": dref3.id})
+        response = self.client.post(url, data={"dref": dref4.id})
         self.assert_201(response)
         self.assertEqual(response.data["type_of_dref"], Dref.DrefType.IMMINENT)
+
+        # Update existing dref final report
+        url = f"/api/v2/dref-final-report/{response.data['id']}/"
+        data = {
+            "title": "Old Title",
+            "modified_at": datetime.now(),
+        }
+        response = self.client.patch(url, data=data)
+        self.assert_200(response)
+        self.assertEqual(
+            {
+                response.data["title"],
+                response.data["type_of_dref"],
+                response.data["is_dref_imminent_v2"],
+            },
+            {
+                data["title"],
+                Dref.DrefType.IMMINENT,
+                False,  # is_dref_imminent_v2 should be False for existing Dref of type IMMINENT
+            },
+        )
 
 
 User = get_user_model()
