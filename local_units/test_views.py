@@ -1059,11 +1059,11 @@ class LocalUnitBulkUploadTests(APITestCase):
         global_group.permissions.add(global_permission)
         self.global_validator_user.groups.add(global_group)
 
-        file_path = os.path.join(settings.TEST_DIR, "local_unit/final-ad.csv")
+        file_path = os.path.join(settings.TEST_DIR, "local_unit/test.csv")
         with open(file_path, "rb") as f:
             self._file_content = f.read()
 
-    def create_upload_file(self, filename="final-ad.csv"):
+    def create_upload_file(self, filename="test.csv"):
         """
         Always return a new file instance to prevent stream exhaustion.
         """
