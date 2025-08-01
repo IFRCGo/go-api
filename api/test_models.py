@@ -1,13 +1,17 @@
 from unittest.mock import patch
 
+from django.contrib.admin.sites import AdminSite
 from django.contrib.auth.models import User
-from django.test import TestCase
+from django.test import RequestFactory, TestCase
+from django.utils import timezone
 from rest_framework.test import APITestCase
 
 import api.models as models
+from api.admin import EventAdmin
 from api.factories import country as countryFactory
 from api.factories import event as eventFactory
 from api.factories import field_report as fieldReportFactory
+from api.factories.region import RegionFactory
 from main.mock import erp_request_side_effect_mock
 
 
@@ -128,3 +132,49 @@ class ProfileTestDepartment(TestCase):
     def test_profile_create(self):
         obj = models.Profile.objects.get(user__username="test1")
         self.assertEqual(obj.department, "testdepartment")
+
+
+class EventSeverityLevelHistoryTest(TestCase):
+
+    fixtures = ["DisasterTypes"]
+
+    def setUp(self):
+        self.user = User.objects.create(username="username", first_name="pat", last_name="smith", password="password")
+        self.region = RegionFactory()
+        self.country = countryFactory.CountryFactory()
+        self.dtype = models.DisasterType.objects.get(pk=1)
+
+        self.event = eventFactory.EventFactory.create(
+            dtype=self.dtype,
+            ifrc_severity_level=models.AlertLevel.YELLOW,
+        )
+        self.event.regions.set([self.region])
+        self.event.countries.set([self.country])
+        self.event._current_user = self.user
+        self.admin = EventAdmin(models.Event, AdminSite())
+        self.factory = RequestFactory()
+
+    def test_ifrc_severity_level_history_created_from_admin(self):
+        # Simulate admin request
+        request = self.factory.post("/")
+        request.user = self.user
+
+        # Update the instance
+        self.event.ifrc_severity_level = models.AlertLevel.RED
+        self.event.ifrc_severity_level_update_date = timezone.now()
+
+        # Trigger admin save_model (where your logic lives)
+        self.admin.save_model(request, self.event, None, change=True)
+
+        history = models.EventSeverityLevelHistory.objects.filter(event=self.event)
+        self.assertEqual(history.count(), 1)
+        self.assertEqual(history[0].ifrc_severity_level, models.AlertLevel.RED)
+        self.assertEqual(history[0].created_by, self.user)
+
+    def test_no_history_created_if_severity_level_not_changed(self):
+        # Save the event with the current severity level (no change)
+        self.event.ifrc_severity_level = models.AlertLevel.YELLOW  # same as initial value
+        self.event.save()
+
+        history = models.EventSeverityLevelHistory.objects.filter(event=self.event)
+        self.assertEqual(history.count(), 0)
