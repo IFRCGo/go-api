@@ -107,6 +107,7 @@ class FormComponent(models.Model):
     climate_environmental_considerations_guidance = HTMLField(
         verbose_name=_("Climate and Environmental Considerations "), blank=True, default=""
     )
+    migration_considerations_guidance = HTMLField(verbose_name=_("Migration Considerations"), blank=True, default="")
 
     def __str__(self):
         return f"Component {self.component_num} - {self.title}"
@@ -140,6 +141,7 @@ class FormComponentResponse(models.Model):
     climate_environmental_considerations = models.TextField(
         verbose_name=_("Climate Environmental Considerations"), null=True, blank=True
     )
+    migration_considerations = models.TextField(verbose_name=_("Migration Considerations"), null=True, blank=True)
     notes = models.TextField(verbose_name=_("Notes"), null=True, blank=True)
 
 
@@ -319,6 +321,9 @@ class Overview(models.Model):
     )
     assess_climate_environment_of_country = models.BooleanField(
         verbose_name=_("Do you want to assess the climate and environment of your National Society?"), null=True, blank=True
+    )
+    assess_migration_aspect_of_country = models.BooleanField(
+        verbose_name=_("Do you want to assess the migration aspects of your National Society?"), null=True, blank=True
     )
 
     # Previous PER Assessment
