@@ -5,11 +5,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
- - Skip FTS_HPC processing when no data
- - Fix TypeError of /api/v1/search/
- - Update Molnix alert status even when no event
- - NSIA, ESF, CBF changes in ingest_ns_initiatives
-
  - Add crisis severity level history if only ifrc_severity_level is updated
  - Add migration consideratons to FormComponentResponse
  - Translation cache
