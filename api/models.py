@@ -737,6 +737,8 @@ def snippet_image_path(instance, filename):
     return "emergencies/%s/%s" % (instance.id, filename)
 
 
+# NOTE: If ever in future we need to create an api to update the event table
+# we also need to make sure to add appropriate signal to create ifrc severity level event history
 @reversion.register()
 class Event(models.Model):
     """A disaster, which could cover multiple countries"""
@@ -789,6 +791,9 @@ class Event(models.Model):
     num_displaced = models.IntegerField(verbose_name=_("number of displaced"), null=True, blank=True)
 
     ifrc_severity_level = models.IntegerField(choices=AlertLevel.choices, default=0, verbose_name=_("IFRC Severity level"))
+    ifrc_severity_level_update_date = models.DateTimeField(
+        verbose_name=_("ifrc severity level update date"), null=True, blank=True
+    )
     glide = models.CharField(verbose_name=_("glide"), max_length=18, blank=True)
 
     created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
@@ -886,6 +891,29 @@ class Event(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class EventSeverityLevelHistory(models.Model):
+    # FIXME: Enum value shouldn't contain 0 or 1
+    ifrc_severity_level = models.IntegerField(choices=AlertLevel.choices, default=0, verbose_name=_("IFRC Severity level"))
+    ifrc_severity_level_update_date = models.DateTimeField(
+        verbose_name=_("ifrc severity level update date"),
+        null=True,
+        blank=True,
+    )
+    created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
+    event = models.ForeignKey(
+        Event,
+        verbose_name=_("event"),
+        on_delete=models.CASCADE,
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_("created by"),
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="created_by_ifrc_severity_level",
+    )
 
 
 @reversion.register()

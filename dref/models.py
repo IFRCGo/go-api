@@ -235,6 +235,12 @@ class ProposedAction(models.Model):
     )
     activities = models.ManyToManyField(ProposedActionActivities, verbose_name=_("Activities"), blank=True)
     total_budget = models.PositiveIntegerField(verbose_name=_("Total Purpose Action Budget"), blank=True, null=True)
+    total_expenditure = models.PositiveIntegerField(
+        verbose_name=_("Expenditure"),
+        blank=True,
+        null=True,
+        help_text=_("Total expenditure for the proposed action"),
+    )
 
     def __str__(self) -> str:
         return f"{self.get_proposed_type_display()}-{self.total_budget}"
@@ -1309,6 +1315,10 @@ class DrefFinalReport(models.Model):
     total_dref_allocation = models.IntegerField(verbose_name=_("Total dref allocation"), null=True, blank=True)
     date_of_publication = models.DateField(verbose_name=_("Date of publication"), blank=True, null=True)
     total_operation_timeframe = models.IntegerField(verbose_name=_("Total Operation Timeframe"), null=True, blank=True)
+    # NOTE: Total operation Timeframe for Imminent Type: Days
+    total_operation_timeframe_imminent = models.IntegerField(
+        verbose_name=_("total operation timeframe for imminent type"), null=True, blank=True
+    )
     operation_start_date = models.DateField(verbose_name=_("Operation Start Date"), null=True, blank=True)
     appeal_code = models.CharField(verbose_name=_("appeal code"), max_length=255, null=True, blank=True)
     glide_code = models.CharField(verbose_name=_("glide number"), max_length=255, null=True, blank=True)
@@ -1582,6 +1592,46 @@ class DrefFinalReport(models.Model):
     main_donors = models.TextField(verbose_name=_("Main Donors"), null=True, blank=True)
     operation_end_date = models.DateField(verbose_name=_("Operation End Date"), null=True, blank=True)
     source_information = models.ManyToManyField(SourceInformation, blank=True, verbose_name=_("Source Information"))
+    # NOTE: Flag to indicate if this is an new dref imminent type
+    is_dref_imminent_v2 = models.BooleanField(
+        verbose_name=_("Is DREF Imminent V2?"),
+        default=False,
+    )
+    mitigation_efforts_and_achievements = models.TextField(
+        verbose_name=_("Mitigation Efforts and Achievements"),
+        null=True,
+        blank=True,
+    )
+    lessons_learned_and_challenges = models.TextField(
+        verbose_name=_("Lessons learnt and challenges"),
+        blank=True,
+        null=True,
+    )
+    proposed_action = models.ManyToManyField(ProposedAction, verbose_name=_("Proposed Action"), blank=True)
+    sub_total_cost = models.PositiveIntegerField(verbose_name=_("Sub total Cost"), blank=True, null=True)
+    sub_total_expenditure_cost = models.PositiveIntegerField(
+        verbose_name=_("Sub total Expenditure Cost"),
+        blank=True,
+        null=True,
+    )
+    surge_deployment_cost = models.PositiveIntegerField(verbose_name=_("Surge Deployment Cost"), null=True, blank=True)
+    surge_deployment_expenditure_cost = models.PositiveIntegerField(
+        verbose_name=_("Surge Deployment Expenditure Cost"),
+        null=True,
+        blank=True,
+    )
+    indirect_cost = models.PositiveIntegerField(verbose_name=_("Indirect Cost"), null=True, blank=True)
+    indirect_expenditure_cost = models.PositiveIntegerField(
+        verbose_name=_("Indirect Expenditure Cost"),
+        null=True,
+        blank=True,
+    )
+    total_cost = models.PositiveIntegerField(verbose_name=_("Total Cost"), null=True, blank=True)
+    total_expenditure_cost = models.PositiveIntegerField(
+        verbose_name=_("Total Expenditure Cost"),
+        null=True,
+        blank=True,
+    )
     __financial_report_id = None
 
     class Meta:

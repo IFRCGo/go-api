@@ -106,9 +106,6 @@ class IfrcTranslator(BaseTranslator):
             return self._fake_translation(text, dest_language, source_language)
 
         global IFRC_TRANSLATION_CALL_COUNT
-        with IFRC_TRANSLATION_CALL_LOCK:
-            IFRC_TRANSLATION_CALL_COUNT += 1
-            logger.info(f"IFRC translation API call count: {IFRC_TRANSLATION_CALL_COUNT}")
 
         # A dirty workaround to handle oversized HTML+CSS texts, usually tables:
         textTail = ""
@@ -146,9 +143,12 @@ class IfrcTranslator(BaseTranslator):
                 dest_language=dest_language,
             ).first()
             if cache:
-                logger.info(f"translation cache hit: {text[:30]}... {source_language}>{dest_language}")
+                logger.info(f"IFRC translation cache hit: {text[:30]}... {source_language}>{dest_language}")
                 return cache.translated_text
 
+        with IFRC_TRANSLATION_CALL_LOCK:
+            IFRC_TRANSLATION_CALL_COUNT += 1
+            logger.info(f"IFRC translation API call count: {IFRC_TRANSLATION_CALL_COUNT}")
         logger.info(f"IFRC translation API call: {text[:30]}... {source_language}>{dest_language}")
         response = requests.post(
             self.url,

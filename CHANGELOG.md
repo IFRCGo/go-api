@@ -10,6 +10,26 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Update Molnix alert status even when no event
  - NSIA, ESF, CBF changes in ingest_ns_initiatives
 
+ - Add crisis severity level history if only ifrc_severity_level is updated
+ - Add migration consideratons to FormComponentResponse
+ - Translation cache
+ - Add favicon to admin page
+ - Add NS integrity fields to final report
+ - Add new field total operational timeframe
+ - Fix ingest_ns_document and count translation steps
+ - DREF3 changes about allocations and numbering
+ - set DREF to active for unpublished DREF final reports
+ - Add test cases for new final report changes
+ - Add flag on DREF final report, proposed action
+ - Add Validation checks for the new DREF imminent
+ - Date of orientation to PER process status
+ - Fix nginx
+ - Add new field hazard_date_and_location on DREF application
+ - OpsLearning get_queryset for the Admin page
+ - Fix for OpsLearning and 2 static images for notifications
+ - Allow BrowsableAPIRenderer only in local environment
+ - DREF3 list request with filters + a simple unit test
+
 ## 1.1.506
 
 ### Added

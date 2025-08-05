@@ -18,7 +18,7 @@ def is_valid_domain(email):
         .exists()
     )
 
-    if is_allowed or domain in ["ifrc.org", "arcs.org.af", "voroskereszt.hu"]:
+    if is_allowed or domain in ["voroskereszt.hu"]:  # This array check is only for testing
         return True
     return False
 

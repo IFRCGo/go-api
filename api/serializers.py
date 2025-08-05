@@ -49,6 +49,7 @@ from .models import (
     EventContact,
     EventFeaturedDocument,
     EventLink,
+    EventSeverityLevelHistory,
     Export,
     ExternalPartner,
     FieldReport,
@@ -117,6 +118,12 @@ class RegionSerializer(ModelSerializer):
             "region_name",
             "label",
         )
+
+
+class EventSeverityLevelHistorySerializer(ModelSerializer):
+    class Meta:
+        model = EventSeverityLevelHistory
+        fields = "__all__"
 
 
 class RegionGeoSerializer(ModelSerializer):
@@ -1032,6 +1039,7 @@ class ListEventSerializer(ModelSerializer):
             "num_affected",
             "ifrc_severity_level",
             "ifrc_severity_level_display",
+            "ifrc_severity_level_update_date",
             "glide",
             "disaster_start_date",
             "created_at",
@@ -1080,6 +1088,7 @@ class SurgeEventSerializer(ModelSerializer):
             "num_affected",
             "ifrc_severity_level",
             "ifrc_severity_level_display",
+            "ifrc_severity_level_update_date",
             "glide",
             "disaster_start_date",
             "created_at",
@@ -1127,6 +1136,7 @@ class ListEventTableauSerializer(serializers.ModelSerializer):
             "num_affected",
             "ifrc_severity_level",
             "ifrc_severity_level_display",
+            "ifrc_severity_level_update_date",
             "glide",
             "disaster_start_date",
             "created_at",
@@ -1171,6 +1181,7 @@ class ListEventCsvSerializer(serializers.ModelSerializer):
             "num_affected",
             "ifrc_severity_level",
             "ifrc_severity_level_display",
+            "ifrc_severity_level_update_date",
             "glide",
             "disaster_start_date",
             "created_at",
@@ -1341,6 +1352,7 @@ class DetailEventSerializer(ModelSerializer):
             "tab_one_title",
             "ifrc_severity_level",
             "ifrc_severity_level_display",
+            "ifrc_severity_level_update_date",
             "parent_event",
             "glide",
             "featured_documents",
