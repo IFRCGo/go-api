@@ -317,7 +317,7 @@ class LocalUnitBulkUpload(models.Model):
         blank=True,
         verbose_name=_("Error File"),
     )
-
+    error_message = models.TextField(null=True, blank=True, verbose_name=_("Error Message"))
     # Type hints
     pk: int
     country_id: int
@@ -344,7 +344,6 @@ class Validator(models.IntegerChoices):
 
 @reversion.register(follow=("health",))
 class LocalUnit(models.Model):
-
     class DeprecateReason(models.IntegerChoices):
         NON_EXISTENT = 1, _("Non-existent local unit")
         INCORRECTLY_ADDED = 2, _("Incorrectly added local unit")

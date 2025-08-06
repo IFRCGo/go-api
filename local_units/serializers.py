@@ -674,6 +674,7 @@ class LocalUnitBulkUploadSerializer(serializers.ModelSerializer):
     local_unit_type_details = LocalUnitTypeSerializer(source="local_unit_type", read_only=True)
     triggered_by_details = LocalUnitMiniUserSerializer(source="triggered_by", read_only=True)
     file_name = serializers.SerializerMethodField()
+    error_message = serializers.CharField(read_only=True)
 
     class Meta:
         model = LocalUnitBulkUpload
@@ -686,6 +687,7 @@ class LocalUnitBulkUploadSerializer(serializers.ModelSerializer):
             "error_file",
             "triggered_by",
             "file_name",
+            "error_message",
         )
 
     def validate_file(self, file):

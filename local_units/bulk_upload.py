@@ -175,8 +175,14 @@ class BaseBulkUploadLocalUnit(BaseBulkUpload[LocalUnitUploadContext]):
 
     @transaction.atomic
     def run(self) -> None:
-        with self.bulk_upload.file.open("r") as file:
-            self.validate_csv(file)
+        try:
+            with self.bulk_upload.file.open("r") as file:
+                self.validate_csv(file)
+        except ValueError as e:
+            self.bulk_upload.status = LocalUnitBulkUpload.Status.FAILED
+            self.bulk_upload.error_message = str(e)
+            self.bulk_upload.save(update_fields=["status", "error_message"])
+            return
         self.delete_existing_local_unit()
         super().run()
 
