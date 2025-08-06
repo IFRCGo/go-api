@@ -327,14 +327,6 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
         return version_id
 
     def validate(self, data):
-        local_branch_name = data.get("local_branch_name")
-        english_branch_name = data.get("english_branch_name")
-        if (not local_branch_name) and (not english_branch_name):
-            raise serializers.ValidationError(gettext("Branch Name Combination is required !"))
-        type = data.get("type")
-        health = data.get("health")
-        if type.code == 1 and health:
-            raise serializers.ValidationError({"Can't have health data for type %s" % type.code})
 
         # Externally managed check
         country = data.get("country")
@@ -344,6 +336,15 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
             raise serializers.ValidationError(
                 gettext("Country and Local unit Type is externally managed cannot be created manually.")
             )
+
+        local_branch_name = data.get("local_branch_name")
+        english_branch_name = data.get("english_branch_name")
+        if (not local_branch_name) and (not english_branch_name):
+            raise serializers.ValidationError(gettext("Branch Name Combination is required !"))
+        type = data.get("type")
+        health = data.get("health")
+        if type.code == 1 and health:
+            raise serializers.ValidationError({"Can't have health data for type %s" % type.code})
 
         return data
 
@@ -722,6 +723,9 @@ class LocalUnitTemplateFilesSerializer(serializers.Serializer):
     template_url = serializers.CharField(read_only=True)
 
 
+# NOTE: The `HealthDataBulkUploadSerializer` is used to validate the data for bulk upload of local unit health care type.
+
+
 class HealthDataBulkUploadSerializer(serializers.ModelSerializer):
     class Meta:
         model = HealthData
@@ -903,7 +907,7 @@ class LocalUnitBulkUploadDetailSerializer(serializers.ModelSerializer):
         return level_id
 
     def validate(self, validated_data):
-        # self._validate_health_data(validated_data)
+
         if not validated_data.get("local_branch_name") and not validated_data.get("english_branch_name"):
             raise serializers.ValidationError(gettext("Branch Name Combination is required."))
 
@@ -937,15 +941,16 @@ class LocalUnitBulkUploadDetailSerializer(serializers.ModelSerializer):
 
         validated_data["location"] = GEOSGeometry("POINT(%f %f)" % (longitude, latitude))
         validated_data["validated"] = True
+        validated_data["is_locked"] = True
         return validated_data
 
     def create(self, validated_data):
         health_data = validated_data.pop("health", None)
 
         if health_data:
-            health_data["created_by"] = self.context["created_by_instance"]
+            health_data["created_by"] = self.context["created_by"]
             health_instance = HealthData.objects.create(**health_data)
             validated_data["health"] = health_instance
 
-        validated_data["created_by"] = self.context["created_by_instance"]
+        validated_data["created_by"] = self.context["created_by"]
         return super().create(validated_data)

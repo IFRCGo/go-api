@@ -1,5 +1,6 @@
 import datetime
 import os
+from unittest import mock
 
 import factory
 from django.contrib.auth.models import Group, Permission
@@ -24,6 +25,7 @@ from .models import (
     Functionality,
     HealthData,
     LocalUnit,
+    LocalUnitBulkUpload,
     LocalUnitChangeRequest,
     LocalUnitLevel,
     LocalUnitType,
@@ -49,6 +51,21 @@ class HealthDataFactory(factory.django.DjangoModelFactory):
 class ExternallyManagedLocalUnitFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = ExternallyManagedLocalUnit
+
+
+class LocalUnitTypeFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = LocalUnitType
+
+
+class LocalUnitBulkUploadFactory(factory.django.DjangoModelFactory):
+    country = factory.SubFactory(CountryFactory)
+    local_unit_type = factory.SubFactory(LocalUnitTypeFactory)
+    triggered_by = factory.SubFactory(UserFactory)
+    status = LocalUnitBulkUpload.Status.PENDING
+
+    class Meta:
+        model = LocalUnitBulkUpload
 
 
 class TestLocalUnitsListView(APITestCase):
@@ -1069,7 +1086,8 @@ class LocalUnitBulkUploadTests(APITestCase):
         """
         return SimpleUploadedFile(filename, self._file_content, content_type="text/csv")
 
-    def test_bulk_upload_local_unit(self):
+    @mock.patch("local_units.tasks.process_bulk_upload_local_unit.delay")
+    def test_bulk_upload_local_unit(self, mock_delay):
         url = "/api/v2/bulk-upload-local-unit/"
 
         # Unauthenticated request
@@ -1088,8 +1106,10 @@ class LocalUnitBulkUploadTests(APITestCase):
             "local_unit_type": self.lut1.id,
             "file": self.create_upload_file(),
         }
-        response = self.client.post(url, data=data, format="multipart")
+        with self.capture_on_commit_callbacks(execute=True):
+            response = self.client.post(url, data=data, format="multipart")
         self.assert_201(response)
+        mock_delay.assert_called()
 
         # Superuser - Without externally managed data
         self.client.force_authenticate(user=self.root_user)
@@ -1108,8 +1128,10 @@ class LocalUnitBulkUploadTests(APITestCase):
             "local_unit_type": self.lut1.id,
             "file": self.create_upload_file(),
         }
-        response = self.client.post(url, data=data, format="multipart")
+        with self.capture_on_commit_callbacks(execute=True):
+            response = self.client.post(url, data=data, format="multipart")
         self.assert_201(response)
+        mock_delay.assert_called()
 
         # Country validator - different country
         self.client.force_authenticate(user=self.country_validator_user2)
@@ -1128,8 +1150,10 @@ class LocalUnitBulkUploadTests(APITestCase):
             "local_unit_type": self.lut1.id,
             "file": self.create_upload_file(),
         }
-        response = self.client.post(url, data=data, format="multipart")
+        with self.capture_on_commit_callbacks(execute=True):
+            response = self.client.post(url, data=data, format="multipart")
         self.assert_201(response)
+        mock_delay.assert_called()
 
         # Region validator - different region
         self.client.force_authenticate(user=self.region_validator_user)
@@ -1140,3 +1164,14 @@ class LocalUnitBulkUploadTests(APITestCase):
         }
         response = self.client.post(url, data=data, format="multipart")
         self.assert_403(response)
+        # global validator
+        self.client.force_authenticate(user=self.global_validator_user)
+        data = {
+            "country": self.country1.id,
+            "local_unit_type": self.lut1.id,
+            "file": self.create_upload_file(),
+        }
+        with self.capture_on_commit_callbacks(execute=True):
+            response = self.client.post(url, data=data, format="multipart")
+        self.assert_201(response)
+        mock_delay.assert_called()

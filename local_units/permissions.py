@@ -61,14 +61,11 @@ class BulkUploadValidatorPermission(permissions.BasePermission):
         if user.is_superuser:
             return True
 
-        if not isinstance(request.data, dict):
-            return True
-
         country_id = request.data.get("country")
         local_unit_type_id = request.data.get("local_unit_type")
 
-        if not country_id or not local_unit_type_id:
-            return True
+        if not country_id and not local_unit_type_id:
+            return False
         try:
             country = Country.objects.get(id=country_id)
             local_unit_type = LocalUnitType.objects.get(id=local_unit_type_id)
