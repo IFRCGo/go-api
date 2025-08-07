@@ -292,6 +292,7 @@ class LocalUnit(models.Model):
         OTHER = 4, _("Other")
 
     class Status(models.IntegerChoices):
+        # NOTE: Tracks the status of LocalUnit entries to manage validation workflows.
         VALIDATED = 1, "Validated"
         UNVALIDATED = 2, "Unvalidated"
         PENDING_EDIT_VALIDATION = 3, "Pending Edit Validation"
@@ -334,8 +335,10 @@ class LocalUnit(models.Model):
         auto_now=False,
     )
     draft = models.BooleanField(default=False, verbose_name=_("Draft"))
-    validated = models.BooleanField(default=False, verbose_name=_("Validated"))
-    status = models.IntegerField(choices=Status.choices, default=Status.UNVALIDATED, verbose_name=_("Validation Status"))
+    validated = models.BooleanField(default=False, verbose_name=_("Validated"))  # NOTE: This field might be deprecated soon.
+    status = models.IntegerField(
+        choices=Status.choices, default=Status.UNVALIDATED, verbose_name=_("Validation Status")
+    )  # NOTE: Replacement of validated field for better status tracking
     visibility = models.IntegerField(choices=VisibilityChoices.choices, verbose_name=_("visibility"), default=2)  # 2:IFRC
     source_en = models.CharField(max_length=500, blank=True, null=True, verbose_name=_("Source in Local Language"))
     source_loc = models.CharField(max_length=500, blank=True, null=True, verbose_name=_("Source in English"))

@@ -3,6 +3,15 @@
 from django.db import migrations, models
 
 
+def migrate_validated_to_status(apps, schema_editor):
+    """
+    Update all validated field values to corresponding status values
+    """
+    LocalUnit = apps.get_model("local_units", "LocalUnit")
+    LocalUnit.objects.filter(validated=True).update(status=1)
+    LocalUnit.objects.filter(validated=False).update(status=2)
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -18,5 +27,9 @@ class Migration(migrations.Migration):
                 default=2,
                 verbose_name="Validation Status",
             ),
+        ),
+        migrations.RunPython(
+            migrate_validated_to_status,
+            reverse_code=migrations.RunPython.noop,
         ),
     ]
