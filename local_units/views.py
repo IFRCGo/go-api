@@ -66,7 +66,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
             "level",
         )
         .exclude(is_deprecated=True)
-        .order_by("validated")
+        .order_by("status")
     )
     filterset_class = LocalUnitFilters
     search_fields = (
@@ -109,13 +109,13 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         # NOTE: Locking the local unit after the change request is created
         previous_data = PrivateLocalUnitDetailSerializer(local_unit, context={"request": request}).data
         local_unit.is_locked = True
-        local_unit.validated = False
+        local_unit.status = LocalUnit.Status.PENDING_EDIT_VALIDATION
         local_unit.update_reason_overview = update_reason
         local_unit.is_new_local_unit = False
         local_unit.save(
             update_fields=[
                 "is_locked",
-                "validated",
+                "status",
                 "update_reason_overview",
                 "is_new_local_unit",
             ]
@@ -164,12 +164,12 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         change_request_instance.save(update_fields=["status", "updated_by", "updated_at", "current_validator"])
 
         # Validate the local unit
-        local_unit.validated = True
+        local_unit.status = LocalUnit.Status.VALIDATED
         local_unit.is_locked = False
         local_unit.is_new_local_unit = False
         local_unit.save(
             update_fields=[
-                "validated",
+                "status",
                 "is_locked",
                 "is_new_local_unit",
             ]
@@ -189,7 +189,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
     def get_revert(self, request, pk=None, version=None):
         local_unit = self.get_object()
 
-        if local_unit.validated:
+        if local_unit.status == LocalUnit.Status.VALIDATED:
             return bad_request("Local unit is already validated and cannot be reverted")
 
         rejected_data = PrivateLocalUnitDetailSerializer(local_unit, context={"request": request}).data
@@ -233,9 +233,9 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
 
         # NOTE: Unlocking the reverted local unit
         local_unit.is_locked = False
-        local_unit.validated = True
+        local_unit.status = LocalUnit.Status.VALIDATED
         local_unit.is_new_local_unit = False
-        local_unit.save(update_fields=["is_locked", "validated", "is_new_local_unit"])
+        local_unit.save(update_fields=["is_locked", "status", "is_new_local_unit"])
 
         # reverting the previous data of change request to local unit by passing through serializer
         serializer = PrivateLocalUnitDetailSerializer(

@@ -385,7 +385,6 @@ class TestLocalUnitCreate(APITestCase):
             "type": type.id,
             "country": country.id,
             "draft": False,
-            "validated": True,
             "postcode": "4407",
             "address_loc": "4407",
             "address_en": "",
@@ -416,6 +415,7 @@ class TestLocalUnitCreate(APITestCase):
         data["english_branch_name"] = "Test branch name"
         response = self.client.post("/api/v2/local-units/", data=data, format="json")
         self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data["status"], LocalUnit.Status.UNVALIDATED)
 
         # Checking the request changes for the local unit is created or not
         request_change = LocalUnitChangeRequest.objects.all()
@@ -438,7 +438,6 @@ class TestLocalUnitCreate(APITestCase):
             "created_at": "2024-05-13T06:53:14.978083Z",
             "modified_at": "2024-05-13T06:53:14.978099Z",
             "draft": False,
-            "validated": True,
             "postcode": "",
             "address_loc": "Silele Clinic is is in Hosea Inkhundla under the Shiselweni, Sigombeni is in Nkom'iyahlaba Inkhundla under the Manzini region and Mahwalala is in the Mbabane West Inkhundla under the Hhohho region.",  # noqa: E501
             "address_en": "",
@@ -506,6 +505,7 @@ class TestLocalUnitCreate(APITestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(LocalUnitChangeRequest.objects.count(), 1)
         self.assertEqual(response.data["is_locked"], True)
+        self.assertEqual(response.data["status"], LocalUnit.Status.UNVALIDATED)
         # Locked local unit should not be updated, until it is unlocked
         local_unit_id = response.data["id"]
         response = self.client.put(f"/api/v2/local-units/{local_unit_id}/", data=data, format="json")
@@ -529,7 +529,6 @@ class TestLocalUnitCreate(APITestCase):
             "created_at": "2024-05-13T06:53:14.978083Z",
             "modified_at": "2024-05-13T06:53:14.978099Z",
             "draft": False,
-            "validated": True,
             "postcode": "",
             "address_loc": "Silele Clinic is is in Hosea Inkhundla under the Shiselweni, Sigombeni is in Nkom'iyahlaba Inkhundla under the Manzini region and Mahwalala is in the Mbabane West Inkhundla under the Hhohho region.",  # noqa: E501
             "address_en": "",
@@ -579,8 +578,8 @@ class TestLocalUnitCreate(APITestCase):
         response = self.client.post(f"/api/v2/local-units/{local_unit_id}/validate/")
         self.assert_200(response)
         self.assertEqual(response.data["is_locked"], False)
-        self.assertEqual(response.data["validated"], True)
-
+        # self.assertEqual(response.data["validated"], True)
+        self.assertEqual(response.data["status"], LocalUnit.Status.VALIDATED)
         # saving the previous data
         previous_data = response.data
 
@@ -591,7 +590,6 @@ class TestLocalUnitCreate(APITestCase):
         response = self.client.put(f"/api/v2/local-units/{local_unit_id}/", data=data, format="json")
         self.assert_200(response)
         self.assertEqual(response.data["local_branch_name"], data["local_branch_name"])
-
         # Reverting the local unit
         revert_data = {
             "reason": "Reverting the local unit test",
@@ -609,7 +607,7 @@ class TestLocalUnitCreate(APITestCase):
         self.assertEqual(local_unit_change_request.rejected_reason, revert_data["reason"])
         # Checking if the local unit is unlocked
         self.assertEqual(local_unit.is_locked, False)
-        self.assertEqual(local_unit.validated, True)
+        self.assertEqual(local_unit.status, LocalUnit.Status.VALIDATED)
 
     def test_latest_changes(self):
         region = Region.objects.create(name=2)
@@ -627,7 +625,7 @@ class TestLocalUnitCreate(APITestCase):
             "country": country.id,
             "created_at": "2024-05-13T06:53:14.978083Z",
             "modified_at": "2024-05-13T06:53:14.978099Z",
-            "validated": True,
+            "status": LocalUnit.Status.VALIDATED,
             "date_of_data": "2024-05-13",
             "level": level.id,
             "address_loc": "Silele Clinic is is in Hosea Inkhundla under the Shiselweni, Sigombeni is in Nkom'iyahlaba Inkhundla under the Manzini region and Mahwalala is in the Mbabane West Inkhundla under the Hhohho region.",  # noqa: E501
@@ -687,7 +685,7 @@ class TestLocalUnitCreate(APITestCase):
         self.authenticate()
         response = self.client.post("/api/v2/local-units/", data=data, format="json")
         self.assert_201(response)
-
+        self.assertEqual(response.data["status"], LocalUnit.Status.UNVALIDATED)
         local_unit_id = response.data["id"]
         self.authenticate(self.global_validator_user)
         # validating the local unit by the Global validator
@@ -697,6 +695,7 @@ class TestLocalUnitCreate(APITestCase):
             local_unit=local_unit_id, status=LocalUnitChangeRequest.Status.APPROVED
         ).last()
         self.assertEqual(local_unit_request.current_validator, Validator.GLOBAL)
+        self.assertEqual(response.data["status"], LocalUnit.Status.VALIDATED)
 
         # Testing For the local unit admin/country validator
         self.authenticate(self.country_validator_user)
@@ -709,6 +708,7 @@ class TestLocalUnitCreate(APITestCase):
             local_unit=local_unit_id, status=LocalUnitChangeRequest.Status.APPROVED
         ).last()
         self.assertEqual(local_unit_request.current_validator, Validator.LOCAL)
+        self.assertEqual(response.data["status"], LocalUnit.Status.VALIDATED)
 
         # Testing For the regional validator
         self.authenticate(self.region_validator_user)
@@ -720,6 +720,7 @@ class TestLocalUnitCreate(APITestCase):
             local_unit=local_unit_id, status=LocalUnitChangeRequest.Status.APPROVED
         ).last()
         self.assertEqual(local_unit_request.current_validator, Validator.REGIONAL)
+        self.assertEqual(response.data["status"], LocalUnit.Status.VALIDATED)
 
         # Testing for Root User/Global validator
         self.authenticate(self.root_user)
@@ -731,6 +732,7 @@ class TestLocalUnitCreate(APITestCase):
             local_unit=local_unit_id, status=LocalUnitChangeRequest.Status.APPROVED
         ).last()
         self.assertEqual(local_unit_request.current_validator, Validator.GLOBAL)
+        self.assertEqual(response.data["status"], LocalUnit.Status.VALIDATED)
 
 
 class TestExternallyManagedLocalUnit(APITestCase):

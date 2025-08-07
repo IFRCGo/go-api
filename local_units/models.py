@@ -291,6 +291,11 @@ class LocalUnit(models.Model):
         SECURITY_CONCERNS = 3, _("Security concerns")
         OTHER = 4, _("Other")
 
+    class Status(models.IntegerChoices):
+        VALIDATED = 1, "Validated"
+        UNVALIDATED = 2, "Unvalidated"
+        PENDING_EDIT_VALIDATION = 3, "Pending Edit Validation"
+
     # added to track health local unit data (Table B)
     health = models.ForeignKey(
         HealthData, on_delete=models.SET_NULL, verbose_name=_("Health Data"), related_name="health_data", null=True, blank=True
@@ -330,6 +335,7 @@ class LocalUnit(models.Model):
     )
     draft = models.BooleanField(default=False, verbose_name=_("Draft"))
     validated = models.BooleanField(default=False, verbose_name=_("Validated"))
+    status = models.IntegerField(choices=Status.choices, default=Status.UNVALIDATED, verbose_name=_("Validation Status"))
     visibility = models.IntegerField(choices=VisibilityChoices.choices, verbose_name=_("visibility"), default=2)  # 2:IFRC
     source_en = models.CharField(max_length=500, blank=True, null=True, verbose_name=_("Source in Local Language"))
     source_loc = models.CharField(max_length=500, blank=True, null=True, verbose_name=_("Source in English"))
