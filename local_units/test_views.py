@@ -1,15 +1,19 @@
 import datetime
+import os
+from unittest import mock
 
 import factory
 from django.contrib.auth.models import Group, Permission
 from django.contrib.gis.geos import Point
 from django.core import management
+from django.core.files.uploadedfile import SimpleUploadedFile
 from factory import fuzzy
 
 from api.factories.country import CountryFactory
 from api.factories.region import RegionFactory
 from api.models import Country, CountryType, Region
 from deployments.factories.user import UserFactory
+from main import settings
 from main.test_case import APITestCase
 
 from .models import (
@@ -21,6 +25,7 @@ from .models import (
     Functionality,
     HealthData,
     LocalUnit,
+    LocalUnitBulkUpload,
     LocalUnitChangeRequest,
     LocalUnitLevel,
     LocalUnitType,
@@ -48,12 +53,27 @@ class ExternallyManagedLocalUnitFactory(factory.django.DjangoModelFactory):
         model = ExternallyManagedLocalUnit
 
 
+class LocalUnitTypeFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = LocalUnitType
+
+
+class LocalUnitBulkUploadFactory(factory.django.DjangoModelFactory):
+    country = factory.SubFactory(CountryFactory)
+    local_unit_type = factory.SubFactory(LocalUnitTypeFactory)
+    triggered_by = factory.SubFactory(UserFactory)
+    status = LocalUnitBulkUpload.Status.PENDING
+
+    class Meta:
+        model = LocalUnitBulkUpload
+
+
 class TestLocalUnitsListView(APITestCase):
     def setUp(self):
         super().setUp()
         region = Region.objects.create(name=2)
-        country = Country.objects.create(name="Nepal", iso3="NLP", iso="NP", region=region)
-        country_1 = Country.objects.create(
+        country = CountryFactory.create(name="Nepal", iso3="NLP", iso="NP", region=region)
+        country_1 = CountryFactory.create(
             name="Philippines",
             iso3="PHL",
             iso="PH",
@@ -64,11 +84,60 @@ class TestLocalUnitsListView(APITestCase):
         LocalUnitFactory.create_batch(5, country=country, type=type, draft=True, validated=False, date_of_data="2023-09-09")
         LocalUnitFactory.create_batch(5, country=country_1, type=type_1, draft=False, validated=True, date_of_data="2023-08-08")
 
+        # test with Permission
+        self.country2 = CountryFactory.create(
+            name="India",
+            iso3="IND",
+            record_type=CountryType.COUNTRY,
+            is_deprecated=False,
+            independent=True,
+            region=region,
+        )
+        self.type_3 = LocalUnitType.objects.create(code=3, name="Code 3")
+        self.local_unit = LocalUnitFactory.create(
+            country=self.country2, type=self.type_3, validated=False, date_of_data="2025-09-09"
+        )
+        self.local_unit_2 = LocalUnitFactory.create(
+            country=self.country2, type=self.type_3, validated=False, date_of_data="2025-09-09"
+        )
+        management.call_command("make_local_unit_validator_permissions")
+        self.normal_user = UserFactory.create()
+        self.country_validator_user = UserFactory.create()
+        self.region_validator_user = UserFactory.create()
+        self.global_validator_user = UserFactory.create()
+        #  permissions
+        country_codename = f"local_unit_country_validator_{self.type_3.id}_{self.country2.id}"
+        region_codename = f"local_unit_region_validator_{self.type_3.id}_{region.id}"
+        global_codename = f"local_unit_global_validator_{self.type_3.id}"
+
+        country_permission = Permission.objects.get(codename=country_codename)
+        region_permission = Permission.objects.get(codename=region_codename)
+        global_permission = Permission.objects.get(codename=global_codename)
+
+        #  Country validator group
+        country_group_name = f"Local unit validator for {self.type_3.name} {self.country2.name}"
+        country_group = Group.objects.get(name=country_group_name)
+        country_group.permissions.add(country_permission)
+        self.country_validator_user.groups.add(country_group)
+
+        # Region validator group
+        region_group_name = f"Local unit validator for {self.type_3.name} {region.get_name_display()}"
+        region_group = Group.objects.get(name=region_group_name)
+        region_group.permissions.add(region_permission)
+        self.region_validator_user.groups.add(region_group)
+
+        # Global validator group
+        global_group_name = f"Local unit global validator for {self.type_3.name}"
+
+        global_group = Group.objects.get(name=global_group_name)
+        global_group.permissions.add(global_permission)
+        self.global_validator_user.groups.add(global_group)
+
     def test_list(self):
         self.authenticate()
         response = self.client.get("/api/v2/local-units/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["count"], 10)
+        self.assertEqual(response.data["count"], 12)
         # TODO: fix these asaywltdi
         # self.assertEqual(response.data['results'][0]['location_details']['coordinates'], [12, 38])
         # self.assertEqual(response.data['results'][0]['country_details']['name'], 'Nepal')
@@ -77,20 +146,16 @@ class TestLocalUnitsListView(APITestCase):
         # self.assertEqual(response.data['results'][0]['type_details']['code'], 0)
 
     def test_deprecate_local_unit(self):
-        country = Country.objects.all().first()
-        type = LocalUnitType.objects.all().first()
-        local_unit_obj = LocalUnitFactory.create(
-            country=country, type=type, draft=True, validated=False, date_of_data="2023-09-09"
-        )
 
-        self.authenticate()
-        url = f"/api/v2/local-units/{local_unit_obj.id}/deprecate/"
+        # test with country validator Permission
+        self.client.force_authenticate(self.country_validator_user)
+        url = f"/api/v2/local-units/{self.local_unit.id}/deprecate/"
         data = {
             "deprecated_reason": LocalUnit.DeprecateReason.INCORRECTLY_ADDED,
             "deprecated_reason_overview": "test reason",
         }
         response = self.client.post(url, data=data)
-        local_unit_obj = LocalUnit.objects.get(id=local_unit_obj.id)
+        local_unit_obj = LocalUnit.objects.get(id=self.local_unit.id)
 
         self.assert_200(response)
         self.assertEqual(local_unit_obj.is_deprecated, True)
@@ -100,12 +165,30 @@ class TestLocalUnitsListView(APITestCase):
         response = self.client.post(url, data=data)
         self.assert_404(response)
 
+        # Test revert deprecate
+        self.client.force_authenticate(self.country_validator_user)
+        url = f"/api/v2/local-units/{self.local_unit.id}/revert-deprecate/"
+        response = self.client.post(url)
+        local_unit_obj = LocalUnit.objects.get(id=self.local_unit.id)
+        self.assert_200(response)
+        self.assertEqual(local_unit_obj.is_deprecated, False)
+        self.assertEqual(local_unit_obj.deprecated_reason, None)
+        self.assertEqual(local_unit_obj.deprecated_reason_overview, "")
+
+        # Test with super user
         self.client.force_authenticate(self.root_user)
-        # test revert deprecate
-        data = {}
-        url = f"/api/v2/local-units/{local_unit_obj.id}/revert-deprecate/"
+        url = f"/api/v2/local-units/{self.local_unit_2.id}/deprecate/"
         response = self.client.post(url, data=data)
-        local_unit_obj = LocalUnit.objects.get(id=local_unit_obj.id)
+        local_unit_obj = LocalUnit.objects.get(id=self.local_unit_2.id)
+        self.assert_200(response)
+        self.assertEqual(local_unit_obj.is_deprecated, True)
+        self.assertEqual(local_unit_obj.deprecated_reason, LocalUnit.DeprecateReason.INCORRECTLY_ADDED)
+
+        # Test revert deprecate
+        self.client.force_authenticate(self.root_user)
+        url = f"/api/v2/local-units/{self.local_unit_2.id}/revert-deprecate/"
+        response = self.client.post(url)
+        local_unit_obj = LocalUnit.objects.get(id=self.local_unit_2.id)
         self.assert_200(response)
         self.assertEqual(local_unit_obj.is_deprecated, False)
         self.assertEqual(local_unit_obj.deprecated_reason, None)
@@ -159,7 +242,7 @@ class TestLocalUnitsListView(APITestCase):
 
         response = self.client.get("/api/v2/local-units/?draft=false")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["count"], 5)
+        self.assertEqual(response.data["count"], 7)
 
         response = self.client.get("/api/v2/local-units/?validated=true")
         self.assertEqual(response.status_code, 200)
@@ -167,7 +250,7 @@ class TestLocalUnitsListView(APITestCase):
 
         response = self.client.get("/api/v2/local-units/?validated=false")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["count"], 5)
+        self.assertEqual(response.data["count"], 7)
 
 
 class TestLocalUnitsDetailView(APITestCase):
@@ -734,6 +817,57 @@ class TestLocalUnitCreate(APITestCase):
         self.assertEqual(local_unit_request.current_validator, Validator.GLOBAL)
         self.assertEqual(response.data["status"], LocalUnit.Status.VALIDATED)
 
+    def test_create_local_unit_with_externally_managed_country_and_type(self):
+        # Externally managed
+        country = CountryFactory.create(
+            name="India",
+            iso3="IND",
+            record_type=CountryType.COUNTRY,
+            is_deprecated=False,
+            independent=True,
+            region=self.region,
+        )
+
+        local_unit_type = LocalUnitType.objects.create(code=6, name="other")
+        level = LocalUnitLevel.objects.create(level=1, name="Code 1")
+        ExternallyManagedLocalUnitFactory.create(country=country, local_unit_type=local_unit_type, enabled=True)
+
+        data = {
+            "local_branch_name": "Test branch name",
+            "english_brancself.h_name": "Test branch name",
+            "type": local_unit_type.id,
+            "country": country.id,
+            "draft": False,
+            "validated": True,
+            "postcode": "4407",
+            "address_loc": "4407",
+            "address_en": "",
+            "city_loc": "",
+            "city_en": "Pukë",
+            "link": "",
+            "location_json": {
+                "lat": 20.5937,
+                "lng": 78.9629,
+            },
+            "source_loc": "",
+            "source_en": "",
+            "subtype": "District Office",
+            "date_of_data": "2024-05-13",
+            "level": level.id,
+            "focal_person_loc": "Test Name",
+            "focal_person_en": "Test Name",
+            "email": "",
+            "phone": "",
+        }
+        # without authentication
+        response = self.client.post("/api/v2/local-units/", data=data, format="json")
+        self.assertEqual(response.status_code, 401)
+        # with super user
+        self.client.force_authenticate(user=self.root_user)
+        response = self.client.post("/api/v2/local-units/", data=data, format="json")
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(LocalUnitChangeRequest.objects.count(), 0)
+
 
 class TestExternallyManagedLocalUnit(APITestCase):
     def setUp(self):
@@ -768,28 +902,28 @@ class TestExternallyManagedLocalUnit(APITestCase):
         )
 
     def test_filter_by_country_name(self):
-        self.client.force_authenticate(user=self.root_user)
+        self.client.force_authenticate(user=self.user)
         url = "/api/v2/externally-managed-local-unit/?country__name=Nepal"
         response = self.client.get(url)
         self.assert_200(response)
         self.assertEqual(response.data["count"], 1)
 
     def test_filter_by_country_iso3(self):
-        self.client.force_authenticate(user=self.root_user)
+        self.client.force_authenticate(user=self.user)
         url = "/api/v2/externally-managed-local-unit/?country__iso3=IND"
         response = self.client.get(url)
         self.assert_200(response)
         self.assertEqual(response.data["count"], 0)
 
     def test_filter_by_country_iso_invalid(self):
-        self.client.force_authenticate(user=self.root_user)
+        self.client.force_authenticate(user=self.user)
         url = "/api/v2/externally-managed-local-unit/?country__iso=PH"
         response = self.client.get(url)
         self.assert_200(response)
         self.assertEqual(response.data["count"], 0)
 
     def test_filter_by_country_id(self):
-        self.client.force_authenticate(user=self.root_user)
+        self.client.force_authenticate(user=self.user)
         url = f"/api/v2/externally-managed-local-unit/?country__id={self.country1.id}"
         response = self.client.get(url)
         self.assert_200(response)
@@ -848,9 +982,196 @@ class TestExternallyManagedLocalUnit(APITestCase):
         # Normal user
         self.client.force_authenticate(user=self.user)
         response = self.client.get(url)
-        self.assert_403(response)
+        self.assert_200(response)
 
         # Superuser
         self.client.force_authenticate(user=self.root_user)
         response = self.client.get(url)
         self.assert_200(response)
+
+
+class LocalUnitBulkUploadTests(APITestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.normal_user = UserFactory.create()
+        self.region = RegionFactory.create(name=2, label="Asia Pacific")
+        self.region2 = RegionFactory.create(name=0, label="Africa")
+
+        #  countries
+        self.country1 = CountryFactory.create(
+            name="Nepal", iso3="NPL", record_type=CountryType.COUNTRY, is_deprecated=False, independent=True, region=self.region
+        )
+        self.country2 = CountryFactory.create(
+            name="India", iso3="IND", record_type=CountryType.COUNTRY, is_deprecated=False, independent=True, region=self.region
+        )
+        self.country3 = CountryFactory.create(
+            name="Bangladesh",
+            iso3="BGD",
+            record_type=CountryType.COUNTRY,
+            is_deprecated=False,
+            independent=True,
+            region=self.region,
+        )
+        self.country4 = CountryFactory.create(
+            name="Nigeria",
+            iso3="NGA",
+            record_type=CountryType.COUNTRY,
+            is_deprecated=False,
+            independent=True,
+            region=self.region2,
+        )
+
+        # local unit types
+        self.lut1 = LocalUnitType.objects.create(code=1, name="Code 1")
+        self.lut2 = LocalUnitType.objects.create(code=2, name="Code 2")
+        self.lut3 = LocalUnitType.objects.create(code=3, name="Code 3")
+
+        # Create corresponding externally managed local units
+        ExternallyManagedLocalUnitFactory.create(country=self.country1, local_unit_type=self.lut1, enabled=True)
+        ExternallyManagedLocalUnitFactory.create(country=self.country2, local_unit_type=self.lut2, enabled=True)
+        ExternallyManagedLocalUnitFactory.create(country=self.country4, local_unit_type=self.lut2, enabled=True)
+
+        # Run permission creation logic
+        management.call_command("make_local_unit_validator_permissions")
+
+        # Create 3 validator users
+        self.country_validator_user = UserFactory.create()
+        self.country_validator_user2 = UserFactory.create()
+        self.region_validator_user = UserFactory.create()
+        self.global_validator_user = UserFactory.create()
+
+        # Set up permissions and groups
+
+        # --- Country validator ---
+        country_codename = f"local_unit_country_validator_{self.lut1.id}_{self.country1.id}"
+        country_permission = Permission.objects.get(codename=country_codename)
+        country_group_name = f"Local unit validator for {self.lut1.name} {self.country1.name}"
+        country_group = Group.objects.get(name=country_group_name)
+        country_group.permissions.add(country_permission)
+        self.country_validator_user.groups.add(country_group)
+
+        # --- Country validator 2 ---
+
+        country_codename = f"local_unit_country_validator_{self.lut1.id}_{self.country2.id}"
+        country_permission = Permission.objects.get(codename=country_codename)
+        country_group_name = f"Local unit validator for {self.lut1.name} {self.country2.name}"
+        country_group = Group.objects.get(name=country_group_name)
+        country_group.permissions.add(country_permission)
+        self.country_validator_user2.groups.add(country_group)
+
+        # --- Region validator ---
+        region_codename = f"local_unit_region_validator_{self.lut1.id}_{self.region.id}"
+        region_permission = Permission.objects.get(codename=region_codename)
+        region_group_name = f"Local unit validator for {self.lut1.name} {self.region.get_name_display()}"
+        region_group = Group.objects.get(name=region_group_name)
+        region_group.permissions.add(region_permission)
+        self.region_validator_user.groups.add(region_group)
+
+        # --- Global validator ---
+        global_codename = f"local_unit_global_validator_{self.lut1.id}"
+        global_permission = Permission.objects.get(codename=global_codename)
+        global_group_name = f"Local unit global validator for {self.lut1.name}"
+        global_group = Group.objects.get(name=global_group_name)
+        global_group.permissions.add(global_permission)
+        self.global_validator_user.groups.add(global_group)
+
+        file_path = os.path.join(settings.TEST_DIR, "local_unit/test.csv")
+        with open(file_path, "rb") as f:
+            self._file_content = f.read()
+
+    def create_upload_file(self, filename="test.csv"):
+        """
+        Always return a new file instance to prevent stream exhaustion.
+        """
+        return SimpleUploadedFile(filename, self._file_content, content_type="text/csv")
+
+    @mock.patch("local_units.tasks.process_bulk_upload_local_unit.delay")
+    def test_bulk_upload_local_unit(self, mock_delay):
+        url = "/api/v2/bulk-upload-local-unit/"
+
+        # Unauthenticated request
+        data = {
+            "country": self.country1.id,
+            "local_unit_type": self.lut1.id,
+            "file": self.create_upload_file(),
+        }
+        response = self.client.post(url, data=data, format="multipart")
+        self.assert_401(response)
+
+        # Superuser - with externally managed data
+        self.client.force_authenticate(user=self.root_user)
+        data = {
+            "country": self.country1.id,
+            "local_unit_type": self.lut1.id,
+            "file": self.create_upload_file(),
+        }
+        with self.capture_on_commit_callbacks(execute=True):
+            response = self.client.post(url, data=data, format="multipart")
+        self.assert_201(response)
+        mock_delay.assert_called()
+
+        # Superuser - Without externally managed data
+        self.client.force_authenticate(user=self.root_user)
+        data = {
+            "country": self.country3.id,
+            "local_unit_type": self.lut3.id,
+            "file": self.create_upload_file(),
+        }
+        response = self.client.post(url, data=data, format="multipart")
+        self.assert_400(response)
+
+        # Country validator - matching country
+        self.client.force_authenticate(user=self.country_validator_user)
+        data = {
+            "country": self.country1.id,
+            "local_unit_type": self.lut1.id,
+            "file": self.create_upload_file(),
+        }
+        with self.capture_on_commit_callbacks(execute=True):
+            response = self.client.post(url, data=data, format="multipart")
+        self.assert_201(response)
+        mock_delay.assert_called()
+
+        # Country validator - different country
+        self.client.force_authenticate(user=self.country_validator_user2)
+        data = {
+            "country": self.country4.id,
+            "local_unit_type": self.lut2.id,
+            "file": self.create_upload_file(),
+        }
+        response = self.client.post(url, data=data, format="multipart")
+        self.assert_403(response)
+
+        # Region validator - same region
+        self.client.force_authenticate(user=self.region_validator_user)
+        data = {
+            "country": self.country1.id,
+            "local_unit_type": self.lut1.id,
+            "file": self.create_upload_file(),
+        }
+        with self.capture_on_commit_callbacks(execute=True):
+            response = self.client.post(url, data=data, format="multipart")
+        self.assert_201(response)
+        mock_delay.assert_called()
+
+        # Region validator - different region
+        self.client.force_authenticate(user=self.region_validator_user)
+        data = {
+            "country": self.country4.id,
+            "local_unit_type": self.lut2.id,
+            "file": self.create_upload_file(),
+        }
+        response = self.client.post(url, data=data, format="multipart")
+        self.assert_403(response)
+        # global validator
+        self.client.force_authenticate(user=self.global_validator_user)
+        data = {
+            "country": self.country1.id,
+            "local_unit_type": self.lut1.id,
+            "file": self.create_upload_file(),
+        }
+        with self.capture_on_commit_callbacks(execute=True):
+            response = self.client.post(url, data=data, format="multipart")
+        self.assert_201(response)
+        mock_delay.assert_called()

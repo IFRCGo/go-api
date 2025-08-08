@@ -18,6 +18,7 @@ from notifications.notification import send_notification
 class Command(BaseCommand):
     help = "Notify validators for the pending local units in different period of time"
 
+    # TODO: Add a check to skip users with missing the email
     @monitor(monitor_slug=SentryMonitor.NOTIFY_VALIDATORS)
     def handle(self, *args, **options):
         self.stdout.write(self.style.NOTICE("Notifying the validators..."))
