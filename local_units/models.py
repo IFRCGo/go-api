@@ -4,6 +4,7 @@ import reversion
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db.models import UniqueConstraint
 from django.templatetags.static import static
 from django.utils.translation import gettext_lazy as _
 
@@ -290,6 +291,12 @@ class LocalUnit(models.Model):
         SECURITY_CONCERNS = 3, _("Security concerns")
         OTHER = 4, _("Other")
 
+    class Status(models.IntegerChoices):
+        # NOTE: Tracks the status of LocalUnit entries to manage validation workflows.
+        VALIDATED = 1, "Validated"
+        UNVALIDATED = 2, "Unvalidated"
+        PENDING_EDIT_VALIDATION = 3, "Pending Edit Validation"
+
     # added to track health local unit data (Table B)
     health = models.ForeignKey(
         HealthData, on_delete=models.SET_NULL, verbose_name=_("Health Data"), related_name="health_data", null=True, blank=True
@@ -328,7 +335,10 @@ class LocalUnit(models.Model):
         auto_now=False,
     )
     draft = models.BooleanField(default=False, verbose_name=_("Draft"))
-    validated = models.BooleanField(default=False, verbose_name=_("Validated"))
+    validated = models.BooleanField(default=False, verbose_name=_("Validated"))  # NOTE: This field might be deprecated soon.
+    status = models.IntegerField(
+        choices=Status.choices, default=Status.UNVALIDATED, verbose_name=_("Validation Status")
+    )  # NOTE: Replacement of validated field for better status tracking
     visibility = models.IntegerField(choices=VisibilityChoices.choices, verbose_name=_("visibility"), default=2)  # 2:IFRC
     source_en = models.CharField(max_length=500, blank=True, null=True, verbose_name=_("Source in Local Language"))
     source_loc = models.CharField(max_length=500, blank=True, null=True, verbose_name=_("Source in English"))
@@ -361,12 +371,16 @@ class LocalUnit(models.Model):
     deprecated_reason_overview = models.TextField(
         verbose_name=_("Explain the reason why the local unit is being deleted"), blank=True, null=True
     )
-
+    update_reason_overview = models.TextField(
+        verbose_name=_("Explain the reason why the local unit is being updated"), blank=True, null=True
+    )
     last_sent_validator_type = models.IntegerField(
         choices=Validator.choices,
         verbose_name=_("Last email sent validator type"),
         default=Validator.LOCAL,
     )
+
+    is_new_local_unit = models.BooleanField(default=False, verbose_name=("Is New Local Unit?"))
 
     def __str__(self):
         branch_name = self.local_branch_name or self.english_branch_name
@@ -380,6 +394,30 @@ class LocalUnit(models.Model):
             "lat": self.location.y,
             "lng": self.location.x,
         }
+
+
+class ExternallyManagedLocalUnit(models.Model):
+    country = models.ForeignKey(
+        Country,
+        on_delete=models.CASCADE,
+        verbose_name=_("Country"),
+        related_name="externally_managed_local_unit_country",
+    )
+    local_unit_type = models.ForeignKey(
+        LocalUnitType, on_delete=models.CASCADE, verbose_name=_("Type"), related_name="externally_managed_local_unit_type"
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="created_external_local_units"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="updated_external_local_units"
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+    enabled = models.BooleanField(default=False)
+
+    class Meta:
+        constraints = [UniqueConstraint(fields=["country", "local_unit_type"], name="unique_country_local_unit_type")]
 
 
 class LocalUnitChangeRequest(models.Model):
