@@ -2,7 +2,7 @@ import csv
 import io
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, Generic, Literal, Type, TypeVar
+from typing import Any, Dict, Generic, Literal, Optional, Type, TypeVar
 
 from django.core.files.base import ContentFile
 from django.db import transaction
@@ -60,17 +60,18 @@ class BaseBulkUpload(Generic[ContextType]):
         if serializer.is_valid(raise_exception=True):
             self.bulk_manager.add(LocalUnit(**serializer.validated_data))
 
+    @transaction.atomic
     def run(self) -> None:
+        error_writer: Optional[ErrorWriter] = None
         with self.bulk_upload.file.open("r") as file:
             csv_reader = csv.DictReader(file)
             fieldnames = csv_reader.fieldnames or []
-
             context = self.get_context().__dict__
             error_writer = ErrorWriter(fieldnames)
 
             for row_index, row_data in enumerate(csv_reader, start=2):
+                data = {**row_data, **context}
                 try:
-                    data = {**row_data, **context}
                     self.process(data)
                     self.success_count += 1
                     error_writer.write(row_data, status=LocalUnitBulkUpload.Status.SUCCESS)
@@ -79,29 +80,34 @@ class BaseBulkUpload(Generic[ContextType]):
                     error_writer.write(row_data, status=LocalUnitBulkUpload.Status.FAILED)
                     logger.warning(f"[BulkUpload:{self.bulk_upload.pk}] Row '{row_index}' failed: {e}")
 
-        self.bulk_manager.done()
-        self._finalize(error_writer)
+            if self.failed_count > 0:
+                self._finalize_failure(error_writer)
+                return
+            self.bulk_manager.done()
+            self._finalize_success()
 
-    def _finalize(self, error_writer: ErrorWriter) -> None:
-        if error_writer.has_errors():
-            error_file = error_writer.to_content_file()
-            self.bulk_upload.error_file.save("error_file.csv", error_file, save=False)
-
+    def _finalize_success(self) -> None:
         self.bulk_upload.success_count = self.success_count
-        self.bulk_upload.failed_count = self.failed_count
-        self.bulk_upload.status = (
-            LocalUnitBulkUpload.Status.SUCCESS if self.failed_count == 0 else LocalUnitBulkUpload.Status.FAILED
-        )
-        self.bulk_upload.save(
-            update_fields=[
-                "success_count",
-                "failed_count",
-                "status",
-                "error_file",
-            ]
-        )
+        self.bulk_upload.failed_count = 0
+        self.bulk_upload.status = LocalUnitBulkUpload.Status.SUCCESS
+        self.bulk_upload.save(update_fields=["success_count", "failed_count", "status"])
 
-        logger.info(f"[BulkUpload:{self.bulk_upload.pk}] Completed: {self.success_count} success, {self.failed_count} failed.")
+        logger.info(f"[BulkUpload:{self.bulk_upload.pk}] SUCCESS: {self.success_count} rows.")
+
+    def _finalize_failure(self, error_writer: Optional[ErrorWriter]) -> None:
+        if error_writer and error_writer.has_errors():
+            error_file = error_writer.to_content_file()
+            self.bulk_upload.error_file.save("error_file.csv", error_file, save=True)
+
+        self.bulk_upload.success_count = 0
+        self.bulk_upload.failed_count = self.failed_count
+        self.bulk_upload.status = LocalUnitBulkUpload.Status.FAILED
+        self.bulk_upload.save(update_fields=["success_count", "failed_count", "status", "error_file"])
+
+        logger.info(
+            f"[BulkUpload:{self.bulk_upload.pk}] FAILED: "
+            f"{self.bulk_upload.success_count} succeeded, {self.failed_count} failed."
+        )
 
 
 @dataclass
@@ -109,6 +115,7 @@ class LocalUnitUploadContext:
     country: int
     type: int
     created_by: int
+    bulk_upload: int
 
 
 class BaseBulkUploadLocalUnit(BaseBulkUpload[LocalUnitUploadContext]):
@@ -118,16 +125,13 @@ class BaseBulkUploadLocalUnit(BaseBulkUpload[LocalUnitUploadContext]):
 
         self.serializer_class = LocalUnitBulkUploadDetailSerializer
         super().__init__(bulk_upload)
-        self.context = {
-            "type": bulk_upload.local_unit_type,
-            "created_by": bulk_upload.triggered_by,
-        }
 
     def get_context(self) -> LocalUnitUploadContext:
         return LocalUnitUploadContext(
             country=self.bulk_upload.country_id,
             type=self.bulk_upload.local_unit_type_id,
             created_by=self.bulk_upload.triggered_by_id,
+            bulk_upload=self.bulk_upload.pk,
         )
 
     def delete_existing_local_unit(self):
@@ -155,23 +159,6 @@ class BaseBulkUploadLocalUnit(BaseBulkUpload[LocalUnitUploadContext]):
 
         if present_health_fields and local_unit_type.name.strip().lower() != "health care":
             raise ValueError(f"Health data are not allowed for this type: {local_unit_type.name}.")
-
-    def process(self, data: dict[str, any]) -> None:
-        upload_context = self.get_context()
-        data.update(
-            {
-                "country": upload_context.country,
-                "type": upload_context.type,
-                "created_by": upload_context.created_by,
-                "bulk_upload": self.bulk_upload.id,
-            }
-        )
-        serializer = self.serializer_class(
-            data=data,
-            context=self.context,
-        )
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
 
     @transaction.atomic
     def run(self) -> None:
@@ -207,6 +194,7 @@ class BulkUploadHealthData(BaseBulkUpload[LocalUnitUploadContext]):
             country=self.bulk_upload.country_id,
             type=self.bulk_upload.local_unit_type_id,
             created_by=self.bulk_upload.triggered_by_id,
+            bulk_upload=self.bulk_upload.pk,
         )
 
     def delete_existing_local_unit(self):
