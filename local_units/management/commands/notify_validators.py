@@ -28,7 +28,7 @@ class Command(BaseCommand):
             status__in=[LocalUnit.Status.UNVALIDATED, LocalUnit.Status.PENDING_EDIT_VALIDATION],
             is_deprecated=False,
             last_sent_validator_type=Validator.LOCAL,
-            created_at__lte=timezone.now() - timedelta(minutes=2),
+            created_at__lte=timezone.now() - timedelta(days=7),
         )
 
         # Global Validators: 28 days
@@ -36,7 +36,7 @@ class Command(BaseCommand):
             status__in=[LocalUnit.Status.UNVALIDATED, LocalUnit.Status.PENDING_EDIT_VALIDATION],
             is_deprecated=False,
             last_sent_validator_type=Validator.REGIONAL,
-            created_at__lte=timezone.now() - timedelta(minutes=5),
+            created_at__lte=timezone.now() - timedelta(days=14),
         )
 
         for local_unit in queryset_for_regional_validators:

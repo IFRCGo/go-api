@@ -79,6 +79,7 @@ class BaseBulkUpload(Generic[ContextType]):
                     self.failed_count += 1
                     error_writer.write(row_data, status=LocalUnitBulkUpload.Status.FAILED)
                     logger.warning(f"[BulkUpload:{self.bulk_upload.pk}] Row '{row_index}' failed: {e}")
+                    raise
 
             if self.failed_count > 0:
                 self._finalize_failure(error_writer)
@@ -170,8 +171,13 @@ class BaseBulkUploadLocalUnit(BaseBulkUpload[LocalUnitUploadContext]):
             self.bulk_upload.error_message = str(e)
             self.bulk_upload.save(update_fields=["status", "error_message"])
             return
-        self.delete_existing_local_unit()
-        super().run()
+        try:
+            self.delete_existing_local_unit()
+            super().run()
+        except Exception:
+            self.bulk_upload.status = LocalUnitBulkUpload.Status.FAILED
+            self.bulk_upload.save(update_fields=["status"])
+            raise
 
 
 class BulkUploadHealthData(BaseBulkUpload[LocalUnitUploadContext]):
@@ -198,15 +204,16 @@ class BulkUploadHealthData(BaseBulkUpload[LocalUnitUploadContext]):
         )
 
     def delete_existing_local_unit(self):
-        existing_local_units = LocalUnit.objects.filter(
+        existing = LocalUnit.objects.filter(
             country_id=self.bulk_upload.country_id,
             type_id=self.bulk_upload.local_unit_type_id,
         )
-        if existing_local_units.exists():
-            count_existing_local_units = existing_local_units.count()
-            existing_local_units.delete()
-            logger.info(f"Deleted {count_existing_local_units} existing local units and continue with upload")
-        logger.info("existing local units not found continue with bulk upload")
+        if existing.exists():
+            count = existing.count()
+            existing.delete()
+            logger.info(f"Deleted {count} existing local units before upload.")
+        else:
+            logger.info("No existing local units found for deletion.")
 
     def process(self, data: dict[str, any]) -> None:
         upload_context = self.get_context()
@@ -221,15 +228,13 @@ class BulkUploadHealthData(BaseBulkUpload[LocalUnitUploadContext]):
         health_data = {k: data.pop(k) for k in list(data.keys()) if k in self.health_field_names}
         if health_data:
             data["health"] = health_data
-
-        serializer = self.serializer_class(
-            data=data,
-            context=self.context,
-        )
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
+            super().process(data)
 
     @transaction.atomic
     def run(self) -> None:
-        self.delete_existing_local_unit()
-        super().run()
+        try:
+            super().run()
+        except Exception:
+            self.bulk_upload.status = LocalUnitBulkUpload.Status.FAILED
+            self.bulk_upload.save(update_fields=["status"])
+            raise
