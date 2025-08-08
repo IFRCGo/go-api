@@ -4,6 +4,11 @@ from .models import DelegationOffice, ExternallyManagedLocalUnit, LocalUnit
 
 
 class LocalUnitFilters(filters.FilterSet):
+    status = filters.ChoiceFilter(
+        choices=LocalUnit.Status.choices,
+        label="Status",
+    )
+
     class Meta:
         model = LocalUnit
         fields = (
@@ -14,6 +19,7 @@ class LocalUnitFilters(filters.FilterSet):
             "draft",
             "validated",
             "is_locked",
+            "status",
         )
 
 

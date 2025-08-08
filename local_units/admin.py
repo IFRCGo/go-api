@@ -55,6 +55,7 @@ class LocalUnitAdmin(CompareVersionAdmin, admin.OSMGeoAdmin):
     )
     readonly_fields = (
         "validated",
+        "status",
         "is_locked",
         "is_new_local_unit",
     )

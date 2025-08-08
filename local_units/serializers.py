@@ -199,7 +199,7 @@ class LocalUnitDetailSerializer(serializers.ModelSerializer):
     health = HealthDataSerializer(required=False, allow_null=True)
     location_geojson = serializers.SerializerMethodField()
     visibility_display = serializers.CharField(source="get_visibility_display", read_only=True)
-    validated = serializers.BooleanField(read_only=True)
+    status_details = serializers.CharField(source="get_status_display", read_only=True)
 
     class Meta:
         model = LocalUnit
@@ -211,7 +211,8 @@ class LocalUnitDetailSerializer(serializers.ModelSerializer):
             "created_at",
             "modified_at",
             "draft",
-            "validated",
+            "status",
+            "status_details",
             "postcode",
             "address_loc",
             "address_en",
@@ -250,7 +251,7 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
     # NOTE: location_geojson contains the geojson of the location
     location_geojson = serializers.SerializerMethodField(read_only=True)
     visibility_display = serializers.CharField(source="get_visibility_display", read_only=True)
-    validated = serializers.BooleanField(read_only=True)
+    status_details = serializers.CharField(source="get_status_display", read_only=True)
     location_json = LocationSerializer(required=True)
     location = serializers.CharField(required=False)
     modified_by_details = LocalUnitMiniUserSerializer(source="modified_by", read_only=True)
@@ -271,7 +272,8 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
             "modified_at",
             "modified_by",
             "draft",
-            "validated",
+            "status",
+            "status_details",
             "postcode",
             "address_loc",
             "address_en",
@@ -393,7 +395,7 @@ class LocalUnitSerializer(serializers.ModelSerializer):
     country_details = LocalUnitCountrySerializer(source="country", read_only=True)
     type_details = LocalUnitTypeSerializer(source="type", read_only=True)
     health_details = MiniHealthDataSerializer(read_only=True, source="health")
-    validated = serializers.BooleanField(read_only=True)
+    status_details = serializers.CharField(source="get_status_display", read_only=True)
 
     class Meta:
         model = LocalUnit
@@ -404,7 +406,8 @@ class LocalUnitSerializer(serializers.ModelSerializer):
             "english_branch_name",
             "location_geojson",
             "type",
-            "validated",
+            "status",
+            "status_details",
             "address_loc",
             "address_en",
             "country_details",
@@ -423,7 +426,7 @@ class PrivateLocalUnitSerializer(serializers.ModelSerializer):
     country_details = LocalUnitCountrySerializer(source="country", read_only=True)
     type_details = LocalUnitTypeSerializer(source="type", read_only=True)
     health_details = MiniHealthDataSerializer(read_only=True, source="health")
-    validated = serializers.BooleanField(read_only=True)
+    status_details = serializers.CharField(source="get_status_display", read_only=True)
     modified_by_details = LocalUnitMiniUserSerializer(source="modified_by", read_only=True)
     is_locked = serializers.BooleanField(read_only=True)
 
@@ -436,7 +439,8 @@ class PrivateLocalUnitSerializer(serializers.ModelSerializer):
             "english_branch_name",
             "location_geojson",
             "type",
-            "validated",
+            "status",
+            "status_details",
             "address_loc",
             "address_en",
             "country_details",
