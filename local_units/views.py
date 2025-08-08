@@ -73,7 +73,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
             "level",
         )
         .exclude(is_deprecated=True)
-        .order_by("status")
+        .order_by("-status", "-modified_at")
     )
     filterset_class = LocalUnitFilters
     search_fields = (
