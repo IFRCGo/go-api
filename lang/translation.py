@@ -5,6 +5,7 @@ import boto3
 import requests
 from bs4 import BeautifulSoup
 from django.conf import settings
+from django.db.models import F
 from django.utils.module_loading import import_string
 
 from .models import TranslationCache
@@ -20,7 +21,7 @@ IFRC_TRANSLATION_CALL_LOCK = threading.Lock()
 
 
 class BaseTranslator:
-    def _fake_translation(self, text, dest_language, source_language):
+    def _fake_translation(self, text, dest_language, source_language, table_field=""):
         """
         This is only used for test
         """
@@ -28,7 +29,7 @@ class BaseTranslator:
 
 
 class DummyTranslator(BaseTranslator):
-    def translate_text(self, text, dest_language, source_language="auto"):
+    def translate_text(self, text, dest_language, source_language="auto", table_field=""):
         return self._fake_translation(text, dest_language, source_language)
 
 
@@ -100,14 +101,14 @@ class IfrcTranslator(BaseTranslator):
             truncate_here += len(tag)
         return truncate_here
 
-    def translate_text(self, text, dest_language, source_language=None):
+    def translate_text(self, text, dest_language, source_language=None, table_field=""):
         if settings.TESTING:
             # NOTE: Mocking for test purpose
             return self._fake_translation(text, dest_language, source_language)
 
         global IFRC_TRANSLATION_CALL_COUNT
 
-        # A dirty workaround to handle oversized HTML+CSS texts, usually tables:
+        # A workaround to handle oversized HTML+CSS texts, usually tables:
         textTail = ""
         if len(text) > settings.AZURE_TRANSL_LIMIT:
             truncate_here = self.find_last_slashtable(text, settings.AZURE_TRANSL_LIMIT)
@@ -134,7 +135,7 @@ class IfrcTranslator(BaseTranslator):
             payload["textType"] = "html"
 
         # Try cache at first (for shorter texts)
-        use_cache = len(text) < 200
+        use_cache = len(text) < 300
 
         if use_cache:
             cache = TranslationCache.objects.filter(
@@ -143,13 +144,18 @@ class IfrcTranslator(BaseTranslator):
                 dest_language=dest_language,
             ).first()
             if cache:
-                logger.info(f"IFRC translation cache hit: {text[:30]}... {source_language}>{dest_language}")
+                TranslationCache.objects.filter(id=cache.pk).update(num_calls=F("num_calls") + 1)
+                if cache.table_field != table_field:
+                    TranslationCache.objects.filter(id=cache.pk).update(other_fields=True)
+                logger.info(
+                    f"Translation cache hit, {source_language}>{dest_language} {table_field} – {cache.num_calls}: {text[:30]}... "
+                )
                 return cache.translated_text
 
         with IFRC_TRANSLATION_CALL_LOCK:
             IFRC_TRANSLATION_CALL_COUNT += 1
             logger.info(f"IFRC translation API call count: {IFRC_TRANSLATION_CALL_COUNT}")
-        logger.info(f"IFRC translation API call: {text[:30]}... {source_language}>{dest_language}")
+        logger.info(f"IFRC translation API call – {source_language}>{dest_language} – {table_field}: {text[:30]}... ")
         response = requests.post(
             self.url,
             headers=self.headers,
@@ -167,6 +173,7 @@ class IfrcTranslator(BaseTranslator):
                     source_language=source_language or "",  # source_language can be "detected"
                     dest_language=dest_language,
                     translated_text=translated,
+                    table_field=table_field or "",
                 )
             return translated + textTail
 

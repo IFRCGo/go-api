@@ -40,6 +40,9 @@ class TranslationCache(models.Model):
     source_language = models.CharField(max_length=16)
     dest_language = models.CharField(max_length=16)
     translated_text = models.TextField()
+    table_field = models.CharField(max_length=128, blank=True, default="")  # for stats only
+    other_fields = models.BooleanField(default=False)  # for stats only
+    num_calls = models.IntegerField(default=0)  # for stats only
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -49,4 +52,4 @@ class TranslationCache(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.source_language}>{self.dest_language}: {self.text[:30]}..."
+        return f"{self.source_language}>{self.dest_language}: {self.text[:30]}... / {self.table_field}"
