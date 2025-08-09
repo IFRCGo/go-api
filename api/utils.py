@@ -135,8 +135,8 @@ def generate_field_report_title(
     # NOTE: Checking if event or country is changed while Updating
     if id:
         fr = get_object_or_404(FieldReport, id=id)
-        if fr.event == event and fr.countries.first() == country:
-            fr_num = current_fr_number
+        if fr.fr_num and fr.event == event and fr.countries.first() == country:
+            fr_num = fr.fr_num
 
     suffix = ""
     if fr_num > 1 and event:
