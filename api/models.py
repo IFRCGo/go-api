@@ -1625,6 +1625,8 @@ class FieldReport(models.Model):
     num_fact = models.IntegerField(verbose_name=_("number of fact"), null=True, blank=True)
     ifrc_staff = models.IntegerField(choices=RequestChoices.choices, verbose_name=_("IFRC staff"), default=0, null=True)
     num_ifrc_staff = models.IntegerField(verbose_name=_("number of IFRC staff"), null=True, blank=True)
+    emergency_response_unit = models.IntegerField(choices=RequestChoices.choices, verbose_name=_("ERU"), default=0, null=True)
+    num_emergency_response_unit = models.IntegerField(verbose_name=_("number of ERU"), null=True, blank=True)
 
     # ERU units
     eru_base_camp = models.IntegerField(choices=RequestChoices.choices, verbose_name=_("ERU base camp"), default=0)
