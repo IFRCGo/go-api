@@ -18,6 +18,12 @@ logger = logging.getLogger(__name__)
 ContextType = TypeVar("ContextType")
 
 
+class BulkUploadError(Exception):
+    """Custom exception for bulk upload errors."""
+
+    pass
+
+
 class ErrorWriter:
     def __init__(self, fieldnames: list[str]):
         self._fieldnames = ["upload_status"] + fieldnames
@@ -51,41 +57,61 @@ class BaseBulkUpload(Generic[ContextType]):
         self.success_count: int = 0
         self.failed_count: int = 0
         self.bulk_manager: BulkCreateManager = BulkCreateManager(chunk_size=500)
+        self.error_writer: Optional[ErrorWriter] = None
 
     def get_context(self) -> ContextType:
         raise NotImplementedError("Subclasses must implement get_context method.")
 
-    def process(self, data: Dict[str, Any]) -> None:
-        serializer = self.serializer_class(data=data)
-        if serializer.is_valid(raise_exception=True):
-            self.bulk_manager.add(LocalUnit(**serializer.validated_data))
+    def delete_existing_local_unit(self):
+        """Delete existing local units based on the context."""
+        pass
 
-    @transaction.atomic
+    def _validate_csv(self, fieldnames) -> None:
+        pass
+
+    def process_row(self, data: Dict[str, Any]) -> bool:
+        serializer = self.serializer_class(data=data)
+        if serializer.is_valid():
+            self.bulk_manager.add(LocalUnit(**serializer.validated_data))
+            return True
+        return False
+
     def run(self) -> None:
-        error_writer: Optional[ErrorWriter] = None
         with self.bulk_upload.file.open("r") as file:
             csv_reader = csv.DictReader(file)
             fieldnames = csv_reader.fieldnames or []
-            context = self.get_context().__dict__
-            error_writer = ErrorWriter(fieldnames)
 
-            for row_index, row_data in enumerate(csv_reader, start=2):
-                data = {**row_data, **context}
-                try:
-                    self.process(data)
-                    self.success_count += 1
-                    error_writer.write(row_data, status=LocalUnitBulkUpload.Status.SUCCESS)
-                except Exception as e:
-                    self.failed_count += 1
-                    error_writer.write(row_data, status=LocalUnitBulkUpload.Status.FAILED)
-                    logger.warning(f"[BulkUpload:{self.bulk_upload.pk}] Row '{row_index}' failed: {e}")
-                    raise
-
-            if self.failed_count > 0:
-                self._finalize_failure(error_writer)
+            try:
+                self._validate_csv(fieldnames)
+            except ValueError as e:
+                self.bulk_upload.status = LocalUnitBulkUpload.Status.FAILED
+                self.bulk_upload.error_message = str(e)
+                self.bulk_upload.save(update_fields=["status", "error_message"])
+                logger.error(f"[BulkUpload:{self.bulk_upload.pk}] Validation error: {str(e)}")
                 return
-            self.bulk_manager.done()
-            self._finalize_success()
+
+            context = self.get_context().__dict__
+            self.error_writer = ErrorWriter(fieldnames)
+            try:
+                with transaction.atomic():
+                    self.delete_existing_local_unit()
+                    for row_index, row_data in enumerate(csv_reader, start=2):
+                        data = {**row_data, **context}
+                        if self.process_row(data):
+                            self.success_count += 1
+                            self.error_writer.write(row_data, status=LocalUnitBulkUpload.Status.SUCCESS)
+                        else:
+                            self.failed_count += 1
+                            self.error_writer.write(row_data, status=LocalUnitBulkUpload.Status.FAILED)
+                            logger.warning(f"[BulkUpload:{self.bulk_upload.pk}] Row '{row_index}' failed")
+
+                    if self.failed_count > 0:
+                        raise BulkUploadError("Bulk upload failed with some errors.")
+
+                    self.bulk_manager.done()
+                    self._finalize_success()
+            except BulkUploadError:
+                self._finalize_failure()
 
     def _finalize_success(self) -> None:
         self.bulk_upload.success_count = self.success_count
@@ -95,9 +121,9 @@ class BaseBulkUpload(Generic[ContextType]):
 
         logger.info(f"[BulkUpload:{self.bulk_upload.pk}] SUCCESS: {self.success_count} rows.")
 
-    def _finalize_failure(self, error_writer: Optional[ErrorWriter]) -> None:
-        if error_writer and error_writer.has_errors():
-            error_file = error_writer.to_content_file()
+    def _finalize_failure(self) -> None:
+        if self.error_writer and self.error_writer.has_errors():
+            error_file = self.error_writer.to_content_file()
             self.bulk_upload.error_file.save("error_file.csv", error_file, save=True)
 
         self.bulk_upload.success_count = 0
@@ -111,7 +137,7 @@ class BaseBulkUpload(Generic[ContextType]):
         )
 
 
-@dataclass
+@dataclass(frozen=True)
 class LocalUnitUploadContext:
     country: int
     type: int
@@ -136,23 +162,19 @@ class BaseBulkUploadLocalUnit(BaseBulkUpload[LocalUnitUploadContext]):
         )
 
     def delete_existing_local_unit(self):
-        existing = LocalUnit.objects.filter(
+        queryset = LocalUnit.objects.filter(
             country_id=self.bulk_upload.country_id,
             type_id=self.bulk_upload.local_unit_type_id,
         )
-        if existing.exists():
-            count = existing.count()
-            existing.delete()
+        if queryset.exists():
+            count, _ = queryset.delete()
             logger.info(f"Deleted {count} existing local units before upload.")
         else:
             logger.info("No existing local units found for deletion.")
 
-    def validate_csv(self, file) -> None:
-        file.seek(0)
-        csv_reader = csv.DictReader(file)
-        csv_columns = set(csv_reader.fieldnames or [])
+    def _validate_csv(self, fieldnames) -> None:
         health_field_names = set(get_model_field_names(HealthData))
-        present_health_fields = health_field_names.intersection(csv_columns)
+        present_health_fields = health_field_names & set(fieldnames)
 
         local_unit_type = LocalUnitType.objects.filter(id=self.bulk_upload.local_unit_type_id).first()
         if not local_unit_type:
@@ -160,24 +182,6 @@ class BaseBulkUploadLocalUnit(BaseBulkUpload[LocalUnitUploadContext]):
 
         if present_health_fields and local_unit_type.name.strip().lower() != "health care":
             raise ValueError(f"Health data are not allowed for this type: {local_unit_type.name}.")
-
-    @transaction.atomic
-    def run(self) -> None:
-        try:
-            with self.bulk_upload.file.open("r") as file:
-                self.validate_csv(file)
-        except ValueError as e:
-            self.bulk_upload.status = LocalUnitBulkUpload.Status.FAILED
-            self.bulk_upload.error_message = str(e)
-            self.bulk_upload.save(update_fields=["status", "error_message"])
-            return
-        try:
-            self.delete_existing_local_unit()
-            super().run()
-        except Exception:
-            self.bulk_upload.status = LocalUnitBulkUpload.Status.FAILED
-            self.bulk_upload.save(update_fields=["status"])
-            raise
 
 
 class BulkUploadHealthData(BaseBulkUpload[LocalUnitUploadContext]):
@@ -190,10 +194,6 @@ class BulkUploadHealthData(BaseBulkUpload[LocalUnitUploadContext]):
         self.health_field_names = get_model_field_names(
             HealthData,
         )
-        self.context = {
-            "type": bulk_upload.local_unit_type,
-            "created_by": bulk_upload.triggered_by,
-        }
 
     def get_context(self) -> LocalUnitUploadContext:
         return LocalUnitUploadContext(
@@ -204,37 +204,20 @@ class BulkUploadHealthData(BaseBulkUpload[LocalUnitUploadContext]):
         )
 
     def delete_existing_local_unit(self):
-        existing = LocalUnit.objects.filter(
+        local_unit_queryset = LocalUnit.objects.filter(
             country_id=self.bulk_upload.country_id,
             type_id=self.bulk_upload.local_unit_type_id,
         )
-        if existing.exists():
-            count = existing.count()
-            existing.delete()
-            logger.info(f"Deleted {count} existing local units before upload.")
+        if local_unit_queryset.exists():
+            health_data_ids = local_unit_queryset.filter(health__isnull=False).values_list("health__id", flat=True)
+            health_data_count, _ = HealthData.objects.filter(id__in=health_data_ids).delete()
+            count, _ = local_unit_queryset.delete()
+            logger.info(f"Deleted {count} existing local units and {health_data_count} health data before upload.")
         else:
             logger.info("No existing local units found for deletion.")
 
-    def process(self, data: dict[str, any]) -> None:
-        upload_context = self.get_context()
-        data.update(
-            {
-                "country": upload_context.country,
-                "type": upload_context.type,
-                "created_by": upload_context.created_by,
-                "bulk_upload": self.bulk_upload.id,
-            }
-        )
+    def process_row(self, data: dict[str, any]) -> bool:
         health_data = {k: data.pop(k) for k in list(data.keys()) if k in self.health_field_names}
         if health_data:
             data["health"] = health_data
-            super().process(data)
-
-    @transaction.atomic
-    def run(self) -> None:
-        try:
-            super().run()
-        except Exception:
-            self.bulk_upload.status = LocalUnitBulkUpload.Status.FAILED
-            self.bulk_upload.save(update_fields=["status"])
-            raise
+        return super().process_row(data)
