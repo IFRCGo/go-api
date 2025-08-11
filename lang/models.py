@@ -37,16 +37,21 @@ class String(models.Model):
 
 class TranslationCache(models.Model):
     text = models.TextField()
+    text_hash = models.CharField(max_length=64)
     source_language = models.CharField(max_length=16)
     dest_language = models.CharField(max_length=16)
     translated_text = models.TextField()
+    table_field = models.CharField(max_length=128, blank=True, default="")  # for stats only
+    other_fields = models.BooleanField(default=False)  # for stats only
+    num_calls = models.IntegerField(default=0)  # for stats only
     created_at = models.DateTimeField(auto_now_add=True)
+    last_used = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         unique_together = ("text", "source_language", "dest_language")
         indexes = [
-            models.Index(fields=["text", "source_language", "dest_language"]),
+            models.Index(fields=["text_hash", "source_language", "dest_language"]),
         ]
 
     def __str__(self):
-        return f"{self.source_language}>{self.dest_language}: {self.text[:30]}..."
+        return f"{self.source_language}>{self.dest_language} – {self.table_field}: {self.text[:30]}..."
