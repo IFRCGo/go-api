@@ -44,13 +44,19 @@ class ModelTranslator:
             if value:
                 continue
 
+            model = type(obj)
+            app_label = model._meta.app_label
+            model_name = model._meta.model_name
+            table_field = f"{app_label}:{model_name}:{field}"
+
             new_value = self.translator.translate_text(
                 initial_value,
                 lang,
                 source_language=initial_lang,
+                table_field=table_field,
             )
 
-            field_max_length = type(obj)._meta.get_field(field).max_length
+            field_max_length = model._meta.get_field(field).max_length
             if field_max_length and len(new_value) > field_max_length:
                 logger.warning(f"Greater then max_length found for Model ({type(obj)}<{lang_field}>) pk: ({obj.pk})")
                 new_value = new_value[:field_max_length]
