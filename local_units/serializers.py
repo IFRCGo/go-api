@@ -309,6 +309,7 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
             "is_locked",
             "update_reason_overview",
             "is_new_local_unit",
+            "bulk_upload",
         )
 
     def get_location_geojson(self, unit) -> dict:
@@ -471,6 +472,7 @@ class PrivateLocalUnitSerializer(serializers.ModelSerializer):
             "modified_by_details",
             "is_locked",
             "is_new_local_unit",
+            "bulk_upload",
         )
 
     def get_location_geojson(self, unit) -> dict:
