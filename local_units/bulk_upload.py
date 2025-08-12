@@ -30,7 +30,6 @@ class ErrorWriter:
         self._output = io.StringIO()
         self._writer = csv.DictWriter(self._output, fieldnames=self._fieldnames)
         self._writer.writeheader()
-        self._has_errors = False
 
     def write(
         self, row: dict[str, str], status: Literal[LocalUnitBulkUpload.Status.SUCCESS, LocalUnitBulkUpload.Status.FAILED]
@@ -38,9 +37,6 @@ class ErrorWriter:
         self._writer.writerow({"upload_status": status.name, **row})
         if status == LocalUnitBulkUpload.Status.FAILED:
             self._has_errors = True
-
-    def has_errors(self) -> bool:
-        return self._has_errors
 
     def to_content_file(self) -> ContentFile:
         return ContentFile(self._output.getvalue().encode("utf-8"))
@@ -115,26 +111,23 @@ class BaseBulkUpload(Generic[ContextType]):
 
     def _finalize_success(self) -> None:
         self.bulk_upload.success_count = self.success_count
-        self.bulk_upload.failed_count = 0
+        self.bulk_upload.failed_count = self.failed_count
         self.bulk_upload.status = LocalUnitBulkUpload.Status.SUCCESS
         self.bulk_upload.save(update_fields=["success_count", "failed_count", "status"])
 
         logger.info(f"[BulkUpload:{self.bulk_upload.pk}] SUCCESS: {self.success_count} rows.")
 
     def _finalize_failure(self) -> None:
-        if self.error_writer and self.error_writer.has_errors():
+        if self.error_writer:
             error_file = self.error_writer.to_content_file()
             self.bulk_upload.error_file.save("error_file.csv", error_file, save=True)
 
-        self.bulk_upload.success_count = 0
+        self.bulk_upload.success_count = self.success_count
         self.bulk_upload.failed_count = self.failed_count
         self.bulk_upload.status = LocalUnitBulkUpload.Status.FAILED
         self.bulk_upload.save(update_fields=["success_count", "failed_count", "status", "error_file"])
 
-        logger.info(
-            f"[BulkUpload:{self.bulk_upload.pk}] FAILED: "
-            f"{self.bulk_upload.success_count} succeeded, {self.failed_count} failed."
-        )
+        logger.info(f"[BulkUpload:{self.bulk_upload.pk}] FAILED: " f"{self.success_count} succeeded, {self.failed_count} failed.")
 
 
 @dataclass(frozen=True)

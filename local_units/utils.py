@@ -88,12 +88,4 @@ def wash(string):
 
 
 def numerize(value):
-    if value is None or str(value).strip() == "":
-        return None
-    try:
-        return int(value)
-    except ValueError:
-        try:
-            return float(value)
-        except ValueError:
-            raise ValueError(f"Could not convert '{value}' to a number.")
+    return value if value.isdigit() else 0

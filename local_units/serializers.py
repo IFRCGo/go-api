@@ -709,7 +709,7 @@ class LocalUnitBulkUploadSerializer(serializers.ModelSerializer):
         is_externally_managed = ExternallyManagedLocalUnit.objects.filter(
             country=country, local_unit_type=local_unit_type, enabled=True
         )
-        if not is_externally_managed:
+        if not is_externally_managed.exists():
             raise serializers.ValidationError(gettext("Country and local unit type are not externally managed."))
         return attrs
 
@@ -809,13 +809,7 @@ class HealthDataBulkUploadSerializer(NestedCreateMixin):
         ]:
             if bool_field in data:
                 data[bool_field] = normalize_bool(data.get(bool_field))
-
         for int_field in [
-            "maximum_capacity",
-            "number_of_isolation_rooms",
-            "ambulance_type_a",
-            "ambulance_type_b",
-            "ambulance_type_c",
             "total_number_of_human_resource",
             "general_practitioner",
             "specialist",

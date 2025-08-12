@@ -1482,12 +1482,12 @@ class BulkUploadHealthDataTests(TestCase):
             hospital_type=cls.hospital_type,
         )
         old_local_unit = LocalUnitFactory.create(
-            country=cls.country2, type=cls.local_unit_type, created_by=cls.user, level=cls.level, health=old_health
+            country=cls.country2,
+            type=cls.local_unit_type,
+            created_by=cls.user,
+            level=cls.level,
+            health=old_health,
         )
-
-        cls.old_local_unit_id = old_local_unit.pk
-        cls.old_health_id = old_health.pk
-
         cls.bulk_upload = LocalUnitBulkUploadFactory.create(
             country=cls.country2,
             local_unit_type=cls.local_unit_type,
@@ -1495,19 +1495,15 @@ class BulkUploadHealthDataTests(TestCase):
             file=cls.create_upload_file(),
             status=LocalUnitBulkUpload.Status.PENDING,
         )
-
         runner = BulkUploadHealthData(cls.bulk_upload)
         runner.run()
-
         cls.bulk_upload.refresh_from_db()
         cls.assertEqual(cls.bulk_upload.status, LocalUnitBulkUpload.Status.SUCCESS)
         cls.assertEqual(runner.success_count, 3)
         cls.assertEqual(runner.failed_count, 0)
-
         # Old data deleted
-        cls.assertFalse(LocalUnit.objects.filter(pk=cls.old_local_unit_id).exists())
-        cls.assertFalse(HealthData.objects.filter(pk=cls.old_health_id).exists())
-
+        cls.assertFalse(LocalUnit.objects.filter(pk=old_local_unit.id).exists())
+        cls.assertFalse(HealthData.objects.filter(pk=old_health.id).exists())
         # New local units & health data count matches CSV
         cls.assertEqual(LocalUnit.objects.count(), 3)
         cls.assertEqual(HealthData.objects.count(), 3)
