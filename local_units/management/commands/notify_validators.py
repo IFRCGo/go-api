@@ -18,7 +18,6 @@ from notifications.notification import send_notification
 class Command(BaseCommand):
     help = "Notify validators for the pending local units in different period of time"
 
-    # TODO: Add a check to skip users with missing the email
     @monitor(monitor_slug=SentryMonitor.NOTIFY_VALIDATORS)
     def handle(self, *args, **options):
         self.stdout.write(self.style.NOTICE("Notifying the validators..."))
@@ -47,6 +46,13 @@ class Command(BaseCommand):
             email_type = "Local Unit"
 
             for region_admin_validator in get_local_unit_region_validators(local_unit):
+                if not region_admin_validator.email:
+                    self.stdout.write(
+                        self.style.WARNING(
+                            f"Skipping regional validator {region_admin_validator.get_full_name()} for local unit pk:({local_unit.id}) because email is missing."  # noqa
+                        )
+                    )
+                    continue
                 try:
                     email_context["full_name"] = region_admin_validator.get_full_name()
                     email_body = render_to_string("email/local_units/local_unit.html", email_context)
@@ -69,6 +75,13 @@ class Command(BaseCommand):
             email_type = "Local Unit"
 
             for global_validator in get_local_unit_global_validators(local_unit):
+                if not global_validator.email:
+                    self.stdout.write(
+                        self.style.WARNING(
+                            f"Skipping global validator {global_validator.get_full_name()} for local unit:({local_unit.id}) because email is missing."  # noqa
+                        )
+                    )
+                    continue
                 try:
                     email_context["full_name"] = global_validator.get_full_name()
                     email_body = render_to_string("email/local_units/local_unit.html", email_context)

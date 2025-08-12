@@ -14,24 +14,29 @@ from api.factories.country import CountryFactory
 from api.factories.region import RegionFactory
 from api.models import Country, CountryGeoms, CountryType, Region
 from deployments.factories.user import UserFactory
-from local_units.bulk_upload import BaseBulkUploadLocalUnit
+from local_units.bulk_upload import BaseBulkUploadLocalUnit, BulkUploadHealthData
 from main import settings
 from main.test_case import APITestCase
 
 from .models import (
     Affiliation,
+    BloodService,
     DelegationOffice,
     DelegationOfficeType,
     ExternallyManagedLocalUnit,
     FacilityType,
     Functionality,
+    GeneralMedicalService,
     HealthData,
+    HospitalType,
     LocalUnit,
     LocalUnitBulkUpload,
     LocalUnitChangeRequest,
     LocalUnitLevel,
     LocalUnitType,
     PrimaryHCC,
+    ProfessionalTrainingFacility,
+    SpecializedMedicalService,
     Validator,
     VisibilityChoices,
 )
@@ -1292,10 +1297,10 @@ class BulkUploadTests(TestCase):
             level=cls.level,
         )
         cls.bulk_upload = LocalUnitBulkUploadFactory.create(
-            country=cls.country1,  # expecting Nepal
+            country=cls.country1,
             local_unit_type=cls.local_unit_type,
             triggered_by=cls.user,
-            file=cls.create_upload_file(),  # contains Brazil rows
+            file=cls.create_upload_file(),
             status=LocalUnitBulkUpload.Status.PENDING,
         )
         runner = BaseBulkUploadLocalUnit(cls.bulk_upload)
@@ -1337,3 +1342,172 @@ class BulkUploadTests(TestCase):
         cls.assertFalse(LocalUnit.objects.filter(pk=cls.old_local_unit_id).exists())
         # Check new local units count equals rows in CSV
         cls.assertEqual(LocalUnit.objects.count(), 3)
+
+
+class BulkUploadHealthDataTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = UserFactory.create(is_superuser=True)
+        cls.region = RegionFactory.create(name=2, label="Asia Pacific")
+        cls.region2 = RegionFactory.create(name=1, label="Americas")
+
+        cls.country1 = CountryFactory.create(
+            name="Afghanistan",
+            iso3="AFG",
+            record_type=CountryType.COUNTRY,
+            is_deprecated=False,
+            independent=True,
+            region=cls.region,
+            centroid=Point(65.0, 33.0),
+            bbox=Polygon(
+                (
+                    (60.0, 29.0),
+                    (75.0, 29.0),
+                    (75.0, 38.0),
+                    (60.0, 38.0),
+                    (60.0, 29.0),
+                )
+            ),
+        )
+
+        cls.country2 = CountryFactory.create(
+            name="Brazil",
+            iso3="BRA",
+            record_type=CountryType.COUNTRY,
+            is_deprecated=False,
+            independent=True,
+            region=cls.region2,
+            centroid=Point(-47.8825, -15.7942),
+            bbox=Polygon(
+                (
+                    (-74.0, -34.0),
+                    (-34.0, -34.0),
+                    (-34.0, 5.0),
+                    (-74.0, 5.0),
+                    (-74.0, -34.0),
+                )
+            ),
+        )
+
+        cls.country1_geom = CountryGeoms.objects.create(country=cls.country1, geom=MultiPolygon(cls.country1.bbox))
+        cls.country2_geom = CountryGeoms.objects.create(country=cls.country2, geom=MultiPolygon(cls.country2.bbox))
+
+        cls.local_unit_type = LocalUnitType.objects.create(code=2, name="Health Care")
+
+        cls.level = LocalUnitLevel.objects.create(level=0, name="National")
+        cls.affiliation = Affiliation.objects.create(code=2, name="Public Government Facility")
+        cls.functionality = Functionality.objects.create(code=1, name="Fully Functional")
+        cls.health_facility_type = FacilityType.objects.create(code=1, name="Ambulance Station")
+        cls.hospital_type = HospitalType.objects.create(code=2, name=" Mental Health Hospital")
+        # health data many-to-many field
+        cls.specialized_medical_beyond_primary_level = SpecializedMedicalService.objects.create(code=1, name="Anaesthesiology")
+        cls.blood_services = BloodService.objects.create(code=1, name="Blood Collection")
+        cls.professional_training_facilities = ProfessionalTrainingFacility.objects.create(code=1, name="Nurses")
+        cls.general_medical_services = GeneralMedicalService.objects.create(code=1, name="Minor Trauma")
+
+        file_path = os.path.join(settings.TEST_DIR, "local_unit/test-health.csv")
+        with open(file_path, "rb") as f:
+            cls._file_content = f.read()
+
+    def create_upload_file(cls, filename="test-health.csv"):
+        return SimpleUploadedFile(filename, cls._file_content, content_type="text/csv")
+
+    def test_bulk_upload_health_with_incorrect_country(cls):
+        """
+        Should fail when CSV rows are not equal to bulk upload country.
+        """
+        cls.bulk_upload = LocalUnitBulkUploadFactory.create(
+            country=cls.country1,
+            local_unit_type=cls.local_unit_type,
+            triggered_by=cls.user,
+            file=cls.create_upload_file(),
+            status=LocalUnitBulkUpload.Status.PENDING,
+        )
+
+        runner = BulkUploadHealthData(cls.bulk_upload)
+        runner.run()
+
+        cls.bulk_upload.refresh_from_db()
+        cls.assertEqual(cls.bulk_upload.status, LocalUnitBulkUpload.Status.FAILED)
+        cls.assertEqual(runner.success_count, 0)
+        cls.assertEqual(runner.failed_count, 3)
+        cls.assertIsNotNone(cls.bulk_upload.error_file)
+
+    def test_bulk_upload_health_fails_and_does_not_delete(cls):
+        """
+        Should fail and keep existing LocalUnits & HealthData when CSV invalid.
+        """
+        health_data = HealthDataFactory.create_batch(
+            5,
+            functionality=cls.functionality,
+            affiliation=cls.affiliation,
+            health_facility_type=cls.health_facility_type,
+            hospital_type=cls.hospital_type,
+        )
+        LocalUnitFactory.create_batch(
+            5,
+            country=cls.country1,
+            type=cls.local_unit_type,
+            created_by=cls.user,
+            level=cls.level,
+            health=factory.Iterator(health_data),
+        )
+
+        cls.bulk_upload = LocalUnitBulkUploadFactory.create(
+            country=cls.country1,
+            local_unit_type=cls.local_unit_type,
+            triggered_by=cls.user,
+            file=cls.create_upload_file(),  # Brazil rows
+            status=LocalUnitBulkUpload.Status.PENDING,
+        )
+
+        runner = BulkUploadHealthData(cls.bulk_upload)
+        runner.run()
+
+        cls.bulk_upload.refresh_from_db()
+        cls.assertEqual(cls.bulk_upload.status, LocalUnitBulkUpload.Status.FAILED)
+        cls.assertEqual(runner.failed_count, 3)
+        cls.assertEqual(LocalUnit.objects.count(), 5)
+        cls.assertEqual(HealthData.objects.count(), 5)
+        cls.assertIsNotNone(cls.bulk_upload.error_file)
+
+    def test_bulk_upload_health_deletes_old_and_creates_new(cls):
+        """
+        Should delete old LocalUnits & HealthData and create new from CSV.
+        """
+        old_health = HealthDataFactory.create(
+            functionality=cls.functionality,
+            affiliation=cls.affiliation,
+            health_facility_type=cls.health_facility_type,
+            hospital_type=cls.hospital_type,
+        )
+        old_local_unit = LocalUnitFactory.create(
+            country=cls.country2, type=cls.local_unit_type, created_by=cls.user, level=cls.level, health=old_health
+        )
+
+        cls.old_local_unit_id = old_local_unit.pk
+        cls.old_health_id = old_health.pk
+
+        cls.bulk_upload = LocalUnitBulkUploadFactory.create(
+            country=cls.country2,
+            local_unit_type=cls.local_unit_type,
+            triggered_by=cls.user,
+            file=cls.create_upload_file(),
+            status=LocalUnitBulkUpload.Status.PENDING,
+        )
+
+        runner = BulkUploadHealthData(cls.bulk_upload)
+        runner.run()
+
+        cls.bulk_upload.refresh_from_db()
+        cls.assertEqual(cls.bulk_upload.status, LocalUnitBulkUpload.Status.SUCCESS)
+        cls.assertEqual(runner.success_count, 3)
+        cls.assertEqual(runner.failed_count, 0)
+
+        # Old data deleted
+        cls.assertFalse(LocalUnit.objects.filter(pk=cls.old_local_unit_id).exists())
+        cls.assertFalse(HealthData.objects.filter(pk=cls.old_health_id).exists())
+
+        # New local units & health data count matches CSV
+        cls.assertEqual(LocalUnit.objects.count(), 3)
+        cls.assertEqual(HealthData.objects.count(), 3)

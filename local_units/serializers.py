@@ -732,7 +732,7 @@ class LocalUnitTemplateFilesSerializer(serializers.Serializer):
 # NOTE: The `HealthDataBulkUploadSerializer` is used to validate the data for bulk upload of local unit health care type.
 
 
-class HealthDataBulkUploadSerializer(serializers.ModelSerializer):
+class HealthDataBulkUploadSerializer(NestedCreateMixin):
     class Meta:
         model = HealthData
         fields = "__all__"
@@ -949,16 +949,10 @@ class LocalUnitBulkUploadDetailSerializer(serializers.ModelSerializer):
         validated_data["validated"] = True  # This might deprecate soon
         validated_data["is_locked"] = True
         validated_data["status"] = LocalUnit.Status.VALIDATED
-        return validated_data
 
-    def create(self, validated_data):
-        created_by = self.context["created_by"]
+        # NOTE: Bulk upload doesn't call create() method
         health_data = validated_data.pop("health", None)
-        user = User.objects.get(pk=created_by)
         if health_data:
-            health_data["created_by"] = user
             health_instance = HealthData.objects.create(**health_data)
             validated_data["health"] = health_instance
-
-        validated_data["created_by"] = user
-        return super().create(validated_data)
+        return validated_data
