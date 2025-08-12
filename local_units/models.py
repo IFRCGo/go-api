@@ -4,10 +4,12 @@ import reversion
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db.models import UniqueConstraint
 from django.templatetags.static import static
 from django.utils.translation import gettext_lazy as _
 
 from api.models import Country, VisibilityChoices
+from main.fields import SecureFileField
 
 
 class Affiliation(models.Model):
@@ -275,6 +277,65 @@ class LocalUnitLevel(models.Model):
         return f"{self.name} ({self.level})"
 
 
+class LocalUnitBulkUpload(models.Model):
+    class Status(models.IntegerChoices):
+        SUCCESS = 1, _("Success")
+        FAILED = 2, _("Failed")
+        PENDING = 3, _("Pending")
+
+    country = models.ForeignKey(
+        Country,
+        on_delete=models.CASCADE,
+        verbose_name=_("Country"),
+        related_name="bulk_upload_local_unit_country",
+    )
+    local_unit_type = models.ForeignKey(
+        LocalUnitType, on_delete=models.CASCADE, verbose_name=_("Local Unit Type"), related_name="bulk_upload_local_unit_type"
+    )
+    success_count = models.PositiveIntegerField(default=0, verbose_name=_("Success Count"))
+    failed_count = models.PositiveIntegerField(
+        default=0,
+        verbose_name=_("Failed Count"),
+    )
+    file_size = models.PositiveIntegerField(default=0, verbose_name=_("File Size"))
+    status = models.IntegerField(
+        choices=Status.choices,
+        verbose_name=_("Status"),
+    )
+    triggered_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        verbose_name=_("Triggered By"),
+        related_name="triggered_by_bulk_upload",
+    )
+    triggered_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Triggered At"))
+    file = SecureFileField(upload_to="local_unit/bulk_uploads/", verbose_name=_("Uploaded File"))
+    error_file = SecureFileField(
+        upload_to="local_unit/bulk_upload_errors/",
+        null=True,
+        blank=True,
+        verbose_name=_("Error File"),
+    )
+    error_message = models.TextField(null=True, blank=True, verbose_name=_("Error Message"))
+    # Type hints
+    pk: int
+    country_id: int
+    local_unit_type_id: int
+    triggered_by_id: int
+
+    def __str__(self):
+        return f"Bulk Upload - {self.country_id} - ({self.local_unit_type_id}) - {self.status}"
+
+    def update_status(self, status: Status, commit: bool = True) -> None:
+        """
+        Update the status of the bulk upload.
+        """
+        self.status = status
+        if commit:
+            self.save(update_fields=["status"])
+
+
 class Validator(models.IntegerChoices):
     LOCAL = 1, _("Local")
     REGIONAL = 2, _("Regional")
@@ -283,12 +344,17 @@ class Validator(models.IntegerChoices):
 
 @reversion.register(follow=("health",))
 class LocalUnit(models.Model):
-
     class DeprecateReason(models.IntegerChoices):
         NON_EXISTENT = 1, _("Non-existent local unit")
         INCORRECTLY_ADDED = 2, _("Incorrectly added local unit")
         SECURITY_CONCERNS = 3, _("Security concerns")
         OTHER = 4, _("Other")
+
+    class Status(models.IntegerChoices):
+        # NOTE: Tracks the status of LocalUnit entries to manage validation workflows.
+        VALIDATED = 1, "Validated"
+        UNVALIDATED = 2, "Unvalidated"
+        PENDING_EDIT_VALIDATION = 3, "Pending Edit Validation"
 
     # added to track health local unit data (Table B)
     health = models.ForeignKey(
@@ -328,7 +394,10 @@ class LocalUnit(models.Model):
         auto_now=False,
     )
     draft = models.BooleanField(default=False, verbose_name=_("Draft"))
-    validated = models.BooleanField(default=False, verbose_name=_("Validated"))
+    validated = models.BooleanField(default=False, verbose_name=_("Validated"))  # NOTE: This field might be deprecated soon.
+    status = models.IntegerField(
+        choices=Status.choices, default=Status.UNVALIDATED, verbose_name=_("Validation Status")
+    )  # NOTE: Replacement of validated field for better status tracking
     visibility = models.IntegerField(choices=VisibilityChoices.choices, verbose_name=_("visibility"), default=2)  # 2:IFRC
     source_en = models.CharField(max_length=500, blank=True, null=True, verbose_name=_("Source in Local Language"))
     source_loc = models.CharField(max_length=500, blank=True, null=True, verbose_name=_("Source in English"))
@@ -361,12 +430,23 @@ class LocalUnit(models.Model):
     deprecated_reason_overview = models.TextField(
         verbose_name=_("Explain the reason why the local unit is being deleted"), blank=True, null=True
     )
-
+    update_reason_overview = models.TextField(
+        verbose_name=_("Explain the reason why the local unit is being updated"), blank=True, null=True
+    )
     last_sent_validator_type = models.IntegerField(
         choices=Validator.choices,
         verbose_name=_("Last email sent validator type"),
         default=Validator.LOCAL,
     )
+    bulk_upload = models.ForeignKey(
+        LocalUnitBulkUpload,
+        verbose_name=_("Bulk Upload Local Unit"),
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="bulk_upload_local_unit",
+    )
+
+    is_new_local_unit = models.BooleanField(default=False, verbose_name=("Is New Local Unit?"))
 
     def __str__(self):
         branch_name = self.local_branch_name or self.english_branch_name
@@ -380,6 +460,30 @@ class LocalUnit(models.Model):
             "lat": self.location.y,
             "lng": self.location.x,
         }
+
+
+class ExternallyManagedLocalUnit(models.Model):
+    country = models.ForeignKey(
+        Country,
+        on_delete=models.CASCADE,
+        verbose_name=_("Country"),
+        related_name="externally_managed_local_unit_country",
+    )
+    local_unit_type = models.ForeignKey(
+        LocalUnitType, on_delete=models.CASCADE, verbose_name=_("Type"), related_name="externally_managed_local_unit_type"
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="created_external_local_units"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="updated_external_local_units"
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+    enabled = models.BooleanField(default=False)
+
+    class Meta:
+        constraints = [UniqueConstraint(fields=["country", "local_unit_type"], name="unique_country_local_unit_type")]
 
 
 class LocalUnitChangeRequest(models.Model):

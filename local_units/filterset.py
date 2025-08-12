@@ -1,9 +1,19 @@
 from django_filters import rest_framework as filters
 
-from .models import DelegationOffice, LocalUnit
+from .models import (
+    DelegationOffice,
+    ExternallyManagedLocalUnit,
+    LocalUnit,
+    LocalUnitBulkUpload,
+)
 
 
 class LocalUnitFilters(filters.FilterSet):
+    status = filters.ChoiceFilter(
+        choices=LocalUnit.Status.choices,
+        label="Status",
+    )
+
     class Meta:
         model = LocalUnit
         fields = (
@@ -14,6 +24,7 @@ class LocalUnitFilters(filters.FilterSet):
             "draft",
             "validated",
             "is_locked",
+            "status",
         )
 
 
@@ -26,3 +37,25 @@ class DelegationOfficeFilters(filters.FilterSet):
             "country__iso",
             "dotype__code",
         )
+
+
+class ExternallyManagedLocalUnitFilters(filters.FilterSet):
+    class Meta:
+        model = ExternallyManagedLocalUnit
+        fields = {
+            "country__name": ["exact", "in"],
+            "country__iso3": ["exact", "in"],
+            "country__iso": ["exact", "in"],
+            "country__id": ["exact", "in"],
+        }
+
+
+class LocalUnitBulkUploadFilters(filters.FilterSet):
+    class Meta:
+        model = LocalUnitBulkUpload
+        fields = {
+            "country__name": ["exact", "in"],
+            "country__iso3": ["exact", "in"],
+            "country__iso": ["exact", "in"],
+            "country__id": ["exact", "in"],
+        }
