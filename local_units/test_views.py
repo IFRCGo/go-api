@@ -4,15 +4,17 @@ from unittest import mock
 
 import factory
 from django.contrib.auth.models import Group, Permission
-from django.contrib.gis.geos import Point
+from django.contrib.gis.geos import MultiPolygon, Point, Polygon
 from django.core import management
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import TestCase
 from factory import fuzzy
 
 from api.factories.country import CountryFactory
 from api.factories.region import RegionFactory
-from api.models import Country, CountryType, Region
+from api.models import Country, CountryGeoms, CountryType, Region
 from deployments.factories.user import UserFactory
+from local_units.bulk_upload import BaseBulkUploadLocalUnit
 from main import settings
 from main.test_case import APITestCase
 
@@ -1175,3 +1177,163 @@ class LocalUnitBulkUploadTests(APITestCase):
             response = self.client.post(url, data=data, format="multipart")
         self.assert_201(response)
         mock_delay.assert_called()
+
+
+class BulkUploadTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = UserFactory.create(is_superuser=True)
+        cls.region = RegionFactory.create(name=2, label="Asia Pacific")
+        cls.region2 = RegionFactory.create(name=1, label="Americas")
+
+        cls.country1 = CountryFactory.create(
+            name="Afghanistan",
+            iso3="AFG",
+            record_type=CountryType.COUNTRY,
+            is_deprecated=False,
+            independent=True,
+            region=cls.region,
+            centroid=Point(65.0, 33.0),
+            bbox=Polygon(
+                (
+                    (60.0, 29.0),
+                    (75.0, 29.0),
+                    (75.0, 38.0),
+                    (60.0, 38.0),
+                    (60.0, 29.0),
+                )
+            ),
+        )
+
+        cls.country2 = CountryFactory.create(
+            name="Brazil",
+            iso3="BRA",
+            record_type=CountryType.COUNTRY,
+            is_deprecated=False,
+            independent=True,
+            region=cls.region2,
+            centroid=Point(-47.8825, -15.7942),
+            bbox=Polygon(
+                (
+                    (-74.0, -34.0),
+                    (-34.0, -34.0),
+                    (-34.0, 5.0),
+                    (-74.0, 5.0),
+                    (-74.0, -34.0),
+                )
+            ),
+        )
+
+        cls.country1_geom = CountryGeoms.objects.create(country=cls.country1, geom=MultiPolygon(cls.country1.bbox))
+
+        cls.country2_geom = CountryGeoms.objects.create(country=cls.country2, geom=MultiPolygon(cls.country2.bbox))
+
+        cls.local_unit_type = LocalUnitType.objects.create(code=1, name="Administrative")
+        cls.local_unit_type2 = LocalUnitType.objects.create(code=2, name="Health Care")
+        cls.level = LocalUnitLevel.objects.create(level=0, name="National")
+        file_path = os.path.join(settings.TEST_DIR, "local_unit/test.csv")
+        with open(file_path, "rb") as f:
+            cls._file_content = f.read()
+
+    def create_upload_file(cls, filename="test.csv"):
+        return SimpleUploadedFile(filename, cls._file_content, content_type="text/csv")
+
+    def test_bulk_upload_with_incorrect_country(cls):
+        """
+        Test bulk upload fails when the country does not match CSV data.
+        """
+        cls.bulk_upload = LocalUnitBulkUploadFactory.create(
+            country=cls.country1,
+            local_unit_type=cls.local_unit_type,
+            triggered_by=cls.user,
+            file=cls.create_upload_file(),
+            status=LocalUnitBulkUpload.Status.PENDING,
+        )
+        runner = BaseBulkUploadLocalUnit(cls.bulk_upload)
+        runner.run()
+
+        cls.bulk_upload.refresh_from_db()
+
+        cls.assertEqual(cls.bulk_upload.status, LocalUnitBulkUpload.Status.FAILED)
+        cls.assertEqual(runner.success_count, 0)
+        cls.assertEqual(runner.failed_count, 3)
+        # Check that error_file is saved
+        error_file = cls.bulk_upload.error_file
+        cls.assertIsNotNone(error_file)
+
+    def test_bulk_upload_with_valid_country(cls):
+        """
+        Test bulk upload succeeds when the country matches CSV data
+        """
+        cls.bulk_upload = LocalUnitBulkUploadFactory.create(
+            country=cls.country2,  # Brazil
+            local_unit_type=cls.local_unit_type,
+            triggered_by=cls.user,
+            file=cls.create_upload_file(),  # CSV with Brazil rows
+            status=LocalUnitBulkUpload.Status.PENDING,
+        )
+        runner = BaseBulkUploadLocalUnit(cls.bulk_upload)
+        runner.run()
+
+        cls.bulk_upload.refresh_from_db()
+        cls.assertEqual(cls.bulk_upload.status, LocalUnitBulkUpload.Status.SUCCESS)
+        cls.assertEqual(runner.success_count, 3)
+        cls.assertEqual(runner.failed_count, 0)
+
+    def test_bulk_upload_fails_and_delete(cls):
+        """
+        Test bulk upload fails and delete when CSV has incorrect data.
+        """
+        LocalUnitFactory.create_batch(
+            5,
+            country=cls.country1,
+            type=cls.local_unit_type,
+            created_by=cls.user,
+            level=cls.level,
+        )
+        cls.bulk_upload = LocalUnitBulkUploadFactory.create(
+            country=cls.country1,  # expecting Nepal
+            local_unit_type=cls.local_unit_type,
+            triggered_by=cls.user,
+            file=cls.create_upload_file(),  # contains Brazil rows
+            status=LocalUnitBulkUpload.Status.PENDING,
+        )
+        runner = BaseBulkUploadLocalUnit(cls.bulk_upload)
+        runner.run()
+        cls.bulk_upload.refresh_from_db()
+        cls.assertEqual(cls.bulk_upload.status, LocalUnitBulkUpload.Status.FAILED)
+        cls.assertEqual(runner.failed_count, 3)
+        # Assert that existing local unit is not deleted
+        cls.assertEqual(LocalUnit.objects.count(), 5)
+        # Check that error_file is saved
+        error_file = cls.bulk_upload.error_file
+        cls.assertIsNotNone(error_file)
+
+    def test_bulk_upload_deletes_old_and_creates_new_local_units(cls):
+        """
+        Test bulk upload with correct CSV data.
+        """
+        old_local_unit = LocalUnitFactory.create(
+            country=cls.country2,
+            type=cls.local_unit_type,
+            created_by=cls.user,
+            level=cls.level,
+        )
+        cls.old_local_unit_id = old_local_unit.pk
+        cls.bulk_upload = LocalUnitBulkUploadFactory.create(
+            country=cls.country2,  # Brazil
+            local_unit_type=cls.local_unit_type,
+            triggered_by=cls.user,
+            file=cls.create_upload_file(),
+            status=LocalUnitBulkUpload.Status.PENDING,
+        )
+        runner = BaseBulkUploadLocalUnit(cls.bulk_upload)
+        runner.run()
+        cls.bulk_upload.refresh_from_db()
+        cls.assertEqual(cls.bulk_upload.status, LocalUnitBulkUpload.Status.SUCCESS)
+        cls.assertEqual(runner.success_count, 3)
+        cls.assertEqual(runner.failed_count, 0)
+        # Check old local unit is deleted
+        cls.assertFalse(LocalUnit.objects.filter(pk=cls.old_local_unit_id).exists())
+        # Check new local units count equals rows in CSV
+        cls.assertEqual(LocalUnit.objects.count(), 3)

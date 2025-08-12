@@ -942,17 +942,19 @@ class LocalUnitBulkUploadDetailSerializer(serializers.ModelSerializer):
                 )
 
         validated_data["location"] = GEOSGeometry("POINT(%f %f)" % (longitude, latitude))
-        validated_data["validated"] = True
+        validated_data["validated"] = True  # This might deprecate soon
         validated_data["is_locked"] = True
+        validated_data["status"] = LocalUnit.Status.VALIDATED
         return validated_data
 
     def create(self, validated_data):
+        created_by = self.context["created_by"]
         health_data = validated_data.pop("health", None)
-
+        user = User.objects.get(pk=created_by)
         if health_data:
-            health_data["created_by"] = self.context["created_by"]
+            health_data["created_by"] = user
             health_instance = HealthData.objects.create(**health_data)
             validated_data["health"] = health_instance
 
-        validated_data["created_by"] = self.context["created_by"]
+        validated_data["created_by"] = user
         return super().create(validated_data)

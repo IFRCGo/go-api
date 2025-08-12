@@ -217,7 +217,12 @@ class BulkUploadHealthData(BaseBulkUpload[LocalUnitUploadContext]):
             logger.info("No existing local units found for deletion.")
 
     def process_row(self, data: dict[str, any]) -> bool:
+        context = self.get_context().__dict__
         health_data = {k: data.pop(k) for k in list(data.keys()) if k in self.health_field_names}
         if health_data:
             data["health"] = health_data
-        return super().process_row(data)
+        serializer = self.serializer_class(data=data, context=context)
+        if serializer.is_valid():
+            serializer.save()
+            return True
+        return False
