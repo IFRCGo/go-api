@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from rest_framework.exceptions import PermissionDenied
 
 from local_units.models import Validator
 
@@ -61,4 +60,32 @@ def get_user_validator_level(user, local_unit):
         return Validator.REGIONAL
     elif user.is_superuser or get_local_unit_global_validators(local_unit).filter(id=user.id).exists():
         return Validator.GLOBAL
-    raise PermissionDenied("You do not have permission to validate this local unit..")
+
+
+def get_model_field_names(
+    model,
+):
+    return [field.name for field in model._meta.get_fields() if not field.auto_created and field.name]
+
+
+def normalize_bool(value):
+    if isinstance(value, bool):
+        return value
+    if not value:
+        return False
+    val = str(value).strip().lower()
+    if val in ("true", "1", "yes", "y"):
+        return True
+    if val in ("false", "0", "no", "n"):
+        return False
+    return False
+
+
+def wash(string):
+    if string is None:
+        return None
+    return str(string).lower().replace("/", "").replace("_", "").replace(",", "").replace(" ", "")
+
+
+def numerize(value):
+    return value if value.isdigit() else 0

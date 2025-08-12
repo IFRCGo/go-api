@@ -1,14 +1,19 @@
 import json
+import os
+from datetime import datetime
 
 import reversion
 from django.contrib.auth.models import User
 from django.contrib.gis.geos import GEOSGeometry
+from django.db import transaction
 from django.utils.translation import gettext
 from rest_framework import serializers
 from reversion.models import Version
 from shapely.geometry import MultiPolygon, Point, Polygon
 
-from api.models import Country, CountryType
+from api.models import Country, CountryType, VisibilityChoices
+from local_units.tasks import process_bulk_upload_local_unit
+from local_units.utils import normalize_bool, numerize, wash
 from main.writable_nested_serializers import NestedCreateMixin, NestedUpdateMixin
 
 from .models import (
@@ -23,6 +28,7 @@ from .models import (
     HealthData,
     HospitalType,
     LocalUnit,
+    LocalUnitBulkUpload,
     LocalUnitChangeRequest,
     LocalUnitLevel,
     LocalUnitType,
@@ -258,7 +264,6 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
     created_by_details = LocalUnitMiniUserSerializer(source="created_by", read_only=True)
     version_id = serializers.SerializerMethodField()
     is_locked = serializers.BooleanField(read_only=True)
-    is_new_local_unit = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = LocalUnit
@@ -304,6 +309,7 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
             "is_locked",
             "update_reason_overview",
             "is_new_local_unit",
+            "bulk_upload",
         )
 
     def get_location_geojson(self, unit) -> dict:
@@ -322,6 +328,16 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
         return version_id
 
     def validate(self, data):
+
+        # Externally managed check
+        country = data.get("country")
+        type = data.get("type")
+        qs = ExternallyManagedLocalUnit.objects.filter(country=country, local_unit_type=type, enabled=True)
+        if qs.exists():
+            raise serializers.ValidationError(
+                gettext("Country and Local unit Type is externally managed cannot be created manually.")
+            )
+
         local_branch_name = data.get("local_branch_name")
         english_branch_name = data.get("english_branch_name")
         if (not local_branch_name) and (not english_branch_name):
@@ -330,6 +346,7 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
         health = data.get("health")
         if type.code == 1 and health:
             raise serializers.ValidationError({"Can't have health data for type %s" % type.code})
+
         return data
 
     def create(self, validated_data):
@@ -454,6 +471,8 @@ class PrivateLocalUnitSerializer(serializers.ModelSerializer):
             "modified_at",
             "modified_by_details",
             "is_locked",
+            "is_new_local_unit",
+            "bulk_upload",
         )
 
     def get_location_geojson(self, unit) -> dict:
@@ -643,3 +662,291 @@ class ExternallyManagedLocalUnitSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         validated_data["updated_by"] = self.context["request"].user
         return super().update(instance, validated_data)
+
+
+class LocalUnitBulkUploadSerializer(serializers.ModelSerializer):
+    country = serializers.PrimaryKeyRelatedField(
+        queryset=Country.objects.filter(
+            is_deprecated=False, independent=True, iso3__isnull=False, record_type=CountryType.COUNTRY
+        ),
+        write_only=True,
+    )
+    local_unit_type = serializers.PrimaryKeyRelatedField(queryset=LocalUnitType.objects.all(), write_only=True)
+    country_details = LocalUnitCountrySerializer(source="country", read_only=True)
+    local_unit_type_details = LocalUnitTypeSerializer(source="local_unit_type", read_only=True)
+    triggered_by_details = LocalUnitMiniUserSerializer(source="triggered_by", read_only=True)
+    file_name = serializers.SerializerMethodField()
+    error_message = serializers.CharField(read_only=True)
+    status_details = serializers.CharField(source="get_status_display", read_only=True)
+
+    class Meta:
+        model = LocalUnitBulkUpload
+        fields = "__all__"
+        read_only_fields = (
+            "success_count",
+            "failed_count",
+            "file_size",
+            "status",
+            "status_details",
+            "error_file",
+            "triggered_by",
+            "file_name",
+            "error_message",
+        )
+
+    def validate_file(self, file):
+        if not file.name.endswith(".csv"):
+            raise serializers.ValidationError(gettext("File must be a CSV file."))
+        return file
+
+    def get_file_name(self, obj):
+        return os.path.basename(obj.file.name) if obj.file else None
+
+    def validate(self, attrs):
+
+        country = attrs.get("country")
+        local_unit_type = attrs.get("local_unit_type")
+        is_externally_managed = ExternallyManagedLocalUnit.objects.filter(
+            country=country, local_unit_type=local_unit_type, enabled=True
+        )
+        if not is_externally_managed.exists():
+            raise serializers.ValidationError(gettext("Country and local unit type are not externally managed."))
+        return attrs
+
+    def create(self, validated_data):
+        validated_data["triggered_by"] = self.context["request"].user
+        upload_file = validated_data.get("file")
+        # TODO(@susilnem): Find a better way to get the file size
+        validated_data["file_size"] = upload_file.size
+        validated_data["status"] = LocalUnitBulkUpload.Status.PENDING
+        instance = super().create(validated_data)
+
+        transaction.on_commit(lambda: process_bulk_upload_local_unit.delay(instance.id))
+        return instance
+
+
+class LocalUnitTemplateFilesSerializer(serializers.Serializer):
+    template_url = serializers.CharField(read_only=True)
+
+
+# NOTE: The `HealthDataBulkUploadSerializer` is used to validate the data for bulk upload of local unit health care type.
+
+
+class HealthDataBulkUploadSerializer(NestedCreateMixin):
+    class Meta:
+        model = HealthData
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._m2m_data = {}
+        self._maps_loaded = False
+
+    def _load_maps(self):
+        """Only load model lookups when needed"""
+        if self._maps_loaded:
+            return
+        self.affiliation_map = self._build_map(Affiliation)
+        self.functionality_map = self._build_map(Functionality)
+        self.facilitytype_map = self._build_map(FacilityType)
+        self.primaryhcc_map = self._build_map(PrimaryHCC)
+        self.hospitaltype_map = self._build_map(HospitalType)
+
+        self.generalmedicalservice_map = self._build_map(GeneralMedicalService)
+        self.specializedmedicalservice_map = self._build_map(SpecializedMedicalService)
+        self.bloodservice_map = self._build_map(BloodService)
+        self.professionaltrainingfacility_map = self._build_map(ProfessionalTrainingFacility)
+        self._maps_loaded = True
+
+    def _build_map(self, model):
+        mapping = {}
+        for obj in model.objects.all():
+            if not obj.name:
+                continue
+            name_key = wash(obj.name)
+            mapping[name_key] = obj
+
+            if hasattr(obj, "code") and obj.code is not None:
+                mapping[str(obj.code).strip()] = obj
+                label = f"{obj.name} ({obj.code})"
+                mapping[wash(label)] = obj
+        return mapping
+
+    def _resolve_required_fk(self, data, field_name, mapping):
+        key = wash(data.get(field_name))
+        if not key:
+            raise serializers.ValidationError({field_name: f"{field_name.replace('_', ' ').title()} is required."})
+        instance = mapping.get(key)
+        if not instance:
+            raise serializers.ValidationError(
+                {field_name: f"{field_name.replace('_', ' ').title()} '{data.get(field_name)}' not found"}
+            )
+        data[field_name] = instance.pk
+
+    def _resolve_optional_fk(self, data, field_name, mapping):
+        key = wash(data.get(field_name))
+        instance = mapping.get(key) if key else None
+        data[field_name] = instance.pk if instance else None
+
+    def to_internal_value(self, data):
+        self._load_maps()
+        data = data.copy()
+
+        self._resolve_required_fk(data, "affiliation", self.affiliation_map)
+        self._resolve_required_fk(data, "functionality", self.functionality_map)
+        self._resolve_required_fk(data, "health_facility_type", self.facilitytype_map)
+
+        self._resolve_optional_fk(data, "primary_health_care_center", self.primaryhcc_map)
+        self._resolve_optional_fk(data, "hospital_type", self.hospitaltype_map)
+
+        for bool_field in [
+            "is_teaching_hospital",
+            "is_in_patient_capacity",
+            "is_isolation_rooms_wards",
+            "is_warehousing",
+            "is_cold_chain",
+            "other_medical_heal",
+        ]:
+            if bool_field in data:
+                data[bool_field] = normalize_bool(data.get(bool_field))
+        for int_field in [
+            "total_number_of_human_resource",
+            "general_practitioner",
+            "specialist",
+            "residents_doctor",
+            "nurse",
+            "dentist",
+            "nursing_aid",
+            "midwife",
+        ]:
+            if int_field in data:
+                val = data.get(int_field)
+                converted = numerize(val)
+                if val and converted is None:
+                    raise serializers.ValidationError({int_field: f"Invalid integer value: {val}"})
+                data[int_field] = converted
+
+        def parse_m2m(field_name, mapping):
+            raw = data.get(field_name, "")
+            ids = []
+            if raw:
+                for val in raw.split(","):
+                    key = wash(val)
+                    if key in mapping:
+                        ids.append(mapping[key].id)
+                    else:
+                        raise serializers.ValidationError({field_name: f"Invalid value '{val}'"})
+            self._m2m_data[field_name] = ids
+            data.pop(field_name, None)
+
+        parse_m2m("general_medical_services", self.generalmedicalservice_map)
+        parse_m2m("specialized_medical_beyond_primary_level", self.specializedmedicalservice_map)
+        parse_m2m("blood_services", self.bloodservice_map)
+        parse_m2m("professional_training_facilities", self.professionaltrainingfacility_map)
+
+        return super().to_internal_value(data)
+
+    def create(self, validated_data):
+        m2m_data = self._m2m_data or {}
+        instance = super().create(validated_data)
+        for field, ids in m2m_data.items():
+            getattr(instance, field).set(ids)
+        return instance
+
+
+# NOTE: The `LocalUnitBulkUploadDetailSerializer` is used to validate the data for bulk upload of local units.
+class LocalUnitBulkUploadDetailSerializer(serializers.ModelSerializer):
+    location = serializers.CharField(required=False)
+    latitude = serializers.FloatField(write_only=True, required=False)
+    longitude = serializers.FloatField(write_only=True, required=False)
+    visibility = serializers.CharField(required=True, allow_blank=True)
+    date_of_data = serializers.CharField(required=False, allow_null=True)
+    level = serializers.CharField(required=False, allow_null=True)
+    health = HealthDataBulkUploadSerializer(required=False)
+
+    class Meta:
+        model = LocalUnit
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.level_map = {lvl.name.lower(): lvl for lvl in LocalUnitLevel.objects.all()}
+
+    def validate_date_of_data(self, value: str):
+        today = datetime.today().strftime("%Y-%m-%d")
+        if not value:
+            return today
+
+        possible_formats = ("%d-%b-%y", "%m/%d/%Y", "%Y-%m-%d")
+        for date_format in possible_formats:
+            try:
+                return datetime.strptime(value.strip(), date_format).strftime("%Y-%m-%d")
+            except ValueError:
+                continue
+        # If no format matched, return today's date
+        return today
+
+    def validate_visibility(self, value: str):
+        if not value:
+            return VisibilityChoices.MEMBERSHIP
+
+        visibility = value.lower()
+        if visibility == "public":
+            return VisibilityChoices.PUBLIC
+
+        # return default visibility if not matched
+        return VisibilityChoices.MEMBERSHIP
+
+    def validate_level(self, value):
+        if not value:
+            return None
+        level_name = value.strip().lower()
+        level_id = self.level_map.get(level_name)
+        if not level_id:
+            raise serializers.ValidationError({"Level": gettext("Level '{value}' is not valid")})
+        return level_id
+
+    def validate(self, validated_data):
+
+        if not validated_data.get("local_branch_name") and not validated_data.get("english_branch_name"):
+            raise serializers.ValidationError(gettext("Branch Name Combination is required."))
+
+        # Country location validation
+        latitude = validated_data.pop("latitude")
+        longitude = validated_data.pop("longitude")
+        if not latitude or not longitude:
+            raise serializers.ValidationError(gettext("Latitude and Longitude are required."))
+        country = validated_data.get("country")
+        if not country:
+            raise serializers.ValidationError(gettext("Country is required."))
+
+        input_point = Point(longitude, latitude)
+        if country.bbox:
+            country_json = json.loads(country.countrygeoms.geom.geojson)
+            coordinates = country_json["coordinates"]
+            # Convert to Shapely Polygons
+            polygons = []
+            for polygon_coords in coordinates:
+                exterior = polygon_coords[0]
+                interiors = polygon_coords[1:] if len(polygon_coords) > 1 else []
+                polygon = Polygon(exterior, interiors)
+                polygons.append(polygon)
+
+            # Create a Shapely MultiPolygon
+            shapely_multipolygon = MultiPolygon(polygons)
+            if not input_point.within(shapely_multipolygon):
+                raise serializers.ValidationError(
+                    {"location": gettext("Input coordinates is outside country %s boundary" % country.name)}
+                )
+
+        validated_data["location"] = GEOSGeometry("POINT(%f %f)" % (longitude, latitude))
+        validated_data["validated"] = True  # This might deprecate soon
+        validated_data["is_locked"] = True
+        validated_data["status"] = LocalUnit.Status.VALIDATED
+
+        # NOTE: Bulk upload doesn't call create() method
+        health_data = validated_data.pop("health", None)
+        if health_data:
+            health_instance = HealthData.objects.create(**health_data)
+            validated_data["health"] = health_instance
+        return validated_data

@@ -9,6 +9,7 @@ from django.templatetags.static import static
 from django.utils.translation import gettext_lazy as _
 
 from api.models import Country, VisibilityChoices
+from main.fields import SecureFileField
 
 
 class Affiliation(models.Model):
@@ -276,6 +277,65 @@ class LocalUnitLevel(models.Model):
         return f"{self.name} ({self.level})"
 
 
+class LocalUnitBulkUpload(models.Model):
+    class Status(models.IntegerChoices):
+        SUCCESS = 1, _("Success")
+        FAILED = 2, _("Failed")
+        PENDING = 3, _("Pending")
+
+    country = models.ForeignKey(
+        Country,
+        on_delete=models.CASCADE,
+        verbose_name=_("Country"),
+        related_name="bulk_upload_local_unit_country",
+    )
+    local_unit_type = models.ForeignKey(
+        LocalUnitType, on_delete=models.CASCADE, verbose_name=_("Local Unit Type"), related_name="bulk_upload_local_unit_type"
+    )
+    success_count = models.PositiveIntegerField(default=0, verbose_name=_("Success Count"))
+    failed_count = models.PositiveIntegerField(
+        default=0,
+        verbose_name=_("Failed Count"),
+    )
+    file_size = models.PositiveIntegerField(default=0, verbose_name=_("File Size"))
+    status = models.IntegerField(
+        choices=Status.choices,
+        verbose_name=_("Status"),
+    )
+    triggered_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        verbose_name=_("Triggered By"),
+        related_name="triggered_by_bulk_upload",
+    )
+    triggered_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Triggered At"))
+    file = SecureFileField(upload_to="local_unit/bulk_uploads/", verbose_name=_("Uploaded File"))
+    error_file = SecureFileField(
+        upload_to="local_unit/bulk_upload_errors/",
+        null=True,
+        blank=True,
+        verbose_name=_("Error File"),
+    )
+    error_message = models.TextField(null=True, blank=True, verbose_name=_("Error Message"))
+    # Type hints
+    pk: int
+    country_id: int
+    local_unit_type_id: int
+    triggered_by_id: int
+
+    def __str__(self):
+        return f"Bulk Upload - {self.country_id} - ({self.local_unit_type_id}) - {self.status}"
+
+    def update_status(self, status: Status, commit: bool = True) -> None:
+        """
+        Update the status of the bulk upload.
+        """
+        self.status = status
+        if commit:
+            self.save(update_fields=["status"])
+
+
 class Validator(models.IntegerChoices):
     LOCAL = 1, _("Local")
     REGIONAL = 2, _("Regional")
@@ -284,7 +344,6 @@ class Validator(models.IntegerChoices):
 
 @reversion.register(follow=("health",))
 class LocalUnit(models.Model):
-
     class DeprecateReason(models.IntegerChoices):
         NON_EXISTENT = 1, _("Non-existent local unit")
         INCORRECTLY_ADDED = 2, _("Incorrectly added local unit")
@@ -378,6 +437,13 @@ class LocalUnit(models.Model):
         choices=Validator.choices,
         verbose_name=_("Last email sent validator type"),
         default=Validator.LOCAL,
+    )
+    bulk_upload = models.ForeignKey(
+        LocalUnitBulkUpload,
+        verbose_name=_("Bulk Upload Local Unit"),
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="bulk_upload_local_unit",
     )
 
     is_new_local_unit = models.BooleanField(default=False, verbose_name=("Is New Local Unit?"))
