@@ -675,6 +675,7 @@ class LocalUnitBulkUploadSerializer(serializers.ModelSerializer):
     triggered_by_details = LocalUnitMiniUserSerializer(source="triggered_by", read_only=True)
     file_name = serializers.SerializerMethodField()
     error_message = serializers.CharField(read_only=True)
+    status_details = serializers.CharField(source="get_status_display", read_only=True)
 
     class Meta:
         model = LocalUnitBulkUpload
@@ -684,6 +685,7 @@ class LocalUnitBulkUploadSerializer(serializers.ModelSerializer):
             "failed_count",
             "file_size",
             "status",
+            "status_details",
             "error_file",
             "triggered_by",
             "file_name",

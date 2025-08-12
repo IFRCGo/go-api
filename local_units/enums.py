@@ -5,4 +5,5 @@ enum_register = {
     "validation_status": models.LocalUnitChangeRequest.Status,
     "validators": models.Validator,
     "status": models.LocalUnit.Status,
+    "bulk_upload_status": models.LocalUnitBulkUpload.Status,
 }
