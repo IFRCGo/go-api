@@ -73,7 +73,8 @@ class BaseBulkUpload(Generic[ContextType]):
         return False
 
     def run(self) -> None:
-        with self.bulk_upload.file.open("r") as file:
+        with self.bulk_upload.file.open("rb") as csv_file:
+            file = io.TextIOWrapper(csv_file, encoding="utf-8")
             csv_reader = csv.DictReader(file)
             fieldnames = csv_reader.fieldnames or []
 
