@@ -446,6 +446,7 @@ class PrivateLocalUnitSerializer(serializers.ModelSerializer):
     status_details = serializers.CharField(source="get_status_display", read_only=True)
     modified_by_details = LocalUnitMiniUserSerializer(source="modified_by", read_only=True)
     is_locked = serializers.BooleanField(read_only=True)
+    update_reason_overview = serializers.CharField(read_only=True)
 
     class Meta:
         model = LocalUnit
@@ -473,6 +474,7 @@ class PrivateLocalUnitSerializer(serializers.ModelSerializer):
             "is_locked",
             "is_new_local_unit",
             "bulk_upload",
+            "update_reason_overview",
         )
 
     def get_location_geojson(self, unit) -> dict:
