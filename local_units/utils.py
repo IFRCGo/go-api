@@ -14,7 +14,10 @@ def get_email_context(instance):
     email_context = {
         "id": local_unit_data["id"],
         "local_branch_name": local_unit_data["local_branch_name"],
-        "frontend_url": settings.FRONTEND_URL,
+        "country": local_unit_data["country_details"]["name"],
+        "country_id": local_unit_data["country_details"]["id"],
+        "update_reason_overview": local_unit_data["update_reason_overview"],
+        "frontend_url": settings.GO_WEB_URL,
     }
     return email_context
 
