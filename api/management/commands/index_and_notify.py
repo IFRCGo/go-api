@@ -611,12 +611,12 @@ class Command(BaseCommand):
                     # not used: 'gov_num_potentially_affected': record.gov_num_potentially_affected,
                     # not used: 'health_min_num_assisted': record.health_min_num_assisted,
                     # not used: 'who_num_assisted': record.who_num_assisted,
-                    # not used: 'ifrc_staff': record.ifrc_staff, !get_..._display!
+                    # not used: 'emergency_response_unit': record.emergency_response_unit, !get_..._display!
                     # not used: 'is_covid_report': record.is_covid_report,
                     # not used: 'num_expats_delegates': record.num_expats_delegates,
                     # not used: 'num_fact': record.num_fact,
                     # not used: 'num_highest_risk': record.num_highest_risk,
-                    # not used: 'num_ifrc_staff': record.num_ifrc_staff,
+                    # not used: 'num_emergency_response_unit': record.num_emergency_response_unit,
                     # not used: 'num_localstaff': record.num_localstaff,
                     # not used: 'num_potentially_affected': record.num_potentially_affected,
                     # not used: 'rdrt': record.rdrt, !get_..._display!
