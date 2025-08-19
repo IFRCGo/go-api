@@ -1,5 +1,6 @@
 import datetime
 import os
+from ast import literal_eval as ev
 from typing import List, Optional
 
 from django.conf import settings
@@ -288,7 +289,12 @@ class PlannedInterventionSerializer(ModelSerializer):
         indicators = validated_data.pop("indicators", [])
         intervention = super().create(validated_data)
         for indicator in indicators:
-            ind_object = PlannedInterventionIndicators.objects.create(**indicator)
+            # Instead of ind_object = PlannedInterventionIndicators.objects.create(**indicator):
+            ind_id = indicator.get("id")
+            if ind_id:
+                ind_object = PlannedInterventionIndicators.objects.get(id=ind_id)
+            else:
+                ind_object = PlannedInterventionIndicators.objects.create(**indicator)
             intervention.indicators.add(ind_object)
         return intervention
 
@@ -691,6 +697,83 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
             raise serializers.ValidationError({"modified_at": settings.DREF_OP_UPDATE_FINAL_REPORT_UPDATE_ERROR_MESSAGE})
         validated_data["modified_at"] = timezone.now()
         dref = super().update(instance, validated_data)
+
+        # Helpers for robust M2M update
+
+        def create_with_m2m(item, model_cls):
+            # Only handle PlannedIntervention/indicators for now
+            m2m_fields = []
+            if model_cls.__name__ == "PlannedIntervention" and "indicators" in item:
+                m2m_fields = ["indicators"]
+            # Remove m2m fields from item for create
+            item_clean = {k: v for k, v in item.items() if k not in m2m_fields}
+            pk = item_clean.pop("pk")
+            obj, created = model_cls.objects.get_or_create(pk=pk, defaults=item_clean)
+            if not created:
+                print("Updated existing PlannedIntervention object:", obj)
+
+            # Set m2m fields after create
+            for m2m_field in m2m_fields:
+                values = item[m2m_field]
+                rel_model = obj._meta.get_field(m2m_field).related_model
+                rel_ids = []
+                for v in values:
+                    if isinstance(v, dict):
+                        rel_obj = rel_model.objects.create(**v)
+                        rel_ids.append(rel_obj.id)
+                    else:
+                        rel_ids.append(v)
+                getattr(obj, m2m_field).set(rel_ids)
+            return obj
+
+        def m2m(data, model_cls):
+            ids = []
+            for item in data:
+                if isinstance(item, dict):
+                    item_id = item.get("id")
+                    if item_id:
+                        ids.append(item_id)
+                    else:
+                        obj = create_with_m2m(item, model_cls)
+                        ids.append(obj.id)
+                else:
+                    ids.append(item)
+            return ids
+
+        # planned_interventions M2M handling
+        planned_interventions_data = self.initial_data.get("planned_interventions")
+        if planned_interventions_data:
+            dref.planned_interventions.set(m2m(planned_interventions_data, PlannedIntervention))
+
+        # needs_identified M2M handling
+        needs_identified_data = self.initial_data.get("needs_identified")
+        if needs_identified_data:
+            dref.needs_identified.set(m2m(needs_identified_data, IdentifiedNeed))
+
+        # national_society_actions M2M handling
+        national_society_actions_data = self.initial_data.get("national_society_actions")
+        if national_society_actions_data:
+            dref.national_society_actions.set(m2m(national_society_actions_data, NationalSocietyAction))
+
+        # risk_security M2M handling
+        risk_security_data = self.initial_data.get("risk_security")
+        if risk_security_data:
+            dref.risk_security.set(m2m(risk_security_data, RiskSecurity))
+
+        # source_information M2M handling
+        source_information_data = self.initial_data.get("source_information")
+        if source_information_data:
+            dref.source_information.set(m2m(source_information_data, SourceInformation))
+
+        # proposed_action M2M handling
+        proposed_action_data = self.initial_data.get("proposed_action")
+        if proposed_action_data:
+            if isinstance(proposed_action_data, str):
+                proposed_action_data = ev(proposed_action_data)
+            if isinstance(proposed_action_data, dict):
+                proposed_action_data = [proposed_action_data]
+            dref.proposed_action.set(m2m(proposed_action_data, ProposedAction))
+
         if to:
             transaction.on_commit(lambda: send_dref_email.delay(dref.id, list(to), "Updated"))
         return dref
@@ -1079,7 +1162,81 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
         if modified_at and instance.modified_at and modified_at < instance.modified_at:
             raise serializers.ValidationError({"modified_at": settings.DREF_OP_UPDATE_FINAL_REPORT_UPDATE_ERROR_MESSAGE})
         validated_data["modified_at"] = timezone.now()
-        return super().update(instance, validated_data)
+        operational_update = super().update(instance, validated_data)
+
+        # Helpers for robust M2M update
+
+        def create_with_m2m(item, model_cls):
+            # Only handle PlannedIntervention/indicators for now
+            m2m_fields = []
+            if model_cls.__name__ == "PlannedIntervention" and "indicators" in item:
+                m2m_fields = ["indicators"]
+            # Remove m2m fields from item for create
+            item_clean = {k: v for k, v in item.items() if k not in m2m_fields}
+            obj = model_cls.objects.create(**item_clean)
+            # Set m2m fields after create
+            for m2m_field in m2m_fields:
+                values = item[m2m_field]
+                rel_model = obj._meta.get_field(m2m_field).related_model
+                rel_ids = []
+                for v in values:
+                    if isinstance(v, dict):
+                        rel_obj = rel_model.objects.create(**v)
+                        rel_ids.append(rel_obj.id)
+                    else:
+                        rel_ids.append(v)
+                getattr(obj, m2m_field).set(rel_ids)
+            return obj
+
+        def m2m(data, model_cls):
+            ids = []
+            for item in data:
+                if isinstance(item, dict):
+                    item_id = item.get("id")
+                    if item_id:
+                        ids.append(item_id)
+                    else:
+                        obj = create_with_m2m(item, model_cls)
+                        ids.append(obj.id)
+                else:
+                    ids.append(item)
+            return ids
+
+        # planned_interventions M2M handling
+        planned_interventions_data = self.initial_data.get("planned_interventions")
+        if planned_interventions_data:
+            operational_update.planned_interventions.set(m2m(planned_interventions_data, PlannedIntervention))
+
+        # needs_identified M2M handling
+        needs_identified_data = self.initial_data.get("needs_identified")
+        if needs_identified_data:
+            operational_update.needs_identified.set(m2m(needs_identified_data, IdentifiedNeed))
+
+        # national_society_actions M2M handling
+        national_society_actions_data = self.initial_data.get("national_society_actions")
+        if national_society_actions_data:
+            operational_update.national_society_actions.set(m2m(national_society_actions_data, NationalSocietyAction))
+
+        # risk_security M2M handling
+        risk_security_data = self.initial_data.get("risk_security")
+        if risk_security_data:
+            operational_update.risk_security.set(m2m(risk_security_data, RiskSecurity))
+
+        # source_information M2M handling
+        source_information_data = self.initial_data.get("source_information")
+        if source_information_data:
+            operational_update.source_information.set(m2m(source_information_data, SourceInformation))
+
+        # proposed_action M2M handling
+        proposed_action_data = self.initial_data.get("proposed_action")
+        if proposed_action_data:
+            if isinstance(proposed_action_data, str):
+                proposed_action_data = ev(proposed_action_data)
+            if isinstance(proposed_action_data, dict):
+                proposed_action_data = [proposed_action_data]
+            operational_update.proposed_action.set(m2m(proposed_action_data, ProposedAction))
+
+        return operational_update
 
 
 class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
@@ -1520,7 +1677,81 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             raise serializers.ValidationError({"modified_at": settings.DREF_OP_UPDATE_FINAL_REPORT_UPDATE_ERROR_MESSAGE})
         validated_data["modified_at"] = timezone.now()
         validated_data["modified_by"] = self.context["request"].user
-        return super().update(instance, validated_data)
+        final_report = super().update(instance, validated_data)
+
+        # Helpers for robust M2M update
+
+        def create_with_m2m(item, model_cls):
+            # Only handle PlannedIntervention/indicators for now
+            m2m_fields = []
+            if model_cls.__name__ == "PlannedIntervention" and "indicators" in item:
+                m2m_fields = ["indicators"]
+            # Remove m2m fields from item for create
+            item_clean = {k: v for k, v in item.items() if k not in m2m_fields}
+            obj = model_cls.objects.create(**item_clean)
+            # Set m2m fields after create
+            for m2m_field in m2m_fields:
+                values = item[m2m_field]
+                rel_model = obj._meta.get_field(m2m_field).related_model
+                rel_ids = []
+                for v in values:
+                    if isinstance(v, dict):
+                        rel_obj = rel_model.objects.create(**v)
+                        rel_ids.append(rel_obj.id)
+                    else:
+                        rel_ids.append(v)
+                getattr(obj, m2m_field).set(rel_ids)
+            return obj
+
+        def m2m(data, model_cls):
+            ids = []
+            for item in data:
+                if isinstance(item, dict):
+                    item_id = item.get("id")
+                    if item_id:
+                        ids.append(item_id)
+                    else:
+                        obj = create_with_m2m(item, model_cls)
+                        ids.append(obj.id)
+                else:
+                    ids.append(item)
+            return ids
+
+        # planned_interventions M2M handling
+        planned_interventions_data = self.initial_data.get("planned_interventions")
+        if planned_interventions_data:
+            final_report.planned_interventions.set(m2m(planned_interventions_data, PlannedIntervention))
+
+        # needs_identified M2M handling
+        needs_identified_data = self.initial_data.get("needs_identified")
+        if needs_identified_data:
+            final_report.needs_identified.set(m2m(needs_identified_data, IdentifiedNeed))
+
+        # national_society_actions M2M handling
+        national_society_actions_data = self.initial_data.get("national_society_actions")
+        if national_society_actions_data:
+            final_report.national_society_actions.set(m2m(national_society_actions_data, NationalSocietyAction))
+
+        # risk_security M2M handling
+        risk_security_data = self.initial_data.get("risk_security")
+        if risk_security_data:
+            final_report.risk_security.set(m2m(risk_security_data, RiskSecurity))
+
+        # source_information M2M handling
+        source_information_data = self.initial_data.get("source_information")
+        if source_information_data:
+            final_report.source_information.set(m2m(source_information_data, SourceInformation))
+
+        # proposed_action M2M handling
+        proposed_action_data = self.initial_data.get("proposed_action")
+        if proposed_action_data:
+            if isinstance(proposed_action_data, str):
+                proposed_action_data = ev(proposed_action_data)
+            if isinstance(proposed_action_data, dict):
+                proposed_action_data = [proposed_action_data]
+            final_report.proposed_action.set(m2m(proposed_action_data, ProposedAction))
+
+        return final_report
 
 
 class CompletedDrefOperationsSerializer(serializers.ModelSerializer):
