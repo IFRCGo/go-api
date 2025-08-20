@@ -138,7 +138,7 @@ def process_bulk_upload_local_unit(bulk_upload_id: int) -> None:
     bulk_upload: LocalUnitBulkUpload | None = LocalUnitBulkUpload.objects.filter(id=bulk_upload_id).first()
 
     if not bulk_upload:
-        logger.error(f"BulkUploadLocalUnit:'{bulk_upload_id}' Not found.", exc_info=True)
+        logger.warning(f"BulkUploadLocalUnit:'{bulk_upload_id}' Not found.", exc_info=True)
         return
     try:
         if (
@@ -149,6 +149,6 @@ def process_bulk_upload_local_unit(bulk_upload_id: int) -> None:
             BaseBulkUploadLocalUnit(bulk_upload).run()
 
     except Exception as exc:
-        logger.error(f"BulkUploadLocalUnit:'{bulk_upload_id}' Failed with exception: {exc}", exc_info=True)
+        logger.warning(f"BulkUploadLocalUnit:'{bulk_upload_id}' Failed with exception: {exc}", exc_info=True)
         bulk_upload.update_status(LocalUnitBulkUpload.Status.FAILED)
         raise exc

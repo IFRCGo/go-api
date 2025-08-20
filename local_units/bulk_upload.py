@@ -6,6 +6,7 @@ from typing import Any, Dict, Generic, Literal, Optional, Type, TypeVar
 
 from django.core.files.base import ContentFile
 from django.db import transaction
+from rest_framework.exceptions import ErrorDetail
 from rest_framework.serializers import Serializer
 
 from local_units.models import HealthData, LocalUnit, LocalUnitBulkUpload, LocalUnitType
@@ -27,16 +28,69 @@ class BulkUploadError(Exception):
 class ErrorWriter:
     def __init__(self, fieldnames: list[str]):
         self._fieldnames = ["upload_status"] + fieldnames
+        self._rows: list[dict[str, str]] = []
         self._output = io.StringIO()
         self._writer = csv.DictWriter(self._output, fieldnames=self._fieldnames)
         self._writer.writeheader()
+        self._has_errors = False
+
+    def _format_errors(self, errors: dict) -> dict[str, list[str]]:
+        """Format serializer errors into field_name and list of messages."""
+        error = {}
+        for key, value in errors.items():
+            if isinstance(value, dict):
+                for inner_key, inner_value in self._format_errors(value).items():
+                    error[inner_key] = inner_value
+            elif isinstance(value, list):
+                error[key] = [self._clean_message(v) for v in value]
+            else:
+                error[key] = [self._clean_message(value)]
+        return error
+
+    def _clean_message(self, msg: Any) -> str:
+        """Convert ErrorDetail or other objects into normal text."""
+        if isinstance(msg, ErrorDetail):
+            return str(msg)
+        return str(msg)
+
+    def _update_csv_header_with_errors(self):
+        """Update the CSV with updated headers when new error columns are introduced."""
+        self._output.seek(0)
+        self._output.truncate()
+        self._writer = csv.DictWriter(self._output, fieldnames=self._fieldnames)
+        self._writer.writeheader()
+        for row in self._rows:
+            self._writer.writerow(row)
 
     def write(
-        self, row: dict[str, str], status: Literal[LocalUnitBulkUpload.Status.SUCCESS, LocalUnitBulkUpload.Status.FAILED]
+        self,
+        row: dict[str, str],
+        status: Literal[LocalUnitBulkUpload.Status.SUCCESS, LocalUnitBulkUpload.Status.FAILED],
+        error_detail: dict | None = None,
     ) -> None:
-        self._writer.writerow({"upload_status": status.name, **row})
-        if status == LocalUnitBulkUpload.Status.FAILED:
-            self._has_errors = True
+        row_copy = {col: row.get(col, "") for col in self._fieldnames}
+        row_copy["upload_status"] = status.name
+        added_error_column = False
+
+        if status == LocalUnitBulkUpload.Status.FAILED and error_detail:
+            formatted_errors = self._format_errors(error_detail)
+            for field, messages in formatted_errors.items():
+                error_col = f"{field}_error"
+
+                if error_col not in self._fieldnames:
+                    if field in self._fieldnames:
+                        col_idx = self._fieldnames.index(field)
+                        self._fieldnames.insert(col_idx + 1, error_col)
+                    else:
+                        self._fieldnames.append(error_col)
+
+                    added_error_column = True
+                row_copy[error_col] = "; ".join(messages)
+        self._rows.append(row_copy)
+        if added_error_column:
+            self._update_csv_header_with_errors()
+        else:
+            self._writer.writerow(row_copy)
 
     def to_content_file(self) -> ContentFile:
         return ContentFile(self._output.getvalue().encode("utf-8"))
@@ -70,6 +124,7 @@ class BaseBulkUpload(Generic[ContextType]):
         if serializer.is_valid():
             self.bulk_manager.add(LocalUnit(**serializer.validated_data))
             return True
+        self.error_detail = serializer.errors
         return False
 
     def run(self) -> None:
@@ -77,10 +132,9 @@ class BaseBulkUpload(Generic[ContextType]):
             file = io.TextIOWrapper(csv_file, encoding="utf-8")
             csv_reader = csv.DictReader(file)
             fieldnames = csv_reader.fieldnames or []
-
             try:
                 self._validate_csv(fieldnames)
-            except ValueError as e:
+            except BulkUploadError as e:
                 self.bulk_upload.status = LocalUnitBulkUpload.Status.FAILED
                 self.bulk_upload.error_message = str(e)
                 self.bulk_upload.save(update_fields=["status", "error_message"])
@@ -99,7 +153,9 @@ class BaseBulkUpload(Generic[ContextType]):
                             self.error_writer.write(row_data, status=LocalUnitBulkUpload.Status.SUCCESS)
                         else:
                             self.failed_count += 1
-                            self.error_writer.write(row_data, status=LocalUnitBulkUpload.Status.FAILED)
+                            self.error_writer.write(
+                                row_data, status=LocalUnitBulkUpload.Status.FAILED, error_detail=self.error_detail
+                            )
                             logger.warning(f"[BulkUpload:{self.bulk_upload.pk}] Row '{row_index}' failed")
 
                     if self.failed_count > 0:
@@ -175,7 +231,7 @@ class BaseBulkUploadLocalUnit(BaseBulkUpload[LocalUnitUploadContext]):
             raise ValueError("Invalid local unit type")
 
         if present_health_fields and local_unit_type.name.strip().lower() != "health care":
-            raise ValueError(f"Health data are not allowed for this type: {local_unit_type.name}.")
+            raise BulkUploadError(f"Health data are not allowed for this type: {local_unit_type.name}.")
 
 
 class BulkUploadHealthData(BaseBulkUpload[LocalUnitUploadContext]):
