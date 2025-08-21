@@ -10,7 +10,7 @@ from .utils import catch_error, get_country_by_iso3
 
 logger = logging.getLogger(__name__)
 
-DISASTER_API = "https://api.reliefweb.int/v1/disasters/"
+DISASTER_API = "https://api.reliefweb.int/v1/disasters/?appname=IFRCReport"  # Change it to an env var
 RELIEFWEB_DATETIME_FORMAT = "%Y-%m-%d"
 
 
