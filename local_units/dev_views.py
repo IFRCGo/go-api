@@ -9,19 +9,65 @@ class LocalUnitsEmailPreview(APIView):
 
     def get(self, request):
         type_param = request.GET.get("type")
-        param_types = {"new", "update", "validate", "revert", "deprecate", "regional_validator", "global_validator"}
+        param_types = {
+            "new",
+            "update",
+            "validate",
+            "revert",
+            "deprecate",
+            "regional_validator",
+            "global_validator",
+        }
 
         if type_param not in param_types:
-            return HttpResponse(f"Invalid type parameter. Please use one of the following values:  {', '.join(param_types)}.")
+            return HttpResponse(f"Invalid 'type' parameter. Please use one of the following values:  {', '.join(param_types)}.")
 
         context_mapping = {
-            "new": {"new_local_unit": True, "validator_email": "Test Validator", "full_name": "Test User"},
-            "update": {"update_local_unit": True, "validator_email": "Test Validator", "full_name": "Test User"},
-            "validate": {"validate_success": True, "full_name": "Test User"},
-            "revert": {"revert_reason": "Test Reason", "full_name": "Test User"},
-            "deprecate": {"deprecate_local_unit": True, "deprecate_reason": "Test Deprecate Reason", "full_name": "Test User"},
-            "regional_validator": {"is_validator_regional_admin": True, "full_name": "Regional User"},
-            "global_validator": {"is_validator_global_admin": True, "full_name": "Global User"},
+            "new": {
+                "new_local_unit": True,
+                "validator_email": "Test Validator",
+                "full_name": "Test User",
+                "country": "Test Country",
+            },
+            "update": {
+                "update_local_unit": True,
+                "update_reason_overview": "Test update reason",
+                "validator_email": "Test Validator",
+                "full_name": "Test User",
+                "country": "Test Country",
+                "country_id": 1,
+            },
+            "validate": {
+                "validate_success": True,
+                "full_name": "Test User",
+                "country": "Test Country",
+                "country_id": 1,
+            },
+            "revert": {
+                "revert_reason": "Test Reason",
+                "full_name": "Test User",
+                "country": "Test Country",
+                "country_id": 1,
+            },
+            "deprecate": {
+                "deprecate_local_unit": True,
+                "deprecate_reason": "Test Deprecate Reason",
+                "full_name": "Test User",
+                "country": "Test Country",
+                "country_id": 1,
+            },
+            "regional_validator": {
+                "is_validator_regional_admin": True,
+                "full_name": "Regional User",
+                "country": "Test Country",
+                "country_id": 1,
+            },
+            "global_validator": {
+                "is_validator_global_admin": True,
+                "full_name": "Global User",
+                "country": "Test Country",
+                "country_id": 1,
+            },
         }
 
         context = context_mapping.get(type_param)
