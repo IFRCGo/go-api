@@ -1,5 +1,6 @@
 import functools
 import operator
+import typing
 
 from django.conf import settings
 from django.db import transaction
@@ -83,10 +84,15 @@ class LanguageViewSet(viewsets.ViewSet):
 
         lang = pk
         lang_strings_qs = String.objects.filter(language=lang)
-        existing_string_keys = set(lang_strings_qs.values_list("key", flat=True))
-        new_strings = []
-        changed_strings = {}
-        deleted_string_keys = []
+        existing_string_keys = {
+            (page_name, key): id for page_name, key, id in lang_strings_qs.values_list("page_name", "key", "id")
+        }
+
+        new_strings: typing.List[String] = []
+        to_update_strings: typing.List[String] = []
+        deleted_string_ids: typing.List[int] = []
+        changed_strings: typing.Dict[typing.Tuple[str, str], typing.Dict] = {}
+
         # Extract Actions
         for meta in actions.validated_data["actions"]:
             action = meta["action"]
@@ -97,34 +103,34 @@ class LanguageViewSet(viewsets.ViewSet):
             value_meta = {
                 "value": value,
                 "hash": value_hash,
-                "page_name": page_name,
             }
             if action == LanguageBulkActionSerializer.SET:
-                if key in existing_string_keys:
-                    changed_strings[key] = value_meta
+                if (page_name, key) in existing_string_keys:
+                    changed_strings[(page_name, key)] = value_meta
                 else:
-                    new_strings.append(String(language=lang, key=key, **value_meta))
-            elif action == LanguageBulkActionSerializer.DELETE and key in existing_string_keys:
-                deleted_string_keys.append(key)
+                    new_strings.append(String(language=lang, page_name=page_name, key=key, **value_meta))
+            elif action == LanguageBulkActionSerializer.DELETE:
+                if (page_name, key) in existing_string_keys:
+                    deleted_string_ids.append(existing_string_keys[(page_name, key)])
 
-        # DB Bulk Operations
         if len(new_strings):
             new_strings = String.objects.bulk_create(new_strings)
+        if len(deleted_string_ids):
+            String.objects.filter(id__in=deleted_string_ids).delete()
         if len(changed_strings):
-            to_update_strings = list(lang_strings_qs.filter(key__in=changed_strings.keys()).all())
-            for string in to_update_strings:
-                string.value = changed_strings[string.key]["value"]
-                string.hash = changed_strings[string.key]["hash"]
-                string.page_name = changed_strings[string.key]["page_name"]
-            String.objects.bulk_update(to_update_strings, ["value", "hash", "page_name"])
-            changed_strings = to_update_strings
-        if len(deleted_string_keys):
-            String.objects.filter(key__in=deleted_string_keys).delete()
+            to_update_strings_qs = lang_strings_qs.filter(key__in={key for _, key in changed_strings}).all()
+            for string in to_update_strings_qs:
+                if (string.page_name, string.key) not in changed_strings:
+                    continue
+                string.value = changed_strings[(string.page_name, string.key)]["value"]
+                string.hash = changed_strings[(string.page_name, string.key)]["hash"]
+                to_update_strings.append(string)
+            String.objects.bulk_update(to_update_strings, ["value", "hash"])
 
         return response.Response(
             {
                 "new_strings": StringSerializer(new_strings, many=True).data,
-                "updated_strings": StringSerializer(changed_strings, many=True).data,
-                "deleted_strings_keys": deleted_string_keys,
+                "updated_strings": StringSerializer(to_update_strings, many=True).data,
+                "deleted_string_ids": deleted_string_ids,
             }
         )
