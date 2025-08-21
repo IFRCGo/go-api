@@ -50,6 +50,9 @@ x-server: &base_server_setup
     AUTO_TRANSLATION_TRANSLATOR: ${AUTO_TRANSLATION_TRANSLATOR:-}
     IFRC_TRANSLATION_DOMAIN: ${IFRC_TRANSLATION_DOMAIN:-}
     IFRC_TRANSLATION_HEADER_API_KEY: ${IFRC_TRANSLATION_HEADER_API_KEY:-}
+    # ReliefWeb appname
+    RELIEF_WEB_APP_NAME: ${RELIEF_WEB_APP_NAME:-}
+
   extra_hosts:
       - "host.docker.internal:host-gateway"
   env_file:

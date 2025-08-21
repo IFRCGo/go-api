@@ -144,6 +144,8 @@ env = environ.Env(
     AZURE_OPENAI_ENDPOINT=(str, None),
     AZURE_OPENAI_KEY=(str, None),
     AZURE_OPENAI_DEPLOYMENT_NAME=(str, None),
+    # ReliefWeb appname
+    RELIEF_WEB_APP_NAME=(str, None),
 )
 
 

@@ -77,6 +77,7 @@ secrets:
   API_TLS_KEY: ''
   API_ADDITIONAL_DOMAIN_TLS_CRT: ''
   API_ADDITIONAL_DOMAIN_TLS_KEY: ''
+  RELIEF_WEB_APP_NAME: ''
 
 # NOTE: Used to pass additional secrets to api/worker containers
 # NOTE: Not used by azure vault
