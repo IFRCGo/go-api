@@ -2537,9 +2537,10 @@ class Export(models.Model):
         ERRORED = 2, _("Errored")
 
     class ExportType(models.TextChoices):
-        DREF = "dref-applications", _("Dref Applications")
-        OPS_UPDATE = "dref-operational-updates", _("Dref Operational Updates")
-        FINAL_REPORT = "dref-final-reports", _("Dref Final Reports")
+        DREF = "dref-applications", _("DREF Applications")
+        OPS_UPDATE = "dref-operational-updates", _("DREF Operational Updates")
+        FINAL_REPORT = "dref-final-reports", _("DREF Final Reports")
+        OLD_FINAL_REPORT = "old-dref-final-reports", _("Old DREF Final Reports")
         PER = "per", _("Per")
 
     export_id = models.IntegerField(verbose_name=_("Export Id"))
