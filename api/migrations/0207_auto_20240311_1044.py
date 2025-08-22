@@ -20,9 +20,10 @@ class Migration(migrations.Migration):
             name="export_type",
             field=models.CharField(
                 choices=[
-                    ("dref-applications", "Dref Applications"),
-                    ("dref-operational-updates", "Dref Operational Updates"),
-                    ("dref-final-reports", "Dref Final Reports"),
+                    ("dref-applications", "DREF Application"),
+                    ("dref-operational-updates", "DREF Operational Update"),
+                    ("dref-final-reports", "DREF Final Report"),
+                    ("old-dref-final-reports", "Old DREF Final Report"),
                     ("per", "Per"),
                 ],
                 max_length=255,
