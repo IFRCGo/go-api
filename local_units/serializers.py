@@ -905,7 +905,7 @@ class LocalUnitBulkUploadDetailSerializer(serializers.ModelSerializer):
         level_name = value.strip().lower()
         level_id = self.level_map.get(level_name)
         if not level_id:
-            raise serializers.ValidationError({"Level": gettext("Level '{value}' is not valid")})
+            raise serializers.ValidationError(gettext("Level is not valid"))
         return level_id
 
     def validate(self, validated_data):
