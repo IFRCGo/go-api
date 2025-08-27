@@ -16,7 +16,7 @@
 
         {% if update_local_unit %}
         <td align="center" class="pb-30">
-            The local unit "{{local_branch_name}}" in {{country}} has been updated. Reason:"{{update_reason_overview}}" and is awaiting your validation. Kindly review the information and validate or delete as necessary.
+            The local unit "{{local_branch_name}}" in {{country}} has been updated. Reason: {{update_reason_overview}} and is awaiting your validation. Kindly review the information and validate or delete as necessary.
             You can view the updated local unit <a href="{{ frontend_url }}/countries/{{country_id}}/ns-overview/context-and-structure" target="_blank" class="link" style="font-family: 'Lato', Arial, sans-serif;text-decoration: underline;color: #000;">here.</a>
         </td>
         {% endif %}
