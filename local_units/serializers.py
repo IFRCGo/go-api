@@ -699,6 +699,8 @@ class LocalUnitBulkUploadSerializer(serializers.ModelSerializer):
     def validate_file(self, file):
         if not file.name.endswith(".csv"):
             raise serializers.ValidationError(gettext("File must be a CSV file."))
+        if file.size > 10 * 1024 * 1024:
+            raise serializers.ValidationError(gettext("File must be less than 10 MB."))
         return file
 
     def get_file_name(self, obj):

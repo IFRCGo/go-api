@@ -401,6 +401,7 @@ class ExternallyManagedLocalUnitViewSet(
 class LocalUnitBulkUploadViewSet(
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
     viewsets.GenericViewSet,
 ):
     queryset = LocalUnitBulkUpload.objects.select_related("country", "local_unit_type", "triggered_by").order_by("-triggered_at")
