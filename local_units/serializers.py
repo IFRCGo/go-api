@@ -446,6 +446,7 @@ class PrivateLocalUnitSerializer(serializers.ModelSerializer):
     status_details = serializers.CharField(source="get_status_display", read_only=True)
     modified_by_details = LocalUnitMiniUserSerializer(source="modified_by", read_only=True)
     is_locked = serializers.BooleanField(read_only=True)
+    update_reason_overview = serializers.CharField(read_only=True)
 
     class Meta:
         model = LocalUnit
@@ -473,6 +474,7 @@ class PrivateLocalUnitSerializer(serializers.ModelSerializer):
             "is_locked",
             "is_new_local_unit",
             "bulk_upload",
+            "update_reason_overview",
         )
 
     def get_location_geojson(self, unit) -> dict:
@@ -697,6 +699,8 @@ class LocalUnitBulkUploadSerializer(serializers.ModelSerializer):
     def validate_file(self, file):
         if not file.name.endswith(".csv"):
             raise serializers.ValidationError(gettext("File must be a CSV file."))
+        if file.size > 10 * 1024 * 1024:
+            raise serializers.ValidationError(gettext("File must be less than 10 MB."))
         return file
 
     def get_file_name(self, obj):
@@ -903,7 +907,7 @@ class LocalUnitBulkUploadDetailSerializer(serializers.ModelSerializer):
         level_name = value.strip().lower()
         level_id = self.level_map.get(level_name)
         if not level_id:
-            raise serializers.ValidationError({"Level": gettext("Level '{value}' is not valid")})
+            raise serializers.ValidationError(gettext("Level is not valid"))
         return level_id
 
     def validate(self, validated_data):

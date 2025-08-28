@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.template.loader import render_to_string
 from django.utils import timezone
@@ -21,13 +22,20 @@ class Command(BaseCommand):
     @monitor(monitor_slug=SentryMonitor.NOTIFY_VALIDATORS)
     def handle(self, *args, **options):
         self.stdout.write(self.style.NOTICE("Notifying the validators..."))
-
+        # NOTE: In production use standard email notification time(7days/14days),shorter delays(1day/2days) elsewhere for testing
+        production = settings.GO_ENVIRONMENT == "production"
+        if production:
+            regional_email_notification_days = 7
+            global_email_notification_days = 14
+        else:
+            regional_email_notification_days = 1
+            global_email_notification_days = 2
         # Regional Validators: 14 days
         queryset_for_regional_validators = LocalUnit.objects.filter(
             status__in=[LocalUnit.Status.UNVALIDATED, LocalUnit.Status.PENDING_EDIT_VALIDATION],
             is_deprecated=False,
             last_sent_validator_type=Validator.LOCAL,
-            created_at__lte=timezone.now() - timedelta(days=7),
+            created_at__lte=timezone.now() - timedelta(days=regional_email_notification_days),
         )
 
         # Global Validators: 28 days
@@ -35,7 +43,7 @@ class Command(BaseCommand):
             status__in=[LocalUnit.Status.UNVALIDATED, LocalUnit.Status.PENDING_EDIT_VALIDATION],
             is_deprecated=False,
             last_sent_validator_type=Validator.REGIONAL,
-            created_at__lte=timezone.now() - timedelta(days=14),
+            created_at__lte=timezone.now() - timedelta(days=global_email_notification_days),
         )
 
         for local_unit in queryset_for_regional_validators:

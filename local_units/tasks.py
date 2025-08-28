@@ -45,6 +45,9 @@ def send_local_unit_email(local_unit_id: int, new: bool = True):
 
     for user in users:
         # NOTE: Adding the validator email to the context
+        if not user.email:
+            logger.warning(f"Email address not found for validator: {user.get_full_name()}.")
+            return None
         email_context["validator_email"] = user.email
         email_context["full_name"] = user.get_full_name()
         email_body = render_to_string("email/local_units/local_unit.html", email_context)
@@ -58,6 +61,14 @@ def send_validate_success_email(local_unit_id: int, message: str = ""):
 
     instance = LocalUnit.objects.get(id=local_unit_id)
     user = instance.created_by
+    if not user:
+        logger.warning(f"Email not sent for Local Unit:{local_unit_id} because creator is unknown.")
+        return None
+    elif not user.email:
+        logger.warning(
+            f"Email not sent for Local Unit:{local_unit_id} because creator: {user.get_full_name()} has no email address."
+        )
+        return None
     email_context = get_email_context(instance)
     email_context["full_name"] = user.get_full_name()
     email_context["validate_success"] = True
@@ -76,6 +87,14 @@ def send_revert_email(local_unit_id: int, change_request_id: int):
     instance = LocalUnit.objects.get(id=local_unit_id)
     change_request_instance = LocalUnitChangeRequest.objects.get(id=change_request_id)
     user = instance.created_by
+    if not user:
+        logger.warning(f"Email not sent for Local Unit:{local_unit_id} because creator is unknown.")
+        return None
+    elif not user.email:
+        logger.warning(
+            f"Email not sent for Local Unit:{local_unit_id} because creator: {user.get_full_name()} has no email address."
+        )
+        return None
     email_context = get_email_context(instance)
     email_context["full_name"] = user.get_full_name()
     email_context["revert_reason"] = change_request_instance.rejected_reason
@@ -94,6 +113,15 @@ def send_deprecate_email(local_unit_id: int):
 
     instance = LocalUnit.objects.get(id=local_unit_id)
     user = instance.created_by
+    if not user:
+        logger.warning(f"Email not sent for Local Unit:{local_unit_id} because creator is unknown.")
+        return None
+    elif not user.email:
+        logger.warning(
+            f"Email not sent for Local Unit:{local_unit_id} because creator: {user.get_full_name()} has no email address."
+        )
+        return None
+
     email_context = get_email_context(instance)
     email_context["full_name"] = user.get_full_name()
     email_context["deprecate_local_unit"] = True
@@ -110,7 +138,7 @@ def process_bulk_upload_local_unit(bulk_upload_id: int) -> None:
     bulk_upload: LocalUnitBulkUpload | None = LocalUnitBulkUpload.objects.filter(id=bulk_upload_id).first()
 
     if not bulk_upload:
-        logger.error(f"BulkUploadLocalUnit:'{bulk_upload_id}' Not found.", exc_info=True)
+        logger.warning(f"BulkUploadLocalUnit:'{bulk_upload_id}' Not found.", exc_info=True)
         return
     try:
         if (
@@ -121,6 +149,6 @@ def process_bulk_upload_local_unit(bulk_upload_id: int) -> None:
             BaseBulkUploadLocalUnit(bulk_upload).run()
 
     except Exception as exc:
-        logger.error(f"BulkUploadLocalUnit:'{bulk_upload_id}' Failed with exception: {exc}", exc_info=True)
+        logger.warning(f"BulkUploadLocalUnit:'{bulk_upload_id}' Failed with exception: {exc}", exc_info=True)
         bulk_upload.update_status(LocalUnitBulkUpload.Status.FAILED)
         raise exc
