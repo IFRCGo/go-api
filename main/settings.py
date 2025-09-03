@@ -867,6 +867,9 @@ if OIDC_ENABLE:
     if GO_ENVIRONMENT == "development":
         OAUTH2_PROVIDER["ALLOWED_REDIRECT_URI_SCHEMES"].append("http")
 
+# ReliefWeb (for databank cronjob)
+RELIEF_WEB_APP_NAME = env("RELIEF_WEB_APP_NAME")
+
 # Manual checks
 import main.checks  # noqa: F401 E402
 
