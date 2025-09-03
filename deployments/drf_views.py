@@ -281,7 +281,9 @@ class PersonnelViewset(viewsets.ReadOnlyModelViewSet):
         "role",
         "type",
         "country_from",
+        "country_to",
         "deployment",
+        "deployment__event_deployed_to",
     )
     search_fields = (
         "name",
