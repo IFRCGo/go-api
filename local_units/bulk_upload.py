@@ -119,6 +119,10 @@ class BaseBulkUpload(Generic[ContextType]):
     def _validate_csv(self, fieldnames) -> None:
         pass
 
+    def _is_csv_empty(self, csv_reader: csv.DictReader) -> tuple[bool, list[dict]]:
+        rows = list(csv_reader)
+        return len(rows) == 0, rows
+
     def process_row(self, data: Dict[str, Any]) -> bool:
         serializer = self.serializer_class(data=data)
         if serializer.is_valid():
@@ -133,12 +137,18 @@ class BaseBulkUpload(Generic[ContextType]):
             csv_reader = csv.DictReader(file)
             fieldnames = csv_reader.fieldnames or []
             try:
+                is_empty, rows = self._is_csv_empty(csv_reader)
+                if is_empty:
+                    raise BulkUploadError("The uploaded CSV file is empty or contains only blank rows.")
+
+                csv_reader = iter(rows)
+
                 self._validate_csv(fieldnames)
             except BulkUploadError as e:
                 self.bulk_upload.status = LocalUnitBulkUpload.Status.FAILED
                 self.bulk_upload.error_message = str(e)
                 self.bulk_upload.save(update_fields=["status", "error_message"])
-                logger.error(f"[BulkUpload:{self.bulk_upload.pk}] Validation error: {str(e)}")
+                logger.warning(f"[BulkUpload:{self.bulk_upload.pk}] Validation error: {str(e)}")
                 return
 
             context = self.get_context().__dict__
@@ -231,7 +241,7 @@ class BaseBulkUploadLocalUnit(BaseBulkUpload[LocalUnitUploadContext]):
             raise ValueError("Invalid local unit type")
 
         if present_health_fields and local_unit_type.name.strip().lower() != "health care":
-            raise BulkUploadError(f"Health data are not allowed for this type: {local_unit_type.name}.")
+            raise BulkUploadError(f"You cannot upload Healthcare data when the Local Unit type is set to {local_unit_type.name}.")
 
 
 class BulkUploadHealthData(BaseBulkUpload[LocalUnitUploadContext]):

@@ -88,8 +88,12 @@ class TestLocalUnitsListView(APITestCase):
         )
         type = LocalUnitType.objects.create(code=0, name="Code 0")
         type_1 = LocalUnitType.objects.create(code=1, name="Code 1")
-        LocalUnitFactory.create_batch(5, country=country, type=type, draft=True, validated=False, date_of_data="2023-09-09")
-        LocalUnitFactory.create_batch(5, country=country_1, type=type_1, draft=False, validated=True, date_of_data="2023-08-08")
+        LocalUnitFactory.create_batch(
+            5, country=country, type=type, draft=True, status=LocalUnit.Status.UNVALIDATED, date_of_data="2023-09-09"
+        )
+        LocalUnitFactory.create_batch(
+            5, country=country_1, type=type_1, draft=False, status=LocalUnit.Status.VALIDATED, date_of_data="2023-08-08"
+        )
 
         # test with Permission
         self.country2 = CountryFactory.create(
@@ -102,10 +106,10 @@ class TestLocalUnitsListView(APITestCase):
         )
         self.type_3 = LocalUnitType.objects.create(code=3, name="Code 3")
         self.local_unit = LocalUnitFactory.create(
-            country=self.country2, type=self.type_3, validated=False, date_of_data="2025-09-09"
+            country=self.country2, type=self.type_3, status=LocalUnit.Status.UNVALIDATED, date_of_data="2025-09-09"
         )
         self.local_unit_2 = LocalUnitFactory.create(
-            country=self.country2, type=self.type_3, validated=False, date_of_data="2025-09-09"
+            country=self.country2, type=self.type_3, status=LocalUnit.Status.UNVALIDATED, date_of_data="2025-09-09"
         )
         management.call_command("make_local_unit_validator_permissions")
         self.normal_user = UserFactory.create()
@@ -251,11 +255,11 @@ class TestLocalUnitsListView(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["count"], 7)
 
-        response = self.client.get("/api/v2/local-units/?validated=true")
+        response = self.client.get("/api/v2/local-units/?status=1")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["count"], 5)
 
-        response = self.client.get("/api/v2/local-units/?validated=false")
+        response = self.client.get("/api/v2/local-units/?status=2")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["count"], 7)
 
@@ -594,9 +598,8 @@ class TestLocalUnitCreate(APITestCase):
         response = self.client.post("/api/v2/local-units/", data=data, format="json")
         self.assertEqual(response.status_code, 201)
         self.assertEqual(LocalUnitChangeRequest.objects.count(), 1)
-        self.assertEqual(response.data["is_locked"], True)
         self.assertEqual(response.data["status"], LocalUnit.Status.UNVALIDATED)
-        # Locked local unit should not be updated, until it is unlocked
+        #  Local unit should not be updated, until it is validated
         local_unit_id = response.data["id"]
         response = self.client.put(f"/api/v2/local-units/{local_unit_id}/", data=data, format="json")
         self.assert_400(response)
@@ -658,17 +661,13 @@ class TestLocalUnitCreate(APITestCase):
         self.authenticate()
         response = self.client.post("/api/v2/local-units/", data=data, format="json")
         self.assert_201(response)
-
-        # Checking if the local unit is locked or not
-        self.assertEqual(response.data["is_locked"], True)
-
+        # Checking if the local unit status is unvalidated or not
+        self.assertEqual(response.data["status"], LocalUnit.Status.UNVALIDATED)
         # validating the local unit
         local_unit_id = response.data["id"]
         self.client.force_authenticate(self.root_user)
         response = self.client.post(f"/api/v2/local-units/{local_unit_id}/validate/")
         self.assert_200(response)
-        self.assertEqual(response.data["is_locked"], False)
-        # self.assertEqual(response.data["validated"], True)
         self.assertEqual(response.data["status"], LocalUnit.Status.VALIDATED)
         # saving the previous data
         previous_data = response.data
@@ -680,6 +679,7 @@ class TestLocalUnitCreate(APITestCase):
         response = self.client.put(f"/api/v2/local-units/{local_unit_id}/", data=data, format="json")
         self.assert_200(response)
         self.assertEqual(response.data["local_branch_name"], data["local_branch_name"])
+        self.assertEqual(response.data["status"], LocalUnit.Status.PENDING_EDIT_VALIDATION)
         # Reverting the local unit
         revert_data = {
             "reason": "Reverting the local unit test",
@@ -695,8 +695,7 @@ class TestLocalUnitCreate(APITestCase):
         local_unit_change_request = LocalUnitChangeRequest.objects.filter(local_unit=local_unit).last()
         self.assertEqual(local_unit_change_request.status, LocalUnitChangeRequest.Status.REVERT)
         self.assertEqual(local_unit_change_request.rejected_reason, revert_data["reason"])
-        # Checking if the local unit is unlocked
-        self.assertEqual(local_unit.is_locked, False)
+        # Checking if the local unit is validated or not
         self.assertEqual(local_unit.status, LocalUnit.Status.VALIDATED)
 
     def test_latest_changes(self):
@@ -715,7 +714,6 @@ class TestLocalUnitCreate(APITestCase):
             "country": country.id,
             "created_at": "2024-05-13T06:53:14.978083Z",
             "modified_at": "2024-05-13T06:53:14.978099Z",
-            "status": LocalUnit.Status.VALIDATED,
             "date_of_data": "2024-05-13",
             "level": level.id,
             "address_loc": "Silele Clinic is is in Hosea Inkhundla under the Shiselweni, Sigombeni is in Nkom'iyahlaba Inkhundla under the Manzini region and Mahwalala is in the Mbabane West Inkhundla under the Hhohho region.",  # noqa: E501
@@ -742,7 +740,7 @@ class TestLocalUnitCreate(APITestCase):
         self.client.force_authenticate(self.root_user)
         response = self.client.post(f"/api/v2/local-units/{local_unit_id}/validate/")
         self.assert_200(response)
-
+        self.assertEqual(response.data["status"], LocalUnit.Status.VALIDATED)
         # saving the previous data
         previous_data = response.data
 
@@ -752,7 +750,7 @@ class TestLocalUnitCreate(APITestCase):
 
         response = self.client.put(f"/api/v2/local-units/{local_unit_id}/", data=data, format="json")
         self.assert_200(response)
-
+        self.assertEqual(response.data["status"], LocalUnit.Status.PENDING_EDIT_VALIDATION)
         # Checking the latest changes
         response = self.client.get(f"/api/v2/local-units/{local_unit_id}/latest-change-request/")
         self.assert_200(response)
@@ -845,7 +843,6 @@ class TestLocalUnitCreate(APITestCase):
             "type": local_unit_type.id,
             "country": country.id,
             "draft": False,
-            "validated": True,
             "postcode": "4407",
             "address_loc": "4407",
             "address_en": "",
@@ -1343,6 +1340,38 @@ class BulkUploadTests(TestCase):
         # Check new local units count equals rows in CSV
         cls.assertEqual(LocalUnit.objects.count(), 3)
 
+    def test_empty_administrative_file(cls):
+        """
+        Test bulk upload file is empty
+        """
+
+        file_path = os.path.join(settings.STATICFILES_DIRS[0], "files", "local_units", "local-unit-bulk-upload-template.csv")
+        with open(file_path, "rb") as f:
+            file_content = f.read()
+        empty_file = SimpleUploadedFile(name="local-unit-bulk-upload-template.csv", content=file_content, content_type="text/csv")
+        LocalUnitFactory.create_batch(
+            5,
+            country=cls.country2,
+            type=cls.local_unit_type,
+            created_by=cls.user,
+            level=cls.level,
+        )
+
+        cls.bulk_upload = LocalUnitBulkUpload.objects.create(
+            file=empty_file,
+            country=cls.country2,
+            local_unit_type=cls.local_unit_type,
+            triggered_by=cls.user,
+            status=LocalUnitBulkUpload.Status.PENDING,
+        )
+        runner = BaseBulkUploadLocalUnit(cls.bulk_upload)
+        runner.run()
+
+        cls.bulk_upload.refresh_from_db()
+        cls.assertEqual(cls.bulk_upload.status, LocalUnitBulkUpload.Status.FAILED)
+        cls.assertIsNotNone(cls.bulk_upload.error_message)
+        cls.assertEqual(LocalUnit.objects.count(), 5)
+
 
 class BulkUploadHealthDataTests(TestCase):
     @classmethod
@@ -1507,3 +1536,47 @@ class BulkUploadHealthDataTests(TestCase):
         # New local units & health data count matches CSV
         cls.assertEqual(LocalUnit.objects.count(), 3)
         cls.assertEqual(HealthData.objects.count(), 3)
+
+    def test_empty_health_template_file(cls):
+        """
+        Test upload file is empty
+        """
+
+        file_path = os.path.join(
+            settings.STATICFILES_DIRS[0], "files", "local_units", "local-unit-health-bulk-upload-template.csv"
+        )
+        with open(file_path, "rb") as f:
+            file_content = f.read()
+        empty_file = SimpleUploadedFile(
+            name="local-unit-health-bulk-upload-template.csv", content=file_content, content_type="text/csv"
+        )
+        health_data = HealthDataFactory.create_batch(
+            5,
+            functionality=cls.functionality,
+            affiliation=cls.affiliation,
+            health_facility_type=cls.health_facility_type,
+            hospital_type=cls.hospital_type,
+        )
+        LocalUnitFactory.create_batch(
+            5,
+            country=cls.country1,
+            type=cls.local_unit_type,
+            created_by=cls.user,
+            level=cls.level,
+            health=factory.Iterator(health_data),
+        )
+
+        cls.bulk_upload = LocalUnitBulkUpload.objects.create(
+            file=empty_file,
+            country=cls.country1,
+            local_unit_type=cls.local_unit_type,
+            triggered_by=cls.user,
+            status=LocalUnitBulkUpload.Status.PENDING,
+        )
+        runner = BulkUploadHealthData(cls.bulk_upload)
+        runner.run()
+        cls.bulk_upload.refresh_from_db()
+        cls.assertEqual(cls.bulk_upload.status, LocalUnitBulkUpload.Status.FAILED)
+        cls.assertIsNotNone(cls.bulk_upload.error_message)
+        cls.assertEqual(LocalUnit.objects.count(), 5)
+        cls.assertEqual(HealthData.objects.count(), 5)

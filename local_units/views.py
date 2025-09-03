@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import Case, When
 from django.shortcuts import get_object_or_404
 from django.templatetags.static import static
 from django.utils import timezone
@@ -71,9 +72,20 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
             "country",
             "type",
             "level",
+            "created_by",
+            "modified_by",
+            "health__health_facility_type",
         )
         .exclude(is_deprecated=True)
-        .order_by("-status", "-modified_at")
+        .annotate(
+            order=Case(
+                When(status=LocalUnit.Status.PENDING_EDIT_VALIDATION, then=1),
+                When(status=LocalUnit.Status.UNVALIDATED, then=2),
+                When(status=LocalUnit.Status.VALIDATED, then=3),
+                When(status=LocalUnit.Status.EXTERNALLY_MANAGED, then=4),
+            )
+        )
+        .order_by("order", "-modified_at")
     )
     filterset_class = LocalUnitFilters
     search_fields = (
@@ -106,25 +118,20 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         local_unit = self.get_object()
-
-        if local_unit.is_locked:
-            return bad_request("Local unit is locked and cannot be updated")
+        if local_unit.status != LocalUnit.Status.VALIDATED:
+            return bad_request("Only validated local unit is allowed to update")
         update_reason = request.data.get("update_reason_overview")
         if not update_reason:
             raise ValidationError({"update_reason_overview": "Update reason is required."})
 
         # NOTE: Locking the local unit after the change request is created
         previous_data = PrivateLocalUnitDetailSerializer(local_unit, context={"request": request}).data
-        local_unit.is_locked = True
         local_unit.status = LocalUnit.Status.PENDING_EDIT_VALIDATION
         local_unit.update_reason_overview = update_reason
-        local_unit.is_new_local_unit = False
         local_unit.save(
             update_fields=[
-                "is_locked",
                 "status",
                 "update_reason_overview",
-                "is_new_local_unit",
             ]
         )
         serializer = self.get_serializer(local_unit, data=request.data, partial=True)
@@ -172,13 +179,9 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
 
         # Validate the local unit
         local_unit.status = LocalUnit.Status.VALIDATED
-        local_unit.is_locked = False
-        local_unit.is_new_local_unit = False
         local_unit.save(
             update_fields=[
                 "status",
-                "is_locked",
-                "is_new_local_unit",
             ]
         )
         serializer = PrivateLocalUnitSerializer(local_unit, context={"request": request})
@@ -238,11 +241,9 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
             )
             return response.Response(PrivateLocalUnitDetailSerializer(local_unit, context={"request": request}).data)
 
-        # NOTE: Unlocking the reverted local unit
-        local_unit.is_locked = False
+        # NOTE: validating the reverted local unit
         local_unit.status = LocalUnit.Status.VALIDATED
-        local_unit.is_new_local_unit = False
-        local_unit.save(update_fields=["is_locked", "status", "is_new_local_unit"])
+        local_unit.save(update_fields=["status"])
 
         # reverting the previous data of change request to local unit by passing through serializer
         serializer = PrivateLocalUnitDetailSerializer(
@@ -315,8 +316,13 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         local_unit.is_deprecated = False
         local_unit.deprecated_reason = None
         local_unit.deprecated_reason_overview = ""
-        local_unit.is_new_local_unit = False
-        local_unit.save(update_fields=["is_deprecated", "deprecated_reason", "deprecated_reason_overview", "is_new_local_unit"])
+        local_unit.save(
+            update_fields=[
+                "is_deprecated",
+                "deprecated_reason",
+                "deprecated_reason_overview",
+            ]
+        )
         serializer = PrivateLocalUnitSerializer(local_unit, context={"request": request})
         return response.Response(serializer.data)
 
