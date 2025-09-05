@@ -205,8 +205,8 @@ class UserExternalTokenTest(GoAPITestCase):
         data = {"title": "ok"}
 
         with override_settings(
-            JWT_PRIVATE_KEY=self.JWT_PRIVATE_KEY,
-            JWT_PUBLIC_KEY=self.JWT_PUBLIC_KEY,
+            JWT_PRIVATE_KEY=self.OIDC_RSA_PRIVATE_KEY,
+            JWT_PUBLIC_KEY=self.OIDC_RSA_PUBLIC_KEY,
         ):
             response = self.client.post("/api/v2/external-token/", data, format="json")
         self.assertEqual(response.status_code, 201)

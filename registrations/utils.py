@@ -2,6 +2,7 @@ import jwt
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db.models.functions import Lower
+from oauth2_provider.utils import jwk_from_pem
 
 from api.models import Country, Profile, UserRegion
 
@@ -47,16 +48,12 @@ def getRegionalAdmins(userId):
 
 
 def jwt_encode_handler(payload):
+    key = jwk_from_pem(settings.OIDC_RSA_PRIVATE_KEY)
     return jwt.encode(
         payload,
-        settings.JWT_PRIVATE_KEY,
-        algorithm="ES256",
-    )
-
-
-def jwt_decode_handler(token):
-    return jwt.decode(
-        token,
-        settings.JWT_PUBLIC_KEY,
-        algorithms=["ES256"],
+        settings.OIDC_RSA_PRIVATE_KEY,
+        headers={
+            "kid": key.thumbprint(),
+        },
+        algorithm="RS256",
     )

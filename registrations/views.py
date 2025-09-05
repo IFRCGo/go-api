@@ -152,7 +152,11 @@ class UserExternalTokenViewset(viewsets.ModelViewSet):
     ]
 
     def get_queryset(self):
-        return UserExternalToken.objects.filter(user=self.request.user)
+        return UserExternalToken.objects.filter(
+            user=self.request.user,
+            # NOTE: Hide old token from API
+            is_old_token=False,
+        )
 
     def destroy(self, request, *args, **kwargs):
         return bad_request("Delete method not allowed")
