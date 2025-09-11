@@ -121,7 +121,7 @@ class DrefTestCase(APITestCase):
             "title": "Dref test title",
             "type_of_onset": Dref.OnsetType.SLOW.value,
             "disaster_category": Dref.DisasterCategory.YELLOW.value,
-            "status": Dref.Status.IN_PROGRESS.value,
+            "status": Dref.Status.DRAFT.value,
             "num_assisted": 5666,
             "num_affected": 23,
             "amount_requested": 127771111,
@@ -237,7 +237,7 @@ class DrefTestCase(APITestCase):
             "title": "Dref test title",
             "type_of_onset": Dref.OnsetType.SLOW.value,
             "disaster_category": Dref.DisasterCategory.YELLOW.value,
-            "status": Dref.Status.IN_PROGRESS.value,
+            "status": Dref.Status.DRAFT.value,
             "national_society": national_society.id,
             "num_assisted": 5666,
             "num_affected": 23,
@@ -356,27 +356,27 @@ class DrefTestCase(APITestCase):
         """
         Test to filter dref status
         """
-        DrefFactory.create(title="test", status=Dref.Status.COMPLETED, date_of_approval="2020-10-10", created_by=self.user)
-        DrefFactory.create(status=Dref.Status.COMPLETED, date_of_approval="2020-10-10", created_by=self.user)
-        DrefFactory.create(status=Dref.Status.COMPLETED, date_of_approval="2020-10-10", created_by=self.user)
-        DrefFactory.create(status=Dref.Status.IN_PROGRESS, created_by=self.user)
-        DrefFactory.create(status=Dref.Status.IN_PROGRESS, created_by=self.user)
+        DrefFactory.create(title="test", status=Dref.Status.APPROVED, date_of_approval="2020-10-10", created_by=self.user)
+        DrefFactory.create(status=Dref.Status.APPROVED, date_of_approval="2020-10-10", created_by=self.user)
+        DrefFactory.create(status=Dref.Status.APPROVED, date_of_approval="2020-10-10", created_by=self.user)
+        DrefFactory.create(status=Dref.Status.DRAFT, created_by=self.user)
+        DrefFactory.create(status=Dref.Status.DRAFT, created_by=self.user)
 
         # filter by `In Progress`
-        url = f"/api/v2/dref/?status={Dref.Status.IN_PROGRESS.value}"
+        url = f"/api/v2/dref/?status={Dref.Status.DRAFT.value}"
         self.client.force_authenticate(self.user)
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data["results"]), 5)
+        self.assertEqual(len(response.data["results"]), 2)
 
     def test_dref_country_filter(self):
         country1 = Country.objects.create(name="country1")
         country2 = Country.objects.create(name="country2")
-        DrefFactory.create(title="test", status=Dref.Status.COMPLETED, created_by=self.user, country=country1)
-        DrefFactory.create(status=Dref.Status.COMPLETED, created_by=self.user)
-        DrefFactory.create(status=Dref.Status.COMPLETED, created_by=self.user, country=country2)
-        DrefFactory.create(status=Dref.Status.IN_PROGRESS, created_by=self.user, country=country1)
-        DrefFactory.create(status=Dref.Status.IN_PROGRESS, created_by=self.user)
+        DrefFactory.create(title="test", status=Dref.Status.APPROVED, created_by=self.user, country=country1)
+        DrefFactory.create(status=Dref.Status.APPROVED, created_by=self.user)
+        DrefFactory.create(status=Dref.Status.APPROVED, created_by=self.user, country=country2)
+        DrefFactory.create(status=Dref.Status.DRAFT, created_by=self.user, country=country1)
+        DrefFactory.create(status=Dref.Status.DRAFT, created_by=self.user)
         url = f"/api/v2/dref/?country={country1.id}"
         self.client.force_authenticate(self.user)
         response = self.client.get(url)
@@ -386,9 +386,10 @@ class DrefTestCase(APITestCase):
     @mock.patch("django.utils.timezone.now")
     def test_dref_is_published(self, mock_now):
         """
-        Test for dref if is_published = True
+        Test DREF publishing flow:
+        - Can only publish when status=FINALIZED
+        - Publishing sets status=APPROVED and is_published=True
         """
-
         initial_now = datetime.now()
         mock_now.return_value = initial_now
 
@@ -397,9 +398,12 @@ class DrefTestCase(APITestCase):
         dref = DrefFactory.create(
             title="test",
             created_by=self.user,
+            country=country,
+            status=Dref.Status.DRAFT,
             is_published=False,
             type_of_dref=Dref.DrefType.IMMINENT,
         )
+        # Normal PATCH
         url = f"/api/v2/dref/{dref.id}/"
         data = {
             "title": "New Update Title",
@@ -408,7 +412,6 @@ class DrefTestCase(APITestCase):
         self.client.force_authenticate(self.user)
         response = self.client.patch(url, data)
         self.assert_200(response)
-
         # create new dref with is_published = False
         not_published_dref = DrefFactory.create(
             title="test",
@@ -424,23 +427,28 @@ class DrefTestCase(APITestCase):
         data["modified_at"] = initial_now - timedelta(seconds=10)
         response = self.client.patch(url, data)
         self.assert_400(response)
-
-        # test dref published endpoint
-        url = f"/api/v2/dref/{not_published_dref.id}/publish/"
+        # ---- Test publishing ----
+        publish_url = f"/api/v2/dref/{dref.id}/publish/"
         data = {}
-        self.client.force_authenticate(self.user)
-        response = self.client.post(url, data)
+        response = self.client.post(publish_url, data)
         self.assert_403(response)
-
-        # add permission to request user
+        # Add permission to user
         self.dref_permission = Permission.objects.create(
             codename="dref_region_admin_0",
             content_type=ContentType.objects.get_for_model(Region),
             name="Dref Admin for 0",
         )
         self.user.user_permissions.add(self.dref_permission)
-        response = self.client.post(url, data)
+        # Try again while DRAFT. Should fail(not finalized yet)
+        response = self.client.post(publish_url, data)
+        self.assert_400(response)
+        # Update status to FINALIZED, then publish should succeed
+        dref.status = Dref.Status.FINALIZED
+        dref.save(update_fields=["status"])
+        response = self.client.post(publish_url, data)
+        dref.refresh_from_db()
         self.assert_200(response)
+        self.assertEqual(response.data["status"], Dref.Status.APPROVED)
         self.assertEqual(response.data["is_published"], True)
 
     def test_dref_operation_update_create(self):
@@ -672,6 +680,7 @@ class DrefTestCase(APITestCase):
             dref=dref,
             country=country,
             type_of_dref=Dref.DrefType.RESPONSE,
+            status=Dref.Status.FINALIZED,
         )
         final_report.users.set([user1])
         # try to publish this report
@@ -691,7 +700,7 @@ class DrefTestCase(APITestCase):
         response = self.client.post(url, data)
         self.assert_200(response)
         self.assertEqual(response.data["is_published"], True)
-
+        self.assertEqual(response.data["status"], Dref.Status.APPROVED)
         # now try to patch to the final report
         url = f"/api/v2/dref-final-report/{final_report.id}/"
         data = {
@@ -709,7 +718,7 @@ class DrefTestCase(APITestCase):
             "type_of_onset": Dref.OnsetType.SLOW.value,
             "type_of_dref": Dref.DrefType.ASSESSMENT,
             "disaster_category": Dref.DisasterCategory.YELLOW.value,
-            "status": Dref.Status.IN_PROGRESS.value,
+            "status": Dref.Status.DRAFT.value,
             "num_assisted": 5666,
             "num_affected": 23,
             "amount_requested": 127771111,
@@ -1297,7 +1306,7 @@ class DrefTestCase(APITestCase):
             "type_of_onset": Dref.OnsetType.SUDDEN.value,
             "type_of_dref": Dref.DrefType.IMMINENT,
             "disaster_category": Dref.DisasterCategory.YELLOW.value,
-            "status": Dref.Status.IN_PROGRESS.value,
+            "status": Dref.Status.DRAFT.value,
             "num_assisted": 5666,
             "num_affected": 23,
             "amount_requested": 127771111,
