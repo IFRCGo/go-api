@@ -264,8 +264,13 @@ class Dref(models.Model):
         RED = 2, _("Red")
 
     class Status(models.IntegerChoices):
-        IN_PROGRESS = 0, _("In Progress")
-        COMPLETED = 1, _("Completed")
+        # NOTE: Updated statuses for clarity:
+        # IN_PROGRESS → DRAFT, COMPLETED → APPROVED.
+        # Added FINALIZING and FINALIZED for translation/finalization.
+        DRAFT = 1, _("Draft")
+        FINALIZING = 2, _("Finalizing")
+        FINALIZED = 3, _("Finalized")
+        APPROVED = 4, _("Approved")
 
     created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
     modified_at = models.DateTimeField(verbose_name=_("modified at"), default=timezone.now, null=True)
@@ -748,8 +753,6 @@ class Dref(models.Model):
                 self.budget_file_preview.save(filename, thumb_data, save=False)
             else:
                 raise ValidationError({"budget_file": "Sorry cannot generate preview for empty pdf"})
-
-        self.status = Dref.Status.COMPLETED if self.is_published else Dref.Status.IN_PROGRESS
         self.__budget_file_id = self.budget_file_id
         super().save(*args, **kwargs)
 
@@ -1232,7 +1235,6 @@ class DrefOperationalUpdate(models.Model):
                 raise ValidationError({"budget_file": "Sorry cannot generate preview for empty pdf"})
 
         self.__budget_file_id = self.budget_file_id
-        self.status = Dref.Status.COMPLETED if self.is_published else Dref.Status.IN_PROGRESS
         super().save(*args, **kwargs)
 
     @staticmethod
@@ -1651,7 +1653,6 @@ class DrefFinalReport(models.Model):
             else:
                 raise ValidationError({"financial_report": "Sorry cannot generate preview for empty pdf"})
 
-        self.status = Dref.Status.COMPLETED if self.is_published else Dref.Status.IN_PROGRESS
         self.__financial_report_id = self.financial_report_id
         super().save(*args, **kwargs)
 
