@@ -1,5 +1,3 @@
-import numpy as np
-import pandas as pd
 import requests
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -9,6 +7,40 @@ from sentry_sdk.crons import monitor
 from api.logger import logger
 from api.models import Country, CronJob, CronJobStatus, NSDInitiatives
 from main.sentry import SentryMonitor
+
+DEFAULT_COUNTRY_ID = 289  # IFRC
+
+
+def get_country(element):
+    country = Country.objects.filter(iso__iexact=element["ISO"]).first()
+    if not country:  # Fallback to IFRC, but this does not happen in practice
+        country = Country.objects.get(pk=DEFAULT_COUNTRY_ID)
+    return country
+
+
+def get_funding_period(element):
+    funding_period = element.get("FundingPeriodInMonths")
+    if funding_period is None and element.get("FundingPeriodInYears") is not None:
+        funding_period = element["FundingPeriodInYears"] * 12
+    return funding_period
+
+
+def get_defaults(element, country, funding_period, lang):
+    defaults = {
+        "country": country,
+        "year": element.get("Year"),
+        "fund_type": (
+            f"{element.get('Fund')} – {element.get('FundingType')}" if element.get("FundingType") else element.get("Fund")
+        ),
+        "categories": element.get("Categories"),
+        "allocation": element.get("AllocationInCHF"),
+        "funding_period": funding_period,
+        "translation_module_original_language": lang,
+        "translation_module_skip_auto_translation": True,
+    }
+    title_field = f"title_{lang}"
+    defaults[title_field] = element.get("InitiativeTitle")
+    return defaults, title_field
 
 
 class Command(BaseCommand):
@@ -25,72 +57,92 @@ class Command(BaseCommand):
             logger.info("No proper api-keys are provided. Quitting.")
             return
 
-        if production:
-            urls = [
-                # languageCode can be en, es, fr, ar. If omitted, defaults to en.
-                f"https://data.ifrc.org/NSIA_API/api/approvedApplications?languageCode=en&apiKey={api_keys[0]}",
-                f"https://data.ifrc.org/ESF_API/api/approvedApplications?languageCode=en&apiKey={api_keys[1]}",
-                f"https://data.ifrc.org/CBF_API/api/approvedApplications?languageCode=en&apiKey={api_keys[2]}",
-            ]
-        else:
-            urls = [
-                f"https://data-staging.ifrc.org/NSIA_API/api/approvedApplications?languageCode=en&apiKey={api_keys[0]}",
-                f"https://data-staging.ifrc.org/ESF_API/api/approvedApplications?languageCode=en&apiKey={api_keys[1]}",
-                f"https://data-staging.ifrc.org/CBF_API/api/approvedApplications?languageCode=en&apiKey={api_keys[2]}",
-            ]
+        LANGUAGES = ["en", "es", "fr", "ar"]
+        urls = []
+
+        # Build URLs for all languages and all subsystems
+        for lang in LANGUAGES:
+            if production:
+                urls += [
+                    f"https://data.ifrc.org/NSIA_API/api/approvedApplications?languageCode={lang}&apiKey={api_keys[0]}",
+                    f"https://data.ifrc.org/ESF_API/api/approvedApplications?languageCode={lang}&apiKey={api_keys[1]}",
+                    f"https://data.ifrc.org/CBF_API/api/approvedApplications?languageCode={lang}&apiKey={api_keys[2]}",
+                ]
+            else:
+                urls += [
+                    f"https://data-staging.ifrc.org/NSIA_API/api/approvedApplications?languageCode={lang}&apiKey={api_keys[0]}",
+                    f"https://data-staging.ifrc.org/ESF_API/api/approvedApplications?languageCode={lang}&apiKey={api_keys[1]}",
+                    f"https://data-staging.ifrc.org/CBF_API/api/approvedApplications?languageCode={lang}&apiKey={api_keys[2]}",
+                ]
 
         responses = []
+        # Fetch all responses and pair them with their language
         for url in urls:
+            lang = url.split("languageCode=")[1].split("&")[0]
             response = requests.get(url)
             if response.status_code == 200:
-                responses.append(response.json())
+                responses.append((lang, response.json()))
 
         added = 0
-
-        flatList = [element for innerList in responses for element in innerList]
-        funding_data = pd.DataFrame(
-            flatList,
-            columns=[
-                "NationalSociety",
-                "Year",
-                "Fund",
-                "InitiativeTitle",
-                "Categories",
-                "AllocationInCHF",
-                "FundingPeriodInMonths",
-                "FundingType",
-                "FundingPeriodInYears",
-            ],
-        )
-        funding_data = funding_data.replace({np.nan: None})
+        updated_remote_ids = set()
         created_ns_initiatives_pk = []
-        for data in funding_data.values.tolist():
-            # TODO: Filter not by society name
-            country = Country.objects.filter(society_name__iexact=data[0]).first()
-            if country:
-                nsd_initiatives, created = NSDInitiatives.objects.get_or_create(
-                    country=country,
-                    year=data[1],
-                    fund_type=f"{data[2]} – {data[7]}" if data[7] else data[2],
-                    defaults={
-                        "title": data[3],
-                        "categories": data[4],
-                        "allocation": data[5],
-                        "funding_period": data[6] if data[6] else data[8] * 12,
-                    },
-                )
-                if not created:
-                    nsd_initiatives.title = data[3]
-                    nsd_initiatives.categories = data[4]
-                    nsd_initiatives.allocation = data[5]
-                    nsd_initiatives.funding_period = data[6]
-                    nsd_initiatives.save(update_fields=["title", "categories", "allocation", "funding_period"])
-                created_ns_initiatives_pk.append(nsd_initiatives.pk)
-                added += 1
-        # NOTE: Delete the NSDInitiatives that are not in the source
+
+        for lang, resp in responses:
+            for element in resp:
+                try:
+                    remote_id = int(element["Id"]) if element.get("Id") is not None else None
+                except (ValueError, TypeError):
+                    logger.warning(f"Invalid Id value for element: {element.get('Id')!r}. Skipping element.")
+                    continue
+                if not remote_id:
+                    continue
+
+                country = get_country(element)
+                funding_period = get_funding_period(element)
+                defaults, title_field = get_defaults(element, country, funding_period, lang)
+
+                if lang == "en":
+                    ni, created = NSDInitiatives.objects.get_or_create(
+                        remote_id=remote_id,
+                        defaults=defaults,
+                    )
+                    if created:
+                        added += 1
+                    else:
+                        for field, value in defaults.items():
+                            setattr(ni, field, value)
+                        ni.save(update_fields=defaults.keys())
+                        updated_remote_ids.add(remote_id)  # Mark as updated, only for EN entries
+                    created_ns_initiatives_pk.append(ni.pk)
+                else:
+                    try:
+                        # We could use ISO also to identify the entry, but remote_id is more robust
+                        ni = NSDInitiatives.objects.get(remote_id=remote_id)
+                        setattr(ni, title_field, element.get("InitiativeTitle"))
+                        ni.save(update_fields=[title_field])
+                    except NSDInitiatives.DoesNotExist:
+                        # Should not happen – only if EN entry is missing
+                        ni = NSDInitiatives.objects.create(
+                            remote_id=remote_id,
+                            **defaults,
+                        )
+                        added += 1
+                        created_ns_initiatives_pk.append(ni.pk)
+                        logger.warning(f"Created non-EN entry: {remote_id} / {lang}")
+
+        # Remove old entries not present in the latest fetch
         NSDInitiatives.objects.exclude(id__in=created_ns_initiatives_pk).delete()
 
-        text_to_log = "%s Ns initiatives added" % added
+        updated = len(updated_remote_ids)
+        if added:
+            text_to_log = f"{added} NS initiatives added, {updated} updated"
+        else:
+            text_to_log = f"{updated} NS initiatives updated, no new initiatives added"
         logger.info(text_to_log)
-        body = {"name": "ingest_ns_initiatives", "message": text_to_log, "num_result": added, "status": CronJobStatus.SUCCESSFUL}
+        body = {
+            "name": "ingest_ns_initiatives",
+            "message": text_to_log,
+            "num_result": added + updated,
+            "status": CronJobStatus.SUCCESSFUL,
+        }
         CronJob.sync_cron(body)
