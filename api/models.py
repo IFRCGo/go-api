@@ -427,9 +427,7 @@ class NSDInitiatives(models.Model):
     year = models.CharField(verbose_name=_("Year"), max_length=20)
     funding_period = models.IntegerField(verbose_name=_("Funding Period in Month"))
     categories = ArrayField(models.CharField(max_length=255), verbose_name=_("Funding categories"), default=list, null=True)
-
-    class Meta:
-        unique_together = ("country", "year", "fund_type")
+    remote_id = models.IntegerField(db_index=True, unique=True, null=True, blank=True)
 
     def __str__(self):
         return f"{self.country.name} - {self.title}"
