@@ -170,7 +170,7 @@ class UserExternalTokenSerializer(serializers.ModelSerializer):
             validated_data["expire_timestamp"] = timezone.now() + timedelta(days=settings.JWT_EXPIRE_TIMESTAMP_DAYS)
 
         # Check if private and public key exists
-        if not (settings.OIDC_ENABLE and settings.OIDC_RSA_PRIVATE_KEY and settings.OIDC_RSA_PUBLIC_KEY):
+        if not (settings.OIDC_RSA_PRIVATE_KEY and settings.OIDC_RSA_PUBLIC_KEY):
             raise serializers.ValidationError("Please contact system adminstrators to configurate private and public key.")
         instance = super().create(validated_data)
         validated_data["created_at"] = instance.created_at
