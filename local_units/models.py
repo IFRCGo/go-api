@@ -355,6 +355,7 @@ class LocalUnit(models.Model):
         VALIDATED = 1, "Validated"
         UNVALIDATED = 2, "Unvalidated"
         PENDING_EDIT_VALIDATION = 3, "Pending Edit Validation"
+        EXTERNALLY_MANAGED = 4, "Externally Managed"
 
     # added to track health local unit data (Table B)
     health = models.ForeignKey(
@@ -394,7 +395,6 @@ class LocalUnit(models.Model):
         auto_now=False,
     )
     draft = models.BooleanField(default=False, verbose_name=_("Draft"))
-    validated = models.BooleanField(default=False, verbose_name=_("Validated"))  # NOTE: This field might be deprecated soon.
     status = models.IntegerField(
         choices=Status.choices, default=Status.UNVALIDATED, verbose_name=_("Validation Status")
     )  # NOTE: Replacement of validated field for better status tracking
@@ -422,7 +422,6 @@ class LocalUnit(models.Model):
     email = models.EmailField(max_length=255, blank=True, null=True, verbose_name=_("Email"))
     link = models.URLField(max_length=255, blank=True, null=True, verbose_name=_("Social link"))
     location = models.PointField(srid=4326, help_text="Local Unit Location")
-    is_locked = models.BooleanField(default=False, verbose_name=_("Is locked?"))
     is_deprecated = models.BooleanField(default=False, verbose_name=_("Is deprecated?"))
     deprecated_reason = models.IntegerField(
         choices=DeprecateReason.choices, verbose_name=_("deprecated reason"), blank=True, null=True
@@ -445,8 +444,6 @@ class LocalUnit(models.Model):
         null=True,
         related_name="bulk_upload_local_unit",
     )
-
-    is_new_local_unit = models.BooleanField(default=False, verbose_name=("Is New Local Unit?"))
 
     def __str__(self):
         branch_name = self.local_branch_name or self.english_branch_name

@@ -22,8 +22,6 @@ class LocalUnitFilters(filters.FilterSet):
             "country__iso",
             "type__code",
             "draft",
-            "validated",
-            "is_locked",
             "status",
         )
 
