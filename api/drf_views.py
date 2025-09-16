@@ -1127,7 +1127,7 @@ class SupportedActivityViewset(viewsets.ReadOnlyModelViewSet):
 #             "appeal",
 #             "rdrt",
 #             "fact",
-#             "ifrc_staff",
+#             "emergency_response_unit",
 #             "imminent_dref",
 #             "forecast_based_action",
 #             "eru_base_camp",

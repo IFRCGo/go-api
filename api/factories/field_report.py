@@ -111,8 +111,8 @@ class FieldReportFactory(factory.django.DjangoModelFactory):
     num_rdrt = fuzzy.FuzzyInteger(0, 9)
     fact = fuzzy.FuzzyChoice(models.RequestChoices)
     num_fact = fuzzy.FuzzyInteger(0, 9)
-    ifrc_staff = fuzzy.FuzzyChoice(models.RequestChoices)
-    num_ifrc_staff = fuzzy.FuzzyInteger(0, 9)
+    emergency_response_unit = fuzzy.FuzzyChoice(models.RequestChoices)
+    num_emergency_response_unit = fuzzy.FuzzyInteger(0, 9)
 
     # ERU units
     eru_base_camp = fuzzy.FuzzyChoice(models.RequestChoices)
