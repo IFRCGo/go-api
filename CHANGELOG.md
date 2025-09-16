@@ -6,6 +6,30 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.507
+
+### Added
+ - Update migrations for the ifrc staff to ERU
+ - Better intake of NSIA, ESF, CBF data
+ - Use env var in reliefweb cronjob
+ - Refactor local unit status
+ - Add ordering values to PersonnelViewset
+ - Add icontains to PersonnelViewset query options
+ - Fix ReliefWeb appname parameter
+ - Set email notification delays by environment
+ - Bulk-upload – add file size limit
+ - Add enum for old DREF final report export
+ - Use appname parameter to access ReliefWeb API
+ - Update email context for dev preview email notifications
+ - Update error writer logic to write error details on CSV
+ - Rename ifrc staff to emergency response unit
+ - Update local unit email template
+ - Use TextIOWrapper to read csv files
+ - Bump up requests and xhtml2pdf
+ - Local unit bulk upload
+ - Rebase and merge migrations
+ - Migrate validated LocalUnit status
+ - Add local unit status field and migration script
  - Add crisis severity level history if only ifrc_severity_level is updated
  - Add migration consideratons to FormComponentResponse
  - Translation cache
@@ -2708,7 +2732,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.506...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.507...HEAD
+[1.1.507]: https://github.com/IFRCGo/go-api/compare/1.1.506...1.1.507
 [1.1.506]: https://github.com/IFRCGo/go-api/compare/1.1.505...1.1.506
 [1.1.505]: https://github.com/IFRCGo/go-api/compare/1.1.504...1.1.505
 [1.1.504]: https://github.com/IFRCGo/go-api/compare/1.1.503...1.1.504
