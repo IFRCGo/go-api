@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("api", "0220_event_ifrc_severity_level_update_date_and_more"),
+        ("api", "0221_alter_nsdinitiatives_unique_together_and_more"),
     ]
 
     operations = [

@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("api", "0221_rename_ifrc_staff_fieldreport_emergency_response_unit_and_more"),
+        ("api", "0222_rename_ifrc_staff_fieldreport_emergency_response_unit_and_more"),
     ]
 
     operations = [
