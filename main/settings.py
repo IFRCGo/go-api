@@ -144,6 +144,8 @@ env = environ.Env(
     AZURE_OPENAI_ENDPOINT=(str, None),
     AZURE_OPENAI_KEY=(str, None),
     AZURE_OPENAI_DEPLOYMENT_NAME=(str, None),
+    # ReliefWeb appname
+    RELIEF_WEB_APP_NAME=(str, None),
 )
 
 
@@ -864,6 +866,9 @@ if OIDC_ENABLE:
     }
     if GO_ENVIRONMENT == "development":
         OAUTH2_PROVIDER["ALLOWED_REDIRECT_URI_SCHEMES"].append("http")
+
+# ReliefWeb (for databank cronjob)
+RELIEF_WEB_APP_NAME = env("RELIEF_WEB_APP_NAME")
 
 # Manual checks
 import main.checks  # noqa: F401 E402

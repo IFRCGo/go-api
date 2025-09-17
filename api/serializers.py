@@ -1,4 +1,5 @@
 import json
+from collections import defaultdict
 from typing import List, Union
 
 from django.conf import settings
@@ -11,6 +12,7 @@ from rest_framework import serializers
 
 # from api.utils import pdf_exporter
 from api.tasks import generate_url
+from api.utils import CountryValidator, RegionValidator
 from deployments.models import EmergencyProject, Personnel, PersonnelDeployment
 from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
 from lang.models import String
@@ -1771,6 +1773,10 @@ class UserMeSerializer(UserSerializer):
     user_countries_regions = serializers.SerializerMethodField()
     limit_access_to_guest = serializers.BooleanField(read_only=True, source="profile.limit_access_to_guest")
 
+    local_unit_country_validators = serializers.SerializerMethodField()
+    local_unit_region_validators = serializers.SerializerMethodField()
+    local_unit_global_validators = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = UserSerializer.Meta.fields + (
@@ -1782,6 +1788,9 @@ class UserMeSerializer(UserSerializer):
             "is_per_admin_for_countries",
             "user_countries_regions",
             "limit_access_to_guest",
+            "local_unit_country_validators",
+            "local_unit_region_validators",
+            "local_unit_global_validators",
         )
 
     @staticmethod
@@ -1845,6 +1854,49 @@ class UserMeSerializer(UserSerializer):
         qs = UserCountry.objects.filter(user=user).distinct("country")
         return UserCountrySerializer(qs, many=True).data
 
+    @staticmethod
+    def get_local_unit_global_validators(user) -> List[int]:
+        permission_codenames = Permission.objects.filter(
+            codename__startswith="local_unit_global_validator", group__user=user
+        ).values_list("codename", flat=True)
+        global_validators = {int(code.split("_")[-1]) for code in permission_codenames}
+        return list(global_validators)
+
+    @staticmethod
+    def get_local_unit_region_validators(user) -> list[RegionValidator]:
+        permission_codenames = Permission.objects.filter(
+            codename__startswith="local_unit_region_validator",
+            group__user=user,
+        ).values_list("codename", flat=True)
+        region_validators = defaultdict(set)
+        for code in permission_codenames:
+            parts = code.split("_")[-2:]
+            if len(parts) == 2 and all(p.isdigit() for p in parts):
+                local_unit_type_id = int(parts[0])
+                region_id = int(parts[1])
+                region_validators[region_id].add(local_unit_type_id)
+        return [
+            {"region": region, "local_unit_types": list(local_unit_types)}
+            for region, local_unit_types in region_validators.items()
+        ]
+
+    @staticmethod
+    def get_local_unit_country_validators(user) -> list[CountryValidator]:
+        permission_codenames = Permission.objects.filter(
+            codename__startswith="local_unit_country_validator", group__user=user
+        ).values_list("codename", flat=True)
+        country_validator = defaultdict(set)
+        for code in permission_codenames:
+            parts = code.split("_")[-2:]
+            if len(parts) == 2 and all(p.isdigit() for p in parts):
+                local_unit_type_id = int(parts[0])
+                country_id = int(parts[1])
+                country_validator[country_id].add(local_unit_type_id)
+        return [
+            {"country": country, "local_unit_types": list(local_unit_types)}
+            for country, local_unit_types in country_validator.items()
+        ]
+
 
 class ActionSerializer(ModelSerializer):
     class Meta:
@@ -1902,7 +1954,7 @@ class FieldReportEnumDisplayMixin:
     forecast_based_action_display = serializers.CharField(source="get_forecast_based_action_display", read_only=True)
     rdrt_display = serializers.CharField(source="get_rdrt_display", read_only=True)
     fact_display = serializers.CharField(source="get_fact_display", read_only=True)
-    ifrc_staff_display = serializers.CharField(source="get_ifrc_staff_display", read_only=True)
+    emergency_response_unit_display = serializers.CharField(source="get_emergency_response_unit_display", read_only=True)
     eru_base_camp_display = serializers.CharField(source="get_eru_base_camp_display", read_only=True)
     eru_basic_health_care_display = serializers.CharField(source="get_eru_basic_health_care_display", read_only=True)
     eru_it_telecom_display = serializers.CharField(source="get_eru_it_telecom_display", read_only=True)
@@ -2060,7 +2112,7 @@ class FieldReportSerializer(
     forecast_based_action_display = serializers.CharField(source="get_forecast_based_action_display", read_only=True)
     rdrt_display = serializers.CharField(source="get_rdrt_display", read_only=True)
     fact_display = serializers.CharField(source="get_fact_display", read_only=True)
-    ifrc_staff_display = serializers.CharField(source="get_ifrc_staff_display", read_only=True)
+    emergency_response_unit_display = serializers.CharField(source="get_emergency_response_unit_display", read_only=True)
     eru_base_camp_display = serializers.CharField(source="get_eru_base_camp_display", read_only=True)
     eru_basic_health_care_display = serializers.CharField(source="get_eru_basic_health_care_display", read_only=True)
     eru_it_telecom_display = serializers.CharField(source="get_eru_it_telecom_display", read_only=True)

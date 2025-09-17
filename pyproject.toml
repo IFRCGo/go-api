@@ -4,7 +4,7 @@ version = "1.1.419"
 description = ""
 authors = [{ name = "GO Dev", email = "go-dev@ifrc.org" }]
 license = { text = "MIT License" }
-requires-python = "~=3.11"
+requires-python = ">=3.11"
 readme = "README.md"
 dependencies = [
     "Django>=4.2,<5.0",
@@ -63,12 +63,12 @@ dependencies = [
     "python-mimeparse==1.6.0",
     "pytz",
     "openpyxl==3.0.10",
-    "requests==2.32.2",
+    "requests==2.32.4",
     "tabula-py==1.2.0",
     "typing==3.6.2",
     # urllib3=1.26.12",
     "xmltodict==0.11.0",
-    "xhtml2pdf==0.2.16",
+    "xhtml2pdf==0.2.17",
     "reportlab",  # XXX: Used by xhtml2pdf reportlab==3.6.7 breaks for now
     "celery[redis]==5.1.2",
     "django-redis==5.0.0",

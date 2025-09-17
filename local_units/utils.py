@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
 
+from local_units.models import Validator
+
 User = get_user_model()
 
 
@@ -12,30 +14,81 @@ def get_email_context(instance):
     email_context = {
         "id": local_unit_data["id"],
         "local_branch_name": local_unit_data["local_branch_name"],
-        "frontend_url": settings.FRONTEND_URL,
+        "country": local_unit_data["country_details"]["name"],
+        "country_id": local_unit_data["country_details"]["id"],
+        "update_reason_overview": local_unit_data["update_reason_overview"],
+        "frontend_url": settings.GO_WEB_URL,
     }
     return email_context
 
 
-def get_local_admins(instance):
+def get_local_unit_country_validators(instance):
     """
-    Get the user with the country level admin permission for the country of the instance
+    Get the user with the country level permission by each local unit type
     """
-    country_admins = User.objects.filter(groups__permissions__codename=f"country_admin_{instance.country_id}")
-    return country_admins
+    country = instance.country
+    type = instance.type
+    codename = f"local_unit_country_validator_{type.id}_{country.id}"
+    return User.objects.filter(groups__permissions__codename=codename).distinct()
 
 
-def get_region_admins(instance):
+def get_local_unit_region_validators(instance):
     """
     Get the user with the region level admin permission for the region of the instance
     """
-    region_admins = User.objects.filter(groups__permissions__codename=f"region_admin_{instance.country.region_id}")
-    return region_admins
+    region = instance.country.region
+    type = instance.type
+    codename = f"local_unit_region_validator_{type.id}_{region.id}"
+    region_validators_by_type = User.objects.filter(groups__permissions__codename=codename).distinct()
+    return region_validators_by_type
 
 
-def get_global_validators():
+def get_local_unit_global_validators(instance):
     """
-    Get the user with the global validator permission
+    Get the user with the global validator permission by type
     """
-    global_validators = User.objects.filter(groups__permissions__codename="local_unit_global_validator")
-    return global_validators
+    type = instance.type
+    codename = f"local_unit_global_validator_{type.id}"
+    global_validators_by_type = User.objects.filter(groups__permissions__codename=codename).distinct()
+    return global_validators_by_type
+
+
+def get_user_validator_level(user, local_unit):
+    """
+    Determines the validator level for the given local unit.
+    """
+    if get_local_unit_country_validators(local_unit).filter(id=user.id).exists():
+        return Validator.LOCAL
+    elif get_local_unit_region_validators(local_unit).filter(id=user.id).exists():
+        return Validator.REGIONAL
+    elif user.is_superuser or get_local_unit_global_validators(local_unit).filter(id=user.id).exists():
+        return Validator.GLOBAL
+
+
+def get_model_field_names(
+    model,
+):
+    return [field.name for field in model._meta.get_fields() if not field.auto_created and field.name]
+
+
+def normalize_bool(value):
+    if isinstance(value, bool):
+        return value
+    if not value:
+        return False
+    val = str(value).strip().lower()
+    if val in ("true", "1", "yes", "y"):
+        return True
+    if val in ("false", "0", "no", "n"):
+        return False
+    return False
+
+
+def wash(string):
+    if string is None:
+        return None
+    return str(string).lower().replace("/", "").replace("_", "").replace(",", "").replace(" ", "")
+
+
+def numerize(value):
+    return value if value.isdigit() else 0

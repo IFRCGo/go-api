@@ -641,13 +641,13 @@
                                       {{ fr.other_fields.num_highest_risk|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
-                          {% if fr.other_fields.num_ifrc_staff %}
+                          {% if fr.other_fields.num_emergency_response_unit %}
                               <tr>
                                   <td align="left" style="font-weight: bold">
                                       IFRC Staff
                                   </td>
                                   <td align="left">
-                                      {{ fr.other_fields.num_ifrc_staff|floatformat:"1"|intcomma|slice:":-2" }} </td>
+                                      {{ fr.other_fields.num_emergency_response_unit|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.affected_pop_centres %}

@@ -264,7 +264,7 @@ class PersonnelFilter(filters.FilterSet):
             "start_date": ("exact", "gt", "gte", "lt", "lte"),
             "end_date": ("exact", "gt", "gte", "lt", "lte"),
             "deployment__updated_at": ("exact", "gt", "gte", "lt", "lte"),
-            "role": ("exact",),
+            "role": ("exact", "icontains"),
         }
 
 
@@ -281,7 +281,9 @@ class PersonnelViewset(viewsets.ReadOnlyModelViewSet):
         "role",
         "type",
         "country_from",
+        "country_to",
         "deployment",
+        "deployment__event_deployed_to",
     )
     search_fields = (
         "name",

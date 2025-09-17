@@ -9,44 +9,49 @@
     <tr>
         {% if new_local_unit %}
         <td align="center" class="pb-30">
-            A new local unit "{{local_branch_name}}" has been added and is awaiting your validation. Kindly review the information and validate or delete as necessary.
+           A new local unit "{{local_branch_name}}" in {{country}} has been added and is awaiting your validation. Please review the details and validate or delete as necessary.
+           You can view the new local unit <a href="{{ frontend_url }}/countries/{{country_id}}/ns-overview/context-and-structure" target="_blank" class="link" style="font-family: 'Lato', Arial, sans-serif;text-decoration: underline;color: #000;">here.</a>
         </td>
         {% endif %}
 
         {% if update_local_unit %}
         <td align="center" class="pb-30">
-            The local unit "{{local_branch_name}}" has been updated and is awaiting your validation. Kindly review the information and validate or delete as necessary.
+            The local unit "{{local_branch_name}}" in {{country}} has been updated. Reason: {{update_reason_overview}} and is awaiting your validation. Kindly review the information and validate or delete as necessary.
+            You can view the updated local unit <a href="{{ frontend_url }}/countries/{{country_id}}/ns-overview/context-and-structure" target="_blank" class="link" style="font-family: 'Lato', Arial, sans-serif;text-decoration: underline;color: #000;">here.</a>
         </td>
         {% endif %}
 
         {% if validate_success %}
         <td align="center" class="pb-30">
-            Your request for the local unit "{{local_branch_name}}" has been successfully validated. The local unit is now visible and marked as validated.
+            Your request for the local unit "{{local_branch_name}}" in {{country}} has been successfully validated. The local unit is now visible and marked as validated.
+            You can view the validated local unit <a href="{{ frontend_url }}/countries/{{country_id}}/ns-overview/context-and-structure" target="_blank" class="link" style="font-family: 'Lato', Arial, sans-serif;text-decoration: underline;color: #000;">here.</a>
         </td>
         {% endif %}
 
         {% if revert_reason %}
         <td align="center" class="pb-30">
-            Your local unit "{{local_branch_name}}" has been reverted. {{revert_reason}}. Please review and resubmit if applicable.
+            Your local unit "{{local_branch_name}}" in {{country}} has been reverted. Reason: {{revert_reason}}. Please review and resubmit if applicable.
         </td>
         {% endif %}
 
         {% if deprecate_local_unit %}
         <td align="center" class="pb-30">
-            Your local unit "{{local_branch_name}}" has been deprecated. {{deprecate_reason}}. Please contact the administrator for more information.
+            Your local unit "{{local_branch_name}}" in {{country}} has been deprecated. Reason: {{deprecate_reason}}. Please contact the administrator for more information.
         </td>
         {% endif %}
 
         {% if is_validator_regional_admin %}
         <td align="center" class="pb-30">
-            The new local unit "{{local_branch_name}}" has been pending validation for over 14 days. Kindly review and validate or delete as necessary.
+            The new local unit "{{local_branch_name}}" in {{country}} has been pending validation for over 7 days. Kindly review and validate or delete as necessary.
+            You can view the new local unit <a href="{{ frontend_url }}/countries/{{country_id}}/ns-overview/context-and-structure" target="_blank" class="link" style="font-family: 'Lato', Arial, sans-serif;text-decoration: underline;color: #000;">here.</a>
         </td>
         {% endif %}
 
         {% if is_validator_global_admin %}
         <td align="center" class="pb-30">
-            The new local unit "{{local_branch_name}}" has been pending validation for over 28 days and requires your attention. Please review and validate
+            The new local unit "{{local_branch_name}}" in {{country}} has been pending validation for over 14 days and requires your attention. Please review and validate
             or delete as necessary.
+            You can view the new local unit <a href="{{ frontend_url }}/countries/{{country_id}}/ns-overview/context-and-structure" target="_blank" class="link" style="font-family: 'Lato', Arial, sans-serif;text-decoration: underline;color: #000;">here.</a>
         </td>
         {% endif %}
 
@@ -54,4 +59,4 @@
 </table>
 <p>Thank you for your attention to this matter.</p>
 
-{% include "design/foot1.html" %}
+{% include "design/foot2.html" %}

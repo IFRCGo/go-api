@@ -65,6 +65,7 @@ env:
   OIDC_ENABLE: false
   OIDC_RSA_PRIVATE_KEY_BASE64_ENCODED:
   OIDC_RSA_PUBLIC_KEY_BASE64_ENCODED:
+  RELIEF_WEB_APP_NAME: ''
 
 # NOTE: Used to pass additional configs to api/worker containers
 # NOTE: Not used by azure vault

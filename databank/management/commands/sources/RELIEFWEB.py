@@ -3,6 +3,7 @@ import json
 import logging
 
 import requests
+from django.conf import settings
 
 from databank.models import Month, PastCrisesEvent, PastEpidemic
 
@@ -10,7 +11,7 @@ from .utils import catch_error, get_country_by_iso3
 
 logger = logging.getLogger(__name__)
 
-DISASTER_API = "https://api.reliefweb.int/v1/disasters/"
+DISASTER_API = f"https://api.reliefweb.int/v1/disasters/?appname={settings.RELIEF_WEB_APP_NAME}"
 RELIEFWEB_DATETIME_FORMAT = "%Y-%m-%d"
 
 
