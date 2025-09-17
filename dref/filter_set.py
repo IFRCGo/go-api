@@ -15,7 +15,7 @@ class DrefFilter(filters.FilterSet):
 
     class Meta:
         model = Dref
-        fields = ["is_published"]
+        fields = ["status"]
 
 
 class DrefOperationalUpdateFilter(filters.FilterSet):
@@ -23,7 +23,7 @@ class DrefOperationalUpdateFilter(filters.FilterSet):
 
     class Meta:
         model = DrefOperationalUpdate
-        fields = ["is_published"]
+        fields = ["status"]
 
 
 class BaseDrefFilterSet(filters.FilterSet):
