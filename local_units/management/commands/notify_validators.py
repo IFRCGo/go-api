@@ -4,7 +4,6 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.template.loader import render_to_string
 from django.utils import timezone
-from sentry_sdk.crons import monitor
 
 from local_units.models import LocalUnit, Validator
 from local_units.utils import (
@@ -12,14 +11,17 @@ from local_units.utils import (
     get_local_unit_global_validators,
     get_local_unit_region_validators,
 )
-from main.sentry import SentryMonitor
+
+# from main.sentry import SentryMonitor
 from notifications.notification import send_notification
+
+# from sentry_sdk.crons import monitor
 
 
 class Command(BaseCommand):
     help = "Notify validators for the pending local units in different period of time"
 
-    @monitor(monitor_slug=SentryMonitor.NOTIFY_VALIDATORS)
+    # @monitor(monitor_slug=SentryMonitor.NOTIFY_VALIDATORS) # NOTE: Disabled for now
     def handle(self, *args, **options):
         self.stdout.write(self.style.NOTICE("Notifying the validators..."))
         # NOTE: In production use standard email notification time(7days/14days),shorter delays(1day/2days) elsewhere for testing
