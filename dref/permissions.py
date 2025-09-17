@@ -1,7 +1,7 @@
 from django.contrib.auth.models import Permission
 from rest_framework import permissions
 
-from dref.models import DrefFinalReport, DrefOperationalUpdate
+from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
 from dref.utils import get_dref_users
 
 
@@ -42,6 +42,6 @@ class PublishDrefPermission(permissions.BasePermission):
         region = obj.country.region.name
         codename = f"dref_region_admin_{region}"
         user = request.user
-        if Permission.objects.filter(user=user, codename=codename).exists() and not obj.is_published:
+        if Permission.objects.filter(user=user, codename=codename).exists() and obj.status != Dref.Status.APPROVED:
             return True
         return False
