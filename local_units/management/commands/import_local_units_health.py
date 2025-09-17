@@ -64,7 +64,6 @@ class Command(BaseCommand):
                             health_id = existing_health_data.pk
                     except ValueError:
                         pass
-                validated = True
                 level_id = int(row["COVERAGECODE"])  # + 1
                 local_branch_name = row["NAME_LOC"]
                 english_branch_name = row["NAME_EN"]
@@ -87,8 +86,6 @@ class Command(BaseCommand):
                     level_id=level_id,
                     country_id=country,
                     type_id=type,
-                    # is_public=is_public,
-                    validated=validated,
                     local_branch_name=local_branch_name[:255],
                     english_branch_name=english_branch_name[:255],
                     focal_person_loc=focal_person_loc[:255],
