@@ -81,18 +81,19 @@ class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
 
     @action(
         detail=True,
-        url_path="publish",
+        url_path="approve",
         methods=["post"],
         serializer_class=DrefSerializer,
         permission_classes=[permissions.IsAuthenticated, PublishDrefPermission, DenyGuestUserPermission],
     )
-    def get_published(self, request, pk=None, version=None):
+    def get_approved(self, request, pk=None, version=None):
         dref = self.get_object()
         if dref.status != Dref.Status.FINALIZED:
-            raise serializers.ValidationError(gettext("Must be finalized before publishing."))
-        dref.is_published = True
+            raise serializers.ValidationError(gettext("Must be finalized before it can be approved"))
+        if dref.status == Dref.Status.APPROVED:
+            raise serializers.ValidationError(gettext("Dref %s is already approved" % dref))
         dref.status = Dref.Status.APPROVED
-        dref.save(update_fields=["status", "is_published"])
+        dref.save(update_fields=["status"])
         serializer = DrefSerializer(dref, context={"request": request})
         return response.Response(serializer.data)
 
@@ -148,18 +149,19 @@ class DrefOperationalUpdateViewSet(RevisionMixin, viewsets.ModelViewSet):
 
     @action(
         detail=True,
-        url_path="publish",
+        url_path="approve",
         methods=["post"],
         serializer_class=DrefOperationalUpdateSerializer,
         permission_classes=[permissions.IsAuthenticated, PublishDrefPermission, DenyGuestUserPermission],
     )
-    def get_published(self, request, pk=None, version=None):
+    def get_approved(self, request, pk=None, version=None):
         operational_update = self.get_object()
         if operational_update.status != Dref.Status.FINALIZED:
-            raise serializers.ValidationError(gettext("Must be finalized before publishing."))
-        operational_update.is_published = True
+            raise serializers.ValidationError(gettext("Must be finalized before it can be approved."))
+        if operational_update.status == Dref.Status.APPROVED:
+            raise serializers.ValidationError(gettext("Operational update %s is already approved" % operational_update))
         operational_update.status = Dref.Status.APPROVED
-        operational_update.save(update_fields=["is_published", "status"])
+        operational_update.save(update_fields=["status"])
         serializer = DrefOperationalUpdateSerializer(operational_update, context={"request": request})
         return response.Response(serializer.data)
 
@@ -182,20 +184,19 @@ class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
 
     @action(
         detail=True,
-        url_path="publish",
+        url_path="approve",
         methods=["post"],
         serializer_class=DrefFinalReportSerializer,
         permission_classes=[permissions.IsAuthenticated, PublishDrefPermission, DenyGuestUserPermission],
     )
-    def get_published(self, request, pk=None, version=None):
+    def get_approved(self, request, pk=None, version=None):
         field_report = self.get_object()
         if field_report.status != Dref.Status.FINALIZED:
-            raise serializers.ValidationError(gettext("Must be finalized before publishing."))
-        if field_report.is_published:
-            raise serializers.ValidationError(gettext("Final Report %s is already published" % field_report))
-        field_report.is_published = True
+            raise serializers.ValidationError(gettext("Must be finalized before it can be approved."))
+        if field_report.status == Dref.Status.APPROVED:
+            raise serializers.ValidationError(gettext("Final Report %s is already approved" % field_report))
         field_report.status = Dref.Status.APPROVED
-        field_report.save(update_fields=["is_published", "status"])
+        field_report.save(update_fields=["status"])
         field_report.dref.is_active = False
         field_report.date_of_approval = timezone.now().date()
         field_report.dref.save(update_fields=["is_active", "date_of_approval"])
@@ -237,7 +238,7 @@ class CompletedDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
         DenyGuestUserPermission,
     ]
     filterset_class = CompletedDrefOperationsFilterSet
-    queryset = DrefFinalReport.objects.filter(is_published=True).order_by("-created_at").distinct()
+    queryset = DrefFinalReport.objects.filter(status=Dref.Status.APPROVED).order_by("-created_at").distinct()
 
     def get_queryset(self):
         user = self.request.user
