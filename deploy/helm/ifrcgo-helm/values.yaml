@@ -272,8 +272,8 @@ cronjobs:
     schedule: '0 0 * * 0'
   - command: 'ingest_icrc'
     schedule: '0 3 * * 0'
-  - command: 'notify_validators'
-    schedule: '0 0 * * *'
+  # - command: 'notify_validators' 
+  #   schedule: '0 0 * * *'
   # https://github.com/jazzband/django-oauth-toolkit/blob/master/docs/management_commands.rst#cleartokens
   - command: 'oauth_cleartokens'
     schedule: '0 1 * * *'
