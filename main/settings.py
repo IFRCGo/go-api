@@ -817,6 +817,13 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
     "ENUM_ADD_EXPLICIT_BLANK_NULL_CHOICE": False,
     "ENUM_NAME_OVERRIDES": {},
+    # "DEFAULT_GENERATOR_CLASS": "main.utils.OrderedSchemaGenerator",
+    "SORT_OPERATION_PARAMETERS": False,
+    "SORT_OPERATIONS": False,
+    "POSTPROCESSING_HOOKS": [
+        "drf_spectacular.hooks.postprocess_schema_enums",
+        "main.utils.postprocess_schema",
+    ],
 }
 
 # A character which is rarely used in strings – for separator:
