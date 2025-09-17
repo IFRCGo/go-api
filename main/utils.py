@@ -184,3 +184,16 @@ def logger_context(data):
     Check main.settings.py::log_render_extra_context
     """
     return {"context": data}
+
+
+def sort_dict_recursively(d):
+    if isinstance(d, dict):
+        return {k: sort_dict_recursively(d[k]) for k in sorted(d)}
+    elif isinstance(d, list):
+        return [sort_dict_recursively(item) for item in d]
+    else:
+        return d
+
+
+def postprocess_schema(result, **kwargs):
+    return sort_dict_recursively(result)
