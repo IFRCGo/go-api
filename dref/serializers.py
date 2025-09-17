@@ -364,6 +364,7 @@ class MiniDrefFinalReportSerializer(ModelSerializer):
             "id",
             "title",
             "status",
+            "status_display",
         ]
 
 
