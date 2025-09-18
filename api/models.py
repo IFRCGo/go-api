@@ -428,6 +428,7 @@ class NSDInitiatives(models.Model):
     funding_period = models.IntegerField(verbose_name=_("Funding Period in Month"))
     categories = ArrayField(models.CharField(max_length=255), verbose_name=_("Funding categories"), default=list, null=True)
     remote_id = models.IntegerField(db_index=True, unique=True, null=True, blank=True)
+    nsia_risk = models.CharField(verbose_name=_("NSIA Risk"), max_length=30, null=True, blank=True)
 
     def __str__(self):
         return f"{self.country.name} - {self.title}"
