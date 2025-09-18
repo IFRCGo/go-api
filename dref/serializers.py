@@ -265,10 +265,10 @@ class MiniDrefSerializer(serializers.ModelSerializer):
         return "DREF application"
 
     def get_unpublished_op_update_count(self, obj) -> int:
-        return DrefOperationalUpdate.objects.filter(dref_id=obj.id, status=Dref.Status.DRAFT).count()
+        return DrefOperationalUpdate.objects.filter(dref_id=obj.id).exclude(status=Dref.Status.APPROVED).count()
 
     def get_unpublished_final_report_count(self, obj) -> int:
-        return DrefFinalReport.objects.filter(dref_id=obj.id, status=Dref.Status.DRAFT).count()
+        return DrefFinalReport.objects.filter(dref_id=obj.id).exclude(status=Dref.Status.APPROVED).count()
 
 
 class PlannedInterventionSerializer(ModelSerializer):
@@ -364,7 +364,6 @@ class MiniDrefFinalReportSerializer(ModelSerializer):
             "id",
             "title",
             "status",
-            "status_display",
         ]
 
 
