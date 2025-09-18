@@ -1,16 +1,11 @@
 from modeltranslation.translator import TranslationOptions, register
 
-from dref.models import (
-    Dref,
-    DrefFile,
-    DrefFinalReport,
-    DrefOperationalUpdate,
-    IdentifiedNeed,
-    NationalSocietyAction,
-    PlannedIntervention,
-    PlannedInterventionIndicators,
-    RiskSecurity,
-)
+from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
+
+"""
+NOTE:Commenting out for now as, we are currently
+working on translation feature on dref
+"""
 
 
 @register(Dref)
@@ -19,6 +14,8 @@ class DrefTO(TranslationOptions):
         "title",
         "title_prefix",
         "event_text",
+    )
+    skip_fields = (
         "ns_request_text",
         "dref_recurrent_text",
         "lessons_learned",
@@ -47,9 +44,9 @@ class DrefTO(TranslationOptions):
     )
 
 
-@register(DrefFile)
-class DrefFileTO(TranslationOptions):
-    fields = ("caption",)
+# @register(DrefFile)
+# class DrefFileTO(TranslationOptions):
+#     fields = ("caption",)
 
 
 @register(DrefFinalReport)
@@ -57,6 +54,8 @@ class DrefFinalReportTO(TranslationOptions):
     fields = (
         "title",
         "title_prefix",
+    )
+    skip_fields = (
         "event_description",
         "anticipatory_actions",
         "event_scope",
@@ -83,6 +82,8 @@ class DrefOperationalUpdateTO(TranslationOptions):
         "title_prefix",
         "event_description",
         "anticipatory_actions",
+    )
+    skip_fields = (
         "event_scope",
         "ifrc",
         "icrc",
@@ -105,39 +106,38 @@ class DrefOperationalUpdateTO(TranslationOptions):
     )
 
 
-@register(IdentifiedNeed)
-class IdentifiedNeedTO(TranslationOptions):
-    fields = (
-        "title",
-        "description",
-    )
+# @register(IdentifiedNeed)
+# class IdentifiedNeedTO(TranslationOptions):
+#     fields = (
+#         "title",
+#         "description",
+#     )
 
 
-@register(NationalSocietyAction)
-class NationalSocietyActionTO(TranslationOptions):
-    fields = ("description",)
+# @register(NationalSocietyAction)
+# class NationalSocietyActionTO(TranslationOptions):
+#     fields = ("description",)
 
 
-@register(PlannedIntervention)
-class PlannedInterventionTO(TranslationOptions):
-    fields = (
-        "title",
-        "description",
-        "progress_towards_outcome",
-        "narrative_description_of_achievements",
-        "challenges",
-        "lessons_learnt",
-    )
+# @register(PlannedIntervention)
+# class PlannedInterventionTO(TranslationOptions):
+#     fields = (
+#         "title",
+#         "description",
+#         "progress_towards_outcome",
+#         "narrative_description_of_achievements",
+#         "challenges",
+#         "lessons_learnt",
+#     )
+
+# @register(PlannedInterventionIndicators)
+# class PlannedInterventionIndicatorsTO(TranslationOptions):
+#     fields = ("title",)
 
 
-@register(PlannedInterventionIndicators)
-class PlannedInterventionIndicatorsTO(TranslationOptions):
-    fields = ("title",)
-
-
-@register(RiskSecurity)
-class RiskSecurityTO(TranslationOptions):
-    fields = (
-        "risk",
-        "mitigation",
-    )
+# @register(RiskSecurity)
+# class RiskSecurityTO(TranslationOptions):
+#     fields = (
+#         "risk",
+#         "mitigation",
+#     )
