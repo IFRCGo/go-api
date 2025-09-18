@@ -230,7 +230,7 @@ class DrefFinalReportAdmin(CompareVersionAdmin, TranslationAdmin, admin.ModelAdm
 
     # NOTE: If the Dref Final report is unpublished, set Dref related to it as active
     def save_model(self, request, obj, form, change):
-        if not obj.is_published and obj.dref:
+        if obj.status != Dref.Status.APPROVED and obj.dref:
             obj.dref.is_active = True
             obj.dref.save(update_fields=["is_active"])
         super().save_model(request, obj, form, change)
