@@ -49,14 +49,14 @@ def getRegionalAdmins(userId):
 def jwt_encode_handler(payload):
     return jwt.encode(
         payload,
-        settings.JWT_PRIVATE_KEY,
-        algorithm="ES256",
+        settings.OIDC_RSA_PRIVATE_KEY,
+        algorithm="RS256",
     )
 
 
 def jwt_decode_handler(token):
     return jwt.decode(
         token,
-        settings.JWT_PUBLIC_KEY,
-        algorithms=["ES256"],
+        settings.OIDC_RSA_PUBLIC_KEY,
+        algorithms=["RS256"],
     )
