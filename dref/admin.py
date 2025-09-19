@@ -98,6 +98,7 @@ class DrefAdmin(CompareVersionAdmin, TranslationAdmin, admin.ModelAdmin):
         "risk_security",
         "proposed_action",
     )
+    readonly_fields = ("original_language",)
 
     def get_queryset(self, request):
         return (
@@ -143,6 +144,7 @@ class DrefOperationalUpdateAdmin(CompareVersionAdmin, TranslationAdmin, admin.Mo
         "district",
         "risk_security",
     )
+    readonly_fields = ("original_language",)
     list_filter = ["dref"]
 
     def get_queryset(self, request):
@@ -199,6 +201,7 @@ class DrefFinalReportAdmin(CompareVersionAdmin, TranslationAdmin, admin.ModelAdm
         "national_society_actions",
         "source_information",
     )
+    readonly_fields = ("original_language",)
     list_filter = ["dref"]
     search_fields = ["title", "national_society__name", "appeal_code"]
 
