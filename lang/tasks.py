@@ -32,13 +32,13 @@ class ModelTranslator:
     def translator(self):
         return self.default_translator
 
-    def translate_fields_object(self, obj, field):
+    def translate_fields_object(self, obj, field, target_languages=None):
         initial_lang = getattr(obj, TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME)
         initial_value = getattr(obj, build_localized_fieldname(field, initial_lang), None)
         if not initial_value or not initial_lang:
             return
-
-        for lang in AVAILABLE_LANGUAGES:
+        target_languages = target_languages or AVAILABLE_LANGUAGES
+        for lang in target_languages:
             lang_field = build_localized_fieldname(field, lang)
             value = getattr(obj, lang_field, None)
             if value:
@@ -107,14 +107,17 @@ class ModelTranslator:
         skipped_fields = set(getattr(translation_options, "skip_fields", []))
         return [field for field in translation_options.fields.keys() if field not in skipped_fields]
 
-    def translate_model_fields(self, obj, translatable_fields=None):
+    def translate_model_fields(self, obj, translatable_fields=None, target_languages=None):
         if skip_auto_translation(obj):
             return
         translatable_fields = translatable_fields or self.get_translatable_fields(type(obj))
         update_fields = []
         for field in translatable_fields:
-            update_fields.extend(list(self.translate_fields_object(obj, field)))
+            update_fields.extend(list(self.translate_fields_object(obj, field, target_languages)))
         obj.save(update_fields=update_fields)
+
+    def translate_model_fields_to_english(self, obj, translatable_fields=None):
+        return self.translate_model_fields(obj, translatable_fields=translatable_fields, target_languages=["en"])
 
     @classmethod
     def show_characters_counts(cls, only_models: typing.Optional[typing.List[models.Model]] = None):
