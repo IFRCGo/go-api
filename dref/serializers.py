@@ -6,7 +6,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models, transaction
 from django.utils import timezone
-from django.utils.translation import gettext
+from django.utils.translation import get_language, gettext
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
@@ -35,6 +35,7 @@ from dref.models import (
 )
 from dref.utils import get_dref_users
 from lang.serializers import ModelSerializer
+from main.translation import TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME
 from main.writable_nested_serializers import NestedCreateMixin, NestedUpdateMixin
 from utils.file_check import validate_file_type
 
@@ -348,16 +349,22 @@ class IdentifiedNeedSerializer(ModelSerializer):
 
 
 class MiniOperationalUpdateSerializer(ModelSerializer):
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+
     class Meta:
         model = DrefOperationalUpdate
         fields = [
             "id",
             "title",
             "operational_update_number",
+            "status",
+            "status_display",
         ]
 
 
 class MiniDrefFinalReportSerializer(ModelSerializer):
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+
     class Meta:
         model = DrefFinalReport
         fields = [
@@ -368,7 +375,7 @@ class MiniDrefFinalReportSerializer(ModelSerializer):
         ]
 
 
-class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
+class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, serializers.ModelSerializer):
     SUB_TOTAL_COST = 75000
     SURGE_DEPLOYMENT_COST = 10000
     SURGE_INDIRECT_COST = 5800
@@ -427,6 +434,7 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
             "created_by",
             "budget_file_preview",
             "is_dref_imminent_v2",
+            "original_language",
         )
         exclude = (
             "cover_image",
@@ -603,6 +611,12 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
         validate_file_type(budget_file_preview)
         return budget_file_preview
 
+    def _set_original_language(self, validated_data):
+        current_lang = get_language()
+        validated_data["original_language"] = current_lang
+        validated_data[TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME] = current_lang
+        return validated_data
+
     def create(self, validated_data):
         validated_data["created_by"] = self.context["request"].user
         validated_data["is_active"] = True
@@ -620,7 +634,7 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
             # Event Description
             validated_data["event_scope"] = None
             validated_data["identified_gaps"] = None
-            # Targeted Population
+            # Targeted Populationtranslate_model_fields_to_english
             validated_data["women"] = None
             validated_data["men"] = None
             validated_data["girls"] = None
@@ -631,6 +645,8 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
             validated_data["communication"] = None
             dref_assessment_report = super().create(validated_data)
             dref_assessment_report.needs_identified.clear()
+            # set original language
+            validated_data = self._set_original_language(validated_data)
             return dref_assessment_report
         # NOTE: Setting flag for only newly created DREF of type IMMINENT
         if type_of_dref == Dref.DrefType.IMMINENT:
@@ -640,6 +656,8 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
             to = {u.email for u in validated_data["users"]}
         else:
             to = None
+        # set original language
+        validated_data = self._set_original_language(validated_data)
         dref = super().create(validated_data)
         if to:
             transaction.on_commit(lambda: send_dref_email.delay(dref.id, list(to), "New"))
@@ -649,6 +667,14 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
         validated_data["modified_by"] = self.context["request"].user
         modified_at = validated_data.pop("modified_at", None)
         type_of_dref = validated_data.get("type_of_dref")
+        current_lang = get_language()
+        original_lang = instance.translation_module_original_language
+        if instance.status == Dref.Status.FINALIZED:
+            if current_lang != "en":
+                raise serializers.ValidationError(gettext("Finalized records can only be updated in English."))
+        elif current_lang != original_lang:
+            raise serializers.ValidationError(gettext("Only original language is supported: %s" % original_lang))
+
         if modified_at is None:
             raise serializers.ValidationError({"modified_at": "Modified At is required!"})
         if type_of_dref and type_of_dref == Dref.DrefType.ASSESSMENT:
@@ -724,6 +750,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             "operational_update_number",
             "modified_by",
             "created_by",
+            "original_language",
         )
         exclude = (
             "images",
@@ -1113,6 +1140,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             "created_by",
             "financial_report_preview",
             "is_dref_imminent_v2",
+            "original_language",
         )
         exclude = (
             "images",
