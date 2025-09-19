@@ -21,8 +21,12 @@ class Command(BaseCommand):
         def wash(string):
             return string.lower().replace("/", "").replace("_", "").replace(",", "").replace(" ", "")
 
-        def wash_leave_space(string):
-            return string.lower().replace("/", "").replace("_", "").replace(",", "")
+        # Previously used with m2m rows, but in the latest CSV we changed to "wash_comma_to_space" instead of this:
+        # def wash_leave_space(string):
+        #     return string.lower().replace("/", "").replace("_", "").replace(",", "")
+
+        def wash_comma_to_space(string):
+            return string.lower().replace("/", "").replace("_", "").replace(" ", "").replace(",", " ")
 
         def numerize(value):
             return value if value.isdigit() else 0
@@ -95,10 +99,10 @@ class Command(BaseCommand):
                 f_nir = row["Number of isolation rooms"]
                 f_wrh = row["Warehousing"]
                 f_cch = row["Cold chain"]
-                f_gms = wash_leave_space(row["General medical services"])  # m2m
-                f_spm = wash_leave_space(row["Specialized medical beyond primary level"])  # m2m
+                f_gms = wash_comma_to_space(row["General medical services"])  # m2m
+                f_spm = wash_comma_to_space(row["Specialized medical beyond primary level"])  # m2m
                 f_ots = row["Other Services"]
-                f_bls = wash_leave_space(row["Blood Services"])  # m2m
+                f_bls = wash_comma_to_space(row["Blood Services"])  # m2m
                 f_tnh = numerize(row["Total number of Human Resource"])
                 f_gpr = numerize(row["General Practitioner"])
                 f_spt = numerize(row["Specialist"])
@@ -111,7 +115,7 @@ class Command(BaseCommand):
                 f_opr = row["Other Profiles"]
                 f_fbk = row["Feedback"]
                 f_oaf = row["Other Affiliation"]
-                f_ptf = wash_leave_space(row["Professional Training Facilities"])  # m2m
+                f_ptf = wash_comma_to_space(row["Professional Training Facilities"])  # m2m
                 f_ata = row["Ambulance Type A"]
                 f_atb = row["Ambulance Type B"]
                 f_atc = row["Ambulance Type C"]

@@ -35,6 +35,7 @@ def get_defaults(element, country, funding_period, lang):
         "categories": element.get("Categories"),
         "allocation": element.get("AllocationInCHF"),
         "funding_period": funding_period,
+        "nsia_risk": element.get("Risk"),
         "translation_module_original_language": lang,
         "translation_module_skip_auto_translation": True,
     }
