@@ -35,13 +35,14 @@ def get_defaults(element, country, funding_period, lang):
         "categories": element.get("Categories"),
         "allocation": element.get("AllocationInCHF"),
         "funding_period": funding_period,
-        "nsia_risk": element.get("Risk"),
         "translation_module_original_language": lang,
         "translation_module_skip_auto_translation": True,
     }
     title_field = f"title_{lang}"
+    risk_field = f"nsia_risk_{lang}"
     defaults[title_field] = element.get("InitiativeTitle")
-    return defaults, title_field
+    defaults[risk_field] = element.get("Risk")
+    return defaults, title_field, risk_field
 
 
 class Command(BaseCommand):
@@ -100,7 +101,7 @@ class Command(BaseCommand):
 
                 country = get_country(element)
                 funding_period = get_funding_period(element)
-                defaults, title_field = get_defaults(element, country, funding_period, lang)
+                defaults, title_field, risk_field = get_defaults(element, country, funding_period, lang)
 
                 if lang == "en":
                     ni, created = NSDInitiatives.objects.get_or_create(
@@ -120,7 +121,8 @@ class Command(BaseCommand):
                         # We could use ISO also to identify the entry, but remote_id is more robust
                         ni = NSDInitiatives.objects.get(remote_id=remote_id)
                         setattr(ni, title_field, element.get("InitiativeTitle"))
-                        ni.save(update_fields=[title_field])
+                        setattr(ni, risk_field, element.get("Risk"))
+                        ni.save(update_fields=[title_field, risk_field])
                     except NSDInitiatives.DoesNotExist:
                         # Should not happen – only if EN entry is missing
                         ni = NSDInitiatives.objects.create(
