@@ -105,8 +105,8 @@ class MainContactTO(TranslationOptions):
 
 @register(NSDInitiatives)
 class NSDInitiativesTO(TranslationOptions):
-    fields = ("title",)
-    skip_fields = ("title",)
+    fields = ("title", "nsia_risk")
+    skip_fields = ("title", "nsia_risk")
 
 
 @register(Region)
