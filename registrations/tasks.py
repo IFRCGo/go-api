@@ -7,12 +7,13 @@ from notifications.notification import send_notification
 
 @shared_task
 def send_notification_create(token, username, is_staff, email):
+    safe_username = username.replace("+", "%2B")
     email_context = {
         "confirmation_link": "%s/verify_email/?token=%s&user=%s"
         % (
             settings.GO_API_URL,  # on PROD it should point to goadmin...
             token,
-            username,
+            safe_username,
         )
     }
 
