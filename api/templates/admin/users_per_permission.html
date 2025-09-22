@@ -1,0 +1,73 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+{% block title %}{% trans "Users per permission" %}{% endblock %}
+
+{% block content %}
+<div class="app-admin-report">
+  <form method="get" class="form-inline" style="margin-bottom: 1rem;">
+    <div>
+      <label for="id_groups">{% trans "Groups" %}</label><br/>
+      <select id="id_groups" name="groups" multiple size="12" style="min-width: 360px;">
+        {% for g in groups %}
+          <option value="{{ g.id }}" {% if g.id in selected_group_ids %}selected{% endif %}>{{ g.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div style="margin-left: 1rem;">
+      <label>&nbsp;</label><br/>
+      <label>
+        <input type="checkbox" name="include_superusers" value="1" {% if include_superusers %}checked{% endif %}>
+        {% trans "Include superusers" %}
+      </label>
+      <div style="margin-top: .5rem;">
+        <button type="submit" class="button">{% trans "Apply filters" %}</button>
+      </div>
+      {% if selected_group_ids or include_superusers %}
+      <div style="margin-top: .5rem;">
+        <a class="button" href="?{% for gid in selected_group_ids %}groups={{ gid }}&{% endfor %}{% if include_superusers %}include_superusers=1&{% endif %}export=csv">CSV</a>
+        <a class="button" href="?{% for gid in selected_group_ids %}groups={{ gid }}&{% endfor %}{% if include_superusers %}include_superusers=1&{% endif %}export=xlsx">XLSX</a>
+      </div>
+      {% endif %}
+    </div>
+  </form>
+
+  {% if selected_group_ids or include_superusers %}
+    <p>
+      {% blocktrans %}Showing {{ result_count }} user(s). First 500 listed below.{% endblocktrans %}
+    </p>
+    <div class="results">
+      <table class="listing">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>{% trans "Username" %}</th>
+            <th>{% trans "Email address" %}</th>
+            <th>{% trans "Name" %}</th>
+            <th>{% trans "Organization" %}</th>
+            <th>{% trans "Active" %}</th>
+            <th>{% trans "Staff status" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td>{{ u.id }}</td>
+            <td>{{ u.username }}</td>
+            <td>{{ u.email }}</td>
+            <td>{{ u.get_full_name }}</td>
+            <td>{{ u.profile.org|default_if_none:"" }}</td>
+            <!-- yesno:"+,," -> '+' for True, '' for False/None -->
+            <td class="bool-col">{{ u.is_active|yesno:"+,," }}</td>
+            <td class="bool-col">{{ u.is_staff|yesno:"+,," }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7">{% trans "No users match the current filters." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p>{% trans "Select one or more Groups to view users. Optionally include superusers." %}</p>
+  {% endif %}
+</div>
+{% endblock %}
