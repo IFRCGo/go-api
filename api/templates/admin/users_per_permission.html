@@ -45,6 +45,7 @@
             <th>{% trans "Username" %}</th>
             <th>{% trans "Email address" %}</th>
             <th>{% trans "Name" %}</th>
+            <th>{% trans "Ctry" %}</th>
             <th>{% trans "Organization" %}</th>
             <th>{% trans "Active" %}</th>
             <th>{% trans "Staff" %}</th>
@@ -58,6 +59,7 @@
             <td>{{ u.username }}</td>
             <td>{{ u.email }}</td>
             <td>{{ u.get_full_name }}</td>
+            <td>{{ u.profile.country.iso3|default_if_none:"" }}</td>
             <td>{{ u.profile.org|default_if_none:"" }}</td>
             <!-- yesno:"+,," -> '+' for True, '' for False/None -->
             <td class="bool-col">{{ u.is_active|yesno:"+,," }}</td>

@@ -4,7 +4,7 @@ import time
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Permission, User
 from django.contrib.gis import admin as geoadmin
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse, HttpResponseRedirect
@@ -1050,6 +1050,40 @@ class EventSeverityLevelHistoryAdmin(admin.ModelAdmin):
 @admin.register(models.Export)
 class ExportTokenAdmin(admin.ModelAdmin):
     pass
+
+
+try:
+    admin.site.unregister(Permission)
+except admin.sites.NotRegistered:
+    pass
+
+
+@admin.register(Permission)
+class PermissionReportAdmin(admin.ModelAdmin):
+    # Show the menu entry, but route to the Users-per-permission report.
+    def has_module_permission(self, request):
+        from api.admin_reports import _user_has_access
+
+        return _user_has_access(request.user)
+
+    def has_view_permission(self, request, obj=None):
+        from api.admin_reports import _user_has_access
+
+        return _user_has_access(request.user)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def changelist_view(self, request, extra_context=None):
+        from api.admin_reports import users_per_permission_view
+
+        return users_per_permission_view(request)
 
 
 admin.site.register(models.DisasterType, DisasterTypeAdmin)
