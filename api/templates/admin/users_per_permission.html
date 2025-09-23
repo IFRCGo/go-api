@@ -97,8 +97,19 @@
     }
 
     function renderOptions(query) {
-      const q = (query || '').toLowerCase();
-      const filtered = allOptions.filter(o => o.selected || o.textLower.includes(q));
+      const tokens = String(query || '')
+        .toLowerCase()
+        .trim()
+        .split(/\s+/)         // split by any whitespace
+        .filter(Boolean);     // remove empty tokens
+
+      const filtered = allOptions.filter(o => {
+        if (o.selected) return true;          // always keep selected visible
+        if (tokens.length === 0) return true; // no filter -> show all
+        // match if ALL tokens are contained in the label (order-independent)
+        return tokens.every(t => o.textLower.includes(t));
+      });
+
       // Rebuild options while preserving selection
       selectEl.innerHTML = '';
       for (const o of filtered) {
