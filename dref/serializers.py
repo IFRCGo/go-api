@@ -718,7 +718,7 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, serializers.ModelSeri
         return dref
 
 
-class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
+class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, serializers.ModelSerializer):
     MAX_NUMBER_OF_IMAGES = 4
     national_society_actions = NationalSocietyActionSerializer(many=True, required=False)
     needs_identified = IdentifiedNeedSerializer(many=True, required=False)
@@ -803,6 +803,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
 
     def create(self, validated_data):
         dref = validated_data["dref"]
+        current_language = get_language()
         dref_operational_update = DrefOperationalUpdate.objects.filter(dref=dref).order_by("-operational_update_number").first()
         validated_data["created_by"] = self.context["request"].user
         if not dref_operational_update:
@@ -926,7 +927,8 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["is_man_made_event"] = dref.is_man_made_event
             validated_data["event_text"] = dref.event_text
             validated_data["did_national_society"] = dref.did_national_society
-
+            validated_data["original_language"] = current_language
+            validated_data[TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME] = current_language
             operational_update = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
             nested_serialized_file_fields = [
@@ -1096,6 +1098,15 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
     def update(self, instance, validated_data):
         validated_data["modified_by"] = self.context["request"].user
         modified_at = validated_data.pop("modified_at", None)
+
+        current_lang = get_language()
+        original_lang = instance.translation_module_original_language
+        if instance.status == Dref.Status.FINALIZED:
+            if current_lang != "en":
+                raise serializers.ValidationError(gettext("Finalized records can only be updated in English."))
+        elif current_lang != original_lang:
+            raise serializers.ValidationError(gettext("Only original language is supported: %s" % original_lang))
+
         if modified_at is None:
             raise serializers.ValidationError({"modified_at": "Modified At is required!"})
 
@@ -1105,7 +1116,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
         return super().update(instance, validated_data)
 
 
-class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
+class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, serializers.ModelSerializer):
     MAX_NUMBER_OF_PHOTOS = 4
     SUB_TOTAL_COST = 75000
     national_society_actions = NationalSocietyActionSerializer(many=True, required=False)
@@ -1250,6 +1261,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
         # here check if there is operational update for corresponding dref
         # if yes copy from the latest operational update
         # else copy from dref
+        current_language = get_language()
         dref = validated_data["dref"]
         dref_operational_update = (
             DrefOperationalUpdate.objects.filter(dref=dref, status=Dref.Status.APPROVED)
@@ -1257,6 +1269,8 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             .first()
         )
         validated_data["created_by"] = self.context["request"].user
+        validated_data["original_language"] = current_language
+        validated_data[TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME] = current_language
         # NOTE: Checks and common fields for the new dref final reports of new dref imminents
         if dref.type_of_dref == Dref.DrefType.IMMINENT and dref.is_dref_imminent_v2:
             validated_data["is_dref_imminent_v2"] = True
@@ -1539,6 +1553,13 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
 
     def update(self, instance, validated_data):
         modified_at = validated_data.pop("modified_at", None)
+        current_lang = get_language()
+        original_lang = instance.translation_module_original_language
+        if instance.status == Dref.Status.FINALIZED:
+            if current_lang != "en":
+                raise serializers.ValidationError(gettext("Finalized records can only be updated in English."))
+        elif current_lang != original_lang:
+            raise serializers.ValidationError(gettext("Only original language is supported: %s" % original_lang))
         if modified_at is None:
             raise serializers.ValidationError({"modified_at": "Modified At is required!"})
         if modified_at and instance.modified_at and modified_at < instance.modified_at:
