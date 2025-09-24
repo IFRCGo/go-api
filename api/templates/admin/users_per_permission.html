@@ -1,0 +1,140 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+{% block title %}{% trans "Users per permission" %}{% endblock %}
+
+{% block content %}
+<div class="app-admin-report">
+  <form method="get" class="form-inline" style="margin-bottom: 1rem;">
+    <div>
+      <label for="id_groups">{% trans "Groups" %}</label><br/>
+  <input type="text" id="id_groups_filter" placeholder="{% trans 'Filter' %}" style="min-width: 360px; margin-bottom: .5rem;" />
+  <br/>
+      <select id="id_groups" name="groups" multiple size="12" style="min-width: 360px;">
+        {% for g in groups %}
+          <option value="{{ g.id }}" {% if g.id in selected_group_ids %}selected{% endif %}>{{ g.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div style="margin-left: 1rem;">
+      <label>&nbsp;</label><br/>
+      <label>
+        <input type="checkbox" name="include_superusers" value="1" {% if include_superusers %}checked{% endif %}>
+        {% trans "Include superusers" %}
+      </label>
+      <div style="margin-top: .5rem;">
+        <button type="submit" class="button">{% trans "Apply filters" %}</button>
+      </div>
+      {% if selected_group_ids or include_superusers %}
+      <div style="margin-top: .5rem;">
+        <a class="button" href="?{% for gid in selected_group_ids %}groups={{ gid }}&{% endfor %}{% if include_superusers %}include_superusers=1&{% endif %}export=csv">CSV</a>
+        <a class="button" href="?{% for gid in selected_group_ids %}groups={{ gid }}&{% endfor %}{% if include_superusers %}include_superusers=1&{% endif %}export=xlsx">XLSX</a>
+      </div>
+      {% endif %}
+    </div>
+  </form>
+
+  {% if selected_group_ids or include_superusers %}
+    <p>
+      {% blocktrans %}Showing {{ result_count }} user(s). First 500 listed below.{% endblocktrans %}
+    </p>
+    <div class="results">
+      <table class="listing">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>{% trans "Username" %}</th>
+            <th>{% trans "Email address" %}</th>
+            <th>{% trans "Name" %}</th>
+            <th>{% trans "Ctry" %}</th>
+            <th>{% trans "Organization" %}</th>
+            <th>{% trans "Active" %}</th>
+            <th>{% trans "Staff" %}</th>
+            <th>{% trans "Superuser" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td>{{ u.id }}</td>
+            <td>{{ u.username }}</td>
+            <td>{{ u.email }}</td>
+            <td>{{ u.get_full_name }}</td>
+            <td>{{ u.profile.country.iso3|default_if_none:"" }}</td>
+            <td>{{ u.profile.org|default_if_none:"" }}</td>
+            <!-- yesno:"+,," -> '+' for True, '' for False/None -->
+            <td class="bool-col">{{ u.is_active|yesno:"+,," }}</td>
+            <td class="bool-col">{{ u.is_staff|yesno:"+,," }}</td>
+            <td class="bool-col">{{ u.is_superuser|yesno:"+,," }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7">{% trans "No users match the current filters." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p>{% trans "Select one or more Groups to view users. Optionally include superusers." %}</p>
+  {% endif %}
+</div>
+
+<script>
+  (function() {
+    const filterInput = document.getElementById('id_groups_filter');
+    const selectEl = document.getElementById('id_groups');
+    if (!filterInput || !selectEl) return;
+
+    // Snapshot original options once
+    const allOptions = Array.from(selectEl.options).map(opt => ({
+      value: opt.value,
+      label: opt.text,
+      textLower: opt.text.toLowerCase(),
+      selected: opt.selected,
+    }));
+
+    function syncSelectedState() {
+      const selectedValues = new Set(Array.from(selectEl.selectedOptions).map(o => o.value));
+      for (const o of allOptions) {
+        o.selected = selectedValues.has(o.value);
+      }
+    }
+
+    function renderOptions(query) {
+      const tokens = String(query || '')
+        .toLowerCase()
+        .trim()
+        .split(/\s+/)         // split by any whitespace
+        .filter(Boolean);     // remove empty tokens
+
+      const filtered = allOptions.filter(o => {
+        if (o.selected) return true;          // always keep selected visible
+        if (tokens.length === 0) return true; // no filter -> show all
+        // match if ALL tokens are contained in the label (order-independent)
+        return tokens.every(t => o.textLower.includes(t));
+      });
+
+      // Rebuild options while preserving selection
+      selectEl.innerHTML = '';
+      for (const o of filtered) {
+        const opt = document.createElement('option');
+        opt.value = o.value;
+        opt.text = o.label;
+        if (o.selected) opt.selected = true;
+        selectEl.appendChild(opt);
+      }
+    }
+
+    selectEl.addEventListener('change', () => {
+      syncSelectedState();
+      renderOptions(filterInput.value);
+    });
+
+    filterInput.addEventListener('input', () => {
+      syncSelectedState();
+      renderOptions(filterInput.value);
+    });
+
+    // Initial render (no filter)
+    renderOptions('');
+  })();
+</script>
+{% endblock %}

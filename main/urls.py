@@ -22,6 +22,7 @@ from oauth2_provider import urls as oauth2_urls
 from rest_framework import routers
 
 from api import drf_views as api_views
+from api.admin_reports import UsersPerPermissionViewSet
 from api.views import (
     AddCronJobLog,
     AddSubscription,
@@ -123,7 +124,7 @@ router.register(r"per-formarea", per_views.FormAreaViewset, basename="per-formar
 router.register(r"per-formcomponent", per_views.FormComponentViewset, basename="per-formcomponent")
 router.register(r"per-formquestion", per_views.FormQuestionViewset, basename="per-formquestion")
 router.register(r"per-formquestion-group", per_views.FormQuestionGroupViewset, basename="per-formquestion-group")
-router.register(r"aggregated-per-process-status", per_views.PerAggregatedViewSet, basename="aggregated-per-process-status"),
+router.register(r"aggregated-per-process-status", per_views.PerAggregatedViewSet, basename="aggregated-per-process-status")
 router.register(r"per-file", per_views.PerFileViewSet, basename="per-file")
 router.register(r"per-process-status", per_views.PerProcessStatusViewSet, basename="per-process-status")
 router.register(r"public-per-process-status", per_views.PublicPerProcessStatusViewSet, basename="public-per-process-status")
@@ -170,6 +171,9 @@ router.register(r"active-dref", dref_views.ActiveDrefOperationsViewSet, basename
 router.register(r"dref-share-user", dref_views.DrefShareUserViewSet, basename="dref_share_user")
 router.register(r"pdf-export", api_views.ExportViewSet, basename="export")
 router.register(r"dref3", dref_views.Dref3ViewSet, basename="dref3")
+
+# Query user lists per permission
+router.register(r"users-per-permission", UsersPerPermissionViewSet, basename="users_per_permission")
 
 # Country Plan apis
 router.register(r"country-plan", country_plan_views.CountryPlanViewset, basename="country_plan")

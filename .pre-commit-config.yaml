@@ -6,7 +6,7 @@ exclude: |
     (?x)^(
       \.git|
       __pycache__|
-      .+\/.+\/migrations\/.*|
+      .*/migrations\/.*|
       legacy|
       \.venv
     )
