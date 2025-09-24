@@ -1057,6 +1057,10 @@ try:
 except admin.sites.NotRegistered:
     pass
 
+# Rename built-in Permission model for admin menu/link
+Permission._meta.verbose_name = _("Users per permission")
+Permission._meta.verbose_name_plural = _("Users per permission")
+
 
 @admin.register(Permission)
 class PermissionReportAdmin(admin.ModelAdmin):
