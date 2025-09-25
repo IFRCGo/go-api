@@ -657,10 +657,19 @@ class CountryDirectorySerializer(ModelSerializer):
         fields = ("id", "first_name", "last_name", "position")
 
 
-class NSDInitiativesSerialzier(ModelSerializer):
+class NSDInitiativesSerializer(ModelSerializer):
+    categories = serializers.SerializerMethodField()
+
     class Meta:
         model = NSDInitiatives
         fields = "__all__"
+
+    @staticmethod
+    def get_categories(obj):
+        out = {}
+        for lang, name in obj.categories.values_list("lang", "name"):
+            out.setdefault(lang, []).append(name)
+        return out
 
 
 class CountryCapacityStrengtheningSerializer(ModelSerializer):
@@ -691,7 +700,7 @@ class CountryRelationSerializer(ModelSerializer):
     centroid = serializers.SerializerMethodField()
     regions_details = RegionSerializer(source="region", read_only=True)
     directory = CountryDirectorySerializer(source="countrydirectory_set", read_only=True, many=True)
-    initiatives = NSDInitiativesSerialzier(source="nsdinitiatives_set", read_only=True, many=True)
+    initiatives = NSDInitiativesSerializer(source="nsdinitiatives_set", read_only=True, many=True)
     capacity = CountryCapacityStrengtheningSerializer(source="countrycapacitystrengthening_set", read_only=True, many=True)
     organizational_capacity = CountryOrganizationalCapacitySerializer(
         source="countryorganizationalcapacity",
@@ -2521,6 +2530,7 @@ class ExportSerializer(serializers.ModelSerializer):
         else:
             title = "Export"
         user = self.context["request"].user
+
         if export_type == Export.ExportType.PER:
             validated_data["url"] = f"{settings.GO_WEB_INTERNAL_URL}/countries/{country_id}/{export_type}/{export_id}/export/"
         else:

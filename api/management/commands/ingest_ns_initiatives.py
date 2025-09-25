@@ -5,7 +5,13 @@ from django.db import transaction
 from sentry_sdk.crons import monitor
 
 from api.logger import logger
-from api.models import Country, CronJob, CronJobStatus, NSDInitiatives
+from api.models import (
+    Country,
+    CronJob,
+    CronJobStatus,
+    NSDInitiatives,
+    NSDInitiativesCategory,
+)
 from main.sentry import SentryMonitor
 
 DEFAULT_COUNTRY_ID = 289  # IFRC
@@ -32,7 +38,6 @@ def get_defaults(element, country, funding_period, lang):
         "fund_type": (
             f"{element.get('Fund')} – {element.get('FundingType')}" if element.get("FundingType") else element.get("Fund")
         ),
-        "categories": element.get("Categories"),
         "allocation": element.get("AllocationInCHF"),
         "funding_period": funding_period,
         "translation_module_original_language": lang,
@@ -132,6 +137,26 @@ class Command(BaseCommand):
                         added += 1
                         created_ns_initiatives_pk.append(ni.pk)
                         logger.warning(f"Created non-EN entry: {remote_id} / {lang}")
+
+                # Handle categories (language-aware)
+                raw_categories = element.get("Categories") or []
+                if isinstance(raw_categories, (list, tuple)):
+                    cat_objs = []
+                    for c in raw_categories:
+                        if not c:
+                            continue
+                        name = str(c).strip()
+                        if not name:
+                            continue
+                        # Create / fetch category for this specific language
+                        obj, _ = NSDInitiativesCategory.objects.get_or_create(
+                            name=name,
+                            lang=lang,
+                        )
+                        cat_objs.append(obj)
+
+                    if cat_objs:
+                        ni.categories.add(*cat_objs)
 
         # Remove old entries not present in the latest fetch
         NSDInitiatives.objects.exclude(id__in=created_ns_initiatives_pk).delete()

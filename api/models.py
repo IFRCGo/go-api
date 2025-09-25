@@ -419,6 +419,28 @@ class CountryOrganizationalCapacity(models.Model):
     financial_capacity = models.TextField(verbose_name=_("Financial Capacity"), null=True, blank=True)
 
 
+LANG_CHOICES = (
+    ("en", "English"),
+    ("es", "Spanish"),
+    ("fr", "French"),
+    ("ar", "Arabic"),
+)
+
+
+class NSDInitiativesCategory(models.Model):
+    name = models.CharField(max_length=255)
+    lang = models.CharField(max_length=5, choices=LANG_CHOICES, db_index=True, default="en")
+
+    class Meta:
+        ordering = ("name",)
+        unique_together = ("name", "lang")
+        verbose_name = _("NSD initiative category")
+        verbose_name_plural = _("NSD initiative categories")
+
+    def __str__(self):
+        return f"{self.name} ({self.lang})"
+
+
 class NSDInitiatives(models.Model):
     country = models.ForeignKey(Country, verbose_name=_("Country"), on_delete=models.CASCADE)
     title = models.CharField(verbose_name=_("Title"), max_length=255)
@@ -426,7 +448,12 @@ class NSDInitiatives(models.Model):
     allocation = models.IntegerField(verbose_name=_("Allocation in CHF"))
     year = models.CharField(verbose_name=_("Year"), max_length=20)
     funding_period = models.IntegerField(verbose_name=_("Funding Period in Month"))
-    categories = ArrayField(models.CharField(max_length=255), verbose_name=_("Funding categories"), default=list, null=True)
+    categories = models.ManyToManyField(
+        NSDInitiativesCategory,
+        blank=True,
+        related_name="initiatives",
+        verbose_name=_("Funding categories"),
+    )
     remote_id = models.IntegerField(db_index=True, unique=True, null=True, blank=True)
     nsia_risk = models.CharField(verbose_name=_("NSIA Risk"), max_length=30, null=True, blank=True)
 
