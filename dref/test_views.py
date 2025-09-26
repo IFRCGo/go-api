@@ -883,6 +883,158 @@ class DrefTestCase(APITestCase):
         # Title should be latest since modified_at is greater than modified_at in database
         self.assertEqual(response.data["title"], "New title")
 
+    def test_dref_create_and_update_in_local_language(
+        self,
+    ):
+        national_society = Country.objects.create(name="Test country xzz")
+        disaster_type = DisasterType.objects.create(name="Test country abc")
+
+        data = {
+            "title": "Prueba de título Dref",
+            "type_of_onset": Dref.OnsetType.SLOW.value,
+            "disaster_category": Dref.DisasterCategory.YELLOW.value,
+            "status": Dref.Status.DRAFT.value,
+            "num_assisted": 5666,
+            "num_affected": 23,
+            "amount_requested": 127771111,
+            "emergency_appeal_planned": False,
+            "event_date": "2021-08-01",
+            "ns_respond_date": "2021-08-01",
+            "event_text": "Texto de prueba para la respuesta",
+            "did_ns_request_fund": False,
+            "lessons_learned": "Texto de prueba para lecciones aprendidas",
+            "complete_child_safeguarding_risk": True,
+            "child_safeguarding_risk_level": "Muy alto",
+            "event_description": "Texto de prueba para descripción del evento",
+            "anticipatory_actions": "Texto de prueba para acciones anticipatorias",
+            "event_scope": "Texto de prueba para alcance del evento",
+            "government_requested_assistance": False,
+            "government_requested_assistance_date": "2021-08-01",
+            "national_authorities": "Texto de prueba para autoridades nacionales",
+            "icrc": "Texto de prueba para lecciones aprendidas",
+            "un_or_other_actor": "Texto de prueba para lecciones aprendidas",
+            "major_coordination_mechanism": "Texto de prueba para lecciones aprendidas",
+            "identified_gaps": "Texto de prueba para lecciones aprendidas",
+            "people_assisted": "Texto de prueba para lecciones aprendidas",
+            "selection_criteria": "Texto de prueba para lecciones aprendidas",
+            "entity_affected": "Texto de prueba para lecciones aprendidas",
+            "community_involved": "Texto de prueba para lecciones aprendidas",
+            "women": 344444,
+            "men": 5666,
+            "girls": 22,
+            "boys": 344,
+            "disability_people_per": "12.45",
+            "people_per": "10.35",
+            "displaced_people": 234243,
+            "operation_objective": "Texto de prueba para objetivo de operación",
+            "response_strategy": "Texto de prueba para estrategia de respuesta",
+            "secretariat_service": "Texto de prueba para servicio de secretaría",
+            "national_society_strengthening": "",
+            "ns_request_date": "2021-07-01",
+            "submission_to_geneva": "2021-07-01",
+            "date_of_approval": "2021-07-01",
+            "end_date": "2021-07-05",
+            "publishing_date": "2021-08-01",
+            "operation_timeframe": 4,
+            "appeal_code": "J7876",
+            "glide_code": "ER878",
+            "appeal_manager_name": "Nombre de prueba",
+            "appeal_manager_email": "test@gmail.com",
+            "project_manager_name": "Nombre de prueba",
+            "project_manager_email": "test@gmail.com",
+            "national_society_contact_name": "Nombre de prueba",
+            "national_society_contact_email": "test@gmail.com",
+            "media_contact_name": "Nombre de prueba",
+            "media_contact_email": "test@gmail.com",
+            "ifrc_emergency_name": "Nombre de prueba",
+            "ifrc_emergency_email": "test@gmail.com",
+            "originator_name": "Nombre de prueba",
+            "originator_email": "test@gmail.com",
+            "national_society": national_society.id,
+            "disaster_type": disaster_type.id,
+            "needs_identified": [{"title": "shelter_housing_and_settlements", "description": "hola"}],
+            "planned_interventions": [
+                {
+                    "title": "shelter_housing_and_settlements",
+                    "description": "matriz",
+                    "budget": 23444,
+                    "male": 12222,
+                    "female": 2255,
+                    "indicators": [
+                        {
+                            "title": "título de prueba",
+                            "actual": 21232,
+                            "target": 44444,
+                        }
+                    ],
+                }
+            ],
+        }
+
+        url = "/api/v2/dref/"
+
+        self.client.force_authenticate(self.user)
+        response = self.client.post(url, data, format="json", HTTP_ACCEPT_LANGUAGE="es")
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data["original_language"], "es")
+        self.assertEqual(response.data["translation_module_original_language"], "es")
+        self.assertEqual(response.data["title"], "Prueba de título Dref")
+        # Test update
+        dref_id = response.data["id"]
+        url = f"/api/v2/dref/{dref_id}/"
+        #  update in French
+        data_fr = {"title": "Titre en français", "modified_at": datetime.now()}
+        response = self.client.patch(url, data=data_fr, format="json", HTTP_ACCEPT_LANGUAGE="fr")
+        self.assert_400(response)
+
+        #  update in Arabic
+        data_ar = {"title": "العنوان بالعربية", "modified_at": datetime.now()}
+        response = self.client.patch(url, data=data_ar, format="json", HTTP_ACCEPT_LANGUAGE="ar")
+        self.assert_400(response)
+
+        #  update in English
+        data_en = {"title": "Updated title in English", "modified_at": datetime.now()}
+        response = self.client.patch(url, data=data_en, format="json", HTTP_ACCEPT_LANGUAGE="en")
+        self.assert_400(response)
+
+    @mock.patch("dref.tasks.translate_fields_to_english.delay")
+    def test_update_and_finalize_dref(self, mock_translate):
+        dref = DrefFactory.create(
+            title="Título original en español",
+            type_of_dref=Dref.DrefType.IMMINENT,
+            created_by=self.user,
+            status=Dref.Status.DRAFT,
+            translation_module_original_language="es",
+        )
+
+        url = f"/api/v2/dref/{dref.id}/"
+        self.client.force_authenticate(self.user)
+        # update in Spanish
+        data_es = {"title": "en español", "modified_at": datetime.now()}
+        response = self.client.patch(url, data=data_es, HTTP_ACCEPT_LANGUAGE="es")
+        self.assert_200(response)
+        self.assertEqual(response.data["title"], "en español")
+        # update in French
+        data_fr = {"title": "Titre en français", "modified_at": datetime.now()}
+        response = self.client.patch(url, data=data_fr, format="json", HTTP_ACCEPT_LANGUAGE="fr")
+        self.assert_400(response)
+        # update in Arabic
+        data_ar = {"title": "العنوان بالعربية", "modified_at": datetime.now()}
+        response = self.client.patch(url, data=data_ar, format="json", HTTP_ACCEPT_LANGUAGE="ar")
+        self.assert_400(response)
+        # update in English
+        data_en = {"title": "Updated title in English", "modified_at": datetime.now()}
+        response = self.client.patch(url, data=data_en, HTTP_ACCEPT_LANGUAGE="en")
+        self.assert_400(response)
+
+        # Finalize DREF
+        with self.capture_on_commit_callbacks(execute=True):
+            finalize_url = f"/api/v2/dref/{dref.id}/finalize/"
+            response = self.client.post(finalize_url)
+        self.assert_200(response)
+        self.assertEqual(response.data["status"], Dref.Status.FINALIZING)
+        mock_translate.assert_called_once_with("dref.Dref", dref.id)
+
     def test_dref_op_update_locking(self):
         user1, _ = UserFactory.create_batch(2)
         dref = DrefFactory.create(
@@ -922,6 +1074,105 @@ class DrefTestCase(APITestCase):
         data["modified_at"] = datetime.now() - timedelta(days=2)
         response = self.client.patch(url, data=data)
         self.assertEqual(response.status_code, 400)
+
+    def test_create_and_update_operational_update(self):
+        self.country = Country.objects.create(name="test ops country")
+        self.district = District.objects.create(name="test ops dis", country=self.country)
+
+        user1, user2 = UserFactory.create_batch(2)
+        dref = DrefFactory.create(
+            title="Test Title", created_by=user1, status=Dref.Status.APPROVED, translation_module_original_language="en"
+        )
+        dref2 = DrefFactory.create(
+            title="Test Title", created_by=user1, status=Dref.Status.DRAFT, translation_module_original_language="ar"
+        )
+
+        ops_update_data = {
+            "dref": dref.id,
+            "country": self.country.id,
+            "district": [self.district.id],
+        }
+        ops_update_data2 = {
+            "dref": dref2.id,
+            "country": self.country.id,
+            "district": [self.district.id],
+        }
+
+        self.authenticate(user1)
+        # Test create
+
+        self.authenticate(user2)
+        url = "/api/v2/dref-op-update/"
+        response = self.client.post(url, data=ops_update_data2)
+        self.assert_400(response)
+
+        url = "/api/v2/dref-op-update/"
+        response = self.client.post(url, data=ops_update_data, HTTP_ACCEPT_LANGUAGE="fr")
+        self.assert_201(response)
+        self.assertEqual(response.data["translation_module_original_language"], "fr")
+        ops_update_id = response.data["id"]
+        # Test Update
+        update_url = f"/api/v2/dref-op-update/{ops_update_id}/"
+        data_ar = {"title": "العنوان بالعربية", "modified_at": datetime.now()}
+        response = self.client.patch(update_url, data=data_ar, HTTP_ACCEPT_LANGUAGE="ar")
+        self.assert_400(response)
+        # Update in Spanish
+        data_es = {"title": "Título en español", "modified_at": datetime.now()}
+        response = self.client.patch(update_url, data=data_es, HTTP_ACCEPT_LANGUAGE="es")
+        self.assert_400(response)
+
+        # Update in English
+        data_en = {"title": "Updated title in English", "modified_at": datetime.now()}
+        response = self.client.patch(update_url, data=data_en, HTTP_ACCEPT_LANGUAGE="en")
+        self.assert_400(response)
+
+        # Update in French
+        data_fr = {"title": "Titre en français", "modified_at": datetime.now()}
+        response = self.client.patch(update_url, data=data_fr, HTTP_ACCEPT_LANGUAGE="fr")
+        self.assert_200(response)
+        self.assertEqual(response.data["title"], "Titre en français")
+
+    @mock.patch("dref.tasks.translate_fields_to_english.delay")
+    def test_dref_operational_update_finalize(self, mock_translate):
+        # Create users
+        user1, user2 = UserFactory.create_batch(2)
+        dref = DrefFactory.create(
+            title="Test Title",
+            created_by=user1,
+            status=Dref.Status.APPROVED,
+            translation_module_original_language="en",
+        )
+        dref.users.add(user1)
+        op_update = DrefOperationalUpdateFactory.create(
+            dref=dref,
+            status=Dref.Status.DRAFT,
+            operational_update_number=1,
+            modified_at=datetime.now(),
+            translation_module_original_language="ar",
+        )
+
+        url = f"/api/v2/dref-op-update/{op_update.id}/"
+        self.client.force_authenticate(user1)
+
+        # Update in Arabic (original language)
+        data_ar = {"title": "العنوان بالعربية", "modified_at": datetime.now()}
+        response = self.client.patch(url, data=data_ar, HTTP_ACCEPT_LANGUAGE="ar")
+        self.assert_200(response)
+        self.assertEqual(response.data["title"], "العنوان بالعربية")
+
+        # Update in English
+        data_en = {"title": "Updated title in English", "modified_at": datetime.now()}
+        response = self.client.patch(url, data=data_en, HTTP_ACCEPT_LANGUAGE="en")
+        self.assert_400(response)
+
+        # Finalize Operational Update
+        with self.capture_on_commit_callbacks(execute=True):
+            finalize_url = f"/api/v2/dref-op-update/{op_update.id}/finalize/"
+            response = self.client.post(finalize_url)
+
+        self.assert_200(response)
+        self.assertEqual(response.data["status"], Dref.Status.FINALIZING)
+        mock_translate.assert_called_once_with("dref.DrefOperationalUpdate", op_update.id)
 
     def test_optimistic_lock_in_final_report(self):
         user1 = UserFactory.create()
@@ -1850,6 +2101,106 @@ class DrefTestCase(APITestCase):
                 False,  # is_dref_imminent_v2 should be False for existing Dref of type IMMINENT
             },
         )
+
+    def test_create_and_update_final_report(self):
+        user1, user2 = UserFactory.create_batch(2)
+        dref = DrefFactory.create(
+            title="Test Title",
+            created_by=self.user,
+            status=Dref.Status.APPROVED,
+            type_of_dref=Dref.DrefType.ASSESSMENT,
+        )
+        dref2 = DrefFactory.create(
+            title="Test Title",
+            created_by=self.user,
+            status=Dref.Status.DRAFT,
+            type_of_dref=Dref.DrefType.IMMINENT,
+        )
+        dref.users.add(user1)
+        url = "/api/v2/dref-final-report/"
+        data = {
+            "dref": dref2.id,
+        }
+
+        self.authenticate(self.user)
+        response = self.client.post(url, data=data, HTTP_ACCEPT_LANGUAGE="es")
+        self.assert_400(response)
+
+        url = "/api/v2/dref-final-report/"
+        data = {
+            "dref": dref.id,
+        }
+        response = self.client.post(url, data=data, HTTP_ACCEPT_LANGUAGE="es")
+        self.assert_201(response)
+        self.assertEqual(response.data["translation_module_original_language"], "es")
+        final_report_id = response.data["id"]
+        # Test Update
+        update_url = f"/api/v2/dref-final-report/{final_report_id}/"
+        data_ar = {"title": "العنوان بالعربية", "modified_at": datetime.now()}
+        response = self.client.patch(update_url, data=data_ar, HTTP_ACCEPT_LANGUAGE="ar")
+        self.assert_400(response)
+
+        # Update in English
+        data_en = {"title": "Updated title in English", "modified_at": datetime.now()}
+        response = self.client.patch(update_url, data=data_en, HTTP_ACCEPT_LANGUAGE="en")
+        self.assert_400(response)
+
+        # Update in French
+        data_fr = {"title": "Titre en français", "modified_at": datetime.now()}
+        response = self.client.patch(update_url, data=data_fr, HTTP_ACCEPT_LANGUAGE="fr")
+        self.assert_400(response)
+
+        # Update in Spanish (original language)
+        data_es = {"title": "Título en español", "modified_at": datetime.now()}
+        response = self.client.patch(update_url, data=data_es, HTTP_ACCEPT_LANGUAGE="es")
+        self.assert_200(response)
+        self.assertEqual(response.data["translation_module_original_language"], "es")
+        self.assertEqual(response.data["title"], "Título en español")
+
+    @mock.patch("dref.tasks.translate_fields_to_english.delay")
+    def test_dref_final_report_finalize(self, mock_translate):
+        region = Region.objects.create(name=RegionName.AFRICA)
+        country = Country.objects.create(name="Test country12", region=region)
+        # Create users
+        user1, user2 = UserFactory.create_batch(2)
+        dref = DrefFactory.create(
+            title="Test Title",
+            created_by=user1,
+            status=Dref.Status.APPROVED,
+            translation_module_original_language="en",
+        )
+        dref.users.add(user1)
+        final_report = DrefFinalReportFactory(
+            title="Título en español",
+            dref=dref,
+            country=country,
+            type_of_dref=Dref.DrefType.RESPONSE,
+            status=Dref.Status.DRAFT,
+            translation_module_original_language="es",
+        )
+        self.client.force_authenticate(user1)
+        url = f"/api/v2/dref-final-report/{final_report.id}/"
+
+        # Update in Arabic
+        data_ar = {"title": "العنوان بالعربية", "modified_at": datetime.now()}
+        response = self.client.patch(url, data=data_ar, HTTP_ACCEPT_LANGUAGE="ar")
+        self.assert_400(response)
+
+        # Update in Spanish (original language)
+        data_es = {"title": "Título en español", "modified_at": datetime.now()}
+        response = self.client.patch(url, data=data_es, HTTP_ACCEPT_LANGUAGE="es")
+        self.assert_200(response)
+        self.assertEqual(response.data["title"], "Título en español")
+        self.assertEqual(response.data["translation_module_original_language"], "es")
+
+        # Finalize final-report
+        with self.capture_on_commit_callbacks(execute=True):
+            finalize_url = f"/api/v2/dref-final-report/{final_report.id}/finalize/"
+            response = self.client.post(finalize_url)
+
+        self.assert_200(response)
+        self.assertEqual(response.data["status"], Dref.Status.FINALIZING)
+        mock_translate.assert_called_once_with("dref.DrefFinalReport", final_report.id)
 
 
 User = get_user_model()
