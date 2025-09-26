@@ -5,7 +5,13 @@ from django.db import transaction
 from sentry_sdk.crons import monitor
 
 from api.logger import logger
-from api.models import Country, CronJob, CronJobStatus, NSDInitiatives
+from api.models import (
+    Country,
+    CronJob,
+    CronJobStatus,
+    NSDInitiatives,
+    NSDInitiativesCategory,
+)
 from main.sentry import SentryMonitor
 
 DEFAULT_COUNTRY_ID = 289  # IFRC
@@ -32,7 +38,6 @@ def get_defaults(element, country, funding_period, lang):
         "fund_type": (
             f"{element.get('Fund')} – {element.get('FundingType')}" if element.get("FundingType") else element.get("Fund")
         ),
-        "categories": element.get("Categories"),
         "allocation": element.get("AllocationInCHF"),
         "funding_period": funding_period,
         "translation_module_original_language": lang,
@@ -89,6 +94,10 @@ class Command(BaseCommand):
         updated_remote_ids = set()
         created_ns_initiatives_pk = []
 
+        # In-memory alignment helpers
+        category_by_remote_index = {}  # remote_id -> list[NSDInitiativesCategory]
+        pending_translations = {}  # remote_id -> list[(lang, index, label)]
+
         for lang, resp in responses:
             for element in resp:
                 try:
@@ -114,24 +123,99 @@ class Command(BaseCommand):
                         for field, value in defaults.items():
                             setattr(ni, field, value)
                         ni.save(update_fields=defaults.keys())
-                        updated_remote_ids.add(remote_id)  # Mark as updated, only for EN entries
+                        updated_remote_ids.add(remote_id)
                     created_ns_initiatives_pk.append(ni.pk)
-                else:
-                    try:
-                        # We could use ISO also to identify the entry, but remote_id is more robust
-                        ni = NSDInitiatives.objects.get(remote_id=remote_id)
-                        setattr(ni, title_field, element.get("InitiativeTitle"))
-                        setattr(ni, risk_field, element.get("Risk"))
-                        ni.save(update_fields=[title_field, risk_field])
-                    except NSDInitiatives.DoesNotExist:
-                        # Should not happen – only if EN entry is missing
-                        ni = NSDInitiatives.objects.create(
-                            remote_id=remote_id,
-                            **defaults,
-                        )
-                        added += 1
-                        created_ns_initiatives_pk.append(ni.pk)
-                        logger.warning(f"Created non-EN entry: {remote_id} / {lang}")
+
+                    # Establish baseline categories from EN by index
+                    raw_categories = element.get("Categories") or []
+                    cats_en = []
+                    cat_objs = []
+                    if isinstance(raw_categories, (list, tuple)):
+                        for idx, raw in enumerate(raw_categories):
+                            label = (raw or "").strip()
+                            if not label:
+                                cats_en.append(None)
+                                continue
+                            # Reuse/create a global category by English label
+                            cat = NSDInitiativesCategory.objects.filter(name_en__iexact=label).first()
+                            if not cat:
+                                cat = NSDInitiativesCategory.objects.create(name=label, name_en=label)
+                            else:
+                                # Ensure plain 'name' mirrors EN for convenience
+                                to_update = []
+                                if getattr(cat, "name_en", None) != label:
+                                    cat.name_en = label
+                                    to_update.append("name_en")
+                                if getattr(cat, "name", None) != label:
+                                    cat.name = label
+                                    to_update.append("name")
+                                if to_update:
+                                    cat.save(update_fields=to_update)
+                            cats_en.append(cat)
+                            cat_objs.append(cat)
+
+                        if cat_objs:
+                            ni.categories.set(cat_objs)
+                        else:
+                            ni.categories.clear()
+
+                        # Save baseline for this remote_id
+                        category_by_remote_index[remote_id] = cats_en
+
+                        # Apply any pending translations queued before EN
+                        for item in pending_translations.pop(remote_id, []):
+                            plang, pidx, plabel = item
+                            if 0 <= pidx < len(cats_en) and cats_en[pidx]:
+                                field = f"name_{plang}"
+                                cat = cats_en[pidx]
+                                if getattr(cat, field, None) != plabel:
+                                    setattr(cat, field, plabel)
+                                    cat.save(update_fields=[field])
+                    continue  # Done with EN row; go next element
+
+                # Non-EN branch: update fields and queue/apply category translations
+                try:
+                    ni = NSDInitiatives.objects.get(remote_id=remote_id)
+                    setattr(ni, title_field, element.get("InitiativeTitle"))
+                    setattr(ni, risk_field, element.get("Risk"))
+                    ni.save(update_fields=[title_field, risk_field])
+                except NSDInitiatives.DoesNotExist:
+                    # Should not happen – only if EN entry is missing
+                    ni = NSDInitiatives.objects.create(
+                        remote_id=remote_id,
+                        **defaults,
+                    )
+                    added += 1
+                    created_ns_initiatives_pk.append(ni.pk)
+                    logger.warning(f"Created non-EN entry: {remote_id} / {lang}")
+
+                # Align categories by index to the EN baseline for this remote_id
+                raw_categories = element.get("Categories") or []
+                if not isinstance(raw_categories, (list, tuple)):
+                    continue
+
+                cats_en = category_by_remote_index.get(remote_id)
+                if cats_en is None:
+                    # Baseline not processed yet; queue these translations
+                    q = pending_translations.setdefault(remote_id, [])
+                    for idx, raw in enumerate(raw_categories):
+                        label = (raw or "").strip()
+                        if label:
+                            q.append((lang, idx, label))
+                    continue
+
+                # Baseline exists: update translated fields by index
+                field = f"name_{lang}"
+                for idx, raw in enumerate(raw_categories):
+                    label = (raw or "").strip()
+                    if not label or idx >= len(cats_en):
+                        continue
+                    cat = cats_en[idx]
+                    if not cat:
+                        continue
+                    if getattr(cat, field, None) != label:
+                        setattr(cat, field, label)
+                        cat.save(update_fields=[field])
 
         # Remove old entries not present in the latest fetch
         NSDInitiatives.objects.exclude(id__in=created_ns_initiatives_pk).delete()

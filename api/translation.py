@@ -19,6 +19,7 @@ from .models import (
     KeyFigure,
     MainContact,
     NSDInitiatives,
+    NSDInitiativesCategory,
     Region,
     RegionEmergencySnippet,
     RegionKeyFigure,
@@ -101,6 +102,12 @@ class GDACSEventTO(TranslationOptions):
 @register(MainContact)
 class MainContactTO(TranslationOptions):
     fields = ("extent",)
+
+
+@register(NSDInitiativesCategory)
+class NSDInitiativesCategoryTO(TranslationOptions):
+    fields = ("name",)
+    skip_fields = ("name",)
 
 
 @register(NSDInitiatives)
