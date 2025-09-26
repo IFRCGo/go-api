@@ -419,26 +419,16 @@ class CountryOrganizationalCapacity(models.Model):
     financial_capacity = models.TextField(verbose_name=_("Financial Capacity"), null=True, blank=True)
 
 
-LANG_CHOICES = (
-    ("en", "English"),
-    ("es", "Spanish"),
-    ("fr", "French"),
-    ("ar", "Arabic"),
-)
-
-
 class NSDInitiativesCategory(models.Model):
     name = models.CharField(max_length=255)
-    lang = models.CharField(max_length=5, choices=LANG_CHOICES, db_index=True, default="en")
 
     class Meta:
         ordering = ("name",)
-        unique_together = ("name", "lang")
         verbose_name = _("NSD initiative category")
         verbose_name_plural = _("NSD initiative categories")
 
     def __str__(self):
-        return f"{self.name} ({self.lang})"
+        return f"{self.name}"
 
 
 class NSDInitiatives(models.Model):

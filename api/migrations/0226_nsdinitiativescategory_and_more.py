@@ -4,45 +4,62 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('api', '0225_nsdinitiatives_nsia_risk_ar_and_more'),
+        ("api", "0225_nsdinitiatives_nsia_risk_ar_and_more"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='NSDInitiativesCategory',
+            name="NSDInitiativesCategory",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255, unique=True, verbose_name='Name')),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("name", models.CharField(max_length=255, verbose_name="Name")),
+                ("name_en", models.CharField(max_length=255, null=True)),
+                ("name_es", models.CharField(max_length=255, null=True)),
+                ("name_fr", models.CharField(max_length=255, null=True)),
+                ("name_ar", models.CharField(max_length=255, null=True)),
+                (
+                    "translation_module_original_language",
+                    models.CharField(
+                        choices=[("en", "English"), ("es", "Spanish"), ("fr", "French"), ("ar", "Arabic")],
+                        default="en",
+                        help_text="Language used to create this entity",
+                        max_length=2,
+                        verbose_name="Entity Original language",
+                    ),
+                ),
+                (
+                    "translation_module_skip_auto_translation",
+                    models.BooleanField(
+                        default=False,
+                        help_text="Skip auto translation operation for this entity?",
+                        verbose_name="Skip auto translation",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'NSD initiative category',
-                'verbose_name_plural': 'NSD initiative categories',
-                'ordering': ('name',),
+                "verbose_name": "NSD initiative category",
+                "verbose_name_plural": "NSD initiative categories",
+                "ordering": ("name",),
             },
         ),
         migrations.RemoveField(
-            model_name='nsdinitiatives',
-            name='categories',
+            model_name="nsdinitiatives",
+            name="categories",  # remove old ArrayField
         ),
         migrations.AddField(
-            model_name='nsdinitiatives',
-            name='categories',
-            field=models.ManyToManyField(blank=True, related_name='initiatives', to='api.nsdinitiativescategory', verbose_name='Funding categories'),
-        ),
-        migrations.AddField(
-            model_name='nsdinitiativescategory',
-            name='lang',
-            field=models.CharField(choices=[('en', 'English'), ('es', 'Spanish'), ('fr', 'French'), ('ar', 'Arabic')], db_index=True, default='en', max_length=5),
+            model_name="nsdinitiatives",
+            name="categories",
+            field=models.ManyToManyField(
+                blank=True,
+                related_name="initiatives",
+                to="api.nsdinitiativescategory",
+                verbose_name="Funding categories",
+            ),
         ),
         migrations.AlterField(
             model_name='nsdinitiativescategory',
             name='name',
             field=models.CharField(max_length=255),
-        ),
-        migrations.AlterUniqueTogether(
-            name='nsdinitiativescategory',
-            unique_together={('name', 'lang')},
         ),
     ]
