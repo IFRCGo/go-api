@@ -657,10 +657,55 @@ class CountryDirectorySerializer(ModelSerializer):
         fields = ("id", "first_name", "last_name", "position")
 
 
-class NSDInitiativesSerialzier(ModelSerializer):
+class NSDInitiativesSerializer(ModelSerializer):
+    # Return translated category names (current active language) – like title does.
+    categories = serializers.SerializerMethodField()
+
     class Meta:
         model = NSDInitiatives
         fields = "__all__"
+
+    @staticmethod
+    def get_categories(obj):
+        """
+        Return category names in the currently active language (like title does),
+        avoiding duplicates and avoiding showing the same semantic category in
+        multiple languages (caused by legacy per-language rows).
+
+        Strategy:
+        - Active language value (name_<lang>) wins.
+        - If missing, fall back to English ONLY if no row already provided a
+          translated value for that semantic slot.
+        - Ignore rows that have neither an active-language value nor an English fallback.
+        """
+        from django.utils.translation import get_language
+
+        lang = (get_language() or "en")[:2]
+        lang_field = f"name_{lang}"
+
+        cats = obj.categories.all()
+        # First collect all explicit translations in the active language
+        explicit_lang_values = {
+            getattr(c, lang_field).strip() for c in cats if getattr(c, lang_field, None) and getattr(c, lang_field).strip()
+        }
+
+        seen = set()
+        result = []
+        for c in cats:
+            val_lang = getattr(c, lang_field, None)
+            val_lang = val_lang.strip() if val_lang else ""
+            if val_lang:
+                if val_lang not in seen:
+                    seen.add(val_lang)
+                    result.append(val_lang)
+                continue
+            # fallback to English only if there is NO active-language version in any row
+            val_en = getattr(c, "name_en", None)
+            val_en = val_en.strip() if val_en else ""
+            if val_en and not explicit_lang_values and val_en not in seen:
+                seen.add(val_en)
+                result.append(val_en)
+        return result
 
 
 class CountryCapacityStrengtheningSerializer(ModelSerializer):
@@ -691,7 +736,7 @@ class CountryRelationSerializer(ModelSerializer):
     centroid = serializers.SerializerMethodField()
     regions_details = RegionSerializer(source="region", read_only=True)
     directory = CountryDirectorySerializer(source="countrydirectory_set", read_only=True, many=True)
-    initiatives = NSDInitiativesSerialzier(source="nsdinitiatives_set", read_only=True, many=True)
+    initiatives = NSDInitiativesSerializer(source="nsdinitiatives_set", read_only=True, many=True)
     capacity = CountryCapacityStrengtheningSerializer(source="countrycapacitystrengthening_set", read_only=True, many=True)
     organizational_capacity = CountryOrganizationalCapacitySerializer(
         source="countryorganizationalcapacity",
@@ -2521,6 +2566,7 @@ class ExportSerializer(serializers.ModelSerializer):
         else:
             title = "Export"
         user = self.context["request"].user
+
         if export_type == Export.ExportType.PER:
             validated_data["url"] = f"{settings.GO_WEB_INTERNAL_URL}/countries/{country_id}/{export_type}/{export_id}/export/"
         else:
