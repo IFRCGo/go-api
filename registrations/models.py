@@ -91,6 +91,11 @@ class UserExternalToken(models.Model):
     jti = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, help_text=_("Unique identifier for the token"))
     created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
     expire_timestamp = models.DateTimeField(verbose_name=_("expire timestamp"))
+    is_old_token = models.BooleanField(
+        verbose_name=_("is old token?"),
+        default=False,
+        help_text=_("Marks whether this is an old Montandon token"),
+    )
     # @Note: Currently not used, but could be utilized for a blacklist feature.
     # is_disabled = models.BooleanField(verbose_name=_('is disabled?'), default=False)
 
