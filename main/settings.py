@@ -122,6 +122,7 @@ env = environ.Env(
     # Misc
     DISABLE_API_CACHE=(bool, False),
     # jwt private and public key (NOTE: Used algorithm ES256)
+    # FIXME: Deprecated configuration. Remove this and it references
     JWT_PRIVATE_KEY_BASE64_ENCODED=(str, None),
     JWT_PUBLIC_KEY_BASE64_ENCODED=(str, None),
     JWT_PRIVATE_KEY=(str, None),
@@ -849,6 +850,8 @@ AZURE_OPENAI_KEY = env("AZURE_OPENAI_KEY")
 AZURE_OPENAI_DEPLOYMENT_NAME = env("AZURE_OPENAI_DEPLOYMENT_NAME")
 
 OIDC_ENABLE = env("OIDC_ENABLE")
+OIDC_RSA_PRIVATE_KEY = None
+OIDC_RSA_PUBLIC_KEY = None
 if OIDC_ENABLE:
     LOGIN_REDIRECT_URL = "go_login"
     LOGOUT_REDIRECT_URL = "go_login"

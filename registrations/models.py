@@ -91,6 +91,13 @@ class UserExternalToken(models.Model):
     jti = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, help_text=_("Unique identifier for the token"))
     created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
     expire_timestamp = models.DateTimeField(verbose_name=_("expire timestamp"))
+
+    # FIXME: Cleanup old token and remove this field
+    is_old_token = models.BooleanField(
+        verbose_name=_("is old token?"),
+        default=False,
+        help_text=_("Marks whether this is an old Montandon token"),
+    )
     # @Note: Currently not used, but could be utilized for a blacklist feature.
     # is_disabled = models.BooleanField(verbose_name=_('is disabled?'), default=False)
 
@@ -102,4 +109,9 @@ class UserExternalToken(models.Model):
         return f'{self.title}-{self.expire_timestamp.strftime("%Y-%m-%d")}'
 
     def get_payload(self) -> dict:
-        return {"jti": str(self.jti), "userId": self.user_id, "exp": self.expire_timestamp, "inMovement": True}
+        return {
+            "jti": str(self.jti),
+            "userId": self.user_id,
+            "exp": self.expire_timestamp,
+            "inMovement": True,
+        }

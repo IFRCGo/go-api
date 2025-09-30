@@ -145,10 +145,11 @@ class RegistrationSerializer(serializers.Serializer):
 class UserExternalTokenSerializer(serializers.ModelSerializer):
     token = serializers.CharField(read_only=True)
     expire_timestamp = serializers.DateTimeField(required=False)
+    is_old_token = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = UserExternalToken
-        fields = ["title", "token", "expire_timestamp", "created_at"]
+        fields = ["title", "token", "expire_timestamp", "created_at", "is_old_token"]
 
     def validate_expire_timestamp(self, date):
         now = timezone.now()
@@ -169,7 +170,7 @@ class UserExternalTokenSerializer(serializers.ModelSerializer):
             validated_data["expire_timestamp"] = timezone.now() + timedelta(days=settings.JWT_EXPIRE_TIMESTAMP_DAYS)
 
         # Check if private and public key exists
-        if not (settings.JWT_PRIVATE_KEY and settings.JWT_PUBLIC_KEY):
+        if not (settings.OIDC_RSA_PRIVATE_KEY and settings.OIDC_RSA_PUBLIC_KEY):
             raise serializers.ValidationError("Please contact system adminstrators to configurate private and public key.")
         instance = super().create(validated_data)
         validated_data["created_at"] = instance.created_at
