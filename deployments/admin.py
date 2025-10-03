@@ -55,7 +55,22 @@ class MolnixTagGroupAdmin(CompareVersionAdmin, admin.ModelAdmin):
 
 @admin.register(models.ERU)
 class ERUAdmin(CompareVersionAdmin, admin.ModelAdmin):
-    search_fields = ("national_society_country__name",)
+    search_fields = (
+        "type",
+        "deployed_to__name",
+        "appeal__code",
+        "supporting_societies",
+        "eru_owner__national_society_country__name",
+    )
+    list_display = ["__str__", "country", "event", "eru_owner", "appeal", "start_date", "units", "eqp_units"]
+
+    @admin.display(description=_("Country"), ordering="deployed_to__name")
+    def country(self, obj):
+        return obj.deployed_to
+
+    @admin.display(description=_("EQP Units"), ordering="equipment_units")
+    def eqp_units(self, obj):
+        return obj.equipment_units
 
 
 class PersonnelAdmin(CompareVersionAdmin, TranslationAdmin):
