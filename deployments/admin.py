@@ -53,6 +53,31 @@ class MolnixTagGroupAdmin(CompareVersionAdmin, admin.ModelAdmin):
     search_fields = ("name",)
 
 
+class ERUOwnerCountryFilter(admin.SimpleListFilter):
+    title = _("ERU owner country")
+    parameter_name = "owner_country"
+
+    def lookups(self, request, model_admin):
+        # Show each country only once (distinct), based on ERUs present
+        qs = (
+            model_admin.get_queryset(request)
+            .exclude(eru_owner__national_society_country__isnull=True)
+            .values_list(
+                "eru_owner__national_society_country_id",
+                "eru_owner__national_society_country__name",
+            )
+            .distinct()
+            .order_by("eru_owner__national_society_country__name")
+        )
+        return [(str(cid), name) for cid, name in qs]
+
+    def queryset(self, request, queryset):
+        cid = self.value()
+        if cid:
+            return queryset.filter(eru_owner__national_society_country_id=cid)
+        return queryset
+
+
 @admin.register(models.ERU)
 class ERUAdmin(CompareVersionAdmin, admin.ModelAdmin):
     search_fields = (
@@ -63,6 +88,8 @@ class ERUAdmin(CompareVersionAdmin, admin.ModelAdmin):
         "eru_owner__national_society_country__name",
     )
     list_display = ["__str__", "country", "event", "eru_owner", "appeal", "start_date", "units", "eqp_units"]
+    # Type and country-based owner filter (single entry per country) filter
+    list_filter = ("type", ERUOwnerCountryFilter)
 
     @admin.display(description=_("Country"), ordering="deployed_to__name")
     def country(self, obj):
