@@ -24,6 +24,7 @@ from api.models import (
 )
 from deployments.models import ERU, Personnel, PersonnelDeployment
 from main.sentry import SentryMonitor
+from main.utils import logger_context
 from notifications.hello import get_hello
 from notifications.models import RecordType, Subscription, SubscriptionType, SurgeAlert
 from notifications.notification import send_notification
@@ -922,12 +923,16 @@ class Command(BaseCommand):
     def bulk(self, actions):
         try:
             created, errors = bulk(client=ES_CLIENT, actions=actions)
-            if len(errors):
-                logger.error("Produced the following errors:")
-                logger.error("[%s]" % ", ".join(map(str, errors)))
-        except Exception as e:
-            logger.error("Could not index records")
-            logger.error("%s..." % str(e)[:512])
+            if errors:
+                logger.error(
+                    "(index_and_notify:bulk): produced errors:",
+                    extra=logger_context(dict(errors=errors)),
+                )
+        except Exception:
+            logger.error(
+                "(index_and_notify:bulk): could not index records",
+                exc_info=True,
+            )
 
     # Remove items in a queryset where updated_at == created_at.
     # This leaves us with only ones that have been modified.
