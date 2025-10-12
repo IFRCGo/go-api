@@ -13,6 +13,7 @@ from modeltranslation.translator import translator
 from modeltranslation.utils import build_localized_fieldname
 
 from main.celery import Queues
+from main.lock import RedisLockKey, redis_lock
 from main.translation import (
     TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME,
     TRANSLATOR_SKIP_FIELD_NAME,
@@ -32,13 +33,13 @@ class ModelTranslator:
     def translator(self):
         return self.default_translator
 
-    def translate_fields_object(self, obj, field, target_languages=None):
+    def translate_fields_object(self, obj, field):
         initial_lang = getattr(obj, TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME)
         initial_value = getattr(obj, build_localized_fieldname(field, initial_lang), None)
         if not initial_value or not initial_lang:
             return
-        target_languages = target_languages or AVAILABLE_LANGUAGES
-        for lang in target_languages:
+
+        for lang in AVAILABLE_LANGUAGES:
             lang_field = build_localized_fieldname(field, lang)
             value = getattr(obj, lang_field, None)
             if value:
@@ -107,17 +108,14 @@ class ModelTranslator:
         skipped_fields = set(getattr(translation_options, "skip_fields", []))
         return [field for field in translation_options.fields.keys() if field not in skipped_fields]
 
-    def translate_model_fields(self, obj, translatable_fields=None, target_languages=None):
+    def translate_model_fields(self, obj, translatable_fields=None):
         if skip_auto_translation(obj):
             return
         translatable_fields = translatable_fields or self.get_translatable_fields(type(obj))
         update_fields = []
         for field in translatable_fields:
-            update_fields.extend(list(self.translate_fields_object(obj, field, target_languages)))
+            update_fields.extend(list(self.translate_fields_object(obj, field)))
         obj.save(update_fields=update_fields)
-
-    def translate_model_fields_to_english(self, obj, translatable_fields=None):
-        return self.translate_model_fields(obj, translatable_fields=translatable_fields, target_languages=["en"])
 
     @classmethod
     def show_characters_counts(cls, only_models: typing.Optional[typing.List[models.Model]] = None):
@@ -206,7 +204,13 @@ def translate_remaining_models_fields():
 def translate_model_fields(model_name, pk):
     model = django_apps.get_model(model_name)
     obj = model.objects.get(pk=pk)
-    ModelTranslator().translate_model_fields(obj)
+
+    with redis_lock(key=RedisLockKey.MODEL_TRANSLATION, id=pk, model_name=model_name) as acquired:
+        if not acquired:
+            logger.warning(f"Translation is already in progress for {model_name} with pk={pk}.")
+            return
+        ModelTranslator().translate_model_fields(obj)
+        logger.info(f"Translation success for {model_name} with pk={pk}.")
 
 
 @shared_task(queue=Queues.HEAVY)

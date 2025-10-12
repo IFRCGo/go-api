@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-08 17:57+0000\n"
+"POT-Creation-Date: 2025-10-17 10:36+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,7 +18,639 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: middlewares/middlewares.py:67
+#: country_plan/models.py:24
+msgid "Created By"
+msgstr ""
+
+#: country_plan/models.py:31 local_units/models.py:118
+#: local_units/models.py:377 local_units/models.py:564
+msgid "Created at"
+msgstr ""
+
+#: country_plan/models.py:34
+msgid "Updated by"
+msgstr ""
+
+#: country_plan/models.py:41 local_units/models.py:520
+msgid "Updated at"
+msgstr ""
+
+#: country_plan/models.py:48
+msgid "EXCEL file"
+msgstr ""
+
+#: country_plan/models.py:68
+msgid "Internal Plan"
+msgstr ""
+
+#: country_plan/models.py:74
+msgid "internal_plan_url"
+msgstr ""
+
+#: country_plan/models.py:76 country_plan/models.py:123
+#: country_plan/models.py:149
+msgid "Country Plan"
+msgstr ""
+
+#: country_plan/models.py:82
+msgid "public_plan_url"
+msgstr ""
+
+#: country_plan/models.py:83
+msgid "Requested Amount"
+msgstr ""
+
+#: country_plan/models.py:84 country_plan/models.py:128
+msgid "People Targeted"
+msgstr ""
+
+#: country_plan/models.py:85
+msgid "Published"
+msgstr ""
+
+#: country_plan/models.py:113
+msgid "Ongoing emergency operations"
+msgstr ""
+
+#: country_plan/models.py:114
+msgid "Climate and environment"
+msgstr ""
+
+#: country_plan/models.py:115
+msgid "Disasters and crisis"
+msgstr ""
+
+#: country_plan/models.py:116
+msgid "Health and wellbeing"
+msgstr ""
+
+#: country_plan/models.py:117
+msgid "Migration and displacement"
+msgstr ""
+
+#: country_plan/models.py:118
+msgid "Values, power and inclusion"
+msgstr ""
+
+#: country_plan/models.py:126 local_units/models.py:370
+#: local_units/models.py:470 local_units/models.py:544
+msgid "Type"
+msgstr ""
+
+#: country_plan/models.py:127
+msgid "Funding Requirement"
+msgstr ""
+
+#: country_plan/models.py:139
+msgid "Climate"
+msgstr ""
+
+#: country_plan/models.py:140
+msgid "Crisis"
+msgstr ""
+
+#: country_plan/models.py:141
+msgid "Health"
+msgstr ""
+
+#: country_plan/models.py:142
+msgid "Migration"
+msgstr ""
+
+#: country_plan/models.py:143
+msgid "Inclusion"
+msgstr ""
+
+#: country_plan/models.py:144
+msgid "Enabling functions"
+msgstr ""
+
+#: country_plan/models.py:152
+msgid "Sector"
+msgstr ""
+
+#: local_units/models.py:17 local_units/models.py:25 local_units/models.py:37
+#: local_units/models.py:62 local_units/models.py:74 local_units/models.py:82
+#: local_units/models.py:90 local_units/models.py:98 local_units/models.py:106
+#: local_units/models.py:247 local_units/models.py:270
+#: local_units/models.py:535 local_units/models.py:542
+msgid "Name"
+msgstr ""
+
+#: local_units/models.py:119 local_units/models.py:378
+#: local_units/models.py:565
+msgid "Modified at"
+msgstr ""
+
+#: local_units/models.py:122 local_units/models.py:381
+msgid "created by"
+msgstr ""
+
+#: local_units/models.py:129 local_units/models.py:388
+msgid "modified by"
+msgstr ""
+
+#: local_units/models.py:135
+msgid "Affiliation"
+msgstr ""
+
+#: local_units/models.py:137
+msgid "Other Affiliation"
+msgstr ""
+
+#: local_units/models.py:141
+msgid "Functionality"
+msgstr ""
+
+#: local_units/models.py:144
+msgid "Focal point email"
+msgstr ""
+
+#: local_units/models.py:145
+msgid "Focal point phone number"
+msgstr ""
+
+#: local_units/models.py:146
+msgid "Focal point position"
+msgstr ""
+
+#: local_units/models.py:148
+msgid "Health facility type"
+msgstr ""
+
+#: local_units/models.py:150
+msgid "Other facility type"
+msgstr ""
+
+#: local_units/models.py:154
+msgid "Primary Health Care Center"
+msgstr ""
+
+#: local_units/models.py:158
+msgid "Speciality"
+msgstr ""
+
+#: local_units/models.py:162
+msgid "Hospital type"
+msgstr ""
+
+#: local_units/models.py:167
+msgid "Is teaching hospital?"
+msgstr ""
+
+#: local_units/models.py:172
+msgid "Has in-patient capacity?"
+msgstr ""
+
+#: local_units/models.py:177
+msgid "Has isolation rooms wards?"
+msgstr ""
+
+#: local_units/models.py:181
+msgid "Maximum Capacity"
+msgstr ""
+
+#: local_units/models.py:182
+msgid "Number of isolation rooms"
+msgstr ""
+
+#: local_units/models.py:184
+msgid "Has warehousing?"
+msgstr ""
+
+#: local_units/models.py:189
+msgid "Has cold chain?"
+msgstr ""
+
+#: local_units/models.py:193
+msgid "Ambulance Type A"
+msgstr ""
+
+#: local_units/models.py:194
+msgid "Ambulance Type B"
+msgstr ""
+
+#: local_units/models.py:195
+msgid "Ambulance Type C"
+msgstr ""
+
+#: local_units/models.py:199
+msgid "General medical services"
+msgstr ""
+
+#: local_units/models.py:205
+msgid "Specialized medical beyond primary level"
+msgstr ""
+
+#: local_units/models.py:208
+msgid "Other Services"
+msgstr ""
+
+#: local_units/models.py:212
+msgid "Blood Services"
+msgstr ""
+
+#: local_units/models.py:218
+msgid "Professional Training Facilities"
+msgstr ""
+
+#: local_units/models.py:221
+msgid "Total number of Human Resource"
+msgstr ""
+
+#: local_units/models.py:222
+msgid "General Practitioner"
+msgstr ""
+
+#: local_units/models.py:223
+msgid "Specialist"
+msgstr ""
+
+#: local_units/models.py:224
+msgid "Residents Doctor"
+msgstr ""
+
+#: local_units/models.py:225
+msgid "Nurse"
+msgstr ""
+
+#: local_units/models.py:226
+msgid "Dentist"
+msgstr ""
+
+#: local_units/models.py:227
+msgid "Nursing Aid"
+msgstr ""
+
+#: local_units/models.py:228
+msgid "Midwife"
+msgstr ""
+
+#: local_units/models.py:230
+msgid "Other medical heal"
+msgstr ""
+
+#: local_units/models.py:234
+msgid "Other Profiles"
+msgstr ""
+
+#: local_units/models.py:235
+msgid "Feedback"
+msgstr ""
+
+#: local_units/models.py:246 local_units/models.py:534
+msgid "Type Code"
+msgstr ""
+
+#: local_units/models.py:248
+msgid "Local Unit Colour"
+msgstr ""
+
+#: local_units/models.py:269 local_units/models.py:373
+msgid "Coverage"
+msgstr ""
+
+#: local_units/models.py:273
+msgid "Local unit coverage"
+msgstr ""
+
+#: local_units/models.py:274
+msgid "Local unit coverages"
+msgstr ""
+
+#: local_units/models.py:282
+msgid "Success"
+msgstr ""
+
+#: local_units/models.py:283
+msgid "Failed"
+msgstr ""
+
+#: local_units/models.py:284 local_units/models.py:489
+msgid "Pending"
+msgstr ""
+
+#: local_units/models.py:289 local_units/models.py:367
+#: local_units/models.py:466 local_units/models.py:551
+msgid "Country"
+msgstr ""
+
+#: local_units/models.py:293
+msgid "Local Unit Type"
+msgstr ""
+
+#: local_units/models.py:295
+msgid "Success Count"
+msgstr ""
+
+#: local_units/models.py:298
+msgid "Failed Count"
+msgstr ""
+
+#: local_units/models.py:300
+msgid "File Size"
+msgstr ""
+
+#: local_units/models.py:303
+msgid "Status"
+msgstr ""
+
+#: local_units/models.py:309
+msgid "Triggered By"
+msgstr ""
+
+#: local_units/models.py:312
+msgid "Triggered At"
+msgstr ""
+
+#: local_units/models.py:313
+msgid "Uploaded File"
+msgstr ""
+
+#: local_units/models.py:318
+msgid "Error File"
+msgstr ""
+
+#: local_units/models.py:320
+msgid "Error Message"
+msgstr ""
+
+#: local_units/models.py:340
+msgid "Local"
+msgstr ""
+
+#: local_units/models.py:341
+msgid "Regional"
+msgstr ""
+
+#: local_units/models.py:342
+msgid "Global"
+msgstr ""
+
+#: local_units/models.py:348
+msgid "Non-existent local unit"
+msgstr ""
+
+#: local_units/models.py:349
+msgid "Incorrectly added local unit"
+msgstr ""
+
+#: local_units/models.py:350
+msgid "Security concerns"
+msgstr ""
+
+#: local_units/models.py:351
+msgid "Other"
+msgstr ""
+
+#: local_units/models.py:362
+msgid "Health Data"
+msgstr ""
+
+#: local_units/models.py:371
+msgid "Subtype"
+msgstr ""
+
+#: local_units/models.py:375
+msgid "Branch name in local language"
+msgstr ""
+
+#: local_units/models.py:376
+msgid "Branch name in English"
+msgstr ""
+
+#: local_units/models.py:394 local_units/models.py:567
+msgid "Date of data collection"
+msgstr ""
+
+#: local_units/models.py:397
+msgid "Draft"
+msgstr ""
+
+#: local_units/models.py:399
+msgid "Validation Status"
+msgstr ""
+
+#: local_units/models.py:401 local_units/models.py:563
+msgid "visibility"
+msgstr ""
+
+#: local_units/models.py:402
+msgid "Source in Local Language"
+msgstr ""
+
+#: local_units/models.py:403
+msgid "Source in English"
+msgstr ""
+
+#: local_units/models.py:404
+msgid "Address in local language"
+msgstr ""
+
+#: local_units/models.py:405
+msgid "Address in English"
+msgstr ""
+
+#: local_units/models.py:408
+msgid "City in local language"
+msgstr ""
+
+#: local_units/models.py:414
+msgid "City in English"
+msgstr ""
+
+#: local_units/models.py:418
+msgid "Focal person for local language"
+msgstr ""
+
+#: local_units/models.py:419
+msgid "Focal person for English"
+msgstr ""
+
+#: local_units/models.py:420 local_units/models.py:548
+msgid "Postal code"
+msgstr ""
+
+#: local_units/models.py:421
+msgid "Telephone"
+msgstr ""
+
+#: local_units/models.py:422
+msgid "Email"
+msgstr ""
+
+#: local_units/models.py:423
+msgid "Social link"
+msgstr ""
+
+#: local_units/models.py:425
+msgid "Is deprecated?"
+msgstr ""
+
+#: local_units/models.py:427
+msgid "deprecated reason"
+msgstr ""
+
+#: local_units/models.py:430
+msgid "Explain the reason why the local unit is being deleted"
+msgstr ""
+
+#: local_units/models.py:433
+msgid "Explain the reason why the local unit is being updated"
+msgstr ""
+
+#: local_units/models.py:437
+msgid "Last email sent validator type"
+msgstr ""
+
+#: local_units/models.py:442
+msgid "Bulk Upload Local Unit"
+msgstr ""
+
+#: local_units/models.py:490
+msgid "Approved"
+msgstr ""
+
+#: local_units/models.py:491
+msgid "Revert"
+msgstr ""
+
+#: local_units/models.py:494
+msgid "Local Unit"
+msgstr ""
+
+#: local_units/models.py:496
+msgid "Previous data"
+msgstr ""
+
+#: local_units/models.py:497
+msgid "status"
+msgstr ""
+
+#: local_units/models.py:499
+msgid "Current validator"
+msgstr ""
+
+#: local_units/models.py:505
+msgid "triggered by"
+msgstr ""
+
+#: local_units/models.py:510
+msgid "Triggered at"
+msgstr ""
+
+#: local_units/models.py:515
+msgid "updated by"
+msgstr ""
+
+#: local_units/models.py:521
+msgid "Rejected data"
+msgstr ""
+
+#: local_units/models.py:522
+msgid "Rejected reason"
+msgstr ""
+
+#: local_units/models.py:546
+msgid "City"
+msgstr ""
+
+#: local_units/models.py:547
+msgid "Address"
+msgstr ""
+
+#: local_units/models.py:553
+msgid "URL of national society"
+msgstr ""
+
+#: local_units/models.py:554
+msgid "URL on IFRC webpage"
+msgstr ""
+
+#: local_units/models.py:555
+msgid "HOD first name"
+msgstr ""
+
+#: local_units/models.py:556
+msgid "HOD last name"
+msgstr ""
+
+#: local_units/models.py:557
+msgid "HOD mobile number"
+msgstr ""
+
+#: local_units/models.py:558
+msgid "HOD Email"
+msgstr ""
+
+#: local_units/models.py:559
+msgid "Assistant name"
+msgstr ""
+
+#: local_units/models.py:560
+msgid "Assistant email"
+msgstr ""
+
+#: local_units/models.py:561
+msgid "NS on same location?"
+msgstr ""
+
+#: local_units/models.py:562
+msgid "Multiple IFRC offices?"
+msgstr ""
+
+#: local_units/serializers.py:335
+msgid ""
+"Country and Local unit Type is externally managed cannot be created manually."
+msgstr ""
+
+#: local_units/serializers.py:341
+msgid "Branch Name Combination is required !"
+msgstr ""
+
+#: local_units/serializers.py:370 local_units/serializers.py:398
+#: local_units/serializers.py:936
 #, python-format
-msgid "Currently %(method)s method is only allowed for non-English language."
+msgid "Input coordinates is outside country %s boundary"
+msgstr ""
+
+#: local_units/serializers.py:598
+msgid "Create is not allowed"
+msgstr ""
+
+#: local_units/serializers.py:604
+msgid "This object is already depricated"
+msgstr ""
+
+#: local_units/serializers.py:649
+msgid ""
+"An externally managed local unit with this country and type already exists."
+msgstr ""
+
+#: local_units/serializers.py:694
+msgid "File must be a CSV file."
+msgstr ""
+
+#: local_units/serializers.py:696
+msgid "File must be less than 10 MB."
+msgstr ""
+
+#: local_units/serializers.py:710
+msgid "Country and local unit type are not externally managed."
+msgstr ""
+
+#: local_units/serializers.py:903
+msgid "Level is not valid"
+msgstr ""
+
+#: local_units/serializers.py:909
+msgid "Branch Name Combination is required."
+msgstr ""
+
+#: local_units/serializers.py:915
+msgid "Latitude and Longitude are required."
+msgstr ""
+
+#: local_units/serializers.py:918
+msgid "Country is required."
 msgstr ""
