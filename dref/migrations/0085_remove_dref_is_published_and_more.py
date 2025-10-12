@@ -2,7 +2,18 @@
 
 from django.db import migrations
 
-
+def migrate_approved_status_to_new_value(apps, schema_editor):
+    """
+    Migrates the 'APPROVED' status from old value (4) to new value (3)
+    """
+    models = [
+        "Dref",
+        "DrefOperationalUpdate",
+        "DrefFinalReport",
+    ]
+    for model_name in models:
+        Model = apps.get_model("dref", model_name)
+        Model.objects.filter(status=4).update(status=3) 
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -22,4 +33,5 @@ class Migration(migrations.Migration):
             model_name="drefoperationalupdate",
             name="is_published",
         ),
+    migrations.RunPython(migrate_approved_status_to_new_value, reverse_code=migrations.RunPython.noop),
     ]

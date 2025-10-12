@@ -266,11 +266,9 @@ class Dref(models.Model):
     class Status(models.IntegerChoices):
         DRAFT = 1, _("Draft")
         """Draft: Initial stage content is being created and is not ready for review."""
-        FINALIZING = 2, _("Finalizing")
-        """Finalizing: Content is in the translation process from the original language into English."""
-        FINALIZED = 3, _("Finalized")
+        FINALIZED = 2, _("Finalized")
         """Finalized: Translation is completed, content is ready for review, and updates to the original language are locked."""
-        APPROVED = 4, _("Approved")
+        APPROVED = 3, _("Approved")
         """Approved: The content has been reviewed, accepted, and is ready for use."""
 
     created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)

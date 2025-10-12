@@ -1,6 +1,6 @@
 import django.utils.timezone as timezone
 from django.contrib.auth.models import Permission
-from django.db import models, transaction
+from django.db import models
 from django.templatetags.static import static
 from django.utils.translation import gettext
 from drf_spectacular.utils import extend_schema
@@ -17,7 +17,6 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from reversion.views import RevisionMixin
 
-from api.utils import get_model_name
 from dref.filter_set import (
     ActiveDrefFilterSet,
     CompletedDrefOperationsFilterSet,
@@ -109,16 +108,12 @@ class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
         dref = self.get_object()
         if dref.status in [Dref.Status.FINALIZED, Dref.Status.APPROVED]:
             raise serializers.ValidationError(gettext("Cannot be finalized because it is already %s") % dref.get_status_display())
-        # NOTE: If the dref original language is English, skip the translation task and update the status.
-        if dref.translation_module_original_language == "en":
+        if dref.translation_module_original_language != "en":
+            dref.translation_module_original_language = "en"
             dref.status = Dref.Status.FINALIZED
-            dref.save(update_fields=["status"])
-            serializer = DrefSerializer(dref, context={"request": request})
-            return response.Response(serializer.data)
-
-        dref.status = Dref.Status.FINALIZING
+            dref.save(update_fields=["status", "translation_module_original_language"])
+        dref.status = Dref.Status.FINALIZED
         dref.save(update_fields=["status"])
-        transaction.on_commit(lambda: translate_fields_to_english.delay(get_model_name(type(dref)), dref.pk))
         serializer = DrefSerializer(dref, context={"request": request})
         return response.Response(serializer.data)
 
@@ -203,18 +198,12 @@ class DrefOperationalUpdateViewSet(RevisionMixin, viewsets.ModelViewSet):
             raise serializers.ValidationError(
                 gettext("Cannot be finalized because it is already %s") % operational_update.get_status_display()
             )
-        # NOTE: If the operational update original language is English, skip the translation task and update the status.
-        if operational_update.translation_module_original_language == "en":
+        if operational_update.translation_module_original_language != "en":
+            operational_update.translation_module_original_language = "en"
             operational_update.status = Dref.Status.FINALIZED
-            operational_update.save(update_fields=["status"])
-            serializer = DrefOperationalUpdateSerializer(operational_update, context={"request": request})
-            return response.Response(serializer.data)
-
-        operational_update.status = Dref.Status.FINALIZING
+            operational_update.save(update_fields=["status", "translation_module_original_language"])
+        operational_update.status = Dref.Status.FINALIZED
         operational_update.save(update_fields=["status"])
-        transaction.on_commit(
-            lambda: translate_fields_to_english.delay(get_model_name(type(operational_update)), operational_update.pk)
-        )
         serializer = DrefOperationalUpdateSerializer(operational_update, context={"request": request})
         return response.Response(serializer.data)
 
@@ -269,16 +258,12 @@ class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
             raise serializers.ValidationError(
                 gettext("Cannot be finalized because it is already %s") % field_report.get_status_display()
             )
-        # NOTE: If the final report original language is English, skip the translation task and update the status.
-        if field_report.translation_module_original_language == "en":
+        if field_report.translation_module_original_language != "en":
+            field_report.translation_module_original_language = "en"
             field_report.status = Dref.Status.FINALIZED
-            field_report.save(update_fields=["status"])
-            serializer = DrefFinalReportSerializer(field_report, context={"request": request})
-            return response.Response(serializer.data)
-
-        field_report.status = Dref.Status.FINALIZING
+            field_report.save(update_fields=["status", "translation_module_original_language"])
+        field_report.status = Dref.Status.FINALIZED
         field_report.save(update_fields=["status"])
-        transaction.on_commit(lambda: translate_fields_to_english.delay(get_model_name(type(field_report)), field_report.pk))
         serializer = DrefFinalReportSerializer(field_report, context={"request": request})
         return response.Response(serializer.data)
 

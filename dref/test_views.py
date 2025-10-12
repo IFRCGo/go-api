@@ -1247,8 +1247,7 @@ class DrefTestCase(APITestCase):
         response = self.client.patch(url, data=data_en, format="json", HTTP_ACCEPT_LANGUAGE="en")
         self.assert_400(response)
 
-    @mock.patch("dref.tasks.translate_fields_to_english.delay")
-    def test_update_and_finalize_dref(self, mock_translate):
+    def test_update_and_finalize_dref(self):
         dref = DrefFactory.create(
             title="Título original en español",
             type_of_dref=Dref.DrefType.IMMINENT,
@@ -1278,12 +1277,18 @@ class DrefTestCase(APITestCase):
         self.assert_400(response)
 
         # Finalize DREF
-        with self.capture_on_commit_callbacks(execute=True):
-            finalize_url = f"/api/v2/dref/{dref.id}/finalize/"
-            response = self.client.post(finalize_url)
+        finalize_url = f"/api/v2/dref/{dref.id}/finalize/"
+        response = self.client.post(finalize_url)
         self.assert_200(response)
-        self.assertEqual(response.data["status"], Dref.Status.FINALIZING)
-        mock_translate.assert_called_once_with("dref.Dref", dref.id)
+        self.assertEqual(response.data["status"], Dref.Status.FINALIZED)
+        self.assertEqual(response.data["translation_module_original_language"], "en")
+
+        # Update in English
+        finalized_dref_id = response.data["id"]
+        url = f"/api/v2/dref/{finalized_dref_id}/"
+        response = self.client.patch(url, data=data_en, HTTP_ACCEPT_LANGUAGE="en")
+        self.assert_200(response)
+        self.assertEqual(response.data["title"], "Updated title in English")
 
     def test_dref_op_update_locking(self):
         user1, _ = UserFactory.create_batch(2)
@@ -1350,12 +1355,10 @@ class DrefTestCase(APITestCase):
 
         self.authenticate(user1)
         # Test create
-
         self.authenticate(user2)
         url = "/api/v2/dref-op-update/"
         response = self.client.post(url, data=ops_update_data2)
         self.assert_400(response)
-
         url = "/api/v2/dref-op-update/"
         response = self.client.post(url, data=ops_update_data, HTTP_ACCEPT_LANGUAGE="fr")
         self.assert_201(response)
@@ -1382,8 +1385,7 @@ class DrefTestCase(APITestCase):
         self.assert_200(response)
         self.assertEqual(response.data["title"], "Titre en français")
 
-    @mock.patch("dref.tasks.translate_fields_to_english.delay")
-    def test_dref_operational_update_finalize(self, mock_translate):
+    def test_dref_operational_update_finalize(self):
         # Create users
         user1, user2 = UserFactory.create_batch(2)
         dref = DrefFactory.create(
@@ -1416,13 +1418,17 @@ class DrefTestCase(APITestCase):
         self.assert_400(response)
 
         # Finalize Operational Update
-        with self.capture_on_commit_callbacks(execute=True):
-            finalize_url = f"/api/v2/dref-op-update/{op_update.id}/finalize/"
-            response = self.client.post(finalize_url)
-
+        finalize_url = f"/api/v2/dref-op-update/{op_update.id}/finalize/"
+        response = self.client.post(finalize_url)
         self.assert_200(response)
-        self.assertEqual(response.data["status"], Dref.Status.FINALIZING)
-        mock_translate.assert_called_once_with("dref.DrefOperationalUpdate", op_update.id)
+        self.assertEqual(response.data["status"], Dref.Status.FINALIZED)
+        self.assertEqual(response.data["translation_module_original_language"], "en")
+        # Update in English
+        finalized_op_update_id = response.data["id"]
+        url = f"/api/v2/dref-op-update/{finalized_op_update_id}/"
+        response = self.client.patch(url, data=data_en, HTTP_ACCEPT_LANGUAGE="en")
+        self.assert_200(response)
+        self.assertEqual(response.data["title"], "Updated title in English")
 
     def test_optimistic_lock_in_final_report(self):
         user1 = UserFactory.create()
@@ -2407,8 +2413,7 @@ class DrefTestCase(APITestCase):
         self.assertEqual(response.data["translation_module_original_language"], "es")
         self.assertEqual(response.data["title"], "Título en español")
 
-    @mock.patch("dref.tasks.translate_fields_to_english.delay")
-    def test_dref_final_report_finalize(self, mock_translate):
+    def test_dref_final_report_finalize(self):
         region = Region.objects.create(name=RegionName.AFRICA)
         country = Country.objects.create(name="Test country12", region=region)
         # Create users
@@ -2444,13 +2449,17 @@ class DrefTestCase(APITestCase):
         self.assertEqual(response.data["translation_module_original_language"], "es")
 
         # Finalize final-report
-        with self.capture_on_commit_callbacks(execute=True):
-            finalize_url = f"/api/v2/dref-final-report/{final_report.id}/finalize/"
-            response = self.client.post(finalize_url)
-
+        finalize_url = f"/api/v2/dref-final-report/{final_report.id}/finalize/"
+        response = self.client.post(finalize_url)
         self.assert_200(response)
-        self.assertEqual(response.data["status"], Dref.Status.FINALIZING)
-        mock_translate.assert_called_once_with("dref.DrefFinalReport", final_report.id)
+        self.assertEqual(response.data["status"], Dref.Status.FINALIZED)
+        self.assertEqual(response.data["translation_module_original_language"], "en")
+        # Update in English
+        finalized_final_report_id = response.data["id"]
+        data_en = {"title": "Updated title in English", "modified_at": datetime.now()}
+        url = f"/api/v2/dref-final-report/{finalized_final_report_id}/"
+        response = self.client.patch(url, data=data_en, HTTP_ACCEPT_LANGUAGE="en")
+        self.assertEqual(response.data["title"], "Updated title in English")
 
 
 User = get_user_model()
