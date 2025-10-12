@@ -338,10 +338,10 @@ class Dref(models.Model):
         related_name="dref_targeting_strategy_support_file",
     )
     status = models.IntegerField(choices=Status.choices, verbose_name=_("status"), default=Status.DRAFT)
-    original_language = models.CharField(
+    starting_language = models.CharField(
         blank=True,
         null=True,
-        verbose_name=_("Original language"),
+        verbose_name=_("Starting language"),
         help_text="The language in which this record was first created.",
     )  # NOTE: This field is set at creation with the active language.
     num_assisted = models.IntegerField(verbose_name=_("number of assisted"), blank=True, null=True)
@@ -868,10 +868,10 @@ class DrefOperationalUpdate(models.Model):
         choices=Dref.DisasterCategory.choices, verbose_name=_("disaster category"), null=True, blank=True
     )
     status = models.IntegerField(choices=Dref.Status.choices, verbose_name=_("status"), default=Dref.Status.DRAFT)
-    original_language = models.CharField(
+    starting_language = models.CharField(
         blank=True,
         null=True,
-        verbose_name=_("Original language"),
+        verbose_name=_("Starting language"),
         help_text="The language in which this record was first created.",
     )  # NOTE: This field is set at creation with the active language.
     number_of_people_targeted = models.IntegerField(verbose_name=_("Number of people targeted"), blank=True, null=True)
@@ -1307,10 +1307,10 @@ class DrefFinalReport(models.Model):
         choices=Dref.DisasterCategory.choices, verbose_name=_("disaster category"), null=True, blank=True
     )
     status = models.IntegerField(choices=Dref.Status.choices, verbose_name=_("status"), default=Dref.Status.DRAFT)
-    original_language = models.CharField(
+    starting_language = models.CharField(
         blank=True,
         null=True,
-        verbose_name=_("Original language"),
+        verbose_name=_("Starting language"),
         help_text="The language in which this record was first created.",
     )  # NOTE: This field is set at creation with the active language.
     number_of_people_targeted = models.IntegerField(verbose_name=_("Number of people targeted"), blank=True, null=True)
