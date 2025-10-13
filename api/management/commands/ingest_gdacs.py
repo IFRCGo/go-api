@@ -100,11 +100,12 @@ class Command(BaseCommand):
                         title = "%s..." % title[:97]
 
                     fields = {
-                        "name": title,
+                        "title": title,
                         "summary": data["description"],
                         "disaster_start_date": data["publication_date"],
                         "auto_generated": True,
                         "auto_generated_source": SOURCES["gdacs"],
+                        "skip_auto_generate_name": True,
                         "ifrc_severity_level": data["alert_level"],
                     }
                     event = Event.objects.create(**fields)

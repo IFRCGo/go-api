@@ -14,11 +14,12 @@ class Command(BaseCommand):
         print("Creating %s events" % len(appeals_without_events))
         for appeal in appeals_without_events:
             fields = {
-                "name": appeal.name,
+                "title": appeal.name,
                 "dtype": appeal.dtype,
                 "disaster_start_date": appeal.start_date,
                 "auto_generated": True,
                 "auto_generated_source": SOURCES["appeal_admin"],
+                "skip_auto_generate_name": True,
             }
             event = Event.objects.create(**fields)
             if appeal.country is not None:

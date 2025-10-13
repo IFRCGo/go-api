@@ -288,6 +288,15 @@ def remove_appeal_filter(sender, instance, using, **kwargs):
     appealFilter.save()
 
 
+@receiver(m2m_changed, sender=Event.countries.through)
+def update_event_name(sender, instance, action, **kwargs):
+    """
+    Update the event name when the countries are changed.
+    """
+    if action in ["post_add", "post_remove"]:
+        instance.save()
+
+
 @receiver(m2m_changed, sender=FieldReport.countries.through)
 def update_fieldreport_summary(sender, instance, action, **kwargs):
     """
