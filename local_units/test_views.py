@@ -1177,15 +1177,15 @@ class LocalUnitBulkUploadTests(APITestCase):
         global_group.permissions.add(global_permission)
         self.global_validator_user.groups.add(global_group)
 
-        file_path = os.path.join(settings.TEST_DIR, "local_unit/test.csv")
+        file_path = os.path.join(settings.TEST_DIR, "local_unit/test-admin.xlsx")
         with open(file_path, "rb") as f:
             self._file_content = f.read()
 
-    def create_upload_file(self, filename="test.csv"):
+    def create_upload_file(self, filename="test-admin.xlsx"):
         """
         Always return a new file instance to prevent stream exhaustion.
         """
-        return SimpleUploadedFile(filename, self._file_content, content_type="text/csv")
+        return SimpleUploadedFile(filename, self._file_content, content_type="text/xlsx")
 
     @mock.patch("local_units.tasks.process_bulk_upload_local_unit.delay")
     def test_bulk_upload_local_unit(self, mock_delay):
@@ -1330,16 +1330,16 @@ class BulkUploadTests(TestCase):
         cls.local_unit_type = LocalUnitType.objects.create(code=1, name="Administrative")
         cls.local_unit_type2 = LocalUnitType.objects.create(code=2, name="Health Care")
         cls.level = LocalUnitLevel.objects.create(level=0, name="National")
-        file_path = os.path.join(settings.TEST_DIR, "local_unit/test.csv")
+        file_path = os.path.join(settings.TEST_DIR, "local_unit/test-admin.xlsx")
         with open(file_path, "rb") as f:
             cls._file_content = f.read()
 
-    def create_upload_file(cls, filename="test.csv"):
-        return SimpleUploadedFile(filename, cls._file_content, content_type="text/csv")
+    def create_upload_file(cls, filename="test-admin.xlsx"):
+        return SimpleUploadedFile(filename, cls._file_content, content_type="text/xlsx")
 
     def test_bulk_upload_with_incorrect_country(cls):
         """
-        Test bulk upload fails when the country does not match CSV data.
+        Test bulk upload fails when the country does not match xlsx data.
         """
         cls.bulk_upload = LocalUnitBulkUploadFactory.create(
             country=cls.country1,
@@ -1362,13 +1362,13 @@ class BulkUploadTests(TestCase):
 
     def test_bulk_upload_with_valid_country(cls):
         """
-        Test bulk upload succeeds when the country matches CSV data
+        Test bulk upload succeeds when the country matches xlsx data
         """
         cls.bulk_upload = LocalUnitBulkUploadFactory.create(
             country=cls.country2,  # Brazil
             local_unit_type=cls.local_unit_type,
             triggered_by=cls.user,
-            file=cls.create_upload_file(),  # CSV with Brazil rows
+            file=cls.create_upload_file(),  # xlsx with Brazil rows
             status=LocalUnitBulkUpload.Status.PENDING,
         )
         runner = BaseBulkUploadLocalUnit(cls.bulk_upload)
@@ -1381,7 +1381,7 @@ class BulkUploadTests(TestCase):
 
     def test_bulk_upload_fails_and_delete(cls):
         """
-        Test bulk upload fails and delete when CSV has incorrect data.
+        Test bulk upload fails and delete when xlsx has incorrect data.
         """
         LocalUnitFactory.create_batch(
             5,
@@ -1410,7 +1410,7 @@ class BulkUploadTests(TestCase):
 
     def test_bulk_upload_deletes_old_and_creates_new_local_units(cls):
         """
-        Test bulk upload with correct CSV data.
+        Test bulk upload with correct data.
         """
         old_local_unit = LocalUnitFactory.create(
             country=cls.country2,
@@ -1442,10 +1442,14 @@ class BulkUploadTests(TestCase):
         Test bulk upload file is empty
         """
 
-        file_path = os.path.join(settings.STATICFILES_DIRS[0], "files", "local_units", "local-unit-bulk-upload-template.csv")
+        file_path = os.path.join(
+            settings.STATICFILES_DIRS[0], "files", "local_units", "Administrative Bulk Import Template - Local Units.xlsx"
+        )
         with open(file_path, "rb") as f:
             file_content = f.read()
-        empty_file = SimpleUploadedFile(name="local-unit-bulk-upload-template.csv", content=file_content, content_type="text/csv")
+        empty_file = SimpleUploadedFile(
+            name="Administrative Bulk Import Template - Local Units.xlsx", content=file_content, content_type="text/xlsx"
+        )
         LocalUnitFactory.create_batch(
             5,
             country=cls.country2,
@@ -1531,16 +1535,16 @@ class BulkUploadHealthDataTests(TestCase):
         cls.professional_training_facilities = ProfessionalTrainingFacility.objects.create(code=1, name="Nurses")
         cls.general_medical_services = GeneralMedicalService.objects.create(code=1, name="Minor Trauma")
 
-        file_path = os.path.join(settings.TEST_DIR, "local_unit/test-health.csv")
+        file_path = os.path.join(settings.TEST_DIR, "local_unit/test-health.xlsx")
         with open(file_path, "rb") as f:
             cls._file_content = f.read()
 
-    def create_upload_file(cls, filename="test-health.csv"):
-        return SimpleUploadedFile(filename, cls._file_content, content_type="text/csv")
+    def create_upload_file(cls, filename="test-health.xlsx"):
+        return SimpleUploadedFile(filename, cls._file_content, content_type="text/xlsx")
 
     def test_bulk_upload_health_with_incorrect_country(cls):
         """
-        Should fail when CSV rows are not equal to bulk upload country.
+        Should fail when rows are not equal to bulk upload country.
         """
         cls.bulk_upload = LocalUnitBulkUploadFactory.create(
             country=cls.country1,
@@ -1640,12 +1644,12 @@ class BulkUploadHealthDataTests(TestCase):
         """
 
         file_path = os.path.join(
-            settings.STATICFILES_DIRS[0], "files", "local_units", "local-unit-health-bulk-upload-template.csv"
+            settings.STATICFILES_DIRS[0], "files", "local_units", "Health Care Bulk Import Template - Local Units.xlsx"
         )
         with open(file_path, "rb") as f:
             file_content = f.read()
         empty_file = SimpleUploadedFile(
-            name="local-unit-health-bulk-upload-template.csv", content=file_content, content_type="text/csv"
+            name="Health Care Bulk Import Template - Local Units.xlsx", content=file_content, content_type="text/xlsx"
         )
         health_data = HealthDataFactory.create_batch(
             5,
