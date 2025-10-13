@@ -1,0 +1,103 @@
+name: "Bug Report"
+description: "Report a technical issue or error."
+labels: ["type: bug"]
+type: "Bug"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping improve the IFRC GO Backend!
+        Please fill out the form below with as much detail as possible. This will help us diagnose and fix the issue promptly.
+        If the issue is visual, screenshots or videos are greatly appreciated.
+
+  - type: input
+    attributes:
+      label: "Affected Endpoint or URL"
+      description: "Specify the API endpoint or The URL of the page where you encountered the issue."
+      placeholder: "https://go.ifrc.org/"
+    validations:
+      required: true
+
+  - type: dropdown
+    attributes:
+      label: "Environment"
+      description: "Please select the environment where the bug occurred."
+      options:
+        - "Alpha"
+        - "Staging"
+        - "Production"
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: "Operating System"
+      description: "What operating system are you using? Include the version if possible."
+      placeholder: "Windows 10"
+    validations:
+      required: false
+
+  - type: textarea
+    attributes:
+      label: "Steps to Reproduce the Issue"
+      description: |
+        Please describe the issue in detail, including:
+        1. What actions led to the issue?
+        2. Sample requests or steps to trigger the issue.
+        3. Attach logs or screenshots if available.
+      placeholder: |
+        1. Sent a GET request to /api/v2/...
+        2. Observed error message: "Database connection error"
+        3. [Attach logs/screenshots if available]
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: "Expected Behavior"
+      description: "Describe what you expected to happen."
+      placeholder: "I expected the API..."
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: "Actual Behavior"
+      description: "Describe what actually happened, including any error messages."
+      placeholder: "Instead, I saw..."
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: "Relevant Logs or Stack Traces"
+      description: "Provide any logs, stack traces, or error messages that can help in diagnosing the issue."
+      placeholder: |
+        Error: Connection timeout at db.connect()...
+        Traceback (most recent call last):
+    validations:
+      required: false
+
+  - type: dropdown
+    attributes:
+      label: "Priority"
+      description: "How urgent is this issue?"
+      options:
+        - "Low (Minor inconvenience)"
+        - "Medium (Affects functionality, but there is a workaround)"
+        - "High (Major functionality is broken)"
+        - "Critical (Site is unusable)"
+    validations:
+      required: false
+
+  - type: textarea
+    attributes:
+      label: "Additional Context"
+      description: |
+        Provide any extra details, such as:
+        - Related links.
+        - Previous occurrences of this issue.
+        - Workarounds you have tried.
+      placeholder: "This issue also happened on [link]."
+    validations:
+      required: false
