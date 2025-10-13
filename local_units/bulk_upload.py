@@ -1,11 +1,14 @@
-import csv
 import io
 import logging
 from dataclasses import dataclass
+from datetime import date, datetime
 from typing import Any, Dict, Generic, Literal, Optional, Type, TypeVar
 
+import openpyxl
 from django.core.files.base import ContentFile
 from django.db import transaction
+from openpyxl import Workbook
+from openpyxl.styles import PatternFill
 from rest_framework.exceptions import ErrorDetail
 from rest_framework.serializers import Serializer
 
@@ -14,7 +17,6 @@ from local_units.utils import get_model_field_names
 from main.managers import BulkCreateManager
 
 logger = logging.getLogger(__name__)
-
 
 ContextType = TypeVar("ContextType")
 
@@ -26,74 +28,89 @@ class BulkUploadError(Exception):
 
 
 class ErrorWriter:
-    def __init__(self, fieldnames: list[str]):
-        self._fieldnames = ["upload_status"] + fieldnames
+    ERROR_ROW_FILL = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+
+    def __init__(self, fieldnames: list[str], header_map: dict[str, str]):
+        """Initialize workbook and header row."""
+        self._header_map = header_map or {}
+        self._reverse_header_map = {v: k for k, v in self._header_map.items()}
+        # Convert model field names to xlsx template headers
+        display_header = [self._reverse_header_map.get(field, field) for field in fieldnames]
+
+        self._fieldnames = ["Upload Status"] + display_header
+        self._workbook = Workbook()
+        self._ws = self._workbook.active
+
+        self._ws.append(self._fieldnames)
+        self._existing_error_columns = set()
         self._rows: list[dict[str, str]] = []
-        self._output = io.StringIO()
-        self._writer = csv.DictWriter(self._output, fieldnames=self._fieldnames)
-        self._writer.writeheader()
         self._has_errors = False
 
     def _format_errors(self, errors: dict) -> dict[str, list[str]]:
-        """Format serializer errors into field_name and list of messages."""
-        error = {}
+        """Recursively flatten DRF errors."""
+        formatted = {}
         for key, value in errors.items():
             if isinstance(value, dict):
-                for inner_key, inner_value in self._format_errors(value).items():
-                    error[inner_key] = inner_value
+                formatted.update(self._format_errors(value))
             elif isinstance(value, list):
-                error[key] = [self._clean_message(v) for v in value]
+                header = self._reverse_header_map.get(key, key)
+                formatted[header] = [self._clean_message(v) for v in value]
             else:
-                error[key] = [self._clean_message(value)]
-        return error
+                header = self._reverse_header_map.get(key, key)
+                formatted[header] = [self._clean_message(value)]
+        return formatted
 
-    def _clean_message(self, msg: Any) -> str:
-        """Convert ErrorDetail or other objects into normal text."""
+    def _clean_message(self, msg: any) -> str:
         if isinstance(msg, ErrorDetail):
             return str(msg)
         return str(msg)
 
-    def _update_csv_header_with_errors(self):
-        """Update the CSV with updated headers when new error columns are introduced."""
-        self._output.seek(0)
-        self._output.truncate()
-        self._writer = csv.DictWriter(self._output, fieldnames=self._fieldnames)
-        self._writer.writeheader()
-        for row in self._rows:
-            self._writer.writerow(row)
+    def _add_error_columns(self, fields: list[str]):
+        """Ensure field has a matching _error column."""
+        for field in fields:
+            col_name = f"{field}_error"
+            if col_name in self._existing_error_columns:
+                continue
+            self._existing_error_columns.add(col_name)
+
+            if field in self._fieldnames:
+                idx = self._fieldnames.index(field) + 1
+                self._fieldnames.insert(idx, col_name)
+                self._ws.insert_cols(idx + 1)
+            else:
+                self._fieldnames.append(col_name)
+        for i, col_name in enumerate(self._fieldnames, start=1):
+            self._ws.cell(row=1, column=i, value=col_name)
 
     def write(
         self,
-        row: dict[str, str],
+        row: dict[str, any],
         status: Literal[LocalUnitBulkUpload.Status.SUCCESS, LocalUnitBulkUpload.Status.FAILED],
         error_detail: dict | None = None,
-    ) -> None:
-        row_copy = {col: row.get(col, "") for col in self._fieldnames}
-        row_copy["upload_status"] = status.name
-        added_error_column = False
+    ):
+        row_display = {self._reverse_header_map.get(k, k): v for k, v in row.items()}
+        row_out = {col: row_display.get(col, "") for col in self._fieldnames}
+        row_out["Upload Status"] = status.name
 
         if status == LocalUnitBulkUpload.Status.FAILED and error_detail:
-            formatted_errors = self._format_errors(error_detail)
-            for field, messages in formatted_errors.items():
-                error_col = f"{field}_error"
+            formatted = self._format_errors(error_detail)
+            self._add_error_columns(list(formatted.keys()))
+            for field, msgs in formatted.items():
+                row_out[f"{field}_error"] = "; ".join(msgs)
+            self._has_errors = True
 
-                if error_col not in self._fieldnames:
-                    if field in self._fieldnames:
-                        col_idx = self._fieldnames.index(field)
-                        self._fieldnames.insert(col_idx + 1, error_col)
-                    else:
-                        self._fieldnames.append(error_col)
+        self._ws.append([row_out.get(col, "") for col in self._fieldnames])
 
-                    added_error_column = True
-                row_copy[error_col] = "; ".join(messages)
-        self._rows.append(row_copy)
-        if added_error_column:
-            self._update_csv_header_with_errors()
-        else:
-            self._writer.writerow(row_copy)
+        if status == LocalUnitBulkUpload.Status.FAILED:
+            for cell in self._ws[self._ws.max_row]:
+                cell.fill = self.ERROR_ROW_FILL
 
     def to_content_file(self) -> ContentFile:
-        return ContentFile(self._output.getvalue().encode("utf-8"))
+        """Export workbook as Content File for Django."""
+        buffer = io.BytesIO()
+        self._workbook.save(buffer)
+        buffer.seek(0)
+        return ContentFile(buffer.getvalue())
 
 
 class BaseBulkUpload(Generic[ContextType]):
@@ -116,12 +133,15 @@ class BaseBulkUpload(Generic[ContextType]):
         """Delete existing local units based on the context."""
         pass
 
-    def _validate_csv(self, fieldnames) -> None:
+    def _validate_type(self, fieldnames) -> None:
         pass
 
-    def _is_csv_empty(self, csv_reader: csv.DictReader) -> tuple[bool, list[dict]]:
-        rows = list(csv_reader)
-        return len(rows) == 0, rows
+    def is_excel_data_empty(self, sheet, data_start_row=4):
+        """Check if file is empty or not"""
+        for row in sheet.iter_rows(values_only=True, min_row=data_start_row):
+            if any(cell is not None for cell in row):
+                return False
+        return True
 
     def process_row(self, data: Dict[str, Any]) -> bool:
         serializer = self.serializer_class(data=data)
@@ -132,49 +152,71 @@ class BaseBulkUpload(Generic[ContextType]):
         return False
 
     def run(self) -> None:
-        with self.bulk_upload.file.open("rb") as csv_file:
-            file = io.TextIOWrapper(csv_file, encoding="utf-8")
-            csv_reader = csv.DictReader(file)
-            fieldnames = csv_reader.fieldnames or []
+        with self.bulk_upload.file.open("rb") as f:
             try:
-                is_empty, rows = self._is_csv_empty(csv_reader)
-                if is_empty:
-                    raise BulkUploadError("The uploaded CSV file is empty or contains only blank rows.")
+                # TODO(sudip): Use read_only while reading xlsx file
+                workbook = openpyxl.load_workbook(f, data_only=True)
+                sheet = workbook.active
+                header_row_index = 2
+                data_row_index = header_row_index + 2
 
-                csv_reader = iter(rows)
+                # Read header row
+                headers = next(sheet.iter_rows(values_only=True, min_row=header_row_index, max_row=header_row_index))
+                raw_fieldnames = [str(h).strip() for h in headers if h and str(h).strip()]
+                header_map = getattr(self, "HEADER_MAP", {}) or {}
+                mapped_fieldnames = [header_map.get(h, h) for h in raw_fieldnames]
+                fieldnames = mapped_fieldnames
 
-                self._validate_csv(fieldnames)
-            except BulkUploadError as e:
+                if self.is_excel_data_empty(sheet, data_start_row=data_row_index):
+                    raise BulkUploadError("The uploaded Excel file is empty. Please provide at least one data row.")
+
+                self._validate_type(fieldnames)
+                data_rows = (
+                    row
+                    for row in sheet.iter_rows(values_only=True, min_row=4)
+                    if any(cell is not None for cell in row)  # skip the empty rows
+                )
+            except Exception as e:
                 self.bulk_upload.status = LocalUnitBulkUpload.Status.FAILED
                 self.bulk_upload.error_message = str(e)
                 self.bulk_upload.save(update_fields=["status", "error_message"])
                 logger.warning(f"[BulkUpload:{self.bulk_upload.pk}] Validation error: {str(e)}")
                 return
 
-            context = self.get_context().__dict__
-            self.error_writer = ErrorWriter(fieldnames)
-            try:
-                with transaction.atomic():
-                    self.delete_existing_local_unit()
-                    for row_index, row_data in enumerate(csv_reader, start=2):
-                        data = {**row_data, **context}
-                        if self.process_row(data):
-                            self.success_count += 1
-                            self.error_writer.write(row_data, status=LocalUnitBulkUpload.Status.SUCCESS)
-                        else:
-                            self.failed_count += 1
-                            self.error_writer.write(
-                                row_data, status=LocalUnitBulkUpload.Status.FAILED, error_detail=self.error_detail
-                            )
-                            logger.warning(f"[BulkUpload:{self.bulk_upload.pk}] Row '{row_index}' failed")
+        context = self.get_context().__dict__
+        self.error_writer = ErrorWriter(fieldnames=raw_fieldnames, header_map=header_map)
 
-                    if self.failed_count > 0:
-                        raise BulkUploadError("Bulk upload failed with some errors.")
+        try:
+            with transaction.atomic():
+                self.delete_existing_local_unit()
 
-                    self.bulk_manager.done()
-                    self._finalize_success()
-            except BulkUploadError:
-                self._finalize_failure()
+                for row_index, row_values in enumerate(data_rows, start=data_row_index):
+                    row_dict = dict(zip(fieldnames, row_values))
+                    row_dict = {**row_dict, **context}
+                    # Convert datetime objects to strings
+                    for key, value in row_dict.items():
+                        if isinstance(value, (datetime, date)):
+                            row_dict[key] = value.strftime("%Y-%m-%d")
+                    if self.process_row(row_dict):
+                        self.success_count += 1
+                        self.error_writer.write(row_dict, status=LocalUnitBulkUpload.Status.SUCCESS)
+                    else:
+                        self.failed_count += 1
+                        self.error_writer.write(
+                            row_dict,
+                            status=LocalUnitBulkUpload.Status.FAILED,
+                            error_detail=self.error_detail,
+                        )
+                        logger.warning(f"[BulkUpload:{self.bulk_upload.pk}] Row {row_index} failed")
+
+                if self.failed_count > 0:
+                    raise BulkUploadError("Bulk upload failed with some errors.")
+
+                self.bulk_manager.done()
+                self._finalize_success()
+
+        except BulkUploadError:
+            self._finalize_failure()
 
     def _finalize_success(self) -> None:
         self.bulk_upload.success_count = self.success_count
@@ -187,7 +229,7 @@ class BaseBulkUpload(Generic[ContextType]):
     def _finalize_failure(self) -> None:
         if self.error_writer:
             error_file = self.error_writer.to_content_file()
-            self.bulk_upload.error_file.save("error_file.csv", error_file, save=True)
+            self.bulk_upload.error_file.save("error_file.xlsx", error_file, save=True)
 
         self.bulk_upload.success_count = self.success_count
         self.bulk_upload.failed_count = self.failed_count
@@ -206,6 +248,28 @@ class LocalUnitUploadContext:
 
 
 class BaseBulkUploadLocalUnit(BaseBulkUpload[LocalUnitUploadContext]):
+    HEADER_MAP = {
+        "Date of Update": "date_of_data",
+        "Local Unit Name (En)": "english_branch_name",
+        "Local Unit Name (Local)": "local_branch_name",
+        "Visibility": "visibility",
+        "Coverage": "level",
+        "Sub-type": "subtype",
+        "Focal Person (En)": "focal_person_en",
+        "Source (En)": "source_en",
+        "Source (Local)": "source_loc",
+        "Focal Person (Local)": "focal_person_loc",
+        "Address (Local)": "address_loc",
+        "Address (En)": "address_en",
+        "Locality (Local)": "city_loc",
+        "Locality (En)": "city_en",
+        "Local Unit Post Code": "postcode",
+        "Local Unit Email": "email",
+        "Local Unit Phone Number": "phone",
+        "Local Unit Website": "link",
+        "Latitude": "latitude",
+        "Longitude": "longitude",
+    }
 
     def __init__(self, bulk_upload: LocalUnitBulkUpload):
         from local_units.serializers import LocalUnitBulkUploadDetailSerializer
@@ -232,19 +296,66 @@ class BaseBulkUploadLocalUnit(BaseBulkUpload[LocalUnitUploadContext]):
         else:
             logger.info("No existing local units found for deletion.")
 
-    def _validate_csv(self, fieldnames) -> None:
+    def _validate_type(self, fieldnames: list[str]) -> None:
+
         health_field_names = set(get_model_field_names(HealthData))
-        present_health_fields = health_field_names & set(fieldnames)
+        present_health_fields = {h for h in health_field_names if h.lower() in [f.lower() for f in fieldnames]}
 
         local_unit_type = LocalUnitType.objects.filter(id=self.bulk_upload.local_unit_type_id).first()
         if not local_unit_type:
             raise ValueError("Invalid local unit type")
 
         if present_health_fields and local_unit_type.name.strip().lower() != "health care":
-            raise BulkUploadError(f"You cannot upload Healthcare data when the Local Unit type is set to {local_unit_type.name}.")
+            raise BulkUploadError(
+                f"You cannot upload Healthcare data when the Local Unit type is set to '{local_unit_type.name}'."
+            )
 
 
 class BulkUploadHealthData(BaseBulkUpload[LocalUnitUploadContext]):
+    # Local Unit headers + Health Data headers
+    HEADER_MAP = {
+        **BaseBulkUploadLocalUnit.HEADER_MAP,
+        **{
+            "Focal Person Email": "focal_point_email",
+            "Focal Person Phone Number": "focal_point_phone_number",
+            "Focal Person Position": "focal_point_position",
+            "Health Facility Type": "health_facility_type",
+            "Other Facility Type": "other_facility_type",
+            "Affiliation": "affiliation",
+            "Other Affiliation": "other_affiliation",
+            "Functionality": "functionality",
+            "Primary Health Care Center": "primary_health_care_center",
+            "Specialities": "speciality",
+            "Hospital Type": "hospital_type",
+            "Teaching Hospital": "is_teaching_hospital",
+            "In-patient Capacity": "is_in_patient_capacity",
+            "Isolation Rooms": "is_isolation_rooms_wards",
+            "Number of Isolation Beds": "number_of_isolation_rooms",
+            "Warehousing": "is_warehousing",
+            "Cold Chain": "is_cold_chain",
+            "Maximum Bed Capacity": "maximum_capacity",
+            "General Medical Services": "general_medical_services",
+            "Specialized Medical Services (beyond primary level)": "specialized_medical_beyond_primary_level",
+            "Blood Services": "blood_services",
+            "Other Services": "other_services",
+            "Total Number of Human Resources": "total_number_of_human_resource",
+            "General Practitioners": "general_practitioner",
+            "Resident Doctors": "residents_doctor",
+            "Specialists": "specialist",
+            "Nurses": "nurse",
+            "Nursing Aids": "nursing_aid",
+            "Dentists": "dentist",
+            "Midwife": "midwife",
+            "Pharmacists": "pharmacists",
+            "Other Profiles": "other_profiles",
+            "Other Training Facility": "other_training_facilities",
+            "Professional Training Facilities": "professional_training_facilities",
+            "Ambulance Type A": "ambulance_type_a",
+            "Ambulance Type B": "ambulance_type_b",
+            "Ambulance Type C": "ambulance_type_c",
+        },
+    }
+
     def __init__(self, bulk_upload: LocalUnitBulkUpload):
         from local_units.serializers import LocalUnitBulkUploadDetailSerializer
 
@@ -277,7 +388,17 @@ class BulkUploadHealthData(BaseBulkUpload[LocalUnitUploadContext]):
             logger.info("No existing local units found for deletion.")
 
     def process_row(self, data: dict[str, any]) -> bool:
-        health_data = {k: data.get(k) for k in list(data.keys()) if k in self.health_field_names}
+        from local_units.serializers import HealthDataBulkUploadSerializer
+
+        health_data = {k: data.get(k) for k in data.keys() if k in self.health_field_names}
+
         if health_data:
-            data["health"] = health_data
-        return super().process_row(data)
+            health_serializer = HealthDataBulkUploadSerializer(data=health_data)
+            if not health_serializer.is_valid():
+                self.error_detail = health_serializer.errors
+                return False
+            health_instance = health_serializer.save()
+            for k in health_data.keys():
+                data.pop(k, None)
+            data["health"] = health_instance.pk
+            return super().process_row(data)
