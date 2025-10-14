@@ -1,6 +1,7 @@
 import os
 from datetime import datetime, timedelta
 from unittest import mock
+from unittest.mock import patch
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -1278,10 +1279,16 @@ class DrefTestCase(APITestCase):
 
         # Finalize DREF
         finalize_url = f"/api/v2/dref/{dref.id}/finalize/"
-        response = self.client.post(finalize_url)
-        self.assert_200(response)
-        self.assertEqual(response.data["status"], Dref.Status.FINALIZED)
-        self.assertEqual(response.data["translation_module_original_language"], "en")
+        # Finalize without translation
+        with patch("dref.views.is_translation_complete", return_value=False):
+            response = self.client.post(finalize_url)
+            self.assert_400(response)
+        # Finalize with translation complete
+        with patch("dref.views.is_translation_complete", return_value=True):
+            response = self.client.post(finalize_url)
+            self.assert_200(response)
+            self.assertEqual(response.data["status"], Dref.Status.FINALIZED)
+            self.assertEqual(response.data["translation_module_original_language"], "en")
 
         # Update in English
         finalized_dref_id = response.data["id"]
@@ -1419,10 +1426,16 @@ class DrefTestCase(APITestCase):
 
         # Finalize Operational Update
         finalize_url = f"/api/v2/dref-op-update/{op_update.id}/finalize/"
-        response = self.client.post(finalize_url)
-        self.assert_200(response)
-        self.assertEqual(response.data["status"], Dref.Status.FINALIZED)
-        self.assertEqual(response.data["translation_module_original_language"], "en")
+        # Finalize without translation
+        with patch("dref.views.is_translation_complete", return_value=False):
+            response = self.client.post(finalize_url)
+            self.assert_400(response)
+        # Finalize with translation complete
+        with patch("dref.views.is_translation_complete", return_value=True):
+            response = self.client.post(finalize_url)
+            self.assert_200(response)
+            self.assertEqual(response.data["status"], Dref.Status.FINALIZED)
+            self.assertEqual(response.data["translation_module_original_language"], "en")
         # Update in English
         finalized_op_update_id = response.data["id"]
         url = f"/api/v2/dref-op-update/{finalized_op_update_id}/"
@@ -2450,10 +2463,16 @@ class DrefTestCase(APITestCase):
 
         # Finalize final-report
         finalize_url = f"/api/v2/dref-final-report/{final_report.id}/finalize/"
-        response = self.client.post(finalize_url)
-        self.assert_200(response)
-        self.assertEqual(response.data["status"], Dref.Status.FINALIZED)
-        self.assertEqual(response.data["translation_module_original_language"], "en")
+        # Finalize without translation
+        with patch("dref.views.is_translation_complete", return_value=False):
+            response = self.client.post(finalize_url)
+            self.assert_400(response)
+        # Finalize with translation complete
+        with patch("dref.views.is_translation_complete", return_value=True):
+            response = self.client.post(finalize_url)
+            self.assert_200(response)
+            self.assertEqual(response.data["status"], Dref.Status.FINALIZED)
+            self.assertEqual(response.data["translation_module_original_language"], "en")
         # Update in English
         finalized_final_report_id = response.data["id"]
         data_en = {"title": "Updated title in English", "modified_at": datetime.now()}

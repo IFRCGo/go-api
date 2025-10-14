@@ -211,6 +211,7 @@ class MiniDrefSerializer(serializers.ModelSerializer):
     unpublished_final_report_count = serializers.SerializerMethodField()
     operational_update_details = serializers.SerializerMethodField()
     final_report_details = serializers.SerializerMethodField()
+    original_language = serializers.CharField(read_only=True)
 
     class Meta:
         model = Dref
@@ -241,6 +242,7 @@ class MiniDrefSerializer(serializers.ModelSerializer):
             "status",
             "status_display",
             "date_of_approval",
+            "original_language",
         ]
 
     @extend_schema_field(MiniOperationalUpdateActiveSerializer(many=True))
@@ -1542,6 +1544,7 @@ class CompletedDrefOperationsSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(source="get_status_display", read_only=True)
     application_type = serializers.SerializerMethodField()
     application_type_display = serializers.SerializerMethodField()
+    original_language = serializers.CharField(read_only=True)
 
     class Meta:
         model = DrefFinalReport
@@ -1559,6 +1562,7 @@ class CompletedDrefOperationsSerializer(serializers.ModelSerializer):
             "dref",
             "status",
             "status_display",
+            "original_language",
         )
 
     def get_application_type(self, obj) -> str:
