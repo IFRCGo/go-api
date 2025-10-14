@@ -180,7 +180,23 @@ class DrefTestCase(APITestCase):
             "originator_email": "test@gmail.com",
             "national_society": national_society.id,
             "disaster_type": disaster_type.id,
-            "needs_identified": [{"title": "shelter_housing_and_settlements", "description": "hey"}],
+            # NOTE: Test Many to Many fields
+            "risk_security": [
+                {"risk": "Test Risk 1", "mitigation_measure": "Test Mitigation Measure"},
+                {"risk": "Test Risk 2", "mitigation_measure": "Test Mitigation Measure 1"},
+            ],
+            "source_information": [
+                {"source_name": "Test Source 1", "link": "http://test.com"},
+                {"source_name": "Test Source 2", "link": "http://test.com"},
+            ],
+            "needs_identified": [
+                {"title": "shelter_housing_and_settlements", "description": "Shelter"},
+                {"title": "health", "description": "Health"},
+            ],
+            "national_society_actions": [
+                {"title": "coordination", "description": "Coordination"},
+                {"title": "shelter_housing_and_settlements", "description": "Shelter"},
+            ],
             "planned_interventions": [
                 {
                     "title": "shelter_housing_and_settlements",
@@ -190,14 +206,18 @@ class DrefTestCase(APITestCase):
                     "female": 2255,
                     "indicators": [
                         {
-                            "title": "test_title",
+                            "title": "test_title_1",
                             "actual": 21232,
                             "target": 44444,
-                        }
+                        },
+                        {
+                            "title": "test_title_2",
+                            "actual": 21232,
+                            "target": 44444,
+                        },
                     ],
                 },
                 {
-                    "id": 2,
                     "title": "health",
                     "description": "matrix reloaded",
                     "budget": 451111111,
@@ -205,10 +225,15 @@ class DrefTestCase(APITestCase):
                     "female": 2255,
                     "indicators": [
                         {
-                            "title": "test_title",
+                            "title": "test_title_2",
                             "actual": 21232,
                             "target": 44444,
-                        }
+                        },
+                        {
+                            "title": "test_title_2",
+                            "actual": 21232,
+                            "target": 44444,
+                        },
                     ],
                 },
             ],
@@ -227,6 +252,231 @@ class DrefTestCase(APITestCase):
         email_data = send_dref_email(instance.id, instance_user_email)
         self.assertTrue(send_notification.assert_called)
         self.assertEqual(email_data["title"], instance.title)
+
+        # Testing Nested objects creation and update
+        # Update the created dref
+        data = {
+            "modified_at": datetime.now(),
+            **data,
+            "risk_security": [
+                {"id": response.data["risk_security"][0]["id"], "risk": "Updated Test Risk 1", "mitigation_measure": "Test"},
+                {
+                    "id": response.data["risk_security"][1]["id"],
+                    "risk": "Updated Test Risk 2",
+                    "mitigation_measure": "Test Mitigation Measure 2",
+                },
+                # New item to be added
+                {"risk": "New Test Risk", "mitigation_measure": "New Test Mitigation Measure"},
+            ],
+            "source_information": [
+                {
+                    "id": response.data["source_information"][0]["id"],
+                    "source_name": "Updated Test Source 1",
+                    "link": "http://updated.com",
+                },
+                {
+                    "id": response.data["source_information"][1]["id"],
+                    "source_name": "Updated Test Source 2",
+                    "link": "http://updated.com",
+                },
+                # New item to be added
+                {"source_name": "New Test Source", "link": "http://new.com"},
+            ],
+            "needs_identified": [
+                {
+                    "id": response.data["needs_identified"][0]["id"],
+                    "title": "shelter_housing_and_settlements",
+                    "description": "Updated Shelter",
+                },
+                {"id": response.data["needs_identified"][1]["id"], "title": "health", "description": "Updated Health"},
+                # New item to be added
+                {"title": "water_sanitation_and_hygiene", "description": "WASH"},
+            ],
+            "national_society_actions": [
+                {
+                    "id": response.data["national_society_actions"][0]["id"],
+                    "title": "coordination",
+                    "description": "Updated Coordination",
+                },
+                {
+                    "id": response.data["national_society_actions"][1]["id"],
+                    "title": "shelter_housing_and_settlements",
+                    "description": "Updated Shelter",
+                },
+                # New item to be added
+                {"title": "health", "description": "Health"},
+            ],
+            "planned_interventions": [
+                {
+                    "id": response.data["planned_interventions"][0]["id"],
+                    "title": "shelter_housing_and_settlements",
+                    "description": "Updated matrix",
+                    "budget": 99999,
+                    "male": 12222,
+                    "female": 2255,
+                    "indicators": [
+                        {
+                            "id": response.data["planned_interventions"][0]["indicators"][0]["id"],
+                            "title": "updated_test_title_1",
+                            "actual": 11111,
+                            "target": 22222,
+                        },
+                        {
+                            "id": response.data["planned_interventions"][0]["indicators"][1]["id"],
+                            "title": "updated_test_title_2",
+                            "actual": 33333,
+                            "target": 44444,
+                        },
+                        # New item to be added
+                        {
+                            "title": "new_test_title_3",
+                            "actual": 55555,
+                            "target": 66666,
+                        },
+                    ],
+                },
+                {
+                    "id": response.data["planned_interventions"][1]["id"],
+                    "title": "health",
+                    "description": "Updated matrix reloaded",
+                    "budget": 88888,
+                    "male": 12222,
+                    "female": 2255,
+                    "indicators": [
+                        {
+                            "id": response.data["planned_interventions"][1]["indicators"][0]["id"],
+                            "title": "updated_test_title_1",
+                            "actual": 11111,
+                            "target": 22222,
+                        },
+                        {
+                            "id": response.data["planned_interventions"][1]["indicators"][1]["id"],
+                            "title": "updated_test_title_2",
+                            "actual": 33333,
+                            "target": 44444,
+                        },
+                        # New item to be added
+                        {
+                            "title": "new_test_title_3",
+                            "actual": 55555,
+                            "target": 66666,
+                        },
+                    ],
+                },
+            ],
+        }
+
+        # Update the created dref
+        url = f"/api/v2/dref/{instance.id}/"
+        response = self.client.patch(url, data, format="json")
+        self.assert_200(response)
+
+        # Risk Security should have 3 items now
+        self.assertEqual(len(response.data["risk_security"]), 3)
+        self.assertEqual(
+            {
+                response.data["risk_security"][0]["id"],
+                response.data["risk_security"][1]["id"],
+                response.data["risk_security"][2]["risk"],
+            },
+            {
+                data["risk_security"][0].get("id"),
+                data["risk_security"][1].get("id"),
+                data["risk_security"][2].get("risk"),
+            },
+        )
+
+        # Source of Information should have 3 items now
+        self.assertEqual(len(response.data["source_information"]), 3)
+        self.assertEqual(
+            {
+                response.data["source_information"][0]["id"],
+                response.data["source_information"][0]["source_name"],
+                response.data["source_information"][1]["id"],
+                response.data["source_information"][1]["source_name"],
+                response.data["source_information"][2]["source_name"],
+            },
+            {
+                data["source_information"][0].get("id"),
+                data["source_information"][0].get("source_name"),
+                data["source_information"][1].get("id"),
+                data["source_information"][1].get("source_name"),
+                data["source_information"][2].get("source_name"),
+            },
+        )
+
+        # Needs Identified should have 3 items mock_now
+        self.assertEqual(len(response.data["needs_identified"]), 3)
+        self.assertEqual(
+            {
+                response.data["needs_identified"][0]["id"],
+                response.data["needs_identified"][0]["title"],
+                response.data["needs_identified"][1]["id"],
+                response.data["needs_identified"][1]["title"],
+                response.data["needs_identified"][2]["title"],
+            },
+            {
+                data["needs_identified"][0].get("id"),
+                data["needs_identified"][0].get("title"),
+                data["needs_identified"][1].get("id"),
+                data["needs_identified"][1].get("title"),
+                data["needs_identified"][2].get("title"),
+            },
+        )
+
+        # National Society Actions should have 3 items mock_now
+        self.assertEqual(len(response.data["national_society_actions"]), 3)
+        self.assertEqual(
+            {
+                response.data["national_society_actions"][0]["id"],
+                response.data["national_society_actions"][0]["title"],
+                response.data["national_society_actions"][1]["id"],
+                response.data["national_society_actions"][1]["title"],
+                response.data["national_society_actions"][2]["title"],
+            },
+            {
+                data["national_society_actions"][0].get("id"),
+                data["national_society_actions"][0].get("title"),
+                data["national_society_actions"][1].get("id"),
+                data["national_society_actions"][1].get("title"),
+                data["national_society_actions"][2].get("title"),
+            },
+        )
+
+        # Planned Interventions should have 2 items
+        self.assertEqual(len(response.data["planned_interventions"]), 2)
+        self.assertEqual(
+            {
+                response.data["planned_interventions"][0]["id"],
+                response.data["planned_interventions"][0]["title"],
+                response.data["planned_interventions"][1]["id"],
+                response.data["planned_interventions"][1]["title"],
+            },
+            {
+                data["planned_interventions"][0].get("id"),
+                data["planned_interventions"][0].get("title"),
+                data["planned_interventions"][1].get("id"),
+                data["planned_interventions"][1].get("title"),
+            },
+        )
+
+        # Planned Intervention - Indicators should have 3 items now
+        self.assertEqual(
+            {
+                response.data["planned_interventions"][0]["indicators"][0]["id"],
+                response.data["planned_interventions"][0]["indicators"][0]["title"],
+                response.data["planned_interventions"][0]["indicators"][1]["id"],
+                response.data["planned_interventions"][0]["indicators"][1]["title"],
+                response.data["planned_interventions"][0]["indicators"][2]["title"],
+            },
+            {
+                data["planned_interventions"][0]["indicators"][0].get("id"),
+                data["planned_interventions"][0]["indicators"][0].get("title"),
+                data["planned_interventions"][0]["indicators"][1].get("id"),
+                data["planned_interventions"][0]["indicators"][1].get("title"),
+                data["planned_interventions"][0]["indicators"][2].get("title"),
+            },
+        )
 
     def test_event_date_in_dref(self):
         """
