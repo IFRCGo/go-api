@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db import models
+from django.utils import translation
+from modeltranslation.translator import translator
 
 from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
 
@@ -53,3 +55,29 @@ def get_dref_users():
             )
         )
     return dref_users_list
+
+
+def is_translation_complete(instance, target_lang="en"):
+    """
+    Check all translatable fields of a instance have been
+    translated to the target language.
+    """
+    original_lang = getattr(instance, "translation_module_original_language", None)
+    if not original_lang:
+        return False
+    try:
+        opts = translator.get_options_for_model(type(instance))
+    except Exception:
+        return True
+    for field in getattr(opts, "fields", []):
+        with translation.override(original_lang):
+            original_value = getattr(instance, field, None)
+
+        with translation.override(target_lang):
+            translated_value = getattr(instance, field, None)
+        if not original_value:
+            continue
+        if not translated_value:
+            return False
+
+    return True
