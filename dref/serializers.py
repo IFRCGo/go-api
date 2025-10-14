@@ -793,6 +793,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
         current_language = get_language()
         dref_operational_update = DrefOperationalUpdate.objects.filter(dref=dref).order_by("-operational_update_number").first()
         validated_data["created_by"] = self.context["request"].user
+        validated_data["original_language"] = current_language
         if not dref_operational_update:
             validated_data["title"] = dref.title
             validated_data["title_prefix"] = dref.title_prefix
@@ -914,7 +915,6 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["is_man_made_event"] = dref.is_man_made_event
             validated_data["event_text"] = dref.event_text
             validated_data["did_national_society"] = dref.did_national_society
-            validated_data["original_language"] = current_language
             operational_update = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
             nested_serialized_file_fields = [

@@ -112,13 +112,12 @@ class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
 
         if not is_translation_complete(dref):
             raise serializers.ValidationError("Cannot be finalized because translation is not completed")
-
+        fields_to_update = ["status"]
         if dref.translation_module_original_language != "en":
             dref.translation_module_original_language = "en"
-            dref.status = Dref.Status.FINALIZED
-            dref.save(update_fields=["status", "translation_module_original_language"])
+            fields_to_update.append("translation_module_original_language")
         dref.status = Dref.Status.FINALIZED
-        dref.save(update_fields=["status"])
+        dref.save(update_fields=fields_to_update)
         serializer = DrefSerializer(dref, context={"request": request})
         return response.Response(serializer.data)
 
@@ -205,12 +204,12 @@ class DrefOperationalUpdateViewSet(RevisionMixin, viewsets.ModelViewSet):
             )
         if not is_translation_complete(operational_update):
             raise serializers.ValidationError("Cannot be finalized because translation is not completed")
+        fields_to_update = ["status"]
         if operational_update.translation_module_original_language != "en":
             operational_update.translation_module_original_language = "en"
-            operational_update.status = Dref.Status.FINALIZED
-            operational_update.save(update_fields=["status", "translation_module_original_language"])
+            fields_to_update.append("translation_module_original_language")
         operational_update.status = Dref.Status.FINALIZED
-        operational_update.save(update_fields=["status"])
+        operational_update.save(update_fields=fields_to_update)
         serializer = DrefOperationalUpdateSerializer(operational_update, context={"request": request})
         return response.Response(serializer.data)
 
@@ -267,13 +266,12 @@ class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
             )
         if not is_translation_complete(field_report):
             raise serializers.ValidationError("Cannot be finalized because translation is not completed")
-
+        fields_to_update = ["status"]
         if field_report.translation_module_original_language != "en":
             field_report.translation_module_original_language = "en"
-            field_report.status = Dref.Status.FINALIZED
-            field_report.save(update_fields=["status", "translation_module_original_language"])
+            fields_to_update.append("translation_module_original_language")
         field_report.status = Dref.Status.FINALIZED
-        field_report.save(update_fields=["status"])
+        field_report.save(update_fields=fields_to_update)
         serializer = DrefFinalReportSerializer(field_report, context={"request": request})
         return response.Response(serializer.data)
 

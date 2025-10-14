@@ -1,10 +1,14 @@
+import logging
+
 from django.conf import settings
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db import models
-from django.utils import translation
 from modeltranslation.translator import translator
+from modeltranslation.utils import build_localized_fieldname
 
 from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
+
+logger = logging.getLogger(__name__)
 
 
 def get_email_context(instance):
@@ -67,17 +71,12 @@ def is_translation_complete(instance, target_lang="en"):
         return False
     try:
         opts = translator.get_options_for_model(type(instance))
-    except Exception:
-        return True
+    except Exception as e:
+        logger.warning(f"Failed to get translation options {e}", exc_info=True)
+        return False
     for field in getattr(opts, "fields", []):
-        with translation.override(original_lang):
-            original_value = getattr(instance, field, None)
-
-        with translation.override(target_lang):
-            translated_value = getattr(instance, field, None)
-        if not original_value:
-            continue
-        if not translated_value:
+        original_value = getattr(instance, build_localized_fieldname(field, original_lang), None)
+        translated_value = getattr(instance, build_localized_fieldname(field, target_lang), None)
+        if original_value and not translated_value:
             return False
-
     return True

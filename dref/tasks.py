@@ -1,5 +1,3 @@
-import logging
-
 from celery import shared_task
 from django.template.loader import render_to_string
 
@@ -7,8 +5,6 @@ from notifications.notification import send_notification
 
 from .models import Dref
 from .utils import get_email_context
-
-logger = logging.getLogger(__name__)
 
 
 @shared_task
