@@ -3,6 +3,20 @@
 from django.db import migrations, models
 
 
+def update_original_language(apps, schema_editor):
+    """
+    Populate the original_language field with 'en' for all existing records.
+    """
+    models = [
+        "Dref",
+        "DrefOperationalUpdate",
+        "DrefFinalReport",
+    ]
+    for model_name in models:
+        Model = apps.get_model("dref", model_name)
+        Model.objects.filter(original_language__isnull=True).update(original_language="en")
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -25,4 +39,5 @@ class Migration(migrations.Migration):
             name='status',
             field=models.IntegerField(choices=[(1, 'Draft'), (2, 'Finalized'), (3, 'Approved')], default=1, verbose_name='status'),
         ),
+        migrations.RunPython(update_original_language,reverse_code=migrations.RunPython.noop)
     ]
