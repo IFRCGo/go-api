@@ -6,7 +6,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models, transaction
 from django.utils import timezone
-from django.utils.translation import get_language, gettext
+from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
@@ -434,7 +434,6 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
             "created_by",
             "budget_file_preview",
             "is_dref_imminent_v2",
-            "original_language",
         )
         exclude = (
             "cover_image",
@@ -484,7 +483,7 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
         if self.instance and self.instance.status == Dref.Status.APPROVED:
             raise serializers.ValidationError("Approved Dref can't be changed. Please contact Admin")
         if self.instance and DrefFinalReport.objects.filter(dref=self.instance, status=Dref.Status.APPROVED).exists():
-            raise serializers.ValidationError(gettext("Can't Update %s dref for approved Field Report" % self.instance.id))
+            raise serializers.ValidationError(gettext("Can't Update %s dref for approved Final Report" % self.instance.id))
         if operation_timeframe and is_assessment_report and operation_timeframe > 30:
             raise serializers.ValidationError(
                 gettext("Operation timeframe can't be greater than %s for assessment_report" % self.MAX_OPERATION_TIMEFRAME)
@@ -612,8 +611,6 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
         return budget_file_preview
 
     def create(self, validated_data):
-        current_lang = get_language()
-        validated_data["original_language"] = current_lang
         validated_data["created_by"] = self.context["request"].user
         validated_data["is_active"] = True
         type_of_dref = validated_data.get("type_of_dref")
@@ -651,7 +648,6 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
         else:
             to = None
         # set original language
-        validated_data["original_language"] = current_lang
         dref = super().create(validated_data)
         if to:
             transaction.on_commit(lambda: send_dref_email.delay(dref.id, list(to), "New"))
@@ -736,7 +732,6 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             "operational_update_number",
             "modified_by",
             "created_by",
-            "original_language",
         )
         exclude = (
             "images",
@@ -790,10 +785,13 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
 
     def create(self, validated_data):
         dref = validated_data["dref"]
-        current_language = get_language()
+        language = validated_data.get("original_language")
+        if language != dref.original_language and language != dref.translation_module_original_language:
+            raise serializers.ValidationError(
+                gettext(f"Language must be either '{dref.original_language}' or '{dref.translation_module_original_language}'.")
+            )
         dref_operational_update = DrefOperationalUpdate.objects.filter(dref=dref).order_by("-operational_update_number").first()
         validated_data["created_by"] = self.context["request"].user
-        validated_data["original_language"] = current_language
         if not dref_operational_update:
             validated_data["title"] = dref.title
             validated_data["title_prefix"] = dref.title_prefix
@@ -1127,7 +1125,6 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             "created_by",
             "financial_report_preview",
             "is_dref_imminent_v2",
-            "original_language",
         )
         exclude = (
             "images",
@@ -1238,15 +1235,18 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
         # here check if there is operational update for corresponding dref
         # if yes copy from the latest operational update
         # else copy from dref
-        current_language = get_language()
         dref = validated_data["dref"]
+        language = validated_data.get("original_language")
+        if language != dref.original_language and language != dref.translation_module_original_language:
+            raise serializers.ValidationError(
+                gettext(f"Language must be either '{dref.original_language}' or '{dref.translation_module_original_language}'.")
+            )
         dref_operational_update = (
             DrefOperationalUpdate.objects.filter(dref=dref, status=Dref.Status.APPROVED)
             .order_by("-operational_update_number")
             .first()
         )
         validated_data["created_by"] = self.context["request"].user
-        validated_data["original_language"] = current_language
         # NOTE: Checks and common fields for the new dref final reports of new dref imminents
         if dref.type_of_dref == Dref.DrefType.IMMINENT and dref.is_dref_imminent_v2:
             validated_data["is_dref_imminent_v2"] = True

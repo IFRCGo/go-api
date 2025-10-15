@@ -19,6 +19,7 @@ class RedisLockKey(models.TextChoices):
 
     OPERATION_LEARNING_SUMMARY = _BASE + "-operation-learning-summary-{0}"
     OPERATION_LEARNING_SUMMARY_EXPORT = _BASE + "-operation-learning-summary-export-{0}"
+    DREF_TRANSLATION = _BASE + "-dref-translation-{0}"
 
 
 @contextmanager
