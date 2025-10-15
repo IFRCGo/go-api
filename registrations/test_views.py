@@ -10,7 +10,7 @@ from unittest import mock
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.primitives.asymmetric import rsa
 from django.contrib.auth.models import User
 from django.test import override_settings
 from rest_framework.test import APITestCase
@@ -175,7 +175,7 @@ class UserExternalTokenTest(GoAPITestCase):
 
     def setUp(self):
         super().setUp()
-        private_key = ec.generate_private_key(ec.SECP256R1(), default_backend())
+        private_key = rsa.generate_private_key(public_exponent=65537, key_size=4096, backend=default_backend())
         public_key = private_key.public_key()
         private_key_pem = private_key.private_bytes(
             encoding=serialization.Encoding.PEM,
@@ -185,11 +185,12 @@ class UserExternalTokenTest(GoAPITestCase):
 
         # Serialize public key
         public_key_pem = public_key.public_bytes(
-            encoding=serialization.Encoding.PEM, format=serialization.PublicFormat.SubjectPublicKeyInfo
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
         )
 
-        self.JWT_PRIVATE_KEY = private_key_pem.decode("utf-8")
-        self.JWT_PUBLIC_KEY = public_key_pem.decode("utf-8")
+        self.OIDC_RSA_PRIVATE_KEY = private_key_pem.decode("utf-8")
+        self.OIDC_RSA_PUBLIC_KEY = public_key_pem.decode("utf-8")
 
     def test_external_token_with_key(self):
         self.client.force_authenticate(self.user)
@@ -205,8 +206,8 @@ class UserExternalTokenTest(GoAPITestCase):
         data = {"title": "ok"}
 
         with override_settings(
-            JWT_PRIVATE_KEY=self.JWT_PRIVATE_KEY,
-            JWT_PUBLIC_KEY=self.JWT_PUBLIC_KEY,
+            OIDC_RSA_PRIVATE_KEY=self.OIDC_RSA_PRIVATE_KEY,
+            OIDC_RSA_PUBLIC_KEY=self.OIDC_RSA_PUBLIC_KEY,
         ):
             response = self.client.post("/api/v2/external-token/", data, format="json")
         self.assertEqual(response.status_code, 201)

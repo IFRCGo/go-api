@@ -28,6 +28,12 @@ class SurgeAlertFilter(filters.FilterSet):
         widget=CSVWidget,
         queryset=MolnixTag.objects.all(),
     )
+    molnix_tag_name = filters.CharFilter(
+        field_name="molnix_tags__name",
+        lookup_expr="icontains",
+        label="tag-name",
+        help_text="Single partial match on Molnix tag name",
+    )
     molnix_tag_names = CharInFilter(
         label="tag-names",
         field_name="molnix_tags__name",
@@ -50,9 +56,9 @@ class SurgeAlertFilter(filters.FilterSet):
             "start": ("exact", "gt", "gte", "lt", "lte"),
             "end": ("exact", "gt", "gte", "lt", "lte"),
             "molnix_id": ("exact", "in"),
-            "message": ("exact", "in"),
+            "message": ("exact", "in", "icontains"),
             "country": ("exact", "in"),
-            "country__name": ("exact", "in"),
+            "country__name": ("exact", "in", "icontains"),
             "country__iso": ("exact", "in"),
             "country__iso3": ("exact", "in"),
         }
