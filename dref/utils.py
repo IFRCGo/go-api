@@ -7,6 +7,8 @@ from modeltranslation.translator import translator
 from modeltranslation.utils import build_localized_fieldname
 
 from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
+from lang.tasks import translate_model_fields
+from main.lock import RedisLockKey, redis_lock
 
 logger = logging.getLogger(__name__)
 
@@ -80,3 +82,15 @@ def is_translation_complete(instance, target_lang="en"):
         if original_value and not translated_value:
             return False
     return True
+
+
+def trigger_translation(instance):
+    """
+    Trigger translation task with Redis lock.
+    """
+    with redis_lock(key=RedisLockKey.DREF_TRANSLATION, id=instance.pk) as acquired:
+        if not acquired:
+            logger.warning(f"Translation already in progress for {instance._meta.label} (pk={instance.pk})")
+            return
+        translate_model_fields.delay(instance._meta.label, instance.pk)
+        logger.info(f"Triggered translation task for {instance._meta.label} (pk={instance.pk})")
