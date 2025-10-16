@@ -1,4 +1,5 @@
 import json
+import secrets
 from datetime import datetime, timedelta
 from urllib.parse import urlparse
 
@@ -1065,3 +1066,24 @@ def logout_user(request):
     if request.method == "POST" and request.user.is_authenticated:
         logout(request)
     return redirect(reverse(settings.LOGIN_URL))
+
+
+class AuthPowerBI(APIView):
+    authentication_classes = (authentication.SessionAuthentication,)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request):
+        # Temporary mock values until Power BI REST integration is added
+        embed_token = secrets.token_hex(8)  # 16-char hex
+        embed_url = get_random_string(10)  # 10-char random slug
+        report_id = secrets.randbelow(2_147_483_647) + 1  # random positive int
+
+        return Response(
+            {
+                "detail": "ok",
+                "embed_token": embed_token,
+                "embed_url": embed_url,
+                "report_id": report_id,
+                "user": request.user.username,
+            }
+        )
