@@ -2,6 +2,7 @@ import uuid
 
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.urls import reverse
 
 import api.models as models
 from api.factories.event import (
@@ -16,6 +17,25 @@ from api.models import Profile, VisibilityChoices
 from deployments.factories.user import UserFactory
 from dref.models import DrefFile
 from main.test_case import APITestCase
+
+
+class AuthPowerBITest(APITestCase):
+    def setUp(self):
+        self.url = reverse("auth_power_bi")
+
+    def test_not_authenticated_returns_401(self):
+        resp = self.client.get(self.url)
+        self.assertEqual(resp.status_code, 401)
+        self.assertIn("error_code", resp.json())
+
+    def test_authenticated_returns_ok(self):
+        user = User.objects.create_user(username="alice", password="pass1234")
+        self.client.login(username="alice", password="pass1234")  # session auth
+        resp = self.client.get(self.url)
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(data.get("detail"), "ok")
+        self.assertEqual(data.get("user"), user.username)
 
 
 class SecureFileFieldTest(APITestCase):
