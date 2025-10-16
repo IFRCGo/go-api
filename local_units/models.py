@@ -113,6 +113,18 @@ class ProfessionalTrainingFacility(models.Model):
         verbose_name_plural = "Professional Training Facilities"
 
 
+class OtherProfile(models.Model):
+    position = models.CharField(verbose_name=_("Position"))
+    number = models.PositiveIntegerField(verbose_name=_("Number"))
+
+    def __str__(self):
+        return f"{self.position}"
+
+    class Meta:
+        verbose_name = "Other Profile"
+        verbose_name_plural = "Other Profiles"
+
+
 @reversion.register()
 class HealthData(models.Model):
     created_at = models.DateTimeField(verbose_name=_("Created at"), auto_now=True)
@@ -178,6 +190,7 @@ class HealthData(models.Model):
         null=True,
         blank=True,
     )
+    other_training_facilities = models.TextField(verbose_name="Other Training Facilities", blank=True, null=True)
     maximum_capacity = models.IntegerField(verbose_name=_("Maximum Capacity"), blank=True, null=True)
     number_of_isolation_rooms = models.IntegerField(verbose_name=_("Number of isolation rooms"), blank=True, null=True)
     is_warehousing = models.BooleanField(
@@ -226,12 +239,18 @@ class HealthData(models.Model):
     dentist = models.IntegerField(verbose_name=_("Dentist"), blank=True, null=True)
     nursing_aid = models.IntegerField(verbose_name=_("Nursing Aid"), blank=True, null=True)
     midwife = models.IntegerField(verbose_name=_("Midwife"), blank=True, null=True)
+    pharmacists = models.IntegerField(verbose_name=_("Pharmacists"), blank=True, null=True)
     other_medical_heal = models.BooleanField(
         verbose_name=_("Other medical heal"),
         null=True,
         blank=True,
     )
-    other_profiles = models.CharField(max_length=200, verbose_name=_("Other Profiles"), blank=True, null=True)
+    other_profiles = models.ManyToManyField(
+        OtherProfile,
+        related_name="health_data_other_profile",
+        verbose_name=_("Other Profiles"),
+        blank=True,
+    )
     feedback = models.TextField(verbose_name=_("Feedback"), blank=True, null=True)
 
     def __str__(self):
