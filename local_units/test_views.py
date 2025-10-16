@@ -34,6 +34,7 @@ from .models import (
     LocalUnitChangeRequest,
     LocalUnitLevel,
     LocalUnitType,
+    OtherProfile,
     PrimaryHCC,
     ProfessionalTrainingFacility,
     SpecializedMedicalService,
@@ -524,6 +525,7 @@ class TestLocalUnitCreate(APITestCase):
         functionality = Functionality.objects.create(code=1, name="Code 1")
         health_facility_type = FacilityType.objects.create(code=1, name="Code 1")
         primary_health_care_center = PrimaryHCC.objects.create(code=1, name="Code 1")
+        other_profiles = OtherProfile.objects.create(number=1, position="test")
         data = {
             "local_branch_name": "Silele Red Cross Clinic, Sigombeni Red Cross Clinic & Mahwalala Red Cross Clinic",
             "english_branch_name": None,
@@ -576,7 +578,7 @@ class TestLocalUnitCreate(APITestCase):
                 "nursing_aid": 0,
                 "midwife": 9,
                 "other_medical_heal": True,
-                "other_profiles": None,
+                "other_profiles": [other_profiles.id],
                 "feedback": "first question of initial question did not provide for the option to write the name of the NS. It is written LRC yet it should allow Baphalali Eswatini Red Cross Society (BERCS) to be inscribed in the box.",  # noqa: E501
                 "affiliation": affiliation.id,
                 "functionality": functionality.id,
