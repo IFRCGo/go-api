@@ -50,9 +50,6 @@ class DrefTO(TranslationOptions):
 @register(DrefFile)
 class DrefFileTO(TranslationOptions):
     fields = ("caption",)
-    # NOTE: Adding skip_fields temporarily to avoid removing previously translated data
-    # TODO(sudip): Remove skip_fields after dref translation feature is implemented
-    skip_fields = ("caption",)
 
 
 @register(DrefFinalReport)
@@ -119,9 +116,6 @@ class IdentifiedNeedTO(TranslationOptions):
 @register(NationalSocietyAction)
 class NationalSocietyActionTO(TranslationOptions):
     fields = ("description",)
-    # NOTE: Adding skip_fields temporarily to avoid removing previously translated data
-    # TODO(sudip): Remove skip_fields after dref translation feature is implemented
-    skip_fields = ("description",)
 
 
 @register(PlannedIntervention)
