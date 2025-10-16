@@ -42,18 +42,24 @@ from .tasks import send_dref_email
 
 
 class RiskSecuritySerializer(ModelSerializer):
+    id = serializers.IntegerField(required=False)
+
     class Meta:
         model = RiskSecurity
         fields = "__all__"
 
 
 class SourceInformationSerializer(ModelSerializer):
+    id = serializers.IntegerField(required=False)
+
     class Meta:
         model = SourceInformation
         fields = "__all__"
 
 
 class PlannedInterventionIndicatorsSerializer(ModelSerializer):
+    id = serializers.IntegerField(required=False)
+
     class Meta:
         model = PlannedInterventionIndicators
         fields = "__all__"
@@ -274,8 +280,13 @@ class MiniDrefSerializer(serializers.ModelSerializer):
         return DrefFinalReport.objects.filter(dref_id=obj.id, is_published=False).count()
 
 
-class PlannedInterventionSerializer(ModelSerializer):
+class PlannedInterventionSerializer(
+    NestedCreateMixin,
+    NestedUpdateMixin,
+    ModelSerializer,
+):
     # budget_file_details = DrefFileSerializer(source="budget_file", read_only=True)
+    id = serializers.IntegerField(required=False)
     image_url = serializers.SerializerMethodField()
     indicators = PlannedInterventionIndicatorsSerializer(many=True, required=False)
     title_display = serializers.CharField(source="get_title_display", read_only=True)
@@ -283,20 +294,6 @@ class PlannedInterventionSerializer(ModelSerializer):
     class Meta:
         model = PlannedIntervention
         fields = "__all__"
-
-    def create(self, validated_data):
-        indicators = validated_data.pop("indicators", [])
-        intervention = super().create(validated_data)
-        for indicator in indicators:
-            ind_object = PlannedInterventionIndicators.objects.create(**indicator)
-            intervention.indicators.add(ind_object)
-        return intervention
-
-    def update(self, instance, validated_data):
-        # TODO: implement this
-        # indicators = validated_data.pop("indicators", [])
-        intervention = super().update(instance, validated_data)
-        return intervention
 
     def get_image_url(self, plannedintervention) -> str:
         title = plannedintervention.title
@@ -307,6 +304,7 @@ class PlannedInterventionSerializer(ModelSerializer):
 
 
 class NationalSocietyActionSerializer(ModelSerializer):
+    id = serializers.IntegerField(required=False)
     image_url = serializers.SerializerMethodField()
     title_display = serializers.CharField(source="get_title_display", read_only=True)
 
@@ -329,6 +327,7 @@ class NationalSocietyActionSerializer(ModelSerializer):
 
 
 class IdentifiedNeedSerializer(ModelSerializer):
+    id = serializers.IntegerField(required=False)
     image_url = serializers.SerializerMethodField()
     title_display = serializers.CharField(source="get_title_display", read_only=True)
 
