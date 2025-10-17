@@ -111,7 +111,9 @@ class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
             raise serializers.ValidationError(gettext("Cannot be finalized because it is already %s") % dref.get_status_display())
         if not is_translation_complete(dref):
             trigger_translation(dref)
-            raise serializers.ValidationError(gettext("Translation is not completed. Please try again later."))
+            raise serializers.ValidationError(
+                gettext("The translation is currently being processed. Please wait a little while before trying again.")
+            )
         fields_to_update = ["status"]
         if dref.translation_module_original_language != "en":
             dref.translation_module_original_language = "en"
@@ -204,7 +206,9 @@ class DrefOperationalUpdateViewSet(RevisionMixin, viewsets.ModelViewSet):
             )
         if not is_translation_complete(operational_update):
             trigger_translation(operational_update)
-            raise serializers.ValidationError(gettext("Translation is not completed. Please try again later."))
+            raise serializers.ValidationError(
+                gettext("The translation is currently being processed. Please wait a little while before trying again.")
+            )
         fields_to_update = ["status"]
         if operational_update.translation_module_original_language != "en":
             operational_update.translation_module_original_language = "en"
@@ -267,7 +271,9 @@ class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
             )
         if not is_translation_complete(field_report):
             trigger_translation(field_report)
-            raise serializers.ValidationError(gettext("Translation is not completed. Please try again later."))
+            raise serializers.ValidationError(
+                gettext("The translation is currently being processed. Please wait a little while before trying again.")
+            )
         fields_to_update = ["status"]
         if field_report.translation_module_original_language != "en":
             field_report.translation_module_original_language = "en"
