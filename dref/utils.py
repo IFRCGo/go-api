@@ -1,8 +1,16 @@
+import logging
+
 from django.conf import settings
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db import models
+from modeltranslation.translator import translator
+from modeltranslation.utils import build_localized_fieldname
 
 from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
+from lang.tasks import translate_model_fields
+from main.lock import RedisLockKey, redis_lock
+
+logger = logging.getLogger(__name__)
 
 
 def get_email_context(instance):
@@ -53,3 +61,36 @@ def get_dref_users():
             )
         )
     return dref_users_list
+
+
+def is_translation_complete(instance, target_lang="en"):
+    """
+    Check all translatable fields of a instance have been
+    translated to the target language.
+    """
+    original_lang = getattr(instance, "translation_module_original_language", None)
+    if not original_lang:
+        return False
+    try:
+        opts = translator.get_options_for_model(type(instance))
+    except Exception as e:
+        logger.warning(f"Failed to get translation options {e}", exc_info=True)
+        return False
+    for field in getattr(opts, "fields", []):
+        original_value = getattr(instance, build_localized_fieldname(field, original_lang), None)
+        translated_value = getattr(instance, build_localized_fieldname(field, target_lang), None)
+        if original_value and not translated_value:
+            return False
+    return True
+
+
+def trigger_translation(instance):
+    """
+    Trigger translation task with Redis lock.
+    """
+    with redis_lock(key=RedisLockKey.DREF_TRANSLATION, id=instance.pk) as acquired:
+        if not acquired:
+            logger.warning(f"Translation already in progress for {instance._meta.label} (pk={instance.pk})")
+            return
+        translate_model_fields.delay(instance._meta.label, instance.pk)
+        logger.info(f"Triggered translation task for {instance._meta.label} (pk={instance.pk})")

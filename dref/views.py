@@ -41,6 +41,7 @@ from dref.serializers import (
     DrefShareUserSerializer,
     MiniDrefSerializer,
 )
+from dref.utils import is_translation_complete, trigger_translation
 from main.permissions import DenyGuestUserPermission, UseBySuperAdminOnly
 
 
@@ -94,6 +95,31 @@ class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
             raise serializers.ValidationError(gettext("Dref %s is already approved" % dref))
         dref.status = Dref.Status.APPROVED
         dref.save(update_fields=["status"])
+        serializer = DrefSerializer(dref, context={"request": request})
+        return response.Response(serializer.data)
+
+    @action(
+        detail=True,
+        url_path="finalize",
+        methods=["post"],
+        serializer_class=DrefSerializer,
+        permission_classes=[permissions.IsAuthenticated, DenyGuestUserPermission],
+    )
+    def finalize(self, request, pk=None, version=None):
+        dref = self.get_object()
+        if dref.status in [Dref.Status.FINALIZED, Dref.Status.APPROVED]:
+            raise serializers.ValidationError(gettext("Cannot be finalized because it is already %s") % dref.get_status_display())
+        if not is_translation_complete(dref):
+            trigger_translation(dref)
+            raise serializers.ValidationError(
+                gettext("The translation is currently being processed. Please wait a little while before trying again.")
+            )
+        fields_to_update = ["status"]
+        if dref.translation_module_original_language != "en":
+            dref.translation_module_original_language = "en"
+            fields_to_update.append("translation_module_original_language")
+        dref.status = Dref.Status.FINALIZED
+        dref.save(update_fields=fields_to_update)
         serializer = DrefSerializer(dref, context={"request": request})
         return response.Response(serializer.data)
 
@@ -165,6 +191,33 @@ class DrefOperationalUpdateViewSet(RevisionMixin, viewsets.ModelViewSet):
         serializer = DrefOperationalUpdateSerializer(operational_update, context={"request": request})
         return response.Response(serializer.data)
 
+    @action(
+        detail=True,
+        url_path="finalize",
+        methods=["post"],
+        serializer_class=DrefOperationalUpdateSerializer,
+        permission_classes=[permissions.IsAuthenticated, DenyGuestUserPermission],
+    )
+    def finalize(self, request, pk=None, version=None):
+        operational_update = self.get_object()
+        if operational_update.status in [Dref.Status.FINALIZED, Dref.Status.APPROVED]:
+            raise serializers.ValidationError(
+                gettext("Cannot be finalized because it is already %s") % operational_update.get_status_display()
+            )
+        if not is_translation_complete(operational_update):
+            trigger_translation(operational_update)
+            raise serializers.ValidationError(
+                gettext("The translation is currently being processed. Please wait a little while before trying again.")
+            )
+        fields_to_update = ["status"]
+        if operational_update.translation_module_original_language != "en":
+            operational_update.translation_module_original_language = "en"
+            fields_to_update.append("translation_module_original_language")
+        operational_update.status = Dref.Status.FINALIZED
+        operational_update.save(update_fields=fields_to_update)
+        serializer = DrefOperationalUpdateSerializer(operational_update, context={"request": request})
+        return response.Response(serializer.data)
+
 
 class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
     serializer_class = DrefFinalReportSerializer
@@ -200,6 +253,33 @@ class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
         field_report.dref.is_active = False
         field_report.date_of_approval = timezone.now().date()
         field_report.dref.save(update_fields=["is_active", "date_of_approval"])
+        serializer = DrefFinalReportSerializer(field_report, context={"request": request})
+        return response.Response(serializer.data)
+
+    @action(
+        detail=True,
+        url_path="finalize",
+        methods=["post"],
+        serializer_class=DrefFinalReportSerializer,
+        permission_classes=[permissions.IsAuthenticated, DenyGuestUserPermission],
+    )
+    def finalize(self, request, pk=None, version=None):
+        field_report = self.get_object()
+        if field_report.status in [Dref.Status.FINALIZED, Dref.Status.APPROVED]:
+            raise serializers.ValidationError(
+                gettext("Cannot be finalized because it is already %s") % field_report.get_status_display()
+            )
+        if not is_translation_complete(field_report):
+            trigger_translation(field_report)
+            raise serializers.ValidationError(
+                gettext("The translation is currently being processed. Please wait a little while before trying again.")
+            )
+        fields_to_update = ["status"]
+        if field_report.translation_module_original_language != "en":
+            field_report.translation_module_original_language = "en"
+            fields_to_update.append("translation_module_original_language")
+        field_report.status = Dref.Status.FINALIZED
+        field_report.save(update_fields=fields_to_update)
         serializer = DrefFinalReportSerializer(field_report, context={"request": request})
         return response.Response(serializer.data)
 

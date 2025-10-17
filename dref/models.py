@@ -266,11 +266,9 @@ class Dref(models.Model):
     class Status(models.IntegerChoices):
         DRAFT = 1, _("Draft")
         """Draft: Initial stage content is being created and is not ready for review."""
-        FINALIZING = 2, _("Finalizing")
-        """Finalizing: Content is in the translation process from the original language into English."""
-        FINALIZED = 3, _("Finalized")
+        FINALIZED = 2, _("Finalized")
         """Finalized: Translation is completed, content is ready for review, and updates to the original language are locked."""
-        APPROVED = 4, _("Approved")
+        APPROVED = 3, _("Approved")
         """Approved: The content has been reviewed, accepted, and is ready for use."""
 
     created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
@@ -336,10 +334,10 @@ class Dref(models.Model):
         related_name="dref_targeting_strategy_support_file",
     )
     status = models.IntegerField(choices=Status.choices, verbose_name=_("status"), default=Status.DRAFT)
-    original_language = models.CharField(
+    starting_language = models.CharField(
         blank=True,
         null=True,
-        verbose_name=_("Original language"),
+        verbose_name=_("Starting language"),
         help_text="The language in which this record was first created.",
     )  # NOTE: This field is set at creation with the active language.
     num_assisted = models.IntegerField(verbose_name=_("number of assisted"), blank=True, null=True)
@@ -866,10 +864,10 @@ class DrefOperationalUpdate(models.Model):
         choices=Dref.DisasterCategory.choices, verbose_name=_("disaster category"), null=True, blank=True
     )
     status = models.IntegerField(choices=Dref.Status.choices, verbose_name=_("status"), default=Dref.Status.DRAFT)
-    original_language = models.CharField(
+    starting_language = models.CharField(
         blank=True,
         null=True,
-        verbose_name=_("Original language"),
+        verbose_name=_("Starting language"),
         help_text="The language in which this record was first created.",
     )  # NOTE: This field is set at creation with the active language.
     number_of_people_targeted = models.IntegerField(verbose_name=_("Number of people targeted"), blank=True, null=True)
@@ -1305,10 +1303,10 @@ class DrefFinalReport(models.Model):
         choices=Dref.DisasterCategory.choices, verbose_name=_("disaster category"), null=True, blank=True
     )
     status = models.IntegerField(choices=Dref.Status.choices, verbose_name=_("status"), default=Dref.Status.DRAFT)
-    original_language = models.CharField(
+    starting_language = models.CharField(
         blank=True,
         null=True,
-        verbose_name=_("Original language"),
+        verbose_name=_("Starting language"),
         help_text="The language in which this record was first created.",
     )  # NOTE: This field is set at creation with the active language.
     number_of_people_targeted = models.IntegerField(verbose_name=_("Number of people targeted"), blank=True, null=True)

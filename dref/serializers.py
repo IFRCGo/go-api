@@ -6,7 +6,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models, transaction
 from django.utils import timezone
-from django.utils.translation import gettext
+from django.utils.translation import get_language, gettext
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
@@ -205,6 +205,7 @@ class MiniDrefSerializer(serializers.ModelSerializer):
     unpublished_final_report_count = serializers.SerializerMethodField()
     operational_update_details = serializers.SerializerMethodField()
     final_report_details = serializers.SerializerMethodField()
+    starting_language = serializers.CharField(read_only=True)
 
     class Meta:
         model = Dref
@@ -235,6 +236,7 @@ class MiniDrefSerializer(serializers.ModelSerializer):
             "status",
             "status_display",
             "date_of_approval",
+            "starting_language",
         ]
 
     @extend_schema_field(MiniOperationalUpdateActiveSerializer(many=True))
@@ -348,22 +350,29 @@ class IdentifiedNeedSerializer(ModelSerializer):
 
 
 class MiniOperationalUpdateSerializer(ModelSerializer):
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+
     class Meta:
         model = DrefOperationalUpdate
         fields = [
             "id",
             "title",
             "operational_update_number",
+            "status",
+            "status_display",
         ]
 
 
 class MiniDrefFinalReportSerializer(ModelSerializer):
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+
     class Meta:
         model = DrefFinalReport
         fields = [
             "id",
             "title",
             "status",
+            "status_display",
         ]
 
 
@@ -426,6 +435,7 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
             "created_by",
             "budget_file_preview",
             "is_dref_imminent_v2",
+            "starting_language",
         )
         exclude = (
             "cover_image",
@@ -475,7 +485,7 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
         if self.instance and self.instance.status == Dref.Status.APPROVED:
             raise serializers.ValidationError("Approved Dref can't be changed. Please contact Admin")
         if self.instance and DrefFinalReport.objects.filter(dref=self.instance, status=Dref.Status.APPROVED).exists():
-            raise serializers.ValidationError(gettext("Can't Update %s dref for approved Field Report" % self.instance.id))
+            raise serializers.ValidationError(gettext("Can't Update %s dref for approved Final Report" % self.instance.id))
         if operation_timeframe and is_assessment_report and operation_timeframe > 30:
             raise serializers.ValidationError(
                 gettext("Operation timeframe can't be greater than %s for assessment_report" % self.MAX_OPERATION_TIMEFRAME)
@@ -603,6 +613,8 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
         return budget_file_preview
 
     def create(self, validated_data):
+        current_language = get_language()
+        validated_data["starting_language"] = current_language
         validated_data["created_by"] = self.context["request"].user
         validated_data["is_active"] = True
         type_of_dref = validated_data.get("type_of_dref")
@@ -776,6 +788,19 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
 
     def create(self, validated_data):
         dref = validated_data["dref"]
+        current_language = get_language()
+        valid_languages = [dref.starting_language, dref.translation_module_original_language]
+        # Check request language
+        if current_language not in valid_languages:
+            raise serializers.ValidationError(
+                gettext(f"Language must be either '{valid_languages[0]}' or '{valid_languages[1]}'.")
+            )
+        # Check payload language
+        language = validated_data.get("starting_language")
+        if language not in valid_languages:
+            raise serializers.ValidationError(
+                gettext(f"Language must be either '{valid_languages[0]}' or '{valid_languages[1]}'.")
+            )
         dref_operational_update = DrefOperationalUpdate.objects.filter(dref=dref).order_by("-operational_update_number").first()
         validated_data["created_by"] = self.context["request"].user
         if not dref_operational_update:
@@ -899,7 +924,6 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["is_man_made_event"] = dref.is_man_made_event
             validated_data["event_text"] = dref.event_text
             validated_data["did_national_society"] = dref.did_national_society
-
             operational_update = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
             nested_serialized_file_fields = [
@@ -1223,6 +1247,20 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
         # if yes copy from the latest operational update
         # else copy from dref
         dref = validated_data["dref"]
+        current_language = get_language()
+        valid_languages = [dref.starting_language, dref.translation_module_original_language]
+        # Check request language
+        if current_language not in valid_languages:
+            raise serializers.ValidationError(
+                gettext(f"Language must be either '{valid_languages[0]}' or '{valid_languages[1]}'.")
+            )
+
+        # Check payload language
+        language = validated_data.get("starting_language")
+        if language not in valid_languages:
+            raise serializers.ValidationError(
+                gettext(f"Language must be either '{valid_languages[0]}' or '{valid_languages[1]}'.")
+            )
         dref_operational_update = (
             DrefOperationalUpdate.objects.filter(dref=dref, status=Dref.Status.APPROVED)
             .order_by("-operational_update_number")
@@ -1526,6 +1564,7 @@ class CompletedDrefOperationsSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(source="get_status_display", read_only=True)
     application_type = serializers.SerializerMethodField()
     application_type_display = serializers.SerializerMethodField()
+    starting_language = serializers.CharField(read_only=True)
 
     class Meta:
         model = DrefFinalReport
@@ -1543,6 +1582,7 @@ class CompletedDrefOperationsSerializer(serializers.ModelSerializer):
             "dref",
             "status",
             "status_display",
+            "starting_language",
         )
 
     def get_application_type(self, obj) -> str:
