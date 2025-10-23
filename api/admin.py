@@ -7,6 +7,8 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import Permission, User
 from django.contrib.gis import admin as geoadmin
 from django.core.exceptions import ValidationError
+from django.db.models import Value
+from django.db.models.functions import Concat
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 from django.utils.html import format_html, format_html_join
@@ -517,6 +519,7 @@ class AppealAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
 
 
 class AppealDocumentAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
+    @admin.display(ordering=Concat("appeal", Value(","), "name"))
     def appeal_document_label(self, obj):
         return "%s - %s" % (obj.appeal, obj.name)
 
