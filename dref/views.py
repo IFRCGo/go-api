@@ -1,4 +1,5 @@
 import django.utils.timezone as timezone
+from django.apps import apps
 from django.contrib.auth.models import Permission
 from django.db import models
 from django.templatetags.static import static
@@ -41,7 +42,7 @@ from dref.serializers import (
     DrefShareUserSerializer,
     MiniDrefSerializer,
 )
-from main.permissions import DenyGuestUserPermission, UseBySuperAdminOnly
+from main.permissions import DenyGuestUserPermission
 
 
 def filter_dref_queryset_by_user_access(user, queryset):
@@ -284,14 +285,31 @@ class DrefShareUserViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission, UseBySuperAdminOnly]
-    #    serializer_class = DrefSerializer
-    #    filterset_class = DrefFilter
+    # Allow unauthenticated access; we'll filter published-only for anonymous users below
+    permission_classes = [permissions.AllowAny]
+    # Previous: [permissions.IsAuthenticated, DenyGuestUserPermission, UseBySuperAdminOnly]
     lookup_field = "appeal_code"
 
     def get_queryset(self):
         # just to give something to rest_framework/generics.py:63 – not used in retrieve
         return Dref.objects.none()
+
+    def get_nonsuperusers_excluded_codes(self):
+        """Return a set of appeal_codes that should be hidden from non-superusers.
+        Accepts CSV values in AppealFilter.value like "MDRXX019,MDRYY036".
+        """
+        try:
+            AppealFilter = apps.get_model("api", "AppealFilter")
+            codes = list(AppealFilter.objects.values_list("value", flat=True))
+        except Exception:
+            # If model/app not available, fail open (no extra exclusions)
+            return set()
+        excluded = set()
+        for code in codes:
+            c = code.strip().upper()
+            if c:
+                excluded.add(c)
+        return excluded
 
     def list(self, request):
         # === First approach – would be nice to work like this, but recent definitons are more complex than that:
@@ -335,11 +353,21 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):
 
         codes = list(codes_qs)
 
+        # Exclude codes for non-superusers
+        if not getattr(self.request.user, "is_superuser", False):
+            excluded_codes = self.get_nonsuperusers_excluded_codes()
+            if excluded_codes:
+                codes = [c for c in codes if c and c.upper() not in excluded_codes]
+
         data = []
         old_kwargs = getattr(self, "kwargs", {}).copy()
         for code in codes:
             self.kwargs = {self.lookup_field: code}
-            resp = self.retrieve(request)
+            try:
+                resp = self.retrieve(request)
+            except NotFound:
+                # Skip codes that have no visible records for this user
+                continue
             if resp.status_code == 200:
                 for item in resp.data if isinstance(resp.data, list) else [resp.data]:
                     data.append(item)
@@ -356,6 +384,42 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):
     def get_objects_by_appeal_code(self, appeal_code):
         results = []
         user = self.request.user
+
+        if not getattr(user, "is_superuser", False):
+            # If code is in the excluded list, return no results for anonymous users
+            excluded_codes = self.get_nonsuperusers_excluded_codes()
+            if appeal_code and appeal_code.upper() in excluded_codes:
+                return []
+            # Light users: only published records are visible
+            drefs = (
+                Dref.objects.filter(appeal_code=appeal_code, is_published=True)
+                .prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
+                .order_by("created_at")
+                .distinct()
+            )
+            if drefs.exists():
+                results.extend(drefs)
+
+            operational_updates = (
+                DrefOperationalUpdate.objects.filter(appeal_code=appeal_code, is_published=True)
+                .prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
+                .order_by("created_at")
+                .distinct()
+            )
+            if operational_updates.exists():
+                results.extend(operational_updates)
+
+            final_reports = (
+                DrefFinalReport.objects.filter(appeal_code=appeal_code, is_published=True)
+                .prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
+                .order_by("created_at")
+                .distinct()
+            )
+            if final_reports.exists():
+                results.extend(final_reports)
+            return results
+
+        # Strong users: allow more access
         drefs = (
             Dref.objects.filter(appeal_code=appeal_code)
             .prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
@@ -366,7 +430,6 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):
         if drefs.exists():
             results.extend(drefs)
 
-        # Code duplication of the previous "drefs" for "operational_updates" and "final_reports" until ¤¤¤:
         operational_updates = (
             DrefOperationalUpdate.objects.filter(appeal_code=appeal_code)
             .prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
@@ -386,8 +449,6 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):
         final_reports = filter_dref_queryset_by_user_access(user, final_reports)
         if final_reports.exists():
             results.extend(final_reports)
-        # ¤¤¤
-
         return results
 
     def retrieve(self, request, *args, **kwargs):
