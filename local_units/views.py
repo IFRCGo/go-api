@@ -44,6 +44,7 @@ from local_units.permissions import (
 from local_units.serializers import (
     DelegationOfficeSerializer,
     ExternallyManagedLocalUnitSerializer,
+    HealthLocalUnitFlatSerializer,
     LocalUnitBulkUploadSerializer,
     LocalUnitChangeRequestSerializer,
     LocalUnitDeprecateSerializer,
@@ -353,6 +354,43 @@ class LocalUnitViewSet(viewsets.ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         return bad_request("Delete method not allowed")
+
+
+class HealthLocalUnitViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Public, flattened list of health local units (Type Code = 2).
+    """
+
+    serializer_class = HealthLocalUnitFlatSerializer
+    http_method_names = ["get", "head", "options"]
+
+    queryset = (
+        LocalUnit.objects.select_related(
+            "country",
+            "type",
+            "health",
+            "health__affiliation",
+            "health__functionality",
+            "health__health_facility_type",
+            "health__primary_health_care_center",
+            "health__hospital_type",
+        )
+        .prefetch_related(
+            "health__general_medical_services",
+            "health__specialized_medical_beyond_primary_level",
+            "health__blood_services",
+            "health__professional_training_facilities",
+        )
+        .filter(
+            visibility=VisibilityChoices.PUBLIC,
+            is_deprecated=False,
+            type__code=2,
+            health__isnull=False,
+        )
+        .order_by("id")
+    )
+
+    # NOTE: Filters for region/country/iso/validated/subtype can be added later; base queryset enforces type=2.
 
 
 class LocalUnitOptionsView(views.APIView):
