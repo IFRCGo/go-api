@@ -428,21 +428,28 @@ class TestLocalUnitCreate(APITestCase):
         )
 
         self.local_unit_type = LocalUnitType.objects.create(code=1, name="administrative")
-
+        management.call_command("make_permissions")
         management.call_command("make_local_unit_validator_permissions")
-
+        self.country_admin_user = UserFactory.create()
         self.country_validator_user = UserFactory.create()
         self.region_validator_user = UserFactory.create()
         self.global_validator_user = UserFactory.create()
         #  permissions
+        country_admin_codename = f"country_admin_{self.country.id}"
         country_codename = f"local_unit_country_validator_{self.local_unit_type.id}_{self.country.id}"
         region_codename = f"local_unit_region_validator_{self.local_unit_type.id}_{self.region.id}"
         global_codename = f"local_unit_global_validator_{self.local_unit_type.id}"
 
+        country_admin_permission = Permission.objects.get(codename=country_admin_codename)
         country_permission = Permission.objects.get(codename=country_codename)
         region_permission = Permission.objects.get(codename=region_codename)
         global_permission = Permission.objects.get(codename=global_codename)
 
+        # Country admin group
+        country__admin_group_name = "%s Admins" % self.country.name
+        country__admin_group = Group.objects.get(name=country__admin_group_name)
+        country__admin_group.permissions.add(country_admin_permission)
+        self.country_admin_user.groups.add(country__admin_group)
         #  Country validator group
         country_group_name = f"Local unit validator for {self.local_unit_type.name} {self.country.name}"
         country_group = Group.objects.get(name=country_group_name)
@@ -874,6 +881,53 @@ class TestLocalUnitCreate(APITestCase):
         response = self.client.post("/api/v2/local-units/", data=data, format="json")
         self.assertEqual(response.status_code, 400)
         self.assertEqual(LocalUnitChangeRequest.objects.count(), 0)
+
+    def test_country_admin_permission_for_local_unit_update(self):
+        country = CountryFactory.create(
+            name="India",
+            iso3="IND",
+            record_type=CountryType.COUNTRY,
+            is_deprecated=False,
+            independent=True,
+        )
+
+        self.india_admin = UserFactory.create(email="india@admin.com")
+        # India admin setup
+        management.call_command("make_permissions")
+        country_admin_codename = f"country_admin_{country.id}"
+        country_admin_permission = Permission.objects.get(codename=country_admin_codename)
+        country__admin_group_name = "%s Admins" % country.name
+        country__admin_group = Group.objects.get(name=country__admin_group_name)
+        country__admin_group.permissions.add(country_admin_permission)
+        self.india_admin.groups.add(country__admin_group)
+        local_unit = LocalUnitFactory.create(
+            country=country,
+            type=self.local_unit_type,
+            draft=False,
+            status=LocalUnit.Status.VALIDATED,
+            date_of_data="2023-08-08",
+        )
+        url = f"/api/v2/local-units/{local_unit.id}/"
+        data = {
+            "local_branch_name": "Updated local branch name",
+            "update_reason_overview": "Needed update for testing",
+            "type": self.local_unit_type.id,
+            "location_json": {
+                "lat": 20.5937,
+                "lng": 78.9629,
+            },
+        }
+        response = self.client.patch(url, data=data, format="json")
+        self.assert_401(response)
+        # Test: different country admin
+        self.authenticate(self.country_admin_user)
+        response = self.client.patch(url, data=data, format="json")
+        self.assert_403(response)
+        # Test: actual country admin
+        self.authenticate(self.india_admin)
+        response = self.client.patch(url, data=data, format="json")
+        self.assert_200(response)
+        self.assertEqual(response.data["local_branch_name"], "Updated local branch name")
 
 
 class TestExternallyManagedLocalUnit(APITestCase):
