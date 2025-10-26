@@ -24,7 +24,7 @@ class ValidateLocalUnitPermission(permissions.BasePermission):
 
 
 class IsAuthenticatedForLocalUnit(permissions.BasePermission):
-    message = "Only validators or superusers are allowed to update Local Units"
+    message = "Only Country admin, Local Unit validators and superusers are allowed to update Local Units"
 
     def has_object_permission(self, request, view, obj):
         if request.method not in ["PUT", "PATCH"]:
@@ -35,6 +35,16 @@ class IsAuthenticatedForLocalUnit(permissions.BasePermission):
         if user.is_superuser:
             return True
 
+        country_id = obj.country_id
+        try:
+            country = Country.objects.get(id=country_id)
+        except Country.DoesNotExist:
+            return False
+        # Country admin specific permissions
+        codename = f"country_admin_{country.id}"
+        if user.groups.filter(permissions__codename=codename).exists():
+            return True
+        # Validator permission
         return (
             get_local_unit_country_validators(obj).filter(id=user.id).exists()
             or get_local_unit_region_validators(obj).filter(id=user.id).exists()
