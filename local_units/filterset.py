@@ -57,3 +57,29 @@ class LocalUnitBulkUploadFilters(filters.FilterSet):
             "country__iso": ["exact", "in"],
             "country__id": ["exact", "in"],
         }
+
+
+class HealthLocalUnitFilters(filters.FilterSet):
+    # Simple filters for health-local-units endpoint
+    region = filters.NumberFilter(field_name="country__region_id", label="Region")
+    country = filters.NumberFilter(field_name="country_id", label="Country")
+    iso3 = filters.CharFilter(field_name="country__iso3", lookup_expr="exact", label="ISO3")
+    validated = filters.BooleanFilter(method="filter_validated", label="Validated")
+    subtype = filters.CharFilter(field_name="subtype", lookup_expr="icontains", label="Subtype")
+
+    class Meta:
+        model = LocalUnit
+        fields = (
+            "region",
+            "country",
+            "iso3",
+            "validated",
+            "subtype",
+        )
+
+    def filter_validated(self, queryset, name, value):
+        if value is True:
+            return queryset.filter(status=LocalUnit.Status.VALIDATED)
+        if value is False:
+            return queryset.exclude(status=LocalUnit.Status.VALIDATED)
+        return queryset

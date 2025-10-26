@@ -13,6 +13,7 @@ from api.utils import bad_request
 from local_units.filterset import (
     DelegationOfficeFilters,
     ExternallyManagedLocalUnitFilters,
+    HealthLocalUnitFilters,
     LocalUnitBulkUploadFilters,
     LocalUnitFilters,
 )
@@ -363,6 +364,7 @@ class HealthLocalUnitViewSet(viewsets.ReadOnlyModelViewSet):
 
     serializer_class = HealthLocalUnitFlatSerializer
     http_method_names = ["get", "head", "options"]
+    filterset_class = HealthLocalUnitFilters
 
     queryset = (
         LocalUnit.objects.select_related(

@@ -1580,3 +1580,157 @@ class BulkUploadHealthDataTests(TestCase):
         cls.assertIsNotNone(cls.bulk_upload.error_message)
         cls.assertEqual(LocalUnit.objects.count(), 5)
         cls.assertEqual(HealthData.objects.count(), 5)
+
+
+class TestHealthLocalUnitsPublicList(APITestCase):
+    """
+    Tests for the public, flattened health local units endpoint: /api/v2/health-local-units/
+    Only add new tests; existing code remains untouched.
+    """
+
+    def setUp(self):
+        super().setUp()
+        # Regions and countries
+        self.region1 = RegionFactory.create(name=2, label="Asia Pacific")
+        self.region2 = RegionFactory.create(name=1, label="Americas")
+
+        self.country1 = CountryFactory.create(name="Nepal", iso3="NPL", region=self.region1)
+        self.country2 = CountryFactory.create(name="Philippines", iso3="PHL", region=self.region1)
+        self.country3 = CountryFactory.create(name="Brazil", iso3="BRA", region=self.region2)
+
+        # Types
+        self.type_health = LocalUnitType.objects.create(code=2, name="Health")
+        self.type_admin = LocalUnitType.objects.create(code=1, name="Administrative")
+
+        # Lookups for HealthData
+        self.aff = Affiliation.objects.create(code=11, name="Public")
+        self.func = Functionality.objects.create(code=21, name="Functional")
+        self.ftype = FacilityType.objects.create(code=31, name="Clinic")
+        self.phcc = PrimaryHCC.objects.create(code=41, name="Primary")
+        self.htype = HospitalType.objects.create(code=51, name="District Hospital")
+
+        # Included: public, not deprecated, type=2 with health
+        self.hd1 = HealthDataFactory.create(
+            affiliation=self.aff,
+            functionality=self.func,
+            health_facility_type=self.ftype,
+            primary_health_care_center=self.phcc,
+            hospital_type=self.htype,
+        )
+        self.lu1 = LocalUnitFactory.create(
+            country=self.country1,
+            type=self.type_health,
+            health=self.hd1,
+            visibility=VisibilityChoices.PUBLIC,
+            is_deprecated=False,
+            status=LocalUnit.Status.VALIDATED,
+            subtype="District Clinic A",
+        )
+
+        self.hd2 = HealthDataFactory.create(
+            affiliation=self.aff,
+            functionality=self.func,
+            health_facility_type=self.ftype,
+        )
+        self.lu2 = LocalUnitFactory.create(
+            country=self.country2,
+            type=self.type_health,
+            health=self.hd2,
+            visibility=VisibilityChoices.PUBLIC,
+            is_deprecated=False,
+            status=LocalUnit.Status.UNVALIDATED,
+            subtype="Mobile Clinic",
+        )
+
+        # Exclusions
+        # - private visibility
+        LocalUnitFactory.create(
+            country=self.country1,
+            type=self.type_health,
+            health=HealthDataFactory.create(affiliation=self.aff, functionality=self.func, health_facility_type=self.ftype),
+            visibility=VisibilityChoices.MEMBERSHIP,
+            is_deprecated=False,
+            status=LocalUnit.Status.VALIDATED,
+        )
+        # - deprecated
+        LocalUnitFactory.create(
+            country=self.country1,
+            type=self.type_health,
+            health=HealthDataFactory.create(affiliation=self.aff, functionality=self.func, health_facility_type=self.ftype),
+            visibility=VisibilityChoices.PUBLIC,
+            is_deprecated=True,
+            status=LocalUnit.Status.VALIDATED,
+        )
+        # - wrong type (admin)
+        LocalUnitFactory.create(
+            country=self.country1,
+            type=self.type_admin,
+            health=None,
+            visibility=VisibilityChoices.PUBLIC,
+            is_deprecated=False,
+            status=LocalUnit.Status.VALIDATED,
+        )
+        # - no health
+        LocalUnitFactory.create(
+            country=self.country3,
+            type=self.type_health,
+            health=None,
+            visibility=VisibilityChoices.PUBLIC,
+            is_deprecated=False,
+            status=LocalUnit.Status.VALIDATED,
+        )
+
+    def test_list_public_health_local_units(self):
+        resp = self.client.get("/api/v2/health-local-units/")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.data["count"], 2)
+        # Check a few flattened fields exist
+        first = resp.data["results"][0]
+        self.assertIn("country_name", first)
+        self.assertIn("country_iso3", first)
+        self.assertEqual(first["type_code"], 2)
+        self.assertIn("location", first)
+        self.assertIn("affiliation", first)
+        self.assertIn("functionality", first)
+        self.assertIn("health_facility_type", first)
+        # health_facility_type may include image_url; assert at least name exists when present
+        if first["health_facility_type"] is not None:
+            self.assertIn("name", first["health_facility_type"])
+
+    def test_filters_region_country_iso3_validated_subtype(self):
+        # region -> both country1 and country2 are in region1
+        resp = self.client.get(f"/api/v2/health-local-units/?region={self.region1.id}")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.data["count"], 2)
+
+        # country
+        resp = self.client.get(f"/api/v2/health-local-units/?country={self.country1.id}")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.data["count"], 1)
+        self.assertEqual(resp.data["results"][0]["country_iso3"], "NPL")
+
+        # iso3
+        resp = self.client.get("/api/v2/health-local-units/?iso3=PHL")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.data["count"], 1)
+        self.assertEqual(resp.data["results"][0]["country_iso3"], "PHL")
+
+        # validated true
+        resp = self.client.get("/api/v2/health-local-units/?validated=true")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.data["count"], 1)
+        self.assertEqual(resp.data["results"][0]["status"], LocalUnit.Status.VALIDATED)
+
+        # validated false
+        resp = self.client.get("/api/v2/health-local-units/?validated=false")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.data["count"], 1)
+        self.assertEqual(resp.data["results"][0]["status"], LocalUnit.Status.UNVALIDATED)
+
+        # subtype icontains
+        resp = self.client.get("/api/v2/health-local-units/?subtype=mobile")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.data["count"], 1)
+        self.assertEqual(resp.data["results"][0]["subtype"].lower(), "mobile clinic".lower())
+
+        # End of relevant assertions for this test.
