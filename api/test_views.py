@@ -1,7 +1,11 @@
+import re
 import uuid
+from unittest.mock import patch
 
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import override_settings
+from django.urls import reverse
 
 import api.models as models
 from api.factories.event import (
@@ -16,6 +20,82 @@ from api.models import Profile, VisibilityChoices
 from deployments.factories.user import UserFactory
 from dref.models import DrefFile
 from main.test_case import APITestCase
+
+
+class AuthPowerBITest(APITestCase):
+    def setUp(self):
+        self.url = reverse("auth_power_bi")
+
+    def test_not_authenticated_returns_401(self):
+        resp = self.client.get(self.url)
+        self.assertEqual(resp.status_code, 401)
+        self.assertIn("error_code", resp.json())
+
+    def test_authenticated_returns_ok(self):
+        user = User.objects.create_user(username="alice", password="pass1234")
+        # self.client.login(username="alice", password="pass1234")  # session auth, if needed in the future
+        # Use token authentication instead of session auth
+        self.authenticate(user=user)
+        resp = self.client.get(self.url)
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(data.get("detail"), "ok")
+        self.assertEqual(data.get("user"), user.username)
+
+    def test_authenticated_returns_mock_values_shape(self):
+        user = User.objects.create_user(username="bob", password="pass1234")
+        self.assertEqual("bob", user.username)
+        # Use token authentication instead of session auth
+        self.authenticate(user=user)
+
+        # Force mock path regardless of settings by returning no MI token
+        with patch("api.views._pbi_token_via_managed_identity", return_value=None):
+            resp = self.client.get(self.url)
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+
+        # embed_token: 16 hex chars
+        self.assertIsInstance(data.get("embed_token"), str)
+        self.assertTrue(re.fullmatch(r"[0-9a-f]{16}", data["embed_token"]))
+        # embed_url: 10-char random string
+        self.assertIsInstance(data.get("embed_url"), str)
+        self.assertEqual(len(data["embed_url"]), 10)
+        # report_id: positive int
+        self.assertIsInstance(data.get("report_id"), int)
+        self.assertGreater(data["report_id"], 0)
+
+    def test_authenticated_powerbi_values_when_configured(self):
+        user = User.objects.create_user(username="carol", password="pass1234")
+        self.assertEqual("carol", user.username)
+        # Use token authentication instead of session auth
+        self.authenticate(user=user)
+
+        expected = {
+            "embed_url": "https://app.powerbi.com/reportEmbed?reportId=rep-123",
+            "report_id": "rep-123",
+            "embed_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9",  # dummy string
+            "expires_at": "2099-01-01T00:00:00Z",
+        }
+
+        with override_settings(POWERBI_WORKSPACE_ID="ws-abc"):
+            with (
+                patch("api.views._pbi_token_via_managed_identity", return_value="access-token") as p_token,
+                patch(
+                    "api.views._pbi_get_embed_info",
+                    return_value=(expected["embed_url"], expected["report_id"], expected["embed_token"], expected["expires_at"]),
+                ) as p_info,
+            ):
+                resp = self.client.get(self.url)
+
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(data.get("embed_url"), expected["embed_url"])
+        self.assertEqual(data.get("report_id"), expected["report_id"])
+        self.assertEqual(data.get("embed_token"), expected["embed_token"])
+        self.assertEqual(data.get("user"), "carol")
+        # helpers were called
+        p_token.assert_called_once()
+        p_info.assert_called_once()
 
 
 class SecureFileFieldTest(APITestCase):
