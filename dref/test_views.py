@@ -1803,7 +1803,7 @@ class Dref3ViewSetTests(APITestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_normal_user_cannot_access_list(self):
+    def test_normal_user_can_access_list_also(self):
         self.client.force_authenticate(user=self.user)
         response = self.client.get(self.url)
         # self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

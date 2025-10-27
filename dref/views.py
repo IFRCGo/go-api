@@ -1,5 +1,4 @@
 import django.utils.timezone as timezone
-from django.apps import apps
 from django.contrib.auth.models import Permission
 from django.db import models
 from django.templatetags.static import static
@@ -18,6 +17,7 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from reversion.views import RevisionMixin
 
+from api.models import AppealFilter
 from dref.filter_set import (
     ActiveDrefFilterSet,
     CompletedDrefOperationsFilterSet,
@@ -299,13 +299,15 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):
         Accepts CSV values in AppealFilter.value like "MDRXX019,MDRYY036".
         """
         try:
-            AppealFilter = apps.get_model("api", "AppealFilter")
-            codes = list(AppealFilter.objects.values_list("value", flat=True))
+            if AppealFilter.objects.values_list("value", flat=True).filter(name="ingestAppealFilter").count() > 0:
+                codes_exc = AppealFilter.objects.values_list("value", flat=True).filter(name="ingestAppealFilter")[0].split(",")
+            else:
+                codes_exc = []
         except Exception:
             # If model/app not available, fail open (no extra exclusions)
             return set()
         excluded = set()
-        for code in codes:
+        for code in codes_exc:
             c = code.strip().upper()
             if c:
                 excluded.add(c)
