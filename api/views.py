@@ -1080,10 +1080,11 @@ PBI_BASE = "https://api.powerbi.com/v1.0/myorg"
 def _pbi_token_via_managed_identity() -> str | None:
     """
     Acquire an AAD access token for Power BI using the AKS managed identity.
-    If AZURE_CLIENT_ID is provided, target that user-assigned MI.
+    If POWERBI_AZURE_CLIENT_ID is provided, target that user-assigned MI.
+    (There is another AZURE_CLIENT_ID among env vars, that is why this distinctive name is used.)
     """
     try:
-        client_id = getattr(settings, "AZURE_CLIENT_ID", None) or os.getenv("AZURE_CLIENT_ID")
+        client_id = getattr(settings, "POWERBI_AZURE_CLIENT_ID", None) or os.getenv("POWERBI_AZURE_CLIENT_ID")
         if client_id:
             cred = ManagedIdentityCredential(client_id=client_id)
         else:
