@@ -148,7 +148,7 @@ env = environ.Env(
     # ReliefWeb appname
     RELIEF_WEB_APP_NAME=(str, None),
     # Azure CLIENT_ID (PrincipalId) + PowerBI IDs
-    AZURE_CLIENT_ID=(str, None),
+    POWERBI_AZURE_CLIENT_ID=(str, None),
     POWERBI_REPORT_ID=(str, None),
     POWERBI_WORKSPACE_ID=(str, None),
 )
@@ -885,7 +885,7 @@ if OIDC_ENABLE:
 RELIEF_WEB_APP_NAME = env("RELIEF_WEB_APP_NAME")
 
 # Azure CLIENT_ID (PrincipalId for Power BI usage)
-AZURE_CLIENT_ID = env("AZURE_CLIENT_ID")
+POWERBI_AZURE_CLIENT_ID = env("POWERBI_AZURE_CLIENT_ID")
 POWERBI_REPORT_ID = env("POWERBI_REPORT_ID")
 POWERBI_WORKSPACE_ID = env("POWERBI_WORKSPACE_ID")
 

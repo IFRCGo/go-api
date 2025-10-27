@@ -53,7 +53,7 @@ x-server: &base_server_setup
     # ReliefWeb appname
     RELIEF_WEB_APP_NAME: ${RELIEF_WEB_APP_NAME:-}
     # Azure CLIENT_ID (PrincipalId) + PowerBI IDs
-    AZURE_CLIENT_ID: ${AZURE_CLIENT_ID:-}
+    POWERBI_AZURE_CLIENT_ID: ${POWERBI_AZURE_CLIENT_ID:-}
     POWERBI_REPORT_ID: ${POWERBI_REPORT_ID:-}
     POWERBI_WORKSPACE_ID: ${POWERBI_WORKSPACE_ID:-}
 
