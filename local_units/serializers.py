@@ -107,7 +107,9 @@ class ProfessionalTrainingFacilitySerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class OtherProfileSerializer(serializers.ModelSerializer):
+class OtherProfileSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
+
     class Meta:
         model = OtherProfile
         fields = "__all__"
@@ -154,10 +156,9 @@ class HealthDataSerializer(
     professional_training_facilities_details = ProfessionalTrainingFacilitySerializer(
         source="professional_training_facilities", many=True, read_only=True
     )
-    other_profiles_details = OtherProfileSerializer(
-        source="other_profiles",
+    other_profiles = OtherProfileSerializer(
         many=True,
-        read_only=True,
+        required=False,
     )
     modified_by_details = LocalUnitMiniUserSerializer(source="modified_by", read_only=True)
     created_by_details = LocalUnitMiniUserSerializer(source="created_by", read_only=True)
@@ -553,7 +554,6 @@ class LocalUnitOptionsSerializer(serializers.Serializer):
     professional_training_facilities = ProfessionalTrainingFacilitySerializer(many=True)
     general_medical_services = GeneralMedicalServiceSerializer(many=True)
     specialized_medical_beyond_primary_level = SpecializedMedicalServiceSerializer(many=True)
-    other_profiles = OtherProfileSerializer(many=True)
 
 
 class MiniDelegationOfficeSerializer(serializers.ModelSerializer):
