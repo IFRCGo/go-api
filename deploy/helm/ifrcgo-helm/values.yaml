@@ -66,8 +66,6 @@ env:
   OIDC_RSA_PRIVATE_KEY_BASE64_ENCODED:
   OIDC_RSA_PUBLIC_KEY_BASE64_ENCODED:
   RELIEF_WEB_APP_NAME: ''
-  POWERBI_AZURE_CLIENT_ID: ''
-  POWERBI_REPORT_ID: ''
   POWERBI_WORKSPACE_ID: ''
 
 # NOTE: Used to pass additional configs to api/worker containers

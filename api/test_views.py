@@ -85,7 +85,8 @@ class AuthPowerBITest(APITestCase):
                     return_value=(expected["embed_url"], expected["report_id"], expected["embed_token"], expected["expires_at"]),
                 ) as p_info,
             ):
-                resp = self.client.get(self.url)
+                # Pass report_id via query parameter per new behavior
+                resp = self.client.get(f"{self.url}?report_id={expected['report_id']}")
 
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
@@ -95,7 +96,7 @@ class AuthPowerBITest(APITestCase):
         self.assertEqual(data.get("user"), "carol")
         # helpers were called
         p_token.assert_called_once()
-        p_info.assert_called_once()
+        p_info.assert_called_once_with("access-token", "ws-abc", expected["report_id"])
 
 
 class SecureFileFieldTest(APITestCase):

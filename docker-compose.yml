@@ -52,9 +52,7 @@ x-server: &base_server_setup
     IFRC_TRANSLATION_HEADER_API_KEY: ${IFRC_TRANSLATION_HEADER_API_KEY:-}
     # ReliefWeb appname
     RELIEF_WEB_APP_NAME: ${RELIEF_WEB_APP_NAME:-}
-    # Azure CLIENT_ID (PrincipalId) + PowerBI IDs
-    POWERBI_AZURE_CLIENT_ID: ${POWERBI_AZURE_CLIENT_ID:-}
-    POWERBI_REPORT_ID: ${POWERBI_REPORT_ID:-}
+    # PowerBI
     POWERBI_WORKSPACE_ID: ${POWERBI_WORKSPACE_ID:-}
 
   extra_hosts:

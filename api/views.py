@@ -22,7 +22,12 @@ from django.utils.crypto import get_random_string
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views import View
 from django.views.generic.edit import FormView
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import (
+    OpenApiParameter,
+    OpenApiTypes,
+    extend_schema,
+    extend_schema_view,
+)
 from haystack.query import SQ, SearchQuerySet
 from rest_framework import authentication, permissions
 from rest_framework.authtoken.models import Token
@@ -1080,11 +1085,10 @@ PBI_BASE = "https://api.powerbi.com/v1.0/myorg"
 def _pbi_token_via_managed_identity() -> str | None:
     """
     Acquire an AAD access token for Power BI using the AKS managed identity.
-    If POWERBI_AZURE_CLIENT_ID is provided, target that user-assigned MI.
-    (There is another AZURE_CLIENT_ID among env vars, that is why this distinctive name is used.)
+    If AZURE_CLIENT_ID is provided, target that user-assigned Managed Identity.
     """
     try:
-        client_id = getattr(settings, "POWERBI_AZURE_CLIENT_ID", None) or os.getenv("POWERBI_AZURE_CLIENT_ID")
+        client_id = getattr(settings, "AZURE_CLIENT_ID", None) or os.getenv("AZURE_CLIENT_ID")
         if client_id:
             cred = ManagedIdentityCredential(client_id=client_id)
         else:
@@ -1169,23 +1173,32 @@ class AuthPowerBI(APIView):
     authentication_classes = (authentication.TokenAuthentication,)  # later to SessionAuthentication
     permission_classes = (permissions.IsAuthenticated,)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="report_id",
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description=("Power BI report identifier. If omitted, the first report in the configured workspace is used."),
+            ),
+        ]
+    )
     def get(self, request):
         # Try real Power BI via managed identity
-        # Accept config from settings or environment for parity with diagnostics command
+        # Workspace can come from settings or environment; report_id must come from query param
         workspace_id = getattr(settings, "POWERBI_WORKSPACE_ID", None) or os.getenv("POWERBI_WORKSPACE_ID")
-        # Support both POWERBI_REPORT_ID (preferred) and legacy REPORT_ID, plus env override
-        report_id_cfg = (
-            getattr(settings, "POWERBI_REPORT_ID", None) or getattr(settings, "REPORT_ID", None) or os.getenv("POWERBI_REPORT_ID")
-        )
+        # Receive report id from GET parameter only; do not use env/settings
+        report_id_param = request.query_params.get("report_id")
         access_token = _pbi_token_via_managed_identity()
 
         # Optional debug-lite: log selected token claims and config when requested
         debug_flag = str(request.query_params.get("debug", "")).lower() in {"1", "true", "yes", "on"}
         if debug_flag:
             logger.info(
-                "AuthPowerBI debug-lite enabled: workspace_id=%s report_id_cfg=%s has_token=%s",
+                "AuthPowerBI debug-lite enabled: workspace_id=%s report_id_param=%s has_token=%s",
                 workspace_id,
-                report_id_cfg,
+                report_id_param,
                 bool(access_token),
             )
             if access_token:
@@ -1193,7 +1206,7 @@ class AuthPowerBI(APIView):
 
         if access_token and workspace_id:
             try:
-                embed_url, report_id, embed_token, expires_at = _pbi_get_embed_info(access_token, workspace_id, report_id_cfg)
+                embed_url, report_id, embed_token, expires_at = _pbi_get_embed_info(access_token, workspace_id, report_id_param)
                 return Response(
                     {
                         "detail": "ok",
