@@ -17,6 +17,7 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from reversion.views import RevisionMixin
 
+from api.utils import get_model_name
 from dref.filter_set import (
     ActiveDrefFilterSet,
     CompletedDrefOperationsFilterSet,
@@ -41,7 +42,8 @@ from dref.serializers import (
     DrefShareUserSerializer,
     MiniDrefSerializer,
 )
-from dref.utils import is_translation_complete, trigger_translation
+from dref.utils import is_translation_complete
+from lang.tasks import translate_model_fields
 from main.permissions import DenyGuestUserPermission, UseBySuperAdminOnly
 
 
@@ -110,7 +112,7 @@ class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
         if dref.status in [Dref.Status.FINALIZED, Dref.Status.APPROVED]:
             raise serializers.ValidationError(gettext("Cannot be finalized because it is already %s") % dref.get_status_display())
         if not is_translation_complete(dref):
-            trigger_translation(dref)
+            translate_model_fields.delay(get_model_name(type(dref)), dref.pk)
             raise serializers.ValidationError(
                 gettext("The translation is currently being processed. Please wait a little while before trying again.")
             )
@@ -205,7 +207,7 @@ class DrefOperationalUpdateViewSet(RevisionMixin, viewsets.ModelViewSet):
                 gettext("Cannot be finalized because it is already %s") % operational_update.get_status_display()
             )
         if not is_translation_complete(operational_update):
-            trigger_translation(operational_update)
+            translate_model_fields.delay(get_model_name(type(operational_update)), operational_update.pk)
             raise serializers.ValidationError(
                 gettext("The translation is currently being processed. Please wait a little while before trying again.")
             )
@@ -270,7 +272,7 @@ class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
                 gettext("Cannot be finalized because it is already %s") % field_report.get_status_display()
             )
         if not is_translation_complete(field_report):
-            trigger_translation(field_report)
+            translate_model_fields.delay(get_model_name(type(field_report)), field_report.pk)
             raise serializers.ValidationError(
                 gettext("The translation is currently being processed. Please wait a little while before trying again.")
             )

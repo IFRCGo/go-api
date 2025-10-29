@@ -11,6 +11,7 @@ from django.core import management
 from rest_framework import status
 
 from api.models import Country, DisasterType, District, Region, RegionName
+from api.utils import get_model_name
 from deployments.factories.project import SectorFactory
 from deployments.factories.user import UserFactory
 from dref.factories.dref import (
@@ -1249,9 +1250,9 @@ class DrefTestCase(APITestCase):
         response = self.client.patch(url, data=data_en, format="json", HTTP_ACCEPT_LANGUAGE="en")
         self.assert_400(response)
 
-    @patch("dref.views.trigger_translation")
+    @patch("dref.views.translate_model_fields.delay")
     @patch("dref.views.is_translation_complete")
-    def test_update_and_finalize_dref(self, mock_is_translation_complete, mock_trigger_translation):
+    def test_update_and_finalize_dref(self, mock_is_translation_complete, mock_translation):
         dref = DrefFactory.create(
             title="Título original en español",
             type_of_dref=Dref.DrefType.IMMINENT,
@@ -1285,13 +1286,13 @@ class DrefTestCase(APITestCase):
         mock_is_translation_complete.return_value = False
         response = self.client.post(finalize_url)
         self.assert_400(response)
-        mock_trigger_translation.assert_called_once_with(dref)
+        mock_translation.assert_called_once_with(get_model_name(type(dref)), dref.pk)
         # Test finalize with Translation completion
-        mock_trigger_translation.reset_mock()
+        mock_translation.reset_mock()
         mock_is_translation_complete.return_value = True
         response = self.client.post(finalize_url)
         self.assert_200(response)
-        mock_trigger_translation.assert_not_called()
+        mock_translation.assert_not_called()
         self.assertEqual(response.data["status"], Dref.Status.FINALIZED)
         self.assertEqual(response.data["translation_module_original_language"], "en")
 
@@ -1436,9 +1437,9 @@ class DrefTestCase(APITestCase):
         self.assert_200(response)
         self.assertEqual(response.data["title"], "Titre en français")
 
-    @patch("dref.views.trigger_translation")
+    @patch("dref.views.translate_model_fields.delay")
     @patch("dref.views.is_translation_complete")
-    def test_dref_operational_update_finalize(self, mock_is_translation_complete, mock_trigger_translation):
+    def test_dref_operational_update_finalize(self, mock_is_translation_complete, mock_translation):
         # Create users
         user1, user2 = UserFactory.create_batch(2)
         dref = DrefFactory.create(
@@ -1476,13 +1477,13 @@ class DrefTestCase(APITestCase):
         mock_is_translation_complete.return_value = False
         response = self.client.post(finalize_url)
         self.assert_400(response)
-        mock_trigger_translation.assert_called_once_with(op_update)
+        mock_translation.assert_called_once_with(get_model_name(type(op_update)), op_update.pk)
         # Test Finalize with translation complete
-        mock_trigger_translation.reset_mock()
+        mock_translation.reset_mock()
         mock_is_translation_complete.return_value = True
         response = self.client.post(finalize_url)
         self.assert_200(response)
-        mock_trigger_translation.assert_not_called()
+        mock_translation.assert_not_called()
         self.assertEqual(response.data["status"], Dref.Status.FINALIZED)
         self.assertEqual(response.data["translation_module_original_language"], "en")
         # Update in English
@@ -2495,9 +2496,9 @@ class DrefTestCase(APITestCase):
         self.assertEqual(response.data["translation_module_original_language"], "es")
         self.assertEqual(response.data["title"], "Título en español")
 
-    @patch("dref.views.trigger_translation")
+    @patch("dref.views.translate_model_fields.delay")
     @patch("dref.views.is_translation_complete")
-    def test_dref_final_report_finalize(self, mock_is_translation_complete, mock_trigger_translation):
+    def test_dref_final_report_finalize(self, mock_is_translation_complete, mock_translation):
         region = Region.objects.create(name=RegionName.AFRICA)
         country = Country.objects.create(name="Test country12", region=region)
         # Create users
@@ -2538,13 +2539,13 @@ class DrefTestCase(APITestCase):
         mock_is_translation_complete.return_value = False
         response = self.client.post(finalize_url)
         self.assert_400(response)
-        mock_trigger_translation.assert_called_once_with(final_report)
+        mock_translation.assert_called_once_with(get_model_name(type(final_report)), final_report.pk)
         # Test finalize with Translation completion
-        mock_trigger_translation.reset_mock()
+        mock_translation.reset_mock()
         mock_is_translation_complete.return_value = True
         response = self.client.post(finalize_url)
         self.assert_200(response)
-        mock_trigger_translation.assert_not_called()
+        mock_translation.assert_not_called()
         self.assertEqual(response.data["status"], Dref.Status.FINALIZED)
         self.assertEqual(response.data["translation_module_original_language"], "en")
 

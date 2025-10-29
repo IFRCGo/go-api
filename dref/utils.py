@@ -7,8 +7,6 @@ from modeltranslation.translator import translator
 from modeltranslation.utils import build_localized_fieldname
 
 from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
-from lang.tasks import translate_model_fields
-from main.lock import RedisLockKey, redis_lock
 
 logger = logging.getLogger(__name__)
 
@@ -63,34 +61,92 @@ def get_dref_users():
     return dref_users_list
 
 
-def is_translation_complete(instance, target_lang="en"):
+def is_translation_complete(instance, target_lang="en", visited=None):
     """
-    Check all translatable fields of a instance have been
-    translated to the target language.
+    Checks if instance and all related translatable fields are complete.
     """
-    original_lang = getattr(instance, "translation_module_original_language", None)
-    if not original_lang:
+    if visited is None:
+        visited = set()
+
+    instance_id = id(instance)
+    if instance_id in visited:
+        return True
+
+    visited.add(instance_id)
+
+    if not _is_instance_translatable(instance):
         return False
-    try:
-        opts = translator.get_options_for_model(type(instance))
-    except Exception as e:
-        logger.warning(f"Failed to get translation options {e}", exc_info=True)
+
+    if not _check_instance_fields(instance, target_lang):
         return False
-    for field in getattr(opts, "fields", []):
-        original_value = getattr(instance, build_localized_fieldname(field, original_lang), None)
-        translated_value = getattr(instance, build_localized_fieldname(field, target_lang), None)
-        if original_value and not translated_value:
-            return False
+    if not _check_related_fields(instance, target_lang, visited):
+        return False
     return True
 
 
-def trigger_translation(instance):
-    """
-    Trigger translation task with Redis lock.
-    """
-    with redis_lock(key=RedisLockKey.DREF_TRANSLATION, id=instance.pk) as acquired:
-        if not acquired:
-            logger.warning(f"Translation already in progress for {instance._meta.label} (pk={instance.pk})")
-            return
-        translate_model_fields.delay(instance._meta.label, instance.pk)
-        logger.info(f"Triggered translation task for {instance._meta.label} (pk={instance.pk})")
+def _is_instance_translatable(instance):
+    """Check if instance has translation capability."""
+    return bool(getattr(instance, "translation_module_original_language", None))
+
+
+def _check_instance_fields(instance, target_lang):
+    """Check translatable fields on the instance itself."""
+    try:
+        opts = translator.get_options_for_model(type(instance))
+    except Exception as e:
+        logger.warning(f"Failed to get translation options: {e}")
+        return False
+
+    original_lang = getattr(instance, "translation_module_original_language")
+    translatable_fields = getattr(opts, "fields", [])
+
+    for field in translatable_fields:
+        original_field = build_localized_fieldname(field, original_lang)
+        target_field = build_localized_fieldname(field, target_lang)
+
+        original_value = getattr(instance, original_field, None)
+        translated_value = getattr(instance, target_field, None)
+
+        if original_value and not translated_value:
+            return False
+
+    return True
+
+
+def _check_related_fields(instance, target_lang, visited):
+    """Check all related translatable fields."""
+    try:
+        opts = translator.get_options_for_model(type(instance))
+    except Exception as e:
+        logger.warning(f"Failed to get translation options for related fields: {e}")
+        return False
+
+    for related_field in getattr(opts, "related_fields", []):
+        if not _check_related_field_translation(instance, related_field, target_lang, visited):
+            return False
+
+    return True
+
+
+def _check_related_field_translation(instance, related_field, target_lang, visited):
+    try:
+        related_instance = getattr(instance, related_field.name, None)
+
+        if related_instance is None:
+            return True
+
+        if hasattr(related_instance, "translation_module_original_language"):
+            return is_translation_complete(related_instance, target_lang, visited)
+
+        elif hasattr(related_instance, "all"):
+            for related_obj in related_instance.all():
+                if hasattr(related_obj, "translation_module_original_language"):
+                    if not is_translation_complete(related_obj, target_lang, visited):
+                        return False
+            return True
+
+    except Exception as e:
+        logger.warning(f"Error checking related field {related_field.name}: {e}")
+        return False
+
+    return True
