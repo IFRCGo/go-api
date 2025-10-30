@@ -182,6 +182,7 @@ router.register(r"country-plan", country_plan_views.CountryPlanViewset, basename
 # Local Units apis
 router.register(r"local-units", local_units_views.PrivateLocalUnitViewSet, basename="local_units")
 router.register(r"public-local-units", local_units_views.LocalUnitViewSet, basename="public_local_units")
+router.register(r"health-local-units", local_units_views.HealthLocalUnitViewSet, basename="health_local_units")
 router.register(
     r"externally-managed-local-unit",
     local_units_views.ExternallyManagedLocalUnitViewSet,
