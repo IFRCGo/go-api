@@ -1,3 +1,4 @@
+from django.contrib.auth.models import Permission
 from rest_framework import permissions
 
 from api.models import Country
@@ -24,7 +25,7 @@ class ValidateLocalUnitPermission(permissions.BasePermission):
 
 
 class IsAuthenticatedForLocalUnit(permissions.BasePermission):
-    message = "Only Country admin, Local Unit validators and superusers are allowed to update Local Units"
+    message = "Only Country Admins, Local Unit Validators, Region Admins, or Superusers are allowed to update Local Units."
 
     def has_object_permission(self, request, view, obj):
         if request.method not in ["PUT", "PATCH"]:
@@ -36,15 +37,27 @@ class IsAuthenticatedForLocalUnit(permissions.BasePermission):
             return True
 
         country_id = obj.country_id
-        try:
-            country = Country.objects.get(id=country_id)
-        except Country.DoesNotExist:
-            return False
+        country = Country.objects.get(id=country_id)
+        region_id = country.region_id
         # Country admin specific permissions
-        codename = f"country_admin_{country.id}"
-        if user.groups.filter(permissions__codename=codename).exists():
+        country_admin_ids = [
+            int(codename.replace("country_admin_", ""))
+            for codename in Permission.objects.filter(
+                group__user=user,
+                codename__startswith="country_admin_",
+            ).values_list("codename", flat=True)
+        ]
+        # Regional admin specific permissions
+        region_admin_ids = [
+            int(codename.replace("region_admin_", ""))
+            for codename in Permission.objects.filter(
+                group__user=user,
+                codename__startswith="region_admin_",
+            ).values_list("codename", flat=True)
+        ]
+        if country_id in country_admin_ids or region_id in region_admin_ids:
             return True
-        # Validator permission
+
         return (
             get_local_unit_country_validators(obj).filter(id=user.id).exists()
             or get_local_unit_region_validators(obj).filter(id=user.id).exists()
