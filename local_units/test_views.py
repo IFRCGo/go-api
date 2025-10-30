@@ -882,25 +882,54 @@ class TestLocalUnitCreate(APITestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(LocalUnitChangeRequest.objects.count(), 0)
 
-    def test_country_admin_permission_for_local_unit_update(self):
+    def test_country_region_admin_permission_for_local_unit_update(self):
+        region1 = RegionFactory.create(name=2, label="Asia Pacific")
+
+        region2 = RegionFactory.create(name=0, label="Africa")
+
         country = CountryFactory.create(
             name="India",
             iso3="IND",
             record_type=CountryType.COUNTRY,
             is_deprecated=False,
             independent=True,
+            region=region1,
         )
-
+        self.asia_admin = UserFactory.create(email="asia@admin.com")
+        self.africa_admin = UserFactory.create(email="africa@admin.com")
         self.india_admin = UserFactory.create(email="india@admin.com")
         # India admin setup
         management.call_command("make_permissions")
         country_admin_codename = f"country_admin_{country.id}"
         country_admin_permission = Permission.objects.get(codename=country_admin_codename)
-        country__admin_group_name = "%s Admins" % country.name
-        country__admin_group = Group.objects.get(name=country__admin_group_name)
-        country__admin_group.permissions.add(country_admin_permission)
-        self.india_admin.groups.add(country__admin_group)
+        country_admin_group_name = "%s Admins" % country.name
+        country_admin_group = Group.objects.get(name=country_admin_group_name)
+        country_admin_group.permissions.add(country_admin_permission)
+        self.india_admin.groups.add(country_admin_group)
+        # Asia admin
+        asia_admin_codename = f"region_admin_{region1.id}"
+        asia_admin_permission = Permission.objects.get(codename=asia_admin_codename)
+        asia_admin_group_name = "%s Regional Admins" % region1.name
+        asia_admin_group = Group.objects.get(name=asia_admin_group_name)
+        asia_admin_group.permissions.add(asia_admin_permission)
+        self.asia_admin.groups.add(asia_admin_group)
+
+        # Africa admin
+        africa_admin_codename = f"region_admin_{region2.id}"
+        africa_admin_permission = Permission.objects.get(codename=africa_admin_codename)
+        africa_admin_group_name = "%s Regional Admins" % region2.name
+        africa_admin_group = Group.objects.get(name=africa_admin_group_name)
+        africa_admin_group.permissions.add(africa_admin_permission)
+        self.africa_admin.groups.add(africa_admin_group)
+
         local_unit = LocalUnitFactory.create(
+            country=country,
+            type=self.local_unit_type,
+            draft=False,
+            status=LocalUnit.Status.VALIDATED,
+            date_of_data="2023-08-08",
+        )
+        local_unit2 = LocalUnitFactory.create(
             country=country,
             type=self.local_unit_type,
             draft=False,
@@ -925,6 +954,17 @@ class TestLocalUnitCreate(APITestCase):
         self.assert_403(response)
         # Test: actual country admin
         self.authenticate(self.india_admin)
+        response = self.client.patch(url, data=data, format="json")
+        self.assert_200(response)
+        self.assertEqual(response.data["local_branch_name"], "Updated local branch name")
+
+        url = f"/api/v2/local-units/{local_unit2.id}/"
+        # Test: different region admin
+        self.authenticate(self.africa_admin)
+        response = self.client.patch(url, data=data, format="json")
+        self.assert_403(response)
+        # Test: same region admin
+        self.authenticate(self.asia_admin)
         response = self.client.patch(url, data=data, format="json")
         self.assert_200(response)
         self.assertEqual(response.data["local_branch_name"], "Updated local branch name")
