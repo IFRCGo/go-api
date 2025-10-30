@@ -21,6 +21,7 @@ from .models import (
     LocalUnitChangeRequest,
     LocalUnitLevel,
     LocalUnitType,
+    OtherProfile,
     PrimaryHCC,
     ProfessionalTrainingFacility,
     SpecializedMedicalService,
@@ -204,6 +205,11 @@ class BloodServiceAdmin(admin.ModelAdmin):
 class ProfessionalTrainingFacilityAdmin(admin.ModelAdmin):
     ordering = ("code",)
     search_fields = ("name",)
+
+
+@admin.register(OtherProfile)
+class OtherProfileAdmin(admin.ModelAdmin):
+    search_fields = ("position",)
 
 
 @admin.register(HealthData)

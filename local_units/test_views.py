@@ -576,7 +576,10 @@ class TestLocalUnitCreate(APITestCase):
                 "nursing_aid": 0,
                 "midwife": 9,
                 "other_medical_heal": True,
-                "other_profiles": None,
+                "other_profiles": [
+                    {"number": 2, "position": "Nurse"},
+                    {"number": 3, "position": "Doctor"},
+                ],
                 "feedback": "first question of initial question did not provide for the option to write the name of the NS. It is written LRC yet it should allow Baphalali Eswatini Red Cross Society (BERCS) to be inscribed in the box.",  # noqa: E501
                 "affiliation": affiliation.id,
                 "functionality": functionality.id,

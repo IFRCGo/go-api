@@ -32,6 +32,7 @@ from .models import (
     LocalUnitChangeRequest,
     LocalUnitLevel,
     LocalUnitType,
+    OtherProfile,
     PrimaryHCC,
     ProfessionalTrainingFacility,
     SpecializedMedicalService,
@@ -106,6 +107,14 @@ class ProfessionalTrainingFacilitySerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class OtherProfileSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
+
+    class Meta:
+        model = OtherProfile
+        fields = "__all__"
+
+
 class MiniHealthDataSerializer(serializers.ModelSerializer):
     health_facility_type_details = FacilityTypeSerializer(source="health_facility_type", read_only=True)
 
@@ -146,6 +155,10 @@ class HealthDataSerializer(
     )
     professional_training_facilities_details = ProfessionalTrainingFacilitySerializer(
         source="professional_training_facilities", many=True, read_only=True
+    )
+    other_profiles = OtherProfileSerializer(
+        many=True,
+        required=False,
     )
     modified_by_details = LocalUnitMiniUserSerializer(source="modified_by", read_only=True)
     created_by_details = LocalUnitMiniUserSerializer(source="created_by", read_only=True)
@@ -840,7 +853,6 @@ class HealthDataBulkUploadSerializer(NestedCreateMixin):
         parse_m2m("specialized_medical_beyond_primary_level", self.specializedmedicalservice_map)
         parse_m2m("blood_services", self.bloodservice_map)
         parse_m2m("professional_training_facilities", self.professionaltrainingfacility_map)
-
         return super().to_internal_value(data)
 
     def create(self, validated_data):
