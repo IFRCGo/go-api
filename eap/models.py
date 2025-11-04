@@ -174,3 +174,119 @@ class Action(models.Model):
 
     def __str__(self):
         return f"{self.id}"
+
+
+# --- Early Action Protocol --- ##
+
+
+class EAPType(models.IntegerChoices):
+    Full_application = 10, _("Full application")
+    Simplified_application = 20, _("Simplified application")
+    Not_sure = 30, _("Not sure")
+
+
+class DevelopmentRegistrationEAP(models.Model):
+    created_at = models.DateTimeField(
+        verbose_name=_("created at"),
+        auto_now_add=True,
+    )
+    modified_at = models.DateTimeField(
+        verbose_name=_("modified at"),
+        auto_now=True,
+    )
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_("created by"),
+        on_delete=models.PROTECT,
+        null=True,
+        related_name="%(class)s_created_by",
+    )
+    modified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_("modified by"),
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="%(class)s_modified_by",
+    )
+    national_society = models.ForeignKey(
+        Country,
+        on_delete=models.CASCADE,
+        verbose_name=_("National Society (NS)"),
+        help_text=_("Select National Society that is planning to apply for the EAP"),
+        related_name="development_registration_eap_national_society",
+    )
+    country = models.ForeignKey(
+        Country,
+        on_delete=models.CASCADE,
+        verbose_name=_("Country"),
+        help_text=_("The country will be pre-populated based on the NS selection, but can be adapted as needed."),
+        related_name="development_registration_eap_country",
+    )
+    disaster_type = models.ForeignKey(
+        DisasterType,
+        verbose_name=("Disaster Type"),
+        on_delete=models.PROTECT,
+        help_text=_("Select the disaster type for which the EAP is needed"),
+    )
+    eap_type = models.IntegerField(
+        choices=EAPType.choices,
+        verbose_name=_("EAP Type"),
+        help_text=_("Select the type of EAP."),
+    )
+    expected_submission_time = models.DateField(
+        verbose_name=_("Expected submission time"),
+        help_text=_(
+            "Include the propose time of submission, accounting for the time it will take to deliver the application."
+            "Leave blank if not sure."
+        ),
+        blank=True,
+        null=True,
+    )
+
+    partners = models.ManyToManyField(
+        Country,
+        verbose_name=_("Partners"),
+        help_text=_("Select any partner NS involved in the EAP development."),
+        related_name="development_registration_eap_partners",
+        blank=True,
+    )
+
+    # Contacts
+    # National Society
+    national_society_contact_name = models.CharField(
+        verbose_name=_("national society contact name"), max_length=255, null=True, blank=True
+    )
+    national_society_contact_title = models.CharField(
+        verbose_name=_("national society contact title"), max_length=255, null=True, blank=True
+    )
+    national_society_contact_email = models.CharField(
+        verbose_name=_("national society contact email"), max_length=255, null=True, blank=True
+    )
+    national_society_contact_phone_number = models.CharField(
+        verbose_name=_("national society contact phone number"), max_length=100, null=True, blank=True
+    )
+
+    # IFRC Contact
+    ifrc_contact_name = models.CharField(verbose_name=_("IFRC contact name "), max_length=255, null=True, blank=True)
+    ifrc_contact_email = models.CharField(verbose_name=_("IFRC contact email"), max_length=255, null=True, blank=True)
+    ifrc_contact_title = models.CharField(verbose_name=_("IFRC contact title"), max_length=255, null=True, blank=True)
+    ifrc_contact_phone_number = models.CharField(
+        verbose_name=_("IFRC contact phone number"), max_length=100, null=True, blank=True
+    )
+
+    # DREF Focal Point
+    dref_focal_point_name = models.CharField(verbose_name=_("dref focal point name"), max_length=255, null=True, blank=True)
+    dref_focal_point_email = models.CharField(verbose_name=_("Dref focal point email"), max_length=255, null=True, blank=True)
+    dref_focal_point_title = models.CharField(verbose_name=_("Dref focal point title"), max_length=255, null=True, blank=True)
+    dref_focal_point_phone_number = models.CharField(
+        verbose_name=_("Dref focal point phone number"), max_length=100, null=True, blank=True
+    )
+
+    class Meta:
+        verbose_name = _("Development Registration EAP")
+        verbose_name_plural = _("Development Registration EAPs")
+
+    def __str__(self):
+        # NOTE: Use select_related in admin get_queryset for national_society field to avoid extra queries
+        return f"EAP Development Registration - {self.national_society} - {self.disaster_type} - {self.get_eap_type_display()}"
