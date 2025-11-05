@@ -1,16 +1,12 @@
 import django_filters as filters
 
-from eap.models import DevelopmentRegistrationEAP, EAPType
 from api.models import Country, DisasterType
+from eap.models import EAPRegistration, EAPType
 
 
 class BaseEAPFilterSet(filters.FilterSet):
-    created_at__lte = filters.DateFilter(
-        field_name="created_at", lookup_expr="lte", input_formats=["%Y-%m-%d"]
-    )
-    created_at__gte = filters.DateFilter(
-        field_name="created_at", lookup_expr="gte", input_formats=["%Y-%m-%d"]
-    )
+    created_at__lte = filters.DateFilter(field_name="created_at", lookup_expr="lte", input_formats=["%Y-%m-%d"])
+    created_at__gte = filters.DateFilter(field_name="created_at", lookup_expr="gte", input_formats=["%Y-%m-%d"])
     # Country
     country = filters.ModelMultipleChoiceFilter(
         field_name="country",
@@ -33,12 +29,12 @@ class BaseEAPFilterSet(filters.FilterSet):
     )
 
 
-class DevelopmentRegistrationEAPFilterSet(BaseEAPFilterSet):
+class EAPRegistrationFilterSet(BaseEAPFilterSet):
     eap_type = filters.ChoiceFilter(
         choices=EAPType.choices,
         label="EAP Type",
     )
 
     class Meta:
-        model = DevelopmentRegistrationEAP
+        model = EAPRegistration
         fields = ()
