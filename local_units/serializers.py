@@ -945,3 +945,176 @@ class LocalUnitBulkUploadDetailSerializer(serializers.ModelSerializer):
             health_instance = HealthData.objects.create(**health_data)
             validated_data["health"] = health_instance
         return validated_data
+
+
+# Public, flattened serializer for Health Local Units (Type Code = 2)
+class _CodeNameSerializer(serializers.Serializer):
+    code = serializers.IntegerField()
+    name = serializers.CharField()
+
+
+class HealthLocalUnitFlatSerializer(serializers.ModelSerializer):
+    # LocalUnit basics
+    id = serializers.IntegerField(read_only=True)
+    country_id = serializers.IntegerField(source="country.id", read_only=True)
+    country_name = serializers.CharField(source="country.name", read_only=True)
+    country_iso3 = serializers.CharField(source="country.iso3", read_only=True)
+    type_code = serializers.IntegerField(source="type.code", read_only=True)
+    type_name = serializers.CharField(source="type.name", read_only=True)
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+    location = serializers.SerializerMethodField()
+
+    # HealthData flattened
+    affiliation = serializers.SerializerMethodField()
+    functionality = serializers.SerializerMethodField()
+    health_facility_type = serializers.SerializerMethodField()
+    primary_health_care_center = serializers.SerializerMethodField()
+    hospital_type = serializers.SerializerMethodField()
+
+    general_medical_services = serializers.SerializerMethodField()
+    specialized_medical_beyond_primary_level = serializers.SerializerMethodField()
+    blood_services = serializers.SerializerMethodField()
+    professional_training_facilities = serializers.SerializerMethodField()
+
+    class Meta:
+        model = LocalUnit
+        fields = (
+            # LocalUnit
+            "id",
+            "country_id",
+            "country_name",
+            "country_iso3",
+            "local_branch_name",
+            "english_branch_name",
+            "address_loc",
+            "address_en",
+            "city_loc",
+            "city_en",
+            "postcode",
+            "phone",
+            "email",
+            "link",
+            "focal_person_loc",
+            "focal_person_en",
+            "date_of_data",
+            "subtype",
+            "type_code",
+            "type_name",
+            "status",
+            "status_display",
+            "location",
+            # HealthData core
+            "affiliation",
+            "other_affiliation",
+            "functionality",
+            "focal_point_email",
+            "focal_point_phone_number",
+            "focal_point_position",
+            "health_facility_type",
+            "other_facility_type",
+            "primary_health_care_center",
+            "speciality",
+            "hospital_type",
+            "is_teaching_hospital",
+            "is_in_patient_capacity",
+            "is_isolation_rooms_wards",
+            "maximum_capacity",
+            "number_of_isolation_rooms",
+            "is_warehousing",
+            "is_cold_chain",
+            "ambulance_type_a",
+            "ambulance_type_b",
+            "ambulance_type_c",
+            "general_medical_services",
+            "specialized_medical_beyond_primary_level",
+            "other_services",
+            "blood_services",
+            "professional_training_facilities",
+            "total_number_of_human_resource",
+            "general_practitioner",
+            "specialist",
+            "residents_doctor",
+            "nurse",
+            "dentist",
+            "nursing_aid",
+            "midwife",
+            "other_medical_heal",
+            "other_profiles",
+            "feedback",
+        )
+
+    # NOTE: HealthData direct field mappings via source
+    other_affiliation = serializers.CharField(source="health.other_affiliation", read_only=True)
+    focal_point_email = serializers.EmailField(source="health.focal_point_email", read_only=True)
+    focal_point_phone_number = serializers.CharField(source="health.focal_point_phone_number", read_only=True)
+    focal_point_position = serializers.CharField(source="health.focal_point_position", read_only=True)
+    other_facility_type = serializers.CharField(source="health.other_facility_type", read_only=True)
+    speciality = serializers.CharField(source="health.speciality", read_only=True)
+    is_teaching_hospital = serializers.BooleanField(source="health.is_teaching_hospital", read_only=True)
+    is_in_patient_capacity = serializers.BooleanField(source="health.is_in_patient_capacity", read_only=True)
+    is_isolation_rooms_wards = serializers.BooleanField(source="health.is_isolation_rooms_wards", read_only=True)
+    maximum_capacity = serializers.IntegerField(source="health.maximum_capacity", read_only=True)
+    number_of_isolation_rooms = serializers.IntegerField(source="health.number_of_isolation_rooms", read_only=True)
+    is_warehousing = serializers.BooleanField(source="health.is_warehousing", read_only=True)
+    is_cold_chain = serializers.BooleanField(source="health.is_cold_chain", read_only=True)
+    ambulance_type_a = serializers.IntegerField(source="health.ambulance_type_a", read_only=True)
+    ambulance_type_b = serializers.IntegerField(source="health.ambulance_type_b", read_only=True)
+    ambulance_type_c = serializers.IntegerField(source="health.ambulance_type_c", read_only=True)
+    other_services = serializers.CharField(source="health.other_services", read_only=True)
+    total_number_of_human_resource = serializers.IntegerField(source="health.total_number_of_human_resource", read_only=True)
+    general_practitioner = serializers.IntegerField(source="health.general_practitioner", read_only=True)
+    specialist = serializers.IntegerField(source="health.specialist", read_only=True)
+    residents_doctor = serializers.IntegerField(source="health.residents_doctor", read_only=True)
+    nurse = serializers.IntegerField(source="health.nurse", read_only=True)
+    dentist = serializers.IntegerField(source="health.dentist", read_only=True)
+    nursing_aid = serializers.IntegerField(source="health.nursing_aid", read_only=True)
+    midwife = serializers.IntegerField(source="health.midwife", read_only=True)
+    other_medical_heal = serializers.BooleanField(source="health.other_medical_heal", read_only=True)
+    other_profiles = serializers.CharField(source="health.other_profiles", read_only=True)
+    feedback = serializers.CharField(source="health.feedback", read_only=True)
+
+    def get_location(self, unit) -> dict:
+        return {"lat": unit.location.y, "lng": unit.location.x}
+
+    def _code_name(self, obj):
+        if not obj:
+            return None
+        return {"code": obj.code, "name": obj.name}
+
+    def _code_name_list(self, qs):
+        return [{"code": x.code, "name": x.name} for x in qs.all()] if qs is not None else []
+
+    def get_affiliation(self, obj):
+        return self._code_name(getattr(obj.health, "affiliation", None) if obj.health else None)
+
+    def get_functionality(self, obj):
+        return self._code_name(getattr(obj.health, "functionality", None) if obj.health else None)
+
+    def get_health_facility_type(self, obj):
+        if not obj.health or not obj.health.health_facility_type:
+            return None
+        ft = obj.health.health_facility_type
+        data = {"code": ft.code, "name": ft.name}
+        # Attach image_url if request in context
+        request = self.context.get("request") if self.context else None
+        if request:
+            data["image_url"] = FacilityType.get_image_map(ft.code, request)
+        return data
+
+    def get_primary_health_care_center(self, obj):
+        return self._code_name(getattr(obj.health, "primary_health_care_center", None) if obj.health else None)
+
+    def get_hospital_type(self, obj):
+        return self._code_name(getattr(obj.health, "hospital_type", None) if obj.health else None)
+
+    def get_general_medical_services(self, obj):
+        return self._code_name_list(obj.health.general_medical_services if obj.health else None)
+
+    def get_specialized_medical_beyond_primary_level(self, obj):
+        return self._code_name_list(obj.health.specialized_medical_beyond_primary_level if obj.health else None)
+
+    def get_blood_services(self, obj):
+        return self._code_name_list(obj.health.blood_services if obj.health else None)
+
+    def get_professional_training_facilities(self, obj):
+        return self._code_name_list(obj.health.professional_training_facilities if obj.health else None)

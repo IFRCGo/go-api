@@ -147,6 +147,8 @@ env = environ.Env(
     AZURE_OPENAI_DEPLOYMENT_NAME=(str, None),
     # ReliefWeb appname
     RELIEF_WEB_APP_NAME=(str, None),
+    # PowerBI
+    POWERBI_WORKSPACE_ID=(str, None),
 )
 
 
@@ -879,6 +881,9 @@ if OIDC_ENABLE:
 
 # ReliefWeb (for databank cronjob)
 RELIEF_WEB_APP_NAME = env("RELIEF_WEB_APP_NAME")
+
+# PowerBI
+POWERBI_WORKSPACE_ID = env("POWERBI_WORKSPACE_ID")
 
 # Manual checks
 import main.checks  # noqa: F401 E402

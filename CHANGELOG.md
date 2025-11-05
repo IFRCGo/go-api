@@ -6,6 +6,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+ - More filters for SurgeAlerts
+ - ERU filters to Admin page
+ - Verbose ERU listing on Admin page
+ - NS initiatives categories translated
+ - Rename Users per permission in Admin index
+ - Fix .pre-commit-config.yaml to skip migration files
+ - Expose Permissions entry at Authentication and Authorization
+ - Better search for User groups – worldwise
+ - Add filter and SU flag to the User query page
+ - Admin page to query users by permissions
+ - Use safe_username where + can be present
+ - Translate NSIA Risk of NS-initiatives
+ - Skips fields on dref translation
+ - Add NSIA Risk field to NS-initiatives
+ - Fix local unit health data reader
+
 ## 1.1.507
 
 ### Added

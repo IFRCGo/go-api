@@ -1,7 +1,12 @@
+import base64
 import json
+import os
+import secrets
 from datetime import datetime, timedelta
 from urllib.parse import urlparse
 
+import requests
+from azure.identity import DefaultAzureCredential, ManagedIdentityCredential
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
@@ -17,7 +22,12 @@ from django.utils.crypto import get_random_string
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views import View
 from django.views.generic.edit import FormView
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import (
+    OpenApiParameter,
+    OpenApiTypes,
+    extend_schema,
+    extend_schema_view,
+)
 from haystack.query import SQ, SearchQuerySet
 from rest_framework import authentication, permissions
 from rest_framework.authtoken.models import Token
@@ -1065,3 +1075,164 @@ def logout_user(request):
     if request.method == "POST" and request.user.is_authenticated:
         logout(request)
     return redirect(reverse(settings.LOGIN_URL))
+
+
+# Power BI embedding via managed identity
+PBI_SCOPE = "https://analysis.windows.net/powerbi/api/.default"
+PBI_BASE = "https://api.powerbi.com/v1.0/myorg"
+
+
+def _pbi_token_via_managed_identity() -> str | None:
+    """
+    Acquire an AAD access token for Power BI using the AKS managed identity.
+    If AZURE_CLIENT_ID is provided, target that user-assigned Managed Identity.
+    """
+    try:
+        client_id = getattr(settings, "AZURE_CLIENT_ID", None) or os.getenv("AZURE_CLIENT_ID")
+        if client_id:
+            cred = ManagedIdentityCredential(client_id=client_id)
+        else:
+            # Will use workload identity / MSI / Azure CLI (in dev) automatically
+            cred = DefaultAzureCredential(exclude_interactive_browser_credential=True)
+        return cred.get_token(PBI_SCOPE).token
+    except Exception as exc:
+        logger.exception("Power BI MI token acquisition failed: %s", exc)
+        return None
+
+
+def _pbi_get_embed_info(access_token: str, workspace_id: str, report_id: str | None = None, timeout: int = 10):
+    """
+    Get report embedUrl and generate an embed token (embed-for-your-organization).
+    Requires the service principal (managed identity) to be a member of the workspace.
+    """
+    headers = {"Authorization": f"Bearer {access_token}"}
+
+    # Resolve report metadata
+    if report_id:
+        r = requests.get(f"{PBI_BASE}/groups/{workspace_id}/reports/{report_id}", headers=headers, timeout=timeout)
+        r.raise_for_status()
+        rep = r.json()
+    else:
+        r = requests.get(f"{PBI_BASE}/groups/{workspace_id}/reports", headers=headers, timeout=timeout)
+        r.raise_for_status()
+        items = r.json().get("value", [])
+        if not items:
+            raise RuntimeError("No reports found in workspace.")
+        rep = items[0]
+        report_id = rep["id"]
+
+    embed_url = rep["embedUrl"]
+
+    # Generate embed token (view access)
+    payload = {"accessLevel": "View"}
+    t = requests.post(
+        f"{PBI_BASE}/groups/{workspace_id}/reports/{report_id}/GenerateToken",
+        headers={**headers, "Content-Type": "application/json"},
+        json=payload,
+        timeout=timeout,
+    )
+    t.raise_for_status()
+    token_json = t.json()
+    embed_token = token_json["token"]
+    expires = token_json.get("expiration")
+
+    return embed_url, report_id, embed_token, expires
+
+
+def _log_token_claims_safe(access_token: str) -> None:
+    """
+    Debug-lite helper: log selected AAD JWT token claims without exposing the token.
+    Logs tid (tenant), appid (client), oid (object id), aud (audience), exp (UTC).
+    """
+    try:
+        parts = (access_token or "").split(".")
+        if len(parts) < 2:
+            logger.warning("AuthPowerBI: token not in JWT format; cannot decode claims")
+            return
+        # Add base64 padding if needed
+        pad = "=" * (-len(parts[1]) % 4)
+        payload = json.loads(base64.urlsafe_b64decode(parts[1] + pad))
+        exp = payload.get("exp", 0)
+        try:
+            exp_iso = datetime.utcfromtimestamp(exp).isoformat() + "Z"
+        except Exception:
+            exp_iso = str(exp)
+        logger.info(
+            "AuthPowerBI token claims: tid=%s appid=%s oid=%s aud=%s exp=%s",
+            payload.get("tid"),
+            payload.get("appid"),
+            payload.get("oid"),
+            payload.get("aud"),
+            exp_iso,
+        )
+    except Exception as exc:
+        logger.warning("AuthPowerBI: failed to decode token claims: %s", exc)
+
+
+class AuthPowerBI(APIView):
+    authentication_classes = (authentication.TokenAuthentication,)  # later to SessionAuthentication
+    permission_classes = (permissions.IsAuthenticated,)
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="report_id",
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description=("Power BI report identifier. If omitted, the first report in the configured workspace is used."),
+            ),
+        ]
+    )
+    def get(self, request):
+        # Try real Power BI via managed identity
+        # Workspace can come from settings or environment; report_id must come from query param
+        workspace_id = getattr(settings, "POWERBI_WORKSPACE_ID", None) or os.getenv("POWERBI_WORKSPACE_ID")
+        # Receive report id from GET parameter only; do not use env/settings
+        report_id_param = request.query_params.get("report_id")
+        access_token = _pbi_token_via_managed_identity()
+
+        # Optional debug-lite: log selected token claims and config when requested
+        debug_flag = str(request.query_params.get("debug", "")).lower() in {"1", "true", "yes", "on"}
+        if debug_flag:
+            logger.info(
+                "AuthPowerBI debug-lite enabled: workspace_id=%s report_id_param=%s has_token=%s",
+                workspace_id,
+                report_id_param,
+                bool(access_token),
+            )
+            if access_token:
+                _log_token_claims_safe(access_token)
+
+        if access_token and workspace_id:
+            try:
+                embed_url, report_id, embed_token, expires_at = _pbi_get_embed_info(access_token, workspace_id, report_id_param)
+                return Response(
+                    {
+                        "detail": "ok",
+                        "embed_url": embed_url,
+                        "report_id": report_id,
+                        "embed_token": embed_token,
+                        "expires_at": expires_at,
+                        "user": request.user.username,
+                    }
+                )
+            except Exception as e:
+                logger.exception("Power BI REST call failed, falling back to mock: %s", e)
+
+        # Fallback mock if not configured or failed
+        embed_token = secrets.token_hex(8)  # 16-char hex
+        embed_url = get_random_string(10)
+        report_id = secrets.randbelow(2_147_483_647) + 1
+        expires_at = (timezone.now() + timedelta(hours=1)).isoformat()
+
+        return Response(
+            {
+                "detail": "ok",
+                "embed_url": embed_url,
+                "report_id": report_id,
+                "embed_token": embed_token,
+                "expires_at": expires_at,
+                "user": request.user.username,
+            }
+        )

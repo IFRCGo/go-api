@@ -52,6 +52,8 @@ x-server: &base_server_setup
     IFRC_TRANSLATION_HEADER_API_KEY: ${IFRC_TRANSLATION_HEADER_API_KEY:-}
     # ReliefWeb appname
     RELIEF_WEB_APP_NAME: ${RELIEF_WEB_APP_NAME:-}
+    # PowerBI
+    POWERBI_WORKSPACE_ID: ${POWERBI_WORKSPACE_ID:-}
 
   extra_hosts:
       - "host.docker.internal:host-gateway"
