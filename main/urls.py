@@ -194,9 +194,7 @@ router.register(r"bulk-upload-local-unit", local_units_views.LocalUnitBulkUpload
 router.register(r"country-income", data_bank_views.FDRSIncomeViewSet, basename="country_income")
 
 # EAP(Early Action Protocol)
-router.register(
-    r"development-registration-eap", eap_views.DevelopmentRegistrationEAPViewset, basename="development_registration_eap"
-)
+router.register(r"eap-registration", eap_views.EAPRegistrationViewset, basename="development_registration_eap")
 
 admin.site.site_header = "IFRC Go administration"
 admin.site.site_title = "IFRC Go admin"
