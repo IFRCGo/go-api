@@ -44,6 +44,9 @@ class DrefTO(TranslationOptions):
         "pmer",
         "communication",
         "risk_security_concern",
+        "addressed_humanitarian_impacts",
+        "hazard_date_and_location",
+        "hazard_vulnerabilities_and_risks",
     )
 
 

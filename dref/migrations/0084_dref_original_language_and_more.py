@@ -20,6 +20,18 @@ def update_status(apps, schema_editor):
         Model.objects.filter(is_published=True).update(status=4)  # Published → APPROVED
         Model.objects.filter(is_published=False).update(status=1)  # Not published → DRAFT
 
+def update_original_language(apps, schema_editor):
+    """
+    Populate the original_language field with 'en' for all existing records.
+    """
+    models = [
+        "Dref",
+        "DrefOperationalUpdate",
+        "DrefFinalReport",
+    ]
+    for model_name in models:
+        Model = apps.get_model("dref", model_name)
+        Model.objects.update(original_language="en")
 
 class Migration(migrations.Migration):
 
@@ -80,4 +92,5 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.RunPython(update_status, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(update_original_language,reverse_code=migrations.RunPython.noop),
     ]

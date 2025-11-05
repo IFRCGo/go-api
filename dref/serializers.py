@@ -471,6 +471,8 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
     def validate(self, data):
         event_date = data.get("event_date")
         operation_timeframe = data.get("operation_timeframe")
+        if self.instance and self.instance.status == Dref.Status.FINALIZING:
+            raise serializers.ValidationError(gettext("Cannot be updated while the translation is in progress"))
         is_assessment_report = data.get("is_assessment_report")
         if event_date and data["type_of_onset"] not in [Dref.OnsetType.SLOW, Dref.OnsetType.SUDDEN]:
             raise serializers.ValidationError(
@@ -745,6 +747,8 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
 
     def validate(self, data):
         dref = data.get("dref")
+        if self.instance and self.instance.status == Dref.Status.FINALIZING:
+            raise serializers.ValidationError(gettext("Cannot be updated while the translation is in progress"))
         if not self.instance and dref:
             if dref.status != Dref.Status.APPROVED:
                 raise serializers.ValidationError(gettext("Can't create Operational Update for not approved %s dref." % dref.id))
@@ -788,17 +792,13 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
     def create(self, validated_data):
         dref = validated_data["dref"]
         current_language = get_language()
+        stating_langauge = validated_data.get("starting_language")
         valid_languages = [dref.starting_language, dref.translation_module_original_language]
-        # Check request language
-        if current_language not in valid_languages:
+        if current_language != stating_langauge:
+            raise serializers.ValidationError(gettext("Starting language does not match the expected language."))
+        if stating_langauge not in valid_languages:
             raise serializers.ValidationError(
-                gettext(f"Language must be either '{valid_languages[0]}' or '{valid_languages[1]}'.")
-            )
-        # Check payload language
-        language = validated_data.get("starting_language")
-        if language not in valid_languages:
-            raise serializers.ValidationError(
-                gettext(f"Language must be either '{valid_languages[0]}' or '{valid_languages[1]}'.")
+                gettext(f"Invalid starting language. Supported options are '{valid_languages[0]}' and '{valid_languages[1]}'.")
             )
         dref_operational_update = DrefOperationalUpdate.objects.filter(dref=dref).order_by("-operational_update_number").first()
         validated_data["created_by"] = self.context["request"].user
@@ -1146,6 +1146,8 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
 
     def validate(self, data):
         dref = data.get("dref")
+        if self.instance and self.instance.status == Dref.Status.FINALIZING:
+            raise serializers.ValidationError(gettext("Cannot be updated while the translation is in progress"))
         # Check if dref is published and operational_update associated with it is also published
         if not self.instance and dref:
             if dref.status != Dref.Status.APPROVED:
@@ -1247,18 +1249,13 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
         # else copy from dref
         dref = validated_data["dref"]
         current_language = get_language()
+        stating_langauge = validated_data.get("starting_language")
         valid_languages = [dref.starting_language, dref.translation_module_original_language]
-        # Check request language
-        if current_language not in valid_languages:
+        if current_language != stating_langauge:
+            raise serializers.ValidationError(gettext("Starting language does not match the expected language."))
+        if stating_langauge not in valid_languages:
             raise serializers.ValidationError(
-                gettext(f"Language must be either '{valid_languages[0]}' or '{valid_languages[1]}'.")
-            )
-
-        # Check payload language
-        language = validated_data.get("starting_language")
-        if language not in valid_languages:
-            raise serializers.ValidationError(
-                gettext(f"Language must be either '{valid_languages[0]}' or '{valid_languages[1]}'.")
+                gettext(f"Invalid starting language. Supported options are '{valid_languages[0]}' and '{valid_languages[1]}'.")
             )
         dref_operational_update = (
             DrefOperationalUpdate.objects.filter(dref=dref, status=Dref.Status.APPROVED)

@@ -1,6 +1,6 @@
 import django.utils.timezone as timezone
 from django.contrib.auth.models import Permission
-from django.db import models
+from django.db import models, transaction
 from django.templatetags.static import static
 from django.utils.translation import gettext
 from drf_spectacular.utils import extend_schema
@@ -42,8 +42,8 @@ from dref.serializers import (
     DrefShareUserSerializer,
     MiniDrefSerializer,
 )
+from dref.tasks import process_translation
 from dref.utils import is_translation_complete
-from lang.tasks import translate_model_fields
 from main.permissions import DenyGuestUserPermission, UseBySuperAdminOnly
 
 
@@ -82,11 +82,11 @@ class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
         )
         return filter_dref_queryset_by_user_access(user, queryset)
 
+    @extend_schema(request=None, responses=DrefSerializer)
     @action(
         detail=True,
         url_path="approve",
         methods=["post"],
-        serializer_class=DrefSerializer,
         permission_classes=[permissions.IsAuthenticated, PublishDrefPermission, DenyGuestUserPermission],
     )
     def get_approved(self, request, pk=None, version=None):
@@ -100,11 +100,11 @@ class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
         serializer = DrefSerializer(dref, context={"request": request})
         return response.Response(serializer.data)
 
+    @extend_schema(request=None, responses=DrefSerializer)
     @action(
         detail=True,
         url_path="finalize",
         methods=["post"],
-        serializer_class=DrefSerializer,
         permission_classes=[permissions.IsAuthenticated, DenyGuestUserPermission],
     )
     def finalize(self, request, pk=None, version=None):
@@ -112,9 +112,17 @@ class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
         if dref.status in [Dref.Status.FINALIZED, Dref.Status.APPROVED]:
             raise serializers.ValidationError(gettext("Cannot be finalized because it is already %s") % dref.get_status_display())
         if not is_translation_complete(dref):
-            translate_model_fields.delay(get_model_name(type(dref)), dref.pk)
-            raise serializers.ValidationError(
-                gettext("The translation is currently being processed. Please wait a little while before trying again.")
+            model_name = get_model_name(type(dref))
+            dref.status = Dref.Status.FINALIZING
+            dref.save(update_fields=["status"])
+            transaction.on_commit(lambda: process_translation.delay(model_name, dref.pk))
+            return response.Response(
+                {
+                    "detail": gettext(
+                        "The translation is currently being processed. Please wait a little while before trying again."
+                    )
+                },
+                status=status.HTTP_202_ACCEPTED,
             )
         fields_to_update = ["status"]
         if dref.translation_module_original_language != "en":
@@ -175,11 +183,11 @@ class DrefOperationalUpdateViewSet(RevisionMixin, viewsets.ModelViewSet):
         )
         return filter_dref_queryset_by_user_access(user, queryset)
 
+    @extend_schema(request=None, responses=DrefOperationalUpdateSerializer)
     @action(
         detail=True,
         url_path="approve",
         methods=["post"],
-        serializer_class=DrefOperationalUpdateSerializer,
         permission_classes=[permissions.IsAuthenticated, PublishDrefPermission, DenyGuestUserPermission],
     )
     def get_approved(self, request, pk=None, version=None):
@@ -193,11 +201,11 @@ class DrefOperationalUpdateViewSet(RevisionMixin, viewsets.ModelViewSet):
         serializer = DrefOperationalUpdateSerializer(operational_update, context={"request": request})
         return response.Response(serializer.data)
 
+    @extend_schema(request=None, responses=DrefOperationalUpdateSerializer)
     @action(
         detail=True,
         url_path="finalize",
         methods=["post"],
-        serializer_class=DrefOperationalUpdateSerializer,
         permission_classes=[permissions.IsAuthenticated, DenyGuestUserPermission],
     )
     def finalize(self, request, pk=None, version=None):
@@ -207,9 +215,17 @@ class DrefOperationalUpdateViewSet(RevisionMixin, viewsets.ModelViewSet):
                 gettext("Cannot be finalized because it is already %s") % operational_update.get_status_display()
             )
         if not is_translation_complete(operational_update):
-            translate_model_fields.delay(get_model_name(type(operational_update)), operational_update.pk)
-            raise serializers.ValidationError(
-                gettext("The translation is currently being processed. Please wait a little while before trying again.")
+            model_name = get_model_name(type(operational_update))
+            operational_update.status = Dref.Status.FINALIZING
+            operational_update.save(update_fields=["status"])
+            transaction.on_commit(lambda: process_translation.delay(model_name, operational_update.pk))
+            return response.Response(
+                {
+                    "detail": gettext(
+                        "The translation is currently being processed. Please wait a little while before trying again."
+                    )
+                },
+                status=status.HTTP_202_ACCEPTED,
             )
         fields_to_update = ["status"]
         if operational_update.translation_module_original_language != "en":
@@ -237,52 +253,60 @@ class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
         )
         return filter_dref_queryset_by_user_access(user, queryset)
 
+    @extend_schema(request=None, responses=DrefFinalReportSerializer)
     @action(
         detail=True,
         url_path="approve",
         methods=["post"],
-        serializer_class=DrefFinalReportSerializer,
         permission_classes=[permissions.IsAuthenticated, PublishDrefPermission, DenyGuestUserPermission],
     )
     def get_approved(self, request, pk=None, version=None):
-        field_report = self.get_object()
-        if field_report.status != Dref.Status.FINALIZED:
+        final_report = self.get_object()
+        if final_report.status != Dref.Status.FINALIZED:
             raise serializers.ValidationError(gettext("Must be finalized before it can be approved."))
-        if field_report.status == Dref.Status.APPROVED:
-            raise serializers.ValidationError(gettext("Final Report %s is already approved" % field_report))
-        field_report.status = Dref.Status.APPROVED
-        field_report.save(update_fields=["status"])
-        field_report.dref.is_active = False
-        field_report.date_of_approval = timezone.now().date()
-        field_report.dref.save(update_fields=["is_active", "date_of_approval"])
-        serializer = DrefFinalReportSerializer(field_report, context={"request": request})
+        if final_report.status == Dref.Status.APPROVED:
+            raise serializers.ValidationError(gettext("Final Report %s is already approved" % final_report))
+        final_report.status = Dref.Status.APPROVED
+        final_report.save(update_fields=["status"])
+        final_report.dref.is_active = False
+        final_report.date_of_approval = timezone.now().date()
+        final_report.dref.save(update_fields=["is_active", "date_of_approval"])
+        serializer = DrefFinalReportSerializer(final_report, context={"request": request})
         return response.Response(serializer.data)
 
+    @extend_schema(request=None, responses=DrefFinalReportSerializer)
     @action(
         detail=True,
         url_path="finalize",
         methods=["post"],
-        serializer_class=DrefFinalReportSerializer,
         permission_classes=[permissions.IsAuthenticated, DenyGuestUserPermission],
     )
     def finalize(self, request, pk=None, version=None):
-        field_report = self.get_object()
-        if field_report.status in [Dref.Status.FINALIZED, Dref.Status.APPROVED]:
+        final_report = self.get_object()
+        if final_report.status in [Dref.Status.FINALIZED, Dref.Status.APPROVED]:
             raise serializers.ValidationError(
-                gettext("Cannot be finalized because it is already %s") % field_report.get_status_display()
+                gettext("Cannot be finalized because it is already %s") % final_report.get_status_display()
             )
-        if not is_translation_complete(field_report):
-            translate_model_fields.delay(get_model_name(type(field_report)), field_report.pk)
-            raise serializers.ValidationError(
-                gettext("The translation is currently being processed. Please wait a little while before trying again.")
+        if not is_translation_complete(final_report):
+            model_name = get_model_name(type(final_report))
+            final_report.status = Dref.Status.FINALIZING
+            final_report.save(update_fields=["status"])
+            transaction.on_commit(lambda: process_translation.delay(model_name, final_report.pk))
+            return response.Response(
+                {
+                    "detail": gettext(
+                        "The translation is currently being processed. Please wait a little while before trying again."
+                    )
+                },
+                status=status.HTTP_202_ACCEPTED,
             )
         fields_to_update = ["status"]
-        if field_report.translation_module_original_language != "en":
-            field_report.translation_module_original_language = "en"
+        if final_report.translation_module_original_language != "en":
+            final_report.translation_module_original_language = "en"
             fields_to_update.append("translation_module_original_language")
-        field_report.status = Dref.Status.FINALIZED
-        field_report.save(update_fields=fields_to_update)
-        serializer = DrefFinalReportSerializer(field_report, context={"request": request})
+        final_report.status = Dref.Status.FINALIZED
+        final_report.save(update_fields=fields_to_update)
+        serializer = DrefFinalReportSerializer(final_report, context={"request": request})
         return response.Response(serializer.data)
 
 

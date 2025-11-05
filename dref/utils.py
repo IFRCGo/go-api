@@ -62,9 +62,6 @@ def get_dref_users():
 
 
 def is_translation_complete(instance, target_lang="en", visited=None):
-    """
-    Checks if instance and all related translatable fields are complete.
-    """
     if visited is None:
         visited = set()
 
@@ -94,12 +91,12 @@ def _check_instance_fields(instance, target_lang):
     try:
         opts = translator.get_options_for_model(type(instance))
     except Exception as e:
-        logger.warning(f"Failed to get translation options: {e}")
+        logger.warning(f"Failed to get translation options for {instance}: {e}")
         return False
 
-    original_lang = getattr(instance, "translation_module_original_language")
-    translatable_fields = getattr(opts, "fields", [])
+    original_lang = getattr(instance, "translation_module_original_language", None)
 
+    translatable_fields = getattr(opts, "fields", [])
     for field in translatable_fields:
         original_field = build_localized_fieldname(field, original_lang)
         target_field = build_localized_fieldname(field, target_lang)
@@ -109,44 +106,36 @@ def _check_instance_fields(instance, target_lang):
 
         if original_value and not translated_value:
             return False
-
     return True
 
 
 def _check_related_fields(instance, target_lang, visited):
     """Check all related translatable fields."""
-    try:
-        opts = translator.get_options_for_model(type(instance))
-    except Exception as e:
-        logger.warning(f"Failed to get translation options for related fields: {e}")
-        return False
+    for field in instance._meta.get_fields():
+        if not field.is_relation or field.auto_created:
+            continue
 
-    for related_field in getattr(opts, "related_fields", []):
-        if not _check_related_field_translation(instance, related_field, target_lang, visited):
-            return False
+        try:
+            related_value = getattr(instance, field.name, None)
+        except Exception as e:
+            logger.warning(f"Error accessing related field '{field.name}' on {instance}: {e}")
+            continue
+        if related_value is None:
+            continue
+        if not field.many_to_many:
+            if hasattr(related_value, "translation_module_original_language"):
+                if not is_translation_complete(related_value, target_lang, visited):
+                    return False
+        else:
+            try:
+                related_objects = related_value.all()
+            except Exception as e:
+                logger.warning(f"Error fetching M2M '{field.name}' for {instance}: {e}")
+                continue
 
-    return True
-
-
-def _check_related_field_translation(instance, related_field, target_lang, visited):
-    try:
-        related_instance = getattr(instance, related_field.name, None)
-
-        if related_instance is None:
-            return True
-
-        if hasattr(related_instance, "translation_module_original_language"):
-            return is_translation_complete(related_instance, target_lang, visited)
-
-        elif hasattr(related_instance, "all"):
-            for related_obj in related_instance.all():
+            for related_obj in related_objects:
                 if hasattr(related_obj, "translation_module_original_language"):
                     if not is_translation_complete(related_obj, target_lang, visited):
                         return False
-            return True
-
-    except Exception as e:
-        logger.warning(f"Error checking related field {related_field.name}: {e}")
-        return False
 
     return True
