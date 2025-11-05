@@ -54,6 +54,7 @@ x-server: &base_server_setup
     RELIEF_WEB_APP_NAME: ${RELIEF_WEB_APP_NAME:-}
     # PowerBI
     POWERBI_WORKSPACE_ID: ${POWERBI_WORKSPACE_ID:-}
+    POWERBI_DATASET_IDS: ${POWERBI_DATASET_IDS:-}
 
   extra_hosts:
       - "host.docker.internal:host-gateway"

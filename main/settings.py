@@ -149,6 +149,7 @@ env = environ.Env(
     RELIEF_WEB_APP_NAME=(str, None),
     # PowerBI
     POWERBI_WORKSPACE_ID=(str, None),
+    POWERBI_DATASET_IDS=(str, None),
 )
 
 
@@ -884,6 +885,7 @@ RELIEF_WEB_APP_NAME = env("RELIEF_WEB_APP_NAME")
 
 # PowerBI
 POWERBI_WORKSPACE_ID = env("POWERBI_WORKSPACE_ID")
+POWERBI_DATASET_IDS = env("POWERBI_DATASET_IDS")
 
 # Manual checks
 import main.checks  # noqa: F401 E402
