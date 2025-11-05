@@ -56,8 +56,37 @@ class TestProjectAPI(SnapshotTestCase):
 
     def test_project_list_one(self):
         # create instance
-        sct = SectorFactory()
-        ProjectFactory.create(visibility=VisibilityCharChoices.PUBLIC, primary_sector=sct)
+        _country = country.CountryFactory(name="country-1", society_name="society-name-1")
+        sct = SectorFactory(title="sect-1", order=1)
+        sct_1 = SectorTagFactory(title="sec-tag-1", order=2)
+        sct_2 = SectorTagFactory(title="sec-tag-2", order=3)
+        district1 = district.DistrictFactory(country=_country, name="district-1", code="dct1")
+        district2 = district.DistrictFactory(country=_country, name="district-2", code="dct2")
+        dtype = DisasterTypeFactory(name="disaster-type-1", summary="summary")
+        regional_project = RegionalProjectFactory(name="regional-project-1")
+        event = EventFactory(
+            countries=[_country.id],
+            slug="event-slug",
+            districts=[district1.id, district2.id],
+            dtype=dtype,
+            name="event-1",
+        )
+        ProjectFactory.create(
+            name="project-1",
+            project_districts=[district1, district2],
+            budget_amount=100000,
+            primary_sector=sct,
+            event=event,
+            regional_project=regional_project,
+            secondary_sectors=[sct_1, sct_2],
+            dtype=dtype,
+            visibility=VisibilityCharChoices.PUBLIC,
+            project_country=_country,
+            reporting_ns=_country,
+            status=Statuses.COMPLETED,
+            programme_type=ProgrammeTypes.BILATERAL,
+            operation_type=OperationTypes.EMERGENCY_OPERATION,
+        )
 
         # submit list request
         response = self.client.get("/api/v2/project/")
@@ -68,8 +97,38 @@ class TestProjectAPI(SnapshotTestCase):
 
     def test_project_list_two(self):
         # create instances
-        sct = SectorFactory()
-        ProjectFactory.create_batch(2, visibility=VisibilityCharChoices.PUBLIC, primary_sector=sct)
+        _country = country.CountryFactory(name="country-1", society_name="society-name-1")
+        sct = SectorFactory(title="sect-1", order=1)
+        sct_1 = SectorTagFactory(title="sec-tag-1", order=2)
+        sct_2 = SectorTagFactory(title="sec-tag-2", order=3)
+        district1 = district.DistrictFactory(country=_country, name="district-1", code="dct1")
+        district2 = district.DistrictFactory(country=_country, name="district-2", code="dct2")
+        dtype = DisasterTypeFactory(name="disaster-type-1", summary="summary")
+        regional_project = RegionalProjectFactory(name="regional-project-1")
+        event = EventFactory(
+            countries=[_country.id],
+            slug="event-slug",
+            districts=[district1.id, district2.id],
+            dtype=dtype,
+            name="event-1",
+        )
+        ProjectFactory.create_batch(
+            2,
+            name="project-1",
+            project_districts=[district1, district2],
+            budget_amount=100000,
+            primary_sector=sct,
+            event=event,
+            regional_project=regional_project,
+            secondary_sectors=[sct_1, sct_2],
+            dtype=dtype,
+            visibility=VisibilityCharChoices.PUBLIC,
+            project_country=_country,
+            reporting_ns=_country,
+            status=Statuses.COMPLETED,
+            programme_type=ProgrammeTypes.BILATERAL,
+            operation_type=OperationTypes.EMERGENCY_OPERATION,
+        )
 
         # submit list request
         response = self.client.get("/api/v2/project/")
@@ -89,6 +148,7 @@ class TestProjectAPI(SnapshotTestCase):
             name=new_project_name,
             visibility=VisibilityCharChoices.PUBLIC,
             user=new_user,
+            operation_type=OperationTypes.PROGRAMME,
         )
         new_country = country.CountryFactory()
         new_district = district.DistrictFactory(country=new_country)
@@ -121,8 +181,37 @@ class TestProjectAPI(SnapshotTestCase):
 
     def test_project_read(self):
         # create instance
-        sct = SectorFactory()
-        new_project = ProjectFactory.create(visibility=VisibilityCharChoices.PUBLIC, primary_sector=sct)
+        _country = country.CountryFactory(name="country-1", society_name="society-name-1")
+        sct = SectorFactory(title="sect-1", order=1)
+        sct_1 = SectorTagFactory(title="sec-tag-1", order=2)
+        sct_2 = SectorTagFactory(title="sec-tag-2", order=3)
+        district1 = district.DistrictFactory(country=_country, name="district-1", code="dct1")
+        district2 = district.DistrictFactory(country=_country, name="district-2", code="dct2")
+        dtype = DisasterTypeFactory(name="disaster-type-1", summary="summary")
+        regional_project = RegionalProjectFactory(name="regional-project-1")
+        event = EventFactory(
+            countries=[_country.id],
+            slug="event-slug",
+            districts=[district1.id, district2.id],
+            dtype=dtype,
+            name="event-1",
+        )
+        new_project = ProjectFactory.create(
+            name="project-1",
+            project_districts=[district1, district2],
+            budget_amount=100000,
+            primary_sector=sct,
+            event=event,
+            regional_project=regional_project,
+            secondary_sectors=[sct_1, sct_2],
+            dtype=dtype,
+            visibility=VisibilityCharChoices.PUBLIC,
+            project_country=_country,
+            reporting_ns=_country,
+            status=Statuses.COMPLETED,
+            programme_type=ProgrammeTypes.BILATERAL,
+            operation_type=OperationTypes.EMERGENCY_OPERATION,
+        )
 
         # submit read request
         response = self.client.get(f"/api/v2/project/{new_project.pk}/")
@@ -133,8 +222,37 @@ class TestProjectAPI(SnapshotTestCase):
 
     def test_project_update(self):
         # create instance
-        sct = SectorFactory()
-        new_project = ProjectFactory.create(visibility=VisibilityCharChoices.PUBLIC, primary_sector=sct)
+        _country = country.CountryFactory(name="country-1", society_name="society-name-1")
+        sct = SectorFactory(title="sect-1", order=1)
+        sct_1 = SectorTagFactory(title="sec-tag-1", order=2)
+        sct_2 = SectorTagFactory(title="sec-tag-2", order=3)
+        district1 = district.DistrictFactory(country=_country, name="district-1", code="dct1")
+        district2 = district.DistrictFactory(country=_country, name="district-2", code="dct2")
+        dtype = DisasterTypeFactory(name="disaster-type-1", summary="summary")
+        regional_project = RegionalProjectFactory(name="regional-project-1")
+        event = EventFactory(
+            countries=[_country.id],
+            slug="event-slug",
+            districts=[district1.id, district2.id],
+            dtype=dtype,
+            name="event-1",
+        )
+        new_project = ProjectFactory.create(
+            name="project-1",
+            project_districts=[district1, district2],
+            budget_amount=100000,
+            primary_sector=sct,
+            event=event,
+            regional_project=regional_project,
+            secondary_sectors=[sct_1, sct_2],
+            dtype=dtype,
+            visibility=VisibilityCharChoices.PUBLIC,
+            project_country=_country,
+            reporting_ns=_country,
+            status=Statuses.COMPLETED,
+            programme_type=ProgrammeTypes.BILATERAL,
+            operation_type=OperationTypes.EMERGENCY_OPERATION,
+        )
 
         # authenticate
         self.authenticate()
@@ -145,8 +263,15 @@ class TestProjectAPI(SnapshotTestCase):
         )
         # update project name
         new_project_name = "Mock Project for Update API Test"
-        new_country = country.CountryFactory()
-        new_district = district.DistrictFactory(country=new_country)
+        new_country = country.CountryFactory(
+            name="country-2",
+            society_name="society-name-2",
+        )
+        new_district = district.DistrictFactory(
+            country=new_country,
+            name="district-3",
+            code="dct3",
+        )
         new_project["name"] = new_project_name
         new_project["reporting_ns"] = new_country.id
         new_project["project_country"] = new_country.id
