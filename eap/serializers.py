@@ -1,11 +1,11 @@
 from rest_framework import serializers
 
 from api.serializers import MiniCountrySerializer, UserNameSerializer
+from eap.models import EAPRegistration
 from main.writable_nested_serializers import NestedCreateMixin, NestedUpdateMixin
-from eap.models import DevelopmentRegistrationEAP
 
 
-class DevelopmentRegistrationEAPSerializer(
+class EAPRegistrationSerializer(
     NestedUpdateMixin,
     NestedCreateMixin,
     serializers.ModelSerializer,
@@ -20,6 +20,13 @@ class DevelopmentRegistrationEAPSerializer(
     created_by_details = UserNameSerializer(source="created_by", read_only=True)
     modified_by_details = UserNameSerializer(source="modified_by", read_only=True)
 
+    # Status
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+
     class Meta:
-        model = DevelopmentRegistrationEAP
+        model = EAPRegistration
         fields = "__all__"
+        read_only_fields = [
+            "status",
+            "modified_at",
+        ]

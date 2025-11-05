@@ -1,9 +1,9 @@
 from django.contrib import admin
 
-from eap.models import DevelopmentRegistrationEAP
+from eap.models import EAPRegistration
 
 
-@admin.register(DevelopmentRegistrationEAP)
+@admin.register(EAPRegistration)
 class DevelopmentRegistrationEAPAdmin(admin.ModelAdmin):
     list_select_related = True
     search_fields = (
