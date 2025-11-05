@@ -11,7 +11,7 @@ class DevelopmentRegistrationEAPAdmin(admin.ModelAdmin):
         "country__name",
         "disaster_type__name",
     )
-    list_filter = ("eap_type", "disaster_type", "national_society")
+    list_filter = ("eap_type",)
     list_display = (
         "national_society",
         "country",
