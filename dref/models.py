@@ -272,6 +272,8 @@ class Dref(models.Model):
         """Finalized: Translation is completed, content is ready for review, and updates to the original language are locked."""
         APPROVED = 4, _("Approved")
         """Approved: The content has been reviewed, accepted, and is ready for use."""
+        FINALIZING_FAILED = 5, _("Finalizing Failed")
+        """FINALIZING_FAILED: The content translation process has been Failed."""
 
     created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
     modified_at = models.DateTimeField(verbose_name=_("modified at"), default=timezone.now, null=True)
