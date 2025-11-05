@@ -180,12 +180,41 @@ class Action(models.Model):
 
 
 class EAPType(models.IntegerChoices):
-    Full_application = 10, _("Full application")
-    Simplified_application = 20, _("Simplified application")
-    Not_sure = 30, _("Not sure")
+    FULL_EAP = 10, _("Full EAP")
+    SIMPLIFIED_EAP = 20, _("Simplified EAP")
 
 
-class DevelopmentRegistrationEAP(models.Model):
+class EAPStatus(models.IntegerChoices):
+    """Enum representing the status of a EAP."""
+
+    UNDER_DEVELOPMENT = 10, _("Under Development")
+    """Initial status when an EAP is being created."""
+
+    UNDER_REVIEW = 20, _("Under Review")
+    """ EAP has been submitted by NS. It is under review by IFRC and/or technical partners."""
+
+    NS_ADDRESSING_COMMENTS = 30, _("NS Addressing Comments")
+    """NS is addressing comments provided during the review process.
+    IFRC has to upload review checklist.
+    EAP can be changed to UNDER_REVIEW once comments have been addressed.
+    """
+
+    TECHNICALLY_VALIDATED = 40, _("Technically Validated")
+    """EAP has been technically validated by IFRC and/or technical partners.
+    """
+
+    APPROVED = 50, _("Approved")
+    """IFRC has to upload validated budget file.
+    Cannot be changed back to previous statuses.
+    """
+
+    PFA_SIGNED = 60, _("PFA Signed")
+    """EAP should be APPROVED before changing to this status."""
+
+
+class EAPBaseModel(models.Model):
+    """Base model for EAP models to include common fields."""
+
     created_at = models.DateTimeField(
         verbose_name=_("created at"),
         auto_now_add=True,
@@ -209,6 +238,8 @@ class DevelopmentRegistrationEAP(models.Model):
         null=True,
         related_name="%(class)s_modified_by",
     )
+
+    # National Society
     national_society = models.ForeignKey(
         Country,
         on_delete=models.CASCADE,
@@ -223,17 +254,43 @@ class DevelopmentRegistrationEAP(models.Model):
         help_text=_("The country will be pre-populated based on the NS selection, but can be adapted as needed."),
         related_name="development_registration_eap_country",
     )
+
+    # Disaster
     disaster_type = models.ForeignKey(
         DisasterType,
         verbose_name=("Disaster Type"),
         on_delete=models.PROTECT,
         help_text=_("Select the disaster type for which the EAP is needed"),
     )
+
+    class Meta:
+        abstract = True
+
+
+# BASE MODEL FOR EAP
+class EAPRegistration(EAPBaseModel):
+    """Model representing the EAP Development Registration."""
+
     eap_type = models.IntegerField(
         choices=EAPType.choices,
         verbose_name=_("EAP Type"),
         help_text=_("Select the type of EAP."),
+        null=True,
+        blank=True,
     )
+    status = models.IntegerField(
+        choices=EAPStatus.choices,
+        verbose_name=_("EAP Status"),
+        default=EAPStatus.UNDER_DEVELOPMENT,
+        help_text=_("Select the current status of the EAP development process."),
+    )
+    # TODO(susilnem): Verify this field?
+    is_active = models.BooleanField(
+        verbose_name=_("Is Active"),
+        help_text=_("Indicates whether this EAP development registration is active."),
+        default=False,
+    )
+
     expected_submission_time = models.DateField(
         verbose_name=_("Expected submission time"),
         help_text=_(
