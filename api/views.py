@@ -1190,22 +1190,70 @@ class AuthPowerBI(APIView):
         workspace_id = getattr(settings, "POWERBI_WORKSPACE_ID", None) or os.getenv("POWERBI_WORKSPACE_ID")
         # Receive report id from GET parameter only; do not use env/settings
         report_id_param = request.query_params.get("report_id")
+        # Optional multi-resource dataset ids (pipe-separated GUIDs) – e.g. POWERBI_DATASET_IDS="id1|id2"
+        dataset_ids_raw = (
+            getattr(settings, "POWERBI_DATASET_IDS", None)
+            or os.getenv("POWERBI_DATASET_IDS")
+            or os.getenv("DATASET_IDS")  # alternate env name if provided
+        )
+        # Azure CI cannot use comma-separated env values; switch to pipe "|".
+        # For backward compatibility we also accept commas if someone overrides locally.
+        if dataset_ids_raw and "|" in dataset_ids_raw:
+            raw_parts = dataset_ids_raw.split("|")
+        else:
+            raw_parts = (dataset_ids_raw or "").split(",")  # legacy fallback
+        dataset_ids = [p.strip() for p in raw_parts if p.strip()]
         access_token = _pbi_token_via_managed_identity()
 
         # Optional debug-lite: log selected token claims and config when requested
         debug_flag = str(request.query_params.get("debug", "")).lower() in {"1", "true", "yes", "on"}
         if debug_flag:
+            tenant_id = getattr(settings, "AZURE_TENANT_ID", None) or os.getenv("AZURE_TENANT_ID") or os.getenv("TENANT_ID")
             logger.info(
-                "AuthPowerBI debug-lite enabled: workspace_id=%s report_id_param=%s has_token=%s",
+                "AuthPowerBI debug-lite enabled: workspace_id=%s report_id_param=%s has_token=%s tenant_id=%s dataset_ids=%s",
                 workspace_id,
                 report_id_param,
                 bool(access_token),
+                tenant_id,
+                dataset_ids,
             )
             if access_token:
                 _log_token_claims_safe(access_token)
 
         if access_token and workspace_id:
             try:
+                # Multi-resource token flow if dataset IDs are provided and we have a report id.
+                if dataset_ids and report_id_param:
+                    headers = {"Authorization": f"Bearer {access_token}"}
+                    # Fetch report metadata (embedUrl) first
+                    r = requests.get(f"{PBI_BASE}/groups/{workspace_id}/reports/{report_id_param}", headers=headers, timeout=10)
+                    r.raise_for_status()
+                    rep = r.json()
+                    embed_url = rep.get("embedUrl")
+                    # Generate multi-resource embed token
+                    m_headers = {**headers, "Content-Type": "application/json"}
+                    multi_payload = {
+                        "datasets": [{"id": did, "xmlaPermissions": "ReadOnly"} for did in dataset_ids],
+                        "reports": [{"id": report_id_param}],
+                    }
+                    t = requests.post(f"{PBI_BASE}/GenerateToken", headers=m_headers, json=multi_payload, timeout=10)
+                    t.raise_for_status()
+                    token_json = t.json()
+                    embed_token = token_json.get("token")
+                    expires_at = token_json.get("expiration")
+                    return Response(
+                        {
+                            "detail": "ok",
+                            "embed_url": embed_url,
+                            "report_id": report_id_param,
+                            "embed_token": embed_token,
+                            "expires_at": expires_at,
+                            "user": request.user.username,
+                            "multi_resource": True,
+                            "dataset_ids": dataset_ids,
+                        }
+                    )
+                # Single-report fallback (original behavior)
                 embed_url, report_id, embed_token, expires_at = _pbi_get_embed_info(access_token, workspace_id, report_id_param)
                 return Response(
                     {
@@ -1215,10 +1263,12 @@ class AuthPowerBI(APIView):
                         "embed_token": embed_token,
                         "expires_at": expires_at,
                         "user": request.user.username,
+                        "multi_resource": False,
+                        "dataset_ids": dataset_ids or None,
                     }
                 )
             except Exception as e:
-                logger.exception("Power BI REST call failed, falling back to mock: %s", e)
+                logger.exception("AuthPowerBI: Power BI REST call failed, falling back to mock: %s", e)
 
         # Fallback mock if not configured or failed
         embed_token = secrets.token_hex(8)  # 16-char hex
@@ -1234,5 +1284,7 @@ class AuthPowerBI(APIView):
                 "embed_token": embed_token,
                 "expires_at": expires_at,
                 "user": request.user.username,
+                "multi_resource": False,
+                "dataset_ids": None,
             }
         )

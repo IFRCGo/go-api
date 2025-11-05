@@ -67,6 +67,7 @@ env:
   OIDC_RSA_PUBLIC_KEY_BASE64_ENCODED:
   RELIEF_WEB_APP_NAME: ''
   POWERBI_WORKSPACE_ID: ''
+  POWERBI_DATASET_IDS: ''
 
 # NOTE: Used to pass additional configs to api/worker containers
 # NOTE: Not used by azure vault
