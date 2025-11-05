@@ -9,6 +9,7 @@ from flash_update import enums as flash_update_enums
 from local_units import enums as local_units_enums
 from notifications import enums as notifications_enums
 from per import enums as per_enums
+from eap import enums as eap_enums
 
 apps_enum_register = [
     ("dref", dref_enums.enum_register),
@@ -19,6 +20,7 @@ apps_enum_register = [
     ("notifications", notifications_enums.enum_register),
     ("databank", databank_enums.enum_register),
     ("local_units", local_units_enums.enum_register),
+    ("eap", eap_enums.enum_register)
 ]
 
 
