@@ -347,3 +347,222 @@ class EAPRegistration(EAPBaseModel):
     def __str__(self):
         # NOTE: Use select_related in admin get_queryset for national_society field to avoid extra queries
         return f"EAP Development Registration - {self.national_society} - {self.disaster_type} - {self.get_eap_type_display()}"
+
+
+class SimplifiedEAP(models.Model):
+    """Model representing a Simplified EAP."""
+
+    eap_registration = models.OneToOneField(
+        EAPRegistration,
+        on_delete=models.CASCADE,
+        verbose_name=_("EAP Development Registration"),
+        related_name="simplified_eap",
+    )
+
+    # Contacts
+    # National Society
+    national_society_contact_name = models.CharField(
+        verbose_name=_("national society contact name"), max_length=255, null=True, blank=True
+    )
+    national_society_contact_title = models.CharField(
+        verbose_name=_("national society contact title"), max_length=255, null=True, blank=True
+    )
+    national_society_contact_email = models.CharField(
+        verbose_name=_("national society contact email"), max_length=255, null=True, blank=True
+    )
+    national_society_contact_phone_number = models.CharField(
+        verbose_name=_("national society contact phone number"), max_length=100, null=True, blank=True
+    )
+
+    # Partners NS
+    partner_ns_name = models.CharField(verbose_name=_("Partner NS name"), max_length=255, null=True, blank=True)
+    partner_ns_email = models.CharField(verbose_name=_("Partner NS email"), max_length=255, null=True, blank=True)
+    partner_ns_title = models.CharField(verbose_name=_("Partner NS title"), max_length=255, null=True, blank=True)
+    partner_ns_phone_number = models.CharField(
+        verbose_name=_("Partner NS phone number"), max_length=100, null=True, blank=True
+    )
+
+    # Delegations
+    ifrc_delegation_focal_point_name = models.CharField(
+        verbose_name=_("IFRC delegation focal point name"), max_length=255, null=True, blank=True
+    )
+    ifrc_delegation_focal_point_email = models.CharField(
+        verbose_name=_("IFRC delegation focal point email"), max_length=255, null=True, blank=True
+    )
+    ifrc_delegation_focal_point_title = models.CharField(
+        verbose_name=_("IFRC delegation focal point title"), max_length=255, null=True, blank=True
+    )
+    ifrc_delegation_focal_point_phone_number = models.CharField(
+        verbose_name=_("IFRC delegation focal point phone number"), max_length=100, null=True, blank=True
+    )
+
+    ifrc_head_of_delegation_name = models.CharField(
+        verbose_name=_("IFRC head of delegation name"), max_length=255, null=True, blank=True
+    )
+    ifrc_head_of_delegation_email = models.CharField(
+        verbose_name=_("IFRC head of delegation email"), max_length=255, null=True, blank=True
+    )
+    ifrc_head_of_delegation_title = models.CharField(
+        verbose_name=_("IFRC head of delegation title"), max_length=255, null=True, blank=True
+    )
+    ifrc_head_of_delegation_phone_number = models.CharField(
+        verbose_name=_("IFRC head of delegation phone number"), max_length=100, null=True, blank=True
+    )
+
+    # Regional and Global
+    # DREF Focal Point
+    dref_focal_point_name = models.CharField(verbose_name=_("dref focal point name"), max_length=255, null=True, blank=True)
+    dref_focal_point_email = models.CharField(verbose_name=_("Dref focal point email"), max_length=255, null=True, blank=True)
+    dref_focal_point_title = models.CharField(verbose_name=_("Dref focal point title"), max_length=255, null=True, blank=True)
+    dref_focal_point_phone_number = models.CharField(
+        verbose_name=_("Dref focal point phone number"), max_length=100, null=True, blank=True
+    )
+
+    # Regional
+    ifrc_regional_focal_point_name = models.CharField(
+        verbose_name=_("IFRC regional focal point name"), max_length=255, null=True, blank=True
+    )
+    ifrc_regional_focal_point_email = models.CharField(
+        verbose_name=_("IFRC regional focal point email"), max_length=255, null=True, blank=True
+    )
+    ifrc_regional_focal_point_title = models.CharField(
+        verbose_name=_("IFRC regional focal point title"), max_length=255, null=True, blank=True
+    )
+    ifrc_regional_focal_point_phone_number = models.CharField(
+        verbose_name=_("IFRC regional focal point phone number"), max_length=100, null=True, blank=True
+    )
+
+    # Regional Ops Manager
+    ifrc_regional_ops_manager_name = models.CharField(
+        verbose_name=_("IFRC regional ops manager name"), max_length=255, null=True, blank=True
+    )
+    ifrc_regional_ops_manager_email = models.CharField(
+        verbose_name=_("IFRC regional ops manager email"), max_length=255, null=True, blank=True
+    )
+    ifrc_regional_ops_manager_title = models.CharField(
+        verbose_name=_("IFRC regional ops manager title"), max_length=255, null=True, blank=True
+    )
+    ifrc_regional_ops_manager_phone_number = models.CharField(
+        verbose_name=_("IFRC regional ops manager phone number"), max_length=100, null=True, blank=True
+    )
+
+    # Regional Head DCC
+    ifrc_regional_head_dcc_name = models.CharField(
+        verbose_name=_("IFRC regional head of DCC name"), max_length=255, null=True, blank=True
+    )
+    ifrc_regional_head_dcc_email = models.CharField(
+        verbose_name=_("IFRC regional head of DCC email"), max_length=255, null=True, blank=True
+    )
+    ifrc_regional_head_dcc_title = models.CharField(
+        verbose_name=_("IFRC regional head of DCC title"), max_length=255, null=True, blank=True
+    )
+    ifrc_regional_head_dcc_phone_number = models.CharField(
+        verbose_name=_("IFRC regional head of DCC phone number"), max_length=100, null=True, blank=True
+    )
+
+    # Global Ops Manager
+    ifrc_global_ops_coordinator_name = models.CharField(
+        verbose_name=_("IFRC global ops coordinator name"), max_length=255, null=True, blank=True
+    )
+    ifrc_global_ops_coordinator_email = models.CharField(
+        verbose_name=_("IFRC global ops coordinator email"), max_length=255, null=True, blank=True
+    )
+    ifrc_global_ops_coordinator_title = models.CharField(
+        verbose_name=_("IFRC global ops coordinator title"), max_length=255, null=True, blank=True
+    )
+    ifrc_global_ops_coordinator_phone_number = models.CharField(
+        verbose_name=_("IFRC global ops coordinator phone number"), max_length=100, null=True, blank=True
+    )
+
+    ## RISK ANALYSIS and EARLY ACTION SELECTION ##
+
+    ## RISK ANALYSIS ##
+    prioritized_hazard_and_impact = models.TextField(
+        verbose_name=_("Prioritized Hazard and its  historical impact."),
+        null=True,
+        blank=True,
+    )
+    # TODO(susilnem): Add image max 5
+
+    risks_selected_protocols = models.TextField(
+        verbose_name=_("Risk selected for the protocols."),
+        null=True,
+        blank=True,
+    )
+    # TODO(susilnem): Add image max 5
+
+    ## EARLY ACTION SELECTION ##
+    selected_early_actions = models.TextField(
+        verbose_name=_("Selected Early Actions"),
+        null=True,
+        blank=True,
+    )
+    # TODO(susilnem): Add image max 5
+
+    ## EARLY ACTION INTERVENTION ##
+    overall_objective_intervention = models.TextField(
+        verbose_name=_("Overall objective of the intervention"),
+        help_text=_("Provide an objective statement that describe the main of the intervention."),
+        null=True,
+        blank=True,
+    )
+
+    # TODO(susilnem): Discuss and add selections regions
+    potential_geographical_high_risk_areas = models.TextField(
+        verbose_name=_("Potential geographical high-risk areas"),
+        null=True,
+        blank=True,
+    )
+    people_targeted = models.IntegerField(
+        verbose_name=_("People Targeted."),
+        null=True,
+        blank=True,
+    )
+    assisted_through_operation = models.TextField(
+        verbose_name=_("Assisted through the operation"),
+        null=True,
+        blank=True,
+    )
+    selection_criteria = models.TextField(
+        verbose_name=_("Selection Criteria."),
+        help_text=_("Explain the selection criteria for who will be targeted"),
+        null=True,
+        blank=True,
+    )
+
+    trigger_statement = models.TextField(
+        verbose_name=_("Trigger Statement"),
+        null=True,
+        blank=True,
+    )
+
+    seap_lead_time = models.IntegerField(
+        verbose_name=_("sEAP Lead Time (Hours)"),
+        null=True,
+        blank=True,
+    )
+    operational_timeframe = models.IntegerField(
+        verbose_name=_("Operational Timeframe (Months)"),
+        null=True,
+        blank=True,
+    )
+    trigger_threshold_justification = models.TextField(
+        verbose_name=_("Trigger Threshold Justification"),
+        help_text=_("Explain how the trigger were set and provide information"),
+        null=True,
+        blank=True,
+    )
+    next_step_towards_full_eap = models.TextField(
+        verbose_name=_("Next Steps towards Full EAP"),
+    )
+
+    ## PLANNED OPEATIONS ##
+    # TODO(susilnem): continue
+
+
+    class Meta:
+        verbose_name = _("Simplified EAP")
+        verbose_name_plural = _("Simplified EAPs")
+
+    def __str__(self):
+        return f"Simplified EAP for {self.eap_registration}"
