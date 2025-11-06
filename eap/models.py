@@ -1,8 +1,10 @@
 from django.conf import settings
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from api.models import Country, DisasterType, District
+from api.models import Admin2, Country, DisasterType, District
+from main.fields import SecureFileField
 
 
 class EarlyActionIndicator(models.Model):
@@ -179,9 +181,165 @@ class Action(models.Model):
 # --- Early Action Protocol --- ##
 
 
+class EAPFile(models.Model):
+    file = SecureFileField(
+        verbose_name=_("file"),
+        upload_to="eap/files/",
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_("created_by"),
+        on_delete=models.CASCADE,
+    )
+    caption = models.CharField(max_length=225, blank=True, null=True)
+
+    class Meta:
+        verbose_name = _("eap file")
+        verbose_name_plural = _("eap files")
+
+
+class OperationActivity(models.Model):
+    class TimeFrame(models.IntegerChoices):
+        YEARS = 10, _("Years")
+        MONTHS = 20, _("Months")
+        DAYS = 30, _("Days")
+        HOURS = 40, _("Hours")
+
+    activity = models.CharField(max_length=255, verbose_name=_("Activity"))
+    timeframe = models.IntegerField(choices=TimeFrame.choices, verbose_name=_("Timeframe"))
+    time_value = ArrayField(
+        base_field=models.IntegerField(),
+        verbose_name=_("Activity time span"),
+    )
+
+    class Meta:
+        verbose_name = _("Operation Activity")
+        verbose_name_plural = _("Operation Activities")
+
+    def __str__(self):
+        return f"{self.activity}"
+
+
+# TODO(susilnem): Verify indicarors?
+# class OperationIndicator(models.Model):
+#     class IndicatorChoices(models.IntegerChoices):
+#         INDICATOR_1 = 10, _("Indicator 1")
+#         INDICATOR_2 = 20, _("Indicator 2")
+#     indicator = models.IntegerField(choices=IndicatorChoices.choices, verbose_name=_("Indicator"))
+
+
+class PlannedOperations(models.Model):
+    class Sector(models.IntegerChoices):
+        SHELTER = 101, _("Shelter")
+        SETTLEMENT_AND_HOUSING = 102, _("Settlement and Housing")
+        LIVELIHOODS = 103, _("Livelihoods")
+        PROTECTION_GENDER_AND_INCLUSION = 104, _("Protection, Gender and Inclusion")
+        HEALTH_AND_CARE = 105, _("Health and Care")
+        RISK_REDUCTION = 106, _("Risk Reduction")
+        CLIMATE_ADAPTATION_AND_RECOVERY = 107, _("Climate Adaptation and Recovery")
+        MULTIPURPOSE_CASH = 108, _("Multipurpose Cash")
+        WATER_SANITATION_AND_HYGIENE = 109, _("Water, Sanitation And Hygiene")
+        WASH = 110, _("WASH")
+        EDUCATION = 111, _("Education")
+        MIGRATION = 112, _("Migration")
+        ENVIRONMENT_SUSTAINABILITY = 113, _("Environment Sustainability")
+        COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY = 114, _("Community Engagement And Accountability")
+
+    sector = models.IntegerField(choices=Sector.choices, verbose_name=_("sector"))
+    people_targeted = models.IntegerField(verbose_name=_("People Targeted"))
+    budget_per_sector = models.IntegerField(verbose_name=_("Budget per sector (CHF)"))
+    ap_code = models.IntegerField(verbose_name=_("AP Code"), null=True, blank=True)
+
+    # TODO(susilnem): verify indicators?
+
+    # indicators = models.ManyToManyField(
+    #     OperationIndicator,
+    #     verbose_name=_("Operation Indicators"),
+    #     blank=True,
+    # )
+
+    # Activities
+    readiness_activities = models.ManyToManyField(
+        OperationActivity,
+        verbose_name=_("Readiness Activities"),
+        related_name="planned_operations_readiness_activities",
+        blank=True,
+    )
+    prepositioning_activities = models.ManyToManyField(
+        OperationActivity,
+        verbose_name=_("Pre-positioning Activities"),
+        related_name="planned_operations_prepositioning_activities",
+        blank=True,
+    )
+    early_action_activities = models.ManyToManyField(
+        OperationActivity,
+        verbose_name=_("Early Action Activities"),
+        related_name="planned_operations_early_action_activities",
+        blank=True,
+    )
+
+    class Meta:
+        verbose_name = _("Planned Operation")
+        verbose_name_plural = _("Planned Operations")
+
+    def __str__(self):
+        return f"Planned Operation - {self.get_sector_display()}"
+
+
+class EnableApproach(models.Model):
+    class ApproachChoices(models.IntegerChoices):
+        SECRETARIAT_SERVICES = 10, _("Secretariat Services")
+        NATIONAL_SOCIETY_STRENGTHENING = 20, _("National Society Strengthening")
+        PARTNERSHIP_AND_COORDINATION = 30, _("Partnership And Coordination")
+
+    approach = models.IntegerField(choices=ApproachChoices.choices, verbose_name=_("Approach"))
+    budget_per_approach = models.IntegerField(verbose_name=_("Budget per approach (CHF)"))
+    ap_code = models.IntegerField(verbose_name=_("AP Code"), null=True, blank=True)
+    indicator_target = models.IntegerField(verbose_name=_("Indicator Target"), null=True, blank=True)
+
+    # TODO(susilnem): verify indicators?
+    # indicators = models.ManyToManyField(
+    #     OperationIndicator,
+    #     verbose_name=_("Operation Indicators"),
+    #     blank=True,
+    # )
+
+    # Activities
+    readiness_activities = models.ManyToManyField(
+        OperationActivity,
+        verbose_name=_("Readiness Activities"),
+        related_name="enable_approach_readiness_activities",
+        blank=True,
+    )
+    prepositioning_activities = models.ManyToManyField(
+        OperationActivity,
+        verbose_name=_("Pre-positioning Activities"),
+        related_name="enable_approach_prepositioning_activities",
+        blank=True,
+    )
+    early_action_activities = models.ManyToManyField(
+        OperationActivity,
+        verbose_name=_("Early Action Activities"),
+        related_name="enable_approach_early_action_activities",
+        blank=True,
+    )
+
+    class Meta:
+        verbose_name = _("Enable Approach")
+        verbose_name_plural = _("Enable Approaches")
+
+    def __str__(self):
+        return f"Enable Approach - {self.get_approach_display()}"
+
+
 class EAPType(models.IntegerChoices):
+    """Enum representing the type of EAP."""
+
     FULL_EAP = 10, _("Full EAP")
+    """Full EAP Application """
+
     SIMPLIFIED_EAP = 20, _("Simplified EAP")
+    """Simplified EAP Application """
 
 
 class EAPStatus(models.IntegerChoices):
@@ -356,6 +514,19 @@ class SimplifiedEAP(EAPBaseModel):
         related_name="simplified_eap",
     )
 
+    cover_image = models.ForeignKey(
+        EAPFile,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        verbose_name=_("cover image"),
+        related_name="cover_image_simplified_eap",
+    )
+    seap_timeframe = models.IntegerField(
+        verbose_name=_("sEAP Timeframe (Years)"),
+        help_text=_("A simplified EAP has a timeframe of 2 years unless early action are activated."),
+    )
+
     # Contacts
     # National Society
     national_society_contact_name = models.CharField(
@@ -477,6 +648,12 @@ class SimplifiedEAP(EAPBaseModel):
         null=True,
         blank=True,
     )
+    hazard_impact = models.ManyToManyField(
+        EAPFile,
+        verbose_name=_("Hazard Impact Files"),
+        related_name="simplified_eap_hazard_impact_files",
+        blank=True,
+    )
     # TODO(susilnem): Add image max 5
 
     risks_selected_protocols = models.TextField(
@@ -508,6 +685,13 @@ class SimplifiedEAP(EAPBaseModel):
         null=True,
         blank=True,
     )
+
+    admin2 = models.ManyToManyField(
+        Admin2,
+        verbose_name=_("admin2"),
+        blank=True,
+    )
+
     people_targeted = models.IntegerField(
         verbose_name=_("People Targeted."),
         null=True,
@@ -552,7 +736,66 @@ class SimplifiedEAP(EAPBaseModel):
     )
 
     # PLANNED OPEATIONS #
-    # TODO(susilnem): continue
+    planned_operations = models.ManyToManyField(
+        PlannedOperations,
+        verbose_name=_("Planned Operations"),
+        blank=True,
+    )
+
+    # ENABLE APPROACHES #
+    enable_approaches = models.ManyToManyField(
+        EnableApproach,
+        verbose_name=_("Enabling Approaches"),
+        related_name="simplified_eap_enable_approaches",
+        blank=True,
+    )
+
+    # CONDITION TO DELIVER AND BUDGET #
+
+    # RISK ANALYSIS #
+
+    early_action_capability = models.TextField(
+        verbose_name=_("Experience or Capacity to implement Early Action."),
+        help_text=_("Assumptions or minimum conditions needed to deliver the early actions."),
+        null=True,
+        blank=True,
+    )
+    rcrc_movement_involvement = models.TextField(
+        verbose_name=_("RCRC Movement Involvement."),
+        help_text=_("RCRC Movement partners, Governmental/other agencies consulted/involved."),
+        null=True,
+        blank=True,
+    )
+
+    # BUDGET #
+    total_budget = models.IntegerField(
+        verbose_name=_("Total Budget (CHF)"),
+        null=True,
+        blank=True,
+    )
+    readiness_budget = models.IntegerField(
+        verbose_name=_("Readiness Budget (CHF)"),
+        null=True,
+        blank=True,
+    )
+    pre_positioning_budget = models.IntegerField(
+        verbose_name=_("Pre-positioning Budget (CHF)"),
+        null=True,
+        blank=True,
+    )
+    early_action_budget = models.IntegerField(
+        verbose_name=_("Early Actions Budget (CHF)"),
+        null=True,
+        blank=True,
+    )
+
+    # BUDGET DETAILS #
+    budget_file = models.ForeignKey(
+        EAPFile,
+        on_delete=models.SET_NULL,
+        verbose_name=_("Budget File"),
+        null=True,
+    )
 
     class Meta:
         verbose_name = _("Simplified EAP")
