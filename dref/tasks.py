@@ -46,12 +46,12 @@ def process_dref_translation(model_name, instance_pk):
         instance.translation_module_original_language = "en"
         instance.save(update_fields=["status", "translation_module_original_language"])
         logger.info(f"Successfully finalized: ({model_name}) ID: ({instance_pk})")
-    except Exception as exc:
+    except Exception:
         if instance is not None:
             instance.status = Dref.Status.FAILED
             instance.save(update_fields=["status"])
         logger.warning(f"Translation failed for model: ({model_name}) ID: ({instance_pk})", exc_info=True)
-        raise exc
+        return False
 
 
 def _translate_related_objects(instance, visited=None):
