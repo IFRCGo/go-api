@@ -608,6 +608,7 @@ class CountryContactSerializer(ModelSerializer):
 class RegionRelationSerializer(ModelSerializer):
     links = RegionLinkSerializer(many=True, read_only=True)
     contacts = RegionContactSerializer(many=True, read_only=True)
+    # Visibility filtering now handled in RegionViewset.get_queryset via Prefetch.
     snippets = RegionSnippetSerializer(many=True, read_only=True)
     emergency_snippets = RegionEmergencySnippetSerializer(many=True, read_only=True)
     profile_snippets = RegionProfileSnippetSerializer(many=True, read_only=True)
@@ -649,6 +650,8 @@ class RegionRelationSerializer(ModelSerializer):
     @staticmethod
     def get_bbox(region) -> dict:
         return region.bbox and json.loads(region.bbox.geojson)
+
+    # get_snippets removed – visibility filtering now done entirely in the viewset.
 
 
 class CountryDirectorySerializer(ModelSerializer):

@@ -267,9 +267,59 @@ class DisasterTypeViewset(viewsets.ReadOnlyModelViewSet):
 
 
 class RegionViewset(viewsets.ReadOnlyModelViewSet):
+    """Region endpoint with snippet visibility filtering."""
+
     queryset = Region.objects.annotate(
         country_plan_count=Count("country__country_plan", filter=Q(country__country_plan__is_publish=True))
     )
+
+    def get_queryset(self):
+        """Apply snippet visibility filtering at the queryset level.
+
+        This removes the need for serializer-side filtering. Rules:
+        - Anonymous / guest: only PUBLIC
+        - IFRC user: all visibilities
+        - Auth non-IFRC: exclude IFRC; include IFRC_NS only if user has a country whose region matches the snippet's region.
+        - MEMBERSHIP available to any authenticated non-guest user (already covered by exclude-only logic)
+
+        We implement the IFRC_NS conditional by computing the set of region IDs the user is linked to via UserCountry/Profile
+        and excluding IFRC_NS snippets for regions not in that set.
+        """
+        from .models import (
+            Country,
+            Profile,
+            RegionSnippet,
+            UserCountry,
+            VisibilityChoices,
+        )
+        from .utils import is_user_ifrc
+
+        user = getattr(self.request, "user", None)
+
+        if not user or not user.is_authenticated:
+            snip_qs = RegionSnippet.objects.filter(visibility=VisibilityChoices.PUBLIC)
+        else:
+            profile = getattr(user, "profile", None)
+            if profile and profile.limit_access_to_guest:
+                snip_qs = RegionSnippet.objects.filter(visibility=VisibilityChoices.PUBLIC)
+            elif is_user_ifrc(user):
+                snip_qs = RegionSnippet.objects.all()
+            else:
+                # User-linked countries (Profile.country is optional)
+                user_country_ids = UserCountry.objects.filter(user=user.id).values_list("country", flat=True)
+                profile_country_ids = Profile.objects.filter(user=user.id).values_list("country", flat=True)
+                combined_country_ids = list(user_country_ids.union(profile_country_ids))
+                # Regions the user is associated with via countries
+                allowed_region_ids_for_ifrc_ns = Country.objects.filter(
+                    id__in=combined_country_ids, region__isnull=False
+                ).values_list("region_id", flat=True)
+                snip_qs = RegionSnippet.objects.exclude(visibility=VisibilityChoices.IFRC)
+                # Exclude IFRC_NS snippets whose region not in allowed set
+                snip_qs = snip_qs.exclude(
+                    Q(visibility=VisibilityChoices.IFRC_NS) & ~Q(region_id__in=allowed_region_ids_for_ifrc_ns)
+                )
+
+        return self.queryset.prefetch_related(models.Prefetch("snippets", queryset=snip_qs))
 
     def get_serializer_class(self):
         if self.action == "list":
