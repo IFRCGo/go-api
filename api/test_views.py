@@ -935,3 +935,95 @@ class AppealTest(APITestCase):
         self.assertIsNotNone(response.json())
         self.assertEqual(response.data["active_drefs"], 1)
         self.assertEqual(response.data["active_appeals"], 3)
+
+
+class RegionSnippetVisibilityTest(APITestCase):
+    def setUp(self):
+        super().setUp()
+        # Create a region and countries to support IFRC_NS intersection logic
+        self.region = models.Region.objects.create(name=2)
+        self.country_public = models.Country.objects.create(name="Publand", iso3="PUB", region=self.region)
+        self.country_private = models.Country.objects.create(name="Privland", iso3="PRI", region=self.region)
+
+        # Snippets with different visibilities
+        self.snip_public = models.RegionSnippet.objects.create(
+            region=self.region,
+            snippet="<p>Public snippet</p>",
+            visibility=models.VisibilityChoices.PUBLIC,
+        )
+        self.snip_ifrc = models.RegionSnippet.objects.create(
+            region=self.region,
+            snippet="<p>IFRC only snippet</p>",
+            visibility=models.VisibilityChoices.IFRC,
+        )
+        self.snip_membership = models.RegionSnippet.objects.create(
+            region=self.region,
+            snippet="<p>Membership snippet</p>",
+            visibility=models.VisibilityChoices.MEMBERSHIP,
+        )
+        self.snip_ifrc_ns = models.RegionSnippet.objects.create(
+            region=self.region,
+            snippet="<p>IFRC & NS snippet</p>",
+            visibility=models.VisibilityChoices.IFRC_NS,
+        )
+
+    def _get_snippet_ids(self, response_json):
+        return sorted([s["id"] for s in response_json.get("snippets", [])])
+
+    def test_anonymous_sees_only_public(self):
+        resp = self.client.get(f"/api/v2/region/{self.region.id}/")
+        self.assertEqual(resp.status_code, 200)
+        ids = self._get_snippet_ids(resp.json())
+        self.assertEqual(ids, [self.snip_public.id])
+
+    def test_guest_user_sees_only_public(self):
+        guest = User.objects.create_user(username="guest", password="x")
+        guest.profile.limit_access_to_guest = True
+        guest.profile.save()
+        self.client.force_authenticate(user=guest)
+        resp = self.client.get(f"/api/v2/region/{self.region.id}/")
+        self.assertEqual(resp.status_code, 200)
+        ids = self._get_snippet_ids(resp.json())
+        self.assertEqual(ids, [self.snip_public.id])
+
+    def test_authenticated_non_ifrc_excludes_ifrc(self):
+        user = User.objects.create_user(username="regular", password="x")
+        self.client.force_authenticate(user=user)
+        resp = self.client.get(f"/api/v2/region/{self.region.id}/")
+        self.assertEqual(resp.status_code, 200)
+        ids = self._get_snippet_ids(resp.json())
+        # IFRC (2) excluded; IFRC_NS (4) excluded because no country relation; membership (1) included
+        self.assertEqual(sorted(ids), sorted([self.snip_public.id, self.snip_membership.id]))
+
+    def test_authenticated_non_ifrc_with_country_gets_ifrc_ns(self):
+        user = User.objects.create_user(username="ns_user", password="x")
+        # Attach country relation via Profile (simplest) or UserCountry
+        user.profile.country = self.country_public
+        user.profile.save()
+        self.client.force_authenticate(user=user)
+        resp = self.client.get(f"/api/v2/region/{self.region.id}/")
+        self.assertEqual(resp.status_code, 200)
+        ids = self._get_snippet_ids(resp.json())
+        # IFRC only excluded; IFRC_NS now included due to region country intersection
+        self.assertEqual(sorted(ids), sorted([self.snip_public.id, self.snip_membership.id, self.snip_ifrc_ns.id]))
+
+    def test_ifrc_user_sees_all(self):
+        ifrc_user = User.objects.create_user(username="ifrc_admin", password="x")
+        # Grant IFRC permission to classify user as IFRC
+        ifrc_user.user_permissions.add(self.ifrc_permission)
+        ifrc_user.save()
+        self.client.force_authenticate(user=ifrc_user)
+        resp = self.client.get(f"/api/v2/region/{self.region.id}/")
+        self.assertEqual(resp.status_code, 200)
+        ids = self._get_snippet_ids(resp.json())
+        self.assertEqual(
+            sorted(ids),
+            sorted(
+                [
+                    self.snip_public.id,
+                    self.snip_ifrc.id,
+                    self.snip_membership.id,
+                    self.snip_ifrc_ns.id,
+                ]
+            ),
+        )
