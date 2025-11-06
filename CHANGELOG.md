@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.508
+
+### Added
+ - Region snippets visibility fix
+ - Re-enable DREF translations
+ - AuthPowerBI endpoint with some env vars and tests
+ - Public endpoint, serializer, filters and tests for Health units
+ - Allow non-superuser DREF3 queries also
+ - AppealDocumentAdmin ordering possibility by first column
  - More filters for SurgeAlerts
  - ERU filters to Admin page
  - Verbose ERU listing on Admin page
@@ -2748,7 +2757,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.507...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.508...HEAD
+[1.1.508]: https://github.com/IFRCGo/go-api/compare/1.1.507...1.1.508
 [1.1.507]: https://github.com/IFRCGo/go-api/compare/1.1.506...1.1.507
 [1.1.506]: https://github.com/IFRCGo/go-api/compare/1.1.505...1.1.506
 [1.1.505]: https://github.com/IFRCGo/go-api/compare/1.1.504...1.1.505
