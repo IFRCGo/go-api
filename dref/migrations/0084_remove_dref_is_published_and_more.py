@@ -38,9 +38,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ('dref', '0083_dreffinalreport_total_operation_timeframe_imminent'),
     ]
-
     operations = [
-        migrations.RunPython(update_status,reverse_code=migrations.RunPython.noop),        
         migrations.AddField(
             model_name='dref',
             name='addressed_humanitarian_impacts_ar',
@@ -131,6 +129,7 @@ class Migration(migrations.Migration):
             name='status',
             field=models.IntegerField(choices=[(1, 'Draft'), (2, 'Finalizing'), (3, 'Finalized'), (4, 'Approved'), (5, 'Failed')], default=1, verbose_name='status'),
         ),
+        migrations.RunPython(update_status,reverse_code=migrations.RunPython.noop),
         migrations.RemoveField(
             model_name='dref',
             name='is_published',

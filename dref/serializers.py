@@ -792,11 +792,11 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
     def create(self, validated_data):
         dref = validated_data["dref"]
         current_language = get_language()
-        stating_langauge = validated_data.get("starting_language")
+        starting_langauge = validated_data.get("starting_language")
         valid_languages = [dref.starting_language, dref.translation_module_original_language]
-        if current_language != stating_langauge:
+        if current_language != starting_langauge:
             raise serializers.ValidationError(gettext("Starting language does not match the expected language."))
-        if stating_langauge not in valid_languages:
+        if starting_langauge not in valid_languages:
             raise serializers.ValidationError(
                 gettext(f"Invalid starting language. Supported options are '{valid_languages[0]}' and '{valid_languages[1]}'.")
             )
@@ -1249,11 +1249,11 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
         # else copy from dref
         dref = validated_data["dref"]
         current_language = get_language()
-        stating_langauge = validated_data.get("starting_language")
+        starting_langauge = validated_data.get("starting_language")
         valid_languages = [dref.starting_language, dref.translation_module_original_language]
-        if current_language != stating_langauge:
+        if current_language != starting_langauge:
             raise serializers.ValidationError(gettext("Starting language does not match the expected language."))
-        if stating_langauge not in valid_languages:
+        if starting_langauge not in valid_languages:
             raise serializers.ValidationError(
                 gettext(f"Invalid starting language. Supported options are '{valid_languages[0]}' and '{valid_languages[1]}'.")
             )

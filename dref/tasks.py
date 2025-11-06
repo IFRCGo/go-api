@@ -38,12 +38,14 @@ def process_dref_translation(model_name, instance_pk):
     try:
         model = apps.get_model(model_name)
         instance = model.objects.get(pk=instance_pk)
+        logger.info(f"Starting translation for model: ({model_name}) ID: ({instance_pk})")
         translate_model_fields(model_name, instance_pk)
+        logger.info(f"Translating related objects for model: ({model_name}) ID: ({instance_pk})")
         _translate_related_objects(instance)
         instance.status = Dref.Status.FINALIZED
         instance.translation_module_original_language = "en"
         instance.save(update_fields=["status", "translation_module_original_language"])
-        logger.info(f"Successfully finalized: ({model_name}) ID: ({instance_pk})'")
+        logger.info(f"Successfully finalized: ({model_name}) ID: ({instance_pk})")
     except Exception as exc:
         if instance is not None:
             instance.status = Dref.Status.FAILED

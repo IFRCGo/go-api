@@ -1,12 +1,8 @@
-import logging
-
 from django.conf import settings
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db import models
 
 from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
-
-logger = logging.getLogger(__name__)
 
 
 def get_email_context(instance):
