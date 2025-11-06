@@ -264,8 +264,16 @@ class Dref(models.Model):
         RED = 2, _("Red")
 
     class Status(models.IntegerChoices):
-        IN_PROGRESS = 0, _("In Progress")
-        COMPLETED = 1, _("Completed")
+        DRAFT = 1, _("Draft")
+        """Draft: Initial stage content is being created and is not ready for review."""
+        FINALIZING = 2, _("Finalizing")
+        """Finalizing: Content is in the translation process from the original language into English."""
+        FINALIZED = 3, _("Finalized")
+        """Finalized: Translation is completed, content is ready for review, and updates to the original language are locked."""
+        APPROVED = 4, _("Approved")
+        """Approved: The content has been reviewed, accepted, and is ready for use."""
+        FAILED = 5, _("Failed")
+        """FAILED: The content translation process has been Failed."""
 
     created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
     modified_at = models.DateTimeField(verbose_name=_("modified at"), default=timezone.now, null=True)
@@ -329,7 +337,13 @@ class Dref(models.Model):
         verbose_name=_("If available please upload additional support documentation for targeting strategy"),
         related_name="dref_targeting_strategy_support_file",
     )
-    status = models.IntegerField(choices=Status.choices, verbose_name=_("status"), null=True, blank=True)
+    status = models.IntegerField(choices=Status.choices, verbose_name=_("status"), default=Status.DRAFT)
+    starting_language = models.CharField(
+        blank=True,
+        null=True,
+        verbose_name=_("Starting language"),
+        help_text="The language in which this record was first created.",
+    )  # NOTE: This field is set at creation with the active language.
     num_assisted = models.IntegerField(verbose_name=_("number of assisted"), blank=True, null=True)
     num_affected = models.IntegerField(verbose_name=_("number of affected"), blank=True, null=True)
     estimated_number_of_affected_male = models.IntegerField(
@@ -645,10 +659,6 @@ class Dref(models.Model):
         verbose_name=_("cover image"),
         related_name="cover_image_dref",
     )
-    is_published = models.BooleanField(
-        default=False,
-        verbose_name=_("Is published"),
-    )
     is_final_report_created = models.BooleanField(
         default=False,
         verbose_name=_("Is final report created"),
@@ -748,8 +758,6 @@ class Dref(models.Model):
                 self.budget_file_preview.save(filename, thumb_data, save=False)
             else:
                 raise ValidationError({"budget_file": "Sorry cannot generate preview for empty pdf"})
-
-        self.status = Dref.Status.COMPLETED if self.is_published else Dref.Status.IN_PROGRESS
         self.__budget_file_id = self.budget_file_id
         super().save(*args, **kwargs)
 
@@ -859,7 +867,13 @@ class DrefOperationalUpdate(models.Model):
     disaster_category = models.IntegerField(
         choices=Dref.DisasterCategory.choices, verbose_name=_("disaster category"), null=True, blank=True
     )
-    status = models.IntegerField(choices=Dref.Status.choices, verbose_name=_("status"), null=True, blank=True)
+    status = models.IntegerField(choices=Dref.Status.choices, verbose_name=_("status"), default=Dref.Status.DRAFT)
+    starting_language = models.CharField(
+        blank=True,
+        null=True,
+        verbose_name=_("Starting language"),
+        help_text="The language in which this record was first created.",
+    )  # NOTE: This field is set at creation with the active language.
     number_of_people_targeted = models.IntegerField(verbose_name=_("Number of people targeted"), blank=True, null=True)
     number_of_people_affected = models.IntegerField(verbose_name=_("number of people affected"), blank=True, null=True)
     estimated_number_of_affected_male = models.IntegerField(
@@ -1094,10 +1108,6 @@ class DrefOperationalUpdate(models.Model):
         null=True,
     )
     planned_interventions = models.ManyToManyField(PlannedIntervention, verbose_name=_("planned intervention"), blank=True)
-    is_published = models.BooleanField(
-        default=False,
-        verbose_name=_("Is published"),
-    )
     country = models.ForeignKey(
         Country,
         verbose_name=_("country"),
@@ -1232,7 +1242,6 @@ class DrefOperationalUpdate(models.Model):
                 raise ValidationError({"budget_file": "Sorry cannot generate preview for empty pdf"})
 
         self.__budget_file_id = self.budget_file_id
-        self.status = Dref.Status.COMPLETED if self.is_published else Dref.Status.IN_PROGRESS
         super().save(*args, **kwargs)
 
     @staticmethod
@@ -1297,7 +1306,13 @@ class DrefFinalReport(models.Model):
     disaster_category = models.IntegerField(
         choices=Dref.DisasterCategory.choices, verbose_name=_("disaster category"), null=True, blank=True
     )
-    status = models.IntegerField(choices=Dref.Status.choices, verbose_name=_("status"), null=True, blank=True)
+    status = models.IntegerField(choices=Dref.Status.choices, verbose_name=_("status"), default=Dref.Status.DRAFT)
+    starting_language = models.CharField(
+        blank=True,
+        null=True,
+        verbose_name=_("Starting language"),
+        help_text="The language in which this record was first created.",
+    )  # NOTE: This field is set at creation with the active language.
     number_of_people_targeted = models.IntegerField(verbose_name=_("Number of people targeted"), blank=True, null=True)
     number_of_people_affected = models.IntegerField(verbose_name=_("number of people affected"), blank=True, null=True)
     estimated_number_of_affected_male = models.IntegerField(
@@ -1481,7 +1496,6 @@ class DrefFinalReport(models.Model):
         verbose_name=_("Additional National Societies Actions"), null=True, blank=True
     )
     planned_interventions = models.ManyToManyField(PlannedIntervention, verbose_name=_("planned intervention"), blank=True)
-    is_published = models.BooleanField(verbose_name=_("Is Published"), default=False)
     country = models.ForeignKey(
         Country,
         verbose_name=_("country"),
@@ -1651,12 +1665,11 @@ class DrefFinalReport(models.Model):
             else:
                 raise ValidationError({"financial_report": "Sorry cannot generate preview for empty pdf"})
 
-        self.status = Dref.Status.COMPLETED if self.is_published else Dref.Status.IN_PROGRESS
         self.__financial_report_id = self.financial_report_id
         super().save(*args, **kwargs)
 
     @staticmethod
-    def get_for(user, is_published=False):
+    def get_for(user, status=None):
         from dref.utils import get_dref_users
 
         # get the user in dref
@@ -1675,6 +1688,6 @@ class DrefFinalReport(models.Model):
         final_report_created_by = DrefFinalReport.objects.filter(created_by=user).distinct()
         union_query = final_report_users.union(final_report_created_by)
         queryset = DrefFinalReport.objects.filter(id__in=union_query.values("id")).distinct()
-        if is_published:
-            return queryset.filter(is_published=True)
+        if status == Dref.Status.APPROVED:
+            return queryset.filter(status=Dref.Status.APPROVED)
         return queryset

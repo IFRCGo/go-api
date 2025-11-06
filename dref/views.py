@@ -1,6 +1,6 @@
 import django.utils.timezone as timezone
 from django.contrib.auth.models import Permission
-from django.db import models
+from django.db import models, transaction
 from django.templatetags.static import static
 from django.utils.translation import gettext
 from drf_spectacular.utils import extend_schema
@@ -18,6 +18,7 @@ from rest_framework.exceptions import NotFound
 from reversion.views import RevisionMixin
 
 from api.models import AppealFilter
+from api.utils import get_model_name
 from dref.filter_set import (
     ActiveDrefFilterSet,
     CompletedDrefOperationsFilterSet,
@@ -42,6 +43,7 @@ from dref.serializers import (
     DrefShareUserSerializer,
     MiniDrefSerializer,
 )
+from dref.tasks import process_dref_translation
 from main.permissions import DenyGuestUserPermission
 
 
@@ -80,20 +82,49 @@ class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
         )
         return filter_dref_queryset_by_user_access(user, queryset)
 
+    @extend_schema(request=None, responses=DrefSerializer)
     @action(
         detail=True,
-        url_path="publish",
+        url_path="approve",
         methods=["post"],
-        serializer_class=DrefSerializer,
         permission_classes=[permissions.IsAuthenticated, PublishDrefPermission, DenyGuestUserPermission],
     )
-    def get_published(self, request, pk=None, version=None):
+    def get_approved(self, request, pk=None, version=None):
         dref = self.get_object()
-        dref.is_published = True
-        dref.status = Dref.Status.COMPLETED
-        dref.save(update_fields=["is_published", "status"])
+        if dref.status != Dref.Status.FINALIZED:
+            raise serializers.ValidationError(gettext("Must be finalized before it can be approved"))
+        if dref.status == Dref.Status.APPROVED:
+            raise serializers.ValidationError(gettext("Dref %s is already approved" % dref))
+        dref.status = Dref.Status.APPROVED
+        dref.save(update_fields=["status"])
         serializer = DrefSerializer(dref, context={"request": request})
         return response.Response(serializer.data)
+
+    @extend_schema(request=None, responses=DrefSerializer)
+    @action(
+        detail=True,
+        url_path="finalize",
+        methods=["post"],
+        permission_classes=[permissions.IsAuthenticated, DenyGuestUserPermission],
+    )
+    def finalize(self, request, pk=None, version=None):
+        dref = self.get_object()
+        if dref.status in [Dref.Status.FINALIZED, Dref.Status.APPROVED]:
+            raise serializers.ValidationError(gettext("Cannot be finalized because it is already %s") % dref.get_status_display())
+        if dref.translation_module_original_language == "en":
+            dref.status = Dref.Status.FINALIZED
+            dref.save(update_fields=["status"])
+            serializer = DrefSerializer(dref, context={"request": request})
+            return response.Response(serializer.data)
+
+        model_name = get_model_name(type(dref))
+        dref.status = Dref.Status.FINALIZING
+        dref.save(update_fields=["status"])
+        transaction.on_commit(lambda: process_dref_translation.delay(model_name, dref.pk))
+        return response.Response(
+            {"detail": gettext("The translation is currently being processed. Please wait a little while before trying again.")},
+            status=status.HTTP_202_ACCEPTED,
+        )
 
     @extend_schema(request=None, responses=DrefGlobalFilesSerializer)
     @action(
@@ -145,20 +176,51 @@ class DrefOperationalUpdateViewSet(RevisionMixin, viewsets.ModelViewSet):
         )
         return filter_dref_queryset_by_user_access(user, queryset)
 
+    @extend_schema(request=None, responses=DrefOperationalUpdateSerializer)
     @action(
         detail=True,
-        url_path="publish",
+        url_path="approve",
         methods=["post"],
-        serializer_class=DrefOperationalUpdateSerializer,
         permission_classes=[permissions.IsAuthenticated, PublishDrefPermission, DenyGuestUserPermission],
     )
-    def get_published(self, request, pk=None, version=None):
+    def get_approved(self, request, pk=None, version=None):
         operational_update = self.get_object()
-        operational_update.is_published = True
-        operational_update.status = Dref.Status.COMPLETED
-        operational_update.save(update_fields=["is_published", "status"])
+        if operational_update.status != Dref.Status.FINALIZED:
+            raise serializers.ValidationError(gettext("Must be finalized before it can be approved."))
+        if operational_update.status == Dref.Status.APPROVED:
+            raise serializers.ValidationError(gettext("Operational update %s is already approved" % operational_update))
+        operational_update.status = Dref.Status.APPROVED
+        operational_update.save(update_fields=["status"])
         serializer = DrefOperationalUpdateSerializer(operational_update, context={"request": request})
         return response.Response(serializer.data)
+
+    @extend_schema(request=None, responses=DrefOperationalUpdateSerializer)
+    @action(
+        detail=True,
+        url_path="finalize",
+        methods=["post"],
+        permission_classes=[permissions.IsAuthenticated, DenyGuestUserPermission],
+    )
+    def finalize(self, request, pk=None, version=None):
+        operational_update = self.get_object()
+        if operational_update.status in [Dref.Status.FINALIZED, Dref.Status.APPROVED]:
+            raise serializers.ValidationError(
+                gettext("Cannot be finalized because it is already %s") % operational_update.get_status_display()
+            )
+        if operational_update.translation_module_original_language == "en":
+            operational_update.status = Dref.Status.FINALIZED
+            operational_update.save(update_fields=["status"])
+            serializer = DrefOperationalUpdateSerializer(operational_update, context={"request": request})
+            return response.Response(serializer.data)
+
+        model_name = get_model_name(type(operational_update))
+        operational_update.status = Dref.Status.FINALIZING
+        operational_update.save(update_fields=["status"])
+        transaction.on_commit(lambda: process_dref_translation.delay(model_name, operational_update.pk))
+        return response.Response(
+            {"detail": gettext("The translation is currently being processed. Please wait a little while before trying again.")},
+            status=status.HTTP_202_ACCEPTED,
+        )
 
 
 class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
@@ -177,25 +239,54 @@ class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
         )
         return filter_dref_queryset_by_user_access(user, queryset)
 
+    @extend_schema(request=None, responses=DrefFinalReportSerializer)
     @action(
         detail=True,
-        url_path="publish",
+        url_path="approve",
         methods=["post"],
-        serializer_class=DrefFinalReportSerializer,
         permission_classes=[permissions.IsAuthenticated, PublishDrefPermission, DenyGuestUserPermission],
     )
-    def get_published(self, request, pk=None, version=None):
-        field_report = self.get_object()
-        if field_report.is_published:
-            raise serializers.ValidationError(gettext("Final Report %s is already published" % field_report))
-        field_report.is_published = True
-        field_report.status = Dref.Status.COMPLETED
-        field_report.save(update_fields=["is_published", "status"])
-        field_report.dref.is_active = False
-        field_report.date_of_approval = timezone.now().date()
-        field_report.dref.save(update_fields=["is_active", "date_of_approval"])
-        serializer = DrefFinalReportSerializer(field_report, context={"request": request})
+    def get_approved(self, request, pk=None, version=None):
+        final_report = self.get_object()
+        if final_report.status != Dref.Status.FINALIZED:
+            raise serializers.ValidationError(gettext("Must be finalized before it can be approved."))
+        if final_report.status == Dref.Status.APPROVED:
+            raise serializers.ValidationError(gettext("Final Report %s is already approved" % final_report))
+        final_report.status = Dref.Status.APPROVED
+        final_report.save(update_fields=["status"])
+        final_report.dref.is_active = False
+        final_report.date_of_approval = timezone.now().date()
+        final_report.dref.save(update_fields=["is_active", "date_of_approval"])
+        serializer = DrefFinalReportSerializer(final_report, context={"request": request})
         return response.Response(serializer.data)
+
+    @extend_schema(request=None, responses=DrefFinalReportSerializer)
+    @action(
+        detail=True,
+        url_path="finalize",
+        methods=["post"],
+        permission_classes=[permissions.IsAuthenticated, DenyGuestUserPermission],
+    )
+    def finalize(self, request, pk=None, version=None):
+        final_report = self.get_object()
+        if final_report.status in [Dref.Status.FINALIZED, Dref.Status.APPROVED]:
+            raise serializers.ValidationError(
+                gettext("Cannot be finalized because it is already %s") % final_report.get_status_display()
+            )
+        if final_report.translation_module_original_language == "en":
+            final_report.status = Dref.Status.FINALIZED
+            final_report.save(update_fields=["status"])
+            serializer = DrefFinalReportSerializer(final_report, context={"request": request})
+            return response.Response(serializer.data)
+
+        model_name = get_model_name(type(final_report))
+        final_report.status = Dref.Status.FINALIZING
+        final_report.save(update_fields=["status"])
+        transaction.on_commit(lambda: process_dref_translation.delay(model_name, final_report.pk))
+        return response.Response(
+            {"detail": gettext("The translation is currently being processed. Please wait a little while before trying again.")},
+            status=status.HTTP_202_ACCEPTED,
+        )
 
 
 class DrefFileViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
@@ -232,7 +323,7 @@ class CompletedDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
         DenyGuestUserPermission,
     ]
     filterset_class = CompletedDrefOperationsFilterSet
-    queryset = DrefFinalReport.objects.filter(is_published=True).order_by("-created_at").distinct()
+    queryset = DrefFinalReport.objects.filter(status=Dref.Status.APPROVED).order_by("-created_at").distinct()
 
     def get_queryset(self):
         user = self.request.user

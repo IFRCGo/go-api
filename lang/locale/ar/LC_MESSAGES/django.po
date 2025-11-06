@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-08 17:57+0000\n"
+"POT-Creation-Date: 2025-10-17 10:36+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,17 +19,23 @@ msgstr ""
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
 
-#: lang/admin.py:61
+#: lang/admin.py:66
 #, fuzzy
 #| msgid "language"
 msgid "hide all language"
 msgstr "اللغة"
 
-#: lang/admin.py:61
+#: lang/admin.py:66
 #, fuzzy
 #| msgid "language"
 msgid "show all language"
 msgstr "اللغة"
+
+#: lang/admin.py:172
+#, fuzzy
+#| msgid "Strings"
+msgid "Stale strings"
+msgstr "سلاسل"
 
 #: lang/apps.py:7
 msgid "lang"
@@ -51,10 +57,19 @@ msgstr "حَشِيش"
 msgid "value"
 msgstr "القيمة"
 
-#: lang/models.py:15
+#: lang/models.py:12
+msgid "Page name"
+msgstr ""
+
+#: lang/models.py:16
 msgid "String"
 msgstr "سترينغ"
 
-#: lang/models.py:16
+#: lang/models.py:17
 msgid "Strings"
 msgstr "سلاسل"
+
+#: lang/serializers.py:191
+#, python-format
+msgid "Only original langauge is supported: %s"
+msgstr ""

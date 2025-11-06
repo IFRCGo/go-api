@@ -98,6 +98,7 @@ class DrefAdmin(CompareVersionAdmin, TranslationAdmin, admin.ModelAdmin):
         "risk_security",
         "proposed_action",
     )
+    readonly_fields = ("starting_language",)
 
     def get_queryset(self, request):
         return (
@@ -143,6 +144,7 @@ class DrefOperationalUpdateAdmin(CompareVersionAdmin, TranslationAdmin, admin.Mo
         "district",
         "risk_security",
     )
+    readonly_fields = ("starting_language",)
     list_filter = ["dref"]
 
     def get_queryset(self, request):
@@ -199,6 +201,7 @@ class DrefFinalReportAdmin(CompareVersionAdmin, TranslationAdmin, admin.ModelAdm
         "national_society_actions",
         "source_information",
     )
+    readonly_fields = ("starting_language",)
     list_filter = ["dref"]
     search_fields = ["title", "national_society__name", "appeal_code"]
 
@@ -230,7 +233,7 @@ class DrefFinalReportAdmin(CompareVersionAdmin, TranslationAdmin, admin.ModelAdm
 
     # NOTE: If the Dref Final report is unpublished, set Dref related to it as active
     def save_model(self, request, obj, form, change):
-        if not obj.is_published and obj.dref:
+        if obj.status != Dref.Status.APPROVED and obj.dref:
             obj.dref.is_active = True
             obj.dref.save(update_fields=["is_active"])
         super().save_model(request, obj, form, change)

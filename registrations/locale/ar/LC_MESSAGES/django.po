@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-08 17:57+0000\n"
+"POT-Creation-Date: 2025-10-17 10:36+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -23,94 +23,124 @@ msgstr ""
 msgid "registrations"
 msgstr "التسجيلات"
 
-#: registrations/models.py:12 registrations/models.py:47
+#: registrations/models.py:14 registrations/models.py:48
+#: registrations/models.py:88
 msgid "user"
 msgstr "المستعمل"
 
-#: registrations/models.py:18 registrations/models.py:51
+#: registrations/models.py:20 registrations/models.py:52
+#: registrations/models.py:92
 msgid "created at"
 msgstr "أنشئت في"
 
-#: registrations/models.py:19 registrations/models.py:52
+#: registrations/models.py:21 registrations/models.py:53
 msgid "token"
 msgstr "رمز"
 
-#: registrations/models.py:21
+#: registrations/models.py:23
 msgid "admin contact 1"
 msgstr "تواصل مع المشرف"
 
-#: registrations/models.py:22
+#: registrations/models.py:24
 msgid "admin contact 2"
 msgstr "تواصل مع المشرف"
 
-#: registrations/models.py:23
+#: registrations/models.py:25
 msgid "admin token 1"
 msgstr "رمز المشرف 1"
 
-#: registrations/models.py:24
+#: registrations/models.py:26
 msgid "admin token 2"
 msgstr "رمز المشرف 2"
 
-#: registrations/models.py:25
+#: registrations/models.py:27
 msgid "admin 1 validated"
 msgstr "المشرف 1 تحقق من صحتها"
 
-#: registrations/models.py:26
+#: registrations/models.py:28
 msgid "admin 2 validated"
 msgstr "المشرف 2 تحقق من صحتها"
 
-#: registrations/models.py:27
+#: registrations/models.py:29
 msgid "admin 1 validated date"
 msgstr "تاريخ تحقق المشرف 1 "
 
-#: registrations/models.py:28
+#: registrations/models.py:30
 msgid "admin 2 validated date"
 msgstr "تاريخ تحقق المشرف2 "
 
-#: registrations/models.py:29
+#: registrations/models.py:31
 msgid "email verified?"
 msgstr "التحقق من البريد الإلكتروني؟"
 
-#: registrations/models.py:30
+#: registrations/models.py:32
 msgid "justification"
 msgstr ""
 
-#: registrations/models.py:31
+#: registrations/models.py:33
 msgid "reminder sent to admin?"
 msgstr ""
 
-#: registrations/models.py:35
+#: registrations/models.py:36
 msgid "Pending user"
 msgstr "مستخدم معلق"
 
-#: registrations/models.py:36
+#: registrations/models.py:37
 msgid "Pending users"
 msgstr "قائمة المستخدمين المعلقين"
 
-#: registrations/models.py:55
+#: registrations/models.py:56
 msgid "Recovery"
 msgstr "استرداد"
 
-#: registrations/models.py:56
+#: registrations/models.py:57
 msgid "Recoveries"
 msgstr "معافاة"
 
-#: registrations/models.py:65
+#: registrations/models.py:67
 msgid "domain name"
 msgstr "اسم النطاق"
 
-#: registrations/models.py:66
+#: registrations/models.py:68
 msgid "description"
 msgstr "وصف"
 
-#: registrations/models.py:67
+#: registrations/models.py:69
 msgid "is active?"
 msgstr "نشط؟"
 
-#: registrations/models.py:70
+#: registrations/models.py:72
 msgid "Domain Whitelist"
 msgstr "القائمة البيضاء للمجال"
 
-#: registrations/models.py:71
+#: registrations/models.py:73
 msgid "Domains Whitelist"
 msgstr "المجالات البيضاء"
+
+#: registrations/models.py:83
+msgid "title"
+msgstr ""
+
+#: registrations/models.py:91
+msgid "Unique identifier for the token"
+msgstr ""
+
+#: registrations/models.py:93
+msgid "expire timestamp"
+msgstr ""
+
+#: registrations/models.py:97
+msgid "is old token?"
+msgstr ""
+
+#: registrations/models.py:99
+msgid "Marks whether this is an old Montandon token"
+msgstr ""
+
+#: registrations/models.py:105
+msgid "User External Token"
+msgstr ""
+
+#: registrations/models.py:106
+msgid "User External Tokens"
+msgstr ""

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-08 17:57+0000\n"
+"POT-Creation-Date: 2025-10-17 10:36+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,17 +18,23 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: lang/admin.py:61
+#: lang/admin.py:66
 #, fuzzy
 #| msgid "language"
 msgid "hide all language"
 msgstr "idioma"
 
-#: lang/admin.py:61
+#: lang/admin.py:66
 #, fuzzy
 #| msgid "language"
 msgid "show all language"
 msgstr "idioma"
+
+#: lang/admin.py:172
+#, fuzzy
+#| msgid "Strings"
+msgid "Stale strings"
+msgstr "Cadenas"
 
 #: lang/apps.py:7
 msgid "lang"
@@ -50,10 +56,19 @@ msgstr "almohadilla"
 msgid "value"
 msgstr "valor"
 
-#: lang/models.py:15
+#: lang/models.py:12
+msgid "Page name"
+msgstr ""
+
+#: lang/models.py:16
 msgid "String"
 msgstr "Cadena"
 
-#: lang/models.py:16
+#: lang/models.py:17
 msgid "Strings"
 msgstr "Cadenas"
+
+#: lang/serializers.py:191
+#, python-format
+msgid "Only original langauge is supported: %s"
+msgstr ""

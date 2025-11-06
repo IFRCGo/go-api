@@ -6,7 +6,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models, transaction
 from django.utils import timezone
-from django.utils.translation import gettext
+from django.utils.translation import get_language, gettext
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
@@ -150,7 +150,6 @@ class MiniOperationalUpdateActiveSerializer(serializers.ModelSerializer):
             "country_details",
             "application_type",
             "application_type_display",
-            "is_published",
             "status",
             "status_display",
             "date_of_approval",
@@ -176,7 +175,6 @@ class MiniDrefFinalReportActiveSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "title",
-            "is_published",
             "national_society",
             "disaster_type",
             "type_of_dref",
@@ -213,13 +211,13 @@ class MiniDrefSerializer(serializers.ModelSerializer):
     unpublished_final_report_count = serializers.SerializerMethodField()
     operational_update_details = serializers.SerializerMethodField()
     final_report_details = serializers.SerializerMethodField()
+    starting_language = serializers.CharField(read_only=True)
 
     class Meta:
         model = Dref
         fields = [
             "id",
             "title",
-            "is_published",
             "is_dref_imminent_v2",
             "national_society",
             "disaster_type",
@@ -244,6 +242,7 @@ class MiniDrefSerializer(serializers.ModelSerializer):
             "status",
             "status_display",
             "date_of_approval",
+            "starting_language",
         ]
 
     @extend_schema_field(MiniOperationalUpdateActiveSerializer(many=True))
@@ -274,10 +273,10 @@ class MiniDrefSerializer(serializers.ModelSerializer):
         return "DREF application"
 
     def get_unpublished_op_update_count(self, obj) -> int:
-        return DrefOperationalUpdate.objects.filter(dref_id=obj.id, is_published=False).count()
+        return DrefOperationalUpdate.objects.filter(dref_id=obj.id).exclude(status=Dref.Status.APPROVED).count()
 
     def get_unpublished_final_report_count(self, obj) -> int:
-        return DrefFinalReport.objects.filter(dref_id=obj.id, is_published=False).count()
+        return DrefFinalReport.objects.filter(dref_id=obj.id).exclude(status=Dref.Status.APPROVED).count()
 
 
 class PlannedInterventionSerializer(
@@ -350,23 +349,29 @@ class IdentifiedNeedSerializer(ModelSerializer):
 
 
 class MiniOperationalUpdateSerializer(ModelSerializer):
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+
     class Meta:
         model = DrefOperationalUpdate
         fields = [
             "id",
             "title",
-            "is_published",
             "operational_update_number",
+            "status",
+            "status_display",
         ]
 
 
 class MiniDrefFinalReportSerializer(ModelSerializer):
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+
     class Meta:
         model = DrefFinalReport
         fields = [
             "id",
             "title",
-            "is_published",
+            "status",
+            "status_display",
         ]
 
 
@@ -429,6 +434,7 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
             "created_by",
             "budget_file_preview",
             "is_dref_imminent_v2",
+            "starting_language",
         )
         exclude = (
             "cover_image",
@@ -465,6 +471,8 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
     def validate(self, data):
         event_date = data.get("event_date")
         operation_timeframe = data.get("operation_timeframe")
+        if self.instance and self.instance.status == Dref.Status.FINALIZING:
+            raise serializers.ValidationError(gettext("Cannot be updated while the translation is in progress"))
         is_assessment_report = data.get("is_assessment_report")
         if event_date and data["type_of_onset"] not in [Dref.OnsetType.SLOW, Dref.OnsetType.SUDDEN]:
             raise serializers.ValidationError(
@@ -475,10 +483,10 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
                     )
                 }
             )
-        if self.instance and self.instance.is_published:
-            raise serializers.ValidationError("Published Dref can't be changed. Please contact Admin")
-        if self.instance and DrefFinalReport.objects.filter(dref=self.instance, is_published=True).exists():
-            raise serializers.ValidationError(gettext("Can't Update %s dref for publish Field Report" % self.instance.id))
+        if self.instance and self.instance.status == Dref.Status.APPROVED:
+            raise serializers.ValidationError("Approved Dref can't be changed. Please contact Admin")
+        if self.instance and DrefFinalReport.objects.filter(dref=self.instance, status=Dref.Status.APPROVED).exists():
+            raise serializers.ValidationError(gettext("Can't Update dref for approved Final Report"))
         if operation_timeframe and is_assessment_report and operation_timeframe > 30:
             raise serializers.ValidationError(
                 gettext("Operation timeframe can't be greater than %s for assessment_report" % self.MAX_OPERATION_TIMEFRAME)
@@ -606,6 +614,8 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
         return budget_file_preview
 
     def create(self, validated_data):
+        current_language = get_language()
+        validated_data["starting_language"] = current_language
         validated_data["created_by"] = self.context["request"].user
         validated_data["is_active"] = True
         type_of_dref = validated_data.get("type_of_dref")
@@ -737,19 +747,21 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
 
     def validate(self, data):
         dref = data.get("dref")
+        if self.instance and self.instance.status == Dref.Status.FINALIZING:
+            raise serializers.ValidationError(gettext("Cannot be updated while the translation is in progress"))
         if not self.instance and dref:
-            if not dref.is_published:
-                raise serializers.ValidationError(gettext("Can't create Operational Update for not published %s dref." % dref.id))
+            if dref.status != Dref.Status.APPROVED:
+                raise serializers.ValidationError(gettext("Can't create Operational Update for not approved dref."))
             # get the latest dref_operation_update and
             # check whether it is published or not, exclude no operational object created so far
             dref_operational_update = (
                 DrefOperationalUpdate.objects.filter(dref=dref).order_by("-operational_update_number").first()
             )
-            if dref_operational_update and not dref_operational_update.is_published:
+            if dref_operational_update and dref_operational_update.status != Dref.Status.APPROVED:
                 raise serializers.ValidationError(
                     gettext(
                         "Can't create Operational Update for not \
-                        published Operational Update %s id and Operational Update Number %i."
+                        approved Operational Update %s id and Operational Update Number %i."
                         % (dref_operational_update.id, dref_operational_update.operational_update_number)
                     )
                 )
@@ -779,6 +791,15 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
 
     def create(self, validated_data):
         dref = validated_data["dref"]
+        current_language = get_language()
+        starting_langauge = validated_data.get("starting_language")
+        valid_languages = [dref.starting_language, dref.translation_module_original_language]
+        if current_language != starting_langauge:
+            raise serializers.ValidationError(gettext("Starting language does not match the expected language."))
+        if starting_langauge not in valid_languages:
+            raise serializers.ValidationError(
+                gettext(f"Invalid starting language. Supported options are '{valid_languages[0]}' and '{valid_languages[1]}'.")
+            )
         dref_operational_update = DrefOperationalUpdate.objects.filter(dref=dref).order_by("-operational_update_number").first()
         validated_data["created_by"] = self.context["request"].user
         if not dref_operational_update:
@@ -902,7 +923,6 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["is_man_made_event"] = dref.is_man_made_event
             validated_data["event_text"] = dref.event_text
             validated_data["did_national_society"] = dref.did_national_society
-
             operational_update = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
             nested_serialized_file_fields = [
@@ -1126,24 +1146,25 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
 
     def validate(self, data):
         dref = data.get("dref")
+        if self.instance and self.instance.status == Dref.Status.FINALIZING:
+            raise serializers.ValidationError(gettext("Cannot be updated while the translation is in progress"))
         # Check if dref is published and operational_update associated with it is also published
         if not self.instance and dref:
-            if not dref.is_published:
-                raise serializers.ValidationError(gettext("Can't create Final Report for not published dref %s." % dref.id))
-            dref_operational_update = DrefOperationalUpdate.objects.filter(
-                dref=dref,
-                is_published=False,
-            ).values_list("id", flat=True)
+            if dref.status != Dref.Status.APPROVED:
+                raise serializers.ValidationError(gettext("Can't create Final Report for not approved dref."))
+            dref_operational_update = (
+                DrefOperationalUpdate.objects.filter(dref=dref).exclude(status=Dref.Status.APPROVED).values_list("id", flat=True)
+            )
             if dref_operational_update:
                 raise serializers.ValidationError(
                     gettext(
-                        "Can't create Final Report for not published Operational Update %s ids "
+                        "Can't create Final Report for not approved Operational Update %s ids "
                         % ",".join(map(str, dref_operational_update))
                     )
                 )
 
-        if self.instance and self.instance.is_published:
-            raise serializers.ValidationError(gettext("Can't update published final report %s." % self.instance.id))
+        if self.instance and self.instance.status == Dref.Status.APPROVED:
+            raise serializers.ValidationError(gettext("Can't update approved final report."))
 
         # NOTE: Validation for type DREF Imminent
         if self.instance and self.instance.is_dref_imminent_v2 and data.get("type_of_dref") == Dref.DrefType.IMMINENT:
@@ -1227,8 +1248,19 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
         # if yes copy from the latest operational update
         # else copy from dref
         dref = validated_data["dref"]
+        current_language = get_language()
+        starting_langauge = validated_data.get("starting_language")
+        valid_languages = [dref.starting_language, dref.translation_module_original_language]
+        if current_language != starting_langauge:
+            raise serializers.ValidationError(gettext("Starting language does not match the expected language."))
+        if starting_langauge not in valid_languages:
+            raise serializers.ValidationError(
+                gettext(f"Invalid starting language. Supported options are '{valid_languages[0]}' and '{valid_languages[1]}'.")
+            )
         dref_operational_update = (
-            DrefOperationalUpdate.objects.filter(dref=dref, is_published=True).order_by("-operational_update_number").first()
+            DrefOperationalUpdate.objects.filter(dref=dref, status=Dref.Status.APPROVED)
+            .order_by("-operational_update_number")
+            .first()
         )
         validated_data["created_by"] = self.context["request"].user
         # NOTE: Checks and common fields for the new dref final reports of new dref imminents
@@ -1528,6 +1560,7 @@ class CompletedDrefOperationsSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(source="get_status_display", read_only=True)
     application_type = serializers.SerializerMethodField()
     application_type_display = serializers.SerializerMethodField()
+    starting_language = serializers.CharField(read_only=True)
 
     class Meta:
         model = DrefFinalReport
@@ -1545,6 +1578,7 @@ class CompletedDrefOperationsSerializer(serializers.ModelSerializer):
             "dref",
             "status",
             "status_display",
+            "starting_language",
         )
 
     def get_application_type(self, obj) -> str:
@@ -1969,7 +2003,7 @@ class BaseDref3Serializer(serializers.ModelSerializer):
             return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
     def get_approved(self, obj):
-        return "Yes" if obj.is_published else "No"
+        return "Yes" if obj.status == Dref.Status.APPROVED else "No"
 
     def get_indicators_nested_table(self, obj):
         return "???"

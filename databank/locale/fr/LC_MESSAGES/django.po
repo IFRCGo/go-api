@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-08 17:57+0000\n"
+"POT-Creation-Date: 2025-10-17 10:36+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,17 +18,21 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: databank/admin.py:55
+#: databank/admin.py:77
 msgid "COUNTRY KEY INDICATORS (SOURCE: FDRS)"
 msgstr "LES INDICATEURS CLÉS DU PAYS (SOURCE : FDRS)"
 
-#: databank/admin.py:61
+#: databank/admin.py:98
 msgid "NATIONAL SOCIETY INDICATORS (SOURCE: FDRS)"
 msgstr "LES INDICATEURS NATIONAUX DE LA SOCIÉTÉ (SOURCE : FDRS)"
 
-#: databank/admin.py:64
+#: databank/admin.py:116
 msgid "KEY CLIMATE EVENT"
 msgstr "ÉVÈNEMENT CLÉ SUR LE CLIMAT"
+
+#: databank/admin.py:118
+msgid "World bank"
+msgstr ""
 
 #: databank/apps.py:7
 msgid "databank"
@@ -94,414 +98,834 @@ msgstr "Novembre"
 msgid "December"
 msgstr "Décembre"
 
-#: databank/models.py:72
+#: databank/models.py:69
 msgid "Cold Wave"
 msgstr "Vague de froid"
 
-#: databank/models.py:73
+#: databank/models.py:70
 msgid "Heat Wave"
 msgstr "Vague de chaleur"
 
-#: databank/models.py:74
+#: databank/models.py:71
 msgid "Drought"
 msgstr "Sécheresse"
 
-#: databank/models.py:75
+#: databank/models.py:72
 msgid "Earthquake"
 msgstr "Tremblement de terre"
 
-#: databank/models.py:76
+#: databank/models.py:73
 msgid "Land Slide"
 msgstr "Glissement de terrain"
 
-#: databank/models.py:77
+#: databank/models.py:74
 msgid "Tsunami"
 msgstr "Tsunami"
 
-#: databank/models.py:78
+#: databank/models.py:75
 msgid "Volcano"
 msgstr "Volcan"
 
-#: databank/models.py:79
+#: databank/models.py:76
 msgid "Extratropical Cyclone"
 msgstr "Cyclone extratropical"
 
-#: databank/models.py:80
+#: databank/models.py:77
 msgid "Tropical Cyclone"
 msgstr "Cyclone tropical"
 
-#: databank/models.py:81
+#: databank/models.py:78
 msgid "Storm Surge"
 msgstr "Onde de tempête"
 
-#: databank/models.py:82
+#: databank/models.py:79
 msgid "Flood"
 msgstr "Inondation"
 
-#: databank/models.py:83
+#: databank/models.py:80
 msgid "Flash Flood"
 msgstr "Inondation subite"
 
-#: databank/models.py:84
+#: databank/models.py:81
 msgid "Complex Emergency"
 msgstr "Urgence complexe"
 
-#: databank/models.py:85
+#: databank/models.py:82
 msgid "Fire"
 msgstr "Incendie"
 
-#: databank/models.py:86
+#: databank/models.py:83
 msgid "Other"
 msgstr "Autre"
 
-#: databank/models.py:104
+#: databank/models.py:98
 msgid "Cholera Outbreak"
 msgstr "Épidémie de choléra"
 
-#: databank/models.py:105
+#: databank/models.py:99
 msgid "Meningitis"
 msgstr "Méningite"
 
-#: databank/models.py:106
+#: databank/models.py:100
 msgid "Rift Valley fever"
 msgstr "Fièvre de la vallée du Rift"
 
-#: databank/models.py:107
+#: databank/models.py:101
 msgid "Viral haemorrhagic fevers"
 msgstr "Fièvres hémorragiques virales"
 
-#: databank/models.py:108
+#: databank/models.py:102
 msgid "Viral hepatitis"
 msgstr "Hépatite virale"
 
-#: databank/models.py:109
+#: databank/models.py:103
 msgid "Yellow fever"
 msgstr "Fièvre jaune"
 
-#: databank/models.py:120
+#: databank/models.py:111
 msgid "Hazard & Exposure"
 msgstr "Danger et exposition"
 
-#: databank/models.py:121
+#: databank/models.py:112
 msgid "Vulnerability"
 msgstr "Vulnérabilité"
 
-#: databank/models.py:122
+#: databank/models.py:113
 msgid "Lack Of Coping Capacity"
 msgstr "Manque de capacité d'adaptation"
 
-#: databank/models.py:127
+#: databank/models.py:118
 msgid "Estimated HDI from GDP per capita"
 msgstr "Estimation de l'IDH à partir du PIB par habitant"
 
-#: databank/models.py:128
+#: databank/models.py:119
 msgid "INFORM Risk Index"
 msgstr "Renseigner l’indice de risque"
 
-#: databank/models.py:129
+#: databank/models.py:120
 msgid "Hazard & Exposure Index"
 msgstr "Indice de Danger et Exposition"
 
-#: databank/models.py:130
+#: databank/models.py:121
 msgid "Vulnerability Index"
 msgstr "Indice de vulnérabilité"
 
-#: databank/models.py:131
+#: databank/models.py:122
 msgid "Lack of Coping Capacity Index"
 msgstr "Indice de Manque de capacité d'adaptation"
 
-#: databank/models.py:134
+#: databank/models.py:124
 msgid "Human Hazard"
 msgstr "Danger pour l'homme"
 
-#: databank/models.py:135
+#: databank/models.py:125
 msgid "Current conflicts"
 msgstr "Conflits actuels"
 
-#: databank/models.py:136
+#: databank/models.py:126
 msgid "GCRI Internal conflicts"
 msgstr "GCRI Conflits internes"
 
-#: databank/models.py:137
+#: databank/models.py:127
 msgid "Highly Violent Conflict probability Score"
 msgstr "Chiffre de probabilité de conflit très violent"
 
-#: databank/models.py:138
+#: databank/models.py:128
 msgid "Violent Conflict probability Score"
 msgstr "Chiffre de probabilité de conflit violent"
 
-#: databank/models.py:139
+#: databank/models.py:129
 msgid "Natural Hazard"
 msgstr "Risque naturel"
 
-#: databank/models.py:140
+#: databank/models.py:130
 msgid "Droughts probability and historical impact"
 msgstr "Probabilité de sécheresse et impact historique"
 
-#: databank/models.py:141
+#: databank/models.py:131
 msgid "People affected by droughts"
 msgstr "Personnes touchées par la sécheresse"
 
-#: databank/models.py:142
+#: databank/models.py:132
 msgid "People affected by drought and Frequency of events"
 msgstr "Personnes touchées par la sécheresse et la fréquence des événements"
 
-#: databank/models.py:143 databank/models.py:144
+#: databank/models.py:133 databank/models.py:134
 msgid "Agriculture Drought Probability"
 msgstr "Probabilité de sécheresse pour l’agriculture"
 
-#: databank/models.py:145
+#: databank/models.py:135
 msgid "Frequency of drought events"
 msgstr "Fréquence des épisodes de sécheresse"
 
-#: databank/models.py:146
+#: databank/models.py:136
 msgid "Epidemic"
 msgstr "Épidémie"
 
-#: databank/models.py:147
+#: databank/models.py:137
 msgid "Physical exposure to earthquakes"
 msgstr "Exposition physique aux tremblements de terre"
 
-#: databank/models.py:148
+#: databank/models.py:138
 msgid "Physical exposure to floods"
 msgstr "Exposition physique aux inondations"
 
-#: databank/models.py:149
+#: databank/models.py:139
 msgid "Physical exposure to tropical cyclones"
 msgstr "Exposition physique aux cyclones tropicaux"
 
-#: databank/models.py:150
+#: databank/models.py:140
 msgid "Physical exposure to tsunamis"
 msgstr "Exposition physique aux tsunamis"
 
-#: databank/models.py:153
+#: databank/models.py:142
 msgid "Socio-Economic Vulnerability"
 msgstr "Vulnérabilité socio-économique"
 
-#: databank/models.py:154
+#: databank/models.py:143
 msgid "Economic Dependency"
 msgstr "Dépendance économique"
 
-#: databank/models.py:155
+#: databank/models.py:144
 msgid "Inequality"
 msgstr "Inégalité"
 
-#: databank/models.py:156
+#: databank/models.py:145
 msgid "Gender Inequality Index"
 msgstr "Indice d'inégalité entre les sexes"
 
-#: databank/models.py:157
+#: databank/models.py:146
 msgid "Income Gini coefficient"
 msgstr "Coefficient de Gini du revenu"
 
-#: databank/models.py:158
+#: databank/models.py:147
 msgid "Poverty & Development"
 msgstr "Pauvreté et développement"
 
-#: databank/models.py:159
+#: databank/models.py:148
 msgid "Human Development Index"
 msgstr "Indice de développement humain"
 
-#: databank/models.py:160
+#: databank/models.py:149
 msgid "Multidimensional Poverty Index"
 msgstr "Indice de pauvreté multidimensionnelle"
 
-#: databank/models.py:161
+#: databank/models.py:150
 msgid "Vulnerable Groups"
 msgstr "Groupes vulnérables"
 
-#: databank/models.py:162
+#: databank/models.py:151
 msgid "Others Vulnerable Groups"
 msgstr "Autres groupes vulnérables"
 
-#: databank/models.py:163
+#: databank/models.py:152
 msgid "Uprooted people"
 msgstr "Personnes déracinées"
 
-#: databank/models.py:166
+#: databank/models.py:154
 msgid "Access to Health Care"
 msgstr "Accès aux soins de santé"
 
-#: databank/models.py:167
+#: databank/models.py:155
 msgid "Communication"
 msgstr "Communication"
 
-#: databank/models.py:168
+#: databank/models.py:156
 msgid "Physical Infrastructure"
 msgstr "Infrastructure physique"
 
-#: databank/models.py:169
+#: databank/models.py:157
 msgid "Disaster Risk Reduction"
 msgstr "Réduction des risques de catastrophes"
 
-#: databank/models.py:170
+#: databank/models.py:158
 msgid "Governance"
 msgstr "Gouvernance"
 
-#: databank/models.py:192
+#: databank/models.py:177
 msgid "population"
 msgstr "population"
 
-#: databank/models.py:193
+#: databank/models.py:178
+msgid "population data fetched year"
+msgstr ""
+
+#: databank/models.py:179
 msgid "GDP"
 msgstr "PIB"
 
-#: databank/models.py:194
+#: databank/models.py:180
+msgid "GDP data fetched year"
+msgstr ""
+
+#: databank/models.py:181
 msgid "GNI/CAPITA"
 msgstr "RNB/CAPITA"
 
-#: databank/models.py:195
+#: databank/models.py:182
+msgid "GNI/CAPITA data fetched year"
+msgstr ""
+
+#: databank/models.py:183
 msgid "life expectancy"
 msgstr "Espérance de vie"
 
-#: databank/models.py:198
+#: databank/models.py:185
+#, fuzzy
+#| msgid "life expectancy"
+msgid "life expectancy data fetched year"
+msgstr "Espérance de vie"
+
+#: databank/models.py:189
 msgid "urban POP (%)"
 msgstr "POP urbaine (%)"
 
-#: databank/models.py:203
+#: databank/models.py:194
+msgid "urban population data fetched year"
+msgstr ""
+
+#: databank/models.py:198
 msgid "poverty (%)"
 msgstr "pauvreté (%)"
 
-#: databank/models.py:208
+#: databank/models.py:202
+msgid "poverty data fetched year"
+msgstr ""
+
+#: databank/models.py:205
 msgid "literacy (%)"
 msgstr "Alphabétisation (%)"
 
-#: databank/models.py:213
+#: databank/models.py:209
+msgid "literacy data fetched year"
+msgstr ""
+
+#: databank/models.py:212
 msgid "income (CHF)"
 msgstr "revenu (CHF)"
+
+#: databank/models.py:213
+msgid "income data fetched year"
+msgstr ""
 
 #: databank/models.py:214
 msgid "expenditures (CHF)"
 msgstr "dépenses (CHF)"
 
 #: databank/models.py:215
-msgid "volunteers"
-msgstr "bénévoles"
+msgid "expenditures data fetched year"
+msgstr ""
 
 #: databank/models.py:216
 msgid "trained in first aid"
 msgstr "formés aux premiers secours"
 
-#: databank/models.py:219
+#: databank/models.py:218
+#, fuzzy
+#| msgid "trained in first aid"
+msgid "trained in first aid data fetched year"
+msgstr "formés aux premiers secours"
+
+#: databank/models.py:220
+msgid "Branches"
+msgstr ""
+
+#: databank/models.py:221
+msgid "branches data fetched year"
+msgstr ""
+
+#: databank/models.py:225
+msgid "male volunteer age 6 to 12"
+msgstr ""
+
+#: databank/models.py:226
+msgid "male volunteer age 13 to 17"
+msgstr ""
+
+#: databank/models.py:227
+msgid "male volunteer age 18 to 29"
+msgstr ""
+
+#: databank/models.py:228
+msgid "male volunteer age 18 to 49"
+msgstr ""
+
+#: databank/models.py:229
+msgid "male volunteer age 30 to 39"
+msgstr ""
+
+#: databank/models.py:230
+msgid "male volunteer age 40 to 49"
+msgstr ""
+
+#: databank/models.py:231
+msgid "male volunteer age 50 to 59"
+msgstr ""
+
+#: databank/models.py:232
+msgid "male volunteer age 60 to 69"
+msgstr ""
+
+#: databank/models.py:233
+msgid "male volunteer age 70 to 79"
+msgstr ""
+
+#: databank/models.py:234
+msgid "male volunteer age 80"
+msgstr ""
+
+#: databank/models.py:235
+#, fuzzy
+#| msgid "volunteers"
+msgid "male volunteer other"
+msgstr "bénévoles"
+
+#: databank/models.py:236
+#, fuzzy
+#| msgid "volunteers"
+msgid "male volunteer total"
+msgstr "bénévoles"
+
+#: databank/models.py:237
+msgid "female volunteer age 6 to 12"
+msgstr ""
+
+#: databank/models.py:238
+msgid "female volunteer age 13 to 17"
+msgstr ""
+
+#: databank/models.py:239
+msgid "female volunteer age 18 to 29"
+msgstr ""
+
+#: databank/models.py:240
+msgid "female volunteer age 18 to 49"
+msgstr ""
+
+#: databank/models.py:241
+msgid "female volunteer age 30 to 39"
+msgstr ""
+
+#: databank/models.py:242
+msgid "female volunteer age 40 to 49"
+msgstr ""
+
+#: databank/models.py:243
+msgid "female volunteer age 50 to 59"
+msgstr ""
+
+#: databank/models.py:244
+msgid "female volunteer age 60 to 69"
+msgstr ""
+
+#: databank/models.py:245
+msgid "female volunteer age 70 to 79"
+msgstr ""
+
+#: databank/models.py:246
+msgid "female volunteer age 80"
+msgstr ""
+
+#: databank/models.py:248
+msgid "female volunteer other"
+msgstr ""
+
+#: databank/models.py:249
+msgid "female volunteer total"
+msgstr ""
+
+#: databank/models.py:250
+#, fuzzy
+#| msgid "volunteers"
+msgid "volunteer total"
+msgstr "bénévoles"
+
+#: databank/models.py:251
+msgid "volunteer age 6 to 12"
+msgstr ""
+
+#: databank/models.py:252
+msgid "volunteer age 13 to 17"
+msgstr ""
+
+#: databank/models.py:253
+msgid "volunteer age 18 to 29"
+msgstr ""
+
+#: databank/models.py:256
+msgid "volunteer data fetched year"
+msgstr ""
+
+#: databank/models.py:259
+msgid "female staff age 18 to 29"
+msgstr ""
+
+#: databank/models.py:260
+msgid "female staff age 18 to 49"
+msgstr ""
+
+#: databank/models.py:261
+msgid "female staff age 30 to 39"
+msgstr ""
+
+#: databank/models.py:262
+msgid "female staff age 40 to 49"
+msgstr ""
+
+#: databank/models.py:263
+msgid "female staff age 50 to 59"
+msgstr ""
+
+#: databank/models.py:264
+msgid "female staff age 60 to 69"
+msgstr ""
+
+#: databank/models.py:265
+msgid "female staff age 70 to 79"
+msgstr ""
+
+#: databank/models.py:266
+msgid "female staff age 80"
+msgstr ""
+
+#: databank/models.py:267
+msgid "female staff other"
+msgstr ""
+
+#: databank/models.py:268
+msgid "female staff total"
+msgstr ""
+
+#: databank/models.py:269
+msgid "male staff age 18 to 29"
+msgstr ""
+
+#: databank/models.py:270
+msgid "male staff age 18 to 49"
+msgstr ""
+
+#: databank/models.py:271
+msgid "male staff age 30 to 39"
+msgstr ""
+
+#: databank/models.py:272
+msgid "male staff age 40 to 49"
+msgstr ""
+
+#: databank/models.py:273
+msgid "male staff age 50 to 59"
+msgstr ""
+
+#: databank/models.py:274
+msgid "male staff age 60 to 69"
+msgstr ""
+
+#: databank/models.py:275
+msgid "male staff age 70 to 79"
+msgstr ""
+
+#: databank/models.py:276
+msgid "male staff age 80"
+msgstr ""
+
+#: databank/models.py:277
+msgid "male staff other"
+msgstr ""
+
+#: databank/models.py:278
+msgid "male staff total"
+msgstr ""
+
+#: databank/models.py:279
+msgid "staff total"
+msgstr ""
+
+#: databank/models.py:280
+msgid "staff age 18 to 29"
+msgstr ""
+
+#: databank/models.py:283
+msgid "staff data fetched year"
+msgstr ""
+
+#: databank/models.py:286 databank/models.py:508
 msgid "average temperature"
 msgstr "température moyenne"
 
-#: databank/models.py:220 databank/models.py:269
+#: databank/models.py:287 databank/models.py:383
 msgid "average rainfall precipitation"
 msgstr "précipitations moyennes"
 
-#: databank/models.py:221
+#: databank/models.py:288
 msgid "rainy season"
 msgstr "saison des pluies"
 
-#: databank/models.py:225
+#: databank/models.py:292
 msgid "FTS data"
 msgstr "Données FTS"
 
-#: databank/models.py:226
+#: databank/models.py:293
 msgid "start network data"
 msgstr "démarrer les données du réseau"
 
-#: databank/models.py:227
+#: databank/models.py:294
 msgid "past crises data"
 msgstr "données sur les crises passées"
 
-#: databank/models.py:228
+#: databank/models.py:295
 msgid "past epidemics data"
 msgstr "données sur les épidémies passées"
 
-#: databank/models.py:229
+#: databank/models.py:296
 msgid "inform indicators data"
 msgstr "renseigner les données des indicateurs"
 
-#: databank/models.py:232 databank/models.py:248 databank/models.py:262
-#: databank/models.py:281 databank/models.py:309 databank/models.py:320
+#: databank/models.py:299
+#, fuzzy
+#| msgid "population"
+msgid "world bank population"
+msgstr "population"
+
+#: databank/models.py:301
+msgid "world bank population year"
+msgstr ""
+
+#: databank/models.py:303
+msgid "world bank population above age 65"
+msgstr ""
+
+#: databank/models.py:306
+msgid "world bank population above age 65 date in year"
+msgstr ""
+
+#: databank/models.py:308
+msgid "world bank population age 14"
+msgstr ""
+
+#: databank/models.py:310
+msgid "world bank population age 14 date in year"
+msgstr ""
+
+#: databank/models.py:313
+msgid "world bank urban population percentage"
+msgstr ""
+
+#: databank/models.py:316
+msgid "world bank urban population percentage year"
+msgstr ""
+
+#: databank/models.py:318
+msgid "world bank gdp"
+msgstr ""
+
+#: databank/models.py:319
+msgid "world bank gdp year"
+msgstr ""
+
+#: databank/models.py:320
+msgid "world bank gni"
+msgstr ""
+
+#: databank/models.py:321
+msgid "world bank gni year"
+msgstr ""
+
+#: databank/models.py:323
+#, fuzzy
+#| msgid "Gender Inequality Index"
+msgid "world bank gender equality index"
+msgstr "Indice d'inégalité entre les sexes"
+
+#: databank/models.py:326
+#, fuzzy
+#| msgid "Gender Inequality Index"
+msgid "world bank gender equality index year"
+msgstr "Indice d'inégalité entre les sexes"
+
+#: databank/models.py:328 databank/models.py:332
+#, fuzzy
+#| msgid "life expectancy"
+msgid "world bank life expectancy"
+msgstr "Espérance de vie"
+
+#: databank/models.py:330
+#, fuzzy
+#| msgid "life expectancy"
+msgid "world bank life expectancy year"
+msgstr "Espérance de vie"
+
+#: databank/models.py:333
+msgid "world bank literacy rate year"
+msgstr ""
+
+#: databank/models.py:334
+msgid "world bank poverty rate"
+msgstr ""
+
+#: databank/models.py:335
+msgid "world bank poverty rate year"
+msgstr ""
+
+#: databank/models.py:336
+msgid "world bank GNI Per Capita"
+msgstr ""
+
+#: databank/models.py:337
+msgid "world bank gni capita year"
+msgstr ""
+
+#: databank/models.py:340
+msgid "Unicef population under 18"
+msgstr ""
+
+#: databank/models.py:343
+msgid "HDR GII"
+msgstr ""
+
+#: databank/models.py:346 databank/models.py:362 databank/models.py:376
+#: databank/models.py:395 databank/models.py:412 databank/models.py:453
+#: databank/models.py:464 databank/models.py:478 databank/models.py:491
+#: databank/models.py:501
 msgid "country overview"
 msgstr "aperçu du pays"
 
-#: databank/models.py:233
+#: databank/models.py:347
 msgid "countries overview"
 msgstr "aperçu des pays"
 
-#: databank/models.py:249
+#: databank/models.py:363 databank/models.py:431
 msgid "label"
 msgstr "marqueur"
 
-#: databank/models.py:250
+#: databank/models.py:364 databank/models.py:481 databank/models.py:493
 msgid "value"
 msgstr "valeur"
 
-#: databank/models.py:254
+#: databank/models.py:368
 msgid "Social Event"
 msgstr "Événement social"
 
-#: databank/models.py:255
+#: databank/models.py:369
 msgid "Social Events"
 msgstr "Événements sociaux"
 
-#: databank/models.py:263 databank/models.py:282
+#: databank/models.py:377 databank/models.py:396 databank/models.py:413
 msgid "modified at"
 msgstr "modifié à"
 
-#: databank/models.py:265
+#: databank/models.py:379 databank/models.py:416 databank/models.py:504
 msgid "month"
 msgstr "mois"
 
-#: databank/models.py:267
+#: databank/models.py:381
 msgid "average maximum temperature"
 msgstr "température maximale moyenne"
 
-#: databank/models.py:268
+#: databank/models.py:382
 msgid "average minimum temperature"
 msgstr "température minimale moyenne"
 
-#: databank/models.py:273
+#: databank/models.py:387
 msgid "Key Client Event"
 msgstr "Événement clé pour les clients"
 
-#: databank/models.py:274
+#: databank/models.py:388
 msgid "Key Client Events"
 msgstr "Événements clés pour les clients"
 
-#: databank/models.py:283 databank/models.py:298 databank/models.py:310
-#: databank/models.py:321
+#: databank/models.py:397 databank/models.py:442 databank/models.py:454
+#: databank/models.py:465
 msgid "title"
 msgstr "Intitulé"
 
-#: databank/models.py:284
+#: databank/models.py:398
 msgid "sector"
 msgstr "secteur"
 
-#: databank/models.py:285
+#: databank/models.py:399
 msgid "date start"
 msgstr "date de démarrage"
 
-#: databank/models.py:286
+#: databank/models.py:400
 msgid "date end"
 msgstr "date de fin"
 
-#: databank/models.py:290
+#: databank/models.py:404
 msgid "Seasonal Calender Record"
 msgstr "Calendrier saisonnier"
 
-#: databank/models.py:291
+#: databank/models.py:405
 msgid "Seasonal Calender Records"
 msgstr "Calendriers saisonniers"
 
-#: databank/models.py:311
+#: databank/models.py:421
+msgid "event"
+msgstr ""
+
+#: databank/models.py:426
+msgid "event type"
+msgstr ""
+
+#: databank/models.py:434
+msgid "Source"
+msgstr ""
+
+#: databank/models.py:435
+msgid "Source Date"
+msgstr ""
+
+#: databank/models.py:455
 msgid "group"
 msgstr ""
 
-#: databank/models.py:312
+#: databank/models.py:456 databank/models.py:479 databank/models.py:492
 #, fuzzy
 #| msgid "date end"
 msgid "date"
 msgstr "date de fin"
 
-#: databank/models.py:313
+#: databank/models.py:457
 msgid "file"
 msgstr ""
 
-#: databank/models.py:322
+#: databank/models.py:466
 msgid "url"
+msgstr ""
+
+#: databank/models.py:473
+msgid "Indicator Title"
+msgstr ""
+
+#: databank/models.py:474
+msgid "Indicator Descritpion"
+msgstr ""
+
+#: databank/models.py:480
+msgid "FDRS Indicator"
+msgstr ""
+
+#: databank/models.py:503
+msgid "year"
+msgstr ""
+
+#: databank/models.py:506
+#, fuzzy
+#| msgid "average minimum temperature"
+msgid "min temperature"
+msgstr "température minimale moyenne"
+
+#: databank/models.py:507
+#, fuzzy
+#| msgid "average temperature"
+msgid "max temperature"
+msgstr "température moyenne"
+
+#: databank/models.py:509
+#, fuzzy
+#| msgid "population"
+msgid "precipitation"
+msgstr "population"
+
+#: databank/models.py:513 databank/models.py:514
+msgid "Country Climate"
 msgstr ""
