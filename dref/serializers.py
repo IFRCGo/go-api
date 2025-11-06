@@ -486,7 +486,7 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
         if self.instance and self.instance.status == Dref.Status.APPROVED:
             raise serializers.ValidationError("Approved Dref can't be changed. Please contact Admin")
         if self.instance and DrefFinalReport.objects.filter(dref=self.instance, status=Dref.Status.APPROVED).exists():
-            raise serializers.ValidationError(gettext("Can't Update %s dref for approved Final Report" % self.instance.id))
+            raise serializers.ValidationError(gettext("Can't Update dref for approved Final Report"))
         if operation_timeframe and is_assessment_report and operation_timeframe > 30:
             raise serializers.ValidationError(
                 gettext("Operation timeframe can't be greater than %s for assessment_report" % self.MAX_OPERATION_TIMEFRAME)
@@ -751,7 +751,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             raise serializers.ValidationError(gettext("Cannot be updated while the translation is in progress"))
         if not self.instance and dref:
             if dref.status != Dref.Status.APPROVED:
-                raise serializers.ValidationError(gettext("Can't create Operational Update for not approved %s dref." % dref.id))
+                raise serializers.ValidationError(gettext("Can't create Operational Update for not approved dref."))
             # get the latest dref_operation_update and
             # check whether it is published or not, exclude no operational object created so far
             dref_operational_update = (
@@ -1151,7 +1151,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
         # Check if dref is published and operational_update associated with it is also published
         if not self.instance and dref:
             if dref.status != Dref.Status.APPROVED:
-                raise serializers.ValidationError(gettext("Can't create Final Report for not approved dref %s." % dref.id))
+                raise serializers.ValidationError(gettext("Can't create Final Report for not approved dref."))
             dref_operational_update = (
                 DrefOperationalUpdate.objects.filter(dref=dref).exclude(status=Dref.Status.APPROVED).values_list("id", flat=True)
             )
@@ -1164,7 +1164,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
                 )
 
         if self.instance and self.instance.status == Dref.Status.APPROVED:
-            raise serializers.ValidationError(gettext("Can't update approved final report %s." % self.instance.id))
+            raise serializers.ValidationError(gettext("Can't update approved final report."))
 
         # NOTE: Validation for type DREF Imminent
         if self.instance and self.instance.is_dref_imminent_v2 and data.get("type_of_dref") == Dref.DrefType.IMMINENT:
