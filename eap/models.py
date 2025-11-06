@@ -228,16 +228,22 @@ class EAPBaseModel(models.Model):
         settings.AUTH_USER_MODEL,
         verbose_name=_("created by"),
         on_delete=models.PROTECT,
-        null=True,
         related_name="%(class)s_created_by",
     )
     modified_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         verbose_name=_("modified by"),
-        on_delete=models.SET_NULL,
-        null=True,
+        on_delete=models.PROTECT,
         related_name="%(class)s_modified_by",
     )
+
+    class Meta:
+        abstract = True
+
+
+# BASE MODEL FOR EAP
+class EAPRegistration(EAPBaseModel):
+    """Model representing the EAP Development Registration."""
 
     # National Society
     national_society = models.ForeignKey(
@@ -262,15 +268,6 @@ class EAPBaseModel(models.Model):
         on_delete=models.PROTECT,
         help_text=_("Select the disaster type for which the EAP is needed"),
     )
-
-    class Meta:
-        abstract = True
-
-
-# BASE MODEL FOR EAP
-class EAPRegistration(EAPBaseModel):
-    """Model representing the EAP Development Registration."""
-
     eap_type = models.IntegerField(
         choices=EAPType.choices,
         verbose_name=_("EAP Type"),
@@ -349,7 +346,7 @@ class EAPRegistration(EAPBaseModel):
         return f"EAP Development Registration - {self.national_society} - {self.disaster_type} - {self.get_eap_type_display()}"
 
 
-class SimplifiedEAP(models.Model):
+class SimplifiedEAP(EAPBaseModel):
     """Model representing a Simplified EAP."""
 
     eap_registration = models.OneToOneField(
@@ -378,9 +375,7 @@ class SimplifiedEAP(models.Model):
     partner_ns_name = models.CharField(verbose_name=_("Partner NS name"), max_length=255, null=True, blank=True)
     partner_ns_email = models.CharField(verbose_name=_("Partner NS email"), max_length=255, null=True, blank=True)
     partner_ns_title = models.CharField(verbose_name=_("Partner NS title"), max_length=255, null=True, blank=True)
-    partner_ns_phone_number = models.CharField(
-        verbose_name=_("Partner NS phone number"), max_length=100, null=True, blank=True
-    )
+    partner_ns_phone_number = models.CharField(verbose_name=_("Partner NS phone number"), max_length=100, null=True, blank=True)
 
     # Delegations
     ifrc_delegation_focal_point_name = models.CharField(
@@ -474,9 +469,9 @@ class SimplifiedEAP(models.Model):
         verbose_name=_("IFRC global ops coordinator phone number"), max_length=100, null=True, blank=True
     )
 
-    ## RISK ANALYSIS and EARLY ACTION SELECTION ##
+    # RISK ANALYSIS and EARLY ACTION SELECTION #
 
-    ## RISK ANALYSIS ##
+    # RISK ANALYSIS #
     prioritized_hazard_and_impact = models.TextField(
         verbose_name=_("Prioritized Hazard and its  historical impact."),
         null=True,
@@ -491,7 +486,7 @@ class SimplifiedEAP(models.Model):
     )
     # TODO(susilnem): Add image max 5
 
-    ## EARLY ACTION SELECTION ##
+    # EARLY ACTION SELECTION #
     selected_early_actions = models.TextField(
         verbose_name=_("Selected Early Actions"),
         null=True,
@@ -499,7 +494,7 @@ class SimplifiedEAP(models.Model):
     )
     # TODO(susilnem): Add image max 5
 
-    ## EARLY ACTION INTERVENTION ##
+    # EARLY ACTION INTERVENTION #
     overall_objective_intervention = models.TextField(
         verbose_name=_("Overall objective of the intervention"),
         help_text=_("Provide an objective statement that describe the main of the intervention."),
@@ -556,9 +551,8 @@ class SimplifiedEAP(models.Model):
         verbose_name=_("Next Steps towards Full EAP"),
     )
 
-    ## PLANNED OPEATIONS ##
+    # PLANNED OPEATIONS #
     # TODO(susilnem): continue
-
 
     class Meta:
         verbose_name = _("Simplified EAP")
