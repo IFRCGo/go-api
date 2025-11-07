@@ -6,9 +6,19 @@ from django.template.loader import render_to_string
 
 from api.utils import get_model_name
 from lang.tasks import translate_model_fields
+from main.translation import TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME
 from notifications.notification import send_notification
 
-from .models import Dref
+from .models import (
+    Dref,
+    DrefFile,
+    IdentifiedNeed,
+    NationalSocietyAction,
+    PlannedIntervention,
+    PlannedInterventionIndicators,
+    ProposedAction,
+    RiskSecurity,
+)
 from .utils import get_email_context
 
 logger = logging.getLogger(__name__)
@@ -33,13 +43,13 @@ def send_dref_email(dref_id, users_emails, new_or_updated=""):
 # The task will translate the fields of these models and update
 # `translation_module_original_language` to "en".
 TRANSLATABLE_RELATED_MODELS = [
-    "DrefFile",
-    "NationalSocietyAction",
-    "IdentifiedNeed",
-    "PlannedIntervention",
-    "RiskSecurity",
-    "ProposedAction",
-    "PlannedInterventionIndicators",
+    DrefFile,
+    NationalSocietyAction,
+    IdentifiedNeed,
+    PlannedIntervention,
+    RiskSecurity,
+    ProposedAction,
+    PlannedInterventionIndicators,
 ]
 
 
@@ -82,7 +92,7 @@ def _translate_related_objects(instance, visited=None):
             continue
 
         related_model = field.related_model
-        if related_model.__name__ not in TRANSLATABLE_RELATED_MODELS:
+        if related_model not in TRANSLATABLE_RELATED_MODELS:
             continue
 
         related_value = getattr(instance, field.name, None)
@@ -90,15 +100,17 @@ def _translate_related_objects(instance, visited=None):
             continue
 
         if not field.many_to_many:
-            model_name = get_model_name(type(related_value))
-            translate_model_fields(model_name, related_value.pk)
-            related_value.translation_module_original_language = "en"
-            related_value.save(update_fields=["translation_module_original_language"])
-            _translate_related_objects(related_value, visited)
+            if hasattr(related_value, TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME):
+                model_name = get_model_name(type(related_value))
+                translate_model_fields(model_name, related_value.pk)
+                related_value.translation_module_original_language = "en"
+                related_value.save(update_fields=["translation_module_original_language"])
+                _translate_related_objects(related_value, visited)
         else:
             for related_obj in related_value.all():
-                model_name = get_model_name(type(related_obj))
-                translate_model_fields(model_name, related_obj.pk)
-                related_obj.translation_module_original_language = "en"
-                related_obj.save(update_fields=["translation_module_original_language"])
-                _translate_related_objects(related_obj, visited)
+                if hasattr(related_obj, TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME):
+                    model_name = get_model_name(type(related_obj))
+                    translate_model_fields(model_name, related_obj.pk)
+                    related_obj.translation_module_original_language = "en"
+                    related_obj.save(update_fields=["translation_module_original_language"])
+                    _translate_related_objects(related_obj, visited)
