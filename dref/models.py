@@ -16,6 +16,9 @@ from deployments.models import Sector
 from main.fields import SecureFileField
 
 
+# NOTE: The list `TRANSLATABLE_RELATED_MODELS` is in dref/tasks.py contains models directly related to Dref.
+# If you add a new related model that should be translated, make sure to include it in this list.
+# Keeping it up-to-date is important for correct translation handling while performing the finalize action.
 @reversion.register()
 class NationalSocietyAction(models.Model):
     class Title(models.TextChoices):
@@ -50,7 +53,7 @@ class NationalSocietyAction(models.Model):
         verbose_name_plural = _("national society actions")
 
     def __str__(self) -> str:
-        desc = self.description_en.replace("-", "").strip()[:60] + "..."
+        desc = self.description.replace("-", "").strip()[:60] + "..."
         return "%d (%s) %s" % (self.id, self.title, desc)
 
     @staticmethod

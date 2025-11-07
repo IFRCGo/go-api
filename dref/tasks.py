@@ -29,6 +29,20 @@ def send_dref_email(dref_id, users_emails, new_or_updated=""):
     return email_context
 
 
+# NOTE: Only the models directly related to Dref are included here.
+# The task will translate the fields of these models and update
+# `translation_module_original_language` to "en".
+TRANSLATABLE_RELATED_MODELS = [
+    "DrefFile",
+    "NationalSocietyAction",
+    "IdentifiedNeed",
+    "PlannedIntervention",
+    "RiskSecurity",
+    "ProposedAction",
+    "PlannedInterventionIndicators",
+]
+
+
 @shared_task
 def process_dref_translation(model_name, instance_pk):
     """
@@ -67,26 +81,24 @@ def _translate_related_objects(instance, visited=None):
         if not field.is_relation or field.auto_created:
             continue
 
-        try:
-            related_value = getattr(instance, field.name, None)
-            if related_value is None:
-                continue
-
-            # Handle related objects
-            if not field.many_to_many:
-                if hasattr(related_value, "translation_module_original_language"):
-                    model_name = get_model_name(type(related_value))
-                    translate_model_fields(model_name, related_value.pk)
-                    _translate_related_objects(related_value, visited)
-
-            # Handle multiple related objects
-            else:
-                for related_obj in related_value.all():
-                    if hasattr(related_obj, "translation_module_original_language"):
-                        model_name = get_model_name(type(related_obj))
-                        translate_model_fields(model_name, related_obj.pk)
-                        _translate_related_objects(related_obj, visited)
-
-        except Exception as e:
-            logger.warning(f"Error processing field {field.name}: {e}")
+        related_model = field.related_model
+        if related_model.__name__ not in TRANSLATABLE_RELATED_MODELS:
             continue
+
+        related_value = getattr(instance, field.name, None)
+        if related_value is None:
+            continue
+
+        if not field.many_to_many:
+            model_name = get_model_name(type(related_value))
+            translate_model_fields(model_name, related_value.pk)
+            related_value.translation_module_original_language = "en"
+            related_value.save(update_fields=["translation_module_original_language"])
+            _translate_related_objects(related_value, visited)
+        else:
+            for related_obj in related_value.all():
+                model_name = get_model_name(type(related_obj))
+                translate_model_fields(model_name, related_obj.pk)
+                related_obj.translation_module_original_language = "en"
+                related_obj.save(update_fields=["translation_module_original_language"])
+                _translate_related_objects(related_obj, visited)
