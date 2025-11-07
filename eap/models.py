@@ -181,15 +181,39 @@ class Action(models.Model):
 # --- Early Action Protocol --- ##
 
 
-class EAPFile(models.Model):
+class EAPBaseModel(models.Model):
+    """Base model for EAP models to include common fields."""
+
+    created_at = models.DateTimeField(
+        verbose_name=_("created at"),
+        auto_now_add=True,
+    )
+    modified_at = models.DateTimeField(
+        verbose_name=_("modified at"),
+        auto_now=True,
+    )
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_("created by"),
+        on_delete=models.PROTECT,
+        related_name="%(class)s_created_by",
+    )
+    modified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_("modified by"),
+        on_delete=models.PROTECT,
+        related_name="%(class)s_modified_by",
+    )
+
+    class Meta:
+        abstract = True
+
+
+class EAPFile(EAPBaseModel):
     file = SecureFileField(
         verbose_name=_("file"),
         upload_to="eap/files/",
-    )
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        verbose_name=_("created_by"),
-        on_delete=models.CASCADE,
     )
     caption = models.CharField(max_length=225, blank=True, null=True)
 
@@ -369,34 +393,8 @@ class EAPStatus(models.IntegerChoices):
     PFA_SIGNED = 60, _("PFA Signed")
     """EAP should be APPROVED before changing to this status."""
 
-
-class EAPBaseModel(models.Model):
-    """Base model for EAP models to include common fields."""
-
-    created_at = models.DateTimeField(
-        verbose_name=_("created at"),
-        auto_now_add=True,
-    )
-    modified_at = models.DateTimeField(
-        verbose_name=_("modified at"),
-        auto_now=True,
-    )
-
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        verbose_name=_("created by"),
-        on_delete=models.PROTECT,
-        related_name="%(class)s_created_by",
-    )
-    modified_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        verbose_name=_("modified by"),
-        on_delete=models.PROTECT,
-        related_name="%(class)s_modified_by",
-    )
-
-    class Meta:
-        abstract = True
+    ACTIVATED = 70, _("Activated")
+    """EAP has been activated"""
 
 
 # BASE MODEL FOR EAP
@@ -438,12 +436,6 @@ class EAPRegistration(EAPBaseModel):
         verbose_name=_("EAP Status"),
         default=EAPStatus.UNDER_DEVELOPMENT,
         help_text=_("Select the current status of the EAP development process."),
-    )
-    # TODO(susilnem): Verify this field?
-    is_active = models.BooleanField(
-        verbose_name=_("Is Active"),
-        help_text=_("Indicates whether this EAP development registration is active."),
-        default=False,
     )
 
     expected_submission_time = models.DateField(
@@ -648,20 +640,25 @@ class SimplifiedEAP(EAPBaseModel):
         null=True,
         blank=True,
     )
-    hazard_impact = models.ManyToManyField(
+    hazard_impact_file = models.ManyToManyField(
         EAPFile,
         verbose_name=_("Hazard Impact Files"),
         related_name="simplified_eap_hazard_impact_files",
         blank=True,
     )
-    # TODO(susilnem): Add image max 5
 
     risks_selected_protocols = models.TextField(
         verbose_name=_("Risk selected for the protocols."),
         null=True,
         blank=True,
     )
-    # TODO(susilnem): Add image max 5
+
+    risk_selected_protocols_file = models.ManyToManyField(
+        EAPFile,
+        verbose_name=_("Risk Selected Protocols Files"),
+        related_name="simplified_eap_risk_selected_protocols_files",
+        blank=True,
+    )
 
     # EARLY ACTION SELECTION #
     selected_early_actions = models.TextField(
@@ -669,7 +666,12 @@ class SimplifiedEAP(EAPBaseModel):
         null=True,
         blank=True,
     )
-    # TODO(susilnem): Add image max 5
+    selected_early_actions_file = models.ManyToManyField(
+        EAPFile,
+        verbose_name=_("Selected Early Actions Files"),
+        related_name="simplified_eap_selected_early_actions_files",
+        blank=True,
+    )
 
     # EARLY ACTION INTERVENTION #
     overall_objective_intervention = models.TextField(
@@ -679,7 +681,6 @@ class SimplifiedEAP(EAPBaseModel):
         blank=True,
     )
 
-    # TODO(susilnem): Discuss and add selections regions
     potential_geographical_high_risk_areas = models.TextField(
         verbose_name=_("Potential geographical high-risk areas"),
         null=True,
@@ -770,31 +771,23 @@ class SimplifiedEAP(EAPBaseModel):
     # BUDGET #
     total_budget = models.IntegerField(
         verbose_name=_("Total Budget (CHF)"),
-        null=True,
-        blank=True,
     )
     readiness_budget = models.IntegerField(
         verbose_name=_("Readiness Budget (CHF)"),
-        null=True,
-        blank=True,
     )
     pre_positioning_budget = models.IntegerField(
         verbose_name=_("Pre-positioning Budget (CHF)"),
-        null=True,
-        blank=True,
     )
     early_action_budget = models.IntegerField(
         verbose_name=_("Early Actions Budget (CHF)"),
-        null=True,
-        blank=True,
     )
 
     # BUDGET DETAILS #
-    budget_file = models.ForeignKey(
-        EAPFile,
-        on_delete=models.SET_NULL,
+    budget_file = SecureFileField(
         verbose_name=_("Budget File"),
+        upload_to="eap/simplified_eap/budget_files/",
         null=True,
+        blank=True,
     )
 
     class Meta:
