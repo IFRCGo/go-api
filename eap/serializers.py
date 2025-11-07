@@ -2,15 +2,24 @@ import typing
 
 from rest_framework import serializers
 
-from api.serializers import MiniCountrySerializer, UserNameSerializer
-from eap.models import EAPRegistration
+from api.serializers import Admin2Serializer, MiniCountrySerializer, UserNameSerializer
+from eap.models import (
+    EAPFile,
+    EAPRegistration,
+    EnableApproach,
+    OperationActivity,
+    PlannedOperations,
+    SimplifiedEAP,
+)
 from main.writable_nested_serializers import NestedCreateMixin, NestedUpdateMixin
+from utils.file_check import validate_file_type
 
 
 class BaseEAPSerializer(serializers.ModelSerializer):
-
     def get_fields(self):
         fields = super().get_fields()
+        fields["created_by_details"] = UserNameSerializer(source="created_by", read_only=True)
+        fields["modified_by_details"] = UserNameSerializer(source="modified_by", read_only=True)
         return fields
 
     def _set_user_fields(self, validated_data: dict[str, typing.Any], fields: list[str]) -> None:
@@ -23,6 +32,7 @@ class BaseEAPSerializer(serializers.ModelSerializer):
                 validated_data[field] = user
 
     def create(self, validated_data: dict[str, typing.Any]):
+        print("YEHA AYO", validated_data)
         self._set_user_fields(validated_data, ["created_by", "modified_by"])
         return super().create(validated_data)
 
@@ -42,10 +52,6 @@ class EAPRegistrationSerializer(
 
     eap_type_display = serializers.CharField(source="get_eap_type_display", read_only=True)
 
-    # User details
-    created_by_details = UserNameSerializer(source="created_by", read_only=True)
-    modified_by_details = UserNameSerializer(source="modified_by", read_only=True)
-
     # Status
     status_display = serializers.CharField(source="get_status_display", read_only=True)
 
@@ -59,3 +65,118 @@ class EAPRegistrationSerializer(
             "created_by",
             "modified_by",
         ]
+
+
+class EAPFileSerializer(BaseEAPSerializer):
+    id = serializers.IntegerField(required=False)
+    file = serializers.FileField(required=False)
+
+    class Meta:
+        model = EAPFile
+        fields = "__all__"
+        read_only_fields = (
+            "created_by",
+            "modified_by",
+        )
+
+    def validate_file(self, file):
+        validate_file_type(file)
+        return file
+
+
+class OperationActivitySerializer(
+    serializers.ModelSerializer,
+):
+    id = serializers.IntegerField(required=False)
+
+    class Meta:
+        model = OperationActivity
+        fields = "__all__"
+
+
+class PlannedOperationsSerializer(
+    NestedUpdateMixin,
+    NestedCreateMixin,
+    serializers.ModelSerializer,
+):
+    id = serializers.IntegerField(required=False)
+    activities = OperationActivitySerializer(many=True, required=False)
+
+    class Meta:
+        model = PlannedOperations
+        fields = "__all__"
+
+
+class EnableApproachSerializer(
+    NestedUpdateMixin,
+    NestedCreateMixin,
+    serializers.ModelSerializer,
+):
+    id = serializers.IntegerField(required=False)
+
+    # activities
+    readiness_activities = OperationActivitySerializer(many=True, required=True)
+    prepositioning_activities = OperationActivitySerializer(many=True, required=True)
+    early_action_activities = OperationActivitySerializer(many=True, required=True)
+
+    class Meta:
+        model = EnableApproach
+        fields = "__all__"
+        read_only_fields = (
+            "created_by",
+            "modified_by",
+        )
+
+
+class SimplifiedEAPSerializer(
+    NestedUpdateMixin,
+    NestedCreateMixin,
+    BaseEAPSerializer,
+):
+    MAX_NUMBER_OF_IMAGES = 5
+    eap_registration_details = EAPRegistrationSerializer(source="eap_registration", read_only=True)
+
+    planned_operations = PlannedOperationsSerializer(many=True, required=False)
+
+    # FILES
+    cover_image_details = EAPFileSerializer(source="cover_image", read_only=True)
+    hazard_impact_file_details = EAPFileSerializer(source="hazard_impact_file", many=True, read_only=True)
+    selected_early_actions_file_details = EAPFileSerializer(source="selected_early_actions_file", many=True, read_only=True)
+    risk_selected_protocols_file_details = EAPFileSerializer(source="risk_selected_protocols_file", many=True, read_only=True)
+
+    # Admin2
+    admin2_details = Admin2Serializer(source="admin2", read_only=True)
+
+    class Meta:
+        model = SimplifiedEAP
+        fields = "__all__"
+
+    def validate_hazard_impact_file(self, images):
+        if images and len(images) > self.MAX_NUMBER_OF_IMAGES:
+            raise serializers.ValidationError(f"Maximum {self.MAX_NUMBER_OF_IMAGES} images are allowed to upload.")
+        return images
+
+    def validate_risk_selected_protocols_file(self, images):
+        if images and len(images) > self.MAX_NUMBER_OF_IMAGES:
+            raise serializers.ValidationError(f"Maximum {self.MAX_NUMBER_OF_IMAGES} images are allowed to upload.")
+        return images
+
+    def validate_selected_early_actions_file(self, images):
+        if images and len(images) > self.MAX_NUMBER_OF_IMAGES:
+            raise serializers.ValidationError(f"Maximum {self.MAX_NUMBER_OF_IMAGES} images are allowed to upload.")
+        return images
+
+
+class EAPStatusSerializer(
+    BaseEAPSerializer,
+):
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+
+    class Meta:
+        model = EAPRegistration
+        fields = [
+            "id",
+            "status",
+        ]
+
+    # TODO(susilnem): Add status state validations
