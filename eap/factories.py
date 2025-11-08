@@ -1,9 +1,8 @@
-
 import factory
-
 from factory import fuzzy
 
 from eap.models import EAPRegistration, EAPStatus, EAPType, SimplifiedEAP
+
 
 class EAPRegistrationFactory(factory.django.DjangoModelFactory):
     class Meta:
