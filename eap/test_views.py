@@ -126,7 +126,6 @@ class EAPSimplifiedTestCase(APITestCase):
         self.partner1 = CountryFactory.create(name="partner1", iso3="ZZZ")
         self.partner2 = CountryFactory.create(name="partner2", iso3="AAA")
 
-
     def test_list_simplified_eap(self):
         eap_registrations = EAPRegistrationFactory.create_batch(
             5,
@@ -168,12 +167,16 @@ class EAPSimplifiedTestCase(APITestCase):
             "readiness_budget": 3000,
             "pre_positioning_budget": 4000,
             "early_action_budget": 3000,
+            "next_step_towards_full_eap": "Plan to expand.",
         }
 
         self.authenticate()
         response = self.client.post(url, data, format="json")
-
         self.assertEqual(response.status_code, 201)
+
+        # Cannot create Simplified EAP for the same EAP Registration again
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, 400)
 
     def test_update_simplified_eap(self):
         eap_registration = EAPRegistrationFactory.create(
@@ -194,19 +197,18 @@ class EAPSimplifiedTestCase(APITestCase):
         data = {
             "eap_registration": eap_registration.id,
             "total_budget": 20000,
-            "seap_timeframe": 4,
             "readiness_budget": 8000,
             "pre_positioning_budget": 7000,
             "early_action_budget": 5000,
-         }
+        }
 
         # Authenticate as root user
         self.authenticate(self.root_user)
-        response = self.client.put(url, data, format="json")
+        response = self.client.patch(url, data, format="json")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
-            response.data["eap_registration_details"]["id"],
-            self.eap_registration.id,
+            response.data["eap_registration"],
+            eap_registration.id,
         )
 
         # Check modified_by
