@@ -1,7 +1,7 @@
 import django_filters as filters
 
 from api.models import Country, DisasterType
-from eap.models import EAPRegistration, EAPType
+from eap.models import EAPRegistration, EAPType, SimplifiedEAP
 
 
 class BaseEAPFilterSet(filters.FilterSet):
@@ -38,3 +38,9 @@ class EAPRegistrationFilterSet(BaseEAPFilterSet):
     class Meta:
         model = EAPRegistration
         fields = ()
+
+
+class SimplifiedEAPFilterSet(BaseEAPFilterSet):
+    class Meta:
+        model = SimplifiedEAP
+        fields = ("eap_registration",)
