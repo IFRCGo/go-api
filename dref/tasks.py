@@ -78,7 +78,25 @@ def process_dref_translation(model_name, instance_pk):
         return False
 
 
-def _translate_related_objects(instance, visited=None):
+def _translate_related_objects(
+    instance,
+    visited=None,
+    auto_translate=True,
+    language="en",
+):
+    """
+    Sync the relateable translation fields for the given model instance.
+    This function ensures that the translation fields are updated correctly
+    based on the current language settings.
+
+    Args:
+        instance: The model instance whose related objects need to be translated.
+        visited: A set to keep track of visited instances to avoid infinite recursion.
+        auto_translate: A boolean indicating whether to auto-translate related objects.
+        language: The language code to set for the original language field.
+
+    """
+
     if visited is None:
         visited = set()
 
@@ -102,15 +120,17 @@ def _translate_related_objects(instance, visited=None):
         if not field.many_to_many:
             if hasattr(related_value, TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME):
                 model_name = get_model_name(type(related_value))
-                translate_model_fields(model_name, related_value.pk)
-                related_value.translation_module_original_language = "en"
+                if auto_translate:
+                    translate_model_fields(model_name, related_value.id)
+                related_value.translation_module_original_language = language
                 related_value.save(update_fields=["translation_module_original_language"])
-                _translate_related_objects(related_value, visited)
+                _translate_related_objects(related_value, visited, auto_translate, language)
         else:
             for related_obj in related_value.all():
                 if hasattr(related_obj, TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME):
                     model_name = get_model_name(type(related_obj))
-                    translate_model_fields(model_name, related_obj.pk)
-                    related_obj.translation_module_original_language = "en"
+                    if auto_translate:
+                        translate_model_fields(model_name, related_obj.id)
+                    related_obj.translation_module_original_language = language
                     related_obj.save(update_fields=["translation_module_original_language"])
-                    _translate_related_objects(related_obj, visited)
+                    _translate_related_objects(related_obj, visited, auto_translate, language)
