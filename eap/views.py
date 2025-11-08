@@ -3,7 +3,7 @@ from django.db.models.query import QuerySet
 from rest_framework import mixins, permissions, response, viewsets
 from rest_framework.decorators import action
 
-from eap.filter_set import EAPRegistrationFilterSet
+from eap.filter_set import EAPRegistrationFilterSet, SimplifiedEAPFilterSet
 from eap.models import EAPFile, EAPRegistration, SimplifiedEAP
 from eap.serializers import (
     EAPFileSerializer,
@@ -14,14 +14,19 @@ from eap.serializers import (
 from main.permissions import DenyGuestUserMutationPermission, DenyGuestUserPermission
 
 
-class EAPRegistrationViewSet(
+class EAPModelViewSet(
     viewsets.GenericViewSet,
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
-    mixins.UpdateModelMixin,
     mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
 ):
+    pass
+
+
+class EAPRegistrationViewSet(EAPModelViewSet):
     queryset = EAPRegistration.objects.all()
+    lookup_field = "id"
     serializer_class = EAPRegistrationSerializer
     permission_classes = [permissions.IsAuthenticated, DenyGuestUserMutationPermission]
     filterset_class = EAPRegistrationFilterSet
@@ -35,9 +40,11 @@ class EAPRegistrationViewSet(
                 "modified_by",
                 "national_society",
                 "disaster_type",
+                "country",
             )
             .prefetch_related(
                 "partners",
+                "simplified_eap",
             )
         )
 
@@ -51,7 +58,7 @@ class EAPRegistrationViewSet(
     def update_status(
         self,
         request,
-        pk: int | None = None,
+        id: int,
     ):
         eap_registration = self.get_object()
         serializer = self.get_serializer(
@@ -63,9 +70,11 @@ class EAPRegistrationViewSet(
         return response.Response(serializer.data)
 
 
-class SimplifiedEAPViewSet(viewsets.ModelViewSet):
+class SimplifiedEAPViewSet(EAPModelViewSet):
     queryset = SimplifiedEAP.objects.all()
+    lookup_field = "id"
     serializer_class = SimplifiedEAPSerializer
+    filterset_class = SimplifiedEAPFilterSet
     permission_classes = [permissions.IsAuthenticated, DenyGuestUserMutationPermission]
 
     def get_queryset(self) -> QuerySet[SimplifiedEAP]:
@@ -76,23 +85,38 @@ class SimplifiedEAPViewSet(viewsets.ModelViewSet):
                 "created_by",
                 "modified_by",
                 "cover_image",
+                "eap_registration__country",
+                "eap_registration__disaster_type",
             )
             .prefetch_related(
-                "eap_registration", "admin2", "hazard_impact_file", "selected_early_actions_file", "risk_selected_protocols_file"
+                "eap_registration__partners",
+                "admin2",
+                "hazard_impact_file",
+                "selected_early_actions_file",
+                "risk_selected_protocols_file",
+                "selected_early_actions_file",
+                "planned_operations",
+                "enable_approaches",
             )
         )
 
 
 class EAPFileViewSet(
     viewsets.GenericViewSet,
-    mixins.ListModelMixin,
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
 ):
+    queryset = EAPFile.objects.all()
+    lookup_field = "id"
     permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
     serializer_class = EAPFileSerializer
 
     def get_queryset(self) -> QuerySet[EAPFile]:
         if self.request is None:
             return EAPFile.objects.none()
-        return EAPFile.objects.filter(created_by=self.request.user)
+        return EAPFile.objects.filter(
+            created_by=self.request.user,
+        ).select_related(
+            "created_by",
+            "modified_by",
+        )
