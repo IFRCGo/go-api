@@ -1,5 +1,6 @@
 import typing
 
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from api.serializers import Admin2Serializer, MiniCountrySerializer, UserNameSerializer
@@ -14,10 +15,22 @@ from eap.models import (
 from main.writable_nested_serializers import NestedCreateMixin, NestedUpdateMixin
 from utils.file_check import validate_file_type
 
+User = get_user_model()
+
 
 class BaseEAPSerializer(serializers.ModelSerializer):
     def get_fields(self):
         fields = super().get_fields()
+        # NOTE: Setting `created_by` and `modified_by` required to Flase
+        fields["created_by"] = serializers.PrimaryKeyRelatedField(
+            queryset=User.objects.all(),
+            required=False,
+        )
+        fields["modified_by"] = serializers.PrimaryKeyRelatedField(
+            queryset=User.objects.all(),
+            required=False,
+        )
+
         fields["created_by_details"] = UserNameSerializer(source="created_by", read_only=True)
         fields["modified_by_details"] = UserNameSerializer(source="modified_by", read_only=True)
         return fields
@@ -32,13 +45,29 @@ class BaseEAPSerializer(serializers.ModelSerializer):
                 validated_data[field] = user
 
     def create(self, validated_data: dict[str, typing.Any]):
-        print("YEHA AYO", validated_data)
         self._set_user_fields(validated_data, ["created_by", "modified_by"])
         return super().create(validated_data)
 
     def update(self, instance, validated_data: dict[str, typing.Any]):
         self._set_user_fields(validated_data, ["modified_by"])
         return super().update(instance, validated_data)
+
+
+class MiniSimplifiedEAPSerializer(
+    serializers.ModelSerializer,
+):
+    class Meta:
+        model = SimplifiedEAP
+        fields = [
+            "id",
+            "eap_registration",
+            "total_budget",
+            "readiness_budget",
+            "pre_positioning_budget",
+            "early_action_budget",
+            "seap_timeframe",
+            "budget_file",
+        ]
 
 
 class EAPRegistrationSerializer(
@@ -51,6 +80,9 @@ class EAPRegistrationSerializer(
     partners_details = MiniCountrySerializer(source="partners", many=True, read_only=True)
 
     eap_type_display = serializers.CharField(source="get_eap_type_display", read_only=True)
+
+    # EAPs
+    simplified_eap_details = MiniSimplifiedEAPSerializer(source="simplified_eap", read_only=True)
 
     # Status
     status_display = serializers.CharField(source="get_status_display", read_only=True)
@@ -134,9 +166,9 @@ class SimplifiedEAPSerializer(
     BaseEAPSerializer,
 ):
     MAX_NUMBER_OF_IMAGES = 5
-    eap_registration_details = EAPRegistrationSerializer(source="eap_registration", read_only=True)
 
     planned_operations = PlannedOperationsSerializer(many=True, required=False)
+    enable_approach = EnableApproachSerializer(many=False, required=False)
 
     # FILES
     cover_image_details = EAPFileSerializer(source="cover_image", read_only=True)
@@ -145,7 +177,7 @@ class SimplifiedEAPSerializer(
     risk_selected_protocols_file_details = EAPFileSerializer(source="risk_selected_protocols_file", many=True, read_only=True)
 
     # Admin2
-    admin2_details = Admin2Serializer(source="admin2", read_only=True)
+    admin2_details = Admin2Serializer(source="admin2", many=True, read_only=True)
 
     class Meta:
         model = SimplifiedEAP
@@ -176,6 +208,7 @@ class EAPStatusSerializer(
         model = EAPRegistration
         fields = [
             "id",
+            "status_display",
             "status",
         ]
 
