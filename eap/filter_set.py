@@ -1,7 +1,7 @@
 import django_filters as filters
 
 from api.models import Country, DisasterType
-from eap.models import EAPRegistration, EAPType, SimplifiedEAP
+from eap.models import EAPRegistration, EAPStatus, EAPType, SimplifiedEAP
 
 
 class BaseEAPFilterSet(filters.FilterSet):
@@ -33,6 +33,10 @@ class EAPRegistrationFilterSet(BaseEAPFilterSet):
     eap_type = filters.ChoiceFilter(
         choices=EAPType.choices,
         label="EAP Type",
+    )
+    status = filters.ChoiceFilter(
+        choices=EAPStatus.choices,
+        label="EAP Status",
     )
 
     class Meta:
