@@ -1,11 +1,13 @@
 # Create your views here.
 from django.db.models.query import QuerySet
-from rest_framework import mixins, permissions, response, viewsets
+from drf_spectacular.utils import extend_schema
+from rest_framework import mixins, permissions, response, status, viewsets
 from rest_framework.decorators import action
 
 from eap.filter_set import EAPRegistrationFilterSet, SimplifiedEAPFilterSet
 from eap.models import EAPFile, EAPRegistration, SimplifiedEAP
 from eap.serializers import (
+    EAPFileInputSerializer,
     EAPFileSerializer,
     EAPRegistrationSerializer,
     EAPStatusSerializer,
@@ -120,3 +122,19 @@ class EAPFileViewSet(
             "created_by",
             "modified_by",
         )
+
+    @extend_schema(request=EAPFileInputSerializer, responses=EAPFileSerializer(many=True))
+    @action(
+        detail=False,
+        url_path="multiple",
+        methods=["POST"],
+        permission_classes=[permissions.IsAuthenticated, DenyGuestUserPermission],
+    )
+    def multiple_file(self, request):
+        files = [files[0] for files in dict((request.data).lists()).values()]
+        data = [{"file": file} for file in files]
+        file_serializer = EAPFileSerializer(data=data, context={"request": request}, many=True)
+        if file_serializer.is_valid(raise_exception=True):
+            file_serializer.save()
+            return response.Response(file_serializer.data, status=status.HTTP_201_CREATED)
+        return response.Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
