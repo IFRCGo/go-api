@@ -211,6 +211,7 @@ class EAPBaseModel(models.Model):
 
 
 class EAPFile(EAPBaseModel):
+    # TODO(susilnem): Make not nullable
     file = SecureFileField(
         verbose_name=_("file"),
         upload_to="eap/files/",
@@ -252,7 +253,7 @@ class OperationActivity(models.Model):
 #     indicator = models.IntegerField(choices=IndicatorChoices.choices, verbose_name=_("Indicator"))
 
 
-class PlannedOperations(models.Model):
+class PlannedOperation(models.Model):
     class Sector(models.IntegerChoices):
         SHELTER = 101, _("Shelter")
         SETTLEMENT_AND_HOUSING = 102, _("Settlement and Housing")
@@ -311,12 +312,12 @@ class PlannedOperations(models.Model):
 
 
 class EnableApproach(models.Model):
-    class ApproachChoices(models.IntegerChoices):
+    class Approach(models.IntegerChoices):
         SECRETARIAT_SERVICES = 10, _("Secretariat Services")
         NATIONAL_SOCIETY_STRENGTHENING = 20, _("National Society Strengthening")
         PARTNERSHIP_AND_COORDINATION = 30, _("Partnership And Coordination")
 
-    approach = models.IntegerField(choices=ApproachChoices.choices, verbose_name=_("Approach"))
+    approach = models.IntegerField(choices=Approach.choices, verbose_name=_("Approach"))
     budget_per_approach = models.IntegerField(verbose_name=_("Budget per approach (CHF)"))
     ap_code = models.IntegerField(verbose_name=_("AP Code"), null=True, blank=True)
     indicator_target = models.IntegerField(verbose_name=_("Indicator Target"), null=True, blank=True)
@@ -418,7 +419,7 @@ class EAPRegistration(EAPBaseModel):
     )
 
     # Disaster
-    disaster_type = models.ForeignKey(
+    disaster_type = models.ForeignKey[DisasterType, DisasterType](
         DisasterType,
         verbose_name=("Disaster Type"),
         on_delete=models.PROTECT,
@@ -495,18 +496,46 @@ class EAPRegistration(EAPBaseModel):
         # NOTE: Use select_related in admin get_queryset for national_society field to avoid extra queries
         return f"EAP Development Registration - {self.national_society} - {self.disaster_type} - {self.get_eap_type_display()}"
 
+    @property
+    def has_eap_application(self) -> bool:
+        """Check if the EAP Registration has an associated EAP application."""
+        # TODO(susilnem): Add FULL EAP check, when model is created.
+        return hasattr(self, "simplified_eap")
+
+    @property
+    def get_status_enum(self) -> EAPStatus:
+        """Get the status as an EAPStatus enum."""
+        return EAPStatus(self.status)
+
+    @property
+    def get_eap_type_enum(self) -> EAPType | None:
+        """Get the EAP type as an EAPType enum."""
+        if self.eap_type is not None:
+            return EAPType(self.eap_type)
+        return None
+
+    def update_status(self, status: EAPStatus, commit: bool = True):
+        self.status = status
+        if commit:
+            self.save(update_fields=("status",))
+
+    def update_eap_type(self, eap_type: EAPType, commit: bool = True):
+        self.eap_type = eap_type
+        if commit:
+            self.save(update_fields=("eap_type",))
+
 
 class SimplifiedEAP(EAPBaseModel):
     """Model representing a Simplified EAP."""
 
-    eap_registration = models.OneToOneField(
+    eap_registration = models.OneToOneField[EAPRegistration, EAPRegistration](
         EAPRegistration,
         on_delete=models.CASCADE,
         verbose_name=_("EAP Development Registration"),
         related_name="simplified_eap",
     )
 
-    cover_image = models.ForeignKey(
+    cover_image = models.ForeignKey[EAPFile | None, EAPFile | None](
         EAPFile,
         on_delete=models.SET_NULL,
         blank=True,
@@ -738,7 +767,7 @@ class SimplifiedEAP(EAPBaseModel):
 
     # PLANNED OPEATIONS #
     planned_operations = models.ManyToManyField(
-        PlannedOperations,
+        PlannedOperation,
         verbose_name=_("Planned Operations"),
         blank=True,
     )
@@ -789,6 +818,9 @@ class SimplifiedEAP(EAPBaseModel):
         null=True,
         blank=True,
     )
+
+    # TYPING
+    eap_registration_id: int
 
     class Meta:
         verbose_name = _("Simplified EAP")
