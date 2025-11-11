@@ -3,13 +3,19 @@ import typing
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from api.serializers import Admin2Serializer, MiniCountrySerializer, UserNameSerializer
+from api.serializers import (
+    Admin2Serializer,
+    DisasterTypeSerializer,
+    MiniCountrySerializer,
+    UserNameSerializer,
+)
 from eap.models import (
     EAPFile,
     EAPRegistration,
+    EAPType,
     EnableApproach,
     OperationActivity,
-    PlannedOperations,
+    PlannedOperation,
     SimplifiedEAP,
 )
 from main.writable_nested_serializers import NestedCreateMixin, NestedUpdateMixin
@@ -80,6 +86,7 @@ class EAPRegistrationSerializer(
     partners_details = MiniCountrySerializer(source="partners", many=True, read_only=True)
 
     eap_type_display = serializers.CharField(source="get_eap_type_display", read_only=True)
+    disaster_type_details = DisasterTypeSerializer(source="disaster_type", read_only=True)
 
     # EAPs
     simplified_eap_details = MiniSimplifiedEAPSerializer(source="simplified_eap", read_only=True)
@@ -98,10 +105,20 @@ class EAPRegistrationSerializer(
             "modified_by",
         ]
 
+    def update(self, instance: EAPRegistration, validated_data: dict[str, typing.Any]):
+        # Cannot update once EAP application is being created.
+        if instance.has_eap_application:
+            raise serializers.ValidationError("Cannot update EAP Registration once application is being created.")
+        return super().update(instance, validated_data)
+
+
+class EAPFileInputSerializer(serializers.Serializer):
+    file = serializers.ListField(child=serializers.FileField(required=True))
+
 
 class EAPFileSerializer(BaseEAPSerializer):
     id = serializers.IntegerField(required=False)
-    file = serializers.FileField(required=False)
+    file = serializers.FileField(required=True)
 
     class Meta:
         model = EAPFile
@@ -126,16 +143,20 @@ class OperationActivitySerializer(
         fields = "__all__"
 
 
-class PlannedOperationsSerializer(
+class PlannedOperationSerializer(
     NestedUpdateMixin,
     NestedCreateMixin,
     serializers.ModelSerializer,
 ):
     id = serializers.IntegerField(required=False)
-    activities = OperationActivitySerializer(many=True, required=False)
+
+    # activities
+    readiness_activities = OperationActivitySerializer(many=True, required=True)
+    prepositioning_activities = OperationActivitySerializer(many=True, required=True)
+    early_action_activities = OperationActivitySerializer(many=True, required=True)
 
     class Meta:
-        model = PlannedOperations
+        model = PlannedOperation
         fields = "__all__"
 
 
@@ -167,8 +188,8 @@ class SimplifiedEAPSerializer(
 ):
     MAX_NUMBER_OF_IMAGES = 5
 
-    planned_operations = PlannedOperationsSerializer(many=True, required=False)
-    enable_approach = EnableApproachSerializer(many=False, required=False)
+    planned_operations = PlannedOperationSerializer(many=True, required=False)
+    enable_approaches = EnableApproachSerializer(many=True, required=False)
 
     # FILES
     cover_image_details = EAPFileSerializer(source="cover_image", read_only=True)
@@ -197,6 +218,18 @@ class SimplifiedEAPSerializer(
         if images and len(images) > self.MAX_NUMBER_OF_IMAGES:
             raise serializers.ValidationError(f"Maximum {self.MAX_NUMBER_OF_IMAGES} images are allowed to upload.")
         return images
+
+    def validate(self, data: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        eap_registration: EAPRegistration = data["eap_registration"]
+        eap_type = eap_registration.get_eap_type_enum
+        if eap_type and eap_type != EAPType.SIMPLIFIED_EAP:
+            raise serializers.ValidationError("Cannot create Simplified EAP for non-simplified EAP registration.")
+        return data
+
+    def create(self, validated_data: dict[str, typing.Any]):
+        instance: SimplifiedEAP = super().create(validated_data)
+        instance.eap_registration.update_eap_type(EAPType.SIMPLIFIED_EAP)
+        return instance
 
 
 class EAPStatusSerializer(
