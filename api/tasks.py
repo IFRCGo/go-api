@@ -19,7 +19,7 @@ from .models import Export
 from .utils import DebugPlaywright
 
 
-def build_storage_state(tmp_dir, user, token):
+def build_storage_state(tmp_dir, user, token, language):
     temp_file = pathlib.Path(tmp_dir, "storage_state.json")
     temp_file.touch()
 
@@ -40,7 +40,7 @@ def build_storage_state(tmp_dir, user, token):
                             }
                         ),
                     },
-                    {"name": "language", "value": json.dumps("en")},  # enforce all export to English
+                    {"name": "language", "value": json.dumps(language)},  # NOTE: Use the language from the request for PDF export
                 ],
             }
         ]
@@ -51,7 +51,7 @@ def build_storage_state(tmp_dir, user, token):
 
 
 @shared_task
-def generate_url(url, export_id, user, title):
+def generate_url(url, export_id, user, title, language):
     export = Export.objects.get(id=export_id)
     user = User.objects.get(id=user)
     token = Token.objects.filter(user=user).last()
@@ -92,6 +92,7 @@ def generate_url(url, export_id, user, title):
                     tmp_dir,
                     user,
                     token,
+                    language,
                 )
                 context = browser.new_context(storage_state=storage_state)
                 page = context.new_page()
