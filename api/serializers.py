@@ -2554,6 +2554,7 @@ class ExportSerializer(serializers.ModelSerializer):
         return pdf_file
 
     def create(self, validated_data):
+        language = django_get_language()
         export_id = validated_data.get("export_id")
         export_type = validated_data.get("export_type")
         country_id = validated_data.get("per_country")
@@ -2586,7 +2587,7 @@ class ExportSerializer(serializers.ModelSerializer):
             export.requested_at = timezone.now()
             export.save(update_fields=["status", "requested_at"])
 
-            transaction.on_commit(lambda: generate_url.delay(export.url, export.id, user.id, title))
+            transaction.on_commit(lambda: generate_url.delay(export.url, export.id, user.id, title, language))
         return export
 
     def update(self, instance, validated_data):
