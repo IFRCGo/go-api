@@ -476,7 +476,7 @@ class LocalUnitBulkUploadViewSet(
     def get_bulk_upload_template(self, request):
         template_type = request.query_params.get("bulk_upload_template", "local_unit")
         if template_type == "health_care":
-            file_url = request.build_absolute_uri(static("files/local_units/Health Care Bulk Import Template - Local Units.xlsm"))
+            file_url = request.build_absolute_uri(static("files/local_units/Health-Care-Bulk-Import-Template-Local-Units.xlsm"))
         else:
             file_url = request.build_absolute_uri(
                 static("files/local_units/Administrative Bulk Import Template - Local Units.xlsx")
