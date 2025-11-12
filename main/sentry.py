@@ -129,6 +129,10 @@ class SentryMonitor(models.TextChoices):
     INGEST_NS_INITIATIVES = "ingest_ns_initiatives", "0 0 * * 0"
     INGEST_ICRC = "ingest_icrc", "0 3 * * 0"
     NOTIFY_VALIDATORS = "notify_validators", "0 0 * * *"
+    POLL_USGS_EQ = "poll_usgs_eq", "0 0 * * 0"
+    POLL_GDACS_FL = "poll_gdacs_fl", "0 0 * * 0"
+    POLL_GDACS_CY = "poll_gdacs_cy", "0 0 * * 0"
+    # NOTIFY_VALIDATORS = "notify_validators", "0 0 * * *" # NOTE: Disable local unit email notification for now
     OAUTH_CLEARTOKENS = "oauth_cleartokens", "0 1 * * *"
 
     @staticmethod
