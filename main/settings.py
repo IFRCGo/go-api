@@ -240,6 +240,7 @@ GO_APPS = [
     "eap",
     "country_plan",
     "local_units",
+    "alert_system",
 ]
 
 INSTALLED_APPS = [
