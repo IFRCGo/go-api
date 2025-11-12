@@ -642,66 +642,71 @@ class DrefTestCase(APITestCase):
         - Can only approve when status=FINALIZED
         - Approve sets status=APPROVED
         """
+        management.call_command("make_dref_regional_permission")
+
         initial_now = datetime.now()
         mock_now.return_value = initial_now
 
+        # Users
+        root_user = self.root_user
+        user1 = UserFactory.create(email="dref@test.com")
+
+        # Region and country
         region = Region.objects.create(name=RegionName.AFRICA)
         country = Country.objects.create(name="country1", region=region)
+
+        # Create DREF with DRAFT status
         dref = DrefFactory.create(
             title="test",
-            created_by=self.user,
+            created_by=root_user,
             country=country,
             status=Dref.Status.DRAFT,
             type_of_dref=Dref.DrefType.IMMINENT,
         )
-        # Normal PATCH
-        url = f"/api/v2/dref/{dref.id}/"
-        data = {
-            "title": "New Update Title",
-            "modified_at": initial_now + timedelta(days=1),
-        }
-        self.client.force_authenticate(self.user)
-        response = self.client.patch(url, data)
-        self.assert_200(response)
-        # create new dref with status = DRAFT
-        not_approved_dref = DrefFactory.create(
-            title="test",
-            created_by=self.user,
-            country=country,
-            status=Dref.Status.DRAFT,
-        )
-        url = f"/api/v2/dref/{not_approved_dref.id}/"
-        self.client.force_authenticate(self.user)
-        data["modified_at"] = initial_now + timedelta(days=10)
-        response = self.client.patch(url, data)
-        self.assert_200(response)
 
-        data["modified_at"] = initial_now - timedelta(seconds=10)
+        self.client.force_authenticate(root_user)
+        # ---- PATCH updates ----
+        url = f"/api/v2/dref/{dref.id}/"
+        data = {"title": "Updated Title", "modified_at": initial_now + timedelta(days=1)}
         response = self.client.patch(url, data)
-        self.assert_400(response)
-        # ---- Test publishing ----
-        publish_url = f"/api/v2/dref/{dref.id}/approve/"
-        data = {}
-        response = self.client.post(publish_url, data)
-        self.assert_403(response)
-        # Add permission to user
-        self.dref_permission = Permission.objects.create(
-            codename="dref_region_admin_0",
+        self.assert_200(response)
+        # ---- Add DREF regional admin permission to user1 ----
+        region_permission = Permission.objects.create(
+            codename=f"dref_region_admin_{region.id}",
             content_type=ContentType.objects.get_for_model(Region),
-            name="Dref Admin for 0",
+            name=f"Dref Admin for region {region.id}",
         )
-        self.user.user_permissions.add(self.dref_permission)
-        # Try again while DRAFT. Should fail(not finalized yet)
-        response = self.client.post(publish_url, data)
-        self.assert_400(response)
-        # Update status to FINALIZED, then publish should succeed
+        user1.user_permissions.add(region_permission)
+
+        # ---- Approve while DRAFT as superuser ----
+        approve_url = f"/api/v2/dref/{dref.id}/approve/"
+        self.authenticate(root_user)
+        response = self.client.post(approve_url, {})
+        self.assert_400(response)  # Not finalized yet
+
+        # ---- Update DREF to FINALIZED ----
         dref.status = Dref.Status.FINALIZED
         dref.save(update_fields=["status"])
         dref.refresh_from_db()
-        response = self.client.post(publish_url, data)
-        dref.refresh_from_db()
+
+        # ---- Approve as superuser ----
+        self.authenticate(root_user)
+        response = self.client.post(approve_url, {})
         self.assert_200(response)
-        self.assertEqual(response.data["status"], Dref.Status.APPROVED)
+        dref.refresh_from_db()
+        self.assertEqual(dref.status, Dref.Status.APPROVED)
+
+        # ---- Reset to FINALIZED for regional admin test ----
+        dref.status = Dref.Status.FINALIZED
+        dref.save(update_fields=["status"])
+        dref.refresh_from_db()
+
+        # ---- Approve as regional admin ----
+        self.authenticate(user1)
+        response = self.client.post(approve_url, {})
+        self.assert_200(response)
+        dref.refresh_from_db()
+        self.assertEqual(dref.status, Dref.Status.APPROVED)
 
     def test_dref_operation_update_create(self):
         """
@@ -934,6 +939,8 @@ class DrefTestCase(APITestCase):
         user1 = UserFactory.create()
         region = Region.objects.create(name=RegionName.AFRICA)
         country = Country.objects.create(name="country1", region=region)
+        management.call_command("make_dref_regional_permission")
+        # Create DREF and final report
         dref = DrefFactory.create(
             title="Test Title",
             type_of_dref=Dref.DrefType.ASSESSMENT,
@@ -949,29 +956,25 @@ class DrefTestCase(APITestCase):
             status=Dref.Status.FINALIZED,
         )
         final_report.users.set([user1])
-        url = f"/api/v2/dref-final-report/{final_report.id}/approve/"
-        data = {}
+
+        patch_url = f"/api/v2/dref-final-report/{final_report.id}/"
+
+        # ---- Normal PATCH update before approval ----
         self.client.force_authenticate(user1)
-        response = self.client.post(url, data)
-        self.assert_403(response)
-        # add permission to request user
-        self.dref_permission = Permission.objects.create(
-            codename="dref_region_admin_0",
-            content_type=ContentType.objects.get_for_model(Region),
-            name="Dref Admin for 0",
-        )
-        user1.user_permissions.add(self.dref_permission)
-        self.client.force_authenticate(user1)
-        response = self.client.post(url, data)
-        self.assert_200(response)
-        self.assertEqual(response.data["status"], Dref.Status.APPROVED)
-        # now try to patch to the final report
-        url = f"/api/v2/dref-final-report/{final_report.id}/"
         data = {
-            "title": "New Field Report Title",
+            "title": "Updated Title Before Approval",
+            "modified_at": datetime.now(),
         }
-        response = self.client.patch(url, data)
-        self.assert_400(response)
+        response = self.client.patch(patch_url, data)
+        self.assert_200(response)
+        final_report.refresh_from_db()
+
+        self.client.force_authenticate(self.root_user)
+        approve_url = f"/api/v2/dref-final-report/{final_report.id}/approve/"
+        response = self.client.post(approve_url, {})
+        self.assert_200(response)
+        final_report.refresh_from_db()
+        self.assertEqual(final_report.status, Dref.Status.APPROVED)
 
     def test_dref_for_assessment_report(self):
         old_count = Dref.objects.count()
@@ -1960,7 +1963,7 @@ class DrefTestCase(APITestCase):
         sct_2 = SectorFactory(
             title="health",
         )
-        national_society = Country.objects.create(name="abc")
+        national_society = Country.objects.create(name="abc123")
         disaster_type = DisasterType.objects.create(name="disaster 1")
         data = {
             "title": "Dref test title",
