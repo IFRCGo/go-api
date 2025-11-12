@@ -115,6 +115,7 @@ class ErrorWriter:
 
 class BaseBulkUpload(Generic[ContextType]):
     serializer_class: Type[Serializer]
+    HEADER_MAP: dict[str, str]
 
     def __init__(self, bulk_upload: LocalUnitBulkUpload):
         if self.serializer_class is None:
@@ -152,70 +153,71 @@ class BaseBulkUpload(Generic[ContextType]):
         return False
 
     def run(self) -> None:
-        with self.bulk_upload.file.open("rb") as f:
-            try:
-                # TODO(sudip): Use read_only while reading xlsx file
-                workbook = openpyxl.load_workbook(f, data_only=True)
-                sheet = workbook.active
-                header_row_index = 2
-                data_row_index = header_row_index + 2
+        header_row_index = 2
+        data_row_index = header_row_index + 2
 
-                # Read header row
+        try:
+            with self.bulk_upload.file.open("rb") as f:
+                workbook = openpyxl.load_workbook(f, data_only=True, read_only=True)
+                sheet = workbook.active
+
                 headers = next(sheet.iter_rows(values_only=True, min_row=header_row_index, max_row=header_row_index))
                 raw_fieldnames = [str(h).strip() for h in headers if h and str(h).strip()]
-                header_map = getattr(self, "HEADER_MAP", {}) or {}
+                header_map = self.HEADER_MAP or {}
                 mapped_fieldnames = [header_map.get(h, h) for h in raw_fieldnames]
                 fieldnames = mapped_fieldnames
 
                 if self.is_excel_data_empty(sheet, data_start_row=data_row_index):
-                    raise BulkUploadError("The uploaded Excel file is empty. Please provide at least one data row.")
+                    raise BulkUploadError("The uploaded file is empty. Please provide at least one data row.")
 
                 self._validate_type(fieldnames)
-                data_rows = (
-                    row
-                    for row in sheet.iter_rows(values_only=True, min_row=4)
-                    if any(cell is not None for cell in row)  # skip the empty rows
-                )
-            except Exception as e:
-                self.bulk_upload.status = LocalUnitBulkUpload.Status.FAILED
-                self.bulk_upload.error_message = str(e)
-                self.bulk_upload.save(update_fields=["status", "error_message"])
-                logger.warning(f"[BulkUpload:{self.bulk_upload.pk}] Validation error: {str(e)}")
-                return
+                self.error_writer = ErrorWriter(fieldnames=raw_fieldnames, header_map=header_map)
+                context = self.get_context().__dict__
 
-        context = self.get_context().__dict__
-        self.error_writer = ErrorWriter(fieldnames=raw_fieldnames, header_map=header_map)
+                with transaction.atomic():
+                    self.delete_existing_local_unit()
 
-        try:
-            with transaction.atomic():
-                self.delete_existing_local_unit()
+                    for row_index, row_values in enumerate(
+                        sheet.iter_rows(values_only=True, min_row=data_row_index),
+                        start=data_row_index,
+                    ):
+                        if not any(cell is not None for cell in row_values):
+                            continue  # skip empty rows
 
-                for row_index, row_values in enumerate(data_rows, start=data_row_index):
-                    row_dict = dict(zip(fieldnames, row_values))
-                    row_dict = {**row_dict, **context}
-                    # Convert datetime objects to strings
-                    for key, value in row_dict.items():
-                        if isinstance(value, (datetime, date)):
-                            row_dict[key] = value.strftime("%Y-%m-%d")
-                    if self.process_row(row_dict):
-                        self.success_count += 1
-                        self.error_writer.write(row_dict, status=LocalUnitBulkUpload.Status.SUCCESS)
-                    else:
-                        self.failed_count += 1
-                        self.error_writer.write(
-                            row_dict,
-                            status=LocalUnitBulkUpload.Status.FAILED,
-                            error_detail=self.error_detail,
-                        )
-                        logger.warning(f"[BulkUpload:{self.bulk_upload.pk}] Row {row_index} failed")
+                        row_dict = dict(zip(fieldnames, row_values))
+                        row_dict = {**row_dict, **context}
 
-                if self.failed_count > 0:
-                    raise BulkUploadError("Bulk upload failed with some errors.")
+                        # Convert date/datetime to str
+                        for key, value in row_dict.items():
+                            if isinstance(value, (datetime, date)):
+                                row_dict[key] = value.strftime("%Y-%m-%d")
 
-                self.bulk_manager.done()
-                self._finalize_success()
+                        if self.process_row(row_dict):
+                            self.success_count += 1
+                            self.error_writer.write(row_dict, status=LocalUnitBulkUpload.Status.SUCCESS)
+                        else:
+                            self.failed_count += 1
+                            self.error_writer.write(
+                                row_dict,
+                                status=LocalUnitBulkUpload.Status.FAILED,
+                                error_detail=self.error_detail,
+                            )
+                            logger.warning(f"[BulkUpload:{self.bulk_upload.pk}] Row {row_index} failed")
 
-        except BulkUploadError:
+                    if self.failed_count > 0:
+                        raise BulkUploadError()
+
+                    self.bulk_manager.done()
+                    self._finalize_success()
+
+                workbook.close()
+
+        except Exception as e:
+            self.bulk_upload.status = LocalUnitBulkUpload.Status.FAILED
+            self.bulk_upload.error_message = str(e)
+            self.bulk_upload.save(update_fields=["status", "error_message"])
+            if isinstance(e, BulkUploadError):
+                logger.warning(f"[BulkUpload:{self.bulk_upload.pk}]  error: {e}")
             self._finalize_failure()
 
     def _finalize_success(self) -> None:

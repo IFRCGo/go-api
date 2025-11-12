@@ -1535,12 +1535,12 @@ class BulkUploadHealthDataTests(TestCase):
         cls.professional_training_facilities = ProfessionalTrainingFacility.objects.create(code=1, name="Nurses")
         cls.general_medical_services = GeneralMedicalService.objects.create(code=1, name="Minor Trauma")
 
-        file_path = os.path.join(settings.TEST_DIR, "local_unit/test-health.xlsx")
+        file_path = os.path.join(settings.TEST_DIR, "local_unit/test-health.xlsm")
         with open(file_path, "rb") as f:
             cls._file_content = f.read()
 
-    def create_upload_file(cls, filename="test-health.xlsx"):
-        return SimpleUploadedFile(filename, cls._file_content, content_type="text/xlsx")
+    def create_upload_file(cls, filename="test-health.xlsm"):
+        return SimpleUploadedFile(filename, cls._file_content, content_type="text/xlsm")
 
     def test_bulk_upload_health_with_incorrect_country(cls):
         """
@@ -1565,7 +1565,7 @@ class BulkUploadHealthDataTests(TestCase):
 
     def test_bulk_upload_health_fails_and_does_not_delete(cls):
         """
-        Should fail and keep existing LocalUnits & HealthData when CSV invalid.
+        Should fail and keep existing LocalUnits & HealthData when file invalid.
         """
         health_data = HealthDataFactory.create_batch(
             5,
@@ -1644,12 +1644,12 @@ class BulkUploadHealthDataTests(TestCase):
         """
 
         file_path = os.path.join(
-            settings.STATICFILES_DIRS[0], "files", "local_units", "Health Care Bulk Import Template - Local Units.xlsx"
+            settings.STATICFILES_DIRS[0], "files", "local_units", "Health Care Bulk Import Template - Local Units.xlsm"
         )
         with open(file_path, "rb") as f:
             file_content = f.read()
         empty_file = SimpleUploadedFile(
-            name="Health Care Bulk Import Template - Local Units.xlsx", content=file_content, content_type="text/xlsx"
+            name="Health Care Bulk Import Template - Local Units.xlsm", content=file_content, content_type="text/xlsm"
         )
         health_data = HealthDataFactory.create_batch(
             5,

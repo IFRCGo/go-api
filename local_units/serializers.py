@@ -673,6 +673,7 @@ class ExternallyManagedLocalUnitSerializer(serializers.ModelSerializer):
 
 
 class LocalUnitBulkUploadSerializer(serializers.ModelSerializer):
+    VALID_FILE_EXTENSIONS = (".xlsx", ".xlsm")
     country = serializers.PrimaryKeyRelatedField(
         queryset=Country.objects.filter(
             is_deprecated=False, independent=True, iso3__isnull=False, record_type=CountryType.COUNTRY
@@ -703,8 +704,8 @@ class LocalUnitBulkUploadSerializer(serializers.ModelSerializer):
         )
 
     def validate_file(self, file):
-        if not file.name.endswith(".xlsx"):
-            raise serializers.ValidationError(gettext("File must be a xlsx file."))
+        if not file.name.lower().endswith(self.VALID_FILE_EXTENSIONS):
+            raise serializers.ValidationError(gettext("The uploaded file must be an Excel document (.xlsx or .xlsm)."))
         if file.size > 10 * 1024 * 1024:
             raise serializers.ValidationError(gettext("File must be less than 10 MB."))
         return file
