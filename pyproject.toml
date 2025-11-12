@@ -69,7 +69,7 @@ dependencies = [
     # urllib3=1.26.12",
     "xmltodict==0.11.0",
     "xhtml2pdf==0.2.17",
-    "reportlab",  # XXX: Used by xhtml2pdf reportlab==3.6.7 breaks for now
+    "reportlab", # XXX: Used by xhtml2pdf reportlab==3.6.7 breaks for now
     "celery[redis]==5.1.2",
     "django-redis==5.0.0",
     "sentry-sdk",
@@ -78,11 +78,12 @@ dependencies = [
     "pyjwt",
     "shapely",
     "colorlog",
-    "azure-identity",  # Required by django-storages[azure] if used
+    "azure-identity", # Required by django-storages[azure] if used
     "mapbox-tilesets",
     "ipython",
     "tiktoken",
     "openai",
+    "httpx>=0.28.1",
 ]
 
 [dependency-groups]
