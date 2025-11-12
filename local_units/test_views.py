@@ -1644,12 +1644,12 @@ class BulkUploadHealthDataTests(TestCase):
         """
 
         file_path = os.path.join(
-            settings.STATICFILES_DIRS[0], "files", "local_units", "Health Care Bulk Import Template - Local Units.xlsm"
+            settings.STATICFILES_DIRS[0], "files", "local_units", "Health-Care-Bulk-Import-Template-Local-Units.xlsm"
         )
         with open(file_path, "rb") as f:
             file_content = f.read()
         empty_file = SimpleUploadedFile(
-            name="Health Care Bulk Import Template - Local Units.xlsm", content=file_content, content_type="text/xlsm"
+            name="Health-Care-Bulk-Import-Template-Local-Units.xlsm", content=file_content, content_type="text/xlsm"
         )
         health_data = HealthDataFactory.create_batch(
             5,
