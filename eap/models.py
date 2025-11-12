@@ -402,6 +402,8 @@ class EAPStatus(models.IntegerChoices):
 class EAPRegistration(EAPBaseModel):
     """Model representing the EAP Development Registration."""
 
+    Status = EAPStatus
+
     # National Society
     national_society = models.ForeignKey(
         Country,
@@ -488,7 +490,15 @@ class EAPRegistration(EAPBaseModel):
         verbose_name=_("Dref focal point phone number"), max_length=100, null=True, blank=True
     )
 
+    # TYPING
+    national_society_id = int
+    country_id = int
+    disaster_type_id = int
+    id = int
+
     class Meta:
+        # TODO(susilnem): Add ordering when created_at is added to the model.
+        # ordering = ['-created_at']
         verbose_name = _("Development Registration EAP")
         verbose_name_plural = _("Development Registration EAPs")
 
@@ -821,6 +831,7 @@ class SimplifiedEAP(EAPBaseModel):
 
     # TYPING
     eap_registration_id: int
+    id = int
 
     class Meta:
         verbose_name = _("Simplified EAP")
