@@ -235,4 +235,4 @@ class LanguageRetriveSerializer(serializers.Serializer):
 class LanguageBulkActionResponseSerializer(serializers.Serializer):
     new_strings = StringSerializer(many=True, required=False, allow_null=True)
     updated_strings = StringSerializer(many=True, required=False, allow_null=True)
-    deleted_strings_keys = serializers.ListField(allow_null=True, required=False)
+    deleted_string_ids = serializers.ListField(allow_null=True, required=False)
