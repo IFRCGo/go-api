@@ -30,7 +30,7 @@ from dref.filter_set import (
     DrefShareUserFilterSet,
 )
 from dref.models import Dref, DrefFile, DrefFinalReport, DrefOperationalUpdate
-from dref.permissions import PublishDrefPermission
+from dref.permissions import ApproveDrefPermission
 from dref.serializers import (
     AddDrefUserSerializer,
     CompletedDrefOperationsSerializer,
@@ -90,14 +90,14 @@ class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
         detail=True,
         url_path="approve",
         methods=["post"],
-        permission_classes=[permissions.IsAuthenticated, PublishDrefPermission, DenyGuestUserPermission],
+        permission_classes=[permissions.IsAuthenticated, ApproveDrefPermission, DenyGuestUserPermission],
     )
     def get_approved(self, request, pk=None, version=None):
         dref = self.get_object()
+        if dref.status == Dref.Status.APPROVED:
+            raise serializers.ValidationError(gettext("This Dref has already been approved."))
         if dref.status != Dref.Status.FINALIZED:
             raise serializers.ValidationError(gettext("Must be finalized before it can be approved"))
-        if dref.status == Dref.Status.APPROVED:
-            raise serializers.ValidationError(gettext("Dref %s is already approved" % dref))
         dref.status = Dref.Status.APPROVED
         dref.save(update_fields=["status"])
         serializer = DrefSerializer(dref, context={"request": request})
@@ -184,14 +184,16 @@ class DrefOperationalUpdateViewSet(RevisionMixin, viewsets.ModelViewSet):
         detail=True,
         url_path="approve",
         methods=["post"],
-        permission_classes=[permissions.IsAuthenticated, PublishDrefPermission, DenyGuestUserPermission],
+        permission_classes=[permissions.IsAuthenticated, ApproveDrefPermission, DenyGuestUserPermission],
     )
     def get_approved(self, request, pk=None, version=None):
         operational_update = self.get_object()
+
+        if operational_update.status == Dref.Status.APPROVED:
+            raise serializers.ValidationError(gettext("This Operational update has already been approved."))
         if operational_update.status != Dref.Status.FINALIZED:
             raise serializers.ValidationError(gettext("Must be finalized before it can be approved."))
-        if operational_update.status == Dref.Status.APPROVED:
-            raise serializers.ValidationError(gettext("Operational update %s is already approved" % operational_update))
+
         operational_update.status = Dref.Status.APPROVED
         operational_update.save(update_fields=["status"])
         serializer = DrefOperationalUpdateSerializer(operational_update, context={"request": request})
@@ -247,14 +249,16 @@ class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
         detail=True,
         url_path="approve",
         methods=["post"],
-        permission_classes=[permissions.IsAuthenticated, PublishDrefPermission, DenyGuestUserPermission],
+        permission_classes=[permissions.IsAuthenticated, ApproveDrefPermission, DenyGuestUserPermission],
     )
     def get_approved(self, request, pk=None, version=None):
         final_report = self.get_object()
+        if final_report.status == Dref.Status.APPROVED:
+            raise serializers.ValidationError(gettext("This Final Report has already been approved."))
+
         if final_report.status != Dref.Status.FINALIZED:
             raise serializers.ValidationError(gettext("Must be finalized before it can be approved."))
-        if final_report.status == Dref.Status.APPROVED:
-            raise serializers.ValidationError(gettext("Final Report %s is already approved" % final_report))
+
         final_report.status = Dref.Status.APPROVED
         final_report.save(update_fields=["status"])
         final_report.dref.is_active = False

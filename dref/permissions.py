@@ -1,7 +1,7 @@
 from django.contrib.auth.models import Permission
 from rest_framework import permissions
 
-from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
+from dref.models import DrefFinalReport, DrefOperationalUpdate
 from dref.utils import get_dref_users
 
 
@@ -35,13 +35,24 @@ class DrefFinalReportUpdatePermission(permissions.BasePermission):
         return False
 
 
-class PublishDrefPermission(permissions.BasePermission):
-    message = "You need to be regional admin to publish dref"
+class ApproveDrefPermission(permissions.BasePermission):
+    message = "You need to be Superuser or Dref Regional admin to approve"
 
     def has_object_permission(self, request, view, obj):
-        region = obj.country.region.name
-        codename = f"dref_region_admin_{region}"
+
         user = request.user
-        if Permission.objects.filter(user=user, codename=codename).exists() and obj.status != Dref.Status.APPROVED:
+        region_id = obj.country.region_id
+
+        if user.is_superuser:
+            return True
+
+        dref_region_admins_ids = [
+            int(codename.replace("dref_region_admin_", ""))
+            for codename in Permission.objects.filter(
+                group__user=user,
+                codename__startswith="dref_region_admin_",
+            ).values_list("codename", flat=True)
+        ]
+        if region_id in dref_region_admins_ids:
             return True
         return False
