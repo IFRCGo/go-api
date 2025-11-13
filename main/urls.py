@@ -56,6 +56,7 @@ from databank import views as data_bank_views
 from databank.views import CountryOverviewViewSet
 from deployments import drf_views as deployment_views
 from dref import views as dref_views
+from eap import views as eap_views
 from flash_update import views as flash_views
 from lang import views as lang_views
 from local_units import views as local_units_views
@@ -191,6 +192,11 @@ router.register(
 router.register(r"bulk-upload-local-unit", local_units_views.LocalUnitBulkUploadViewSet, basename="bulk_upload_local_unit")
 # Databank
 router.register(r"country-income", data_bank_views.FDRSIncomeViewSet, basename="country_income")
+
+# EAP(Early Action Protocol)
+router.register(r"eap-registration", eap_views.EAPRegistrationViewSet, basename="development_registration_eap")
+router.register(r"simplified-eap", eap_views.SimplifiedEAPViewSet, basename="simplified_eap")
+router.register(r"eap-file", eap_views.EAPFileViewSet, basename="eap_file")
 
 admin.site.site_header = "IFRC Go administration"
 admin.site.site_title = "IFRC Go admin"

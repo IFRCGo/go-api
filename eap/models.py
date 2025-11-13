@@ -1,8 +1,10 @@
 from django.conf import settings
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from api.models import Country, DisasterType, District
+from api.models import Admin2, Country, DisasterType, District
+from main.fields import SecureFileField
 
 
 class EarlyActionIndicator(models.Model):
@@ -174,3 +176,655 @@ class Action(models.Model):
 
     def __str__(self):
         return f"{self.id}"
+
+
+# --- Early Action Protocol --- ##
+
+
+class EAPBaseModel(models.Model):
+    """Base model for EAP models to include common fields."""
+
+    created_at = models.DateTimeField(
+        verbose_name=_("created at"),
+        auto_now_add=True,
+    )
+    modified_at = models.DateTimeField(
+        verbose_name=_("modified at"),
+        auto_now=True,
+    )
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_("created by"),
+        on_delete=models.PROTECT,
+        related_name="%(class)s_created_by",
+    )
+    modified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_("modified by"),
+        on_delete=models.PROTECT,
+        related_name="%(class)s_modified_by",
+    )
+
+    class Meta:
+        abstract = True
+
+
+class EAPFile(EAPBaseModel):
+    # TODO(susilnem): Make not nullable
+    file = SecureFileField(
+        verbose_name=_("file"),
+        upload_to="eap/files/",
+    )
+    caption = models.CharField(max_length=225, blank=True, null=True)
+
+    class Meta:
+        verbose_name = _("eap file")
+        verbose_name_plural = _("eap files")
+
+
+class OperationActivity(models.Model):
+    class TimeFrame(models.IntegerChoices):
+        YEARS = 10, _("Years")
+        MONTHS = 20, _("Months")
+        DAYS = 30, _("Days")
+        HOURS = 40, _("Hours")
+
+    activity = models.CharField(max_length=255, verbose_name=_("Activity"))
+    timeframe = models.IntegerField(choices=TimeFrame.choices, verbose_name=_("Timeframe"))
+    time_value = ArrayField(
+        base_field=models.IntegerField(),
+        verbose_name=_("Activity time span"),
+    )
+
+    class Meta:
+        verbose_name = _("Operation Activity")
+        verbose_name_plural = _("Operation Activities")
+
+    def __str__(self):
+        return f"{self.activity}"
+
+
+# TODO(susilnem): Verify indicarors?
+# class OperationIndicator(models.Model):
+#     class IndicatorChoices(models.IntegerChoices):
+#         INDICATOR_1 = 10, _("Indicator 1")
+#         INDICATOR_2 = 20, _("Indicator 2")
+#     indicator = models.IntegerField(choices=IndicatorChoices.choices, verbose_name=_("Indicator"))
+
+
+class PlannedOperation(models.Model):
+    class Sector(models.IntegerChoices):
+        SHELTER = 101, _("Shelter")
+        SETTLEMENT_AND_HOUSING = 102, _("Settlement and Housing")
+        LIVELIHOODS = 103, _("Livelihoods")
+        PROTECTION_GENDER_AND_INCLUSION = 104, _("Protection, Gender and Inclusion")
+        HEALTH_AND_CARE = 105, _("Health and Care")
+        RISK_REDUCTION = 106, _("Risk Reduction")
+        CLIMATE_ADAPTATION_AND_RECOVERY = 107, _("Climate Adaptation and Recovery")
+        MULTIPURPOSE_CASH = 108, _("Multipurpose Cash")
+        WATER_SANITATION_AND_HYGIENE = 109, _("Water, Sanitation And Hygiene")
+        WASH = 110, _("WASH")
+        EDUCATION = 111, _("Education")
+        MIGRATION = 112, _("Migration")
+        ENVIRONMENT_SUSTAINABILITY = 113, _("Environment Sustainability")
+        COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY = 114, _("Community Engagement And Accountability")
+
+    sector = models.IntegerField(choices=Sector.choices, verbose_name=_("sector"))
+    people_targeted = models.IntegerField(verbose_name=_("People Targeted"))
+    budget_per_sector = models.IntegerField(verbose_name=_("Budget per sector (CHF)"))
+    ap_code = models.IntegerField(verbose_name=_("AP Code"), null=True, blank=True)
+
+    # TODO(susilnem): verify indicators?
+
+    # indicators = models.ManyToManyField(
+    #     OperationIndicator,
+    #     verbose_name=_("Operation Indicators"),
+    #     blank=True,
+    # )
+
+    # Activities
+    readiness_activities = models.ManyToManyField(
+        OperationActivity,
+        verbose_name=_("Readiness Activities"),
+        related_name="planned_operations_readiness_activities",
+        blank=True,
+    )
+    prepositioning_activities = models.ManyToManyField(
+        OperationActivity,
+        verbose_name=_("Pre-positioning Activities"),
+        related_name="planned_operations_prepositioning_activities",
+        blank=True,
+    )
+    early_action_activities = models.ManyToManyField(
+        OperationActivity,
+        verbose_name=_("Early Action Activities"),
+        related_name="planned_operations_early_action_activities",
+        blank=True,
+    )
+
+    class Meta:
+        verbose_name = _("Planned Operation")
+        verbose_name_plural = _("Planned Operations")
+
+    def __str__(self):
+        return f"Planned Operation - {self.get_sector_display()}"
+
+
+class EnableApproach(models.Model):
+    class Approach(models.IntegerChoices):
+        SECRETARIAT_SERVICES = 10, _("Secretariat Services")
+        NATIONAL_SOCIETY_STRENGTHENING = 20, _("National Society Strengthening")
+        PARTNERSHIP_AND_COORDINATION = 30, _("Partnership And Coordination")
+
+    approach = models.IntegerField(choices=Approach.choices, verbose_name=_("Approach"))
+    budget_per_approach = models.IntegerField(verbose_name=_("Budget per approach (CHF)"))
+    ap_code = models.IntegerField(verbose_name=_("AP Code"), null=True, blank=True)
+    indicator_target = models.IntegerField(verbose_name=_("Indicator Target"), null=True, blank=True)
+
+    # TODO(susilnem): verify indicators?
+    # indicators = models.ManyToManyField(
+    #     OperationIndicator,
+    #     verbose_name=_("Operation Indicators"),
+    #     blank=True,
+    # )
+
+    # Activities
+    readiness_activities = models.ManyToManyField(
+        OperationActivity,
+        verbose_name=_("Readiness Activities"),
+        related_name="enable_approach_readiness_activities",
+        blank=True,
+    )
+    prepositioning_activities = models.ManyToManyField(
+        OperationActivity,
+        verbose_name=_("Pre-positioning Activities"),
+        related_name="enable_approach_prepositioning_activities",
+        blank=True,
+    )
+    early_action_activities = models.ManyToManyField(
+        OperationActivity,
+        verbose_name=_("Early Action Activities"),
+        related_name="enable_approach_early_action_activities",
+        blank=True,
+    )
+
+    class Meta:
+        verbose_name = _("Enable Approach")
+        verbose_name_plural = _("Enable Approaches")
+
+    def __str__(self):
+        return f"Enable Approach - {self.get_approach_display()}"
+
+
+class EAPType(models.IntegerChoices):
+    """Enum representing the type of EAP."""
+
+    FULL_EAP = 10, _("Full EAP")
+    """Full EAP Application """
+
+    SIMPLIFIED_EAP = 20, _("Simplified EAP")
+    """Simplified EAP Application """
+
+
+class EAPStatus(models.IntegerChoices):
+    """Enum representing the status of a EAP."""
+
+    UNDER_DEVELOPMENT = 10, _("Under Development")
+    """Initial status when an EAP is being created."""
+
+    UNDER_REVIEW = 20, _("Under Review")
+    """ EAP has been submitted by NS. It is under review by IFRC and/or technical partners."""
+
+    NS_ADDRESSING_COMMENTS = 30, _("NS Addressing Comments")
+    """NS is addressing comments provided during the review process.
+    IFRC has to upload review checklist.
+    EAP can be changed to UNDER_REVIEW once comments have been addressed.
+    """
+
+    TECHNICALLY_VALIDATED = 40, _("Technically Validated")
+    """EAP has been technically validated by IFRC and/or technical partners.
+    """
+
+    APPROVED = 50, _("Approved")
+    """IFRC has to upload validated budget file.
+    Cannot be changed back to previous statuses.
+    """
+
+    PFA_SIGNED = 60, _("PFA Signed")
+    """EAP should be APPROVED before changing to this status."""
+
+    ACTIVATED = 70, _("Activated")
+    """EAP has been activated"""
+
+
+# BASE MODEL FOR EAP
+class EAPRegistration(EAPBaseModel):
+    """Model representing the EAP Development Registration."""
+
+    # National Society
+    national_society = models.ForeignKey(
+        Country,
+        on_delete=models.CASCADE,
+        verbose_name=_("National Society (NS)"),
+        help_text=_("Select National Society that is planning to apply for the EAP"),
+        related_name="development_registration_eap_national_society",
+    )
+    country = models.ForeignKey(
+        Country,
+        on_delete=models.CASCADE,
+        verbose_name=_("Country"),
+        help_text=_("The country will be pre-populated based on the NS selection, but can be adapted as needed."),
+        related_name="development_registration_eap_country",
+    )
+
+    # Disaster
+    disaster_type = models.ForeignKey[DisasterType, DisasterType](
+        DisasterType,
+        verbose_name=("Disaster Type"),
+        on_delete=models.PROTECT,
+        help_text=_("Select the disaster type for which the EAP is needed"),
+    )
+    eap_type = models.IntegerField(
+        choices=EAPType.choices,
+        verbose_name=_("EAP Type"),
+        help_text=_("Select the type of EAP."),
+        null=True,
+        blank=True,
+    )
+    status = models.IntegerField(
+        choices=EAPStatus.choices,
+        verbose_name=_("EAP Status"),
+        default=EAPStatus.UNDER_DEVELOPMENT,
+        help_text=_("Select the current status of the EAP development process."),
+    )
+
+    expected_submission_time = models.DateField(
+        verbose_name=_("Expected submission time"),
+        help_text=_(
+            "Include the propose time of submission, accounting for the time it will take to deliver the application."
+            "Leave blank if not sure."
+        ),
+        blank=True,
+        null=True,
+    )
+
+    partners = models.ManyToManyField(
+        Country,
+        verbose_name=_("Partners"),
+        help_text=_("Select any partner NS involved in the EAP development."),
+        related_name="development_registration_eap_partners",
+        blank=True,
+    )
+
+    # Contacts
+    # National Society
+    national_society_contact_name = models.CharField(
+        verbose_name=_("national society contact name"), max_length=255, null=True, blank=True
+    )
+    national_society_contact_title = models.CharField(
+        verbose_name=_("national society contact title"), max_length=255, null=True, blank=True
+    )
+    national_society_contact_email = models.CharField(
+        verbose_name=_("national society contact email"), max_length=255, null=True, blank=True
+    )
+    national_society_contact_phone_number = models.CharField(
+        verbose_name=_("national society contact phone number"), max_length=100, null=True, blank=True
+    )
+
+    # IFRC Contact
+    ifrc_contact_name = models.CharField(verbose_name=_("IFRC contact name "), max_length=255, null=True, blank=True)
+    ifrc_contact_email = models.CharField(verbose_name=_("IFRC contact email"), max_length=255, null=True, blank=True)
+    ifrc_contact_title = models.CharField(verbose_name=_("IFRC contact title"), max_length=255, null=True, blank=True)
+    ifrc_contact_phone_number = models.CharField(
+        verbose_name=_("IFRC contact phone number"), max_length=100, null=True, blank=True
+    )
+
+    # DREF Focal Point
+    dref_focal_point_name = models.CharField(verbose_name=_("dref focal point name"), max_length=255, null=True, blank=True)
+    dref_focal_point_email = models.CharField(verbose_name=_("Dref focal point email"), max_length=255, null=True, blank=True)
+    dref_focal_point_title = models.CharField(verbose_name=_("Dref focal point title"), max_length=255, null=True, blank=True)
+    dref_focal_point_phone_number = models.CharField(
+        verbose_name=_("Dref focal point phone number"), max_length=100, null=True, blank=True
+    )
+
+    class Meta:
+        verbose_name = _("Development Registration EAP")
+        verbose_name_plural = _("Development Registration EAPs")
+
+    def __str__(self):
+        # NOTE: Use select_related in admin get_queryset for national_society field to avoid extra queries
+        return f"EAP Development Registration - {self.national_society} - {self.disaster_type} - {self.get_eap_type_display()}"
+
+    @property
+    def has_eap_application(self) -> bool:
+        """Check if the EAP Registration has an associated EAP application."""
+        # TODO(susilnem): Add FULL EAP check, when model is created.
+        return hasattr(self, "simplified_eap")
+
+    @property
+    def get_status_enum(self) -> EAPStatus:
+        """Get the status as an EAPStatus enum."""
+        return EAPStatus(self.status)
+
+    @property
+    def get_eap_type_enum(self) -> EAPType | None:
+        """Get the EAP type as an EAPType enum."""
+        if self.eap_type is not None:
+            return EAPType(self.eap_type)
+        return None
+
+    def update_status(self, status: EAPStatus, commit: bool = True):
+        self.status = status
+        if commit:
+            self.save(update_fields=("status",))
+
+    def update_eap_type(self, eap_type: EAPType, commit: bool = True):
+        self.eap_type = eap_type
+        if commit:
+            self.save(update_fields=("eap_type",))
+
+
+class SimplifiedEAP(EAPBaseModel):
+    """Model representing a Simplified EAP."""
+
+    eap_registration = models.OneToOneField[EAPRegistration, EAPRegistration](
+        EAPRegistration,
+        on_delete=models.CASCADE,
+        verbose_name=_("EAP Development Registration"),
+        related_name="simplified_eap",
+    )
+
+    cover_image = models.ForeignKey[EAPFile | None, EAPFile | None](
+        EAPFile,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        verbose_name=_("cover image"),
+        related_name="cover_image_simplified_eap",
+    )
+    seap_timeframe = models.IntegerField(
+        verbose_name=_("sEAP Timeframe (Years)"),
+        help_text=_("A simplified EAP has a timeframe of 2 years unless early action are activated."),
+    )
+
+    # Contacts
+    # National Society
+    national_society_contact_name = models.CharField(
+        verbose_name=_("national society contact name"), max_length=255, null=True, blank=True
+    )
+    national_society_contact_title = models.CharField(
+        verbose_name=_("national society contact title"), max_length=255, null=True, blank=True
+    )
+    national_society_contact_email = models.CharField(
+        verbose_name=_("national society contact email"), max_length=255, null=True, blank=True
+    )
+    national_society_contact_phone_number = models.CharField(
+        verbose_name=_("national society contact phone number"), max_length=100, null=True, blank=True
+    )
+
+    # Partners NS
+    partner_ns_name = models.CharField(verbose_name=_("Partner NS name"), max_length=255, null=True, blank=True)
+    partner_ns_email = models.CharField(verbose_name=_("Partner NS email"), max_length=255, null=True, blank=True)
+    partner_ns_title = models.CharField(verbose_name=_("Partner NS title"), max_length=255, null=True, blank=True)
+    partner_ns_phone_number = models.CharField(verbose_name=_("Partner NS phone number"), max_length=100, null=True, blank=True)
+
+    # Delegations
+    ifrc_delegation_focal_point_name = models.CharField(
+        verbose_name=_("IFRC delegation focal point name"), max_length=255, null=True, blank=True
+    )
+    ifrc_delegation_focal_point_email = models.CharField(
+        verbose_name=_("IFRC delegation focal point email"), max_length=255, null=True, blank=True
+    )
+    ifrc_delegation_focal_point_title = models.CharField(
+        verbose_name=_("IFRC delegation focal point title"), max_length=255, null=True, blank=True
+    )
+    ifrc_delegation_focal_point_phone_number = models.CharField(
+        verbose_name=_("IFRC delegation focal point phone number"), max_length=100, null=True, blank=True
+    )
+
+    ifrc_head_of_delegation_name = models.CharField(
+        verbose_name=_("IFRC head of delegation name"), max_length=255, null=True, blank=True
+    )
+    ifrc_head_of_delegation_email = models.CharField(
+        verbose_name=_("IFRC head of delegation email"), max_length=255, null=True, blank=True
+    )
+    ifrc_head_of_delegation_title = models.CharField(
+        verbose_name=_("IFRC head of delegation title"), max_length=255, null=True, blank=True
+    )
+    ifrc_head_of_delegation_phone_number = models.CharField(
+        verbose_name=_("IFRC head of delegation phone number"), max_length=100, null=True, blank=True
+    )
+
+    # Regional and Global
+    # DREF Focal Point
+    dref_focal_point_name = models.CharField(verbose_name=_("dref focal point name"), max_length=255, null=True, blank=True)
+    dref_focal_point_email = models.CharField(verbose_name=_("Dref focal point email"), max_length=255, null=True, blank=True)
+    dref_focal_point_title = models.CharField(verbose_name=_("Dref focal point title"), max_length=255, null=True, blank=True)
+    dref_focal_point_phone_number = models.CharField(
+        verbose_name=_("Dref focal point phone number"), max_length=100, null=True, blank=True
+    )
+
+    # Regional
+    ifrc_regional_focal_point_name = models.CharField(
+        verbose_name=_("IFRC regional focal point name"), max_length=255, null=True, blank=True
+    )
+    ifrc_regional_focal_point_email = models.CharField(
+        verbose_name=_("IFRC regional focal point email"), max_length=255, null=True, blank=True
+    )
+    ifrc_regional_focal_point_title = models.CharField(
+        verbose_name=_("IFRC regional focal point title"), max_length=255, null=True, blank=True
+    )
+    ifrc_regional_focal_point_phone_number = models.CharField(
+        verbose_name=_("IFRC regional focal point phone number"), max_length=100, null=True, blank=True
+    )
+
+    # Regional Ops Manager
+    ifrc_regional_ops_manager_name = models.CharField(
+        verbose_name=_("IFRC regional ops manager name"), max_length=255, null=True, blank=True
+    )
+    ifrc_regional_ops_manager_email = models.CharField(
+        verbose_name=_("IFRC regional ops manager email"), max_length=255, null=True, blank=True
+    )
+    ifrc_regional_ops_manager_title = models.CharField(
+        verbose_name=_("IFRC regional ops manager title"), max_length=255, null=True, blank=True
+    )
+    ifrc_regional_ops_manager_phone_number = models.CharField(
+        verbose_name=_("IFRC regional ops manager phone number"), max_length=100, null=True, blank=True
+    )
+
+    # Regional Head DCC
+    ifrc_regional_head_dcc_name = models.CharField(
+        verbose_name=_("IFRC regional head of DCC name"), max_length=255, null=True, blank=True
+    )
+    ifrc_regional_head_dcc_email = models.CharField(
+        verbose_name=_("IFRC regional head of DCC email"), max_length=255, null=True, blank=True
+    )
+    ifrc_regional_head_dcc_title = models.CharField(
+        verbose_name=_("IFRC regional head of DCC title"), max_length=255, null=True, blank=True
+    )
+    ifrc_regional_head_dcc_phone_number = models.CharField(
+        verbose_name=_("IFRC regional head of DCC phone number"), max_length=100, null=True, blank=True
+    )
+
+    # Global Ops Manager
+    ifrc_global_ops_coordinator_name = models.CharField(
+        verbose_name=_("IFRC global ops coordinator name"), max_length=255, null=True, blank=True
+    )
+    ifrc_global_ops_coordinator_email = models.CharField(
+        verbose_name=_("IFRC global ops coordinator email"), max_length=255, null=True, blank=True
+    )
+    ifrc_global_ops_coordinator_title = models.CharField(
+        verbose_name=_("IFRC global ops coordinator title"), max_length=255, null=True, blank=True
+    )
+    ifrc_global_ops_coordinator_phone_number = models.CharField(
+        verbose_name=_("IFRC global ops coordinator phone number"), max_length=100, null=True, blank=True
+    )
+
+    # RISK ANALYSIS and EARLY ACTION SELECTION #
+
+    # RISK ANALYSIS #
+    prioritized_hazard_and_impact = models.TextField(
+        verbose_name=_("Prioritized Hazard and its  historical impact."),
+        null=True,
+        blank=True,
+    )
+    hazard_impact_file = models.ManyToManyField(
+        EAPFile,
+        verbose_name=_("Hazard Impact Files"),
+        related_name="simplified_eap_hazard_impact_files",
+        blank=True,
+    )
+
+    risks_selected_protocols = models.TextField(
+        verbose_name=_("Risk selected for the protocols."),
+        null=True,
+        blank=True,
+    )
+
+    risk_selected_protocols_file = models.ManyToManyField(
+        EAPFile,
+        verbose_name=_("Risk Selected Protocols Files"),
+        related_name="simplified_eap_risk_selected_protocols_files",
+        blank=True,
+    )
+
+    # EARLY ACTION SELECTION #
+    selected_early_actions = models.TextField(
+        verbose_name=_("Selected Early Actions"),
+        null=True,
+        blank=True,
+    )
+    selected_early_actions_file = models.ManyToManyField(
+        EAPFile,
+        verbose_name=_("Selected Early Actions Files"),
+        related_name="simplified_eap_selected_early_actions_files",
+        blank=True,
+    )
+
+    # EARLY ACTION INTERVENTION #
+    overall_objective_intervention = models.TextField(
+        verbose_name=_("Overall objective of the intervention"),
+        help_text=_("Provide an objective statement that describe the main of the intervention."),
+        null=True,
+        blank=True,
+    )
+
+    potential_geographical_high_risk_areas = models.TextField(
+        verbose_name=_("Potential geographical high-risk areas"),
+        null=True,
+        blank=True,
+    )
+
+    admin2 = models.ManyToManyField(
+        Admin2,
+        verbose_name=_("admin2"),
+        blank=True,
+    )
+
+    people_targeted = models.IntegerField(
+        verbose_name=_("People Targeted."),
+        null=True,
+        blank=True,
+    )
+    assisted_through_operation = models.TextField(
+        verbose_name=_("Assisted through the operation"),
+        null=True,
+        blank=True,
+    )
+    selection_criteria = models.TextField(
+        verbose_name=_("Selection Criteria."),
+        help_text=_("Explain the selection criteria for who will be targeted"),
+        null=True,
+        blank=True,
+    )
+
+    trigger_statement = models.TextField(
+        verbose_name=_("Trigger Statement"),
+        null=True,
+        blank=True,
+    )
+
+    seap_lead_time = models.IntegerField(
+        verbose_name=_("sEAP Lead Time (Hours)"),
+        null=True,
+        blank=True,
+    )
+    operational_timeframe = models.IntegerField(
+        verbose_name=_("Operational Timeframe (Months)"),
+        null=True,
+        blank=True,
+    )
+    trigger_threshold_justification = models.TextField(
+        verbose_name=_("Trigger Threshold Justification"),
+        help_text=_("Explain how the trigger were set and provide information"),
+        null=True,
+        blank=True,
+    )
+    next_step_towards_full_eap = models.TextField(
+        verbose_name=_("Next Steps towards Full EAP"),
+    )
+
+    # PLANNED OPEATIONS #
+    planned_operations = models.ManyToManyField(
+        PlannedOperation,
+        verbose_name=_("Planned Operations"),
+        blank=True,
+    )
+
+    # ENABLE APPROACHES #
+    enable_approaches = models.ManyToManyField(
+        EnableApproach,
+        verbose_name=_("Enabling Approaches"),
+        related_name="simplified_eap_enable_approaches",
+        blank=True,
+    )
+
+    # CONDITION TO DELIVER AND BUDGET #
+
+    # RISK ANALYSIS #
+
+    early_action_capability = models.TextField(
+        verbose_name=_("Experience or Capacity to implement Early Action."),
+        help_text=_("Assumptions or minimum conditions needed to deliver the early actions."),
+        null=True,
+        blank=True,
+    )
+    rcrc_movement_involvement = models.TextField(
+        verbose_name=_("RCRC Movement Involvement."),
+        help_text=_("RCRC Movement partners, Governmental/other agencies consulted/involved."),
+        null=True,
+        blank=True,
+    )
+
+    # BUDGET #
+    total_budget = models.IntegerField(
+        verbose_name=_("Total Budget (CHF)"),
+    )
+    readiness_budget = models.IntegerField(
+        verbose_name=_("Readiness Budget (CHF)"),
+    )
+    pre_positioning_budget = models.IntegerField(
+        verbose_name=_("Pre-positioning Budget (CHF)"),
+    )
+    early_action_budget = models.IntegerField(
+        verbose_name=_("Early Actions Budget (CHF)"),
+    )
+
+    # BUDGET DETAILS #
+    budget_file = SecureFileField(
+        verbose_name=_("Budget File"),
+        upload_to="eap/simplified_eap/budget_files/",
+        null=True,
+        blank=True,
+    )
+
+    # TYPING
+    eap_registration_id: int
+
+    class Meta:
+        verbose_name = _("Simplified EAP")
+        verbose_name_plural = _("Simplified EAPs")
+
+    def __str__(self):
+        return f"Simplified EAP for {self.eap_registration}"
