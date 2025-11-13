@@ -6,11 +6,17 @@ from rest_framework.decorators import action
 
 from eap.filter_set import EAPRegistrationFilterSet, SimplifiedEAPFilterSet
 from eap.models import EAPFile, EAPRegistration, SimplifiedEAP
+from eap.permissions import (
+    EAPBasePermission,
+    EAPRegistrationPermissions,
+    EAPValidatedBudgetPermission,
+)
 from eap.serializers import (
     EAPFileInputSerializer,
     EAPFileSerializer,
     EAPRegistrationSerializer,
     EAPStatusSerializer,
+    EAPValidatedBudgetFileSerializer,
     SimplifiedEAPSerializer,
 )
 from main.permissions import DenyGuestUserMutationPermission, DenyGuestUserPermission
@@ -30,7 +36,7 @@ class EAPRegistrationViewSet(EAPModelViewSet):
     queryset = EAPRegistration.objects.all()
     lookup_field = "id"
     serializer_class = EAPRegistrationSerializer
-    permission_classes = [permissions.IsAuthenticated, DenyGuestUserMutationPermission]
+    permission_classes = [permissions.IsAuthenticated, DenyGuestUserMutationPermission, EAPRegistrationPermissions]
     filterset_class = EAPRegistrationFilterSet
 
     def get_queryset(self) -> QuerySet[EAPRegistration]:
@@ -71,13 +77,34 @@ class EAPRegistrationViewSet(EAPModelViewSet):
         serializer.save()
         return response.Response(serializer.data)
 
+    @action(
+        detail=True,
+        url_path="upload-validated-budget-file",
+        methods=["post"],
+        serializer_class=EAPValidatedBudgetFileSerializer,
+        permission_classes=[permissions.IsAuthenticated, DenyGuestUserPermission, EAPValidatedBudgetPermission],
+    )
+    def upload_validated_budget_file(
+        self,
+        request,
+        id: int,
+    ):
+        eap_registration = self.get_object()
+        serializer = self.get_serializer(
+            eap_registration,
+            data=request.data,
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return response.Response(serializer.data)
+
 
 class SimplifiedEAPViewSet(EAPModelViewSet):
     queryset = SimplifiedEAP.objects.all()
     lookup_field = "id"
     serializer_class = SimplifiedEAPSerializer
     filterset_class = SimplifiedEAPFilterSet
-    permission_classes = [permissions.IsAuthenticated, DenyGuestUserMutationPermission]
+    permission_classes = [permissions.IsAuthenticated, DenyGuestUserMutationPermission, EAPBasePermission]
 
     def get_queryset(self) -> QuerySet[SimplifiedEAP]:
         return (

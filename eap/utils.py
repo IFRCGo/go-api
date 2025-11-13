@@ -1,5 +1,4 @@
-from django.contrib.auth.models import Permission
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Permission, User
 
 
 def has_country_permission(user: User, country_id: int) -> bool:
