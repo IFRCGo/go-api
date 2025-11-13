@@ -1,6 +1,7 @@
 import typing
 
 from django.contrib.auth.models import User
+from django.utils import timezone
 from django.utils.translation import gettext
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
@@ -111,6 +112,28 @@ class EAPRegistrationSerializer(
         if instance.has_eap_application:
             raise serializers.ValidationError("Cannot update EAP Registration once application is being created.")
         return super().update(instance, validated_data)
+
+
+class EAPValidatedBudgetFileSerializer(serializers.ModelSerializer):
+    validated_budget_file = serializers.FileField(required=True)
+
+    class Meta:
+        model = EAPRegistration
+        fields = [
+            "id",
+            "validated_budget_file",
+        ]
+
+    def validate(self, validated_data: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        assert self.instance is not None, "EAP instance does not exist."
+        if self.instance.get_status_enum != EAPRegistration.Status.TECHNICALLY_VALIDATED:
+            raise serializers.ValidationError(
+                gettext("Validated budget file can only be uploaded when EAP status is %s."),
+                EAPRegistration.Status.TECHNICALLY_VALIDATED.label,
+            )
+
+        validate_file_type(validated_data["validated_budget_file"])
+        return validated_data
 
 
 class EAPFileInputSerializer(serializers.Serializer):
@@ -245,10 +268,10 @@ VALID_IFRC_EAP_STATUS_TRANSITIONS = set(
         (EAPRegistration.Status.UNDER_DEVELOPMENT, EAPRegistration.Status.UNDER_REVIEW),
         (EAPRegistration.Status.UNDER_REVIEW, EAPRegistration.Status.NS_ADDRESSING_COMMENTS),
         (EAPRegistration.Status.NS_ADDRESSING_COMMENTS, EAPRegistration.Status.UNDER_REVIEW),
-        (EAPRegistration.Status.NS_ADDRESSING_COMMENTS, EAPRegistration.Status.TECHNICALLY_VALIDATED),
         (EAPRegistration.Status.UNDER_REVIEW, EAPRegistration.Status.TECHNICALLY_VALIDATED),
         (EAPRegistration.Status.TECHNICALLY_VALIDATED, EAPRegistration.Status.APPROVED),
-        (EAPRegistration.Status.APPROVED, EAPRegistration.Status.ACTIVATED),
+        (EAPRegistration.Status.APPROVED, EAPRegistration.Status.PFA_SIGNED),
+        (EAPRegistration.Status.PFA_SIGNED, EAPRegistration.Status.ACTIVATED),
     ]
 )
 
@@ -297,12 +320,28 @@ class EAPStatusSerializer(BaseEAPSerializer):
             #             "Review checklist file must be uploaded before changing status to %s."
             #         ) % EAPRegistration.Status(new_status).label
             #     )
+        elif (current_status, new_status) == (
+            EAPRegistration.Status.UNDER_REVIEW,
+            EAPRegistration.Status.TECHNICALLY_VALIDATED,
+        ):
+            if not is_user_ifrc_admin(user):
+                raise PermissionDenied(
+                    gettext("You do not have permission to change status to %s.") % EAPRegistration.Status(new_status).label
+                )
+
+            # Update timestamp
+            self.instance.technically_validated_at = timezone.now()
+            self.instance.save(
+                update_fields=[
+                    "technically_validated_at",
+                ]
+            )
 
         elif (current_status, new_status) == (
             EAPRegistration.Status.NS_ADDRESSING_COMMENTS,
             EAPRegistration.Status.UNDER_REVIEW,
         ):
-            if not has_country_permission(user, self.instance.national_society_id):
+            if not (has_country_permission(user, self.instance.national_society_id) or is_user_ifrc_admin(user)):
                 raise PermissionDenied(
                     gettext("You do not have permission to change status to %s.") % EAPRegistration.Status(new_status).label
                 )
@@ -324,12 +363,41 @@ class EAPStatusSerializer(BaseEAPSerializer):
                     gettext("You do not have permission to change status to %s.") % EAPRegistration.Status(new_status).label
                 )
 
-            # TODO(susilnem): Check if validated budget file has been uploaded.
-            # if not self.instance.validated_budget_file:
-            #     raise serializers.ValidationError(
-            #         gettext(
-            #             "Validated budget file must be uploaded before changing status to %s."
-            #         ) % EAPRegistration.Status(new_status).label
-            #     )
+            if not self.instance.validated_budget_file:
+                raise serializers.ValidationError(
+                    gettext("Validated budget file must be uploaded before changing status to %s.")
+                    % EAPRegistration.Status(new_status).label
+                )
 
+            # Update timestamp
+            self.instance.approved_at = timezone.now()
+            self.instance.save(
+                update_fields=[
+                    "approved_at",
+                ]
+            )
+
+        elif (current_status, new_status) == (
+            EAPRegistration.Status.APPROVED,
+            EAPRegistration.Status.PFA_SIGNED,
+        ):
+            # Update timestamp
+            self.instance.pfa_signed_at = timezone.now()
+            self.instance.save(
+                update_fields=[
+                    "pfa_signed_at",
+                ]
+            )
+
+        elif (current_status, new_status) == (
+            EAPRegistration.Status.PFA_SIGNED,
+            EAPRegistration.Status.ACTIVATED,
+        ):
+            # Update timestamp
+            self.instance.activated_at = timezone.now()
+            self.instance.save(
+                update_fields=[
+                    "activated_at",
+                ]
+            )
         return new_status
