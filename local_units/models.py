@@ -203,6 +203,7 @@ class HealthData(models.Model):
         null=True,
         blank=True,
     )
+
     ambulance_type_a = models.IntegerField(verbose_name=_("Ambulance Type A"), blank=True, null=True)
     ambulance_type_b = models.IntegerField(verbose_name=_("Ambulance Type B"), blank=True, null=True)
     ambulance_type_c = models.IntegerField(verbose_name=_("Ambulance Type C"), blank=True, null=True)
