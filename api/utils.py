@@ -156,3 +156,57 @@ class RegionValidator(TypedDict):
 class CountryValidator(TypedDict):
     country: int
     local_unit_types: list[int]
+
+
+# --- Snippet embed helpers ---
+def parse_snippet_embed(html: str) -> Optional[dict]:
+    """
+    Parse supported embed metadata from an HTML snippet.
+
+    Convention: use a lightweight container tag with data-attributes, e.g.
+      <div class="embed-power-bi" data-snippet-type="power_bi" data-report-id="<GUID>" data-auth-required="true"></div>
+
+    Returns a dict like {"type": "power_bi", "report_id": "...", "auth_required": True}
+    if detected; otherwise None.
+
+    Notes:
+    - No script parsing; explicit data- attributes only.
+    - auth_required defaults to True when missing.
+    """
+    if not html:
+        return None
+
+    try:
+        # Simple, safe regex extraction without executing or parsing scripts
+        import re
+
+        # Look for a tag with data-snippet-type="power_bi"
+        type_match = re.search(r'data-snippet-type\s*=\s*"(power_bi)"', html, re.IGNORECASE)
+        if not type_match:
+            return None
+
+        # Extract report-id or embed-url
+        report_id_match = re.search(r'data-report-id\s*=\s*"([^"]+)"', html)
+        embed_url_match = re.search(r'data-embed-url\s*=\s*"([^"]+)"', html)
+
+        report_id = report_id_match.group(1) if report_id_match else None
+        embed_url = embed_url_match.group(1) if embed_url_match else None
+
+        # auth-required (defaults true)
+        auth_match = re.search(r'data-auth-required\s*=\s*"?(true|false)"?', html, re.IGNORECASE)
+        auth_required = True
+        if auth_match:
+            auth_required = auth_match.group(1).lower() == "true"
+
+        result = {
+            "type": "power_bi",
+            "auth_required": auth_required,
+        }
+        if report_id:
+            result["report_id"] = report_id
+        if embed_url:
+            result["embed_url"] = embed_url
+        return result
+    except Exception:
+        # Be resilient – any parsing issue just returns None
+        return None
