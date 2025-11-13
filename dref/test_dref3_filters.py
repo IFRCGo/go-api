@@ -204,3 +204,46 @@ class Dref3FilterTests(APITestCase):
         appeal_a_statuses = {r["status_display"] for r in rows if r["appeal_id"] == "APPEAL_A"}
         # Expected labels
         assert {"Approved", "Finalized", "Draft"}.issubset(appeal_a_statuses)
+
+    def test_is_latest_stage_flag_progression(self):
+        """Verify is_latest_stage shifts to the newest approved stage only."""
+        self.authenticate(self.superuser)
+        # Initial: all DRAFT -> no latest stage
+        resp_initial = self.client.get(f"/api/v2/dref3/{self.dref_a.appeal_code}/")
+        self.assertEqual(resp_initial.status_code, status.HTTP_200_OK)
+        data_initial = resp_initial.json()
+        assert all(not row.get("is_latest_stage") for row in data_initial)
+
+        # Approve application
+        self.dref_a.status = Dref.Status.APPROVED
+        self.dref_a.save(update_fields=["status"])
+        resp_after_app = self.client.get(f"/api/v2/dref3/{self.dref_a.appeal_code}/")
+        self.assertEqual(resp_after_app.status_code, status.HTTP_200_OK)
+        data_after_app = resp_after_app.json()
+        # Application should be latest stage
+        latest_flags = [row.get("is_latest_stage") for row in data_after_app]
+        assert any(latest_flags), "Expected one latest stage after application approval"
+        app_rows = [row for row in data_after_app if row["stage"] == "Application"]
+        assert app_rows and app_rows[0]["is_latest_stage"] is True
+
+        # Approve operational update -> flag moves
+        self.op_a1.status = Dref.Status.APPROVED
+        self.op_a1.save(update_fields=["status"])
+        resp_after_op = self.client.get(f"/api/v2/dref3/{self.dref_a.appeal_code}/")
+        self.assertEqual(resp_after_op.status_code, status.HTTP_200_OK)
+        data_after_op = resp_after_op.json()
+        app_row = [r for r in data_after_op if r["stage"] == "Application"][0]
+        op_row = [r for r in data_after_op if r["stage"].startswith("Operational Update")][0]
+        assert app_row["is_latest_stage"] is False
+        assert op_row["is_latest_stage"] is True
+
+        # Approve final report -> flag moves again
+        self.final_a.status = Dref.Status.APPROVED
+        self.final_a.save(update_fields=["status"])
+        resp_after_fr = self.client.get(f"/api/v2/dref3/{self.dref_a.appeal_code}/")
+        self.assertEqual(resp_after_fr.status_code, status.HTTP_200_OK)
+        data_after_fr = resp_after_fr.json()
+        fr_row = [r for r in data_after_fr if r["stage"] == "Final Report"][0]
+        op_row = [r for r in data_after_fr if r["stage"].startswith("Operational Update")][0]
+        assert op_row["is_latest_stage"] is False
+        assert fr_row["is_latest_stage"] is True

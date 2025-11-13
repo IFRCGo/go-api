@@ -1712,6 +1712,7 @@ class BaseDref3Serializer(serializers.ModelSerializer):
     sector_national_society_strengthening_budget = serializers.SerializerMethodField()
     sector_national_society_strengthening_people_targeted = serializers.SerializerMethodField()
     public = serializers.SerializerMethodField(read_only=True)
+    is_latest_stage = serializers.SerializerMethodField(read_only=True)
     status = serializers.IntegerField(read_only=True)
     status_display = serializers.CharField(source="get_status_display", read_only=True)
     approved = serializers.SerializerMethodField()
@@ -1722,6 +1723,9 @@ class BaseDref3Serializer(serializers.ModelSerializer):
 
     def get_public(self, obj):
         return self.context.get("public")
+
+    def get_is_latest_stage(self, obj):
+        return self.context.get("is_latest_stage")
 
     def get_stage(self, obj):
         return self.context.get("stage")
@@ -2105,6 +2109,7 @@ class BaseDref3Serializer(serializers.ModelSerializer):
             "sector_national_society_strengthening_budget",
             "sector_national_society_strengthening_people_targeted",
             "public",
+            "is_latest_stage",
             "status",
             "status_display",
             "approved",

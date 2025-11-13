@@ -740,9 +740,27 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):  # type: ignore[misc]
         allocation_count = 1  # Dref Application is always the first allocation
         public = code not in self.get_nonsuperusers_excluded_codes()
         a = ["First", "Second", "Third", "Fourth", "Fifth", "Sixth", "Seventh", "Eighth", "Ninth", "Tenth"]
-        for instance in instances:
+
+        # is_latest_stage: the last APPROVED-status instance and next instance either absent or not APPROVED
+        latest_index = None
+        for i, inst in enumerate(instances):
+            if getattr(inst, "status", None) == Dref.Status.APPROVED:
+                next_inst = instances[i + 1] if i + 1 < len(instances) else None
+                if next_inst is None or getattr(next_inst, "status", None) != Dref.Status.APPROVED:
+                    latest_index = i
+        # Build serialized rows with flag
+        for i, instance in enumerate(instances):
+            is_latest_stage = i == latest_index
             if isinstance(instance, Dref):
-                serializer = Dref3Serializer(instance, context={"stage": "Application", "allocation": a[0], "public": public})
+                serializer = Dref3Serializer(
+                    instance,
+                    context={
+                        "stage": "Application",
+                        "allocation": a[0],
+                        "public": public,
+                        "is_latest_stage": is_latest_stage,
+                    },
+                )
             elif isinstance(instance, DrefOperationalUpdate):
                 ops_update_count += 1
                 if instance.additional_allocation and len(a) > allocation_count:
@@ -753,15 +771,21 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):  # type: ignore[misc]
                 serializer = DrefOperationalUpdate3Serializer(
                     instance,
                     context={
-                        "stage": "Operational Update " + str(ops_update_count),
+                        "stage": f"Operational Update {ops_update_count}",
                         "allocation": allocation,
                         "public": public,
+                        "is_latest_stage": is_latest_stage,
                     },
                 )
             elif isinstance(instance, DrefFinalReport):
                 serializer = DrefFinalReport3Serializer(
                     instance,
-                    context={"stage": "Final Report", "allocation": "No allocation", "public": public},
+                    context={
+                        "stage": "Final Report",
+                        "allocation": "No allocation",
+                        "public": public,
+                        "is_latest_stage": is_latest_stage,
+                    },
                 )
             else:
                 continue
