@@ -120,7 +120,6 @@ class TestLocalUnitsListView(APITestCase):
         country_codename = f"local_unit_country_validator_{self.type_3.id}_{self.country2.id}"
         region_codename = f"local_unit_region_validator_{self.type_3.id}_{region.id}"
         global_codename = f"local_unit_global_validator_{self.type_3.id}"
-
         country_permission = Permission.objects.get(codename=country_codename)
         region_permission = Permission.objects.get(codename=region_codename)
         global_permission = Permission.objects.get(codename=global_codename)
@@ -882,7 +881,7 @@ class TestLocalUnitCreate(APITestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(LocalUnitChangeRequest.objects.count(), 0)
 
-    def test_country_region_admin_permission_for_local_unit_update(self):
+    def test_local_unit_update(self):
         region1 = RegionFactory.create(name=2, label="Asia Pacific")
 
         region2 = RegionFactory.create(name=0, label="Africa")
@@ -898,6 +897,7 @@ class TestLocalUnitCreate(APITestCase):
         self.asia_admin = UserFactory.create(email="asia@admin.com")
         self.africa_admin = UserFactory.create(email="africa@admin.com")
         self.india_admin = UserFactory.create(email="india@admin.com")
+        self.ifrc_admin = UserFactory.create(email="ifrc@admin.test")
         # India admin setup
         management.call_command("make_permissions")
         country_admin_codename = f"country_admin_{country.id}"
@@ -922,6 +922,14 @@ class TestLocalUnitCreate(APITestCase):
         africa_admin_group.permissions.add(africa_admin_permission)
         self.africa_admin.groups.add(africa_admin_group)
 
+        # Ifrc admin
+        ifrc_admin_codename = "ifrc_admin"
+        ifrc_admin_permission = Permission.objects.get(codename=ifrc_admin_codename)
+        ifrc_admin_group_name = "IFRC Admins"
+        ifrc_admin_group = Group.objects.get(name=ifrc_admin_group_name)
+        ifrc_admin_group.permissions.add(ifrc_admin_permission)
+        self.ifrc_admin.groups.add(ifrc_admin_group)
+
         local_unit = LocalUnitFactory.create(
             country=country,
             type=self.local_unit_type,
@@ -930,6 +938,13 @@ class TestLocalUnitCreate(APITestCase):
             date_of_data="2023-08-08",
         )
         local_unit2 = LocalUnitFactory.create(
+            country=country,
+            type=self.local_unit_type,
+            draft=False,
+            status=LocalUnit.Status.VALIDATED,
+            date_of_data="2023-08-08",
+        )
+        local_unit3 = LocalUnitFactory.create(
             country=country,
             type=self.local_unit_type,
             draft=False,
@@ -965,6 +980,12 @@ class TestLocalUnitCreate(APITestCase):
         self.assert_403(response)
         # Test: same region admin
         self.authenticate(self.asia_admin)
+        response = self.client.patch(url, data=data, format="json")
+        self.assert_200(response)
+        self.assertEqual(response.data["local_branch_name"], "Updated local branch name")
+        # Test update as ifrc admin
+        url = f"/api/v2/local-units/{local_unit3.id}/"
+        self.authenticate(self.ifrc_admin)
         response = self.client.patch(url, data=data, format="json")
         self.assert_200(response)
         self.assertEqual(response.data["local_branch_name"], "Updated local branch name")

@@ -25,20 +25,20 @@ class ValidateLocalUnitPermission(permissions.BasePermission):
 
 
 class IsAuthenticatedForLocalUnit(permissions.BasePermission):
-    message = "Only Country Admins, Local Unit Validators, Region Admins, or Superusers are allowed to update Local Units."
+    message = (
+        "Only Country Admins, Local Unit Validators, Region Admins, IFRC Admins or Superusers are allowed to update Local Units."
+    )
 
     def has_object_permission(self, request, view, obj):
         if request.method not in ["PUT", "PATCH"]:
             return True  # Only restrict update operations
 
         user = request.user
-
-        if user.is_superuser:
+        if user.has_perm("api.ifrc_admin") or user.is_superuser:
             return True
 
         country_id = obj.country_id
-        country = Country.objects.get(id=country_id)
-        region_id = country.region_id
+        region_id = obj.country.region_id
         # Country admin specific permissions
         country_admin_ids = [
             int(codename.replace("country_admin_", ""))
