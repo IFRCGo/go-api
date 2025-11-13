@@ -1711,7 +1711,7 @@ class BaseDref3Serializer(serializers.ModelSerializer):
     sector_national_society_strengthening = serializers.SerializerMethodField()
     sector_national_society_strengthening_budget = serializers.SerializerMethodField()
     sector_national_society_strengthening_people_targeted = serializers.SerializerMethodField()
-    silent_operation = serializers.SerializerMethodField(read_only=True)
+    public = serializers.SerializerMethodField(read_only=True)
     status = serializers.IntegerField(read_only=True)
     status_display = serializers.CharField(source="get_status_display", read_only=True)
     approved = serializers.SerializerMethodField()
@@ -1720,8 +1720,8 @@ class BaseDref3Serializer(serializers.ModelSerializer):
 
     # get_id removed: numeric ids are injected post-serialization
 
-    def get_silent_operation(self, obj):
-        return self.context.get("silent_operation")
+    def get_public(self, obj):
+        return self.context.get("public")
 
     def get_stage(self, obj):
         return self.context.get("stage")
@@ -2104,7 +2104,7 @@ class BaseDref3Serializer(serializers.ModelSerializer):
             "sector_national_society_strengthening",
             "sector_national_society_strengthening_budget",
             "sector_national_society_strengthening_people_targeted",
-            "silent_operation",
+            "public",
             "status",
             "status_display",
             "approved",
