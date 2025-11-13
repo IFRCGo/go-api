@@ -12,7 +12,7 @@ from rest_framework import serializers
 
 # from api.utils import pdf_exporter
 from api.tasks import generate_url
-from api.utils import CountryValidator, RegionValidator
+from api.utils import CountryValidator, RegionValidator, parse_snippet_embed
 from deployments.models import EmergencyProject, Personnel, PersonnelDeployment
 from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
 from lang.models import String
@@ -485,6 +485,7 @@ class RegionSnippetTableauSerializer(ModelSerializer):
 
 class RegionSnippetSerializer(ModelSerializer):
     visibility_display = serializers.CharField(source="get_visibility_display", read_only=True)
+    embed = serializers.SerializerMethodField()
 
     class Meta:
         model = RegionSnippet
@@ -494,12 +495,17 @@ class RegionSnippetSerializer(ModelSerializer):
             "image",
             "visibility",
             "visibility_display",
+            "embed",
             "id",
         )
 
     def validate_image(self, image):
         validate_file_type(image)
         return image
+
+    @staticmethod
+    def get_embed(obj):
+        return parse_snippet_embed(obj.snippet)
 
 
 class RegionEmergencySnippetSerializer(ModelSerializer):
@@ -553,6 +559,7 @@ class CountrySnippetTableauSerializer(serializers.ModelSerializer):
 
 class CountrySnippetSerializer(ModelSerializer):
     visibility_display = serializers.CharField(source="get_visibility_display", read_only=True)
+    embed = serializers.SerializerMethodField()
 
     class Meta:
         model = CountrySnippet
@@ -562,12 +569,17 @@ class CountrySnippetSerializer(ModelSerializer):
             "image",
             "visibility",
             "visibility_display",
+            "embed",
             "id",
         )
 
     def validate_image(self, image):
         validate_file_type(image)
         return image
+
+    @staticmethod
+    def get_embed(obj):
+        return parse_snippet_embed(obj.snippet)
 
 
 class RegionLinkSerializer(ModelSerializer):
@@ -883,6 +895,7 @@ class SnippetSerializer(ModelSerializer):
     visibility_display = serializers.CharField(source="get_visibility_display", read_only=True)
     position_display = serializers.CharField(source="get_position_display", read_only=True)
     tab_display = serializers.CharField(source="get_tab_display", read_only=True)
+    embed = serializers.SerializerMethodField()
 
     class Meta:
         model = Snippet
@@ -897,11 +910,16 @@ class SnippetSerializer(ModelSerializer):
             "position_display",
             "tab",
             "tab_display",
+            "embed",
         )
 
     def validate_image(self, image):
         validate_file_type(image)
         return image
+
+    @staticmethod
+    def get_embed(obj):
+        return parse_snippet_embed(obj.snippet)
 
 
 class EventContactSerializer(ModelSerializer):
