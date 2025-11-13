@@ -608,7 +608,7 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):  # type: ignore[misc]
         silents = self.get_nonsuperusers_excluded_codes()
         for idx, row in enumerate(data, start=1):
             row["id"] = idx
-            row["silent_operation"] = row["appeal_id"] in silents
+            row["public"] = row["appeal_id"] not in silents
 
         # numeric id filter (?id=3 or ?id=3,7)
         id_param = request.query_params.get("id")
@@ -738,13 +738,11 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):  # type: ignore[misc]
         serialized_data = []
         ops_update_count = 0
         allocation_count = 1  # Dref Application is always the first allocation
-        silent = code in self.get_nonsuperusers_excluded_codes()
+        public = code not in self.get_nonsuperusers_excluded_codes()
         a = ["First", "Second", "Third", "Fourth", "Fifth", "Sixth", "Seventh", "Eighth", "Ninth", "Tenth"]
         for instance in instances:
             if isinstance(instance, Dref):
-                serializer = Dref3Serializer(
-                    instance, context={"stage": "Application", "allocation": a[0], "silent_operation": silent}
-                )
+                serializer = Dref3Serializer(instance, context={"stage": "Application", "allocation": a[0], "public": public})
             elif isinstance(instance, DrefOperationalUpdate):
                 ops_update_count += 1
                 if instance.additional_allocation and len(a) > allocation_count:
@@ -757,13 +755,13 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):  # type: ignore[misc]
                     context={
                         "stage": "Operational Update " + str(ops_update_count),
                         "allocation": allocation,
-                        "silent_operation": silent,
+                        "public": public,
                     },
                 )
             elif isinstance(instance, DrefFinalReport):
                 serializer = DrefFinalReport3Serializer(
                     instance,
-                    context={"stage": "Final Report", "allocation": "No allocation", "silent_operation": silent},
+                    context={"stage": "Final Report", "allocation": "No allocation", "public": public},
                 )
             else:
                 continue
