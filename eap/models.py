@@ -208,13 +208,16 @@ class EAPBaseModel(models.Model):
 
     class Meta:
         abstract = True
+        ordering = ["-created_at"]
 
 
 class EAPFile(EAPBaseModel):
-    # TODO(susilnem): Make not nullable
     file = SecureFileField(
         verbose_name=_("file"),
         upload_to="eap/files/",
+        null=False,
+        blank=False,
+        help_text=_("Upload EAP related file."),
     )
     caption = models.CharField(max_length=225, blank=True, null=True)
 
@@ -459,6 +462,15 @@ class EAPRegistration(EAPBaseModel):
         blank=True,
     )
 
+    # Validated Budget file
+    validated_budget_file = SecureFileField(
+        upload_to="eap/files/validated_budgets/",
+        blank=True,
+        null=True,
+        verbose_name=_("Validated Budget File"),
+        help_text=_("Upload the validated budget file once the EAP is technically validated."),
+    )
+
     # Contacts
     # National Society
     national_society_contact_name = models.CharField(
@@ -490,6 +502,32 @@ class EAPRegistration(EAPBaseModel):
         verbose_name=_("Dref focal point phone number"), max_length=100, null=True, blank=True
     )
 
+    # STATUS timestamps
+    technically_validated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_("technically validated at"),
+        help_text=_("Timestamp when the EAP was technically validated."),
+    )
+    approved_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_("approved at"),
+        help_text=_("Timestamp when the EAP was approved."),
+    )
+    pfa_signed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_("PFA signed at"),
+        help_text=_("Timestamp when the PFA was signed."),
+    )
+    activated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_("activated at"),
+        help_text=_("Timestamp when the EAP was activated."),
+    )
+
     # TYPING
     national_society_id = int
     country_id = int
@@ -497,8 +535,6 @@ class EAPRegistration(EAPBaseModel):
     id = int
 
     class Meta:
-        # TODO(susilnem): Add ordering when created_at is added to the model.
-        # ordering = ['-created_at']
         verbose_name = _("Development Registration EAP")
         verbose_name_plural = _("Development Registration EAPs")
 
