@@ -377,7 +377,7 @@ class EAPStatus(models.IntegerChoices):
     """Initial status when an EAP is being created."""
 
     UNDER_REVIEW = 20, _("Under Review")
-    """ EAP has been submitted by NS. It is under review by IFRC and/or technical partners."""
+    """EAP has been submitted by NS. It is under review by IFRC and/or technical partners."""
 
     NS_ADDRESSING_COMMENTS = 30, _("NS Addressing Comments")
     """NS is addressing comments provided during the review process.
@@ -469,6 +469,14 @@ class EAPRegistration(EAPBaseModel):
         null=True,
         verbose_name=_("Validated Budget File"),
         help_text=_("Upload the validated budget file once the EAP is technically validated."),
+    )
+
+    # Review checklist
+    review_checklist_file = SecureFileField(
+        verbose_name=_("Review Checklist File"),
+        upload_to="eap/files/",
+        null=True,
+        blank=True,
     )
 
     # Contacts
@@ -861,6 +869,14 @@ class SimplifiedEAP(EAPBaseModel):
     budget_file = SecureFileField(
         verbose_name=_("Budget File"),
         upload_to="eap/simplified_eap/budget_files/",
+        null=True,
+        blank=True,
+    )
+
+    # Review Checklist
+    updated_checklist_file = SecureFileField(
+        verbose_name=_("Updated Checklist File"),
+        upload_to="eap/files/",
         null=True,
         blank=True,
     )
