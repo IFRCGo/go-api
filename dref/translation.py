@@ -76,6 +76,8 @@ class DrefFinalReportTO(TranslationOptions):
         "event_text",
         "national_society_conducted_description",
         "financial_report_description",
+        "main_donors",
+        "people_assisted",
     )
 
 
@@ -105,6 +107,8 @@ class DrefOperationalUpdateTO(TranslationOptions):
         "logistic_capacity_of_ns",
         "pmer",
         "communication",
+        "identified_gaps",
+        "summary_of_change",
     )
 
 
