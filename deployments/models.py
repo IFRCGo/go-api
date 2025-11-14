@@ -26,7 +26,7 @@ DATE_FORMAT = "%Y/%m/%d %H:%M"
 
 
 class ERUType(models.IntegerChoices):
-    BASECAMP = 0, _("Basecamp")
+    # BASECAMP = 0, _("Basecamp")  # Deprecated, use OSH instead
     TELECOM = 1, _("IT & Telecom")
     LOGISTICS = 2, _("Logistics")
     EMERGENCY_HOSPITAL = 3, _("RCRC Emergency Hospital")
@@ -40,11 +40,12 @@ class ERUType(models.IntegerChoices):
     COLERA_MANAGEMENT = 11, _("Cholera Case management at Community level")
     BURIALS = 12, _("Safe and Dignified Burials")
     CBS = 13, _("Community Based Surveillance")
-    BASECAMP_S = 14, _("Base Camp – S")
-    BASECAMP_M = 15, _("Base Camp – M")
-    BASECAMP_L = 16, _("Base Camp – L")
+    # BASECAMP_S = 14, _("Base Camp – S")  # Deprecated, use OSH instead
+    # BASECAMP_M = 15, _("Base Camp – M")  # Deprecated, use OSH instead
+    # BASECAMP_L = 16, _("Base Camp – L")  # Deprecated, use OSH instead
     OPD = 17, _("Outpatient Department (OPD) Module")
     MHPSS = 18, _("MHPSS")
+    OSH = 19, _("Operations Support HUB")
 
 
 @reversion.register()

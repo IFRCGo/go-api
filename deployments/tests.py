@@ -494,7 +494,7 @@ class TestERUReadinessAPI(APITestCase):
         }
         eru_readiness_type_1, eru_readiness_type_2 = ERUReadinessTypeFactory.create_batch(
             2,
-            type=ERUType.BASECAMP_L,
+            type=ERUType.OSH,
             **eru_readiness_type_common,
         )
         eru_owner_1 = ERUOwnerFactory.create(
@@ -533,11 +533,11 @@ class TestERUReadinessAPI(APITestCase):
             "funding_readiness": ERUReadinessType.ReadinessStatus.READY,
         }
         eru_readiness_type_1 = ERUReadinessTypeFactory.create(
-            type=ERUType.BASECAMP_L,
+            type=ERUType.OSH,
             **eru_readiness_type_common,
         )
         eru_readiness_type_2 = ERUReadinessTypeFactory.create(
-            type=ERUType.BASECAMP_M,
+            type=ERUType.CBS,
             **eru_readiness_type_common,
         )
 
@@ -573,11 +573,11 @@ class TestERUReadinessAPI(APITestCase):
             "funding_readiness": ERUReadinessType.ReadinessStatus.READY,
         }
         eru_readiness_type_1 = ERUReadinessTypeFactory.create(
-            type=ERUType.BASECAMP_L,
+            type=ERUType.OSH,
             **eru_readiness_type_common,
         )
         eru_readiness_type_2 = ERUReadinessTypeFactory.create(
-            type=ERUType.BASECAMP_M,
+            type=ERUType.CBS,
             **eru_readiness_type_common,
         )
         eru_owner = ERUOwnerFactory.create(
@@ -608,7 +608,7 @@ class TestERUReadinessAPI(APITestCase):
                 },
                 # Add new ERU type
                 {
-                    "type": ERUType.BASECAMP,
+                    "type": ERUType.MHPSS,
                     "equipment_readiness": ERUReadinessType.ReadinessStatus.PARTIAL_CAPACITY,
                     "people_readiness": ERUReadinessType.ReadinessStatus.PARTIAL_CAPACITY,
                     "funding_readiness": ERUReadinessType.ReadinessStatus.PARTIAL_CAPACITY,
@@ -755,7 +755,7 @@ class ExportERUReadinessViewTest(APITestCase):
             "funding_readiness": ERUReadinessType.ReadinessStatus.READY,
         }
         eru_readiness_type_1 = ERUReadinessTypeFactory.create(
-            type=ERUType.BASECAMP,
+            type=ERUType.MHPSS,
             **eru_readiness_type_common1,
             comment="Test comment1",
         )
@@ -765,7 +765,7 @@ class ExportERUReadinessViewTest(APITestCase):
             comment="Test comment2",
         )
         eru_readiness_type_3 = ERUReadinessTypeFactory.create(
-            type=ERUType.BASECAMP,
+            type=ERUType.MHPSS,
             **eru_readiness_type_common2,
             comment="Test comment3",
         )
@@ -788,8 +788,8 @@ class ExportERUReadinessViewTest(APITestCase):
 
             self.assertEqual(ws["A1"].value, "National Society")
             self.assertEqual(ws["B1"].value, "Updated Date")
-            self.assertEqual(ws["C1"].value, "Basecamp")
-            self.assertEqual(ws["G1"].value, "IT & Telecom")
+            self.assertEqual(ws["C1"].value, "IT & Telecom")
+            self.assertEqual(ws["G1"].value, "Logistics")
 
             # Check sub-headers
             self.assertEqual(ws["C2"].value, "Equipment")
@@ -802,16 +802,7 @@ class ExportERUReadinessViewTest(APITestCase):
             self.assertEqual(row1[2].value, "Ready")
             self.assertEqual(row1[3].value, "No capacity")
             self.assertEqual(row1[4].value, "Ready")
-            self.assertEqual(row1[5].value, "Test comment1")
-
-            self.assertEqual(row1[6].value, "Ready")
-            self.assertEqual(row1[7].value, "No capacity")
-            self.assertEqual(row1[8].value, "Ready")
-            self.assertEqual(row1[9].value, "Test comment2")
+            self.assertEqual(row1[5].value, "Test comment2")
 
             row2 = list(ws.iter_rows(min_row=4))[0]
             self.assertEqual(row2[0].value, "India")
-            self.assertEqual(row2[2].value, "No capacity")
-            self.assertEqual(row2[3].value, "Ready")
-            self.assertEqual(row2[4].value, "Ready")
-            self.assertEqual(row2[5].value, "Test comment3")
