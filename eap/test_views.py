@@ -1,9 +1,12 @@
 import os
 
 from django.conf import settings
+from django.contrib.auth.models import Group, Permission
+from django.core import management
 
 from api.factories.country import CountryFactory
 from api.factories.disaster_type import DisasterTypeFactory
+from deployments.factories.user import UserFactory
 from eap.factories import (
     EAPRegistrationFactory,
     EnableApproachFactory,
@@ -72,7 +75,7 @@ class EAPFileTestCase(APITestCase):
 class EAPRegistrationTestCase(APITestCase):
     def setUp(self):
         super().setUp()
-        self.country = CountryFactory.create(name="country1", iso3="XX")
+        self.country = CountryFactory.create(name="country1", iso3="XXX")
         self.national_society = CountryFactory.create(
             name="national_society1",
             iso3="YYY",
@@ -81,14 +84,25 @@ class EAPRegistrationTestCase(APITestCase):
         self.partner1 = CountryFactory.create(name="partner1", iso3="ZZZ")
         self.partner2 = CountryFactory.create(name="partner2", iso3="AAA")
 
+        # Create permissions
+        management.call_command("make_permissions")
+
+        # Create Country Admin User and assign permission
+        self.country_admin = UserFactory.create()
+        country_admin_permission = Permission.objects.filter(codename="country_admin_%s" % self.national_society.id).first()
+        country_group = Group.objects.filter(name="%s Admins" % self.national_society.name).first()
+
+        self.country_admin.user_permissions.add(country_admin_permission)
+        self.country_admin.groups.add(country_group)
+
     def test_list_eap_registration(self):
         EAPRegistrationFactory.create_batch(
             5,
             country=self.country,
             national_society=self.national_society,
             disaster_type=self.disaster_type,
-            created_by=self.user,
-            modified_by=self.user,
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
         )
         url = "/api/v2/eap-registration/"
         self.authenticate()
@@ -107,7 +121,7 @@ class EAPRegistrationTestCase(APITestCase):
             "partners": [self.partner1.id, self.partner2.id],
         }
 
-        self.authenticate()
+        self.authenticate(self.country_admin)
         response = self.client.post(url, data, format="json")
 
         self.assertEqual(response.status_code, 201)
@@ -115,7 +129,7 @@ class EAPRegistrationTestCase(APITestCase):
         self.assertIsNotNone(response.data["created_by_details"])
         self.assertEqual(
             response.data["created_by_details"]["id"],
-            self.user.id,
+            self.country_admin.id,
         )
         self.assertEqual(
             {
@@ -138,12 +152,12 @@ class EAPRegistrationTestCase(APITestCase):
             national_society=self.national_society,
             disaster_type=self.disaster_type,
             partners=[self.partner1.id, self.partner2.id],
-            created_by=self.user,
-            modified_by=self.user,
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
         )
         url = f"/api/v2/eap-registration/{eap_registration.id}/"
 
-        self.authenticate()
+        self.authenticate(self.country_admin)
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["id"], eap_registration.id)
@@ -154,8 +168,8 @@ class EAPRegistrationTestCase(APITestCase):
             national_society=self.national_society,
             disaster_type=self.disaster_type,
             partners=[self.partner1.id],
-            created_by=self.user,
-            modified_by=self.user,
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
         )
         url = f"/api/v2/eap-registration/{eap_registration.id}/"
 
@@ -192,8 +206,8 @@ class EAPRegistrationTestCase(APITestCase):
         # Check cannot update EAP Registration once application is being created
         SimplifiedEAPFactory.create(
             eap_registration=eap_registration,
-            created_by=self.user,
-            modified_by=self.user,
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
         )
 
         data_update = {
@@ -210,7 +224,7 @@ class EAPRegistrationTestCase(APITestCase):
 class EAPSimplifiedTestCase(APITestCase):
     def setUp(self):
         super().setUp()
-        self.country = CountryFactory.create(name="country1", iso3="XX")
+        self.country = CountryFactory.create(name="country1", iso3="XXX")
         self.national_society = CountryFactory.create(
             name="national_society1",
             iso3="YYY",
@@ -218,6 +232,17 @@ class EAPSimplifiedTestCase(APITestCase):
         self.disaster_type = DisasterTypeFactory.create(name="disaster1")
         self.partner1 = CountryFactory.create(name="partner1", iso3="ZZZ")
         self.partner2 = CountryFactory.create(name="partner2", iso3="AAA")
+
+        # Create permissions
+        management.call_command("make_permissions")
+
+        # Create Country Admin User and assign permission
+        self.country_admin = UserFactory.create()
+        country_admin_permission = Permission.objects.filter(codename="country_admin_%s" % self.national_society.id).first()
+        country_group = Group.objects.filter(name="%s Admins" % self.national_society.name).first()
+
+        self.country_admin.user_permissions.add(country_admin_permission)
+        self.country_admin.groups.add(country_group)
 
     def test_list_simplified_eap(self):
         eap_registrations = EAPRegistrationFactory.create_batch(
@@ -227,15 +252,15 @@ class EAPSimplifiedTestCase(APITestCase):
             national_society=self.national_society,
             disaster_type=self.disaster_type,
             partners=[self.partner1.id, self.partner2.id],
-            created_by=self.user,
-            modified_by=self.user,
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
         )
 
         for eap in eap_registrations:
             SimplifiedEAPFactory.create(
                 eap_registration=eap,
-                created_by=self.user,
-                modified_by=self.user,
+                created_by=self.country_admin,
+                modified_by=self.country_admin,
             )
 
         url = "/api/v2/simplified-eap/"
@@ -252,8 +277,8 @@ class EAPSimplifiedTestCase(APITestCase):
             national_society=self.national_society,
             disaster_type=self.disaster_type,
             partners=[self.partner1.id, self.partner2.id],
-            created_by=self.user,
-            modified_by=self.user,
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
         )
         data = {
             "eap_registration": eap_registration.id,
@@ -323,7 +348,7 @@ class EAPSimplifiedTestCase(APITestCase):
             ],
         }
 
-        self.authenticate()
+        self.authenticate(self.country_admin)
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, 201)
 
@@ -347,8 +372,8 @@ class EAPSimplifiedTestCase(APITestCase):
             national_society=self.national_society,
             disaster_type=self.disaster_type,
             partners=[self.partner1.id, self.partner2.id],
-            created_by=self.user,
-            modified_by=self.user,
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
         )
         enable_approach_readiness_operation_activity_1 = OperationActivityFactory.create(
             activity="Readiness Activity 1",
@@ -453,8 +478,8 @@ class EAPSimplifiedTestCase(APITestCase):
 
         simplified_eap = SimplifiedEAPFactory.create(
             eap_registration=eap_registration,
-            created_by=self.user,
-            modified_by=self.user,
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
             enable_approaches=[enable_approach.id],
             planned_operations=[planned_operation.id],
         )
@@ -760,3 +785,215 @@ class EAPSimplifiedTestCase(APITestCase):
                 data["planned_operations"][1]["early_action_activities"][0]["timeframe"],
             },
         )
+
+
+class EAPStatusTransitionTestCase(APITestCase):
+    def setUp(self):
+        super().setUp()
+
+        self.country = CountryFactory.create(name="country1", iso3="XXX")
+        self.national_society = CountryFactory.create(
+            name="national_society1",
+            iso3="YYY",
+        )
+        self.disaster_type = DisasterTypeFactory.create(name="disaster1")
+        self.partner1 = CountryFactory.create(name="partner1", iso3="ZZZ")
+        self.partner2 = CountryFactory.create(name="partner2", iso3="AAA")
+
+        self.eap_registration = EAPRegistrationFactory.create(
+            country=self.country,
+            national_society=self.national_society,
+            disaster_type=self.disaster_type,
+            eap_type=EAPType.SIMPLIFIED_EAP,
+            status=EAPStatus.UNDER_DEVELOPMENT,
+            partners=[self.partner1.id, self.partner2.id],
+            created_by=self.user,
+            modified_by=self.user,
+        )
+        self.url = f"/api/v2/eap-registration/{self.eap_registration.id}/status/"
+
+    # TODO(susilnem): Update test case for file uploads once implemented
+    def test_status_transition(self):
+        # Create permissions
+        management.call_command("make_permissions")
+
+        # Create Country Admin User and assign permission
+        self.country_admin = UserFactory.create()
+        country_admin_permission = Permission.objects.filter(codename="country_admin_%s" % self.national_society.id).first()
+        country_group = Group.objects.filter(name="%s Admins" % self.national_society.name).first()
+
+        self.country_admin.user_permissions.add(country_admin_permission)
+        self.country_admin.groups.add(country_group)
+
+        # Create IFRC Admin User and assign permission
+        self.ifrc_admin_user = UserFactory.create()
+        ifrc_admin_permission = Permission.objects.filter(codename="ifrc_admin").first()
+        ifrc_group = Group.objects.filter(name="IFRC Admins").first()
+        self.ifrc_admin_user.user_permissions.add(ifrc_admin_permission)
+        self.ifrc_admin_user.groups.add(ifrc_group)
+
+        # NOTE: Transition to UNDER REVIEW
+        # UNDER_DEVELOPMENT -> UNDER_REVIEW
+        data = {
+            "status": EAPStatus.UNDER_REVIEW,
+        }
+        self.authenticate()
+
+        # FAILS: As User is not country admin or IFRC admin or superuser
+        response = self.client.post(self.url, data, format="json")
+        self.assertEqual(response.status_code, 400)
+
+        # Authenticate as country admin user
+        self.authenticate(self.country_admin)
+
+        # FAILS: As no Simplified or Full EAP created yet
+        response = self.client.post(self.url, data, format="json")
+        self.assertEqual(response.status_code, 400)
+
+        SimplifiedEAPFactory.create(
+            eap_registration=self.eap_registration,
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
+        )
+
+        # SUCCESS: As Simplified EAP exists
+        response = self.client.post(self.url, data, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["status"], EAPStatus.UNDER_REVIEW)
+
+        # NOTE: Transition to NS_ADDRESSING_COMMENTS
+        # UNDER_REVIEW -> NS_ADDRESSING_COMMENTS
+        data = {
+            "status": EAPStatus.NS_ADDRESSING_COMMENTS,
+        }
+
+        # FAILS: As country admin cannot
+        response = self.client.post(self.url, data, format="json")
+        self.assertEqual(response.status_code, 400)
+
+        # NOTE: Login as IFRC admin user
+        # SUCCESS: As only ifrc admins or superuser can
+        self.authenticate(self.ifrc_admin_user)
+        response = self.client.post(self.url, data, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["status"], EAPStatus.NS_ADDRESSING_COMMENTS)
+
+        # NOTE: Transition to UNDER_REVIEW
+        # NS_ADDRESSING_COMMENTS -> UNDER_REVIEW
+        data = {
+            "status": EAPStatus.UNDER_REVIEW,
+        }
+
+        # SUCCESS: As only ifrc admins or superuser can
+        self.authenticate(self.ifrc_admin_user)
+        response = self.client.post(self.url, data, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["status"], EAPStatus.UNDER_REVIEW)
+
+        # NOTE: Transition to TECHNICALLY_VALIDATED
+        # UNDER_REVIEW -> TECHNICALLY_VALIDATED
+        data = {
+            "status": EAPStatus.TECHNICALLY_VALIDATED,
+        }
+
+        # Login as NS user
+        # FAILS: As only ifrc admins or superuser can
+        self.authenticate(self.country_admin)
+        response = self.client.post(self.url, data, format="json")
+        self.assertEqual(response.status_code, 400)
+
+        # Login as IFRC admin user
+        # SUCCESS: As only ifrc admins or superuser can
+        self.authenticate(self.ifrc_admin_user)
+        response = self.client.post(self.url, data, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["status"], EAPStatus.TECHNICALLY_VALIDATED)
+        self.eap_registration.refresh_from_db()
+        self.assertIsNotNone(
+            self.eap_registration.technically_validated_at,
+        )
+
+        # NOTE: Transition to APPROVED
+        # TECHNICALLY_VALIDATED -> APPROVED
+        data = {
+            "status": EAPStatus.APPROVED,
+        }
+
+        # LOGIN as country admin user
+        # FAILS: As only ifrc admins or superuser can
+        self.authenticate(self.country_admin)
+        response = self.client.post(self.url, data, format="json")
+        self.assertEqual(response.status_code, 400)
+
+        # NOTE: Upload Validated budget file
+        path = os.path.join(settings.TEST_DIR, "documents")
+        validated_budget_file = os.path.join(path, "go.png")
+        url = f"/api/v2/eap-registration/{self.eap_registration.id}/upload-validated-budget-file/"
+        file_data = {
+            "validated_budget_file": open(validated_budget_file, "rb"),
+        }
+        self.authenticate(self.ifrc_admin_user)
+        response = self.client.post(url, file_data, format="multipart")
+        self.assert_200(response)
+
+        self.eap_registration.refresh_from_db()
+        self.assertIsNotNone(
+            self.eap_registration.validated_budget_file,
+        )
+
+        # LOGIN as IFRC admin user
+        # SUCCESS: As only ifrc admins or superuser can
+        self.assertIsNone(self.eap_registration.approved_at)
+        self.authenticate(self.ifrc_admin_user)
+        response = self.client.post(self.url, data, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["status"], EAPStatus.APPROVED)
+        # Check is the approved timeline is added
+        self.eap_registration.refresh_from_db()
+        self.assertIsNotNone(self.eap_registration.approved_at)
+
+        # NOTE: Transition to PFA_SIGNED
+        # APPROVED -> PFA_SIGNED
+        data = {
+            "status": EAPStatus.PFA_SIGNED,
+        }
+
+        # LOGIN as country admin user
+        # FAILS: As only ifrc admins or superuser can
+        self.authenticate(self.country_admin)
+        response = self.client.post(self.url, data, format="json")
+        self.assertEqual(response.status_code, 400)
+
+        # LOGIN as IFRC admin user
+        # SUCCESS: As only ifrc admins or superuser can
+        self.assertIsNone(self.eap_registration.activated_at)
+        self.authenticate(self.ifrc_admin_user)
+        response = self.client.post(self.url, data, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["status"], EAPStatus.PFA_SIGNED)
+        # Check is the pfa_signed timeline is added
+        self.eap_registration.refresh_from_db()
+        self.assertIsNotNone(self.eap_registration.pfa_signed_at)
+
+        # NOTE: Transition to ACTIVATED
+        # PFA_SIGNED -> ACTIVATED
+        data = {
+            "status": EAPStatus.ACTIVATED,
+        }
+
+        # LOGIN as country admin user
+        # FAILS: As only ifrc admins or superuser can
+        self.authenticate(self.country_admin)
+        response = self.client.post(self.url, data, format="json")
+        self.assertEqual(response.status_code, 400)
+
+        # LOGIN as IFRC admin user
+        # SUCCESS: As only ifrc admins or superuser can
+        self.assertIsNone(self.eap_registration.activated_at)
+        self.authenticate(self.ifrc_admin_user)
+        response = self.client.post(self.url, data, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["status"], EAPStatus.ACTIVATED)
+        # Check is the activated timeline is added
+        self.eap_registration.refresh_from_db()
+        self.assertIsNotNone(self.eap_registration.activated_at)

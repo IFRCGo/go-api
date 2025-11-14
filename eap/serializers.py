@@ -1,7 +1,10 @@
 import typing
 
-from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
+from django.utils import timezone
+from django.utils.translation import gettext
 from rest_framework import serializers
+from rest_framework.exceptions import PermissionDenied
 
 from api.serializers import (
     Admin2Serializer,
@@ -18,10 +21,9 @@ from eap.models import (
     PlannedOperation,
     SimplifiedEAP,
 )
+from eap.utils import has_country_permission, is_user_ifrc_admin
 from main.writable_nested_serializers import NestedCreateMixin, NestedUpdateMixin
 from utils.file_check import validate_file_type
-
-User = get_user_model()
 
 
 class BaseEAPSerializer(serializers.ModelSerializer):
@@ -110,6 +112,28 @@ class EAPRegistrationSerializer(
         if instance.has_eap_application:
             raise serializers.ValidationError("Cannot update EAP Registration once application is being created.")
         return super().update(instance, validated_data)
+
+
+class EAPValidatedBudgetFileSerializer(serializers.ModelSerializer):
+    validated_budget_file = serializers.FileField(required=True)
+
+    class Meta:
+        model = EAPRegistration
+        fields = [
+            "id",
+            "validated_budget_file",
+        ]
+
+    def validate(self, validated_data: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        assert self.instance is not None, "EAP instance does not exist."
+        if self.instance.get_status_enum != EAPRegistration.Status.TECHNICALLY_VALIDATED:
+            raise serializers.ValidationError(
+                gettext("Validated budget file can only be uploaded when EAP status is %s."),
+                EAPRegistration.Status.TECHNICALLY_VALIDATED.label,
+            )
+
+        validate_file_type(validated_data["validated_budget_file"])
+        return validated_data
 
 
 class EAPFileInputSerializer(serializers.Serializer):
@@ -232,9 +256,27 @@ class SimplifiedEAPSerializer(
         return instance
 
 
-class EAPStatusSerializer(
-    BaseEAPSerializer,
-):
+VALID_NS_EAP_STATUS_TRANSITIONS = set(
+    [
+        (EAPRegistration.Status.UNDER_DEVELOPMENT, EAPRegistration.Status.UNDER_REVIEW),
+        (EAPRegistration.Status.NS_ADDRESSING_COMMENTS, EAPRegistration.Status.UNDER_REVIEW),
+    ]
+)
+
+VALID_IFRC_EAP_STATUS_TRANSITIONS = set(
+    [
+        (EAPRegistration.Status.UNDER_DEVELOPMENT, EAPRegistration.Status.UNDER_REVIEW),
+        (EAPRegistration.Status.UNDER_REVIEW, EAPRegistration.Status.NS_ADDRESSING_COMMENTS),
+        (EAPRegistration.Status.NS_ADDRESSING_COMMENTS, EAPRegistration.Status.UNDER_REVIEW),
+        (EAPRegistration.Status.UNDER_REVIEW, EAPRegistration.Status.TECHNICALLY_VALIDATED),
+        (EAPRegistration.Status.TECHNICALLY_VALIDATED, EAPRegistration.Status.APPROVED),
+        (EAPRegistration.Status.APPROVED, EAPRegistration.Status.PFA_SIGNED),
+        (EAPRegistration.Status.PFA_SIGNED, EAPRegistration.Status.ACTIVATED),
+    ]
+)
+
+
+class EAPStatusSerializer(BaseEAPSerializer):
     status_display = serializers.CharField(source="get_status_display", read_only=True)
 
     class Meta:
@@ -245,4 +287,117 @@ class EAPStatusSerializer(
             "status",
         ]
 
-    # TODO(susilnem): Add status state validations
+    def validate_status(self, new_status: EAPRegistration.Status) -> EAPRegistration.Status:
+        assert self.instance is not None, "EAP instance does not exist."
+
+        if not self.instance.has_eap_application:
+            raise serializers.ValidationError(gettext("You cannot change the status until EAP application has been created."))
+
+        user = self.context["request"].user
+        current_status: EAPRegistration.Status = self.instance.get_status_enum
+
+        valid_transitions = VALID_IFRC_EAP_STATUS_TRANSITIONS if is_user_ifrc_admin(user) else VALID_NS_EAP_STATUS_TRANSITIONS
+
+        if (current_status, new_status) not in valid_transitions:
+            raise serializers.ValidationError(
+                gettext("EAP status cannot be changed from %s to %s.")
+                % (EAPRegistration.Status(current_status).label, EAPRegistration.Status(new_status).label)
+            )
+
+        if (current_status, new_status) == (
+            EAPRegistration.Status.UNDER_REVIEW,
+            EAPRegistration.Status.NS_ADDRESSING_COMMENTS,
+        ):
+            if not is_user_ifrc_admin(user):
+                raise PermissionDenied(
+                    gettext("You do not have permission to change status to %s.") % EAPRegistration.Status(new_status).label
+                )
+
+            # TODO(susilnem): Check if review checklist has been uploaded.
+            # if not self.instance.review_checklist_file:
+            #     raise serializers.ValidationError(
+            #         gettext(
+            #             "Review checklist file must be uploaded before changing status to %s."
+            #         ) % EAPRegistration.Status(new_status).label
+            #     )
+        elif (current_status, new_status) == (
+            EAPRegistration.Status.UNDER_REVIEW,
+            EAPRegistration.Status.TECHNICALLY_VALIDATED,
+        ):
+            if not is_user_ifrc_admin(user):
+                raise PermissionDenied(
+                    gettext("You do not have permission to change status to %s.") % EAPRegistration.Status(new_status).label
+                )
+
+            # Update timestamp
+            self.instance.technically_validated_at = timezone.now()
+            self.instance.save(
+                update_fields=[
+                    "technically_validated_at",
+                ]
+            )
+
+        elif (current_status, new_status) == (
+            EAPRegistration.Status.NS_ADDRESSING_COMMENTS,
+            EAPRegistration.Status.UNDER_REVIEW,
+        ):
+            if not (has_country_permission(user, self.instance.national_society_id) or is_user_ifrc_admin(user)):
+                raise PermissionDenied(
+                    gettext("You do not have permission to change status to %s.") % EAPRegistration.Status(new_status).label
+                )
+
+            # TODO(susilnem): Check if NS Addressing Comments file has been uploaded.
+            # if not self.instance.ns_addressing_comments_file:
+            #     raise serializers.ValidationError(
+            #         gettext(
+            #             "NS Addressing Comments file must be uploaded before changing status to %s."
+            #         ) % EAPRegistration.Status(new_status).label
+            #     )
+
+        elif (current_status, new_status) == (
+            EAPRegistration.Status.TECHNICALLY_VALIDATED,
+            EAPRegistration.Status.APPROVED,
+        ):
+            if not is_user_ifrc_admin(user):
+                raise PermissionDenied(
+                    gettext("You do not have permission to change status to %s.") % EAPRegistration.Status(new_status).label
+                )
+
+            if not self.instance.validated_budget_file:
+                raise serializers.ValidationError(
+                    gettext("Validated budget file must be uploaded before changing status to %s.")
+                    % EAPRegistration.Status(new_status).label
+                )
+
+            # Update timestamp
+            self.instance.approved_at = timezone.now()
+            self.instance.save(
+                update_fields=[
+                    "approved_at",
+                ]
+            )
+
+        elif (current_status, new_status) == (
+            EAPRegistration.Status.APPROVED,
+            EAPRegistration.Status.PFA_SIGNED,
+        ):
+            # Update timestamp
+            self.instance.pfa_signed_at = timezone.now()
+            self.instance.save(
+                update_fields=[
+                    "pfa_signed_at",
+                ]
+            )
+
+        elif (current_status, new_status) == (
+            EAPRegistration.Status.PFA_SIGNED,
+            EAPRegistration.Status.ACTIVATED,
+        ):
+            # Update timestamp
+            self.instance.activated_at = timezone.now()
+            self.instance.save(
+                update_fields=[
+                    "activated_at",
+                ]
+            )
+        return new_status
