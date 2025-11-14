@@ -1665,10 +1665,14 @@ class BaseDref3Serializer(serializers.ModelSerializer):
     date_of_summary_publication = serializers.SerializerMethodField()
     start_date_of_operation = serializers.SerializerMethodField()
     end_date_of_operation = serializers.SerializerMethodField()
+    operation_status = serializers.SerializerMethodField()
     operation_timeframe = serializers.SerializerMethodField()
+    modified_at = serializers.CharField(read_only=True)
+    data_origin = serializers.SerializerMethodField()
     people_affected = serializers.SerializerMethodField()
     people_targeted = serializers.SerializerMethodField()
     people_assisted = serializers.SerializerMethodField()
+    population_disaggregation = serializers.SerializerMethodField()
     sector_shelter_and_basic_household_items = serializers.SerializerMethodField()
     sector_shelter_and_basic_household_items_budget = serializers.SerializerMethodField()
     sector_shelter_and_basic_household_items_people_targeted = serializers.SerializerMethodField()
@@ -1801,12 +1805,34 @@ class BaseDref3Serializer(serializers.ModelSerializer):
         if t == "DrefFinalReport" and hasattr(obj, "operation_end_date"):
             return obj.operation_end_date
 
+    def get_operation_status(self, obj):
+        """Return 'active' if current date is between start and end date (inclusive), else 'closed'.
+        Returns None if either boundary date is missing.
+        """
+        start = self.get_start_date_of_operation(obj)
+        end = self.get_end_date_of_operation(obj)
+        if not start or not end:
+            return None
+        try:
+            today = timezone.now().date()
+            # Ensure we are comparing date objects (convert datetimes if present)
+            if hasattr(start, "date") and callable(getattr(start, "date")):
+                start = start.date()
+            if hasattr(end, "date") and callable(getattr(end, "date")):
+                end = end.date()
+            return "active" if start <= today <= end else "closed"
+        except Exception:
+            return None
+
     def get_operation_timeframe(self, obj):
         t = type(obj).__name__
         if t == "Dref" and hasattr(obj, "operation_timeframe"):
             return obj.operation_timeframe
         if t != "Dref" and hasattr(obj, "total_operation_timeframe"):  # OU + FR:
             return obj.total_operation_timeframe
+
+    def get_data_origin(self, obj):
+        return "DREF process in GO"  # Hardcoded for now, later can be also "DREF published report"
 
     def get_people_affected(self, obj):
         t = type(obj).__name__
@@ -1825,6 +1851,57 @@ class BaseDref3Serializer(serializers.ModelSerializer):
     def get_people_assisted(self, obj):
         if type(obj).__name__ == "DrefFinalReport":
             return obj.num_assisted
+
+    def get_population_disaggregation(self, obj):
+        """Return population disaggregation dict.
+
+        Structure:
+        {
+            "Women": women,
+            "Girls (under 18)": girls,
+            "Men": men,
+            "Boys (under 18)": boys,
+            "Rural": "people_per_local%",
+            "Urban": "people_per_urban%"
+        }
+        Only include keys that have a non-None underlying value.
+        Percentages are suffixed with % if numeric.
+        """
+        women = getattr(obj, "women", None)
+        girls = getattr(obj, "girls", None)
+        men = getattr(obj, "men", None)
+        boys = getattr(obj, "boys", None)
+        urban = getattr(obj, "people_per_urban", None)
+        rural = getattr(obj, "people_per_local", None)
+
+        def pct(val):
+            if val is None:
+                return None
+            try:
+                # Keep as int if float-ish, then append %
+                return f"{int(val)}%"
+            except (ValueError, TypeError):
+                return None
+
+        data = {}
+        if women is not None:
+            data["Women"] = women
+        if girls is not None:
+            data["Girls (under 18)"] = girls
+        if men is not None:
+            data["Men"] = men
+        if boys is not None:
+            data["Boys (under 18)"] = boys
+        if rural is not None:
+            rural_pct = pct(rural)
+            if rural_pct is not None:
+                data["Rural"] = rural_pct
+        if urban is not None:
+            urban_pct = pct(urban)
+            if urban_pct is not None:
+                data["Urban"] = urban_pct
+
+        return data or None
 
     def get_sector_shelter_and_basic_household_items(self, obj):
         topic = PlannedIntervention.Title.SHELTER_HOUSING_AND_SETTLEMENTS
@@ -2062,10 +2139,14 @@ class BaseDref3Serializer(serializers.ModelSerializer):
             "date_of_summary_publication",
             "start_date_of_operation",
             "end_date_of_operation",
+            "operation_status",
             "operation_timeframe",
+            "modified_at",
+            "data_origin",
             "people_affected",
             "people_targeted",
             "people_assisted",
+            "population_disaggregation",
             "sector_shelter_and_basic_household_items",
             "sector_shelter_and_basic_household_items_budget",
             "sector_shelter_and_basic_household_items_people_targeted",
