@@ -1,4 +1,5 @@
 import os
+import tempfile
 
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
@@ -872,11 +873,23 @@ class EAPStatusTransitionTestCase(APITestCase):
         self.assertEqual(response.status_code, 400)
 
         # NOTE: Login as IFRC admin user
-        # SUCCESS: As only ifrc admins or superuser can
+
+        # FAILS: As review_checklist_file is required
         self.authenticate(self.ifrc_admin_user)
         response = self.client.post(self.url, data, format="json")
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["status"], EAPStatus.NS_ADDRESSING_COMMENTS)
+        self.assertEqual(response.status_code, 400)
+
+        # Uploading checklist file
+        # Create a temporary .xlsx file for testing
+        with tempfile.NamedTemporaryFile(suffix=".xlsx") as tmp_file:
+            tmp_file.write(b"Test content")
+            tmp_file.seek(0)
+
+            data["review_checklist_file"] = tmp_file
+
+            response = self.client.post(self.url, data, format="multipart")
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.data["status"], EAPStatus.NS_ADDRESSING_COMMENTS)
 
         # NOTE: Transition to UNDER_REVIEW
         # NS_ADDRESSING_COMMENTS -> UNDER_REVIEW
