@@ -21,9 +21,15 @@ from eap.models import (
     PlannedOperation,
     SimplifiedEAP,
 )
-from eap.utils import has_country_permission, is_user_ifrc_admin
+from eap.utils import (
+    has_country_permission,
+    is_user_ifrc_admin,
+    validate_file_extention,
+)
 from main.writable_nested_serializers import NestedCreateMixin, NestedUpdateMixin
 from utils.file_check import validate_file_type
+
+ALLOWED_FILE_EXTENTIONS: list[str] = ["pdf", "docx", "pptx", "xlsx"]
 
 
 class BaseEAPSerializer(serializers.ModelSerializer):
@@ -78,6 +84,31 @@ class MiniSimplifiedEAPSerializer(
         ]
 
 
+class MiniEAPSerializer(serializers.ModelSerializer):
+    eap_type_display = serializers.CharField(source="get_eap_type_display", read_only=True)
+    country_details = MiniCountrySerializer(source="country", read_only=True)
+    disaster_type_details = DisasterTypeSerializer(source="disaster_type", read_only=True)
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+    requirement_cost = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = EAPRegistration
+        fields = [
+            "id",
+            "country",
+            "country_details",
+            "eap_type",
+            "eap_type_display",
+            "disaster_type",
+            "disaster_type_details",
+            "status",
+            "status_display",
+            "requirement_cost",
+            "activated_at",
+            "approved_at",
+        ]
+
+
 class EAPRegistrationSerializer(
     NestedUpdateMixin,
     NestedCreateMixin,
@@ -102,6 +133,8 @@ class EAPRegistrationSerializer(
         read_only_fields = [
             "is_active",
             "status",
+            "validated_budget_file",
+            "review_checklist_file",
             "modified_at",
             "created_by",
             "modified_by",
@@ -227,6 +260,9 @@ class SimplifiedEAPSerializer(
     class Meta:
         model = SimplifiedEAP
         fields = "__all__"
+        read_only_fields = [
+            "updated_checklist_file",
+        ]
 
     def validate_hazard_impact_file(self, images):
         if images and len(images) > self.MAX_NUMBER_OF_IMAGES:
@@ -278,6 +314,8 @@ VALID_IFRC_EAP_STATUS_TRANSITIONS = set(
 
 class EAPStatusSerializer(BaseEAPSerializer):
     status_display = serializers.CharField(source="get_status_display", read_only=True)
+    # NOTE: Only required when changing status to NS Addressing Comments
+    review_checklist_file = serializers.FileField(required=False)
 
     class Meta:
         model = EAPRegistration
@@ -285,9 +323,10 @@ class EAPStatusSerializer(BaseEAPSerializer):
             "id",
             "status_display",
             "status",
+            "review_checklist_file",
         ]
 
-    def validate_status(self, new_status: EAPRegistration.Status) -> EAPRegistration.Status:
+    def _validate_status(self, validated_data: dict[str, typing.Any]) -> dict[str, typing.Any]:
         assert self.instance is not None, "EAP instance does not exist."
 
         if not self.instance.has_eap_application:
@@ -295,6 +334,7 @@ class EAPStatusSerializer(BaseEAPSerializer):
 
         user = self.context["request"].user
         current_status: EAPRegistration.Status = self.instance.get_status_enum
+        new_status: EAPRegistration.Status = EAPRegistration.Status(validated_data.get("status"))
 
         valid_transitions = VALID_IFRC_EAP_STATUS_TRANSITIONS if is_user_ifrc_admin(user) else VALID_NS_EAP_STATUS_TRANSITIONS
 
@@ -313,13 +353,12 @@ class EAPStatusSerializer(BaseEAPSerializer):
                     gettext("You do not have permission to change status to %s.") % EAPRegistration.Status(new_status).label
                 )
 
-            # TODO(susilnem): Check if review checklist has been uploaded.
-            # if not self.instance.review_checklist_file:
-            #     raise serializers.ValidationError(
-            #         gettext(
-            #             "Review checklist file must be uploaded before changing status to %s."
-            #         ) % EAPRegistration.Status(new_status).label
-            #     )
+            if not validated_data.get("review_checklist_file"):
+                raise serializers.ValidationError(
+                    gettext("Review checklist file must be uploaded before changing status to %s.")
+                    % EAPRegistration.Status(new_status).label
+                )
+
         elif (current_status, new_status) == (
             EAPRegistration.Status.UNDER_REVIEW,
             EAPRegistration.Status.TECHNICALLY_VALIDATED,
@@ -346,13 +385,11 @@ class EAPStatusSerializer(BaseEAPSerializer):
                     gettext("You do not have permission to change status to %s.") % EAPRegistration.Status(new_status).label
                 )
 
-            # TODO(susilnem): Check if NS Addressing Comments file has been uploaded.
-            # if not self.instance.ns_addressing_comments_file:
-            #     raise serializers.ValidationError(
-            #         gettext(
-            #             "NS Addressing Comments file must be uploaded before changing status to %s."
-            #         ) % EAPRegistration.Status(new_status).label
-            #     )
+            if not (self.instance.simplified_eap or self.instance.simplified_eap.updated_checklist_file):
+                raise serializers.ValidationError(
+                    gettext("NS Addressing Comments file must be uploaded before changing status to %s.")
+                    % EAPRegistration.Status(new_status).label
+                )
 
         elif (current_status, new_status) == (
             EAPRegistration.Status.TECHNICALLY_VALIDATED,
@@ -400,4 +437,17 @@ class EAPStatusSerializer(BaseEAPSerializer):
                     "activated_at",
                 ]
             )
-        return new_status
+        return validated_data
+
+    def validate(self, validated_data: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        self._validate_status(validated_data)
+        return validated_data
+
+    def validate_review_checklist_file(self, file):
+        if file is None:
+            return
+
+        validate_file_extention(file.name, ALLOWED_FILE_EXTENTIONS)
+        validate_file_type(file)
+
+        return file
