@@ -1,4 +1,7 @@
+import os
+
 from django.contrib.auth.models import Permission, User
+from django.core.exceptions import ValidationError
 
 
 def has_country_permission(user: User, country_id: int) -> bool:
@@ -24,3 +27,17 @@ def is_user_ifrc_admin(user: User) -> bool:
     if user.is_superuser or user.has_perm("api.ifrc_admin"):
         return True
     return False
+
+
+def validate_file_extention(filename: str, allowed_extensions: list[str]):
+    """
+    This function validates a file's extension against a list of allowed extensions.
+    Args:
+        filename: The name of the file to validate.
+    Returns:
+        ValidationError: If the file extension is not allowed.
+    """
+
+    extension = os.path.splitext(filename)[1].replace(".", "")
+    if extension.lower() not in allowed_extensions:
+        raise ValidationError(f"Invalid uploaded file extension: {extension}, Supported only {allowed_extensions} Files")
