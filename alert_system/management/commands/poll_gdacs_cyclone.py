@@ -6,7 +6,7 @@ from main.sentry import SentryMonitor
 
 class Command(BasePollingCommand):
     help = "Poll data for gdacs cyclone"
-    SOURCE_TYPE = "GDACS_CYCLONE"
+    SOURCE_TYPE = 200
 
     @monitor(monitor_slug=SentryMonitor.POLL_GDACS_CY)
     def handle(self, *args, **options):
