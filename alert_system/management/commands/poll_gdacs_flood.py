@@ -6,9 +6,9 @@ from .poll_base import BasePollingCommand
 
 
 class Command(BasePollingCommand):
-    help = "Poll data for usgs eartquake"
-    SOURCE_TYPE = "USGS_EARTHQUAKE"
+    help = "Poll data for gdacs flood"
+    SOURCE_TYPE = 100
 
-    @monitor(monitor_slug=SentryMonitor.POLL_USGS_EQ)
+    @monitor(monitor_slug=SentryMonitor.POLL_GDACS_FL)
     def handle(self, *args, **options):
         super().handle(*args, **options)
