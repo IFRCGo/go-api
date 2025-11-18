@@ -491,11 +491,11 @@ class Command(BaseCommand):
         return ret_fr_list
 
     def get_fieldreport_keyfigures(self, num_list):
-        is_none = all(num is None for num in num_list)
-        if is_none:
-            return None
-
-        return float(sum(filter(None, num_list)))
+        """Return the first non-None element from num_list as float, or None if all are None."""
+        for num in num_list:
+            if num is not None:
+                return float(num)
+        return None
 
     def get_epi_figures_source_name(self, source_id):
         if source_id == 0:
