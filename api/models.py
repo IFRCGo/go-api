@@ -2560,6 +2560,7 @@ class Export(models.Model):
         FINAL_REPORT = "dref-final-reports", _("DREF Final Report")
         OLD_FINAL_REPORT = "old-dref-final-reports", _("Old DREF Final Report")
         PER = "per", _("Per")
+        SIMPLIFIED_EAP = "simplified-eap", _("Simplified EAP")
 
     export_id = models.IntegerField(verbose_name=_("Export Id"))
     export_type = models.CharField(verbose_name=_("Export Type"), max_length=255, choices=ExportType.choices)
