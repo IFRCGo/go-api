@@ -262,6 +262,7 @@ class SimplifiedEAPSerializer(
         fields = "__all__"
         read_only_fields = [
             "updated_checklist_file",
+            "version",
         ]
 
     def validate_hazard_impact_file(self, images):
@@ -358,6 +359,11 @@ class EAPStatusSerializer(BaseEAPSerializer):
                     gettext("Review checklist file must be uploaded before changing status to %s.")
                     % EAPRegistration.Status(new_status).label
                 )
+
+            # NOTE: Add checks for FULL EAP
+            simplified_eap_instance: SimplifiedEAP | None = self.instance.simplified_eap
+            if simplified_eap_instance:
+                simplified_eap_instance.generate_snapshot()
 
         elif (current_status, new_status) == (
             EAPRegistration.Status.UNDER_REVIEW,
