@@ -881,8 +881,30 @@ class SimplifiedEAP(EAPBaseModel):
         blank=True,
     )
 
+    # NOTE: Snapshot fields
+    version = models.IntegerField(
+        verbose_name=_("Version"),
+        help_text=_("Version identifier for the Simplified EAP."),
+        default=1,
+    )
+    is_locked = models.BooleanField(
+        verbose_name=_("Is Locked?"),
+        help_text=_("Indicates whether the Simplified EAP is locked for editing."),
+        default=False,
+    )
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        verbose_name=_("Parent Simplified EAP"),
+        help_text=_("Reference to the parent Simplified EAP if this is a snapshot."),
+        null=True,
+        blank=True,
+        related_name="snapshots",
+    )
+
     # TYPING
     eap_registration_id: int
+    parent_id: int
     id = int
 
     class Meta:
@@ -891,3 +913,90 @@ class SimplifiedEAP(EAPBaseModel):
 
     def __str__(self):
         return f"Simplified EAP for {self.eap_registration}"
+
+    def generate_snapshot(self):
+        """Generate a snapshot of the given Simplified EAP.
+
+        Returns:
+            SimplifiedEAPSnapshot: The created snapshot instance.
+        """
+
+        snapshot = SimplifiedEAP.objects.create(
+            # Meta data
+            parent_id=self.id,
+            version=self.version + 1,
+            created_by=self.created_by,
+            modified_by=self.modified_by,
+            # Raw data
+            eap_registration_id=self.eap_registration_id,
+            cover_image_id=self.cover_image if self.cover_image else None,
+            seap_timeframe=self.seap_timeframe,
+            # Contacts
+            national_society_contact_name=self.national_society_contact_name,
+            national_society_contact_title=self.national_society_contact_title,
+            national_society_contact_email=self.national_society_contact_email,
+            national_society_contact_phone_number=self.national_society_contact_phone_number,
+            partner_ns_name=self.partner_ns_name,
+            partner_ns_email=self.partner_ns_email,
+            partner_ns_title=self.partner_ns_title,
+            partner_ns_phone_number=self.partner_ns_phone_number,
+            ifrc_delegation_focal_point_name=self.ifrc_delegation_focal_point_name,
+            ifrc_delegation_focal_point_email=self.ifrc_delegation_focal_point_email,
+            ifrc_delegation_focal_point_title=self.ifrc_delegation_focal_point_title,
+            ifrc_delegation_focal_point_phone_number=self.ifrc_delegation_focal_point_phone_number,
+            ifrc_head_of_delegation_name=self.ifrc_head_of_delegation_name,
+            ifrc_head_of_delegation_email=self.ifrc_head_of_delegation_email,
+            ifrc_head_of_delegation_title=self.ifrc_head_of_delegation_title,
+            ifrc_head_of_delegation_phone_number=self.ifrc_head_of_delegation_phone_number,
+            dref_focal_point_name=self.dref_focal_point_name,
+            dref_focal_point_email=self.dref_focal_point_email,
+            dref_focal_point_title=self.dref_focal_point_title,
+            dref_focal_point_phone_number=self.dref_focal_point_phone_number,
+            ifrc_regional_focal_point_name=self.ifrc_regional_focal_point_name,
+            ifrc_regional_focal_point_email=self.ifrc_regional_focal_point_email,
+            ifrc_regional_focal_point_title=self.ifrc_regional_focal_point_title,
+            ifrc_regional_focal_point_phone_number=self.ifrc_regional_focal_point_phone_number,
+            ifrc_regional_ops_manager_name=self.ifrc_regional_ops_manager_name,
+            ifrc_regional_ops_manager_email=self.ifrc_regional_ops_manager_email,
+            ifrc_regional_ops_manager_title=self.ifrc_regional_ops_manager_title,
+            ifrc_regional_ops_manager_phone_number=self.ifrc_regional_ops_manager_phone_number,
+            ifrc_regional_head_dcc_name=self.ifrc_regional_head_dcc_name,
+            ifrc_regional_head_dcc_email=self.ifrc_regional_head_dcc_email,
+            ifrc_regional_head_dcc_title=self.ifrc_regional_head_dcc_title,
+            ifrc_regional_head_dcc_phone_number=self.ifrc_regional_head_dcc_phone_number,
+            ifrc_global_ops_coordinator_name=self.ifrc_global_ops_coordinator_name,
+            ifrc_global_ops_coordinator_email=self.ifrc_global_ops_coordinator_email,
+            ifrc_global_ops_coordinator_title=self.ifrc_global_ops_coordinator_title,
+            ifrc_global_ops_coordinator_phone_number=self.ifrc_global_ops_coordinator_phone_number,
+            prioritized_hazard_and_impact=self.prioritized_hazard_and_impact,
+            risks_selected_protocols=self.risks_selected_protocols,
+            selected_early_actions=self.selected_early_actions,
+            overall_objective_intervention=self.overall_objective_intervention,
+            potential_geographical_high_risk_areas=self.potential_geographical_high_risk_areas,
+            people_targeted=self.people_targeted,
+            assisted_through_operation=self.assisted_through_operation,
+            selection_criteria=self.selection_criteria,
+            trigger_statement=self.trigger_statement,
+            seap_lead_time=self.seap_lead_time,
+            operational_timeframe=self.operational_timeframe,
+            trigger_threshold_justification=self.trigger_threshold_justification,
+            next_step_towards_full_eap=self.next_step_towards_full_eap,
+            early_action_capability=self.early_action_capability,
+            rcrc_movement_involvement=self.rcrc_movement_involvement,
+            total_budget=self.total_budget,
+            readiness_budget=self.readiness_budget,
+            pre_positioning_budget=self.pre_positioning_budget,
+            early_action_budget=self.early_action_budget,
+            budget_file=self.budget_file,
+        )
+        # TODO(susilnem): DeepCopy M2M relationships
+        snapshot.hazard_impact_file.add(*self.hazard_impact_file.all())
+        snapshot.risk_selected_protocols_file.add(*self.risk_selected_protocols_file.all())
+        snapshot.selected_early_actions_file.add(*self.selected_early_actions_file.all())
+        snapshot.admin2.add(*self.admin2.all())
+        snapshot.planned_operations.add(*self.planned_operations.all())
+        snapshot.enable_approaches.add(*self.enable_approaches.all())
+        # Setting Parent as locked
+        self.is_locked = True
+        self.save(update_fields=["is_locked"])
+        return snapshot
