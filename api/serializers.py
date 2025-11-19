@@ -15,6 +15,7 @@ from api.tasks import generate_url
 from api.utils import CountryValidator, RegionValidator
 from deployments.models import EmergencyProject, Personnel, PersonnelDeployment
 from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
+from eap.models import SimplifiedEAP
 from lang.models import String
 from lang.serializers import ModelSerializer
 from local_units.models import DelegationOffice
@@ -2566,6 +2567,11 @@ class ExportSerializer(serializers.ModelSerializer):
         elif export_type == Export.ExportType.PER:
             overview = Overview.objects.filter(id=export_id).first()
             title = f"{overview.country.name}-preparedness-{overview.get_phase_display()}"
+        elif export_type == Export.ExportType.SIMPLIFIED_EAP:
+            simplified_eap = SimplifiedEAP.objects.filter(id=export_id).first()
+            title = (
+                f"{simplified_eap.eap_registration.national_society.name}-{simplified_eap.eap_registration.disaster_type.name}"
+            )
         else:
             title = "Export"
         user = self.context["request"].user
