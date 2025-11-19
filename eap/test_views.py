@@ -1,5 +1,6 @@
 import os
 import tempfile
+from unittest import mock
 
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
@@ -7,6 +8,7 @@ from django.core import management
 
 from api.factories.country import CountryFactory
 from api.factories.disaster_type import DisasterTypeFactory
+from api.models import Export
 from deployments.factories.user import UserFactory
 from eap.factories import (
     EAPRegistrationFactory,
@@ -1151,3 +1153,64 @@ class EAPStatusTransitionTestCase(APITestCase):
         # Check is the activated timeline is added
         self.eap_registration.refresh_from_db()
         self.assertIsNotNone(self.eap_registration.activated_at)
+
+
+class TestSimplifiedEapPdfExport(APITestCase):
+    def setUp(self):
+        super().setUp()
+        self.country = CountryFactory.create(name="country1", iso3="XXX")
+        self.national_society = CountryFactory.create(name="national_society1", iso3="YYY")
+        self.disaster_type = DisasterTypeFactory.create(name="disaster1")
+        self.partner1 = CountryFactory.create(name="partner1", iso3="ZZZ")
+        self.partner2 = CountryFactory.create(name="partner2", iso3="AAA")
+
+        self.user = UserFactory.create()
+
+        self.eap_registration = EAPRegistrationFactory.create(
+            eap_type=EAPType.SIMPLIFIED_EAP,
+            country=self.country,
+            national_society=self.national_society,
+            disaster_type=self.disaster_type,
+            partners=[self.partner1.id, self.partner2.id],
+            created_by=self.user,
+            modified_by=self.user,
+        )
+
+        self.simplified_eap = SimplifiedEAPFactory.create(
+            eap_registration=self.eap_registration,
+            created_by=self.user,
+            modified_by=self.user,
+            national_society_contact_title="NS Title Example",
+        )
+        self.url = "/api/v2/pdf-export/"
+
+    @mock.patch("api.serializers.generate_url.delay")
+    def test_create_simplified_eap_export(self, mock_generate_url):
+        data = {
+            "export_type": Export.ExportType.SIMPLIFIED_EAP,
+            "export_id": self.simplified_eap.id,
+            "is_pga": False,
+        }
+
+        self.authenticate(self.user)
+
+        with self.capture_on_commit_callbacks(execute=True):
+            response = self.client.post(self.url, data, format="json")
+        self.assert_201(response)
+        export = Export.objects.first()
+        self.assertIsNotNone(export)
+
+        expected_url = (
+            f"{settings.GO_WEB_INTERNAL_URL}/" f"{Export.ExportType.SIMPLIFIED_EAP}/" f"{self.simplified_eap.id}/export/"
+        )
+        self.assertEqual(export.url, expected_url)
+        self.assertEqual(response.data["status"], Export.ExportStatus.PENDING)
+
+        self.assertEqual(mock_generate_url.called, True)
+        title = f"{self.national_society.name}-{self.disaster_type.name}"
+        mock_generate_url.assert_called_once_with(
+            export.url,
+            export.id,
+            self.user.id,
+            title,
+        )
