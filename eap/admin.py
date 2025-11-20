@@ -55,7 +55,7 @@ class SimplifiedEAPAdmin(admin.ModelAdmin):
         "eap_registration__country__name",
         "eap_registration__disaster_type__name",
     )
-    list_display = ("eap_registration",)
+    list_display = ("simplifed_eap_application", "version", "is_locked")
     autocomplete_fields = (
         "eap_registration",
         "created_by",
@@ -69,7 +69,15 @@ class SimplifiedEAPAdmin(admin.ModelAdmin):
         "selected_early_actions_file",
         "planned_operations",
         "enable_approaches",
+        "parent",
+        "is_locked",
+        "version",
     )
+
+    def simplifed_eap_application(self, obj):
+        return f"{obj.eap_registration.national_society.society_name} - {obj.eap_registration.disaster_type.name}"
+
+    simplifed_eap_application.short_description = "Simplified EAP Application"
 
     def get_queryset(self, request):
         return (

@@ -81,6 +81,9 @@ class MiniSimplifiedEAPSerializer(
             "early_action_budget",
             "seap_timeframe",
             "budget_file",
+            "version",
+            "is_locked",
+            "updated_checklist_file",
         ]
 
 
@@ -122,7 +125,7 @@ class EAPRegistrationSerializer(
     disaster_type_details = DisasterTypeSerializer(source="disaster_type", read_only=True)
 
     # EAPs
-    simplified_eap_details = MiniSimplifiedEAPSerializer(source="simplified_eap", read_only=True)
+    simplified_eap_details = MiniSimplifiedEAPSerializer(source="simplified_eap", many=True, read_only=True)
 
     # Status
     status_display = serializers.CharField(source="get_status_display", read_only=True)
@@ -131,7 +134,6 @@ class EAPRegistrationSerializer(
         model = EAPRegistration
         fields = "__all__"
         read_only_fields = [
-            "is_active",
             "status",
             "validated_budget_file",
             "review_checklist_file",
@@ -140,7 +142,7 @@ class EAPRegistrationSerializer(
             "modified_by",
         ]
 
-    def update(self, instance: EAPRegistration, validated_data: dict[str, typing.Any]):
+    def update(self, instance: EAPRegistration, validated_data: dict[str, typing.Any]) -> dict[str, typing.Any]:
         # Cannot update once EAP application is being created.
         if instance.has_eap_application:
             raise serializers.ValidationError("Cannot update EAP Registration once application is being created.")
@@ -166,6 +168,7 @@ class EAPValidatedBudgetFileSerializer(serializers.ModelSerializer):
             )
 
         validate_file_type(validated_data["validated_budget_file"])
+        validate_file_extention(validated_data["validated_budget_file"].name, ALLOWED_FILE_EXTENTIONS)
         return validated_data
 
 
@@ -261,27 +264,38 @@ class SimplifiedEAPSerializer(
         model = SimplifiedEAP
         fields = "__all__"
         read_only_fields = [
-            "updated_checklist_file",
             "version",
+            "is_locked",
         ]
 
     def validate_hazard_impact_file(self, images):
         if images and len(images) > self.MAX_NUMBER_OF_IMAGES:
             raise serializers.ValidationError(f"Maximum {self.MAX_NUMBER_OF_IMAGES} images are allowed to upload.")
+        validate_file_type(images)
         return images
 
     def validate_risk_selected_protocols_file(self, images):
         if images and len(images) > self.MAX_NUMBER_OF_IMAGES:
             raise serializers.ValidationError(f"Maximum {self.MAX_NUMBER_OF_IMAGES} images are allowed to upload.")
+        validate_file_type(images)
         return images
 
     def validate_selected_early_actions_file(self, images):
         if images and len(images) > self.MAX_NUMBER_OF_IMAGES:
             raise serializers.ValidationError(f"Maximum {self.MAX_NUMBER_OF_IMAGES} images are allowed to upload.")
+        validate_file_type(images)
         return images
 
     def validate(self, data: dict[str, typing.Any]) -> dict[str, typing.Any]:
         eap_registration: EAPRegistration = data["eap_registration"]
+
+        if not self.instance and eap_registration.has_eap_application:
+            raise serializers.ValidationError("Simplified EAP for this EAP registration already exists.")
+
+        # NOTE: Cannot update locked Simplified EAP
+        if self.instance and self.instance.is_locked:
+            raise serializers.ValidationError("Cannot update locked Simplified EAP.")
+
         eap_type = eap_registration.get_eap_type_enum
         if eap_type and eap_type != EAPType.SIMPLIFIED_EAP:
             raise serializers.ValidationError("Cannot create Simplified EAP for non-simplified EAP registration.")
@@ -361,7 +375,10 @@ class EAPStatusSerializer(BaseEAPSerializer):
                 )
 
             # NOTE: Add checks for FULL EAP
-            simplified_eap_instance: SimplifiedEAP | None = self.instance.simplified_eap
+            simplified_eap_instance: SimplifiedEAP | None = (
+                SimplifiedEAP.objects.filter(eap_registration=self.instance).order_by("-version").first()
+            )
+
             if simplified_eap_instance:
                 simplified_eap_instance.generate_snapshot()
 
@@ -391,7 +408,16 @@ class EAPStatusSerializer(BaseEAPSerializer):
                     gettext("You do not have permission to change status to %s.") % EAPRegistration.Status(new_status).label
                 )
 
-            if not (self.instance.simplified_eap or self.instance.simplified_eap.updated_checklist_file):
+            latest_simplified_eap: SimplifiedEAP | None = (
+                SimplifiedEAP.objects.filter(
+                    eap_registration=self.instance,
+                )
+                .order_by("-version")
+                .first()
+            )
+
+            # TODO(susilnem): Add checks for FULL EAP
+            if not (latest_simplified_eap and latest_simplified_eap.updated_checklist_file):
                 raise serializers.ValidationError(
                     gettext("NS Addressing Comments file must be uploaded before changing status to %s.")
                     % EAPRegistration.Status(new_status).label

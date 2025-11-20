@@ -53,8 +53,17 @@ class ActiveEAPViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
             .annotate(
                 requirement_cost=Case(
                     # TODO(susilnem): Verify the requirements(CHF) field map
-                    When(eap_type=EAPType.SIMPLIFIED_EAP, then=F("simplified_eap__total_budget")),
-                    # When(eap_type=EAPType.FULL_EAP, then=F('full_eap__total_budget')),
+                    When(
+                        eap_type=EAPType.SIMPLIFIED_EAP,
+                        then=SimplifiedEAP.objects.filter(eap_registration=F("id"))
+                        .order_by("version")
+                        .values("total_budget")[:1],
+                    ),
+                    # TODO(susilnem): Add check for FullEAP
+                    # When(
+                    #     eap_type=EAPType.FULL_EAP,
+                    #     then=FullEAP.objects.filter(eap_registration=F("id")).order_by("version").values("total_budget")[:1],
+                    # )
                     default=Value(0),
                     output_field=IntegerField(),
                 )
@@ -84,6 +93,7 @@ class EAPRegistrationViewSet(EAPModelViewSet):
                 "partners",
                 "simplified_eap",
             )
+            .order_by("id")
         )
 
     @action(
