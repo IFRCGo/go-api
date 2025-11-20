@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
-from django.db import models
+from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
 
 from api.models import Admin2, Country, DisasterType, District
@@ -206,9 +206,14 @@ class EAPBaseModel(models.Model):
         related_name="%(class)s_modified_by",
     )
 
+    # TYPING
+    id: int
+    created_by_id: int
+    modified_by_id: int
+
     class Meta:
         abstract = True
-        ordering = ["-created_at"]
+        ordering = ["-id"]
 
 
 class EAPFile(EAPBaseModel):
@@ -224,6 +229,7 @@ class EAPFile(EAPBaseModel):
     class Meta:
         verbose_name = _("eap file")
         verbose_name_plural = _("eap files")
+        ordering = ["-id"]
 
 
 class OperationActivity(models.Model):
@@ -377,7 +383,7 @@ class EAPStatus(models.IntegerChoices):
     """Initial status when an EAP is being created."""
 
     UNDER_REVIEW = 20, _("Under Review")
-    """ EAP has been submitted by NS. It is under review by IFRC and/or technical partners."""
+    """EAP has been submitted by NS. It is under review by IFRC and/or technical partners."""
 
     NS_ADDRESSING_COMMENTS = 30, _("NS Addressing Comments")
     """NS is addressing comments provided during the review process.
@@ -471,6 +477,14 @@ class EAPRegistration(EAPBaseModel):
         help_text=_("Upload the validated budget file once the EAP is technically validated."),
     )
 
+    # Review checklist
+    review_checklist_file = SecureFileField(
+        verbose_name=_("Review Checklist File"),
+        upload_to="eap/files/",
+        null=True,
+        blank=True,
+    )
+
     # Contacts
     # National Society
     national_society_contact_name = models.CharField(
@@ -537,6 +551,7 @@ class EAPRegistration(EAPBaseModel):
     class Meta:
         verbose_name = _("Development Registration EAP")
         verbose_name_plural = _("Development Registration EAPs")
+        ordering = ["-id"]
 
     def __str__(self):
         # NOTE: Use select_related in admin get_queryset for national_society field to avoid extra queries
@@ -546,7 +561,9 @@ class EAPRegistration(EAPBaseModel):
     def has_eap_application(self) -> bool:
         """Check if the EAP Registration has an associated EAP application."""
         # TODO(susilnem): Add FULL EAP check, when model is created.
-        return hasattr(self, "simplified_eap")
+        if hasattr(self, "simplified_eap") and self.simplified_eap.exists():
+            return True
+        return False
 
     @property
     def get_status_enum(self) -> EAPStatus:
@@ -574,7 +591,7 @@ class EAPRegistration(EAPBaseModel):
 class SimplifiedEAP(EAPBaseModel):
     """Model representing a Simplified EAP."""
 
-    eap_registration = models.OneToOneField[EAPRegistration, EAPRegistration](
+    eap_registration = models.ForeignKey[EAPRegistration, EAPRegistration](
         EAPRegistration,
         on_delete=models.CASCADE,
         verbose_name=_("EAP Development Registration"),
@@ -865,13 +882,70 @@ class SimplifiedEAP(EAPBaseModel):
         blank=True,
     )
 
+    # Review Checklist
+    updated_checklist_file = SecureFileField(
+        verbose_name=_("Updated Checklist File"),
+        upload_to="eap/files/",
+        null=True,
+        blank=True,
+    )
+
+    # NOTE: Snapshot fields
+    version = models.IntegerField(
+        verbose_name=_("Version"),
+        help_text=_("Version identifier for the Simplified EAP."),
+        default=1,
+    )
+    is_locked = models.BooleanField(
+        verbose_name=_("Is Locked?"),
+        help_text=_("Indicates whether the Simplified EAP is locked for editing."),
+        default=False,
+    )
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        verbose_name=_("Parent Simplified EAP"),
+        help_text=_("Reference to the parent Simplified EAP if this is a snapshot."),
+        null=True,
+        blank=True,
+        related_name="snapshots",
+    )
+
     # TYPING
     eap_registration_id: int
+    parent_id: int
     id = int
 
     class Meta:
         verbose_name = _("Simplified EAP")
         verbose_name_plural = _("Simplified EAPs")
+        ordering = ["-id"]
 
     def __str__(self):
-        return f"Simplified EAP for {self.eap_registration}"
+        return f"Simplified EAP for {self.eap_registration}- version:{self.version}"
+
+    def generate_snapshot(self):
+        """
+        Generate a snapshot of the given Simplified EAP.
+        """
+
+        from eap.utils import copy_model_instance
+
+        with transaction.atomic():
+            copy_model_instance(
+                self,
+                overrides={
+                    "parent_id": self.id,
+                    "version": self.version + 1,
+                    "created_by_id": self.created_by_id,
+                    "modified_by_id": self.modified_by_id,
+                    "updated_checklist_file": None,
+                },
+                exclude_clone_m2m_fields=[
+                    "admin2",
+                ],
+            )
+
+            # Setting Parent as locked
+            self.is_locked = True
+            self.save(update_fields=["is_locked"])

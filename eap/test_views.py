@@ -1,4 +1,5 @@
 import os
+import tempfile
 
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
@@ -21,6 +22,7 @@ from eap.models import (
     EnableApproach,
     OperationActivity,
     PlannedOperation,
+    SimplifiedEAP,
 )
 from main.test_case import APITestCase
 
@@ -165,6 +167,7 @@ class EAPRegistrationTestCase(APITestCase):
     def test_update_eap_registration(self):
         eap_registration = EAPRegistrationFactory.create(
             country=self.country,
+            eap_type=EAPType.SIMPLIFIED_EAP,
             national_society=self.national_society,
             disaster_type=self.disaster_type,
             partners=[self.partner1.id],
@@ -850,7 +853,7 @@ class EAPStatusTransitionTestCase(APITestCase):
         response = self.client.post(self.url, data, format="json")
         self.assertEqual(response.status_code, 400)
 
-        SimplifiedEAPFactory.create(
+        simplified_eap = SimplifiedEAPFactory.create(
             eap_registration=self.eap_registration,
             created_by=self.country_admin,
             modified_by=self.country_admin,
@@ -872,11 +875,65 @@ class EAPStatusTransitionTestCase(APITestCase):
         self.assertEqual(response.status_code, 400)
 
         # NOTE: Login as IFRC admin user
-        # SUCCESS: As only ifrc admins or superuser can
+        # FAILS: As review_checklist_file is required
         self.authenticate(self.ifrc_admin_user)
         response = self.client.post(self.url, data, format="json")
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["status"], EAPStatus.NS_ADDRESSING_COMMENTS)
+        self.assertEqual(response.status_code, 400)
+
+        # Uploading review checklist file
+        # Create a temporary .xlsx file for testing
+        with tempfile.NamedTemporaryFile(suffix=".xlsx") as tmp_file:
+            tmp_file.write(b"Test content")
+            tmp_file.seek(0)
+
+            data["review_checklist_file"] = tmp_file
+
+            response = self.client.post(self.url, data, format="multipart")
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.data["status"], EAPStatus.NS_ADDRESSING_COMMENTS)
+
+            self.eap_registration.refresh_from_db()
+            self.assertIsNotNone(
+                self.eap_registration.review_checklist_file,
+            )
+
+            # NOTE: Check if snapshot is created or not
+            # First SimplifedEAP should be locked
+            simplified_eap.refresh_from_db()
+            self.assertTrue(simplified_eap.is_locked)
+
+            # Two SimplifiedEAP should be there
+            eap_simplified_queryset = SimplifiedEAP.objects.filter(
+                eap_registration=self.eap_registration,
+            )
+
+            self.assertEqual(
+                eap_simplified_queryset.count(),
+                2,
+                "There should be two snapshots created.",
+            )
+
+            # Check version of the latest snapshot
+            # Version should be 2
+            second_snapshot = eap_simplified_queryset.order_by("-version").first()
+            assert second_snapshot is not None, "Second snapshot should not be None."
+
+            self.assertEqual(
+                second_snapshot.version,
+                2,
+                "Latest snapshot version should be 2.",
+            )
+            # Check for parent_id
+            self.assertEqual(
+                second_snapshot.parent_id,
+                simplified_eap.id,
+                "Latest snapshot's parent_id should be the first SimplifiedEAP id.",
+            )
+            # Snapshot Shouldn't have the updated checklist file
+            self.assertFalse(
+                second_snapshot.updated_checklist_file.name,
+                "Latest Snapshot shouldn't have the updated checklist file.",
+            )
 
         # NOTE: Transition to UNDER_REVIEW
         # NS_ADDRESSING_COMMENTS -> UNDER_REVIEW
@@ -884,8 +941,106 @@ class EAPStatusTransitionTestCase(APITestCase):
             "status": EAPStatus.UNDER_REVIEW,
         }
 
+        # FAILS: As updated checklist file is required to go back to UNDER_REVIEW
+        self.authenticate(self.country_admin)
+        response = self.client.post(self.url, data, format="json")
+        self.assertEqual(response.status_code, 400)
+
+        # Upload updated checklist file
+        # UPDATES on the second snapshot
+        url = f"/api/v2/simplified-eap/{second_snapshot.id}/"
+        with tempfile.NamedTemporaryFile(suffix=".xlsx") as tmp_file:
+            tmp_file.write(b"Updated Test content")
+            tmp_file.seek(0)
+
+            file_data = {"eap_registration": second_snapshot.eap_registration_id, "updated_checklist_file": tmp_file}
+
+            response = self.client.patch(url, file_data, format="multipart")
+            self.assertEqual(response.status_code, 200)
+
+        # SUCCESS:
+        self.authenticate(self.country_admin)
+        response = self.client.post(self.url, data, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["status"], EAPStatus.UNDER_REVIEW)
+
+        # AGAIN NOTE: Transition to NS_ADDRESSING_COMMENTS
+        # UNDER_REVIEW -> NS_ADDRESSING_COMMENTS
+        data = {
+            "status": EAPStatus.NS_ADDRESSING_COMMENTS,
+        }
+
         # SUCCESS: As only ifrc admins or superuser can
         self.authenticate(self.ifrc_admin_user)
+
+        # Uploading checklist file
+        # Create a temporary .xlsx file for testing
+        with tempfile.NamedTemporaryFile(suffix=".xlsx") as tmp_file:
+            tmp_file.write(b"Test content")
+            tmp_file.seek(0)
+
+            data["review_checklist_file"] = tmp_file
+
+            response = self.client.post(self.url, data, format="multipart")
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.data["status"], EAPStatus.NS_ADDRESSING_COMMENTS)
+
+            # Check if three snapshots are created now
+            eap_simplified_queryset = SimplifiedEAP.objects.filter(
+                eap_registration=self.eap_registration,
+            )
+            self.assertEqual(
+                eap_simplified_queryset.count(),
+                3,
+                "There should be three snapshots created.",
+            )
+
+            # Check version of the latest snapshot
+            # Version should be 2
+            third_snapshot = eap_simplified_queryset.order_by("-version").first()
+            assert third_snapshot is not None, "Third snapshot should not be None."
+
+            self.assertEqual(
+                third_snapshot.version,
+                3,
+                "Latest snapshot version should be 2.",
+            )
+            # Check for parent_id
+            self.assertEqual(
+                third_snapshot.parent_id,
+                second_snapshot.id,
+                "Latest snapshot's parent_id should be the second Snapshot id.",
+            )
+
+            # Check if the second snapshot is locked.
+            second_snapshot.refresh_from_db()
+            self.assertTrue(second_snapshot.is_locked)
+            # Snapshot Shouldn't have the updated checklist file
+            self.assertFalse(
+                third_snapshot.updated_checklist_file.name,
+                "Latest snapshot shouldn't have the updated checklist file.",
+            )
+
+        # NOTE: Again Transition to UNDER_REVIEW
+        # NS_ADDRESSING_COMMENTS -> UNDER_REVIEW
+        data = {
+            "status": EAPStatus.UNDER_REVIEW,
+        }
+
+        # Upload updated checklist file
+        # UPDATES on the second snapshot
+        url = f"/api/v2/simplified-eap/{third_snapshot.id}/"
+        with tempfile.NamedTemporaryFile(suffix=".xlsx") as tmp_file:
+            tmp_file.write(b"Updated Test content")
+            tmp_file.seek(0)
+
+            file_data = {"eap_registration": third_snapshot.eap_registration_id, "updated_checklist_file": tmp_file}
+
+            response = self.client.patch(url, file_data, format="multipart")
+            self.assertEqual(response.status_code, 200)
+
+        # SUCCESS:
+        self.authenticate(self.country_admin)
         response = self.client.post(self.url, data, format="json")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["status"], EAPStatus.UNDER_REVIEW)
@@ -926,15 +1081,14 @@ class EAPStatusTransitionTestCase(APITestCase):
         self.assertEqual(response.status_code, 400)
 
         # NOTE: Upload Validated budget file
-        path = os.path.join(settings.TEST_DIR, "documents")
-        validated_budget_file = os.path.join(path, "go.png")
         url = f"/api/v2/eap-registration/{self.eap_registration.id}/upload-validated-budget-file/"
-        file_data = {
-            "validated_budget_file": open(validated_budget_file, "rb"),
-        }
-        self.authenticate(self.ifrc_admin_user)
-        response = self.client.post(url, file_data, format="multipart")
-        self.assert_200(response)
+        with tempfile.NamedTemporaryFile(suffix=".xlsx") as tmp_file:
+            tmp_file.write(b"Test content")
+            tmp_file.seek(0)
+            file_data = {"validated_budget_file": tmp_file}
+            self.authenticate(self.ifrc_admin_user)
+            response = self.client.post(url, file_data, format="multipart")
+            self.assertEqual(response.status_code, 200)
 
         self.eap_registration.refresh_from_db()
         self.assertIsNotNone(
