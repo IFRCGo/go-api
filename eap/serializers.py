@@ -17,9 +17,12 @@ from eap.models import (
     EAPRegistration,
     EAPType,
     EnableApproach,
+    FullEAP,
+    KeyActor,
     OperationActivity,
     PlannedOperation,
     SimplifiedEAP,
+    SourceInformation,
 )
 from eap.utils import (
     has_country_permission,
@@ -293,6 +296,27 @@ class EnableApproachSerializer(
         )
 
 
+class SourceInformationSerializer(
+    serializers.ModelSerializer,
+):
+    id = serializers.IntegerField(required=False)
+
+    class Meta:
+        model = SourceInformation
+        fields = "__all__"
+
+
+class KeyActorSerializer(
+    serializers.ModelSerializer,
+):
+    id = serializers.IntegerField(required=False)
+    national_society_details = MiniCountrySerializer(source="national_society", read_only=True)
+
+    class Meta:
+        model = KeyActor
+        fields = "__all__"
+
+
 class SimplifiedEAPSerializer(
     NestedUpdateMixin,
     NestedCreateMixin,
@@ -359,6 +383,70 @@ class SimplifiedEAPSerializer(
         return instance
 
 
+class FullEAPSerializer(
+    NestedUpdateMixin,
+    NestedCreateMixin,
+    BaseEAPSerializer,
+):
+
+    MAX_NUMBER_OF_IMAGES = 5
+
+    planned_operations = PlannedOperationSerializer(many=True, required=False)
+    enable_approaches = EnableApproachSerializer(many=True, required=False)
+    # admins
+    admin2_details = Admin2Serializer(source="admin2", many=True, read_only=True)
+    key_actors = KeyActorSerializer(many=True, required=True)
+
+    # SOURCE OF INFOMATIONS
+    risk_analysis_source_of_information = SourceInformationSerializer(many=True)
+    trigger_statement_source_of_information = SourceInformationSerializer(many=True)
+    trigger_model_source_of_information = SourceInformationSerializer(many=True)
+    evidence_base_source_of_information = SourceInformationSerializer(many=True)
+    activation_process_source_of_information = SourceInformationSerializer(many=True)
+
+    # FILES
+    cover_image_details = EAPFileSerializer(source="cover_image", read_only=True)
+    hazard_selection_files_details = EAPFileSerializer(source="hazard_selection_files", many=True, read_only=True)
+    exposed_element_and_vulnerability_factor_files_details = EAPFileSerializer(
+        source="exposed_element_and_vulnerability_factor_files", many=True, read_only=True
+    )
+    prioritized_impact_files_details = EAPFileSerializer(source="prioritized_impact_files", many=True, read_only=True)
+    risk_analysis_relevant_files_details = EAPFileSerializer(source="risk_analysis_relevant_files", many=True, read_only=True)
+    forecast_selection_files_details = EAPFileSerializer(source="forecast_selection_files", many=True, read_only=True)
+    definition_and_justification_impact_level_files_details = EAPFileSerializer(
+        source="definition_and_justification_impact_level_files", many=True, read_only=True
+    )
+    identification_of_the_intervention_area_files_details = EAPFileSerializer(
+        source="identification_of_the_intervention_area_files", many=True, read_only=True
+    )
+    trigger_model_relevant_files_details = EAPFileSerializer(source="trigger_model_relevant_files", many=True, read_only=True)
+    early_action_selection_process_files_details = EAPFileSerializer(
+        source="early_action_selection_process_files", many=True, read_only=True
+    )
+    theory_of_change_table_file_details = EAPFileSerializer(source="theory_of_change_table_file", read_only=True)
+    evidence_base_files_details = EAPFileSerializer(source="evidence_base_files", many=True, read_only=True)
+    early_action_implementation_files_details = EAPFileSerializer(
+        source="early_action_implementation_files", many=True, read_only=True
+    )
+    trigger_activation_system_files_details = EAPFileSerializer(
+        source="trigger_activation_system_files", many=True, read_only=True
+    )
+    activation_process_relevant_files_details = EAPFileSerializer(
+        source="activation_process_relevant_files", many=True, read_only=True
+    )
+    meal_relevant_files_details = EAPFileSerializer(source="meal_relevant_files", many=True, read_only=True)
+    capacity_relevant_files_details = EAPFileSerializer(source="capacity_relevant_files", many=True, read_only=True)
+
+    class Meta:
+        model = FullEAP
+        fields = "__all__"
+        read_only_fields = (
+            "created_by",
+            "modified_by",
+        )
+
+
+# STATUS TRANSITION SERIALIZER
 VALID_NS_EAP_STATUS_TRANSITIONS = set(
     [
         (EAPRegistration.Status.UNDER_DEVELOPMENT, EAPRegistration.Status.UNDER_REVIEW),
