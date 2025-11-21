@@ -19,7 +19,7 @@ from .models import Export
 from .utils import DebugPlaywright
 
 
-def build_storage_state(tmp_dir, user, token, language):
+def build_storage_state(tmp_dir, user, token, language="en"):
     temp_file = pathlib.Path(tmp_dir, "storage_state.json")
     temp_file.touch()
 
@@ -40,7 +40,7 @@ def build_storage_state(tmp_dir, user, token, language):
                             }
                         ),
                     },
-                    {"name": "language", "value": json.dumps(language)},  # NOTE: Use the language from the request for PDF export
+                    {"name": "language", "value": json.dumps(language)},
                 ],
             }
         ]
@@ -88,12 +88,25 @@ def generate_url(url, export_id, user, title, language):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with sync_playwright() as p:
                 browser = p.chromium.connect(settings.PLAYWRIGHT_SERVER_URL)
-                storage_state = build_storage_state(
-                    tmp_dir,
-                    user,
-                    token,
-                    language,
-                )
+                # NOTE: DREF Export use the language from request
+                if export.export_type in [
+                    Export.ExportType.DREF,
+                    Export.ExportType.OPS_UPDATE,
+                    Export.ExportType.FINAL_REPORT,
+                ]:
+                    storage_state = build_storage_state(
+                        tmp_dir,
+                        user,
+                        token,
+                        language,
+                    )
+                else:
+                    # NOTE: Other Export types use default language (en)
+                    storage_state = build_storage_state(
+                        tmp_dir,
+                        user,
+                        token,
+                    )
                 context = browser.new_context(storage_state=storage_state)
                 page = context.new_page()
                 if settings.DEBUG_PLAYWRIGHT:
