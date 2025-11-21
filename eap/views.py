@@ -1,12 +1,24 @@
 # Create your views here.
 from django.db.models import Case, F, IntegerField, Value, When
-from django.db.models.query import QuerySet
+from django.db.models.query import Prefetch, QuerySet
 from drf_spectacular.utils import extend_schema
 from rest_framework import mixins, permissions, response, status, viewsets
 from rest_framework.decorators import action
 
-from eap.filter_set import EAPRegistrationFilterSet, SimplifiedEAPFilterSet
-from eap.models import EAPFile, EAPRegistration, EAPStatus, EAPType, SimplifiedEAP
+from eap.filter_set import (
+    EAPRegistrationFilterSet,
+    FullEAPFilterSet,
+    SimplifiedEAPFilterSet,
+)
+from eap.models import (
+    EAPFile,
+    EAPRegistration,
+    EAPStatus,
+    EAPType,
+    FullEAP,
+    KeyActor,
+    SimplifiedEAP,
+)
 from eap.permissions import (
     EAPBasePermission,
     EAPRegistrationPermissions,
@@ -18,6 +30,7 @@ from eap.serializers import (
     EAPRegistrationSerializer,
     EAPStatusSerializer,
     EAPValidatedBudgetFileSerializer,
+    FullEAPSerializer,
     MiniEAPSerializer,
     SimplifiedEAPSerializer,
 )
@@ -165,6 +178,54 @@ class SimplifiedEAPViewSet(EAPModelViewSet):
                 "selected_early_actions_images",
                 "planned_operations",
                 "enable_approaches",
+            )
+        )
+
+
+class FullEAPViewSet(EAPModelViewSet):
+    queryset = FullEAP.objects.all()
+    lookup_field = "id"
+    serializer_class = FullEAPSerializer
+    filterset_class = FullEAPFilterSet
+    permission_classes = [permissions.IsAuthenticated, DenyGuestUserMutationPermission, EAPBasePermission]
+
+    def get_queryset(self) -> QuerySet[FullEAP]:
+        return (
+            super()
+            .get_queryset()
+            .select_related(
+                "created_by",
+                "modified_by",
+            )
+            .prefetch_related(
+                "admin2",
+                # source information
+                "risk_analysis_source_of_information",
+                "trigger_statement_source_of_information",
+                "trigger_model_source_of_information",
+                "evidence_base_source_of_information",
+                "activation_process_source_of_information",
+                # Files
+                "hazard_selection_files",
+                "theory_of_change_table_file",
+                "exposed_element_and_vulnerability_factor_files",
+                "prioritized_impact_files",
+                "risk_analysis_relevant_files",
+                "forecast_selection_files",
+                "definition_and_justification_impact_level_files",
+                "identification_of_the_intervention_area_files",
+                "trigger_model_relevant_files",
+                "early_action_selection_process_files",
+                "evidence_base_files",
+                "early_action_implementation_files",
+                "trigger_activation_system_files",
+                "activation_process_relevant_files",
+                "meal_relevant_files",
+                "capacity_relevant_files",
+                Prefetch(
+                    "key_actors",
+                    queryset=KeyActor.objects.select_related("national_society"),
+                ),
             )
         )
 
