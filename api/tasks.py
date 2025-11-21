@@ -19,7 +19,7 @@ from .models import Export
 from .utils import DebugPlaywright
 
 
-def build_storage_state(tmp_dir, user, token):
+def build_storage_state(tmp_dir, user, token, language="en"):
     temp_file = pathlib.Path(tmp_dir, "storage_state.json")
     temp_file.touch()
 
@@ -40,7 +40,7 @@ def build_storage_state(tmp_dir, user, token):
                             }
                         ),
                     },
-                    {"name": "language", "value": json.dumps("en")},  # enforce all export to English
+                    {"name": "language", "value": json.dumps(language)},
                 ],
             }
         ]
@@ -51,7 +51,7 @@ def build_storage_state(tmp_dir, user, token):
 
 
 @shared_task
-def generate_url(url, export_id, user, title):
+def generate_url(url, export_id, user, title, language):
     export = Export.objects.get(id=export_id)
     user = User.objects.get(id=user)
     token = Token.objects.filter(user=user).last()
@@ -88,11 +88,25 @@ def generate_url(url, export_id, user, title):
         with tempfile.TemporaryDirectory() as tmp_dir:
             with sync_playwright() as p:
                 browser = p.chromium.connect(settings.PLAYWRIGHT_SERVER_URL)
-                storage_state = build_storage_state(
-                    tmp_dir,
-                    user,
-                    token,
-                )
+                # NOTE: DREF Export use the language from request
+                if export.export_type in [
+                    Export.ExportType.DREF,
+                    Export.ExportType.OPS_UPDATE,
+                    Export.ExportType.FINAL_REPORT,
+                ]:
+                    storage_state = build_storage_state(
+                        tmp_dir,
+                        user,
+                        token,
+                        language,
+                    )
+                else:
+                    # NOTE: Other Export types use default language (en)
+                    storage_state = build_storage_state(
+                        tmp_dir,
+                        user,
+                        token,
+                    )
                 context = browser.new_context(storage_state=storage_state)
                 page = context.new_page()
                 if settings.DEBUG_PLAYWRIGHT:

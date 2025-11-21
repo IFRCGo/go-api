@@ -38,7 +38,7 @@ from lang.serializers import ModelSerializer
 from main.writable_nested_serializers import NestedCreateMixin, NestedUpdateMixin
 from utils.file_check import validate_file_type
 
-from .tasks import send_dref_email
+from .tasks import _translate_related_objects, send_dref_email
 
 
 class RiskSecuritySerializer(ModelSerializer):
@@ -1087,6 +1087,14 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             operational_update.users.add(*dref_operational_update.users.all())
             operational_update.risk_security.add(*dref_operational_update.risk_security.all())
             operational_update.source_information.add(*dref_operational_update.source_information.all())
+
+        # NOTE: Sync related models with the starting language
+        if starting_langauge != "en":
+            _translate_related_objects(
+                instance=operational_update,
+                auto_translate=False,
+                language=starting_langauge,
+            )
         return operational_update
 
     def update(self, instance, validated_data):
@@ -1541,6 +1549,14 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             # also update is_final_report_created for dref
             dref.is_final_report_created = True
             dref.save(update_fields=["is_final_report_created"])
+
+        # NOTE: Sync related models with the starting language
+        if starting_langauge != "en":
+            _translate_related_objects(
+                instance=dref_final_report,
+                auto_translate=False,
+                language=starting_langauge,
+            )
         return dref_final_report
 
     def update(self, instance, validated_data):
