@@ -274,6 +274,13 @@ cronjobs:
     schedule: '0 0 * * 0'
   - command: 'ingest_icrc'
     schedule: '0 3 * * 0'
+  # Schedule time yet to be decided
+  - command: 'poll_gdacs_cy'
+    schedule: '0 0 * * 0'
+  - command: 'poll_gdacs_fl'
+    schedule: '0 0 * * 0'
+  - command: 'poll_usgs_eq'
+    schedule: '0 0 * * 0'
   # - command: 'notify_validators' 
   #   schedule: '0 0 * * *'
   # https://github.com/jazzband/django-oauth-toolkit/blob/master/docs/management_commands.rst#cleartokens
