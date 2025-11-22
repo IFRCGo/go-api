@@ -26,7 +26,7 @@ from api.management.commands.index_and_notify import Command as Notify
 from lang.admin import TranslationAdmin, TranslationInlineModelAdmin
 from notifications.models import RecordType, SubscriptionType
 
-from .forms import ActionForm
+from .forms import ActionForm, AppealForm
 
 # from reversion.models import Revision
 
@@ -447,6 +447,13 @@ class GeneralDocumentInline(admin.TabularInline, TranslationInlineModelAdmin):
 
 
 class AppealAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
+
+    @admin.display(description="Force history save")
+    def force_history_save(self, obj):
+        return obj._force_history_save
+
+    form = AppealForm
+    force_history_save.boolean = False
     country_in = "country__pk__in"
     region_in = "region__pk__in"
     inlines = [AppealDocumentInline]
@@ -515,6 +522,7 @@ class AppealAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     def save_model(self, request, obj, form, change):
         if obj.country:
             obj.region = obj.country.region
+        obj._force_history_save = form.cleaned_data.get("force_history_save", False)
         super().save_model(request, obj, form, change)
 
 
