@@ -32,37 +32,22 @@ class Connector(models.Model):
         help_text=_("Current status of the connector"),
     )
 
-    source_url = models.URLField(
-        verbose_name=_("Source URL"), 
-        help_text=_("Base URL for the STAC API endpoint")
-    )
+    source_url = models.URLField(verbose_name=_("Source URL"), help_text=_("Base URL for the STAC API endpoint"))
 
     last_success_run = models.DateTimeField(
-        null=True, 
-        blank=True, 
-        verbose_name=_("Last Successful Run"), 
-        help_text=_("Timestamp of the last successful data fetch")
+        null=True, blank=True, verbose_name=_("Last Successful Run"), help_text=_("Timestamp of the last successful data fetch")
     )
 
     filter_hazard = models.JSONField(
-        default=dict, 
-        blank=True, 
-        verbose_name=_("Hazard Filter"), 
-        help_text=_("JSON filters to apply when fetching hazard data")
+        default=dict, blank=True, verbose_name=_("Hazard Filter"), help_text=_("JSON filters to apply when fetching hazard data")
     )
 
     filter_impact = models.JSONField(
-        default=dict, 
-        blank=True, 
-        verbose_name=_("Impact Filter"), 
-        help_text=_("JSON filters to apply when fetching impact data")
+        default=dict, blank=True, verbose_name=_("Impact Filter"), help_text=_("JSON filters to apply when fetching impact data")
     )
 
     filter_event = models.JSONField(
-        default=dict, 
-        blank=True, 
-        verbose_name=_("Event Filter"), 
-        help_text=_("JSON filters to apply when fetching event data")
+        default=dict, blank=True, verbose_name=_("Event Filter"), help_text=_("JSON filters to apply when fetching event data")
     )
 
     class Meta:
@@ -105,29 +90,19 @@ class BaseStacItem(models.Model):
     )
 
     created_at = models.DateTimeField(
-        auto_now_add=True, 
-        verbose_name=_("Created At"), 
-        help_text=_("Timestamp when the record was created")
+        auto_now_add=True, verbose_name=_("Created At"), help_text=_("Timestamp when the record was created")
     )
 
     updated_at = models.DateTimeField(
-        auto_now=True, 
-        verbose_name=_("Updated At"), 
-        help_text=_("Timestamp when the record was last updated")
+        auto_now=True, verbose_name=_("Updated At"), help_text=_("Timestamp when the record was last updated")
     )
 
     resp_data = models.JSONField(
-        null=True, 
-        blank=True, 
-        verbose_name=_("Response Data"), 
-        help_text=_("Raw JSON response from the STAC API")
+        null=True, blank=True, verbose_name=_("Response Data"), help_text=_("Raw JSON response from the STAC API")
     )
 
     metadata = models.JSONField(
-        default=dict, 
-        blank=True, 
-        verbose_name=_("Metadata"), 
-        help_text=_("Additional metadata for internal use")
+        default=dict, blank=True, verbose_name=_("Metadata"), help_text=_("Additional metadata for internal use")
     )
 
     correlation_id = models.CharField(
@@ -137,11 +112,7 @@ class BaseStacItem(models.Model):
     )
 
     cluster = models.CharField(
-        max_length=255, 
-        null=True, 
-        blank=True, 
-        verbose_name=_("Cluster"), 
-        help_text=_("Cluster classification of the hazard")
+        max_length=255, null=True, blank=True, verbose_name=_("Cluster"), help_text=_("Cluster classification of the hazard")
     )
 
     estimate_type = models.CharField(
@@ -153,11 +124,7 @@ class BaseStacItem(models.Model):
     )
 
     severity_unit = models.CharField(
-        max_length=100, 
-        null=True, 
-        blank=True, 
-        verbose_name=_("Severity Unit"), 
-        help_text=_("Unit of measurement for severity")
+        max_length=100, null=True, blank=True, verbose_name=_("Severity Unit"), help_text=_("Unit of measurement for severity")
     )
 
     severity_label = models.CharField(
@@ -191,12 +158,7 @@ class BaseStacItem(models.Model):
         help_text=_("The type of the impact"),
     )
 
-    value = models.IntegerField(
-        null=True, 
-        blank=True, 
-        verbose_name=_("Value"), 
-        help_text=_("Value of the associated type")
-    )
+    value = models.IntegerField(null=True, blank=True, verbose_name=_("Value"), help_text=_("Value of the associated type"))
 
     class Meta:
         abstract = True
@@ -210,6 +172,7 @@ class StacItems(BaseStacItem):
     """
     Concrete model for STAC items.
     """
+
     processed = models.BooleanField(default=False)
 
     class Meta:
@@ -221,6 +184,7 @@ class EligibleItems(BaseStacItem):
     """
     Concrete model for eligible STAC items.
     """
+
     class Meta:
         verbose_name = _("Eligible Item")
         verbose_name_plural = _("Eligible Items")
