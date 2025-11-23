@@ -1,6 +1,5 @@
 import logging
 from datetime import datetime, timedelta, timezone
-from token import OP
 from typing import Dict, Generator, Optional
 
 import httpx
@@ -20,9 +19,7 @@ class BaseExtractionClass:
 
     def __init__(self, connector: Connector):
         if not self.event_endpoint:
-            raise NotImplementedError(
-                f"{self.__class__.__name__} must define event_endpoint, "
-            )
+            raise NotImplementedError(f"{self.__class__.__name__} must define event_endpoint, ")
         self.connector = connector
         self.base_url = connector.source_url.rstrip("/")
 
@@ -157,7 +154,7 @@ class BaseExtractionClass:
         if not self.hazard_endpoint:
             return
         try:
-            hazard_features = self._fetch_items(self.hazard_endpoint,"filter_hazard", stac_obj.correlation_id)
+            hazard_features = self._fetch_items(self.hazard_endpoint, "filter_hazard", stac_obj.correlation_id)
         except Exception as e:
             logger.error(f"Failed to fetch hazards for event {stac_obj.stac_id}: {e}")
             raise
