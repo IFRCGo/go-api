@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Connector, StacItems, EligibleItems
+from .models import Connector, EligibleItems, StacItems
 
 
 @admin.register(Connector)
@@ -15,6 +15,7 @@ class EventAdmin(admin.ModelAdmin):
     list_filter = ("connector", "collection")
     readonly_fields = ("connector",)
     search_fields = ("stac_id",)
+
 
 @admin.register(EligibleItems)
 class EligibleAdmin(admin.ModelAdmin):
