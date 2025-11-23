@@ -1,14 +1,29 @@
-from sentry_sdk.crons import monitor
+import logging
 
-from main.sentry import SentryMonitor
+from django.core.management.base import BaseCommand
 
-from .poll_base import BasePollingCommand
+from alert_system.models import Connector
+from alert_system.tasks import process_connector_task
+
+logger = logging.getLogger(__name__)
 
 
-class Command(BasePollingCommand):
-    help = "Poll data for usgs eartquake"
+class Command(BaseCommand):
+    help = "Command to extract data from eoapi"
+
     SOURCE_TYPE = 300
 
-    @monitor(monitor_slug=SentryMonitor.POLL_USGS_EQ)
     def handle(self, *args, **options):
-        super().handle(*args, **options)
+        if not self.SOURCE_TYPE:
+            raise ValueError("SOURCE_TYPE must be defined.")
+        self.stdout.write("Starting extraction task...")
+        connector = Connector.objects.filter(type=self.SOURCE_TYPE).first()
+        if not connector:
+            logger.warning("No connectors found.")
+            return
+
+        process_connector_task.delay(connector.id)
+
+        logger.info("Connector task dispatched.")
+
+        self.stdout.write("Extraction task finished.")
