@@ -305,6 +305,7 @@ class OperationActivity(models.Model):
 
     activity = models.CharField(max_length=255, verbose_name=_("Activity"))
     timeframe = models.IntegerField(choices=TimeFrame.choices, verbose_name=_("Timeframe"))
+    # TODO(susilnem): Use enums for time_value?
     time_value = ArrayField(
         base_field=models.IntegerField(),
         verbose_name=_("Activity time span"),
@@ -644,10 +645,12 @@ class EAPRegistration(EAPBaseModel):
     )
 
     # TYPING
+    id: int
     national_society_id = int
     country_id = int
     disaster_type_id = int
-    id = int
+    simplified_eap: models.Manager["SimplifiedEAP"]
+    full_eap: models.Manager["FullEAP"]
 
     class Meta:
         verbose_name = _("Development Registration EAP")
@@ -661,10 +664,7 @@ class EAPRegistration(EAPBaseModel):
     @property
     def has_eap_application(self) -> bool:
         """Check if the EAP Registration has an associated EAP application."""
-        # TODO(susilnem): Add FULL EAP check, when model is created.
-        if hasattr(self, "simplified_eap") and self.simplified_eap.exists():
-            return True
-        return False
+        return self.simplified_eap.exists() or self.full_eap.exists()
 
     @property
     def get_status_enum(self) -> EAPStatus:
@@ -826,6 +826,28 @@ class CommonEAPFields(models.Model):
         verbose_name=_("IFRC global ops coordinator phone number"), max_length=100, null=True, blank=True
     )
 
+    # Review Checklist
+    updated_checklist_file = SecureFileField(
+        verbose_name=_("Updated Checklist File"),
+        upload_to="eap/files/",
+        null=True,
+        blank=True,
+    )
+
+    # BUDGET #
+    total_budget = models.IntegerField(
+        verbose_name=_("Total Budget (CHF)"),
+    )
+    readiness_budget = models.IntegerField(
+        verbose_name=_("Readiness Budget (CHF)"),
+    )
+    pre_positioning_budget = models.IntegerField(
+        verbose_name=_("Pre-positioning Budget (CHF)"),
+    )
+    early_action_budget = models.IntegerField(
+        verbose_name=_("Early Actions Budget (CHF)"),
+    )
+
     class Meta:
         abstract = True
 
@@ -970,32 +992,10 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
         blank=True,
     )
 
-    # BUDGET #
-    total_budget = models.IntegerField(
-        verbose_name=_("Total Budget (CHF)"),
-    )
-    readiness_budget = models.IntegerField(
-        verbose_name=_("Readiness Budget (CHF)"),
-    )
-    pre_positioning_budget = models.IntegerField(
-        verbose_name=_("Pre-positioning Budget (CHF)"),
-    )
-    early_action_budget = models.IntegerField(
-        verbose_name=_("Early Actions Budget (CHF)"),
-    )
-
     # BUDGET DETAILS #
     budget_file = SecureFileField(
         verbose_name=_("Budget File"),
         upload_to="eap/simplified_eap/budget_files/",
-        null=True,
-        blank=True,
-    )
-
-    # Review Checklist
-    updated_checklist_file = SecureFileField(
-        verbose_name=_("Updated Checklist File"),
-        upload_to="eap/files/",
         null=True,
         blank=True,
     )
@@ -1022,9 +1022,9 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
     )
 
     # TYPING
+    id: int
     eap_registration_id: int
     parent_id: int
-    id = int
 
     class Meta:
         verbose_name = _("Simplified EAP")
@@ -1041,8 +1041,9 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
 
         from eap.utils import copy_model_instance
 
+        # TODO(susilnem): Verify the fields to exclude?
         with transaction.atomic():
-            copy_model_instance(
+            instance = copy_model_instance(
                 self,
                 overrides={
                     "parent_id": self.id,
@@ -1059,6 +1060,7 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
             # Setting Parent as locked
             self.is_locked = True
             self.save(update_fields=["is_locked"])
+        return instance
 
 
 class FullEAP(EAPBaseModel, CommonEAPFields):
@@ -1377,9 +1379,9 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         blank=True,
     )
 
-    readiness_cost = models.TextField(verbose_name=_("Readiness Cost Description"))
-    prepositioning_cost = models.TextField(verbose_name=_("Prepositioning Cost Description"))
-    early_action_cost = models.TextField(verbose_name=_("Early Action Cost Description"))
+    readiness_cost_description = models.TextField(verbose_name=_("Readiness Cost Description"))
+    prepositioning_cost_description = models.TextField(verbose_name=_("Prepositioning Cost Description"))
+    early_action_cost_description = models.TextField(verbose_name=_("Early Action Cost Description"))
 
     # EAP ENDORSEMENT / APPROVAL
 
@@ -1388,9 +1390,31 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         help_text=("Describe by whom,how and when the EAP was agreed and endorsed."),
     )
 
+    # NOTE: Snapshot fields
+    version = models.IntegerField(
+        verbose_name=_("Version"),
+        help_text=_("Version identifier for the Full EAP."),
+        default=1,
+    )
+    is_locked = models.BooleanField(
+        verbose_name=_("Is Locked?"),
+        help_text=_("Indicates whether the Full EAP is locked for editing."),
+        default=False,
+    )
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        verbose_name=_("Parent FUll EAP"),
+        help_text=_("Reference to the parent Full EAP if this is a snapshot."),
+        null=True,
+        blank=True,
+        related_name="snapshots",
+    )
+
     # TYPING
+    id: int
     eap_registration_id: int
-    id = int
+    parent_id: int | None
 
     class Meta:
         verbose_name = _("Full EAP")
@@ -1398,4 +1422,31 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         ordering = ["-id"]
 
     def __str__(self):
-        return f"Full EAP for {self.eap_registration}"
+        return f"Full EAP for {self.eap_registration}- version:{self.version}"
+
+    def generate_snapshot(self):
+        """
+        Generate a snapshot of the given Full EAP.
+        """
+
+        from eap.utils import copy_model_instance
+
+        with transaction.atomic():
+            instance = copy_model_instance(
+                self,
+                overrides={
+                    "parent_id": self.id,
+                    "version": self.version + 1,
+                    "created_by_id": self.created_by_id,
+                    "modified_by_id": self.modified_by_id,
+                    "updated_checklist_file": None,
+                },
+                exclude_clone_m2m_fields=[
+                    "admin2",
+                ],
+            )
+
+            # Setting Parent as locked
+            self.is_locked = True
+            self.save(update_fields=["is_locked"])
+        return instance
