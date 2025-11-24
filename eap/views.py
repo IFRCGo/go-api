@@ -1,11 +1,12 @@
 # Create your views here.
+from django.db.models import Case, F, IntegerField, Value, When
 from django.db.models.query import QuerySet
 from drf_spectacular.utils import extend_schema
 from rest_framework import mixins, permissions, response, status, viewsets
 from rest_framework.decorators import action
 
 from eap.filter_set import EAPRegistrationFilterSet, SimplifiedEAPFilterSet
-from eap.models import EAPFile, EAPRegistration, SimplifiedEAP
+from eap.models import EAPFile, EAPRegistration, EAPStatus, EAPType, SimplifiedEAP
 from eap.permissions import (
     EAPBasePermission,
     EAPRegistrationPermissions,
@@ -17,6 +18,7 @@ from eap.serializers import (
     EAPRegistrationSerializer,
     EAPStatusSerializer,
     EAPValidatedBudgetFileSerializer,
+    MiniEAPSerializer,
     SimplifiedEAPSerializer,
 )
 from main.permissions import DenyGuestUserMutationPermission, DenyGuestUserPermission
@@ -30,6 +32,43 @@ class EAPModelViewSet(
     mixins.UpdateModelMixin,
 ):
     pass
+
+
+class ActiveEAPViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
+    queryset = EAPRegistration.objects.all()
+    lookup_field = "id"
+    serializer_class = MiniEAPSerializer
+    permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
+    filterset_class = EAPRegistrationFilterSet
+
+    def get_queryset(self) -> QuerySet[EAPRegistration]:
+        return (
+            super()
+            .get_queryset()
+            .filter(status__in=[EAPStatus.APPROVED, EAPStatus.ACTIVATED])
+            .select_related(
+                "disaster_type",
+                "country",
+            )
+            .annotate(
+                requirement_cost=Case(
+                    # TODO(susilnem): Verify the requirements(CHF) field map
+                    When(
+                        eap_type=EAPType.SIMPLIFIED_EAP,
+                        then=SimplifiedEAP.objects.filter(eap_registration=F("id"))
+                        .order_by("version")
+                        .values("total_budget")[:1],
+                    ),
+                    # TODO(susilnem): Add check for FullEAP
+                    # When(
+                    #     eap_type=EAPType.FULL_EAP,
+                    #     then=FullEAP.objects.filter(eap_registration=F("id")).order_by("version").values("total_budget")[:1],
+                    # )
+                    default=Value(0),
+                    output_field=IntegerField(),
+                )
+            )
+        )
 
 
 class EAPRegistrationViewSet(EAPModelViewSet):
@@ -54,6 +93,7 @@ class EAPRegistrationViewSet(EAPModelViewSet):
                 "partners",
                 "simplified_eap",
             )
+            .order_by("id")
         )
 
     @action(
