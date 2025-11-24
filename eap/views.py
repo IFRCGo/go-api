@@ -88,7 +88,11 @@ class EAPRegistrationViewSet(EAPModelViewSet):
     queryset = EAPRegistration.objects.all()
     lookup_field = "id"
     serializer_class = EAPRegistrationSerializer
-    permission_classes = [permissions.IsAuthenticated, DenyGuestUserMutationPermission, EAPRegistrationPermissions]
+    permission_classes = [
+        permissions.IsAuthenticated,
+        DenyGuestUserMutationPermission,
+        EAPRegistrationPermissions,
+    ]
     filterset_class = EAPRegistrationFilterSet
 
     def get_queryset(self) -> QuerySet[EAPRegistration]:
@@ -135,7 +139,11 @@ class EAPRegistrationViewSet(EAPModelViewSet):
         url_path="upload-validated-budget-file",
         methods=["post"],
         serializer_class=EAPValidatedBudgetFileSerializer,
-        permission_classes=[permissions.IsAuthenticated, DenyGuestUserPermission, EAPValidatedBudgetPermission],
+        permission_classes=[
+            permissions.IsAuthenticated,
+            DenyGuestUserPermission,
+            EAPValidatedBudgetPermission,
+        ],
     )
     def upload_validated_budget_file(
         self,
@@ -157,7 +165,11 @@ class SimplifiedEAPViewSet(EAPModelViewSet):
     lookup_field = "id"
     serializer_class = SimplifiedEAPSerializer
     filterset_class = SimplifiedEAPFilterSet
-    permission_classes = [permissions.IsAuthenticated, DenyGuestUserMutationPermission, EAPBasePermission]
+    permission_classes = [
+        permissions.IsAuthenticated,
+        DenyGuestUserMutationPermission,
+        EAPBasePermission,
+    ]
 
     def get_queryset(self) -> QuerySet[SimplifiedEAP]:
         return (
@@ -187,7 +199,11 @@ class FullEAPViewSet(EAPModelViewSet):
     lookup_field = "id"
     serializer_class = FullEAPSerializer
     filterset_class = FullEAPFilterSet
-    permission_classes = [permissions.IsAuthenticated, DenyGuestUserMutationPermission, EAPBasePermission]
+    permission_classes = [
+        permissions.IsAuthenticated,
+        DenyGuestUserMutationPermission,
+        EAPBasePermission,
+    ]
 
     def get_queryset(self) -> QuerySet[FullEAP]:
         return (

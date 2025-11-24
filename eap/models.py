@@ -833,7 +833,7 @@ class CommonEAPFields(models.Model):
 class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
     """Model representing a Simplified EAP."""
 
-    eap_registration = models.OneToOneField[EAPRegistration, EAPRegistration](
+    eap_registration = models.ForeignKey[EAPRegistration, EAPRegistration](
         EAPRegistration,
         on_delete=models.CASCADE,
         verbose_name=_("EAP Development Registration"),
