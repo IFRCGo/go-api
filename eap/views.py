@@ -1,5 +1,6 @@
 # Create your views here.
-from django.db.models import Case, F, IntegerField, Value, When
+from django.db.models import Case, IntegerField, Subquery, When
+from django.db.models.expressions import OuterRef
 from django.db.models.query import Prefetch, QuerySet
 from drf_spectacular.utils import extend_schema
 from rest_framework import mixins, permissions, response, status, viewsets
@@ -55,29 +56,33 @@ class ActiveEAPViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     filterset_class = EAPRegistrationFilterSet
 
     def get_queryset(self) -> QuerySet[EAPRegistration]:
+        latest_simplified_eap = (
+            SimplifiedEAP.objects.filter(eap_registration=OuterRef("id"), is_locked=False)
+            .order_by("-version")
+            .values("total_budget")[:1]
+        )
+
+        latest_full_eap = (
+            FullEAP.objects.filter(eap_registration=OuterRef("id"), is_locked=False)
+            .order_by("-version")
+            .values("total_budget")[:1]
+        )
+
         return (
             super()
             .get_queryset()
             .filter(status__in=[EAPStatus.APPROVED, EAPStatus.ACTIVATED])
-            .select_related(
-                "disaster_type",
-                "country",
-            )
+            .select_related("disaster_type", "country")
             .annotate(
                 requirement_cost=Case(
-                    # TODO(susilnem): Verify the requirements(CHF) field map
                     When(
                         eap_type=EAPType.SIMPLIFIED_EAP,
-                        then=SimplifiedEAP.objects.filter(eap_registration=F("id"))
-                        .order_by("version")
-                        .values("total_budget")[:1],
+                        then=Subquery(latest_simplified_eap),
                     ),
-                    # TODO(susilnem): Add check for FullEAP
-                    # When(
-                    #     eap_type=EAPType.FULL_EAP,
-                    #     then=FullEAP.objects.filter(eap_registration=F("id")).order_by("version").values("total_budget")[:1],
-                    # )
-                    default=Value(0),
+                    When(
+                        eap_type=EAPType.FULL_EAP,
+                        then=Subquery(latest_full_eap),
+                    ),
                     output_field=IntegerField(),
                 )
             )

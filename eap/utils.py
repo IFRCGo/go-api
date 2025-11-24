@@ -4,7 +4,7 @@ import typing
 from django.contrib.auth.models import Permission, User
 from django.core.exceptions import ValidationError
 
-from eap.models import SimplifiedEAP
+from eap.models import FullEAP, SimplifiedEAP
 
 
 def has_country_permission(user: User, country_id: int) -> bool:
@@ -50,10 +50,10 @@ def validate_file_extention(filename: str, allowed_extensions: list[str]):
 
 
 def copy_model_instance(
-    instance: SimplifiedEAP,
+    instance: SimplifiedEAP | FullEAP,
     overrides: dict[str, typing.Any] | None = None,
     exclude_clone_m2m_fields: list[str] | None = None,
-) -> SimplifiedEAP:
+) -> SimplifiedEAP | FullEAP:
     """
     Creates a copy of a Django model instance, including its many-to-many relationships.
 
