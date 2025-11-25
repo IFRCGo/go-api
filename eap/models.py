@@ -796,10 +796,10 @@ class SimplifiedEAP(EAPBaseModel):
         null=True,
         blank=True,
     )
-    hazard_impact_file = models.ManyToManyField(
+    hazard_impact_images = models.ManyToManyField(
         EAPFile,
-        verbose_name=_("Hazard Impact Files"),
-        related_name="simplified_eap_hazard_impact_files",
+        verbose_name=_("Hazard Impact Images"),
+        related_name="simplified_eap_hazard_impact_images",
         blank=True,
     )
 
@@ -809,10 +809,10 @@ class SimplifiedEAP(EAPBaseModel):
         blank=True,
     )
 
-    risk_selected_protocols_file = models.ManyToManyField(
+    risk_selected_protocols_images = models.ManyToManyField(
         EAPFile,
-        verbose_name=_("Risk Selected Protocols Files"),
-        related_name="simplified_eap_risk_selected_protocols_files",
+        verbose_name=_("Risk Selected Protocols Images"),
+        related_name="simplified_eap_risk_selected_protocols_images",
         blank=True,
     )
 
@@ -822,10 +822,10 @@ class SimplifiedEAP(EAPBaseModel):
         null=True,
         blank=True,
     )
-    selected_early_actions_file = models.ManyToManyField(
+    selected_early_actions_images = models.ManyToManyField(
         EAPFile,
-        verbose_name=_("Selected Early Actions Files"),
-        related_name="simplified_eap_selected_early_actions_files",
+        verbose_name=_("Selected Early Actions Images"),
+        related_name="simplified_eap_selected_early_actions_images",
         blank=True,
     )
 
