@@ -233,11 +233,75 @@ class EAPFile(EAPBaseModel):
 
 
 class OperationActivity(models.Model):
+    # NOTE: `timeframe` and `time_value` together represent the time span for an activity.
+    # Make sure to keep them in sync.
     class TimeFrame(models.IntegerChoices):
         YEARS = 10, _("Years")
         MONTHS = 20, _("Months")
         DAYS = 30, _("Days")
         HOURS = 40, _("Hours")
+
+    class YearsTimeFrameChoices(models.IntegerChoices):
+        ONE_YEAR = 1, _("1")
+        TWO_YEARS = 2, _("2")
+        THREE_YEARS = 3, _("3")
+        FOUR_YEARS = 4, _("4")
+        FIVE_YEARS = 5, _("5")
+
+    class MonthsTimeFrameChoices(models.IntegerChoices):
+        ONE_MONTH = 1, _("1")
+        TWO_MONTHS = 2, _("2")
+        THREE_MONTHS = 3, _("3")
+        FOUR_MONTHS = 4, _("4")
+        FIVE_MONTHS = 5, _("5")
+        SIX_MONTHS = 6, _("6")
+        SEVEN_MONTHS = 7, _("7")
+        EIGHT_MONTHS = 8, _("8")
+        NINE_MONTHS = 9, _("9")
+        TEN_MONTHS = 10, _("10")
+        ELEVEN_MONTHS = 11, _("11")
+        TWELVE_MONTHS = 12, _("12")
+
+    class DaysTimeFrameChoices(models.IntegerChoices):
+        ONE_DAY = 1, _("1")
+        TWO_DAYS = 2, _("2")
+        THREE_DAYS = 3, _("3")
+        FOUR_DAYS = 4, _("4")
+        FIVE_DAYS = 5, _("5")
+        SIX_DAYS = 6, _("6")
+        SEVEN_DAYS = 7, _("7")
+        EIGHT_DAYS = 8, _("8")
+        NINE_DAYS = 9, _("9")
+        TEN_DAYS = 10, _("10")
+        ELEVEN_DAYS = 11, _("11")
+        TWELVE_DAYS = 12, _("12")
+        THIRTEEN_DAYS = 13, _("13")
+        FOURTEEN_DAYS = 14, _("14")
+        FIFTEEN_DAYS = 15, _("15")
+        SIXTEEN_DAYS = 16, _("16")
+        SEVENTEEN_DAYS = 17, _("17")
+        EIGHTEEN_DAYS = 18, _("18")
+        NINETEEN_DAYS = 19, _("19")
+        TWENTY_DAYS = 20, _("20")
+        TWENTY_ONE_DAYS = 21, _("21")
+        TWENTY_TWO_DAYS = 22, _("22")
+        TWENTY_THREE_DAYS = 23, _("23")
+        TWENTY_FOUR_DAYS = 24, _("24")
+        TWENTY_FIVE_DAYS = 25, _("25")
+        TWENTY_SIX_DAYS = 26, _("26")
+        TWENTY_SEVEN_DAYS = 27, _("27")
+        TWENTY_EIGHT_DAYS = 28, _("28")
+        TWENTY_NINE_DAYS = 29, _("29")
+        THIRTY_DAYS = 30, _("30")
+        THIRTY_ONE_DAYS = 31, _("31")
+
+    class HoursTimeFrameChoices(models.IntegerChoices):
+        ZERO_TO_FIVE_HOURS = 5, _("0-5")
+        FIVE_TO_TEN_HOURS = 10, _("5-10")
+        TEN_TO_FIFTEEN_HOURS = 15, _("10-15")
+        FIFTEEN_TO_TWENTY_HOURS = 20, _("15-20")
+        TWENTY_TO_TWENTY_FIVE_HOURS = 25, _("20-25")
+        TWENTY_FIVE_TO_THIRTY_HOURS = 30, _("25-30")
 
     activity = models.CharField(max_length=255, verbose_name=_("Activity"))
     timeframe = models.IntegerField(choices=TimeFrame.choices, verbose_name=_("Timeframe"))
