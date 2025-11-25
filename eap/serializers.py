@@ -193,14 +193,48 @@ class EAPFileSerializer(BaseEAPSerializer):
         return file
 
 
+ALLOWED_MAP_TIMEFRAMES_VALUE = {
+    OperationActivity.TimeFrame.YEARS: list(OperationActivity.YearsTimeFrameChoices.values),
+    OperationActivity.TimeFrame.MONTHS: list(OperationActivity.MonthsTimeFrameChoices.values),
+    OperationActivity.TimeFrame.DAYS: list(OperationActivity.DaysTimeFrameChoices.values),
+    OperationActivity.TimeFrame.HOURS: list(OperationActivity.HoursTimeFrameChoices.values),
+}
+
+
 class OperationActivitySerializer(
     serializers.ModelSerializer,
 ):
     id = serializers.IntegerField(required=False)
+    timeframe = serializers.ChoiceField(
+        choices=OperationActivity.TimeFrame.choices,
+        required=True,
+    )
+    time_value = serializers.ListField(
+        child=serializers.IntegerField(),
+        required=True,
+    )
 
     class Meta:
         model = OperationActivity
         fields = "__all__"
+
+    # NOTE: Custom validation for `timeframe` and `time_value`
+    # Make sure time_value is within the allowed range for the selected timeframe
+    def validate(self, validated_data: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        timeframe = validated_data["timeframe"]
+        time_value = validated_data["time_value"]
+
+        allowed_values = ALLOWED_MAP_TIMEFRAMES_VALUE.get(timeframe, [])
+        invalid_values = [value for value in time_value if value not in allowed_values]
+
+        if invalid_values:
+            raise serializers.ValidationError(
+                {
+                    "time_value": gettext("Invalid time_value(s) %s for the selected timeframe %s.")
+                    % (invalid_values, OperationActivity.TimeFrame(timeframe).label)
+                }
+            )
+        return validated_data
 
 
 class PlannedOperationSerializer(

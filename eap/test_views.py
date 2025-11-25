@@ -79,10 +79,10 @@ class EAPFileTestCase(APITestCase):
 class EAPRegistrationTestCase(APITestCase):
     def setUp(self):
         super().setUp()
-        self.country = CountryFactory.create(name="country1", iso3="XXX")
+        self.country = CountryFactory.create(name="country1", iso3="EAP")
         self.national_society = CountryFactory.create(
             name="national_society1",
-            iso3="YYY",
+            iso3="NSC",
         )
         self.disaster_type = DisasterTypeFactory.create(name="disaster1")
         self.partner1 = CountryFactory.create(name="partner1", iso3="ZZZ")
@@ -229,10 +229,10 @@ class EAPRegistrationTestCase(APITestCase):
 class EAPSimplifiedTestCase(APITestCase):
     def setUp(self):
         super().setUp()
-        self.country = CountryFactory.create(name="country1", iso3="XXX")
+        self.country = CountryFactory.create(name="country1", iso3="EAP")
         self.national_society = CountryFactory.create(
             name="national_society1",
-            iso3="YYY",
+            iso3="NSC",
         )
         self.disaster_type = DisasterTypeFactory.create(name="disaster1")
         self.partner1 = CountryFactory.create(name="partner1", iso3="ZZZ")
@@ -303,21 +303,27 @@ class EAPSimplifiedTestCase(APITestCase):
                         {
                             "activity": "early action activity",
                             "timeframe": OperationActivity.TimeFrame.YEARS,
-                            "time_value": [2, 3],
+                            "time_value": [
+                                OperationActivity.YearsTimeFrameChoices.ONE_YEAR,
+                                OperationActivity.YearsTimeFrameChoices.TWO_YEARS,
+                            ],
                         }
                     ],
                     "prepositioning_activities": [
                         {
                             "activity": "prepositioning activity",
                             "timeframe": OperationActivity.TimeFrame.YEARS,
-                            "time_value": [2, 3],
+                            "time_value": [
+                                OperationActivity.YearsTimeFrameChoices.TWO_YEARS,
+                                OperationActivity.YearsTimeFrameChoices.THREE_YEARS,
+                            ],
                         }
                     ],
                     "readiness_activities": [
                         {
                             "activity": "readiness activity",
                             "timeframe": OperationActivity.TimeFrame.YEARS,
-                            "time_value": [2147483647],
+                            "time_value": [OperationActivity.YearsTimeFrameChoices.FIVE_YEARS],
                         }
                     ],
                 }
@@ -332,21 +338,27 @@ class EAPSimplifiedTestCase(APITestCase):
                         {
                             "activity": "early action activity",
                             "timeframe": OperationActivity.TimeFrame.YEARS,
-                            "time_value": [2, 3],
+                            "time_value": [
+                                OperationActivity.YearsTimeFrameChoices.TWO_YEARS,
+                                OperationActivity.YearsTimeFrameChoices.THREE_YEARS,
+                            ],
                         }
                     ],
                     "prepositioning_activities": [
                         {
                             "activity": "prepositioning activity",
                             "timeframe": OperationActivity.TimeFrame.YEARS,
-                            "time_value": [2, 3],
+                            "time_value": [OperationActivity.YearsTimeFrameChoices.THREE_YEARS],
                         }
                     ],
                     "readiness_activities": [
                         {
                             "activity": "readiness activity",
                             "timeframe": OperationActivity.TimeFrame.YEARS,
-                            "time_value": [2147483647],
+                            "time_value": [
+                                OperationActivity.YearsTimeFrameChoices.FIVE_YEARS,
+                                OperationActivity.YearsTimeFrameChoices.TWO_YEARS,
+                            ],
                         }
                     ],
                 },
@@ -383,32 +395,41 @@ class EAPSimplifiedTestCase(APITestCase):
         enable_approach_readiness_operation_activity_1 = OperationActivityFactory.create(
             activity="Readiness Activity 1",
             timeframe=OperationActivity.TimeFrame.MONTHS,
-            time_value=[1, 2],
+            time_value=[OperationActivity.MonthsTimeFrameChoices.ONE_MONTH, OperationActivity.MonthsTimeFrameChoices.TWO_MONTHS],
         )
         enable_approach_readiness_operation_activity_2 = OperationActivityFactory.create(
             activity="Readiness Activity 2",
             timeframe=OperationActivity.TimeFrame.YEARS,
-            time_value=[1, 5],
+            time_value=[OperationActivity.YearsTimeFrameChoices.ONE_YEAR, OperationActivity.YearsTimeFrameChoices.FIVE_YEARS],
         )
         enable_approach_prepositioning_operation_activity_1 = OperationActivityFactory.create(
             activity="Prepositioning Activity 1",
             timeframe=OperationActivity.TimeFrame.MONTHS,
-            time_value=[2, 4],
+            time_value=[
+                OperationActivity.MonthsTimeFrameChoices.TWO_MONTHS,
+                OperationActivity.MonthsTimeFrameChoices.FOUR_MONTHS,
+            ],
         )
         enable_approach_prepositioning_operation_activity_2 = OperationActivityFactory.create(
             activity="Prepositioning Activity 2",
             timeframe=OperationActivity.TimeFrame.MONTHS,
-            time_value=[3, 6],
+            time_value=[
+                OperationActivity.MonthsTimeFrameChoices.THREE_MONTHS,
+                OperationActivity.MonthsTimeFrameChoices.SIX_MONTHS,
+            ],
         )
         enable_approach_early_action_operation_activity_1 = OperationActivityFactory.create(
             activity="Early Action Activity 1",
             timeframe=OperationActivity.TimeFrame.DAYS,
-            time_value=[5, 10],
+            time_value=[OperationActivity.DaysTimeFrameChoices.FIVE_DAYS, OperationActivity.DaysTimeFrameChoices.TEN_DAYS],
         )
         enable_approach_early_action_operation_activity_2 = OperationActivityFactory.create(
             activity="Early Action Activity 2",
             timeframe=OperationActivity.TimeFrame.MONTHS,
-            time_value=[1, 3],
+            time_value=[
+                OperationActivity.MonthsTimeFrameChoices.ONE_MONTH,
+                OperationActivity.MonthsTimeFrameChoices.THREE_MONTHS,
+            ],
         )
 
         # ENABLE APPROACH with activities
@@ -433,32 +454,41 @@ class EAPSimplifiedTestCase(APITestCase):
         planned_operation_readiness_operation_activity_1 = OperationActivityFactory.create(
             activity="Readiness Activity 1",
             timeframe=OperationActivity.TimeFrame.MONTHS,
-            time_value=[1, 2],
+            time_value=[OperationActivity.MonthsTimeFrameChoices.ONE_MONTH, OperationActivity.MonthsTimeFrameChoices.FOUR_MONTHS],
         )
         planned_operation_readiness_operation_activity_2 = OperationActivityFactory.create(
             activity="Readiness Activity 2",
             timeframe=OperationActivity.TimeFrame.YEARS,
-            time_value=[1, 5],
+            time_value=[OperationActivity.YearsTimeFrameChoices.ONE_YEAR, OperationActivity.YearsTimeFrameChoices.THREE_YEARS],
         )
         planned_operation_prepositioning_operation_activity_1 = OperationActivityFactory.create(
             activity="Prepositioning Activity 1",
             timeframe=OperationActivity.TimeFrame.MONTHS,
-            time_value=[2, 4],
+            time_value=[
+                OperationActivity.MonthsTimeFrameChoices.TWO_MONTHS,
+                OperationActivity.MonthsTimeFrameChoices.FOUR_MONTHS,
+            ],
         )
         planned_operation_prepositioning_operation_activity_2 = OperationActivityFactory.create(
             activity="Prepositioning Activity 2",
             timeframe=OperationActivity.TimeFrame.MONTHS,
-            time_value=[3, 6],
+            time_value=[
+                OperationActivity.MonthsTimeFrameChoices.THREE_MONTHS,
+                OperationActivity.MonthsTimeFrameChoices.SIX_MONTHS,
+            ],
         )
         planned_operation_early_action_operation_activity_1 = OperationActivityFactory.create(
             activity="Early Action Activity 1",
             timeframe=OperationActivity.TimeFrame.DAYS,
-            time_value=[5, 10],
+            time_value=[OperationActivity.DaysTimeFrameChoices.FIVE_DAYS, OperationActivity.DaysTimeFrameChoices.TEN_DAYS],
         )
         planned_operation_early_action_operation_activity_2 = OperationActivityFactory.create(
             activity="Early Action Activity 2",
             timeframe=OperationActivity.TimeFrame.MONTHS,
-            time_value=[1, 3],
+            time_value=[
+                OperationActivity.MonthsTimeFrameChoices.ONE_MONTH,
+                OperationActivity.MonthsTimeFrameChoices.THREE_MONTHS,
+            ],
         )
 
         # PLANNED OPERATION with activities
@@ -508,7 +538,7 @@ class EAPSimplifiedTestCase(APITestCase):
                             "id": enable_approach_readiness_operation_activity_1.id,
                             "activity": "Updated Enable Approach Readiness Activity 1",
                             "timeframe": OperationActivity.TimeFrame.MONTHS,
-                            "time_value": [2, 3],
+                            "time_value": [OperationActivity.MonthsTimeFrameChoices.TWO_MONTHS],
                         }
                     ],
                     "prepositioning_activities": [
@@ -516,7 +546,7 @@ class EAPSimplifiedTestCase(APITestCase):
                             "id": enable_approach_prepositioning_operation_activity_1.id,
                             "activity": "Updated Enable Approach Prepositioning Activity 1",
                             "timeframe": OperationActivity.TimeFrame.MONTHS,
-                            "time_value": [3, 5],
+                            "time_value": [OperationActivity.MonthsTimeFrameChoices.FOUR_MONTHS],
                         }
                     ],
                     "early_action_activities": [
@@ -524,7 +554,7 @@ class EAPSimplifiedTestCase(APITestCase):
                             "id": enable_approach_early_action_operation_activity_1.id,
                             "activity": "Updated Enable Approach Early Action Activity 1",
                             "timeframe": OperationActivity.TimeFrame.DAYS,
-                            "time_value": [7, 14],
+                            "time_value": [OperationActivity.DaysTimeFrameChoices.TEN_DAYS],
                         }
                     ],
                 },
@@ -538,21 +568,30 @@ class EAPSimplifiedTestCase(APITestCase):
                         {
                             "activity": "New Enable Approach Readiness Activity",
                             "timeframe": OperationActivity.TimeFrame.MONTHS,
-                            "time_value": [1, 2],
+                            "time_value": [
+                                OperationActivity.MonthsTimeFrameChoices.THREE_MONTHS,
+                                OperationActivity.MonthsTimeFrameChoices.SIX_MONTHS,
+                            ],
                         }
                     ],
                     "prepositioning_activities": [
                         {
                             "activity": "New Enable Approach Prepositioning Activity",
                             "timeframe": OperationActivity.TimeFrame.MONTHS,
-                            "time_value": [2, 4],
+                            "time_value": [
+                                OperationActivity.MonthsTimeFrameChoices.SIX_MONTHS,
+                                OperationActivity.MonthsTimeFrameChoices.NINE_MONTHS,
+                            ],
                         }
                     ],
                     "early_action_activities": [
                         {
                             "activity": "New Enable Approach Early Action Activity",
                             "timeframe": OperationActivity.TimeFrame.DAYS,
-                            "time_value": [5, 10],
+                            "time_value": [
+                                OperationActivity.DaysTimeFrameChoices.EIGHT_DAYS,
+                                OperationActivity.DaysTimeFrameChoices.SIXTEEN_DAYS,
+                            ],
                         }
                     ],
                 },
@@ -569,7 +608,10 @@ class EAPSimplifiedTestCase(APITestCase):
                             "id": planned_operation_readiness_operation_activity_1.id,
                             "activity": "Updated Planned Operation Readiness Activity 1",
                             "timeframe": OperationActivity.TimeFrame.MONTHS,
-                            "time_value": [2, 4],
+                            "time_value": [
+                                OperationActivity.MonthsTimeFrameChoices.TWO_MONTHS,
+                                OperationActivity.MonthsTimeFrameChoices.SIX_MONTHS,
+                            ],
                         }
                     ],
                     "prepositioning_activities": [
@@ -577,7 +619,10 @@ class EAPSimplifiedTestCase(APITestCase):
                             "id": planned_operation_prepositioning_operation_activity_1.id,
                             "activity": "Updated Planned Operation Prepositioning Activity 1",
                             "timeframe": OperationActivity.TimeFrame.MONTHS,
-                            "time_value": [3, 6],
+                            "time_value": [
+                                OperationActivity.MonthsTimeFrameChoices.THREE_MONTHS,
+                                OperationActivity.MonthsTimeFrameChoices.SIX_MONTHS,
+                            ],
                         }
                     ],
                     "early_action_activities": [
@@ -585,7 +630,10 @@ class EAPSimplifiedTestCase(APITestCase):
                             "id": planned_operation_early_action_operation_activity_1.id,
                             "activity": "Updated Planned Operation Early Action Activity 1",
                             "timeframe": OperationActivity.TimeFrame.DAYS,
-                            "time_value": [8, 16],
+                            "time_value": [
+                                OperationActivity.DaysTimeFrameChoices.EIGHT_DAYS,
+                                OperationActivity.DaysTimeFrameChoices.SIXTEEN_DAYS,
+                            ],
                         }
                     ],
                 },
@@ -599,21 +647,30 @@ class EAPSimplifiedTestCase(APITestCase):
                         {
                             "activity": "New Planned Operation Readiness Activity",
                             "timeframe": OperationActivity.TimeFrame.MONTHS,
-                            "time_value": [1, 3],
+                            "time_value": [
+                                OperationActivity.MonthsTimeFrameChoices.THREE_MONTHS,
+                                OperationActivity.MonthsTimeFrameChoices.SIX_MONTHS,
+                            ],
                         }
                     ],
                     "prepositioning_activities": [
                         {
                             "activity": "New Planned Operation Prepositioning Activity",
                             "timeframe": OperationActivity.TimeFrame.MONTHS,
-                            "time_value": [2, 5],
+                            "time_value": [
+                                OperationActivity.MonthsTimeFrameChoices.TWO_MONTHS,
+                                OperationActivity.MonthsTimeFrameChoices.FIVE_MONTHS,
+                            ],
                         }
                     ],
                     "early_action_activities": [
                         {
                             "activity": "New Planned Operation Early Action Activity",
                             "timeframe": OperationActivity.TimeFrame.DAYS,
-                            "time_value": [5, 12],
+                            "time_value": [
+                                OperationActivity.MonthsTimeFrameChoices.FIVE_MONTHS,
+                                OperationActivity.MonthsTimeFrameChoices.TWELVE_MONTHS,
+                            ],
                         }
                     ],
                 },
@@ -796,10 +853,10 @@ class EAPStatusTransitionTestCase(APITestCase):
     def setUp(self):
         super().setUp()
 
-        self.country = CountryFactory.create(name="country1", iso3="XXX")
+        self.country = CountryFactory.create(name="country1", iso3="EAP")
         self.national_society = CountryFactory.create(
             name="national_society1",
-            iso3="YYY",
+            iso3="NSC",
         )
         self.disaster_type = DisasterTypeFactory.create(name="disaster1")
         self.partner1 = CountryFactory.create(name="partner1", iso3="ZZZ")
@@ -1155,11 +1212,11 @@ class EAPStatusTransitionTestCase(APITestCase):
         self.assertIsNotNone(self.eap_registration.activated_at)
 
 
-class TestSimplifiedEapPdfExport(APITestCase):
+class EAPPDFExportTestCase(APITestCase):
     def setUp(self):
         super().setUp()
-        self.country = CountryFactory.create(name="country1", iso3="XXX")
-        self.national_society = CountryFactory.create(name="national_society1", iso3="YYY")
+        self.country = CountryFactory.create(name="country1", iso3="EAP")
+        self.national_society = CountryFactory.create(name="national_society1", iso3="NSC")
         self.disaster_type = DisasterTypeFactory.create(name="disaster1")
         self.partner1 = CountryFactory.create(name="partner1", iso3="ZZZ")
         self.partner2 = CountryFactory.create(name="partner2", iso3="AAA")
@@ -1176,16 +1233,16 @@ class TestSimplifiedEapPdfExport(APITestCase):
             modified_by=self.user,
         )
 
+        self.url = "/api/v2/pdf-export/"
+
+    @mock.patch("api.serializers.generate_url.delay")
+    def test_create_simplified_eap_export(self, mock_generate_url):
         self.simplified_eap = SimplifiedEAPFactory.create(
             eap_registration=self.eap_registration,
             created_by=self.user,
             modified_by=self.user,
             national_society_contact_title="NS Title Example",
         )
-        self.url = "/api/v2/pdf-export/"
-
-    @mock.patch("api.serializers.generate_url.delay")
-    def test_create_simplified_eap_export(self, mock_generate_url):
         data = {
             "export_type": Export.ExportType.SIMPLIFIED_EAP,
             "export_id": self.simplified_eap.id,
