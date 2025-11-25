@@ -160,10 +160,9 @@ class SimplifiedEAPViewSet(EAPModelViewSet):
             .prefetch_related(
                 "eap_registration__partners",
                 "admin2",
-                "hazard_impact_file",
-                "selected_early_actions_file",
-                "risk_selected_protocols_file",
-                "selected_early_actions_file",
+                "hazard_impact_images",
+                "risk_selected_protocols_images",
+                "selected_early_actions_images",
                 "planned_operations",
                 "enable_approaches",
             )
