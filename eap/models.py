@@ -646,9 +646,9 @@ class EAPRegistration(EAPBaseModel):
 
     # TYPING
     id: int
-    national_society_id = int
-    country_id = int
-    disaster_type_id = int
+    national_society_id: int
+    country_id: int
+    disaster_type_id: int
     simplified_eap: models.Manager["SimplifiedEAP"]
     full_eap: models.Manager["FullEAP"]
 
