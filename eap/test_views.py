@@ -14,6 +14,7 @@ from deployments.factories.user import UserFactory
 from eap.factories import (
     EAPRegistrationFactory,
     EnableApproachFactory,
+    FullEAPFactory,
     OperationActivityFactory,
     PlannedOperationFactory,
     SimplifiedEAPFactory,
@@ -296,7 +297,7 @@ class EAPSimplifiedTestCase(APITestCase):
             "next_step_towards_full_eap": "Plan to expand.",
             "planned_operations": [
                 {
-                    "sector": 101,
+                    "sector": PlannedOperation.Sector.SETTLEMENT_AND_HOUSING,
                     "ap_code": 111,
                     "people_targeted": 10000,
                     "budget_per_sector": 100000,
@@ -332,7 +333,7 @@ class EAPSimplifiedTestCase(APITestCase):
             "enable_approaches": [
                 {
                     "ap_code": 11,
-                    "approach": 10,
+                    "approach": EnableApproach.Approach.SECRETARIAT_SERVICES,
                     "budget_per_approach": 10000,
                     "indicator_target": 10000,
                     "early_action_activities": [
@@ -1270,3 +1271,204 @@ class EAPPDFExportTestCase(APITestCase):
             title,
             django_get_language(),
         )
+
+
+class EAPFullTestCase(APITestCase):
+    def setUp(self):
+        super().setUp()
+        self.country = CountryFactory.create(name="country1", iso3="EAP")
+        self.national_society = CountryFactory.create(
+            name="national_society1",
+            iso3="NSC",
+        )
+        self.disaster_type = DisasterTypeFactory.create(name="disaster1")
+
+        # Create permissions
+        management.call_command("make_permissions")
+
+        # Create Country Admin User and assign permission
+        self.country_admin = UserFactory.create()
+        country_admin_permission = Permission.objects.filter(codename="country_admin_%s" % self.national_society.id).first()
+        country_group = Group.objects.filter(name="%s Admins" % self.national_society.name).first()
+
+        self.country_admin.user_permissions.add(country_admin_permission)
+        self.country_admin.groups.add(country_group)
+
+    def test_list_full_eap(self):
+        # Create EAP Registrations
+        eap_registrations = EAPRegistrationFactory.create_batch(
+            5,
+            eap_type=EAPType.FULL_EAP,
+            country=self.country,
+            national_society=self.national_society,
+            disaster_type=self.disaster_type,
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
+        )
+
+        for eap in eap_registrations:
+            FullEAPFactory.create(
+                eap_registration=eap,
+                created_by=self.country_admin,
+                modified_by=self.country_admin,
+            )
+
+        url = "/api/v2/full-eap/"
+        self.authenticate()
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200, response.data)
+        self.assertEqual(len(response.data["results"]), 5)
+
+    def test_create_full_eap(self):
+        url = "/api/v2/full-eap/"
+
+        # Create EAP Registration
+        eap_registration = EAPRegistrationFactory.create(
+            eap_type=EAPType.FULL_EAP,
+            country=self.country,
+            national_society=self.national_society,
+            disaster_type=self.disaster_type,
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
+        )
+
+        data = {
+            "eap_registration": eap_registration.id,
+            "total_budget": 10000,
+            "seap_timeframe": 5,
+            "readiness_budget": 3000,
+            "pre_positioning_budget": 4000,
+            "early_action_budget": 3000,
+            "key_actors": [
+                {
+                    "national_society": self.national_society.id,
+                    "description": "Key actor 1 description",
+                },
+                {
+                    "national_society": self.country.id,
+                    "description": "Key actor 1 description",
+                },
+            ],
+            "is_worked_with_government": True,
+            "worked_with_government_description": "Worked with government description",
+            "is_technical_working_groups": True,
+            "technical_working_group_title": "Technical working group title",
+            "technical_working_groups_in_place_description": "Technical working groups in place description",
+            "hazard_selection": "Flood",
+            "exposed_element_and_vulnerability_factor": "Exposed elements and vulnerability factors",
+            "prioritized_impact": "Prioritized impacts",
+            "trigger_statement": "Triggering statement",
+            "forecast_selection": "Rainfall forecast",
+            "definition_and_justification_impact_level": "Definition and justification of impact levels",
+            "identification_of_the_intervention_area": "Identification of the intervention areas",
+            "selection_area": "Selection of the area",
+            "early_action_selection_process": "Early action selection process",
+            "evidence_base": "Evidence base",
+            "usefulness_of_actions": "Usefulness of actions",
+            "feasibility": "Feasibility text",
+            "early_action_implementation_process": "Early action implementation process",
+            "trigger_activation_system": "Trigger activation system",
+            "selection_of_target_population": "Selection of target population",
+            "stop_mechanism": "Stop mechanism",
+            "meal": "meal description",
+            "operational_administrative_capacity": "Operational and administrative capacity",
+            "strategies_and_plans": "Strategies and plans",
+            "advance_financial_capacity": "Advance financial capacity",
+            # BUDGET DETAILS
+            "budget_description": "Budget description",
+            "readiness_cost_description": "Readiness cost description",
+            "prepositioning_cost_description": "Prepositioning cost description",
+            "early_action_cost_description": "Early action cost description",
+            "eap_endorsement": "EAP endorsement text",
+            "planned_operations": [
+                {
+                    "sector": PlannedOperation.Sector.SETTLEMENT_AND_HOUSING,
+                    "ap_code": 111,
+                    "people_targeted": 10000,
+                    "budget_per_sector": 100000,
+                    "early_action_activities": [
+                        {
+                            "activity": "early action activity",
+                            "timeframe": OperationActivity.TimeFrame.YEARS,
+                            "time_value": [
+                                OperationActivity.YearsTimeFrameChoices.ONE_YEAR,
+                                OperationActivity.YearsTimeFrameChoices.TWO_YEARS,
+                            ],
+                        }
+                    ],
+                    "prepositioning_activities": [
+                        {
+                            "activity": "prepositioning activity",
+                            "timeframe": OperationActivity.TimeFrame.YEARS,
+                            "time_value": [
+                                OperationActivity.YearsTimeFrameChoices.TWO_YEARS,
+                                OperationActivity.YearsTimeFrameChoices.THREE_YEARS,
+                            ],
+                        }
+                    ],
+                    "readiness_activities": [
+                        {
+                            "activity": "readiness activity",
+                            "timeframe": OperationActivity.TimeFrame.YEARS,
+                            "time_value": [OperationActivity.YearsTimeFrameChoices.FIVE_YEARS],
+                        }
+                    ],
+                }
+            ],
+            "enable_approaches": [
+                {
+                    "ap_code": 11,
+                    "approach": EnableApproach.Approach.SECRETARIAT_SERVICES,
+                    "budget_per_approach": 10000,
+                    "indicator_target": 10000,
+                    "early_action_activities": [
+                        {
+                            "activity": "early action activity",
+                            "timeframe": OperationActivity.TimeFrame.YEARS,
+                            "time_value": [
+                                OperationActivity.YearsTimeFrameChoices.TWO_YEARS,
+                                OperationActivity.YearsTimeFrameChoices.THREE_YEARS,
+                            ],
+                        }
+                    ],
+                    "prepositioning_activities": [
+                        {
+                            "activity": "prepositioning activity",
+                            "timeframe": OperationActivity.TimeFrame.YEARS,
+                            "time_value": [OperationActivity.YearsTimeFrameChoices.THREE_YEARS],
+                        }
+                    ],
+                    "readiness_activities": [
+                        {
+                            "activity": "readiness activity",
+                            "timeframe": OperationActivity.TimeFrame.YEARS,
+                            "time_value": [
+                                OperationActivity.YearsTimeFrameChoices.FIVE_YEARS,
+                                OperationActivity.YearsTimeFrameChoices.TWO_YEARS,
+                            ],
+                        }
+                    ],
+                },
+            ],
+        }
+
+        self.authenticate(self.country_admin)
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, 201, response.data)
+
+        self.assertEqual(
+            response.data["eap_registration"],
+            eap_registration.id,
+        )
+        self.assertEqual(
+            eap_registration.get_eap_type_enum,
+            EAPType.FULL_EAP,
+        )
+        self.assertFalse(
+            response.data["is_locked"],
+            "Newly created Full EAP should not be locked.",
+        )
+
+        # Cannot create Full EAP for the same EAP Registration again
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, 400, response.data)
