@@ -193,6 +193,24 @@ class EAPFileSerializer(BaseEAPSerializer):
         return file
 
 
+# NOTE: Separate serializer for partial updating EAPFile instance
+class EAPFileUpdateSerializer(BaseEAPSerializer):
+    id = serializers.IntegerField(required=True)
+    file = serializers.FileField(required=False)
+
+    class Meta:
+        model = EAPFile
+        fields = "__all__"
+        read_only_fields = (
+            "created_by",
+            "modified_by",
+        )
+
+    def validate_file(self, file):
+        validate_file_type(file)
+        return file
+
+
 ALLOWED_MAP_TIMEFRAMES_VALUE = {
     OperationActivity.TimeFrame.YEARS: list(OperationActivity.YearsTimeFrameChoices.values),
     OperationActivity.TimeFrame.MONTHS: list(OperationActivity.MonthsTimeFrameChoices.values),
@@ -286,35 +304,35 @@ class SimplifiedEAPSerializer(
     enable_approaches = EnableApproachSerializer(many=True, required=False)
 
     # FILES
-    cover_image_details = EAPFileSerializer(source="cover_image", read_only=True)
-    hazard_impact_file_details = EAPFileSerializer(source="hazard_impact_file", many=True, read_only=True)
-    selected_early_actions_file_details = EAPFileSerializer(source="selected_early_actions_file", many=True, read_only=True)
-    risk_selected_protocols_file_details = EAPFileSerializer(source="risk_selected_protocols_file", many=True, read_only=True)
+    cover_image_file = EAPFileUpdateSerializer(source="cover_image", required=False, allow_null=True)
+    hazard_impact_images_details = EAPFileSerializer(source="hazard_impact_images", many=True, read_only=True)
+    selected_early_actions_file_details = EAPFileSerializer(source="selected_early_actions_images", many=True, read_only=True)
+    risk_selected_protocols_file_details = EAPFileSerializer(source="risk_selected_protocols_images", many=True, read_only=True)
 
     # Admin2
     admin2_details = Admin2Serializer(source="admin2", many=True, read_only=True)
 
     class Meta:
         model = SimplifiedEAP
-        fields = "__all__"
         read_only_fields = [
             "version",
             "is_locked",
         ]
+        exclude = ("cover_image",)
 
-    def validate_hazard_impact_file(self, images):
+    def validate_hazard_impact_images(self, images):
         if images and len(images) > self.MAX_NUMBER_OF_IMAGES:
             raise serializers.ValidationError(f"Maximum {self.MAX_NUMBER_OF_IMAGES} images are allowed to upload.")
         validate_file_type(images)
         return images
 
-    def validate_risk_selected_protocols_file(self, images):
+    def validate_risk_selected_protocols_images(self, images):
         if images and len(images) > self.MAX_NUMBER_OF_IMAGES:
             raise serializers.ValidationError(f"Maximum {self.MAX_NUMBER_OF_IMAGES} images are allowed to upload.")
         validate_file_type(images)
         return images
 
-    def validate_selected_early_actions_file(self, images):
+    def validate_selected_early_actions_images(self, images):
         if images and len(images) > self.MAX_NUMBER_OF_IMAGES:
             raise serializers.ValidationError(f"Maximum {self.MAX_NUMBER_OF_IMAGES} images are allowed to upload.")
         validate_file_type(images)
