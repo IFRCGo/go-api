@@ -6,6 +6,7 @@ from eap.models import (
     EAPStatus,
     EAPType,
     EnableApproach,
+    FullEAP,
     OperationActivity,
     PlannedOperation,
     SimplifiedEAP,
@@ -138,3 +139,14 @@ class PlannedOperationFactory(factory.django.DjangoModelFactory):
         if extracted:
             for activity in extracted:
                 self.early_action_activities.add(activity)
+
+
+class FullEAPFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = FullEAP
+
+    seap_timeframe = fuzzy.FuzzyInteger(5)
+    total_budget = fuzzy.FuzzyInteger(1000, 1000000)
+    readiness_budget = fuzzy.FuzzyInteger(1000, 1000000)
+    pre_positioning_budget = fuzzy.FuzzyInteger(1000, 1000000)
+    early_action_budget = fuzzy.FuzzyInteger(1000, 1000000)
