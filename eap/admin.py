@@ -64,9 +64,9 @@ class SimplifiedEAPAdmin(admin.ModelAdmin):
     )
     readonly_fields = (
         "cover_image",
-        "hazard_impact_file",
-        "risk_selected_protocols_file",
-        "selected_early_actions_file",
+        "hazard_impact_images",
+        "risk_selected_protocols_images",
+        "selected_early_actions_images",
         "planned_operations",
         "enable_approaches",
         "parent",
