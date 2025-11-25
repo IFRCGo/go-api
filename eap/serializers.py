@@ -375,8 +375,8 @@ class SimplifiedEAPSerializer(
 
     # FILES
     hazard_impact_images_details = EAPFileSerializer(source="hazard_impact_images", many=True, read_only=True)
-    selected_early_actions_file_details = EAPFileSerializer(source="selected_early_actions_images", many=True, read_only=True)
-    risk_selected_protocols_file_details = EAPFileSerializer(source="risk_selected_protocols_images", many=True, read_only=True)
+    selected_early_actions_images_details = EAPFileSerializer(source="selected_early_actions_images", many=True, read_only=True)
+    risk_selected_protocols_images_details = EAPFileSerializer(source="risk_selected_protocols_images", many=True, read_only=True)
 
     class Meta:
         model = SimplifiedEAP
@@ -406,7 +406,7 @@ class SimplifiedEAPSerializer(
 
         # NOTE: Cannot update locked Simplified EAP
         if self.instance and self.instance.is_locked:
-            raise serializers.ValidationError("Cannot update locked Simplified EAP.")
+            raise serializers.ValidationError("Cannot update locked EAP Application.")
 
         eap_type = eap_registration.get_eap_type_enum
         if eap_type and eap_type != EAPType.SIMPLIFIED_EAP:
@@ -430,11 +430,11 @@ class FullEAPSerializer(
     key_actors = KeyActorSerializer(many=True, required=True)
 
     # SOURCE OF INFOMATIONS
-    risk_analysis_source_of_information = SourceInformationSerializer(many=True)
-    trigger_statement_source_of_information = SourceInformationSerializer(many=True)
-    trigger_model_source_of_information = SourceInformationSerializer(many=True)
-    evidence_base_source_of_information = SourceInformationSerializer(many=True)
-    activation_process_source_of_information = SourceInformationSerializer(many=True)
+    risk_analysis_source_of_information = SourceInformationSerializer(many=True, required=False)
+    trigger_statement_source_of_information = SourceInformationSerializer(many=True, required=False)
+    trigger_model_source_of_information = SourceInformationSerializer(many=True, required=False)
+    evidence_base_source_of_information = SourceInformationSerializer(many=True, required=False)
+    activation_process_source_of_information = SourceInformationSerializer(many=True, required=False)
 
     # FILES
     hazard_selection_files_details = EAPFileSerializer(source="hazard_selection_files", many=True, read_only=True)
@@ -475,6 +475,21 @@ class FullEAPSerializer(
             "modified_by",
         )
         exclude = ("cover_image",)
+
+    def validate(self, data: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        eap_registration: EAPRegistration = data["eap_registration"]
+
+        if not self.instance and eap_registration.has_eap_application:
+            raise serializers.ValidationError("Full EAP for this EAP registration already exists.")
+
+        # NOTE: Cannot update locked Full EAP
+        if self.instance and self.instance.is_locked:
+            raise serializers.ValidationError("Cannot update locked EAP Application.")
+
+        eap_type = eap_registration.get_eap_type_enum
+        if eap_type and eap_type != EAPType.FULL_EAP:
+            raise serializers.ValidationError("Cannot create Full EAP for non-full EAP registration.")
+        return data
 
 
 # STATUS TRANSITION SERIALIZER
