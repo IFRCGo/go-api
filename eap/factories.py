@@ -1,5 +1,3 @@
-from random import random
-
 import factory
 from factory import fuzzy
 
@@ -66,7 +64,6 @@ class OperationActivityFactory(factory.django.DjangoModelFactory):
 
     activity = fuzzy.FuzzyText(length=50, prefix="Activity-")
     timeframe = fuzzy.FuzzyChoice(OperationActivity.TimeFrame)
-    time_value = factory.LazyFunction(lambda: [random.randint(1, 12) for _ in range(3)])
 
 
 class EnableApproachFactory(factory.django.DjangoModelFactory):
