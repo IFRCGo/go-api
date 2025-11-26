@@ -12,6 +12,7 @@ from api.factories.disaster_type import DisasterTypeFactory
 from api.models import Export
 from deployments.factories.user import UserFactory
 from eap.factories import (
+    EAPFileFactory,
     EAPRegistrationFactory,
     EnableApproachFactory,
     FullEAPFactory,
@@ -81,14 +82,15 @@ class EAPFileTestCase(APITestCase):
 class EAPRegistrationTestCase(APITestCase):
     def setUp(self):
         super().setUp()
-        self.country = CountryFactory.create(name="country1", iso3="EAP")
+        self.country = CountryFactory.create(name="country1", iso3="EAP", iso="EA")
         self.national_society = CountryFactory.create(
             name="national_society1",
             iso3="NSC",
+            iso="NS",
         )
         self.disaster_type = DisasterTypeFactory.create(name="disaster1")
-        self.partner1 = CountryFactory.create(name="partner1", iso3="ZZZ")
-        self.partner2 = CountryFactory.create(name="partner2", iso3="AAA")
+        self.partner1 = CountryFactory.create(name="partner1", iso3="ZZZ", iso="P1")
+        self.partner2 = CountryFactory.create(name="partner2", iso3="AAA", iso="P2")
 
         # Create permissions
         management.call_command("make_permissions")
@@ -215,6 +217,10 @@ class EAPRegistrationTestCase(APITestCase):
             eap_registration=eap_registration,
             created_by=self.country_admin,
             modified_by=self.country_admin,
+            budget_file=EAPFileFactory._create_file(
+                created_by=self.country_admin,
+                modified_by=self.country_admin,
+            ),
         )
 
         data_update = {
@@ -231,14 +237,15 @@ class EAPRegistrationTestCase(APITestCase):
 class EAPSimplifiedTestCase(APITestCase):
     def setUp(self):
         super().setUp()
-        self.country = CountryFactory.create(name="country1", iso3="EAP")
+        self.country = CountryFactory.create(name="country1", iso3="EAP", iso="EA")
         self.national_society = CountryFactory.create(
             name="national_society1",
             iso3="NSC",
+            iso="NS",
         )
         self.disaster_type = DisasterTypeFactory.create(name="disaster1")
-        self.partner1 = CountryFactory.create(name="partner1", iso3="ZZZ")
-        self.partner2 = CountryFactory.create(name="partner2", iso3="AAA")
+        self.partner1 = CountryFactory.create(name="partner1", iso3="ZZZ", iso="P1")
+        self.partner2 = CountryFactory.create(name="partner2", iso3="AAA", iso="P2")
 
         # Create permissions
         management.call_command("make_permissions")
@@ -268,6 +275,10 @@ class EAPSimplifiedTestCase(APITestCase):
                 eap_registration=eap,
                 created_by=self.country_admin,
                 modified_by=self.country_admin,
+                budget_file=EAPFileFactory._create_file(
+                    created_by=self.country_admin,
+                    modified_by=self.country_admin,
+                ),
             )
 
         url = "/api/v2/simplified-eap/"
@@ -287,13 +298,19 @@ class EAPSimplifiedTestCase(APITestCase):
             created_by=self.country_admin,
             modified_by=self.country_admin,
         )
+        budget_file = EAPFileFactory._create_file(
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
+        )
         data = {
             "eap_registration": eap_registration.id,
+            "budget_file": budget_file.id,
             "total_budget": 10000,
             "seap_timeframe": 3,
             "readiness_budget": 3000,
             "pre_positioning_budget": 4000,
             "early_action_budget": 3000,
+            "people_targeted": 5000,
             "next_step_towards_full_eap": "Plan to expand.",
             "planned_operations": [
                 {
@@ -517,6 +534,10 @@ class EAPSimplifiedTestCase(APITestCase):
             eap_registration=eap_registration,
             created_by=self.country_admin,
             modified_by=self.country_admin,
+            budget_file=EAPFileFactory._create_file(
+                created_by=self.country_admin,
+                modified_by=self.country_admin,
+            ),
             enable_approaches=[enable_approach.id],
             planned_operations=[planned_operation.id],
         )
@@ -855,14 +876,15 @@ class EAPStatusTransitionTestCase(APITestCase):
     def setUp(self):
         super().setUp()
 
-        self.country = CountryFactory.create(name="country1", iso3="EAP")
+        self.country = CountryFactory.create(name="country1", iso3="EAP", iso="EA")
         self.national_society = CountryFactory.create(
             name="national_society1",
             iso3="NSC",
+            iso="NS",
         )
         self.disaster_type = DisasterTypeFactory.create(name="disaster1")
-        self.partner1 = CountryFactory.create(name="partner1", iso3="ZZZ")
-        self.partner2 = CountryFactory.create(name="partner2", iso3="AAA")
+        self.partner1 = CountryFactory.create(name="partner1", iso3="ZZZ", iso="ZZ")
+        self.partner2 = CountryFactory.create(name="partner2", iso3="AAA", iso="AA")
 
         self.eap_registration = EAPRegistrationFactory.create(
             country=self.country,
@@ -918,6 +940,10 @@ class EAPStatusTransitionTestCase(APITestCase):
             eap_registration=self.eap_registration,
             created_by=self.country_admin,
             modified_by=self.country_admin,
+            budget_file=EAPFileFactory._create_file(
+                created_by=self.country_admin,
+                modified_by=self.country_admin,
+            ),
         )
 
         # SUCCESS: As Simplified EAP exists
@@ -1217,11 +1243,19 @@ class EAPStatusTransitionTestCase(APITestCase):
 class EAPPDFExportTestCase(APITestCase):
     def setUp(self):
         super().setUp()
-        self.country = CountryFactory.create(name="country1", iso3="EAP")
-        self.national_society = CountryFactory.create(name="national_society1", iso3="NSC")
+        self.country = CountryFactory.create(
+            name="country1",
+            iso3="EAP",
+            iso="EA",
+        )
+        self.national_society = CountryFactory.create(
+            name="national_society1",
+            iso3="NSC",
+            iso="NS",
+        )
         self.disaster_type = DisasterTypeFactory.create(name="disaster1")
-        self.partner1 = CountryFactory.create(name="partner1", iso3="ZZZ")
-        self.partner2 = CountryFactory.create(name="partner2", iso3="AAA")
+        self.partner1 = CountryFactory.create(name="partner1", iso3="ZZZ", iso="ZZ")
+        self.partner2 = CountryFactory.create(name="partner2", iso3="AAA", iso="AA")
 
         self.user = UserFactory.create()
 
@@ -1244,6 +1278,10 @@ class EAPPDFExportTestCase(APITestCase):
             created_by=self.user,
             modified_by=self.user,
             national_society_contact_title="NS Title Example",
+            budget_file=EAPFileFactory._create_file(
+                created_by=self.user,
+                modified_by=self.user,
+            ),
         )
         data = {
             "export_type": Export.ExportType.SIMPLIFIED_EAP,
@@ -1278,6 +1316,10 @@ class EAPPDFExportTestCase(APITestCase):
             eap_registration=self.eap_registration,
             created_by=self.user,
             modified_by=self.user,
+            budget_file=EAPFileFactory._create_file(
+                created_by=self.user,
+                modified_by=self.user,
+            ),
         )
         data = {
             "export_type": Export.ExportType.FULL_EAP,
@@ -1344,6 +1386,10 @@ class EAPFullTestCase(APITestCase):
                 eap_registration=eap,
                 created_by=self.country_admin,
                 modified_by=self.country_admin,
+                budget_file=EAPFileFactory._create_file(
+                    created_by=self.user,
+                    modified_by=self.user,
+                ),
             )
 
         url = "/api/v2/full-eap/"
@@ -1365,13 +1411,19 @@ class EAPFullTestCase(APITestCase):
             modified_by=self.country_admin,
         )
 
+        budget_file_instance = EAPFileFactory._create_file(
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
+        )
         data = {
             "eap_registration": eap_registration.id,
+            "budget_file": budget_file_instance.id,
             "total_budget": 10000,
             "seap_timeframe": 5,
             "readiness_budget": 3000,
             "pre_positioning_budget": 4000,
             "early_action_budget": 3000,
+            "people_targeted": 5000,
             "key_actors": [
                 {
                     "national_society": self.national_society.id,
