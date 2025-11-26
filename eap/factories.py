@@ -2,6 +2,7 @@ import factory
 from factory import fuzzy
 
 from eap.models import (
+    EAPFile,
     EAPRegistration,
     EAPStatus,
     EAPType,
@@ -11,6 +12,30 @@ from eap.models import (
     PlannedOperation,
     SimplifiedEAP,
 )
+
+
+class EAPFileFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = EAPFile
+
+    caption = fuzzy.FuzzyText(length=10, prefix="EAPFile-")
+    file = factory.django.FileField(filename="eap_file.txt")
+
+    @classmethod
+    def _create_image(cls, *args, **kwargs) -> EAPFile:
+        return cls.create(
+            file=factory.django.FileField(filename="eap_image.jpeg", data=b"fake image data"),
+            caption="EAP Image",
+            **kwargs,
+        )
+
+    @classmethod
+    def _create_file(cls, *args, **kwargs) -> EAPFile:
+        return cls.create(
+            file=factory.django.FileField(filename="eap_document.pdf", data=b"fake pdf data"),
+            caption="EAP Document",
+            **kwargs,
+        )
 
 
 class EAPRegistrationFactory(factory.django.DjangoModelFactory):
@@ -39,6 +64,7 @@ class SimplifiedEAPFactory(factory.django.DjangoModelFactory):
     readiness_budget = fuzzy.FuzzyInteger(1000, 1000000)
     pre_positioning_budget = fuzzy.FuzzyInteger(1000, 1000000)
     early_action_budget = fuzzy.FuzzyInteger(1000, 1000000)
+    people_targeted = fuzzy.FuzzyInteger(100, 100000)
 
     @factory.post_generation
     def enable_approaches(self, create, extracted, **kwargs):
@@ -150,3 +176,4 @@ class FullEAPFactory(factory.django.DjangoModelFactory):
     readiness_budget = fuzzy.FuzzyInteger(1000, 1000000)
     pre_positioning_budget = fuzzy.FuzzyInteger(1000, 1000000)
     early_action_budget = fuzzy.FuzzyInteger(1000, 1000000)
+    people_targeted = fuzzy.FuzzyInteger(100, 100000)
