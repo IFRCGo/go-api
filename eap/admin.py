@@ -1,6 +1,11 @@
 from django.contrib import admin
 
-from eap.models import EAPRegistration, FullEAP, KeyActor, SimplifiedEAP
+from eap.models import EAPFile, EAPRegistration, FullEAP, KeyActor, SimplifiedEAP
+
+
+@admin.register(EAPFile)
+class EAPFileAdmin(admin.ModelAdmin):
+    search_fields = ("caption",)
 
 
 @admin.register(EAPRegistration)
@@ -120,19 +125,19 @@ class FullEAPAdmin(admin.ModelAdmin):
         "planned_operations",
         "enable_approaches",
         "planned_operations",
-        "hazard_selection_files",
+        "hazard_selection_images",
         "theory_of_change_table_file",
-        "exposed_element_and_vulnerability_factor_files",
-        "prioritized_impact_files",
+        "exposed_element_and_vulnerability_factor_images",
+        "prioritized_impact_images",
         "risk_analysis_relevant_files",
-        "forecast_selection_files",
-        "definition_and_justification_impact_level_files",
-        "identification_of_the_intervention_area_files",
+        "forecast_selection_images",
+        "definition_and_justification_impact_level_images",
+        "identification_of_the_intervention_area_images",
         "trigger_model_relevant_files",
-        "early_action_selection_process_files",
-        "evidence_base_files",
-        "early_action_implementation_files",
-        "trigger_activation_system_files",
+        "early_action_selection_process_images",
+        "evidence_base_relevant_files",
+        "early_action_implementation_images",
+        "trigger_activation_system_images",
         "activation_process_relevant_files",
         "meal_relevant_files",
         "capacity_relevant_files",
