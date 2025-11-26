@@ -1272,6 +1272,39 @@ class EAPPDFExportTestCase(APITestCase):
             django_get_language(),
         )
 
+    @mock.patch("api.serializers.generate_url.delay")
+    def test_full_eap_export(self, mock_generate_url):
+        self.full_eap = FullEAPFactory.create(
+            eap_registration=self.eap_registration,
+            created_by=self.user,
+            modified_by=self.user,
+        )
+        data = {
+            "export_type": Export.ExportType.FULL_EAP,
+            "export_id": self.full_eap.id,
+            "is_pga": False,
+        }
+
+        self.authenticate(self.user)
+
+        with self.capture_on_commit_callbacks(execute=True):
+            response = self.client.post(self.url, data, format="json")
+        self.assert_201(response)
+        self.assertIsNotNone(response.data["id"], response.data)
+        expected_url = f"{settings.GO_WEB_INTERNAL_URL}/{Export.ExportType.FULL_EAP}/{self.full_eap.id}/export/"
+        self.assertEqual(response.data["url"], expected_url)
+        self.assertEqual(response.data["status"], Export.ExportStatus.PENDING)
+
+        self.assertEqual(mock_generate_url.called, True)
+        title = f"{self.national_society.name}-{self.disaster_type.name}"
+        mock_generate_url.assert_called_once_with(
+            expected_url,
+            response.data["id"],
+            self.user.id,
+            title,
+            django_get_language(),
+        )
+
 
 class EAPFullTestCase(APITestCase):
     def setUp(self):
