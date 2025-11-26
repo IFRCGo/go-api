@@ -5,6 +5,7 @@ from unittest import mock
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
 from django.core import management
+from django.utils.translation import get_language as django_get_language
 
 from api.factories.country import CountryFactory
 from api.factories.disaster_type import DisasterTypeFactory
@@ -1236,7 +1237,7 @@ class EAPPDFExportTestCase(APITestCase):
         self.url = "/api/v2/pdf-export/"
 
     @mock.patch("api.serializers.generate_url.delay")
-    def test_create_simplified_eap_export(self, mock_generate_url):
+    def test_simplified_eap_export(self, mock_generate_url):
         self.simplified_eap = SimplifiedEAPFactory.create(
             eap_registration=self.eap_registration,
             created_by=self.user,
@@ -1254,20 +1255,18 @@ class EAPPDFExportTestCase(APITestCase):
         with self.capture_on_commit_callbacks(execute=True):
             response = self.client.post(self.url, data, format="json")
         self.assert_201(response)
-        export = Export.objects.first()
-        self.assertIsNotNone(export)
+        self.assertIsNotNone(response.data["id"], response.data)
 
-        expected_url = (
-            f"{settings.GO_WEB_INTERNAL_URL}/" f"{Export.ExportType.SIMPLIFIED_EAP}/" f"{self.simplified_eap.id}/export/"
-        )
-        self.assertEqual(export.url, expected_url)
+        expected_url = f"{settings.GO_WEB_INTERNAL_URL}/{Export.ExportType.SIMPLIFIED_EAP}/{self.simplified_eap.id}/export/"
+        self.assertEqual(response.data["url"], expected_url)
         self.assertEqual(response.data["status"], Export.ExportStatus.PENDING)
 
         self.assertEqual(mock_generate_url.called, True)
         title = f"{self.national_society.name}-{self.disaster_type.name}"
         mock_generate_url.assert_called_once_with(
-            export.url,
-            export.id,
+            expected_url,
+            response.data["id"],
             self.user.id,
             title,
+            django_get_language(),
         )
