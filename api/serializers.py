@@ -15,7 +15,7 @@ from api.tasks import generate_url
 from api.utils import CountryValidator, RegionValidator
 from deployments.models import EmergencyProject, Personnel, PersonnelDeployment
 from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
-from eap.models import SimplifiedEAP
+from eap.models import FullEAP, SimplifiedEAP
 from lang.models import String
 from lang.serializers import ModelSerializer
 from local_units.models import DelegationOffice
@@ -2573,6 +2573,9 @@ class ExportSerializer(serializers.ModelSerializer):
             title = (
                 f"{simplified_eap.eap_registration.national_society.name}-{simplified_eap.eap_registration.disaster_type.name}"
             )
+        elif export_type == Export.ExportType.FULL_EAP:
+            full_eap = FullEAP.objects.filter(id=export_id).first()
+            title = f"{full_eap.eap_registration.national_society.name}-{full_eap.eap_registration.disaster_type.name}"
         else:
             title = "Export"
         user = self.context["request"].user
