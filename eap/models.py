@@ -713,6 +713,10 @@ class CommonEAPFields(models.Model):
         related_name="+",
     )
 
+    people_targeted = models.IntegerField(
+        verbose_name=_("People Targeted."),
+    )
+
     # Contacts
     # National Society
     national_society_contact_name = models.CharField(
@@ -835,6 +839,14 @@ class CommonEAPFields(models.Model):
     )
 
     # BUDGET #
+
+    budget_file = models.ForeignKey[EAPFile, EAPFile](
+        EAPFile,
+        on_delete=models.CASCADE,
+        verbose_name=_("Budget File"),
+        related_name="+",
+    )
+
     total_budget = models.IntegerField(
         verbose_name=_("Total Budget (CHF)"),
     )
@@ -847,6 +859,9 @@ class CommonEAPFields(models.Model):
     early_action_budget = models.IntegerField(
         verbose_name=_("Early Actions Budget (CHF)"),
     )
+
+    # TYPING
+    budget_file_id: int
 
     class Meta:
         abstract = True
@@ -917,11 +932,6 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
         blank=True,
     )
 
-    people_targeted = models.IntegerField(
-        verbose_name=_("People Targeted."),
-        null=True,
-        blank=True,
-    )
     assisted_through_operation = models.TextField(
         verbose_name=_("Assisted through the operation"),
         null=True,
@@ -988,14 +998,6 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
     rcrc_movement_involvement = models.TextField(
         verbose_name=_("RCRC Movement Involvement."),
         help_text=_("RCRC Movement partners, Governmental/other agencies consulted/involved."),
-        null=True,
-        blank=True,
-    )
-
-    # BUDGET DETAILS #
-    budget_file = SecureFileField(
-        verbose_name=_("Budget File"),
-        upload_to="eap/simplified_eap/budget_files/",
         null=True,
         blank=True,
     )
@@ -1111,10 +1113,10 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         help_text=_("Provide a brief rationale for selecting this hazard for the FbF system."),
     )
 
-    hazard_selection_files = models.ManyToManyField(
+    hazard_selection_images = models.ManyToManyField(
         EAPFile,
-        verbose_name=_("Hazard files"),
-        related_name="full_eap_hazard_selection_files",
+        verbose_name=_("Hazard images"),
+        related_name="full_eap_hazard_selection_images",
         blank=True,
     )
 
@@ -1123,10 +1125,10 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         help_text=_("Explain which people are most likely to experience the impacts of this hazard."),
     )
 
-    exposed_element_and_vulnerability_factor_files = models.ManyToManyField(
+    exposed_element_and_vulnerability_factor_images = models.ManyToManyField(
         EAPFile,
-        verbose_name=_("Exposed elements and vulnerability factors files"),
-        related_name="full_eap_vulnerability_factor_files",
+        verbose_name=_("Exposed elements and vulnerability factors images"),
+        related_name="full_eap_vulnerability_factor_images",
         blank=True,
     )
 
@@ -1135,10 +1137,10 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         help_text=_("Describe the impacts that have been prioritized and who is most likely to be affected."),
     )
 
-    prioritized_impact_files = models.ManyToManyField(
+    prioritized_impact_images = models.ManyToManyField(
         EAPFile,
-        verbose_name=_("Prioritized impact files"),
-        related_name="full_eap_prioritized_impact_files",
+        verbose_name=_("Prioritized impact images"),
+        related_name="full_eap_prioritized_impact_images",
         blank=True,
     )
 
@@ -1174,9 +1176,9 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         help_text=_("Explain which forecast's and observations will be used and why they are chosen"),
     )
 
-    forecast_selection_files = models.ManyToManyField(
+    forecast_selection_images = models.ManyToManyField(
         EAPFile,
-        verbose_name=_("Forecast Selection Files"),
+        verbose_name=_("Forecast Selection Images"),
         related_name="+",
         blank=True,
     )
@@ -1185,9 +1187,9 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         verbose_name=_("Definition and Justification of Impact Level"),
     )
 
-    definition_and_justification_impact_level_files = models.ManyToManyField(
+    definition_and_justification_impact_level_images = models.ManyToManyField(
         EAPFile,
-        verbose_name=_("Definition and Justification Impact Level Files"),
+        verbose_name=_("Definition and Justification Impact Level Images"),
         related_name="+",
         blank=True,
     )
@@ -1196,9 +1198,9 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         verbose_name=_("Identification of Intervention Area"),
     )
 
-    identification_of_the_intervention_area_files = models.ManyToManyField(
+    identification_of_the_intervention_area_images = models.ManyToManyField(
         EAPFile,
-        verbose_name=_("Intervention Area Files"),
+        verbose_name=_("Intervention Area Images"),
         related_name="+",
         blank=True,
     )
@@ -1223,16 +1225,18 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
     )
 
     # SELECTION OF ACTION
+
     early_action_selection_process = models.TextField(
         verbose_name=_("Early action selection process"),
     )
 
-    early_action_selection_process_files = models.ManyToManyField(
+    early_action_selection_process_images = models.ManyToManyField(
         EAPFile,
         blank=True,
-        verbose_name=_("Early action selection process files"),
-        related_name="early_action_selection_process_files",
+        verbose_name=_("Early action selection process images"),
+        related_name="early_action_selection_process_images",
     )
+    # TODO(susilnem): Multiple files?
     theory_of_change_table_file = models.ForeignKey[EAPFile | None, EAPFile | None](
         EAPFile,
         on_delete=models.SET_NULL,
@@ -1247,11 +1251,11 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         help_text="Explain how the selected actions will reduce the expected disaster impacts.",
     )
 
-    evidence_base_files = models.ManyToManyField(
+    evidence_base_relevant_files = models.ManyToManyField(
         EAPFile,
         blank=True,
         verbose_name=_("Evidence base files"),
-        related_name="full_eap_evidence_base_files",
+        related_name="full_eap_evidence_base_relavent_files",
     )
 
     evidence_base_source_of_information = models.ManyToManyField(
@@ -1292,11 +1296,11 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         help_text=_("Describe the process for implementing early actions."),
     )
 
-    early_action_implementation_files = models.ManyToManyField(
+    early_action_implementation_images = models.ManyToManyField(
         EAPFile,
         blank=True,
-        verbose_name=_("Early Action Implementation Files"),
-        related_name="early_action_implementation_files",
+        verbose_name=_("Early Action Implementation Images"),
+        related_name="early_action_implementation_images",
     )
 
     trigger_activation_system = models.TextField(
@@ -1304,11 +1308,11 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         help_text=_("Describe the automatic system used to monitor the forecasts."),
     )
 
-    trigger_activation_system_files = models.ManyToManyField(
+    trigger_activation_system_images = models.ManyToManyField(
         EAPFile,
         blank=True,
-        verbose_name=_("Trigger Activation System Files"),
-        related_name="trigger_activation_system_files",
+        verbose_name=_("Trigger Activation System Images"),
+        related_name="trigger_activation_system_images",
     )
 
     selection_of_target_population = models.TextField(
@@ -1372,13 +1376,6 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
     # FINANCE AND LOGISTICS
 
     budget_description = models.TextField(verbose_name=_("Full EAP Budget Description"))
-    budget_file = SecureFileField(
-        verbose_name=_("Budget File"),
-        upload_to="eap/full_eap/budget_files",
-        null=True,
-        blank=True,
-    )
-
     readiness_cost_description = models.TextField(verbose_name=_("Readiness Cost Description"))
     prepositioning_cost_description = models.TextField(verbose_name=_("Prepositioning Cost Description"))
     early_action_cost_description = models.TextField(verbose_name=_("Early Action Cost Description"))

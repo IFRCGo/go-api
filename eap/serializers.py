@@ -350,6 +350,7 @@ class CommonEAPFieldsSerializer(serializers.ModelSerializer):
     # FILES
     cover_image_file = EAPFileUpdateSerializer(source="cover_image", required=False, allow_null=True)
     admin2_details = Admin2Serializer(source="admin2", many=True, read_only=True)
+    budget_file_details = EAPFileSerializer(source="budget_file", read_only=True)
 
     def get_fields(self):
         fields = super().get_fields()
@@ -357,6 +358,7 @@ class CommonEAPFieldsSerializer(serializers.ModelSerializer):
         fields["cover_image_file"] = EAPFileUpdateSerializer(source="cover_image", required=False, allow_null=True)
         fields["planned_operations"] = PlannedOperationSerializer(many=True, required=False)
         fields["enable_approaches"] = EnableApproachSerializer(many=True, required=False)
+        fields["budget_file_details"] = EAPFileSerializer(source="budget_file", read_only=True)
         return fields
 
     def validate_images_field(self, images):
@@ -437,33 +439,33 @@ class FullEAPSerializer(
     activation_process_source_of_information = SourceInformationSerializer(many=True, required=False)
 
     # FILES
-    hazard_selection_files_details = EAPFileSerializer(source="hazard_selection_files", many=True, read_only=True)
+    hazard_selection_images_details = EAPFileSerializer(source="hazard_selection_images", many=True, read_only=True)
     exposed_element_and_vulnerability_factor_files_details = EAPFileSerializer(
         source="exposed_element_and_vulnerability_factor_files", many=True, read_only=True
     )
-    prioritized_impact_files_details = EAPFileSerializer(source="prioritized_impact_files", many=True, read_only=True)
+    prioritized_impact_images_details = EAPFileSerializer(source="prioritized_impact_images", many=True, read_only=True)
     risk_analysis_relevant_files_details = EAPFileSerializer(source="risk_analysis_relevant_files", many=True, read_only=True)
-    forecast_selection_files_details = EAPFileSerializer(source="forecast_selection_files", many=True, read_only=True)
-    definition_and_justification_impact_level_files_details = EAPFileSerializer(
-        source="definition_and_justification_impact_level_files", many=True, read_only=True
+    forecast_selection_images_details = EAPFileSerializer(source="forecast_selection_images", many=True, read_only=True)
+    definition_and_justification_impact_level_images_details = EAPFileSerializer(
+        source="definition_and_justification_impact_level_images", many=True, read_only=True
     )
-    identification_of_the_intervention_area_files_details = EAPFileSerializer(
-        source="identification_of_the_intervention_area_files", many=True, read_only=True
+    identification_of_the_intervention_area_images_details = EAPFileSerializer(
+        source="identification_of_the_intervention_area_images", many=True, read_only=True
     )
     trigger_model_relevant_files_details = EAPFileSerializer(source="trigger_model_relevant_files", many=True, read_only=True)
-    early_action_selection_process_files_details = EAPFileSerializer(
-        source="early_action_selection_process_files", many=True, read_only=True
+    early_action_selection_process_images_details = EAPFileSerializer(
+        source="early_action_selection_process_images", many=True, read_only=True
     )
     theory_of_change_table_file_details = EAPFileSerializer(source="theory_of_change_table_file", read_only=True)
-    evidence_base_files_details = EAPFileSerializer(source="evidence_base_files", many=True, read_only=True)
-    early_action_implementation_files_details = EAPFileSerializer(
-        source="early_action_implementation_files", many=True, read_only=True
+    evidence_base_relevant_files_details = EAPFileSerializer(source="evidence_base_relevant_files", many=True, read_only=True)
+    early_action_implementation_images_details = EAPFileSerializer(
+        source="early_action_implementation_images", many=True, read_only=True
     )
-    trigger_activation_system_files_details = EAPFileSerializer(
-        source="trigger_activation_system_files", many=True, read_only=True
+    trigger_activation_system_images_details = EAPFileSerializer(
+        source="trigger_activation_system_images", many=True, read_only=True
     )
-    activation_process_relevant_files_details = EAPFileSerializer(
-        source="activation_process_relevant_files", many=True, read_only=True
+    activation_process_relevant_images_details = EAPFileSerializer(
+        source="activation_process_relevant_images", many=True, read_only=True
     )
     meal_relevant_files_details = EAPFileSerializer(source="meal_relevant_files", many=True, read_only=True)
     capacity_relevant_files_details = EAPFileSerializer(source="capacity_relevant_files", many=True, read_only=True)
@@ -475,6 +477,19 @@ class FullEAPSerializer(
             "modified_by",
         )
         exclude = ("cover_image",)
+
+    # TODO(susilnem): Add validation for multiple image fields similar to SimplifiedEAP
+    def validate_hazard_selection_images(self, images):
+        self.validate_images_field(images)
+        return images
+
+    def validate_exposed_element_and_vulnerability_factor_files(self, images):
+        self.validate_images_field(images)
+        return images
+
+    def validate_prioritized_impact_images(self, images):
+        self.validate_images_field(images)
+        return images
 
     def validate(self, data: dict[str, typing.Any]) -> dict[str, typing.Any]:
         eap_registration: EAPRegistration = data["eap_registration"]
