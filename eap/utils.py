@@ -1,10 +1,9 @@
 import os
-import typing
+from typing import Any, Dict, Set, TypeVar
 
 from django.contrib.auth.models import Permission, User
 from django.core.exceptions import ValidationError
-
-from eap.models import FullEAP, SimplifiedEAP
+from django.db import models
 
 
 def has_country_permission(user: User, country_id: int) -> bool:
@@ -46,34 +45,43 @@ def validate_file_extention(filename: str, allowed_extensions: list[str]):
         raise ValidationError(f"Invalid uploaded file extension: {extension}, Supported only {allowed_extensions} Files")
 
 
-# TODO(susilnem): Add typing for FullEAP
+T = TypeVar("T", bound=models.Model)
 
 
 def copy_model_instance(
-    instance: SimplifiedEAP | FullEAP,
-    overrides: dict[str, typing.Any] | None = None,
-    exclude_clone_m2m_fields: list[str] | None = None,
-) -> SimplifiedEAP | FullEAP:
+    instance: T,
+    overrides: Dict[str, Any] | None = None,
+    exclude_clone_m2m_fields: Set[str] | None = None,
+    clone_cache: Dict[tuple[type[T], int], T] | None = None,
+) -> T:
     """
-    Creates a copy of a Django model instance, including its many-to-many relationships.
-
+    Recursively clone a Django model instance, including nested M2M fields.
+    Uses clone_cache to prevent infinite loops and duplicated clones.
     Args:
-        instance: The Django model instance to be copied.
-        overrides: A dictionary of field names and values to override in the copied instance.
-        exclude_clone_m2m_fields: A list of many-to-many field names to exclude from copying
-
+        instance: The Django model instance to clone.
+        overrides: A dictionary of field names and values to override in the cloned instance.
+        exclude_clone_m2m_fields: A set of M2M field names to exclude from cloning (
+            these will link to existing related objects instead).
+        clone_cache: A dictionary to keep track of already cloned instances to prevent infinite loops.
     Returns:
-        A new Django model instance that is a copy of the original, with specified overrides
-        applied and specified many-to-many relationships excluded.
+        The cloned Django model instance.
 
     """
 
     overrides = overrides or {}
-    exclude_m2m_fields = exclude_clone_m2m_fields or []
+    exclude_m2m = exclude_clone_m2m_fields or set()
+    clone_cache = clone_cache or {}
+
+    key = (instance.__class__, instance.pk)
+
+    # already cloned → return that clone
+    if key in clone_cache:
+        return clone_cache[key]
 
     opts = instance._meta
     data = {}
 
+    # Cloning standard fields
     for field in opts.fields:
         if field.auto_created:
             continue
@@ -81,23 +89,32 @@ def copy_model_instance(
 
     data[opts.pk.attname] = None
 
-    # NOTE: Apply overrides
     data.update(overrides)
 
-    clone_instance = instance.__class__.objects.create(**data)
+    clone = instance.__class__.objects.create(**data)
+    # NOTE: Register the clone in cache before cloning M2M to handle circular references
+    clone_cache[key] = clone
 
     for m2m_field in opts.many_to_many:
-        # NOTE: Exclude specified many-to-many fields from cloning but link to original related instances
-        if m2m_field.name in exclude_m2m_fields:
-            related_objects = getattr(instance, m2m_field.name).all()
-            getattr(clone_instance, m2m_field.name).set(related_objects)
+        name = m2m_field.name
+
+        # excluded M2M: only link to existing related objects
+        if name in exclude_m2m:
+            related = getattr(instance, name).all()
+            getattr(clone, name).set(related)
             continue
 
-        related_objects = getattr(instance, m2m_field.name).all()
+        related = getattr(instance, name).all()
         cloned_related = [
-            obj.__class__.objects.create(**{f.name: getattr(obj, f.name) for f in obj._meta.fields if not f.auto_created})
-            for obj in related_objects
+            copy_model_instance(
+                obj,
+                overrides=None,
+                exclude_clone_m2m_fields=exclude_m2m,
+                clone_cache=clone_cache,
+            )
+            for obj in related
         ]
-        getattr(clone_instance, m2m_field.name).set(cloned_related)
 
-    return clone_instance
+        getattr(clone, name).set(cloned_related)
+
+    return clone
