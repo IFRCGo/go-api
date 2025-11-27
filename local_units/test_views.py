@@ -12,7 +12,7 @@ from factory import fuzzy
 
 from api.factories.country import CountryFactory
 from api.factories.region import RegionFactory
-from api.models import Country, CountryGeoms, CountryType, Region
+from api.models import Country, CountryGeoms, CountryType, Profile, Region
 from deployments.factories.user import UserFactory
 from local_units.bulk_upload import BaseBulkUploadLocalUnit, BulkUploadHealthData
 from main import settings
@@ -120,7 +120,6 @@ class TestLocalUnitsListView(APITestCase):
         country_codename = f"local_unit_country_validator_{self.type_3.id}_{self.country2.id}"
         region_codename = f"local_unit_region_validator_{self.type_3.id}_{region.id}"
         global_codename = f"local_unit_global_validator_{self.type_3.id}"
-
         country_permission = Permission.objects.get(codename=country_codename)
         region_permission = Permission.objects.get(codename=region_codename)
         global_permission = Permission.objects.get(codename=global_codename)
@@ -882,7 +881,7 @@ class TestLocalUnitCreate(APITestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(LocalUnitChangeRequest.objects.count(), 0)
 
-    def test_country_region_admin_permission_for_local_unit_update(self):
+    def test_local_unit_update(self):
         region1 = RegionFactory.create(name=2, label="Asia Pacific")
 
         region2 = RegionFactory.create(name=0, label="Africa")
@@ -895,9 +894,19 @@ class TestLocalUnitCreate(APITestCase):
             independent=True,
             region=region1,
         )
+        country2 = CountryFactory.create(
+            name="Nepal",
+            iso3="NEP",
+            record_type=CountryType.COUNTRY,
+            is_deprecated=False,
+            independent=True,
+            region=region1,
+        )
         self.asia_admin = UserFactory.create(email="asia@admin.com")
         self.africa_admin = UserFactory.create(email="africa@admin.com")
         self.india_admin = UserFactory.create(email="india@admin.com")
+        self.ifrc_admin = UserFactory.create(email="ifrc@admin.test")
+        self.org_user = UserFactory.create(email="ifrc@admin.test")
         # India admin setup
         management.call_command("make_permissions")
         country_admin_codename = f"country_admin_{country.id}"
@@ -922,6 +931,20 @@ class TestLocalUnitCreate(APITestCase):
         africa_admin_group.permissions.add(africa_admin_permission)
         self.africa_admin.groups.add(africa_admin_group)
 
+        # Ifrc admin
+        ifrc_admin_codename = "ifrc_admin"
+        ifrc_admin_permission = Permission.objects.get(codename=ifrc_admin_codename)
+        ifrc_admin_group_name = "IFRC Admins"
+        ifrc_admin_group = Group.objects.get(name=ifrc_admin_group_name)
+        ifrc_admin_group.permissions.add(ifrc_admin_permission)
+        self.ifrc_admin.groups.add(ifrc_admin_group)
+
+        # Set the user profile as organization type = NTLS for permission checks
+        profile = self.org_user.profile
+        profile.org_type = Profile.OrgTypes.NTLS
+        profile.country = country
+        profile.save()
+
         local_unit = LocalUnitFactory.create(
             country=country,
             type=self.local_unit_type,
@@ -931,6 +954,27 @@ class TestLocalUnitCreate(APITestCase):
         )
         local_unit2 = LocalUnitFactory.create(
             country=country,
+            type=self.local_unit_type,
+            draft=False,
+            status=LocalUnit.Status.VALIDATED,
+            date_of_data="2023-08-08",
+        )
+        local_unit3 = LocalUnitFactory.create(
+            country=country,
+            type=self.local_unit_type,
+            draft=False,
+            status=LocalUnit.Status.VALIDATED,
+            date_of_data="2023-08-08",
+        )
+        local_unit_4 = LocalUnitFactory.create(
+            country=country,
+            type=self.local_unit_type,
+            draft=False,
+            status=LocalUnit.Status.VALIDATED,
+            date_of_data="2023-08-08",
+        )
+        local_unit_5 = LocalUnitFactory.create(
+            country=country2,
             type=self.local_unit_type,
             draft=False,
             status=LocalUnit.Status.VALIDATED,
@@ -968,6 +1012,26 @@ class TestLocalUnitCreate(APITestCase):
         response = self.client.patch(url, data=data, format="json")
         self.assert_200(response)
         self.assertEqual(response.data["local_branch_name"], "Updated local branch name")
+
+        # Test update as ifrc admin
+        url = f"/api/v2/local-units/{local_unit3.id}/"
+        self.authenticate(self.ifrc_admin)
+        response = self.client.patch(url, data=data, format="json")
+        self.assert_200(response)
+        self.assertEqual(response.data["local_branch_name"], "Updated local branch name")
+
+        # Test update as NTLS org type user with same local unit county
+        url = f"/api/v2/local-units/{local_unit_4.id}/"
+        self.authenticate(self.org_user)
+        response = self.client.patch(url, data=data, format="json")
+        self.assert_200(response)
+        self.assertEqual(response.data["local_branch_name"], "Updated local branch name")
+
+        # Test update as NTLS org type user with different  local unit county
+        url = f"/api/v2/local-units/{local_unit_5.id}/"
+        self.authenticate(self.org_user)
+        response = self.client.patch(url, data=data, format="json")
+        self.assert_403(response)
 
 
 class TestExternallyManagedLocalUnit(APITestCase):
@@ -1177,15 +1241,15 @@ class LocalUnitBulkUploadTests(APITestCase):
         global_group.permissions.add(global_permission)
         self.global_validator_user.groups.add(global_group)
 
-        file_path = os.path.join(settings.TEST_DIR, "local_unit/test.csv")
+        file_path = os.path.join(settings.TEST_DIR, "local_unit/test-admin.xlsx")
         with open(file_path, "rb") as f:
             self._file_content = f.read()
 
-    def create_upload_file(self, filename="test.csv"):
+    def create_upload_file(self, filename="test-admin.xlsx"):
         """
         Always return a new file instance to prevent stream exhaustion.
         """
-        return SimpleUploadedFile(filename, self._file_content, content_type="text/csv")
+        return SimpleUploadedFile(filename, self._file_content, content_type="text/xlsx")
 
     @mock.patch("local_units.tasks.process_bulk_upload_local_unit.delay")
     def test_bulk_upload_local_unit(self, mock_delay):
@@ -1330,16 +1394,16 @@ class BulkUploadTests(TestCase):
         cls.local_unit_type = LocalUnitType.objects.create(code=1, name="Administrative")
         cls.local_unit_type2 = LocalUnitType.objects.create(code=2, name="Health Care")
         cls.level = LocalUnitLevel.objects.create(level=0, name="National")
-        file_path = os.path.join(settings.TEST_DIR, "local_unit/test.csv")
+        file_path = os.path.join(settings.TEST_DIR, "local_unit/test-admin.xlsx")
         with open(file_path, "rb") as f:
             cls._file_content = f.read()
 
-    def create_upload_file(cls, filename="test.csv"):
-        return SimpleUploadedFile(filename, cls._file_content, content_type="text/csv")
+    def create_upload_file(cls, filename="test-admin.xlsx"):
+        return SimpleUploadedFile(filename, cls._file_content, content_type="text/xlsx")
 
     def test_bulk_upload_with_incorrect_country(cls):
         """
-        Test bulk upload fails when the country does not match CSV data.
+        Test bulk upload fails when the country does not match xlsx data.
         """
         cls.bulk_upload = LocalUnitBulkUploadFactory.create(
             country=cls.country1,
@@ -1362,13 +1426,13 @@ class BulkUploadTests(TestCase):
 
     def test_bulk_upload_with_valid_country(cls):
         """
-        Test bulk upload succeeds when the country matches CSV data
+        Test bulk upload succeeds when the country matches xlsx data
         """
         cls.bulk_upload = LocalUnitBulkUploadFactory.create(
             country=cls.country2,  # Brazil
             local_unit_type=cls.local_unit_type,
             triggered_by=cls.user,
-            file=cls.create_upload_file(),  # CSV with Brazil rows
+            file=cls.create_upload_file(),  # xlsx with Brazil rows
             status=LocalUnitBulkUpload.Status.PENDING,
         )
         runner = BaseBulkUploadLocalUnit(cls.bulk_upload)
@@ -1381,7 +1445,7 @@ class BulkUploadTests(TestCase):
 
     def test_bulk_upload_fails_and_delete(cls):
         """
-        Test bulk upload fails and delete when CSV has incorrect data.
+        Test bulk upload fails and delete when xlsx has incorrect data.
         """
         LocalUnitFactory.create_batch(
             5,
@@ -1410,7 +1474,7 @@ class BulkUploadTests(TestCase):
 
     def test_bulk_upload_deletes_old_and_creates_new_local_units(cls):
         """
-        Test bulk upload with correct CSV data.
+        Test bulk upload with correct data.
         """
         old_local_unit = LocalUnitFactory.create(
             country=cls.country2,
@@ -1442,10 +1506,14 @@ class BulkUploadTests(TestCase):
         Test bulk upload file is empty
         """
 
-        file_path = os.path.join(settings.STATICFILES_DIRS[0], "files", "local_units", "local-unit-bulk-upload-template.csv")
+        file_path = os.path.join(
+            settings.STATICFILES_DIRS[0], "files", "local_units", "Administrative Bulk Import Template - Local Units.xlsx"
+        )
         with open(file_path, "rb") as f:
             file_content = f.read()
-        empty_file = SimpleUploadedFile(name="local-unit-bulk-upload-template.csv", content=file_content, content_type="text/csv")
+        empty_file = SimpleUploadedFile(
+            name="Administrative Bulk Import Template - Local Units.xlsx", content=file_content, content_type="text/xlsx"
+        )
         LocalUnitFactory.create_batch(
             5,
             country=cls.country2,
@@ -1531,16 +1599,16 @@ class BulkUploadHealthDataTests(TestCase):
         cls.professional_training_facilities = ProfessionalTrainingFacility.objects.create(code=1, name="Nurses")
         cls.general_medical_services = GeneralMedicalService.objects.create(code=1, name="Minor Trauma")
 
-        file_path = os.path.join(settings.TEST_DIR, "local_unit/test-health.csv")
+        file_path = os.path.join(settings.TEST_DIR, "local_unit/test-health.xlsm")
         with open(file_path, "rb") as f:
             cls._file_content = f.read()
 
-    def create_upload_file(cls, filename="test-health.csv"):
-        return SimpleUploadedFile(filename, cls._file_content, content_type="text/csv")
+    def create_upload_file(cls, filename="test-health.xlsm"):
+        return SimpleUploadedFile(filename, cls._file_content, content_type="text/xlsm")
 
     def test_bulk_upload_health_with_incorrect_country(cls):
         """
-        Should fail when CSV rows are not equal to bulk upload country.
+        Should fail when rows are not equal to bulk upload country.
         """
         cls.bulk_upload = LocalUnitBulkUploadFactory.create(
             country=cls.country1,
@@ -1561,7 +1629,7 @@ class BulkUploadHealthDataTests(TestCase):
 
     def test_bulk_upload_health_fails_and_does_not_delete(cls):
         """
-        Should fail and keep existing LocalUnits & HealthData when CSV invalid.
+        Should fail and keep existing LocalUnits & HealthData when file invalid.
         """
         health_data = HealthDataFactory.create_batch(
             5,
@@ -1640,12 +1708,12 @@ class BulkUploadHealthDataTests(TestCase):
         """
 
         file_path = os.path.join(
-            settings.STATICFILES_DIRS[0], "files", "local_units", "local-unit-health-bulk-upload-template.csv"
+            settings.STATICFILES_DIRS[0], "files", "local_units", "Health-Care-Bulk-Import-Template-Local-Units.xlsm"
         )
         with open(file_path, "rb") as f:
             file_content = f.read()
         empty_file = SimpleUploadedFile(
-            name="local-unit-health-bulk-upload-template.csv", content=file_content, content_type="text/csv"
+            name="Health-Care-Bulk-Import-Template-Local-Units.xlsm", content=file_content, content_type="text/xlsm"
         )
         health_data = HealthDataFactory.create_batch(
             5,

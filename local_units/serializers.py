@@ -673,6 +673,7 @@ class ExternallyManagedLocalUnitSerializer(serializers.ModelSerializer):
 
 
 class LocalUnitBulkUploadSerializer(serializers.ModelSerializer):
+    VALID_FILE_EXTENSIONS = (".xlsx", ".xlsm")
     country = serializers.PrimaryKeyRelatedField(
         queryset=Country.objects.filter(
             is_deprecated=False, independent=True, iso3__isnull=False, record_type=CountryType.COUNTRY
@@ -703,8 +704,8 @@ class LocalUnitBulkUploadSerializer(serializers.ModelSerializer):
         )
 
     def validate_file(self, file):
-        if not file.name.endswith(".csv"):
-            raise serializers.ValidationError(gettext("File must be a CSV file."))
+        if not file.name.lower().endswith(self.VALID_FILE_EXTENSIONS):
+            raise serializers.ValidationError(gettext("The uploaded file must be an Excel document (.xlsx or .xlsm)."))
         if file.size > 10 * 1024 * 1024:
             raise serializers.ValidationError(gettext("File must be less than 10 MB."))
         return file
@@ -871,7 +872,7 @@ class LocalUnitBulkUploadDetailSerializer(serializers.ModelSerializer):
     visibility = serializers.CharField(required=True, allow_blank=True)
     date_of_data = serializers.CharField(required=False, allow_null=True)
     level = serializers.CharField(required=False, allow_null=True)
-    health = HealthDataBulkUploadSerializer(required=False)
+    health = serializers.PrimaryKeyRelatedField(queryset=HealthData.objects.all(), required=False, allow_null=True)
 
     class Meta:
         model = LocalUnit
@@ -952,10 +953,6 @@ class LocalUnitBulkUploadDetailSerializer(serializers.ModelSerializer):
         validated_data["status"] = LocalUnit.Status.EXTERNALLY_MANAGED
 
         # NOTE: Bulk upload doesn't call create() method
-        health_data = validated_data.pop("health", None)
-        if health_data:
-            health_instance = HealthData.objects.create(**health_data)
-            validated_data["health"] = health_instance
         return validated_data
 
 

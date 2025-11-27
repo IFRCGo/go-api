@@ -1,7 +1,7 @@
 from django.contrib.auth.models import Permission
 from rest_framework import permissions
 
-from api.models import Country
+from api.models import Country, Profile
 from local_units.models import LocalUnitType
 from local_units.utils import (
     get_local_unit_country_validators,
@@ -25,7 +25,33 @@ class ValidateLocalUnitPermission(permissions.BasePermission):
 
 
 class IsAuthenticatedForLocalUnit(permissions.BasePermission):
-    message = "Only Country Admins, Local Unit Validators, Region Admins, or Superusers are allowed to update Local Units."
+    message = (
+        "Only users with the correct organization type and country, "
+        "Region or Country Admins, Local Unit Validators, IFRC Admins, or Superusers "
+        "can update Local Units."
+    )
+
+    def user_has_permission(self, user_profile, obj) -> bool:
+        """NOTE:
+        Requirement:
+            Users whose profile is associated with the organization types NTLS, DLGN, or SCRT
+            should be able to update Local Units assigned to their country.
+
+        Purpose:
+            This permission enforces the requirement that users with specific organization types
+            (NTLS, DLGN, or SCRT) can update Local Units only within their assigned country.
+            Implementing it here avoids creating multiple permission groups for each organization
+            type and assigning them through the admin panel.
+        """
+        return (
+            user_profile.org_type
+            in [
+                Profile.OrgTypes.NTLS,
+                Profile.OrgTypes.DLGN,
+                Profile.OrgTypes.SCRT,
+            ]
+            and obj.country_id == user_profile.country_id
+        )
 
     def has_object_permission(self, request, view, obj):
         if request.method not in ["PUT", "PATCH"]:
@@ -33,12 +59,12 @@ class IsAuthenticatedForLocalUnit(permissions.BasePermission):
 
         user = request.user
 
-        if user.is_superuser:
+        # IFRC Admin, Superuser, or org-type permission
+        if user.has_perm("api.ifrc_admin") or user.is_superuser or self.user_has_permission(user.profile, obj):
             return True
 
         country_id = obj.country_id
-        country = Country.objects.get(id=country_id)
-        region_id = country.region_id
+        region_id = obj.country.region_id
         # Country admin specific permissions
         country_admin_ids = [
             int(codename.replace("country_admin_", ""))
