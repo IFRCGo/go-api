@@ -8,9 +8,11 @@ from eap.models import (
     EAPType,
     EnableApproach,
     FullEAP,
+    KeyActor,
     OperationActivity,
     PlannedOperation,
     SimplifiedEAP,
+    TimeFrame,
 )
 
 
@@ -65,6 +67,9 @@ class SimplifiedEAPFactory(factory.django.DjangoModelFactory):
     pre_positioning_budget = fuzzy.FuzzyInteger(1000, 1000000)
     early_action_budget = fuzzy.FuzzyInteger(1000, 1000000)
     people_targeted = fuzzy.FuzzyInteger(100, 100000)
+    seap_lead_timeframe_unit = fuzzy.FuzzyInteger(TimeFrame.MONTHS)
+    seap_lead_time = fuzzy.FuzzyInteger(1, 12)
+    operational_timeframe = fuzzy.FuzzyInteger(1, 12)
 
     @factory.post_generation
     def enable_approaches(self, create, extracted, **kwargs):
@@ -90,7 +95,7 @@ class OperationActivityFactory(factory.django.DjangoModelFactory):
         model = OperationActivity
 
     activity = fuzzy.FuzzyText(length=50, prefix="Activity-")
-    timeframe = fuzzy.FuzzyChoice(OperationActivity.TimeFrame)
+    timeframe = fuzzy.FuzzyChoice(TimeFrame)
 
 
 class EnableApproachFactory(factory.django.DjangoModelFactory):
@@ -165,6 +170,13 @@ class PlannedOperationFactory(factory.django.DjangoModelFactory):
         if extracted:
             for activity in extracted:
                 self.early_action_activities.add(activity)
+
+
+class KeyActorFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = KeyActor
+
+    description = fuzzy.FuzzyText(length=5, prefix="KeyActor-")
 
 
 class FullEAPFactory(factory.django.DjangoModelFactory):
