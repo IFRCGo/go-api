@@ -12,7 +12,7 @@ from factory import fuzzy
 
 from api.factories.country import CountryFactory
 from api.factories.region import RegionFactory
-from api.models import Country, CountryGeoms, CountryType, Region
+from api.models import Country, CountryGeoms, CountryType, Profile, Region
 from deployments.factories.user import UserFactory
 from local_units.bulk_upload import BaseBulkUploadLocalUnit, BulkUploadHealthData
 from main import settings
@@ -894,10 +894,19 @@ class TestLocalUnitCreate(APITestCase):
             independent=True,
             region=region1,
         )
+        country2 = CountryFactory.create(
+            name="Nepal",
+            iso3="NEP",
+            record_type=CountryType.COUNTRY,
+            is_deprecated=False,
+            independent=True,
+            region=region1,
+        )
         self.asia_admin = UserFactory.create(email="asia@admin.com")
         self.africa_admin = UserFactory.create(email="africa@admin.com")
         self.india_admin = UserFactory.create(email="india@admin.com")
         self.ifrc_admin = UserFactory.create(email="ifrc@admin.test")
+        self.org_user = UserFactory.create(email="ifrc@admin.test")
         # India admin setup
         management.call_command("make_permissions")
         country_admin_codename = f"country_admin_{country.id}"
@@ -930,6 +939,12 @@ class TestLocalUnitCreate(APITestCase):
         ifrc_admin_group.permissions.add(ifrc_admin_permission)
         self.ifrc_admin.groups.add(ifrc_admin_group)
 
+        # Set the user profile as organization type = NTLS for permission checks
+        profile = self.org_user.profile
+        profile.org_type = Profile.OrgTypes.NTLS
+        profile.country = country
+        profile.save()
+
         local_unit = LocalUnitFactory.create(
             country=country,
             type=self.local_unit_type,
@@ -946,6 +961,20 @@ class TestLocalUnitCreate(APITestCase):
         )
         local_unit3 = LocalUnitFactory.create(
             country=country,
+            type=self.local_unit_type,
+            draft=False,
+            status=LocalUnit.Status.VALIDATED,
+            date_of_data="2023-08-08",
+        )
+        local_unit_4 = LocalUnitFactory.create(
+            country=country,
+            type=self.local_unit_type,
+            draft=False,
+            status=LocalUnit.Status.VALIDATED,
+            date_of_data="2023-08-08",
+        )
+        local_unit_5 = LocalUnitFactory.create(
+            country=country2,
             type=self.local_unit_type,
             draft=False,
             status=LocalUnit.Status.VALIDATED,
@@ -983,12 +1012,26 @@ class TestLocalUnitCreate(APITestCase):
         response = self.client.patch(url, data=data, format="json")
         self.assert_200(response)
         self.assertEqual(response.data["local_branch_name"], "Updated local branch name")
+
         # Test update as ifrc admin
         url = f"/api/v2/local-units/{local_unit3.id}/"
         self.authenticate(self.ifrc_admin)
         response = self.client.patch(url, data=data, format="json")
         self.assert_200(response)
         self.assertEqual(response.data["local_branch_name"], "Updated local branch name")
+
+        # Test update as NTLS org type user with same local unit county
+        url = f"/api/v2/local-units/{local_unit_4.id}/"
+        self.authenticate(self.org_user)
+        response = self.client.patch(url, data=data, format="json")
+        self.assert_200(response)
+        self.assertEqual(response.data["local_branch_name"], "Updated local branch name")
+
+        # Test update as NTLS org type user with different  local unit county
+        url = f"/api/v2/local-units/{local_unit_5.id}/"
+        self.authenticate(self.org_user)
+        response = self.client.patch(url, data=data, format="json")
+        self.assert_403(response)
 
 
 class TestExternallyManagedLocalUnit(APITestCase):
