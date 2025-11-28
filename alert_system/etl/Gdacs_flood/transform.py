@@ -1,6 +1,7 @@
-from typing import Dict, List, Tuple, Any
-from alert_system.etl.base.transform import BaseTransformerClass
 import logging
+from typing import Dict, Tuple
+
+from alert_system.etl.base.transform import BaseTransformerClass
 
 logger = logging.getLogger(__name__)
 
@@ -21,23 +22,29 @@ class GdacsTransformer(BaseTransformerClass):
         ("people", "highest_risk"): "people.highest_risk",
         ("buildings", "destroyed"): "buildings.destroyed",
     }
-    
+
     # NOTE: This logic might change in future
     def compute_people_exposed(self, impacts: dict) -> int:
-        value = next((impacts.get(key) for key in ["people.affected_total", "people.potentially_affected", "people.affected_direct"] if impacts.get(key)), 0)
+        value = next(
+            (
+                impacts.get(key)
+                for key in ["people.affected_total", "people.potentially_affected", "people.affected_direct"]
+                if impacts.get(key)
+            ),
+            0,
+        )
         if not isinstance(value, int):
             logger.warning(f"people_exposed value is not int: {value}")
             return 0
         return value
 
-    
     # NOTE: This logic might change in future
     def compute_buildings_exposed(self, impacts: dict) -> int:
         """
         Compute the 'buildings_exposed' field.
         """
         return impacts.get("buildings.destroyed") or 0
-    
+
     def process_impact(self, impact_items) -> BaseTransformerClass.ImpactType:
         raw_impacts, metadata = {}, {}
         for item in impact_items:
@@ -56,7 +63,7 @@ class GdacsTransformer(BaseTransformerClass):
             "buildings_exposed": self.compute_buildings_exposed(raw_impacts),
             "impact_metadata": metadata,
         }
-    
+
     def process_hazard(self, hazard_item) -> BaseTransformerClass.HazardType:
         if not hazard_item:
             return {
@@ -73,9 +80,9 @@ class GdacsTransformer(BaseTransformerClass):
             "severity_label": detail.get("severity_label", ""),
             "severity_value": detail.get("severity_value", 0),
         }
-    
+
     def process_event(self, event_item) -> BaseTransformerClass.EventType:
-        properties = event_item.resp_data.get("properties",{})
+        properties = event_item.resp_data.get("properties", {})
         return {
             "title": properties.get("title", ""),
             "description": properties.get("description", ""),

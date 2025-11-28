@@ -1,5 +1,7 @@
 from alert_system.etl.base.loader import BaseLoaderClass
+
 from .config import gdacs_flood_config
+
 
 class GdacsLoader(BaseLoaderClass):
     people_exposed_threshold = gdacs_flood_config.people_exposed_threshold
