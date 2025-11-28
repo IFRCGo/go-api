@@ -1,9 +1,11 @@
-from abc import abstractmethod, ABC
 import logging
-from typing import TypedDict, Optional, List
+from abc import ABC, abstractmethod
+from typing import List, Optional, TypedDict
+
 from alert_system.models import ExtractionItem
 
 logger = logging.getLogger(__name__)
+
 
 class BaseTransformerClass(ABC):
 
@@ -22,7 +24,9 @@ class BaseTransformerClass(ABC):
         description: str
         country: str
 
-    def __init__(self, event_obj: ExtractionItem, hazard_obj: Optional[ExtractionItem] = None, impact_obj: List[ExtractionItem] = []):
+    def __init__(
+        self, event_obj: ExtractionItem, hazard_obj: Optional[ExtractionItem] = None, impact_obj: List[ExtractionItem] = []
+    ):
         self.event_obj = event_obj
         self.hazard_obj = hazard_obj
         self.impact_obj = impact_obj
@@ -44,7 +48,7 @@ class BaseTransformerClass(ABC):
         """
         Transform STAC items for a given extraction object.
 
-        Fetches event, hazard and impact items separately, processes them, 
+        Fetches event, hazard and impact items separately, processes them,
         and returns processed data if available.
         """
         logger.info(f"Starting transformer for correlation_id={self.correlation_id}")
@@ -55,12 +59,8 @@ class BaseTransformerClass(ABC):
         impact_result = self.process_impact(self.impact_obj)
 
         return {
-            'correlation_id': self.correlation_id,
+            "correlation_id": self.correlation_id,
             **event_result,
             **hazard_result,
             **impact_result,
         }
-
-    
-
-    

@@ -1,13 +1,17 @@
-import logging
-from datetime import datetime, timedelta, timezone
-from typing import Dict, Generator, Optional, List
 import abc
+import logging
 from abc import ABC
+from datetime import datetime, timedelta, timezone
+from typing import Dict, Generator, List, Optional
+
 import httpx
 from django.db import transaction
+
 from alert_system.models import Connector, ExtractionItem
-from .transform import BaseTransformerClass
+
 from .loader import BaseLoaderClass
+from .transform import BaseTransformerClass
+
 logger = logging.getLogger(__name__)
 
 
@@ -49,7 +53,7 @@ class BaseExtractionClass(ABC):
     @abc.abstractmethod
     def get_transformer_class(self) -> type[BaseTransformerClass]:
         raise NotImplementedError()
-    
+
     @abc.abstractmethod
     def get_loader_class(self) -> type[BaseLoaderClass]:
         raise NotImplementedError()
@@ -134,7 +138,6 @@ class BaseExtractionClass(ABC):
             if impact_object:
                 impact_objects.append(impact_object)
         return impact_objects
-            
 
     def _extract_hazard_items(self, stac_obj: ExtractionItem) -> ExtractionItem | None:
         """Process hazard items related to a STAC event object."""
@@ -196,14 +199,14 @@ class BaseExtractionClass(ABC):
                     impact_obj = self._extract_impact_items(event_obj)
 
                     transformer = transformer_class(
-                        event_obj = event_obj,
-                        hazard_obj = hazard_obj,
-                        impact_obj = impact_obj,
+                        event_obj=event_obj,
+                        hazard_obj=hazard_obj,
+                        impact_obj=impact_obj,
                     )
                     transformed_data = transformer.transform_stac_item()
-                
+
                 loader.load(transformed_data, self.connector)
-                
+
                 logger.info(f"Successfully processed event {event_id}")
 
             except Exception as e:
@@ -219,4 +222,4 @@ class BaseExtractionClass(ABC):
             logger.info("Connector run completed successfully")
         except Exception as e:
             logger.error(f"Connector run failed: {e}", exc_info=True)
-            raise 
+            raise

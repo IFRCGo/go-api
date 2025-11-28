@@ -6,4 +6,5 @@ class GdacsFloodConfig:
         self.impact_endpoint = "/gdacs-impacts/items"
         self.people_exposed_threshold = 5
 
+
 gdacs_flood_config = GdacsFloodConfig()
