@@ -1,6 +1,12 @@
 from django.contrib import admin
 
+<<<<<<< HEAD
 from .models import Connector, ExtractionItem, LoadItem
+||||||| parent of 72d5c50d (feat(etl): refactor existing extraction into ETL.)
+from .models import Connector, EligibleItems, StacItems
+=======
+from .models import Connector, ExtractionItem, LoadItems
+>>>>>>> 72d5c50d (feat(etl): refactor existing extraction into ETL.)
 
 
 @admin.register(Connector)
@@ -25,6 +31,7 @@ class EventAdmin(admin.ModelAdmin):
     )
 
 
+<<<<<<< HEAD
 @admin.register(LoadItem)
 class LoadItemAdmin(admin.ModelAdmin):
     list_display = (
@@ -50,3 +57,27 @@ class LoadItemAdmin(admin.ModelAdmin):
         "id",
         "correlation_id",
     )
+||||||| parent of 72d5c50d (feat(etl): refactor existing extraction into ETL.)
+@admin.register(EligibleItems)
+class EligibleAdmin(admin.ModelAdmin):
+    list_display = ("stac_id", "created_at", "collection")
+    list_filter = ("connector",)
+    readonly_fields = ("connector",)
+    search_fields = ("stac_id",)
+=======
+@admin.register(LoadItems)
+class LoadAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "event_title",
+        "created_at",
+        "correlation_id",
+        "item_eligible",
+    )
+    list_filter = (
+        "connector",
+        "item_eligible",
+    )
+    readonly_fields = ("connector", "item_eligible")
+    search_fields = ("id",)
+>>>>>>> 72d5c50d (feat(etl): refactor existing extraction into ETL.)
