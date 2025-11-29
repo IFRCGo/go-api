@@ -66,3 +66,29 @@ class NotificationGUIDAdmin(admin.ModelAdmin):
 admin.site.register(models.NotificationGUID, NotificationGUIDAdmin)
 admin.site.register(models.Subscription, SubscriptionAdmin)
 admin.site.register(models.SurgeAlert, SurgeAlertAdmin)
+
+
+@admin.register(models.HazardType)
+class AlertTypeAdmin(admin.ModelAdmin):
+    list_display = ("type",)
+
+
+@admin.register(models.AlertSubscription)
+class AlertSubscriptionAdmin(admin.ModelAdmin):
+    list_select_related = True
+    list_display = ("user", "created_at")
+    autocomplete_fields = ("user",)
+
+    def get_queryset(self, request):
+        return (
+            super()
+            .get_queryset(request)
+            .select_related(
+                "user",
+            )
+            .prefetch_related(
+                "countries",
+                "regions",
+                "hazard_types",
+            )
+        )

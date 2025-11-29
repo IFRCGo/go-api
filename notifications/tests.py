@@ -7,11 +7,22 @@ from modeltranslation.utils import build_localized_fieldname
 from api.factories.country import CountryFactory
 from api.factories.region import RegionFactory
 from deployments.factories.molnix_tag import MolnixTagFactory
+from deployments.factories.user import UserFactory
 from lang.serializers import TranslatedModelSerializerMixin
 from main.test_case import APITestCase
-from notifications.factories import SurgeAlertFactory
+from notifications.factories import (
+    AlertSubscriptionFactory,
+    HazardTypeFactory,
+    SurgeAlertFactory,
+)
 from notifications.management.commands.ingest_alerts import categories, timeformat
-from notifications.models import SurgeAlert, SurgeAlertStatus, SurgeAlertType
+from notifications.models import (
+    AlertSubscription,
+    HazardType,
+    SurgeAlert,
+    SurgeAlertStatus,
+    SurgeAlertType,
+)
 
 
 class NotificationTestCase(APITestCase):
@@ -215,3 +226,92 @@ class SurgeAlertFilteringTest(APITestCase):
         response = _fetch(dict({"molnix_status": _to_csv(SurgeAlertStatus.STOOD_DOWN, SurgeAlertStatus.OPEN)}))
         self.assertEqual(response["count"], 2)
         self.assertEqual(response["results"][0]["molnix_status"], SurgeAlertStatus.STOOD_DOWN)
+
+
+class AlertSubscriptionTestCase(APITestCase):
+
+    def setUp(self):
+        self.user1 = UserFactory.create(email="testuser1@com")
+        self.user2 = UserFactory.create(email="testuser2@com")
+
+        self.region = RegionFactory.create(name=2)
+        self.regions = RegionFactory.create_batch(3)
+        self.countries = CountryFactory.create_batch(2)
+
+        self.country = CountryFactory.create(
+            name="Nepal",
+            iso3="NLP",
+            iso="NP",
+            region=self.region,
+        )
+
+        self.country_1 = CountryFactory.create(
+            name="Philippines",
+            iso3="PHL",
+            iso="PH",
+            region=self.region,
+        )
+        self.hazard_type1 = HazardTypeFactory.create(type=HazardType.Type.EARTHQUAKE)
+        self.hazard_type2 = HazardTypeFactory.create(type=HazardType.Type.FLOOD)
+
+        self.alert_subscription = AlertSubscriptionFactory.create(
+            user=self.user1,
+            countries=self.countries,
+            regions=[self.region],
+            hazard_types=[self.hazard_type1, self.hazard_type2],
+        )
+
+    def test_list_retrieve_subscription(self):
+        url = "/api/v2/alert-subscription/"
+
+        # Anonymous user cannot access list
+        response = self.client.get(url)
+        self.assert_401(response)
+
+        # Authenticated user can list
+        self.authenticate(self.user1)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        # Retrieve detail
+        url = f"/api/v2/alert-subscription/{self.alert_subscription.id}/"
+        response = self.client.get(url)
+        self.assert_200(response)
+        self.assertEqual(response.data["user"], self.user1.id)
+
+    # Test Create Subscription
+    def test_create_subscription(self):
+
+        data = {
+            "user": self.user1.id,
+            "countries": [self.country.id, self.country_1.id],
+            "regions": [self.region.id],
+            "hazard_types": [self.hazard_type1.id, self.hazard_type2.id],
+            "alert_per_day": AlertSubscription.AlertPerDay.TEN,
+            "source": AlertSubscription.AlertSource.MONTANDON,
+        }
+        url = "/api/v2/alert-subscription/"
+        self.authenticate(self.user1)
+        response = self.client.post(url, data=data, format="json")
+        self.assert_201(response)
+        subscription = AlertSubscription.objects.get(id=response.data["id"])
+        self.assertEqual(subscription.user, self.user1)
+        self.assertEqual(subscription.countries.count(), 2)
+        self.assertEqual(subscription.regions.count(), 1)
+        self.assertEqual(subscription.hazard_types.count(), 2)
+        self.assertEqual(subscription.alert_per_day, AlertSubscription.AlertPerDay.TEN)
+
+    # Test Update
+    def test_update_subscription(self):
+
+        url = f"/api/v2/alert-subscription/{self.alert_subscription.id}/"
+        data = {
+            "countries": [self.country_1.id],
+            "alert_per_day": AlertSubscription.AlertPerDay.UNLIMITED,
+        }
+        self.authenticate(self.user1)
+        response = self.client.patch(url, data=data, format="json")
+        self.assert_200(response)
+        self.alert_subscription.refresh_from_db()
+        self.assertEqual(self.alert_subscription.countries.first().id, self.country_1.id)
+        self.assertEqual(self.alert_subscription.alert_per_day, AlertSubscription.AlertPerDay.UNLIMITED)

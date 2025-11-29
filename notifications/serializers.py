@@ -3,12 +3,14 @@ from rest_framework import serializers
 from api.serializers import (
     MiniCountrySerializer,
     MiniEventSerializer,
+    MiniRegionSerialzier,
     SurgeEventSerializer,
+    UserNameSerializer,
 )
 from deployments.serializers import MolnixTagSerializer
 from lang.serializers import ModelSerializer
 
-from .models import Subscription, SurgeAlert
+from .models import AlertSubscription, HazardType, Subscription, SurgeAlert
 
 
 class SurgeAlertSerializer(ModelSerializer):
@@ -257,4 +259,43 @@ class SubscriptionSerializer(ModelSerializer):
             "stype_display",
             "rtype",
             "rtype_display",
+        )
+
+
+class HazardTypeSerializer(ModelSerializer):
+
+    type_display = serializers.CharField(source="get_alert_type_display", read_only=True)
+
+    class Meta:
+        model = HazardType
+        fields = (
+            "id",
+            "type",
+            "type_display",
+        )
+
+
+class AlertSubscriptionSerialize(ModelSerializer):
+    user_detail = UserNameSerializer(source="user", read_only=True)
+    countries_detail = MiniCountrySerializer(source="countries", many=True, read_only=True)
+    regions_detail = MiniRegionSerialzier(source="regions", many=True, read_only=True)
+    hazard_types_detail = HazardTypeSerializer(source="hazard_types", many=True, read_only=True)
+    alert_per_day_display = serializers.CharField(source="get_alert_per_day_display", read_only=True)
+
+    class Meta:
+        model = AlertSubscription
+        fields = (
+            "id",
+            "user",
+            "countries",
+            "regions",
+            "hazard_types",
+            "alert_per_day",
+            "user_detail",
+            "countries_detail",
+            "regions_detail",
+            "hazard_types_detail",
+            "alert_per_day_display",
+            "created_at",
+            "updated_at",
         )
