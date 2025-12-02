@@ -100,6 +100,30 @@ from .serializers import (
     UserPerCountrySerializer,
 )
 
+# Helpers for transformed "-2" endpoints
+AREA_NAMES = {
+    1: "Policy Strategy and Standards",
+    2: "Analysis and planning",
+    3: "Operational capacity",
+    4: "Coordination",
+    5: "Operations support",
+}
+
+AFFIRMATIVE_WORDS = {"yes", "si", "sí", "oui", "da", "ja", "sim", "aye", "yep", "igen", "hai", "evet", "是", "はい", "예", "نعم"}
+
+
+def _contains_affirmative(text: str) -> bool:
+    if not text or not isinstance(text, str):
+        return False
+    try:
+        import unicodedata
+
+        normalized = unicodedata.normalize("NFD", text.lower())
+        normalized = "".join(ch for ch in normalized if unicodedata.category(ch) != "Mn")
+    except Exception:
+        normalized = text.lower()
+    return any(word in normalized for word in AFFIRMATIVE_WORDS)
+
 
 class PERDocsFilter(filters.FilterSet):
     id = filters.NumberFilter(field_name="id", lookup_expr="exact")
@@ -118,6 +142,7 @@ class PERDocsViewset(viewsets.ReadOnlyModelViewSet):
     queryset = NiceDocument.objects.all()
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
+
     get_request_user_regions = RegionRestrictedAdmin.get_request_user_regions
     get_filtered_queryset = RegionRestrictedAdmin.get_filtered_queryset
     filterset_class = PERDocsFilter
@@ -126,6 +151,7 @@ class PERDocsViewset(viewsets.ReadOnlyModelViewSet):
         queryset = NiceDocument.objects.all()
         cond1 = Q()
         cond2 = Q()
+
         cond3 = Q()
         if "new" in self.request.query_params.keys():
             last_duedate = settings.PER_LAST_DUEDATE
@@ -557,6 +583,34 @@ class PublicFormPrioritizationViewSet(viewsets.ReadOnlyModelViewSet):
     ordering_fields = "__all__"
 
 
+class PublicFormPrioritizationViewSet2(PublicFormPrioritizationViewSet):
+    """Adds simplified prioritized components array (mirrors JS)."""
+
+    def list(self, request, *args, **kwargs):
+        resp = super().list(request, *args, **kwargs)
+        data = resp.data
+        results = data.get("results") if isinstance(data, dict) else data
+        if results:
+            for item in results:
+                pcs = []
+                for resp_item in item.get("prioritized_action_responses", []) or []:
+                    cd = resp_item.get("component_details") or {}
+                    pcs.append(
+                        {
+                            "componentId": resp_item.get("component"),
+                            "componentTitle": cd.get("title"),
+                            "areaTitle": (
+                                cd.get("area_title") or AREA_NAMES.get(cd.get("area"))
+                                if isinstance(cd.get("area"), int)
+                                else cd.get("area_title")
+                            ),
+                            "description": cd.get("description"),
+                        }
+                    )
+                item["components"] = pcs
+        return Response(data)
+
+
 class PerOptionsView(views.APIView):
     permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
     ordering_fields = "__all__"
@@ -596,6 +650,23 @@ class PublicPerProcessStatusViewSet(viewsets.ReadOnlyModelViewSet):
         return Overview.objects.order_by("country", "-assessment_number", "-date_of_assessment")
 
 
+class PublicPerProcessStatusViewSet2(PublicPerProcessStatusViewSet):
+    """Phase display normalization (mirrors JS)."""
+
+    def list(self, request, *args, **kwargs):
+        resp = super().list(request, *args, **kwargs)
+        data = resp.data
+        results = data.get("results") if isinstance(data, dict) else data
+        if results:
+            for row in results:
+                pd = row.get("phase_display")
+                if pd == "Action And Accountability":
+                    row["phase_display"] = "Action & accountability"
+                elif pd == "WorkPlan":
+                    row["phase_display"] = "Workplan"
+        return Response(data)
+
+
 class FormAssessmentViewSet(viewsets.ModelViewSet):
     serializer_class = PerAssessmentSerializer
     permission_classes = [permissions.IsAuthenticated, PerGeneralPermission, DenyGuestUserPermission]
@@ -611,6 +682,41 @@ class PublicFormAssessmentViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return PerAssessment.objects.select_related("overview")
+
+
+class PublicFormAssessmentViewSet2(PublicFormAssessmentViewSet):
+    """Adds affirmative flags & dashboard components (mirrors JS)."""
+
+    def list(self, request, *args, **kwargs):
+        resp = super().list(request, *args, **kwargs)
+        data = resp.data
+        results = data.get("results") if isinstance(data, dict) else data
+        if results:
+            for assessment in results:
+                components = []
+                for area in assessment.get("area_responses", []) or []:
+                    for comp in area.get("component_responses", []) or []:
+                        comp["urban_considerations_simplified"] = _contains_affirmative(comp.get("urban_considerations"))
+                        comp["epi_considerations_simplified"] = _contains_affirmative(comp.get("epi_considerations"))
+                        comp["migration_considerations_simplified"] = _contains_affirmative(comp.get("migration_considerations"))
+                        comp["climate_environmental_considerations_simplified"] = _contains_affirmative(
+                            comp.get("climate_environmental_considerations")
+                        )
+                        cd = comp.get("component_details") or {}
+                        rd = comp.get("rating_details") or {}
+                        components.append(
+                            {
+                                "component_id": comp.get("component"),
+                                "component_name": cd.get("title") or "",
+                                "component_num": cd.get("component_num"),
+                                "area_id": cd.get("area"),
+                                "area_name": AREA_NAMES.get(cd.get("area")) if isinstance(cd.get("area"), int) else None,
+                                "rating_value": rd.get("value") or 0,
+                                "rating_title": rd.get("title") or "",
+                            }
+                        )
+                assessment["components"] = components
+        return Response(data)
 
 
 class PerFileViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
