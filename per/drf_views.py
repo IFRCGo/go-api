@@ -719,6 +719,149 @@ class PublicFormAssessmentViewSet2(PublicFormAssessmentViewSet):
         return Response(data)
 
 
+# Consolidated public endpoints (map-data, assessments-processed, dashboard-data)
+class PerMapDataView(views.APIView):
+    """Public consolidated PER map data.
+
+    Joins latest Overview per country with minimal country info and normalized phase display.
+    """
+
+    def get(self, request):
+        latest_overviews = (
+            Overview.objects.order_by("country_id", "-assessment_number", "-date_of_assessment")
+            .distinct("country_id")
+            .select_related("country")
+        )
+        items = []
+        for ov in latest_overviews:
+            phase_display = ov.get_phase_display() if hasattr(ov, "get_phase_display") else getattr(ov, "phase_display", None)
+            if phase_display == "Action And Accountability":
+                phase_display = "Action & accountability"
+            elif phase_display == "WorkPlan":
+                phase_display = "Workplan"
+            items.append(
+                {
+                    "country_id": ov.country_id,
+                    "country_name": ov.country.name if ov.country else None,
+                    "country_iso3": getattr(ov.country, "iso3", None),
+                    "phase": phase_display,
+                    "assessment_number": ov.assessment_number,
+                    "date_of_assessment": ov.date_of_assessment,
+                }
+            )
+        return Response({"results": items})
+
+
+class PerAssessmentsProcessedView(views.APIView):
+    """Public consolidated PER assessments processed data.
+
+    Flattens component considerations flags and rating info per assessment for downstream use.
+    """
+
+    def get(self, request):
+        assessments = PerAssessment.objects.select_related("overview", "overview__country").prefetch_related(
+            Prefetch(
+                "area_responses",
+                queryset=AreaResponse.objects.prefetch_related(
+                    Prefetch(
+                        "component_response",
+                        queryset=FormComponentResponse.objects.prefetch_related("question_responses"),
+                    )
+                ),
+            )
+        )
+        results = []
+        for a in assessments:
+            components = []
+            for ar in a.area_responses.all():
+                for cr in ar.component_response.all():
+                    cd = getattr(cr, "component_details", None)
+                    rd = getattr(cr, "rating_details", None)
+                    # When accessed via serializer, details exist; otherwise construct minimally
+                    components.append(
+                        {
+                            "component_id": getattr(cr, "component_id", None),
+                            "urban_considerations_simplified": _contains_affirmative(getattr(cr, "urban_considerations", "")),
+                            "epi_considerations_simplified": _contains_affirmative(getattr(cr, "epi_considerations", "")),
+                            "migration_considerations_simplified": _contains_affirmative(
+                                getattr(cr, "migration_considerations", "")
+                            ),
+                            "climate_environmental_considerations_simplified": _contains_affirmative(
+                                getattr(cr, "climate_environmental_considerations", "")
+                            ),
+                            "component_name": (cd.title if cd else getattr(cr.component, "title", None)),
+                            "component_num": (cd.component_num if cd else getattr(cr.component, "component_num", None)),
+                            "area_id": (cd.area if cd else getattr(cr.component.area, "id", None)),
+                            "area_name": (
+                                AREA_NAMES.get(cd.area)
+                                if (cd and isinstance(cd.area, int))
+                                else getattr(getattr(cr.component, "area", None), "name", None)
+                            ),
+                            "rating_value": (rd.value if rd else getattr(getattr(cr, "rating", None), "value", None)),
+                            "rating_title": (rd.title if rd else getattr(getattr(cr, "rating", None), "title", None)),
+                        }
+                    )
+            results.append(
+                {
+                    "assessment_id": a.id,
+                    "country_id": getattr(a.overview, "country_id", None),
+                    "country_name": getattr(getattr(a.overview, "country", None), "name", None),
+                    "components": components,
+                }
+            )
+        return Response({"results": results})
+
+
+class PerDashboardDataView(views.APIView):
+    """Public consolidated PER dashboard data.
+
+    Groups latest per country overview and attaches lightweight assessment entries.
+    """
+
+    def get(self, request):
+        latest_overviews = (
+            Overview.objects.order_by("country_id", "-assessment_number", "-date_of_assessment")
+            .distinct("country_id")
+            .select_related("country")
+        )
+        # Map assessments by country for quick attach
+        assessments_by_country = {}
+        for a in PerAssessment.objects.select_related("overview"):
+            cid = getattr(a.overview, "country_id", None)
+            if cid is None:
+                continue
+            assessments_by_country.setdefault(cid, []).append(
+                {
+                    "assessment_id": a.id,
+                    "assessment_number": getattr(a.overview, "assessment_number", None),
+                    "date_of_assessment": getattr(a.overview, "date_of_assessment", None),
+                }
+            )
+        items = []
+        for ov in latest_overviews:
+            phase_display = ov.get_phase_display() if hasattr(ov, "get_phase_display") else getattr(ov, "phase_display", None)
+            if phase_display == "Action And Accountability":
+                phase_display = "Action & accountability"
+            elif phase_display == "WorkPlan":
+                phase_display = "Workplan"
+            items.append(
+                {
+                    "country_id": ov.country_id,
+                    "country_name": ov.country.name if ov.country else None,
+                    "country_iso3": getattr(ov.country, "iso3", None),
+                    "phase": phase_display,
+                    "assessment_number": ov.assessment_number,
+                    "date_of_assessment": ov.date_of_assessment,
+                    "countryAssessments": sorted(
+                        assessments_by_country.get(ov.country_id, []),
+                        key=lambda x: (x["date_of_assessment"] or datetime.min),
+                        reverse=True,
+                    ),
+                }
+            )
+        return Response({"results": items})
+
+
 class PerFileViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
     permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
     serializer_class = PerFileSerializer
