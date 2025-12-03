@@ -13,13 +13,21 @@ from api.serializers import (
     UserNameSerializer,
 )
 from eap.models import (
+    DaysTimeFrameChoices,
     EAPFile,
     EAPRegistration,
     EAPType,
     EnableApproach,
+    FullEAP,
+    HoursTimeFrameChoices,
+    KeyActor,
+    MonthsTimeFrameChoices,
     OperationActivity,
     PlannedOperation,
     SimplifiedEAP,
+    SourceInformation,
+    TimeFrame,
+    YearsTimeFrameChoices,
 )
 from eap.utils import (
     has_country_permission,
@@ -67,11 +75,34 @@ class BaseEAPSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
 
+# NOTE: Mini Serializers used for basic listing purpose
+
+
 class MiniSimplifiedEAPSerializer(
     serializers.ModelSerializer,
 ):
     class Meta:
         model = SimplifiedEAP
+        fields = [
+            "id",
+            "eap_registration",
+            "total_budget",
+            "readiness_budget",
+            "pre_positioning_budget",
+            "early_action_budget",
+            "seap_timeframe",
+            "budget_file",
+            "version",
+            "is_locked",
+            "updated_checklist_file",
+        ]
+
+
+class MiniFullEAPSerializer(
+    serializers.ModelSerializer,
+):
+    class Meta:
+        model = FullEAP
         fields = [
             "id",
             "eap_registration",
@@ -126,6 +157,7 @@ class EAPRegistrationSerializer(
 
     # EAPs
     simplified_eap_details = MiniSimplifiedEAPSerializer(source="simplified_eap", many=True, read_only=True)
+    full_eap_details = MiniFullEAPSerializer(source="full_eap", many=True, read_only=True)
 
     # Status
     status_display = serializers.CharField(source="get_status_display", read_only=True)
@@ -143,7 +175,7 @@ class EAPRegistrationSerializer(
         ]
 
     def update(self, instance: EAPRegistration, validated_data: dict[str, typing.Any]) -> dict[str, typing.Any]:
-        # Cannot update once EAP application is being created.
+        # NOTE: Cannot update once EAP application is being created.
         if instance.has_eap_application:
             raise serializers.ValidationError("Cannot update EAP Registration once application is being created.")
         return super().update(instance, validated_data)
@@ -212,10 +244,10 @@ class EAPFileUpdateSerializer(BaseEAPSerializer):
 
 
 ALLOWED_MAP_TIMEFRAMES_VALUE = {
-    OperationActivity.TimeFrame.YEARS: list(OperationActivity.YearsTimeFrameChoices.values),
-    OperationActivity.TimeFrame.MONTHS: list(OperationActivity.MonthsTimeFrameChoices.values),
-    OperationActivity.TimeFrame.DAYS: list(OperationActivity.DaysTimeFrameChoices.values),
-    OperationActivity.TimeFrame.HOURS: list(OperationActivity.HoursTimeFrameChoices.values),
+    TimeFrame.YEARS: list(YearsTimeFrameChoices.values),
+    TimeFrame.MONTHS: list(MonthsTimeFrameChoices.values),
+    TimeFrame.DAYS: list(DaysTimeFrameChoices.values),
+    TimeFrame.HOURS: list(HoursTimeFrameChoices.values),
 }
 
 
@@ -224,9 +256,10 @@ class OperationActivitySerializer(
 ):
     id = serializers.IntegerField(required=False)
     timeframe = serializers.ChoiceField(
-        choices=OperationActivity.TimeFrame.choices,
+        choices=TimeFrame.choices,
         required=True,
     )
+    timeframe_display = serializers.CharField(source="get_timeframe_display", read_only=True)
     time_value = serializers.ListField(
         child=serializers.IntegerField(),
         required=True,
@@ -249,7 +282,7 @@ class OperationActivitySerializer(
             raise serializers.ValidationError(
                 {
                     "time_value": gettext("Invalid time_value(s) %s for the selected timeframe %s.")
-                    % (invalid_values, OperationActivity.TimeFrame(timeframe).label)
+                    % (invalid_values, TimeFrame(timeframe).label)
                 }
             )
         return validated_data
@@ -293,11 +326,28 @@ class EnableApproachSerializer(
         )
 
 
-class SimplifiedEAPSerializer(
-    NestedUpdateMixin,
-    NestedCreateMixin,
-    BaseEAPSerializer,
+class SourceInformationSerializer(
+    serializers.ModelSerializer,
 ):
+    id = serializers.IntegerField(required=False)
+
+    class Meta:
+        model = SourceInformation
+        fields = "__all__"
+
+
+class KeyActorSerializer(
+    serializers.ModelSerializer,
+):
+    id = serializers.IntegerField(required=False)
+    national_society_details = MiniCountrySerializer(source="national_society", read_only=True)
+
+    class Meta:
+        model = KeyActor
+        fields = "__all__"
+
+
+class CommonEAPFieldsSerializer(serializers.ModelSerializer):
     MAX_NUMBER_OF_IMAGES = 5
 
     planned_operations = PlannedOperationSerializer(many=True, required=False)
@@ -305,12 +355,40 @@ class SimplifiedEAPSerializer(
 
     # FILES
     cover_image_file = EAPFileUpdateSerializer(source="cover_image", required=False, allow_null=True)
-    hazard_impact_images_details = EAPFileSerializer(source="hazard_impact_images", many=True, read_only=True)
-    selected_early_actions_file_details = EAPFileSerializer(source="selected_early_actions_images", many=True, read_only=True)
-    risk_selected_protocols_file_details = EAPFileSerializer(source="risk_selected_protocols_images", many=True, read_only=True)
-
-    # Admin2
     admin2_details = Admin2Serializer(source="admin2", many=True, read_only=True)
+    budget_file_details = EAPFileSerializer(source="budget_file", read_only=True)
+
+    def get_fields(self):
+        fields = super().get_fields()
+        fields["admin2_details"] = Admin2Serializer(source="admin2", many=True, read_only=True)
+        fields["cover_image_file"] = EAPFileUpdateSerializer(source="cover_image", required=False, allow_null=True)
+        fields["planned_operations"] = PlannedOperationSerializer(many=True, required=False)
+        fields["enable_approaches"] = EnableApproachSerializer(many=True, required=False)
+        fields["budget_file_details"] = EAPFileSerializer(source="budget_file", read_only=True)
+        return fields
+
+    def validate_images_field(self, images):
+        if images and len(images) > self.MAX_NUMBER_OF_IMAGES:
+            raise serializers.ValidationError(f"Maximum {self.MAX_NUMBER_OF_IMAGES} images are allowed.")
+        validate_file_type(images)
+        return images
+
+
+class SimplifiedEAPSerializer(
+    NestedUpdateMixin,
+    NestedCreateMixin,
+    BaseEAPSerializer,
+    CommonEAPFieldsSerializer,
+):
+
+    # FILES
+    hazard_impact_images = EAPFileUpdateSerializer(required=False, many=True)
+    selected_early_actions_images = EAPFileUpdateSerializer(required=False, many=True)
+    risk_selected_protocols_images = EAPFileUpdateSerializer(required=False, many=True)
+
+    # TimeFrame
+    seap_lead_timeframe_unit_display = serializers.CharField(source="get_seap_lead_timeframe_unit_display", read_only=True)
+    operational_timeframe_unit_display = serializers.CharField(source="get_operational_timeframe_unit_display", read_only=True)
 
     class Meta:
         model = SimplifiedEAP
@@ -321,36 +399,82 @@ class SimplifiedEAPSerializer(
         exclude = ("cover_image",)
 
     def validate_hazard_impact_images(self, images):
-        if images and len(images) > self.MAX_NUMBER_OF_IMAGES:
-            raise serializers.ValidationError(f"Maximum {self.MAX_NUMBER_OF_IMAGES} images are allowed to upload.")
-        validate_file_type(images)
+        self.validate_images_field(images)
         return images
 
     def validate_risk_selected_protocols_images(self, images):
-        if images and len(images) > self.MAX_NUMBER_OF_IMAGES:
-            raise serializers.ValidationError(f"Maximum {self.MAX_NUMBER_OF_IMAGES} images are allowed to upload.")
-        validate_file_type(images)
+        self.validate_images_field(images)
         return images
 
     def validate_selected_early_actions_images(self, images):
-        if images and len(images) > self.MAX_NUMBER_OF_IMAGES:
-            raise serializers.ValidationError(f"Maximum {self.MAX_NUMBER_OF_IMAGES} images are allowed to upload.")
-        validate_file_type(images)
+        self.validate_images_field(images)
         return images
 
+    def _validate_timeframe(self, data: dict[str, typing.Any]) -> None:
+        # --- seap lead TimeFrame ---
+        seap_unit = data.get("seap_lead_timeframe_unit")
+        seap_value = data.get("seap_lead_time")
+
+        if (seap_unit is None) != (seap_value is None):
+            raise serializers.ValidationError(
+                {"seap_lead_timeframe_unit": gettext("seap lead timeframe and unit must both be provided.")}
+            )
+
+        if seap_unit is not None and seap_value is not None:
+            allowed_units = [
+                TimeFrame.MONTHS,
+                TimeFrame.DAYS,
+                TimeFrame.HOURS,
+            ]
+            if seap_unit not in allowed_units:
+                raise serializers.ValidationError(
+                    {
+                        "seap_lead_timeframe_unit": gettext(
+                            "seap lead timeframe unit must be one of the following: Months, Days, or Hours."
+                        )
+                    }
+                )
+
+        # --- Operational TimeFrame ---
+        op_unit = data.get("operational_timeframe_unit")
+        op_value = data.get("operational_timeframe")
+
+        # Require both if one is provided
+        if (op_unit is None) != (op_value is None):
+            raise serializers.ValidationError(
+                {"operational_timeframe_unit": gettext("operational timeframe and unit must both be provided.")}
+            )
+
+        if op_unit is not None and op_value is not None:
+            if op_unit != TimeFrame.MONTHS:
+                raise serializers.ValidationError(
+                    {"operational_timeframe_unit": gettext("operational timeframe unit must be Months.")}
+                )
+
+            if op_value not in MonthsTimeFrameChoices:
+                raise serializers.ValidationError(
+                    {"operational_timeframe": gettext("operational timeframe value is not valid for Months unit.")}
+                )
+
     def validate(self, data: dict[str, typing.Any]) -> dict[str, typing.Any]:
-        eap_registration: EAPRegistration = data["eap_registration"]
+        original_eap_registration = getattr(self.instance, "eap_registration", None) if self.instance else None
+        eap_registration: EAPRegistration | None = data.get("eap_registration", original_eap_registration)
+        assert eap_registration is not None, "EAP Registration must be provided."
+
+        if self.instance and original_eap_registration != eap_registration:
+            raise serializers.ValidationError("EAP Registration cannot be changed for existing EAP.")
 
         if not self.instance and eap_registration.has_eap_application:
             raise serializers.ValidationError("Simplified EAP for this EAP registration already exists.")
 
         # NOTE: Cannot update locked Simplified EAP
         if self.instance and self.instance.is_locked:
-            raise serializers.ValidationError("Cannot update locked Simplified EAP.")
+            raise serializers.ValidationError("Cannot update locked EAP Application.")
 
         eap_type = eap_registration.get_eap_type_enum
         if eap_type and eap_type != EAPType.SIMPLIFIED_EAP:
             raise serializers.ValidationError("Cannot create Simplified EAP for non-simplified EAP registration.")
+        self._validate_timeframe(data)
         return data
 
     def create(self, validated_data: dict[str, typing.Any]):
@@ -359,6 +483,124 @@ class SimplifiedEAPSerializer(
         return instance
 
 
+class FullEAPSerializer(
+    NestedUpdateMixin,
+    NestedCreateMixin,
+    BaseEAPSerializer,
+    CommonEAPFieldsSerializer,
+):
+
+    # admins
+    key_actors = KeyActorSerializer(many=True, required=True)
+
+    # SOURCE OF INFOMATIONS
+    risk_analysis_source_of_information = SourceInformationSerializer(many=True, required=False)
+    trigger_statement_source_of_information = SourceInformationSerializer(many=True, required=False)
+    trigger_model_source_of_information = SourceInformationSerializer(many=True, required=False)
+    evidence_base_source_of_information = SourceInformationSerializer(many=True, required=False)
+    activation_process_source_of_information = SourceInformationSerializer(many=True, required=False)
+
+    # IMAGES
+    hazard_selection_images = EAPFileUpdateSerializer(
+        many=True,
+        required=False,
+        allow_null=True,
+    )
+    exposed_element_and_vulnerability_factor_images = EAPFileUpdateSerializer(
+        many=True,
+        required=False,
+        allow_null=True,
+    )
+    prioritized_impact_images = EAPFileUpdateSerializer(
+        many=True,
+        required=False,
+        allow_null=True,
+    )
+    forecast_selection_images = EAPFileUpdateSerializer(
+        many=True,
+        required=False,
+        allow_null=True,
+    )
+    definition_and_justification_impact_level_images = EAPFileUpdateSerializer(
+        many=True,
+        required=False,
+        allow_null=True,
+    )
+    identification_of_the_intervention_area_images = EAPFileUpdateSerializer(
+        many=True,
+        required=False,
+        allow_null=True,
+    )
+    early_action_selection_process_images = EAPFileUpdateSerializer(
+        many=True,
+        required=False,
+        allow_null=True,
+    )
+    early_action_implementation_images = EAPFileUpdateSerializer(
+        many=True,
+        required=False,
+        allow_null=True,
+    )
+    trigger_activation_system_images = EAPFileUpdateSerializer(
+        many=True,
+        required=False,
+        allow_null=True,
+    )
+
+    # FILES
+    theory_of_change_table_file_details = EAPFileSerializer(source="theory_of_change_table_file", read_only=True)
+    risk_analysis_relevant_files_details = EAPFileSerializer(source="risk_analysis_relevant_files", many=True, read_only=True)
+    evidence_base_relevant_files_details = EAPFileSerializer(source="evidence_base_relevant_files", many=True, read_only=True)
+    activation_process_relevant_files_details = EAPFileSerializer(
+        source="activation_process_relevant_files", many=True, read_only=True
+    )
+    trigger_model_relevant_files_details = EAPFileSerializer(source="trigger_model_relevant_files", many=True, read_only=True)
+    meal_relevant_files_details = EAPFileSerializer(source="meal_relevant_files", many=True, read_only=True)
+    capacity_relevant_files_details = EAPFileSerializer(source="capacity_relevant_files", many=True, read_only=True)
+
+    class Meta:
+        model = FullEAP
+        read_only_fields = (
+            "created_by",
+            "modified_by",
+        )
+        exclude = ("cover_image",)
+
+    # TODO(susilnem): Add validation for multiple image fields similar to SimplifiedEAP
+    def validate_hazard_selection_images(self, images):
+        self.validate_images_field(images)
+        return images
+
+    def validate_exposed_element_and_vulnerability_factor_files(self, images):
+        self.validate_images_field(images)
+        return images
+
+    def validate_prioritized_impact_images(self, images):
+        self.validate_images_field(images)
+        return images
+
+    def validate(self, data: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        original_eap_registration = getattr(self.instance, "eap_registration", None) if self.instance else None
+        eap_registration: EAPRegistration | None = data.get("eap_registration", original_eap_registration)
+        assert eap_registration is not None, "EAP Registration must be provided."
+
+        if self.instance and original_eap_registration != eap_registration:
+            raise serializers.ValidationError("EAP Registration cannot be changed for existing EAP.")
+
+        if not self.instance and eap_registration.has_eap_application:
+            raise serializers.ValidationError("Full EAP for this EAP registration already exists.")
+
+        # NOTE: Cannot update locked Full EAP
+        if self.instance and self.instance.is_locked:
+            raise serializers.ValidationError("Cannot update locked EAP Application.")
+
+        eap_type = eap_registration.get_eap_type_enum
+        if eap_type and eap_type != EAPType.FULL_EAP:
+            raise serializers.ValidationError("Cannot create Full EAP for non-full EAP registration.")
+        return data
+
+
+# STATUS TRANSITION SERIALIZER
 VALID_NS_EAP_STATUS_TRANSITIONS = set(
     [
         (EAPRegistration.Status.UNDER_DEVELOPMENT, EAPRegistration.Status.UNDER_REVIEW),
@@ -426,13 +668,15 @@ class EAPStatusSerializer(BaseEAPSerializer):
                     % EAPRegistration.Status(new_status).label
                 )
 
-            # NOTE: Add checks for FULL EAP
-            simplified_eap_instance: SimplifiedEAP | None = (
-                SimplifiedEAP.objects.filter(eap_registration=self.instance).order_by("-version").first()
-            )
+            # latest Simplified EAP
+            eap_instance = SimplifiedEAP.objects.filter(eap_registration=self.instance).order_by("-version").first()
 
-            if simplified_eap_instance:
-                simplified_eap_instance.generate_snapshot()
+            # If no Simplified EAP, check for Full EAP
+            if not eap_instance:
+                eap_instance = FullEAP.objects.filter(eap_registration=self.instance).order_by("-version").first()
+
+            assert eap_instance is not None, "EAP instance does not exist."
+            eap_instance.generate_snapshot()
 
         elif (current_status, new_status) == (
             EAPRegistration.Status.UNDER_REVIEW,
