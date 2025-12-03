@@ -1464,7 +1464,6 @@ class UserRegion(models.Model):
         verbose_name_plural = _("Regional Admins")
 
     def __str__(self):
-        # import pdb; pdb.set_trace();
         return self.user.get_username()
 
 
@@ -1842,6 +1841,39 @@ class FieldReportContact(models.Model):
 
     def __str__(self):
         return "%s: %s" % (self.name, self.title)
+
+
+@reversion.register()
+class Figure(models.Model):
+    """ num_affected, _missing, _dead etc. figure linked to field report """
+
+    class FigureType(models.IntegerChoices):
+        UNKNOWN = 0, _('Unknown')
+        AFFECTED = 1, _('Affected')
+        P_AFFECTED = 2, _('Potentially affected')
+        ASSISTED = 3, _('Assisted')
+        DEAD = 4, _('Dead')
+        DISPLACED = 5, _('Displaced')
+        HIGHEST_RISK = 6, _('Highest risk')
+        INJURED = 7, _('Injured')
+        MISSING = 8, _('Missing')
+
+    class FigureSource(models.IntegerChoices):
+        RC = 1, _('Red Cross / Red Crescent')
+        GOV = 2, _('Government')
+        GCDB = 3, _('Global Crisis Data Bank')
+        UN = 4, _('UN')
+        OTHER = 5, _('Other')
+
+    field_report = models.ForeignKey(FieldReport, verbose_name=_('Field report'), on_delete=models.CASCADE)
+    type = models.IntegerField(choices=FigureType.choices, verbose_name=_('type'), default=1, help_text=_('Type of figure'))
+    source = models.IntegerField(choices=FigureSource.choices, verbose_name=_('source'), default=1, help_text=_('Source of figure'))
+    value = models.IntegerField(verbose_name=_('value'), default=0)
+    created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
+    modified_at = models.DateTimeField(verbose_name=_('modified at'), auto_now=True)
+
+    def __str__(self):
+        return "%s (%s)" % (self.get_type_display(), self.get_source_display())
 
 
 class ActionOrg(models.TextChoices):
