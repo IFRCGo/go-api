@@ -40,3 +40,74 @@ docker compose run --rm serve ./manage.py spectacular --file .assets/openapi-sch
 - In `go-api`
   - **Update the submodule reference** in your `go-api` PR.
   - In the corresponding **`go-api` Pull Request**, include the link to the `go-api-artifacts` PR as a *related PR* so reviewers can track both changes together.
+
+## Submodule Pointer Workflow
+
+Keep CI green by ensuring the parent repo points to a submodule commit that exists on the remote.
+
+- Update submodule content and push:
+  ```bash
+  cd assets
+  git checkout -b update-artifacts
+  # make changes (e.g., regenerate schema)
+  git add -A
+  git commit -m "Update artifacts"
+  git push origin update-artifacts
+  # open PR in IFRCGo/go-api-artifacts and merge to main
+  git checkout main && git pull
+  cd -
+  ```
+- Record new submodule commit in parent:
+  ```bash
+  # ensure the submodule worktree is on the merged commit
+  cd assets && git checkout main && git pull && cd -
+  git add assets
+  git commit -m "Update assets submodule pointer"
+  git push origin <your-go-api-branch>
+  ```
+- GitHub Actions checkout settings (recommended):
+  ```yaml
+  - uses: actions/checkout@v4
+    with:
+      fetch-depth: 0
+      submodules: recursive
+  ```
+
+Notes
+- Avoid amending/rebasing submodule commits that the parent already references; make a new commit instead.
+- Ensure submodule commit is on `origin/main` (or a ref CI can fetch) before updating the parent pointer.
+
+## Submodule Commands Cheat Sheet
+
+Common commands you’ll use with `assets` submodule:
+
+- Initialize submodules after clone:
+  ```bash
+  git submodule update --init --recursive
+  ```
+- Sync `.gitmodules` config to local submodule metadata:
+  ```bash
+  git submodule sync
+  ```
+- Move submodule to latest commit from its remote tracking branch:
+  ```bash
+  git submodule update --remote assets
+  git add assets
+  git commit -m "Sync assets to latest remote commit"
+  ```
+- Pin submodule to a specific commit (e.g., after checkout):
+  ```bash
+  cd assets
+  git checkout <commit-or-branch>
+  cd -
+  git add assets
+  git commit -m "Update assets submodule pointer"
+  ```
+- Switch submodule remote to SSH (avoid HTTPS prompts):
+  ```bash
+  git config -f .gitmodules submodule.assets.url git@github.com:IFRCGo/go-api-artifacts.git
+  git submodule sync
+  cd assets && git remote set-url origin git@github.com:IFRCGo/go-api-artifacts.git && cd -
+  git add .gitmodules assets
+  git commit -m "Use SSH for artifacts submodule"
+  ```
