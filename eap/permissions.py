@@ -31,28 +31,24 @@ class EAPRegistrationPermissions(BasePermission):
 
         user = request.user
         national_society_id = request.data.get("national_society")
-        return has_country_permission(user=user, national_society_id=national_society_id)
+        return user.is_superuser or has_country_permission(user=user, national_society_id=national_society_id)
 
 
 class EAPBasePermission(BasePermission):
     message = "You don't have permission to create/update EAP"
 
-    def has_permission(self, request, view) -> bool:
+    def has_object_permission(self, request, view, obj) -> bool:
         if request.method not in ["PUT", "PATCH", "POST"]:
             return True
 
         user = request.user
-        eap_registration = EAPRegistration.objects.filter(id=request.data.get("eap_registration")).first()
+        eap_reg_id = request.data.get("eap_registration", None) or obj.eap_registration_id
+        eap_registration = EAPRegistration.objects.filter(id=eap_reg_id).first()
 
-        if not eap_registration:
-            return False
-
+        assert eap_registration is not None, "EAP Registration does not exist"
         national_society_id = eap_registration.national_society_id
 
-        return has_country_permission(
-            user=user,
-            national_society_id=national_society_id,
-        )
+        return user.is_superuser or has_country_permission(user=user, national_society_id=national_society_id)
 
 
 class EAPValidatedBudgetPermission(BasePermission):

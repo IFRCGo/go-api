@@ -12,20 +12,26 @@ from api.factories.disaster_type import DisasterTypeFactory
 from api.models import Export
 from deployments.factories.user import UserFactory
 from eap.factories import (
+    EAPFileFactory,
     EAPRegistrationFactory,
     EnableApproachFactory,
+    FullEAPFactory,
+    KeyActorFactory,
     OperationActivityFactory,
     PlannedOperationFactory,
     SimplifiedEAPFactory,
 )
 from eap.models import (
+    DaysTimeFrameChoices,
     EAPFile,
     EAPStatus,
     EAPType,
     EnableApproach,
-    OperationActivity,
+    MonthsTimeFrameChoices,
     PlannedOperation,
     SimplifiedEAP,
+    TimeFrame,
+    YearsTimeFrameChoices,
 )
 from main.test_case import APITestCase
 
@@ -80,14 +86,15 @@ class EAPFileTestCase(APITestCase):
 class EAPRegistrationTestCase(APITestCase):
     def setUp(self):
         super().setUp()
-        self.country = CountryFactory.create(name="country1", iso3="EAP")
+        self.country = CountryFactory.create(name="country1", iso3="EAP", iso="EA")
         self.national_society = CountryFactory.create(
             name="national_society1",
             iso3="NSC",
+            iso="NS",
         )
         self.disaster_type = DisasterTypeFactory.create(name="disaster1")
-        self.partner1 = CountryFactory.create(name="partner1", iso3="ZZZ")
-        self.partner2 = CountryFactory.create(name="partner2", iso3="AAA")
+        self.partner1 = CountryFactory.create(name="partner1", iso3="ZZZ", iso="P1")
+        self.partner2 = CountryFactory.create(name="partner2", iso3="AAA", iso="P2")
 
         # Create permissions
         management.call_command("make_permissions")
@@ -214,6 +221,10 @@ class EAPRegistrationTestCase(APITestCase):
             eap_registration=eap_registration,
             created_by=self.country_admin,
             modified_by=self.country_admin,
+            budget_file=EAPFileFactory._create_file(
+                created_by=self.country_admin,
+                modified_by=self.country_admin,
+            ),
         )
 
         data_update = {
@@ -226,18 +237,156 @@ class EAPRegistrationTestCase(APITestCase):
         response = self.client.patch(url, data_update, format="json")
         self.assertEqual(response.status_code, 400)
 
+    def test_active_eaps(self):
+        eap_registration_1 = EAPRegistrationFactory.create(
+            country=self.country,
+            national_society=self.national_society,
+            disaster_type=self.disaster_type,
+            partners=[self.partner1.id],
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
+            status=EAPStatus.APPROVED,
+            eap_type=EAPType.FULL_EAP,
+        )
+        eap_registration_2 = EAPRegistrationFactory.create(
+            country=self.country,
+            national_society=self.national_society,
+            disaster_type=self.disaster_type,
+            partners=[self.partner2.id],
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
+            status=EAPStatus.ACTIVATED,
+            eap_type=EAPType.SIMPLIFIED_EAP,
+        )
+        EAPRegistrationFactory.create(
+            country=self.country,
+            national_society=self.national_society,
+            disaster_type=self.disaster_type,
+            partners=[self.partner1.id, self.partner2.id],
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
+            status=EAPStatus.NS_ADDRESSING_COMMENTS,
+        )
+
+        EAPRegistrationFactory.create(
+            country=self.country,
+            national_society=self.national_society,
+            disaster_type=self.disaster_type,
+            partners=[self.partner1.id, self.partner2.id],
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
+            status=EAPStatus.UNDER_REVIEW,
+        )
+
+        full_eap_1 = FullEAPFactory.create(
+            eap_registration=eap_registration_1,
+            total_budget=5000,
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
+            budget_file=EAPFileFactory._create_file(
+                created_by=self.country_admin,
+                modified_by=self.country_admin,
+            ),
+        )
+
+        full_eap_snapshot_1 = FullEAPFactory.create(
+            eap_registration=eap_registration_1,
+            total_budget=10_000,
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
+            budget_file=EAPFileFactory._create_file(
+                created_by=self.country_admin,
+                modified_by=self.country_admin,
+            ),
+            parent_id=full_eap_1.id,
+            is_locked=True,
+            version=2,
+        )
+
+        full_eap_snapshot_2 = FullEAPFactory.create(
+            eap_registration=eap_registration_1,
+            total_budget=12_000,
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
+            budget_file=EAPFileFactory._create_file(
+                created_by=self.country_admin,
+                modified_by=self.country_admin,
+            ),
+            parent_id=full_eap_snapshot_1.id,
+            is_locked=False,
+            version=3,
+        )
+
+        simplifed_eap_1 = SimplifiedEAPFactory.create(
+            eap_registration=eap_registration_1,
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
+            total_budget=5000,
+            budget_file=EAPFileFactory._create_file(
+                created_by=self.country_admin,
+                modified_by=self.country_admin,
+            ),
+        )
+        simplifed_eap_snapshot_1 = SimplifiedEAPFactory.create(
+            eap_registration=eap_registration_2,
+            total_budget=10_000,
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
+            budget_file=EAPFileFactory._create_file(
+                created_by=self.country_admin,
+                modified_by=self.country_admin,
+            ),
+            parent_id=simplifed_eap_1.id,
+            is_locked=True,
+            version=2,
+        )
+
+        simplifed_eap_snapshot_2 = SimplifiedEAPFactory.create(
+            eap_registration=eap_registration_2,
+            total_budget=12_000,
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
+            budget_file=EAPFileFactory._create_file(
+                created_by=self.country_admin,
+                modified_by=self.country_admin,
+            ),
+            parent_id=simplifed_eap_snapshot_1.id,
+            is_locked=False,
+            version=3,
+        )
+
+        url = "/api/v2/active-eap/"
+        self.authenticate()
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200, response.data)
+        self.assertEqual(len(response.data["results"]), 2, response.data["results"])
+
+        # Check requirement_cost values
+        # NOTE: it's the latest unlocked snapshot total_budget
+        self.assertEqual(
+            {
+                response.data["results"][0]["requirement_cost"],
+                response.data["results"][1]["requirement_cost"],
+            },
+            {
+                full_eap_snapshot_2.total_budget,
+                simplifed_eap_snapshot_2.total_budget,
+            },
+        )
+
 
 class EAPSimplifiedTestCase(APITestCase):
     def setUp(self):
         super().setUp()
-        self.country = CountryFactory.create(name="country1", iso3="EAP")
+        self.country = CountryFactory.create(name="country1", iso3="EAP", iso="EA")
         self.national_society = CountryFactory.create(
             name="national_society1",
             iso3="NSC",
+            iso="NS",
         )
         self.disaster_type = DisasterTypeFactory.create(name="disaster1")
-        self.partner1 = CountryFactory.create(name="partner1", iso3="ZZZ")
-        self.partner2 = CountryFactory.create(name="partner2", iso3="AAA")
+        self.partner1 = CountryFactory.create(name="partner1", iso3="ZZZ", iso="P1")
+        self.partner2 = CountryFactory.create(name="partner2", iso3="AAA", iso="P2")
 
         # Create permissions
         management.call_command("make_permissions")
@@ -267,6 +416,10 @@ class EAPSimplifiedTestCase(APITestCase):
                 eap_registration=eap,
                 created_by=self.country_admin,
                 modified_by=self.country_admin,
+                budget_file=EAPFileFactory._create_file(
+                    created_by=self.country_admin,
+                    modified_by=self.country_admin,
+                ),
             )
 
         url = "/api/v2/simplified-eap/"
@@ -286,45 +439,55 @@ class EAPSimplifiedTestCase(APITestCase):
             created_by=self.country_admin,
             modified_by=self.country_admin,
         )
+        budget_file = EAPFileFactory._create_file(
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
+        )
         data = {
             "eap_registration": eap_registration.id,
+            "budget_file": budget_file.id,
             "total_budget": 10000,
             "seap_timeframe": 3,
+            "seap_lead_timeframe_unit": TimeFrame.MONTHS,
+            "seap_lead_time": 6,
+            "operational_timeframe_unit": TimeFrame.MONTHS,
+            "operational_timeframe": 12,
             "readiness_budget": 3000,
             "pre_positioning_budget": 4000,
             "early_action_budget": 3000,
+            "people_targeted": 5000,
             "next_step_towards_full_eap": "Plan to expand.",
             "planned_operations": [
                 {
-                    "sector": 101,
+                    "sector": PlannedOperation.Sector.SETTLEMENT_AND_HOUSING,
                     "ap_code": 111,
                     "people_targeted": 10000,
                     "budget_per_sector": 100000,
                     "early_action_activities": [
                         {
                             "activity": "early action activity",
-                            "timeframe": OperationActivity.TimeFrame.YEARS,
+                            "timeframe": TimeFrame.YEARS,
                             "time_value": [
-                                OperationActivity.YearsTimeFrameChoices.ONE_YEAR,
-                                OperationActivity.YearsTimeFrameChoices.TWO_YEARS,
+                                YearsTimeFrameChoices.ONE_YEAR,
+                                YearsTimeFrameChoices.TWO_YEARS,
                             ],
                         }
                     ],
                     "prepositioning_activities": [
                         {
                             "activity": "prepositioning activity",
-                            "timeframe": OperationActivity.TimeFrame.YEARS,
+                            "timeframe": TimeFrame.YEARS,
                             "time_value": [
-                                OperationActivity.YearsTimeFrameChoices.TWO_YEARS,
-                                OperationActivity.YearsTimeFrameChoices.THREE_YEARS,
+                                YearsTimeFrameChoices.TWO_YEARS,
+                                YearsTimeFrameChoices.THREE_YEARS,
                             ],
                         }
                     ],
                     "readiness_activities": [
                         {
                             "activity": "readiness activity",
-                            "timeframe": OperationActivity.TimeFrame.YEARS,
-                            "time_value": [OperationActivity.YearsTimeFrameChoices.FIVE_YEARS],
+                            "timeframe": TimeFrame.YEARS,
+                            "time_value": [YearsTimeFrameChoices.FIVE_YEARS],
                         }
                     ],
                 }
@@ -332,33 +495,33 @@ class EAPSimplifiedTestCase(APITestCase):
             "enable_approaches": [
                 {
                     "ap_code": 11,
-                    "approach": 10,
+                    "approach": EnableApproach.Approach.SECRETARIAT_SERVICES,
                     "budget_per_approach": 10000,
                     "indicator_target": 10000,
                     "early_action_activities": [
                         {
                             "activity": "early action activity",
-                            "timeframe": OperationActivity.TimeFrame.YEARS,
+                            "timeframe": TimeFrame.YEARS,
                             "time_value": [
-                                OperationActivity.YearsTimeFrameChoices.TWO_YEARS,
-                                OperationActivity.YearsTimeFrameChoices.THREE_YEARS,
+                                YearsTimeFrameChoices.TWO_YEARS,
+                                YearsTimeFrameChoices.THREE_YEARS,
                             ],
                         }
                     ],
                     "prepositioning_activities": [
                         {
                             "activity": "prepositioning activity",
-                            "timeframe": OperationActivity.TimeFrame.YEARS,
-                            "time_value": [OperationActivity.YearsTimeFrameChoices.THREE_YEARS],
+                            "timeframe": TimeFrame.YEARS,
+                            "time_value": [YearsTimeFrameChoices.THREE_YEARS],
                         }
                     ],
                     "readiness_activities": [
                         {
                             "activity": "readiness activity",
-                            "timeframe": OperationActivity.TimeFrame.YEARS,
+                            "timeframe": TimeFrame.YEARS,
                             "time_value": [
-                                OperationActivity.YearsTimeFrameChoices.FIVE_YEARS,
-                                OperationActivity.YearsTimeFrameChoices.TWO_YEARS,
+                                YearsTimeFrameChoices.FIVE_YEARS,
+                                YearsTimeFrameChoices.TWO_YEARS,
                             ],
                         }
                     ],
@@ -368,7 +531,7 @@ class EAPSimplifiedTestCase(APITestCase):
 
         self.authenticate(self.country_admin)
         response = self.client.post(url, data, format="json")
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 201, response.data)
 
         self.assertEqual(
             response.data["eap_registration"],
@@ -395,41 +558,41 @@ class EAPSimplifiedTestCase(APITestCase):
         )
         enable_approach_readiness_operation_activity_1 = OperationActivityFactory.create(
             activity="Readiness Activity 1",
-            timeframe=OperationActivity.TimeFrame.MONTHS,
-            time_value=[OperationActivity.MonthsTimeFrameChoices.ONE_MONTH, OperationActivity.MonthsTimeFrameChoices.TWO_MONTHS],
+            timeframe=TimeFrame.MONTHS,
+            time_value=[MonthsTimeFrameChoices.ONE_MONTH, MonthsTimeFrameChoices.TWO_MONTHS],
         )
         enable_approach_readiness_operation_activity_2 = OperationActivityFactory.create(
             activity="Readiness Activity 2",
-            timeframe=OperationActivity.TimeFrame.YEARS,
-            time_value=[OperationActivity.YearsTimeFrameChoices.ONE_YEAR, OperationActivity.YearsTimeFrameChoices.FIVE_YEARS],
+            timeframe=TimeFrame.YEARS,
+            time_value=[YearsTimeFrameChoices.ONE_YEAR, YearsTimeFrameChoices.FIVE_YEARS],
         )
         enable_approach_prepositioning_operation_activity_1 = OperationActivityFactory.create(
             activity="Prepositioning Activity 1",
-            timeframe=OperationActivity.TimeFrame.MONTHS,
+            timeframe=TimeFrame.MONTHS,
             time_value=[
-                OperationActivity.MonthsTimeFrameChoices.TWO_MONTHS,
-                OperationActivity.MonthsTimeFrameChoices.FOUR_MONTHS,
+                MonthsTimeFrameChoices.TWO_MONTHS,
+                MonthsTimeFrameChoices.FOUR_MONTHS,
             ],
         )
         enable_approach_prepositioning_operation_activity_2 = OperationActivityFactory.create(
             activity="Prepositioning Activity 2",
-            timeframe=OperationActivity.TimeFrame.MONTHS,
+            timeframe=TimeFrame.MONTHS,
             time_value=[
-                OperationActivity.MonthsTimeFrameChoices.THREE_MONTHS,
-                OperationActivity.MonthsTimeFrameChoices.SIX_MONTHS,
+                MonthsTimeFrameChoices.THREE_MONTHS,
+                MonthsTimeFrameChoices.SIX_MONTHS,
             ],
         )
         enable_approach_early_action_operation_activity_1 = OperationActivityFactory.create(
             activity="Early Action Activity 1",
-            timeframe=OperationActivity.TimeFrame.DAYS,
-            time_value=[OperationActivity.DaysTimeFrameChoices.FIVE_DAYS, OperationActivity.DaysTimeFrameChoices.TEN_DAYS],
+            timeframe=TimeFrame.DAYS,
+            time_value=[DaysTimeFrameChoices.FIVE_DAYS, DaysTimeFrameChoices.TEN_DAYS],
         )
         enable_approach_early_action_operation_activity_2 = OperationActivityFactory.create(
             activity="Early Action Activity 2",
-            timeframe=OperationActivity.TimeFrame.MONTHS,
+            timeframe=TimeFrame.MONTHS,
             time_value=[
-                OperationActivity.MonthsTimeFrameChoices.ONE_MONTH,
-                OperationActivity.MonthsTimeFrameChoices.THREE_MONTHS,
+                MonthsTimeFrameChoices.ONE_MONTH,
+                MonthsTimeFrameChoices.THREE_MONTHS,
             ],
         )
 
@@ -454,41 +617,41 @@ class EAPSimplifiedTestCase(APITestCase):
         )
         planned_operation_readiness_operation_activity_1 = OperationActivityFactory.create(
             activity="Readiness Activity 1",
-            timeframe=OperationActivity.TimeFrame.MONTHS,
-            time_value=[OperationActivity.MonthsTimeFrameChoices.ONE_MONTH, OperationActivity.MonthsTimeFrameChoices.FOUR_MONTHS],
+            timeframe=TimeFrame.MONTHS,
+            time_value=[MonthsTimeFrameChoices.ONE_MONTH, MonthsTimeFrameChoices.FOUR_MONTHS],
         )
         planned_operation_readiness_operation_activity_2 = OperationActivityFactory.create(
             activity="Readiness Activity 2",
-            timeframe=OperationActivity.TimeFrame.YEARS,
-            time_value=[OperationActivity.YearsTimeFrameChoices.ONE_YEAR, OperationActivity.YearsTimeFrameChoices.THREE_YEARS],
+            timeframe=TimeFrame.YEARS,
+            time_value=[YearsTimeFrameChoices.ONE_YEAR, YearsTimeFrameChoices.THREE_YEARS],
         )
         planned_operation_prepositioning_operation_activity_1 = OperationActivityFactory.create(
             activity="Prepositioning Activity 1",
-            timeframe=OperationActivity.TimeFrame.MONTHS,
+            timeframe=TimeFrame.MONTHS,
             time_value=[
-                OperationActivity.MonthsTimeFrameChoices.TWO_MONTHS,
-                OperationActivity.MonthsTimeFrameChoices.FOUR_MONTHS,
+                MonthsTimeFrameChoices.TWO_MONTHS,
+                MonthsTimeFrameChoices.FOUR_MONTHS,
             ],
         )
         planned_operation_prepositioning_operation_activity_2 = OperationActivityFactory.create(
             activity="Prepositioning Activity 2",
-            timeframe=OperationActivity.TimeFrame.MONTHS,
+            timeframe=TimeFrame.MONTHS,
             time_value=[
-                OperationActivity.MonthsTimeFrameChoices.THREE_MONTHS,
-                OperationActivity.MonthsTimeFrameChoices.SIX_MONTHS,
+                MonthsTimeFrameChoices.THREE_MONTHS,
+                MonthsTimeFrameChoices.SIX_MONTHS,
             ],
         )
         planned_operation_early_action_operation_activity_1 = OperationActivityFactory.create(
             activity="Early Action Activity 1",
-            timeframe=OperationActivity.TimeFrame.DAYS,
-            time_value=[OperationActivity.DaysTimeFrameChoices.FIVE_DAYS, OperationActivity.DaysTimeFrameChoices.TEN_DAYS],
+            timeframe=TimeFrame.DAYS,
+            time_value=[DaysTimeFrameChoices.FIVE_DAYS, DaysTimeFrameChoices.TEN_DAYS],
         )
         planned_operation_early_action_operation_activity_2 = OperationActivityFactory.create(
             activity="Early Action Activity 2",
-            timeframe=OperationActivity.TimeFrame.MONTHS,
+            timeframe=TimeFrame.MONTHS,
             time_value=[
-                OperationActivity.MonthsTimeFrameChoices.ONE_MONTH,
-                OperationActivity.MonthsTimeFrameChoices.THREE_MONTHS,
+                MonthsTimeFrameChoices.ONE_MONTH,
+                MonthsTimeFrameChoices.THREE_MONTHS,
             ],
         )
 
@@ -516,6 +679,14 @@ class EAPSimplifiedTestCase(APITestCase):
             eap_registration=eap_registration,
             created_by=self.country_admin,
             modified_by=self.country_admin,
+            seap_lead_timeframe_unit=TimeFrame.MONTHS,
+            seap_lead_time=12,
+            operational_timeframe=12,
+            operational_timeframe_unit=TimeFrame.MONTHS,
+            budget_file=EAPFileFactory._create_file(
+                created_by=self.country_admin,
+                modified_by=self.country_admin,
+            ),
             enable_approaches=[enable_approach.id],
             planned_operations=[planned_operation.id],
         )
@@ -538,24 +709,24 @@ class EAPSimplifiedTestCase(APITestCase):
                         {
                             "id": enable_approach_readiness_operation_activity_1.id,
                             "activity": "Updated Enable Approach Readiness Activity 1",
-                            "timeframe": OperationActivity.TimeFrame.MONTHS,
-                            "time_value": [OperationActivity.MonthsTimeFrameChoices.TWO_MONTHS],
+                            "timeframe": TimeFrame.MONTHS,
+                            "time_value": [MonthsTimeFrameChoices.TWO_MONTHS],
                         }
                     ],
                     "prepositioning_activities": [
                         {
                             "id": enable_approach_prepositioning_operation_activity_1.id,
                             "activity": "Updated Enable Approach Prepositioning Activity 1",
-                            "timeframe": OperationActivity.TimeFrame.MONTHS,
-                            "time_value": [OperationActivity.MonthsTimeFrameChoices.FOUR_MONTHS],
+                            "timeframe": TimeFrame.MONTHS,
+                            "time_value": [MonthsTimeFrameChoices.FOUR_MONTHS],
                         }
                     ],
                     "early_action_activities": [
                         {
                             "id": enable_approach_early_action_operation_activity_1.id,
                             "activity": "Updated Enable Approach Early Action Activity 1",
-                            "timeframe": OperationActivity.TimeFrame.DAYS,
-                            "time_value": [OperationActivity.DaysTimeFrameChoices.TEN_DAYS],
+                            "timeframe": TimeFrame.DAYS,
+                            "time_value": [DaysTimeFrameChoices.TEN_DAYS],
                         }
                     ],
                 },
@@ -568,30 +739,30 @@ class EAPSimplifiedTestCase(APITestCase):
                     "readiness_activities": [
                         {
                             "activity": "New Enable Approach Readiness Activity",
-                            "timeframe": OperationActivity.TimeFrame.MONTHS,
+                            "timeframe": TimeFrame.MONTHS,
                             "time_value": [
-                                OperationActivity.MonthsTimeFrameChoices.THREE_MONTHS,
-                                OperationActivity.MonthsTimeFrameChoices.SIX_MONTHS,
+                                MonthsTimeFrameChoices.THREE_MONTHS,
+                                MonthsTimeFrameChoices.SIX_MONTHS,
                             ],
                         }
                     ],
                     "prepositioning_activities": [
                         {
                             "activity": "New Enable Approach Prepositioning Activity",
-                            "timeframe": OperationActivity.TimeFrame.MONTHS,
+                            "timeframe": TimeFrame.MONTHS,
                             "time_value": [
-                                OperationActivity.MonthsTimeFrameChoices.SIX_MONTHS,
-                                OperationActivity.MonthsTimeFrameChoices.NINE_MONTHS,
+                                MonthsTimeFrameChoices.SIX_MONTHS,
+                                MonthsTimeFrameChoices.NINE_MONTHS,
                             ],
                         }
                     ],
                     "early_action_activities": [
                         {
                             "activity": "New Enable Approach Early Action Activity",
-                            "timeframe": OperationActivity.TimeFrame.DAYS,
+                            "timeframe": TimeFrame.DAYS,
                             "time_value": [
-                                OperationActivity.DaysTimeFrameChoices.EIGHT_DAYS,
-                                OperationActivity.DaysTimeFrameChoices.SIXTEEN_DAYS,
+                                DaysTimeFrameChoices.EIGHT_DAYS,
+                                DaysTimeFrameChoices.SIXTEEN_DAYS,
                             ],
                         }
                     ],
@@ -608,10 +779,10 @@ class EAPSimplifiedTestCase(APITestCase):
                         {
                             "id": planned_operation_readiness_operation_activity_1.id,
                             "activity": "Updated Planned Operation Readiness Activity 1",
-                            "timeframe": OperationActivity.TimeFrame.MONTHS,
+                            "timeframe": TimeFrame.MONTHS,
                             "time_value": [
-                                OperationActivity.MonthsTimeFrameChoices.TWO_MONTHS,
-                                OperationActivity.MonthsTimeFrameChoices.SIX_MONTHS,
+                                MonthsTimeFrameChoices.TWO_MONTHS,
+                                MonthsTimeFrameChoices.SIX_MONTHS,
                             ],
                         }
                     ],
@@ -619,10 +790,10 @@ class EAPSimplifiedTestCase(APITestCase):
                         {
                             "id": planned_operation_prepositioning_operation_activity_1.id,
                             "activity": "Updated Planned Operation Prepositioning Activity 1",
-                            "timeframe": OperationActivity.TimeFrame.MONTHS,
+                            "timeframe": TimeFrame.MONTHS,
                             "time_value": [
-                                OperationActivity.MonthsTimeFrameChoices.THREE_MONTHS,
-                                OperationActivity.MonthsTimeFrameChoices.SIX_MONTHS,
+                                MonthsTimeFrameChoices.THREE_MONTHS,
+                                MonthsTimeFrameChoices.SIX_MONTHS,
                             ],
                         }
                     ],
@@ -630,10 +801,10 @@ class EAPSimplifiedTestCase(APITestCase):
                         {
                             "id": planned_operation_early_action_operation_activity_1.id,
                             "activity": "Updated Planned Operation Early Action Activity 1",
-                            "timeframe": OperationActivity.TimeFrame.DAYS,
+                            "timeframe": TimeFrame.DAYS,
                             "time_value": [
-                                OperationActivity.DaysTimeFrameChoices.EIGHT_DAYS,
-                                OperationActivity.DaysTimeFrameChoices.SIXTEEN_DAYS,
+                                DaysTimeFrameChoices.EIGHT_DAYS,
+                                DaysTimeFrameChoices.SIXTEEN_DAYS,
                             ],
                         }
                     ],
@@ -647,30 +818,30 @@ class EAPSimplifiedTestCase(APITestCase):
                     "readiness_activities": [
                         {
                             "activity": "New Planned Operation Readiness Activity",
-                            "timeframe": OperationActivity.TimeFrame.MONTHS,
+                            "timeframe": TimeFrame.MONTHS,
                             "time_value": [
-                                OperationActivity.MonthsTimeFrameChoices.THREE_MONTHS,
-                                OperationActivity.MonthsTimeFrameChoices.SIX_MONTHS,
+                                MonthsTimeFrameChoices.THREE_MONTHS,
+                                MonthsTimeFrameChoices.SIX_MONTHS,
                             ],
                         }
                     ],
                     "prepositioning_activities": [
                         {
                             "activity": "New Planned Operation Prepositioning Activity",
-                            "timeframe": OperationActivity.TimeFrame.MONTHS,
+                            "timeframe": TimeFrame.MONTHS,
                             "time_value": [
-                                OperationActivity.MonthsTimeFrameChoices.TWO_MONTHS,
-                                OperationActivity.MonthsTimeFrameChoices.FIVE_MONTHS,
+                                MonthsTimeFrameChoices.TWO_MONTHS,
+                                MonthsTimeFrameChoices.FIVE_MONTHS,
                             ],
                         }
                     ],
                     "early_action_activities": [
                         {
                             "activity": "New Planned Operation Early Action Activity",
-                            "timeframe": OperationActivity.TimeFrame.DAYS,
+                            "timeframe": TimeFrame.DAYS,
                             "time_value": [
-                                OperationActivity.MonthsTimeFrameChoices.FIVE_MONTHS,
-                                OperationActivity.MonthsTimeFrameChoices.TWELVE_MONTHS,
+                                MonthsTimeFrameChoices.FIVE_MONTHS,
+                                MonthsTimeFrameChoices.TWELVE_MONTHS,
                             ],
                         }
                     ],
@@ -681,7 +852,7 @@ class EAPSimplifiedTestCase(APITestCase):
         # Authenticate as root user
         self.authenticate(self.root_user)
         response = self.client.patch(url, data, format="json")
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200, response.data)
         self.assertEqual(
             response.data["eap_registration"],
             eap_registration.id,
@@ -854,14 +1025,15 @@ class EAPStatusTransitionTestCase(APITestCase):
     def setUp(self):
         super().setUp()
 
-        self.country = CountryFactory.create(name="country1", iso3="EAP")
+        self.country = CountryFactory.create(name="country1", iso3="EAP", iso="EA")
         self.national_society = CountryFactory.create(
             name="national_society1",
             iso3="NSC",
+            iso="NS",
         )
         self.disaster_type = DisasterTypeFactory.create(name="disaster1")
-        self.partner1 = CountryFactory.create(name="partner1", iso3="ZZZ")
-        self.partner2 = CountryFactory.create(name="partner2", iso3="AAA")
+        self.partner1 = CountryFactory.create(name="partner1", iso3="ZZZ", iso="ZZ")
+        self.partner2 = CountryFactory.create(name="partner2", iso3="AAA", iso="AA")
 
         self.eap_registration = EAPRegistrationFactory.create(
             country=self.country,
@@ -917,11 +1089,15 @@ class EAPStatusTransitionTestCase(APITestCase):
             eap_registration=self.eap_registration,
             created_by=self.country_admin,
             modified_by=self.country_admin,
+            budget_file=EAPFileFactory._create_file(
+                created_by=self.country_admin,
+                modified_by=self.country_admin,
+            ),
         )
 
         # SUCCESS: As Simplified EAP exists
         response = self.client.post(self.url, data, format="json")
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200, response.data)
         self.assertEqual(response.data["status"], EAPStatus.UNDER_REVIEW)
 
         # NOTE: Transition to NS_ADDRESSING_COMMENTS
@@ -949,7 +1125,7 @@ class EAPStatusTransitionTestCase(APITestCase):
             data["review_checklist_file"] = tmp_file
 
             response = self.client.post(self.url, data, format="multipart")
-            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.status_code, 200, response.data)
             self.assertEqual(response.data["status"], EAPStatus.NS_ADDRESSING_COMMENTS)
 
             self.eap_registration.refresh_from_db()
@@ -1016,12 +1192,12 @@ class EAPStatusTransitionTestCase(APITestCase):
             file_data = {"eap_registration": second_snapshot.eap_registration_id, "updated_checklist_file": tmp_file}
 
             response = self.client.patch(url, file_data, format="multipart")
-            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.status_code, 200, response.data)
 
         # SUCCESS:
         self.authenticate(self.country_admin)
         response = self.client.post(self.url, data, format="json")
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200, response.data)
         self.assertEqual(response.data["status"], EAPStatus.UNDER_REVIEW)
 
         # AGAIN NOTE: Transition to NS_ADDRESSING_COMMENTS
@@ -1042,7 +1218,7 @@ class EAPStatusTransitionTestCase(APITestCase):
             data["review_checklist_file"] = tmp_file
 
             response = self.client.post(self.url, data, format="multipart")
-            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.status_code, 200, response.data)
             self.assertEqual(response.data["status"], EAPStatus.NS_ADDRESSING_COMMENTS)
 
             # Check if three snapshots are created now
@@ -1148,7 +1324,7 @@ class EAPStatusTransitionTestCase(APITestCase):
             file_data = {"validated_budget_file": tmp_file}
             self.authenticate(self.ifrc_admin_user)
             response = self.client.post(url, file_data, format="multipart")
-            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.status_code, 200, response.data)
 
         self.eap_registration.refresh_from_db()
         self.assertIsNotNone(
@@ -1160,7 +1336,7 @@ class EAPStatusTransitionTestCase(APITestCase):
         self.assertIsNone(self.eap_registration.approved_at)
         self.authenticate(self.ifrc_admin_user)
         response = self.client.post(self.url, data, format="json")
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200, response.data)
         self.assertEqual(response.data["status"], EAPStatus.APPROVED)
         # Check is the approved timeline is added
         self.eap_registration.refresh_from_db()
@@ -1216,11 +1392,19 @@ class EAPStatusTransitionTestCase(APITestCase):
 class EAPPDFExportTestCase(APITestCase):
     def setUp(self):
         super().setUp()
-        self.country = CountryFactory.create(name="country1", iso3="EAP")
-        self.national_society = CountryFactory.create(name="national_society1", iso3="NSC")
+        self.country = CountryFactory.create(
+            name="country1",
+            iso3="EAP",
+            iso="EA",
+        )
+        self.national_society = CountryFactory.create(
+            name="national_society1",
+            iso3="NSC",
+            iso="NS",
+        )
         self.disaster_type = DisasterTypeFactory.create(name="disaster1")
-        self.partner1 = CountryFactory.create(name="partner1", iso3="ZZZ")
-        self.partner2 = CountryFactory.create(name="partner2", iso3="AAA")
+        self.partner1 = CountryFactory.create(name="partner1", iso3="ZZZ", iso="ZZ")
+        self.partner2 = CountryFactory.create(name="partner2", iso3="AAA", iso="AA")
 
         self.user = UserFactory.create()
 
@@ -1243,6 +1427,10 @@ class EAPPDFExportTestCase(APITestCase):
             created_by=self.user,
             modified_by=self.user,
             national_society_contact_title="NS Title Example",
+            budget_file=EAPFileFactory._create_file(
+                created_by=self.user,
+                modified_by=self.user,
+            ),
         )
         data = {
             "export_type": Export.ExportType.SIMPLIFIED_EAP,
@@ -1269,4 +1457,467 @@ class EAPPDFExportTestCase(APITestCase):
             self.user.id,
             title,
             django_get_language(),
+        )
+
+    @mock.patch("api.serializers.generate_url.delay")
+    def test_full_eap_export(self, mock_generate_url):
+        self.full_eap = FullEAPFactory.create(
+            eap_registration=self.eap_registration,
+            created_by=self.user,
+            modified_by=self.user,
+            budget_file=EAPFileFactory._create_file(
+                created_by=self.user,
+                modified_by=self.user,
+            ),
+        )
+        data = {
+            "export_type": Export.ExportType.FULL_EAP,
+            "export_id": self.full_eap.id,
+            "is_pga": False,
+        }
+
+        self.authenticate(self.user)
+
+        with self.capture_on_commit_callbacks(execute=True):
+            response = self.client.post(self.url, data, format="json")
+        self.assert_201(response)
+        self.assertIsNotNone(response.data["id"], response.data)
+        expected_url = f"{settings.GO_WEB_INTERNAL_URL}/{Export.ExportType.FULL_EAP}/{self.full_eap.id}/export/"
+        self.assertEqual(response.data["url"], expected_url)
+        self.assertEqual(response.data["status"], Export.ExportStatus.PENDING)
+
+        self.assertEqual(mock_generate_url.called, True)
+        title = f"{self.national_society.name}-{self.disaster_type.name}"
+        mock_generate_url.assert_called_once_with(
+            expected_url,
+            response.data["id"],
+            self.user.id,
+            title,
+            django_get_language(),
+        )
+
+
+class EAPFullTestCase(APITestCase):
+    def setUp(self):
+        super().setUp()
+        self.country = CountryFactory.create(name="country1", iso3="EAP")
+        self.national_society = CountryFactory.create(
+            name="national_society1",
+            iso3="NSC",
+        )
+        self.disaster_type = DisasterTypeFactory.create(name="disaster1")
+
+        # Create permissions
+        management.call_command("make_permissions")
+
+        # Create Country Admin User and assign permission
+        self.country_admin = UserFactory.create()
+        country_admin_permission = Permission.objects.filter(codename="country_admin_%s" % self.national_society.id).first()
+        country_group = Group.objects.filter(name="%s Admins" % self.national_society.name).first()
+
+        self.country_admin.user_permissions.add(country_admin_permission)
+        self.country_admin.groups.add(country_group)
+
+    def test_list_full_eap(self):
+        # Create EAP Registrations
+        eap_registrations = EAPRegistrationFactory.create_batch(
+            5,
+            eap_type=EAPType.FULL_EAP,
+            country=self.country,
+            national_society=self.national_society,
+            disaster_type=self.disaster_type,
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
+        )
+
+        for eap in eap_registrations:
+            FullEAPFactory.create(
+                eap_registration=eap,
+                created_by=self.country_admin,
+                modified_by=self.country_admin,
+                budget_file=EAPFileFactory._create_file(
+                    created_by=self.user,
+                    modified_by=self.user,
+                ),
+            )
+
+        url = "/api/v2/full-eap/"
+        self.authenticate()
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200, response.data)
+        self.assertEqual(len(response.data["results"]), 5)
+
+    def test_create_full_eap(self):
+        url = "/api/v2/full-eap/"
+
+        # Create EAP Registration
+        eap_registration = EAPRegistrationFactory.create(
+            eap_type=EAPType.FULL_EAP,
+            country=self.country,
+            national_society=self.national_society,
+            disaster_type=self.disaster_type,
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
+        )
+
+        budget_file_instance = EAPFileFactory._create_file(
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
+        )
+        data = {
+            "eap_registration": eap_registration.id,
+            "budget_file": budget_file_instance.id,
+            "total_budget": 10000,
+            "seap_timeframe": 5,
+            "readiness_budget": 3000,
+            "pre_positioning_budget": 4000,
+            "early_action_budget": 3000,
+            "people_targeted": 5000,
+            "key_actors": [
+                {
+                    "national_society": self.national_society.id,
+                    "description": "Key actor 1 description",
+                },
+                {
+                    "national_society": self.country.id,
+                    "description": "Key actor 1 description",
+                },
+            ],
+            "is_worked_with_government": True,
+            "worked_with_government_description": "Worked with government description",
+            "is_technical_working_groups": True,
+            "technical_working_group_title": "Technical working group title",
+            "technical_working_groups_in_place_description": "Technical working groups in place description",
+            "hazard_selection": "Flood",
+            "exposed_element_and_vulnerability_factor": "Exposed elements and vulnerability factors",
+            "prioritized_impact": "Prioritized impacts",
+            "trigger_statement": "Triggering statement",
+            "forecast_selection": "Rainfall forecast",
+            "definition_and_justification_impact_level": "Definition and justification of impact levels",
+            "identification_of_the_intervention_area": "Identification of the intervention areas",
+            "selection_area": "Selection of the area",
+            "early_action_selection_process": "Early action selection process",
+            "evidence_base": "Evidence base",
+            "usefulness_of_actions": "Usefulness of actions",
+            "feasibility": "Feasibility text",
+            "early_action_implementation_process": "Early action implementation process",
+            "trigger_activation_system": "Trigger activation system",
+            "selection_of_target_population": "Selection of target population",
+            "stop_mechanism": "Stop mechanism",
+            "meal": "meal description",
+            "operational_administrative_capacity": "Operational and administrative capacity",
+            "strategies_and_plans": "Strategies and plans",
+            "advance_financial_capacity": "Advance financial capacity",
+            # BUDGET DETAILS
+            "budget_description": "Budget description",
+            "readiness_cost_description": "Readiness cost description",
+            "prepositioning_cost_description": "Prepositioning cost description",
+            "early_action_cost_description": "Early action cost description",
+            "eap_endorsement": "EAP endorsement text",
+            "planned_operations": [
+                {
+                    "sector": PlannedOperation.Sector.SETTLEMENT_AND_HOUSING,
+                    "ap_code": 111,
+                    "people_targeted": 10000,
+                    "budget_per_sector": 100000,
+                    "early_action_activities": [
+                        {
+                            "activity": "early action activity",
+                            "timeframe": TimeFrame.YEARS,
+                            "time_value": [
+                                YearsTimeFrameChoices.ONE_YEAR,
+                                YearsTimeFrameChoices.TWO_YEARS,
+                            ],
+                        }
+                    ],
+                    "prepositioning_activities": [
+                        {
+                            "activity": "prepositioning activity",
+                            "timeframe": TimeFrame.YEARS,
+                            "time_value": [
+                                YearsTimeFrameChoices.TWO_YEARS,
+                                YearsTimeFrameChoices.THREE_YEARS,
+                            ],
+                        }
+                    ],
+                    "readiness_activities": [
+                        {
+                            "activity": "readiness activity",
+                            "timeframe": TimeFrame.YEARS,
+                            "time_value": [YearsTimeFrameChoices.FIVE_YEARS],
+                        }
+                    ],
+                }
+            ],
+            "enable_approaches": [
+                {
+                    "ap_code": 11,
+                    "approach": EnableApproach.Approach.SECRETARIAT_SERVICES,
+                    "budget_per_approach": 10000,
+                    "indicator_target": 10000,
+                    "early_action_activities": [
+                        {
+                            "activity": "early action activity",
+                            "timeframe": TimeFrame.YEARS,
+                            "time_value": [
+                                YearsTimeFrameChoices.TWO_YEARS,
+                                YearsTimeFrameChoices.THREE_YEARS,
+                            ],
+                        }
+                    ],
+                    "prepositioning_activities": [
+                        {
+                            "activity": "prepositioning activity",
+                            "timeframe": TimeFrame.YEARS,
+                            "time_value": [YearsTimeFrameChoices.THREE_YEARS],
+                        }
+                    ],
+                    "readiness_activities": [
+                        {
+                            "activity": "readiness activity",
+                            "timeframe": TimeFrame.YEARS,
+                            "time_value": [
+                                YearsTimeFrameChoices.FIVE_YEARS,
+                                YearsTimeFrameChoices.TWO_YEARS,
+                            ],
+                        }
+                    ],
+                },
+            ],
+        }
+
+        self.authenticate(self.country_admin)
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, 201, response.data)
+
+        self.assertEqual(
+            response.data["eap_registration"],
+            eap_registration.id,
+        )
+        self.assertEqual(
+            eap_registration.get_eap_type_enum,
+            EAPType.FULL_EAP,
+        )
+        self.assertFalse(
+            response.data["is_locked"],
+            "Newly created Full EAP should not be locked.",
+        )
+
+        # Cannot create Full EAP for the same EAP Registration again
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, 400, response.data)
+
+    def test_update_full_eap(self):
+        # Create EAP Registration
+        eap_registration = EAPRegistrationFactory.create(
+            eap_type=EAPType.FULL_EAP,
+            country=self.country,
+            national_society=self.national_society,
+            disaster_type=self.disaster_type,
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
+        )
+
+        full_eap = FullEAPFactory.create(
+            eap_registration=eap_registration,
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
+            budget_file=EAPFileFactory._create_file(
+                created_by=self.country_admin,
+                modified_by=self.country_admin,
+            ),
+        )
+
+        url = f"/api/v2/full-eap/{full_eap.id}/"
+        data = {
+            "total_budget": 20000,
+            "seap_timeframe": 5,
+            "key_actors": [
+                {
+                    "national_society": self.national_society.id,
+                    "description": "Key actor 1 description",
+                },
+                {
+                    "national_society": self.country.id,
+                    "description": "Key actor 1 description",
+                },
+            ],
+        }
+        self.authenticate(self.root_user)
+        response = self.client.patch(url, data, format="json")
+        self.assertEqual(response.status_code, 200, response.data)
+
+        self.assertIsNotNone(response.data["modified_by_details"])
+        self.assertEqual(
+            {
+                response.data["total_budget"],
+                response.data["modified_by_details"]["id"],
+            },
+            {
+                data["total_budget"],
+                self.root_user.id,
+            },
+        )
+
+
+class TestSnapshotEAP(APITestCase):
+    def setUp(self):
+        super().setUp()
+        self.country = CountryFactory.create(name="country1", iso3="EAP")
+        self.national_society = CountryFactory.create(
+            name="national_society1",
+            iso3="NSC",
+        )
+        self.disaster_type = DisasterTypeFactory.create(name="disaster1")
+        self.user = UserFactory.create()
+        self.registration = EAPRegistrationFactory.create(
+            country=self.country,
+            national_society=self.national_society,
+            disaster_type=self.disaster_type,
+            created_by=self.user,
+            modified_by=self.user,
+        )
+
+    def test_snapshot_full_eap(self):
+        # Create M2M objects
+        enable_approach = EnableApproachFactory.create(
+            approach=EnableApproach.Approach.SECRETARIAT_SERVICES,
+            budget_per_approach=5000,
+            ap_code=123,
+            indicator_target=500,
+        )
+        hazard_selection_image_1 = EAPFileFactory._create_file(
+            created_by=self.user,
+            modified_by=self.user,
+        )
+        hazard_selection_image_2 = EAPFileFactory._create_file(
+            created_by=self.user,
+            modified_by=self.user,
+        )
+        key_actor_1 = KeyActorFactory.create(
+            national_society=self.national_society,
+            description="Key actor 1 description",
+        )
+
+        key_actor_2 = KeyActorFactory.create(
+            national_society=self.country,
+            description="Key actor 1 description",
+        )
+
+        planned_operation = PlannedOperationFactory.create(
+            sector=PlannedOperation.Sector.SHELTER,
+            ap_code=456,
+            people_targeted=5000,
+            budget_per_sector=50000,
+            readiness_activities=[
+                OperationActivityFactory.create(
+                    activity="Activity 1",
+                    timeframe=TimeFrame.MONTHS,
+                    time_value=[MonthsTimeFrameChoices.ONE_MONTH, MonthsTimeFrameChoices.FOUR_MONTHS],
+                ).id,
+            ],
+            prepositioning_activities=[
+                OperationActivityFactory.create(
+                    activity="Activity 2",
+                    timeframe=TimeFrame.MONTHS,
+                    time_value=[MonthsTimeFrameChoices.TWO_MONTHS],
+                ).id,
+            ],
+        )
+
+        # Base instance
+        original = FullEAPFactory.create(
+            eap_registration=self.registration,
+            total_budget=5000,
+            budget_file=EAPFileFactory._create_file(
+                created_by=self.user,
+                modified_by=self.user,
+            ),
+            created_by=self.user,
+            modified_by=self.user,
+        )
+        original.key_actors.add(key_actor_1, key_actor_2)
+        original.enable_approaches.add(enable_approach)
+        original.planned_operations.add(planned_operation)
+        original.hazard_selection_images.add(hazard_selection_image_1, hazard_selection_image_2)
+
+        # Generate snapshot
+        snapshot = original.generate_snapshot()
+
+        # PK changed
+        self.assertNotEqual(snapshot.pk, original.pk)
+
+        # Check version
+        self.assertEqual(snapshot.version, original.version + 1)
+
+        # Fields copied
+        self.assertEqual(
+            {
+                snapshot.total_budget,
+                snapshot.eap_registration,
+                snapshot.created_by,
+                snapshot.modified_by,
+                snapshot.budget_file,
+            },
+            {
+                original.total_budget,
+                original.eap_registration,
+                original.created_by,
+                original.modified_by,
+                original.budget_file,
+            },
+        )
+
+        # M2M deeply cloned on approach
+        orig_approaches = list(original.enable_approaches.all())
+        snapshot_approaches = list(snapshot.enable_approaches.all())
+        self.assertEqual(len(orig_approaches), len(snapshot_approaches))
+
+        self.assertNotEqual(orig_approaches[0].pk, snapshot)
+
+        # M2M planned operations deeply cloned
+        orig_operations = list(original.planned_operations.all())
+        snapshot_operations = list(snapshot.planned_operations.all())
+        self.assertEqual(len(orig_operations), len(snapshot_operations))
+        self.assertNotEqual(orig_operations[0].pk, snapshot_operations[0].pk)
+
+        self.assertEqual(
+            orig_operations[0].sector,
+            snapshot_operations[0].sector,
+        )
+
+        # M2M operation activities deeply cloned
+        orig_readiness_activities = list(orig_operations[0].readiness_activities.all())
+        snapshot_readiness_activities = list(snapshot_operations[0].readiness_activities.all())
+        self.assertEqual(len(orig_readiness_activities), len(snapshot_readiness_activities))
+
+        self.assertNotEqual(
+            orig_readiness_activities[0].pk,
+            snapshot_readiness_activities[0].pk,
+        )
+        self.assertEqual(
+            orig_readiness_activities[0].activity,
+            snapshot_readiness_activities[0].activity,
+        )
+
+        # M2M hazard selection images copied
+        orig_hazard_images = list(original.hazard_selection_images.all())
+        snapshot_hazard_images = list(snapshot.hazard_selection_images.all())
+        self.assertEqual(len(orig_hazard_images), len(snapshot_hazard_images))
+        self.assertEqual(
+            orig_hazard_images[0].pk,
+            snapshot_hazard_images[0].pk,
+        )
+        # M2M Actors clone but not the national society FK
+        orig_actors = list(original.key_actors.all())
+        snapshot_actors = list(snapshot.key_actors.all())
+        self.assertEqual(len(orig_actors), len(snapshot_actors))
+        self.assertNotEqual(orig_actors[0].pk, snapshot_actors[0].pk)
+        self.assertEqual(
+            orig_actors[0].national_society,
+            snapshot_actors[0].national_society,
+        )
+        self.assertEqual(
+            orig_actors[0].description,
+            snapshot_actors[0].description,
         )
