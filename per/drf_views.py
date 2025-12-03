@@ -730,23 +730,124 @@ class PerMapDataView(views.APIView):
         latest_overviews = (
             Overview.objects.order_by("country_id", "-assessment_number", "-date_of_assessment")
             .distinct("country_id")
-            .select_related("country")
+            .select_related("country", "type_of_assessment", "country__region")
         )
         items = []
         for ov in latest_overviews:
-            phase_display = ov.get_phase_display() if hasattr(ov, "get_phase_display") else getattr(ov, "phase_display", None)
+            # Normalize phase display and keep raw phase if available
+            phase_display = getattr(ov, "phase_display", None)
+            normalized_phase_display = phase_display
             if phase_display == "Action And Accountability":
-                phase_display = "Action & accountability"
+                normalized_phase_display = "Action & accountability"
             elif phase_display == "WorkPlan":
-                phase_display = "Workplan"
+                normalized_phase_display = "Workplan"
+
+            # Attach components from latest assessment tied to the overview
+            components = []
+            epi_considerations = False
+            climate_considerations = False
+            urban_considerations = False
+            migration_considerations = False
+            latest_assessment = (
+                PerAssessment.objects.filter(overview_id=getattr(ov, "id", None))
+                .prefetch_related(
+                    Prefetch(
+                        "area_responses",
+                        queryset=AreaResponse.objects.prefetch_related(
+                            Prefetch(
+                                "component_response",
+                                queryset=FormComponentResponse.objects.select_related("component", "component__area", "rating"),
+                            )
+                        ),
+                    )
+                )
+                .first()
+            )
+            if latest_assessment:
+                for ar in latest_assessment.area_responses.all():
+                    for cr in ar.component_response.all():
+                        # Flags
+                        epi = _contains_affirmative(getattr(cr, "epi_considerations", ""))
+                        urb = _contains_affirmative(getattr(cr, "urban_considerations", ""))
+                        clim = _contains_affirmative(getattr(cr, "climate_environmental_considerations", ""))
+                        mig = _contains_affirmative(getattr(cr, "migration_considerations", ""))
+                        epi_considerations = epi_considerations or epi
+                        urban_considerations = urban_considerations or urb
+                        climate_considerations = climate_considerations or clim
+                        migration_considerations = migration_considerations or mig
+
+                        comp = getattr(cr, "component", None)
+                        area = getattr(comp, "area", None) if comp else None
+                        rating = getattr(cr, "rating", None)
+                        # Resolve area name via AREA_NAMES when area_num is an int
+                        area_num_val = getattr(area, "area_num", None)
+                        components.append(
+                            {
+                                "component_id": getattr(comp, "id", None) or getattr(cr, "component_id", None),
+                                "component_name": getattr(comp, "title", None)
+                                or getattr(comp, "description_en", None)
+                                or getattr(comp, "description", None),
+                                "component_num": getattr(comp, "component_num", None),
+                                "area_id": getattr(area, "id", None),
+                                "area_name": (
+                                    AREA_NAMES.get(area_num_val) if isinstance(area_num_val, int) else getattr(area, "name", None)
+                                ),
+                                "rating_value": getattr(rating, "value", None),
+                                "rating_title": getattr(rating, "title", None),
+                            }
+                        )
+
+            # Prioritized components (workplan/prioritization)
+            prioritized_components = []
+            fp = FormPrioritization.objects.filter(overview_id=getattr(ov, "id", None)).first()
+            if fp:
+                for pac in fp.prioritized_action_responses.exclude(component_id=14).select_related(
+                    "component", "component__area"
+                ):
+                    pc_comp = pac.component
+                    pc_area = pc_comp.area if pc_comp else None
+                    area_num_val2 = getattr(pc_area, "area_num", None)
+                    prioritized_components.append(
+                        {
+                            "componentId": getattr(pc_comp, "id", None),
+                            "componentTitle": getattr(pc_comp, "title", None)
+                            or getattr(pc_comp, "description_en", None)
+                            or getattr(pc_comp, "description", None),
+                            "areaTitle": (
+                                AREA_NAMES.get(area_num_val2)
+                                if isinstance(area_num_val2, int)
+                                else getattr(pc_area, "name", None)
+                            ),
+                            "description": getattr(pc_comp, "description", None) or getattr(pc_comp, "description_en", None),
+                        }
+                    )
+
             items.append(
                 {
-                    "country_id": ov.country_id,
-                    "country_name": ov.country.name if ov.country else None,
-                    "country_iso3": getattr(ov.country, "iso3", None),
-                    "phase": phase_display,
+                    "id": getattr(ov, "id", None),
                     "assessment_number": ov.assessment_number,
                     "date_of_assessment": ov.date_of_assessment,
+                    "country_id": getattr(ov, "country_id", None),
+                    "country_name": ov.country.name if ov.country else None,
+                    "phase": getattr(ov, "phase", None),
+                    "phase_display": normalized_phase_display,
+                    "type_of_assessment": getattr(ov.type_of_assessment, "id", None),
+                    "type_of_assessment_name": getattr(ov.type_of_assessment, "name", None),
+                    "country_iso3": getattr(ov.country, "iso3", None),
+                    "region_id": getattr(getattr(ov.country, "region", None), "id", None),
+                    "region_name": getattr(getattr(ov.country, "region", None), "label", None),
+                    "latitude": (
+                        ov.country.centroid.y if getattr(ov.country, "centroid", None) else getattr(ov.country, "latitude", None)
+                    ),
+                    "longitude": (
+                        ov.country.centroid.x if getattr(ov.country, "centroid", None) else getattr(ov.country, "longitude", None)
+                    ),
+                    "updated_at": getattr(ov, "updated_at", None),
+                    "prioritized_components": prioritized_components,
+                    "epi_considerations": epi_considerations,
+                    "climate_environmental_considerations": climate_considerations,
+                    "urban_considerations": urban_considerations,
+                    "components": components,
                 }
             )
         return Response({"results": items})
