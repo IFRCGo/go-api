@@ -232,77 +232,82 @@ class EAPFile(EAPBaseModel):
         ordering = ["-id"]
 
 
+class TimeFrame(models.IntegerChoices):
+    YEARS = 10, _("Years")
+    MONTHS = 20, _("Months")
+    DAYS = 30, _("Days")
+    HOURS = 40, _("Hours")
+
+
+class YearsTimeFrameChoices(models.IntegerChoices):
+    ONE_YEAR = 1, _("1")
+    TWO_YEARS = 2, _("2")
+    THREE_YEARS = 3, _("3")
+    FOUR_YEARS = 4, _("4")
+    FIVE_YEARS = 5, _("5")
+
+
+class MonthsTimeFrameChoices(models.IntegerChoices):
+    ONE_MONTH = 1, _("1")
+    TWO_MONTHS = 2, _("2")
+    THREE_MONTHS = 3, _("3")
+    FOUR_MONTHS = 4, _("4")
+    FIVE_MONTHS = 5, _("5")
+    SIX_MONTHS = 6, _("6")
+    SEVEN_MONTHS = 7, _("7")
+    EIGHT_MONTHS = 8, _("8")
+    NINE_MONTHS = 9, _("9")
+    TEN_MONTHS = 10, _("10")
+    ELEVEN_MONTHS = 11, _("11")
+    TWELVE_MONTHS = 12, _("12")
+
+
+class DaysTimeFrameChoices(models.IntegerChoices):
+    ONE_DAY = 1, _("1")
+    TWO_DAYS = 2, _("2")
+    THREE_DAYS = 3, _("3")
+    FOUR_DAYS = 4, _("4")
+    FIVE_DAYS = 5, _("5")
+    SIX_DAYS = 6, _("6")
+    SEVEN_DAYS = 7, _("7")
+    EIGHT_DAYS = 8, _("8")
+    NINE_DAYS = 9, _("9")
+    TEN_DAYS = 10, _("10")
+    ELEVEN_DAYS = 11, _("11")
+    TWELVE_DAYS = 12, _("12")
+    THIRTEEN_DAYS = 13, _("13")
+    FOURTEEN_DAYS = 14, _("14")
+    FIFTEEN_DAYS = 15, _("15")
+    SIXTEEN_DAYS = 16, _("16")
+    SEVENTEEN_DAYS = 17, _("17")
+    EIGHTEEN_DAYS = 18, _("18")
+    NINETEEN_DAYS = 19, _("19")
+    TWENTY_DAYS = 20, _("20")
+    TWENTY_ONE_DAYS = 21, _("21")
+    TWENTY_TWO_DAYS = 22, _("22")
+    TWENTY_THREE_DAYS = 23, _("23")
+    TWENTY_FOUR_DAYS = 24, _("24")
+    TWENTY_FIVE_DAYS = 25, _("25")
+    TWENTY_SIX_DAYS = 26, _("26")
+    TWENTY_SEVEN_DAYS = 27, _("27")
+    TWENTY_EIGHT_DAYS = 28, _("28")
+    TWENTY_NINE_DAYS = 29, _("29")
+    THIRTY_DAYS = 30, _("30")
+    THIRTY_ONE_DAYS = 31, _("31")
+
+
+class HoursTimeFrameChoices(models.IntegerChoices):
+    ZERO_TO_FIVE_HOURS = 5, _("0-5")
+    FIVE_TO_TEN_HOURS = 10, _("5-10")
+    TEN_TO_FIFTEEN_HOURS = 15, _("10-15")
+    FIFTEEN_TO_TWENTY_HOURS = 20, _("15-20")
+    TWENTY_TO_TWENTY_FIVE_HOURS = 25, _("20-25")
+    TWENTY_FIVE_TO_THIRTY_HOURS = 30, _("25-30")
+
+
 class OperationActivity(models.Model):
     # NOTE: `timeframe` and `time_value` together represent the time span for an activity.
     # Make sure to keep them in sync.
-    class TimeFrame(models.IntegerChoices):
-        YEARS = 10, _("Years")
-        MONTHS = 20, _("Months")
-        DAYS = 30, _("Days")
-        HOURS = 40, _("Hours")
-
-    class YearsTimeFrameChoices(models.IntegerChoices):
-        ONE_YEAR = 1, _("1")
-        TWO_YEARS = 2, _("2")
-        THREE_YEARS = 3, _("3")
-        FOUR_YEARS = 4, _("4")
-        FIVE_YEARS = 5, _("5")
-
-    class MonthsTimeFrameChoices(models.IntegerChoices):
-        ONE_MONTH = 1, _("1")
-        TWO_MONTHS = 2, _("2")
-        THREE_MONTHS = 3, _("3")
-        FOUR_MONTHS = 4, _("4")
-        FIVE_MONTHS = 5, _("5")
-        SIX_MONTHS = 6, _("6")
-        SEVEN_MONTHS = 7, _("7")
-        EIGHT_MONTHS = 8, _("8")
-        NINE_MONTHS = 9, _("9")
-        TEN_MONTHS = 10, _("10")
-        ELEVEN_MONTHS = 11, _("11")
-        TWELVE_MONTHS = 12, _("12")
-
-    class DaysTimeFrameChoices(models.IntegerChoices):
-        ONE_DAY = 1, _("1")
-        TWO_DAYS = 2, _("2")
-        THREE_DAYS = 3, _("3")
-        FOUR_DAYS = 4, _("4")
-        FIVE_DAYS = 5, _("5")
-        SIX_DAYS = 6, _("6")
-        SEVEN_DAYS = 7, _("7")
-        EIGHT_DAYS = 8, _("8")
-        NINE_DAYS = 9, _("9")
-        TEN_DAYS = 10, _("10")
-        ELEVEN_DAYS = 11, _("11")
-        TWELVE_DAYS = 12, _("12")
-        THIRTEEN_DAYS = 13, _("13")
-        FOURTEEN_DAYS = 14, _("14")
-        FIFTEEN_DAYS = 15, _("15")
-        SIXTEEN_DAYS = 16, _("16")
-        SEVENTEEN_DAYS = 17, _("17")
-        EIGHTEEN_DAYS = 18, _("18")
-        NINETEEN_DAYS = 19, _("19")
-        TWENTY_DAYS = 20, _("20")
-        TWENTY_ONE_DAYS = 21, _("21")
-        TWENTY_TWO_DAYS = 22, _("22")
-        TWENTY_THREE_DAYS = 23, _("23")
-        TWENTY_FOUR_DAYS = 24, _("24")
-        TWENTY_FIVE_DAYS = 25, _("25")
-        TWENTY_SIX_DAYS = 26, _("26")
-        TWENTY_SEVEN_DAYS = 27, _("27")
-        TWENTY_EIGHT_DAYS = 28, _("28")
-        TWENTY_NINE_DAYS = 29, _("29")
-        THIRTY_DAYS = 30, _("30")
-        THIRTY_ONE_DAYS = 31, _("31")
-
-    class HoursTimeFrameChoices(models.IntegerChoices):
-        ZERO_TO_FIVE_HOURS = 5, _("0-5")
-        FIVE_TO_TEN_HOURS = 10, _("5-10")
-        TEN_TO_FIFTEEN_HOURS = 15, _("10-15")
-        FIFTEEN_TO_TWENTY_HOURS = 20, _("15-20")
-        TWENTY_TO_TWENTY_FIVE_HOURS = 25, _("20-25")
-        TWENTY_FIVE_TO_THIRTY_HOURS = 30, _("25-30")
-
     activity = models.CharField(max_length=255, verbose_name=_("Activity"))
     timeframe = models.IntegerField(choices=TimeFrame.choices, verbose_name=_("Timeframe"))
     time_value = ArrayField(
@@ -428,6 +433,43 @@ class EnableApproach(models.Model):
 
     def __str__(self):
         return f"Enable Approach - {self.get_approach_display()}"
+
+
+class SourceInformation(models.Model):
+    source_name = models.CharField(
+        verbose_name=_("Source Name"),
+        max_length=255,
+    )
+    source_link = models.URLField(
+        verbose_name=_("Source Link"),
+        max_length=255,
+    )
+
+    class Meta:
+        verbose_name = _("Source of Information")
+        verbose_name_plural = _("Source of Information")
+
+    def __str__(self):
+        return self.source_name
+
+
+class KeyActor(models.Model):
+    national_society = models.ForeignKey(
+        Country,
+        on_delete=models.CASCADE,
+        verbose_name=_("EAP Actors"),
+        help_text=_("Select the National Society involved in the EAP development."),
+        related_name="eap_key_actors",
+    )
+
+    description = models.TextField(
+        verbose_name=_("Description"),
+        help_text=_("Describe this actor’s involvement."),
+    )
+
+    class Meta:
+        verbose_name = _("Key Actor")
+        verbose_name_plural = _("Key Actor")
 
 
 class EAPType(models.IntegerChoices):
@@ -607,10 +649,12 @@ class EAPRegistration(EAPBaseModel):
     )
 
     # TYPING
-    national_society_id = int
-    country_id = int
-    disaster_type_id = int
-    id = int
+    id: int
+    national_society_id: int
+    country_id: int
+    disaster_type_id: int
+    simplified_eap: models.Manager["SimplifiedEAP"]
+    full_eap: models.Manager["FullEAP"]
 
     class Meta:
         verbose_name = _("Development Registration EAP")
@@ -624,10 +668,7 @@ class EAPRegistration(EAPBaseModel):
     @property
     def has_eap_application(self) -> bool:
         """Check if the EAP Registration has an associated EAP application."""
-        # TODO(susilnem): Add FULL EAP check, when model is created.
-        if hasattr(self, "simplified_eap") and self.simplified_eap.exists():
-            return True
-        return False
+        return self.simplified_eap.exists() or self.full_eap.exists()
 
     @property
     def get_status_enum(self) -> EAPStatus:
@@ -652,15 +693,8 @@ class EAPRegistration(EAPBaseModel):
             self.save(update_fields=("eap_type",))
 
 
-class SimplifiedEAP(EAPBaseModel):
-    """Model representing a Simplified EAP."""
-
-    eap_registration = models.ForeignKey[EAPRegistration, EAPRegistration](
-        EAPRegistration,
-        on_delete=models.CASCADE,
-        verbose_name=_("EAP Development Registration"),
-        related_name="simplified_eap",
-    )
+class CommonEAPFields(models.Model):
+    """Common fields for EAP models."""
 
     cover_image = models.ForeignKey[EAPFile | None, EAPFile | None](
         EAPFile,
@@ -668,11 +702,23 @@ class SimplifiedEAP(EAPBaseModel):
         blank=True,
         null=True,
         verbose_name=_("cover image"),
-        related_name="cover_image_simplified_eap",
+        related_name="+",
     )
+
     seap_timeframe = models.IntegerField(
-        verbose_name=_("sEAP Timeframe (Years)"),
-        help_text=_("A simplified EAP has a timeframe of 2 years unless early action are activated."),
+        verbose_name=_("Timeframe (Years) of the EAP"),
+        help_text=_("Timeframe of the EAP in years."),
+    )
+
+    admin2 = models.ManyToManyField(
+        Admin2,
+        verbose_name=_("admin"),
+        blank=True,
+        related_name="+",
+    )
+
+    people_targeted = models.IntegerField(
+        verbose_name=_("People Targeted."),
     )
 
     # Contacts
@@ -788,6 +834,53 @@ class SimplifiedEAP(EAPBaseModel):
         verbose_name=_("IFRC global ops coordinator phone number"), max_length=100, null=True, blank=True
     )
 
+    # Review Checklist
+    updated_checklist_file = SecureFileField(
+        verbose_name=_("Updated Checklist File"),
+        upload_to="eap/files/",
+        null=True,
+        blank=True,
+    )
+
+    # BUDGET #
+
+    budget_file = models.ForeignKey[EAPFile, EAPFile](
+        EAPFile,
+        on_delete=models.CASCADE,
+        verbose_name=_("Budget File"),
+        related_name="+",
+    )
+
+    total_budget = models.IntegerField(
+        verbose_name=_("Total Budget (CHF)"),
+    )
+    readiness_budget = models.IntegerField(
+        verbose_name=_("Readiness Budget (CHF)"),
+    )
+    pre_positioning_budget = models.IntegerField(
+        verbose_name=_("Pre-positioning Budget (CHF)"),
+    )
+    early_action_budget = models.IntegerField(
+        verbose_name=_("Early Actions Budget (CHF)"),
+    )
+
+    # TYPING
+    budget_file_id: int
+
+    class Meta:
+        abstract = True
+
+
+class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
+    """Model representing a Simplified EAP."""
+
+    eap_registration = models.ForeignKey[EAPRegistration, EAPRegistration](
+        EAPRegistration,
+        on_delete=models.CASCADE,
+        verbose_name=_("EAP Development Registration"),
+        related_name="simplified_eap",
+    )
+
     # RISK ANALYSIS and EARLY ACTION SELECTION #
 
     # RISK ANALYSIS #
@@ -843,17 +936,6 @@ class SimplifiedEAP(EAPBaseModel):
         blank=True,
     )
 
-    admin2 = models.ManyToManyField(
-        Admin2,
-        verbose_name=_("admin2"),
-        blank=True,
-    )
-
-    people_targeted = models.IntegerField(
-        verbose_name=_("People Targeted."),
-        null=True,
-        blank=True,
-    )
     assisted_through_operation = models.TextField(
         verbose_name=_("Assisted through the operation"),
         null=True,
@@ -872,16 +954,26 @@ class SimplifiedEAP(EAPBaseModel):
         blank=True,
     )
 
+    # NOTE: seap_lead_timeframe_unit and seap_lead_time are atomic
+    seap_lead_timeframe_unit = models.IntegerField(
+        choices=TimeFrame.choices,
+        verbose_name=_("sEAP Lead Timeframe Unit"),
+    )
     seap_lead_time = models.IntegerField(
-        verbose_name=_("sEAP Lead Time (Hours)"),
-        null=True,
-        blank=True,
+        verbose_name=_("sEAP Lead Time"),
+    )
+
+    # NOTE: operational_timeframe_unit and operational_time are atomic
+    # operational_timeframe is set default to Months
+    operational_timeframe_unit = models.IntegerField(
+        choices=TimeFrame.choices,
+        default=TimeFrame.MONTHS,
+        verbose_name=_("Operational Timeframe Unit"),
     )
     operational_timeframe = models.IntegerField(
-        verbose_name=_("Operational Timeframe (Months)"),
-        null=True,
-        blank=True,
+        verbose_name=_("Operational Time"),
     )
+
     trigger_threshold_justification = models.TextField(
         verbose_name=_("Trigger Threshold Justification"),
         help_text=_("Explain how the trigger were set and provide information"),
@@ -924,36 +1016,6 @@ class SimplifiedEAP(EAPBaseModel):
         blank=True,
     )
 
-    # BUDGET #
-    total_budget = models.IntegerField(
-        verbose_name=_("Total Budget (CHF)"),
-    )
-    readiness_budget = models.IntegerField(
-        verbose_name=_("Readiness Budget (CHF)"),
-    )
-    pre_positioning_budget = models.IntegerField(
-        verbose_name=_("Pre-positioning Budget (CHF)"),
-    )
-    early_action_budget = models.IntegerField(
-        verbose_name=_("Early Actions Budget (CHF)"),
-    )
-
-    # BUDGET DETAILS #
-    budget_file = SecureFileField(
-        verbose_name=_("Budget File"),
-        upload_to="eap/simplified_eap/budget_files/",
-        null=True,
-        blank=True,
-    )
-
-    # Review Checklist
-    updated_checklist_file = SecureFileField(
-        verbose_name=_("Updated Checklist File"),
-        upload_to="eap/files/",
-        null=True,
-        blank=True,
-    )
-
     # NOTE: Snapshot fields
     version = models.IntegerField(
         verbose_name=_("Version"),
@@ -976,9 +1038,9 @@ class SimplifiedEAP(EAPBaseModel):
     )
 
     # TYPING
+    id: int
     eap_registration_id: int
     parent_id: int
-    id = int
 
     class Meta:
         verbose_name = _("Simplified EAP")
@@ -995,8 +1057,9 @@ class SimplifiedEAP(EAPBaseModel):
 
         from eap.utils import copy_model_instance
 
+        # TODO(susilnem): Verify the fields to exclude?
         with transaction.atomic():
-            copy_model_instance(
+            instance = copy_model_instance(
                 self,
                 overrides={
                     "parent_id": self.id,
@@ -1005,11 +1068,418 @@ class SimplifiedEAP(EAPBaseModel):
                     "modified_by_id": self.modified_by_id,
                     "updated_checklist_file": None,
                 },
-                exclude_clone_m2m_fields=[
+                exclude_clone_m2m_fields={
                     "admin2",
-                ],
+                    "cover_image",
+                    "hazard_impact_images",
+                    "risk_selected_protocols_images",
+                    "selected_early_actions_images",
+                },
             )
 
             # Setting Parent as locked
             self.is_locked = True
             self.save(update_fields=["is_locked"])
+        return instance
+
+
+class FullEAP(EAPBaseModel, CommonEAPFields):
+    """Model representing a Full EAP."""
+
+    eap_registration = models.ForeignKey[EAPRegistration, EAPRegistration](
+        EAPRegistration,
+        on_delete=models.CASCADE,
+        verbose_name=_("EAP Development Registration"),
+        related_name="full_eap",
+    )
+
+    # STAKEHOLDERS
+    is_worked_with_government = models.BooleanField(
+        verbose_name=_("Has Worked with government or other relevant actors."),
+        default=False,
+    )
+
+    worked_with_government_description = models.TextField(
+        verbose_name=_("Government and actors engagement description"),
+    )
+
+    key_actors = models.ManyToManyField(
+        KeyActor,
+        verbose_name=_("Key Actors"),
+        related_name="full_eap_key_actor",
+    )
+
+    # TECHNICALLY WORKING GROUPS
+    is_technical_working_groups = models.BooleanField(
+        verbose_name=_("Are technical working groups in place"),
+        null=True,
+        blank=True,
+    )
+    technically_working_group_title = models.CharField(
+        verbose_name=_("Technical working group title"),
+        max_length=255,
+        null=True,
+        blank=True,
+    )
+    technical_working_groups_in_place_description = models.TextField(
+        verbose_name=_("Technical working groups description"),
+    )
+
+    # RISK ANALYSIS #
+    hazard_selection = models.TextField(
+        verbose_name=_("Hazard selection"),
+        help_text=_("Provide a brief rationale for selecting this hazard for the FbF system."),
+    )
+
+    hazard_selection_images = models.ManyToManyField(
+        EAPFile,
+        verbose_name=_("Hazard images"),
+        related_name="full_eap_hazard_selection_images",
+        blank=True,
+    )
+
+    exposed_element_and_vulnerability_factor = models.TextField(
+        verbose_name=_("Exposed elements and vulnerability factors"),
+        help_text=_("Explain which people are most likely to experience the impacts of this hazard."),
+    )
+
+    exposed_element_and_vulnerability_factor_images = models.ManyToManyField(
+        EAPFile,
+        verbose_name=_("Exposed elements and vulnerability factors images"),
+        related_name="full_eap_vulnerability_factor_images",
+        blank=True,
+    )
+
+    prioritized_impact = models.TextField(
+        verbose_name=_("Prioritized impact"),
+        help_text=_("Describe the impacts that have been prioritized and who is most likely to be affected."),
+    )
+
+    prioritized_impact_images = models.ManyToManyField(
+        EAPFile,
+        verbose_name=_("Prioritized impact images"),
+        related_name="full_eap_prioritized_impact_images",
+        blank=True,
+    )
+
+    risk_analysis_relevant_files = models.ManyToManyField(
+        EAPFile,
+        blank=True,
+        verbose_name=_("Risk analysis relevant files"),
+        related_name="full_eap_risk_analysis_relevant_files",
+    )
+
+    risk_analysis_source_of_information = models.ManyToManyField(
+        SourceInformation,
+        verbose_name=_("Risk analysis source of information"),
+        related_name="risk_analysis_source_of_information",
+        blank=True,
+    )
+
+    # TRIGGER MODEL #
+    trigger_statement = models.TextField(
+        verbose_name=_("Trigger Statement"),
+        help_text=_("Explain in one sentence what exactly the trigger of your EAP will be."),
+    )
+
+    trigger_statement_source_of_information = models.ManyToManyField(
+        SourceInformation,
+        verbose_name=_("Trigger Statement Source of Information"),
+        related_name="trigger_statement_source_of_information",
+        blank=True,
+    )
+
+    forecast_selection = models.TextField(
+        verbose_name=_("Forecast Selection"),
+        help_text=_("Explain which forecast's and observations will be used and why they are chosen"),
+    )
+
+    forecast_selection_images = models.ManyToManyField(
+        EAPFile,
+        verbose_name=_("Forecast Selection Images"),
+        related_name="+",
+        blank=True,
+    )
+
+    definition_and_justification_impact_level = models.TextField(
+        verbose_name=_("Definition and Justification of Impact Level"),
+    )
+
+    definition_and_justification_impact_level_images = models.ManyToManyField(
+        EAPFile,
+        verbose_name=_("Definition and Justification Impact Level Images"),
+        related_name="+",
+        blank=True,
+    )
+
+    identification_of_the_intervention_area = models.TextField(
+        verbose_name=_("Identification of Intervention Area"),
+    )
+
+    identification_of_the_intervention_area_images = models.ManyToManyField(
+        EAPFile,
+        verbose_name=_("Intervention Area Images"),
+        related_name="+",
+        blank=True,
+    )
+
+    selection_area = models.TextField(
+        verbose_name=_("Areas selection rationale"),
+        help_text=_("Add description for the selection of the areas."),
+    )
+
+    trigger_model_relevant_files = models.ManyToManyField(
+        EAPFile,
+        blank=True,
+        verbose_name=_("Trigger Model Relevant File"),
+        related_name="full_eap_trigger_model_relevant_file",
+    )
+
+    trigger_model_source_of_information = models.ManyToManyField(
+        SourceInformation,
+        verbose_name=_("Target Model Source of Information"),
+        related_name="trigger_model_source_of_information",
+        blank=True,
+    )
+
+    # SELECTION OF ACTION
+
+    early_action_selection_process = models.TextField(
+        verbose_name=_("Early action selection process"),
+    )
+
+    early_action_selection_process_images = models.ManyToManyField(
+        EAPFile,
+        blank=True,
+        verbose_name=_("Early action selection process images"),
+        related_name="early_action_selection_process_images",
+    )
+    # TODO(susilnem): Multiple files?
+    theory_of_change_table_file = models.ForeignKey[EAPFile | None, EAPFile | None](
+        EAPFile,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        verbose_name=_("Theory of Change Table File"),
+        related_name="theory_of_change_table_file",
+    )
+
+    evidence_base = models.TextField(
+        verbose_name=_("Evidence base"),
+        help_text="Explain how the selected actions will reduce the expected disaster impacts.",
+    )
+
+    evidence_base_relevant_files = models.ManyToManyField(
+        EAPFile,
+        blank=True,
+        verbose_name=_("Evidence base files"),
+        related_name="full_eap_evidence_base_relavent_files",
+    )
+
+    evidence_base_source_of_information = models.ManyToManyField(
+        SourceInformation,
+        verbose_name=_("Evidence base source of information"),
+        related_name="evidence_base_source_of_information",
+        blank=True,
+    )
+
+    # IFRC PLANNED ACTIONS
+    planned_operations = models.ManyToManyField(
+        PlannedOperation,
+        verbose_name=_("Planned operations"),
+        related_name="full_eap_planned_operation",
+        blank=True,
+    )
+    enable_approaches = models.ManyToManyField(
+        EnableApproach,
+        verbose_name=_("Enabling approaches"),
+        related_name="full_eap_enable_approaches",
+        blank=True,
+    )
+
+    usefulness_of_actions = models.TextField(
+        verbose_name=_("Usefulness of actions in case the event does not occur"),
+        help_text=_("Describe how actions will still benefit the population if the expected event does not occur."),
+    )
+
+    feasibility = models.TextField(
+        verbose_name=_("Feasibility of selected actions"),
+        help_text=_("Explain how feasible it is to implement the proposed early actions in the planned timeframe."),
+    )
+
+    # EAP ACTIVATION PROCESS
+
+    early_action_implementation_process = models.TextField(
+        verbose_name=_("Early Action Implementation Process"),
+        help_text=_("Describe the process for implementing early actions."),
+    )
+
+    early_action_implementation_images = models.ManyToManyField(
+        EAPFile,
+        blank=True,
+        verbose_name=_("Early Action Implementation Images"),
+        related_name="early_action_implementation_images",
+    )
+
+    trigger_activation_system = models.TextField(
+        verbose_name=_("Trigger Activation System"),
+        help_text=_("Describe the automatic system used to monitor the forecasts."),
+    )
+
+    trigger_activation_system_images = models.ManyToManyField(
+        EAPFile,
+        blank=True,
+        verbose_name=_("Trigger Activation System Images"),
+        related_name="trigger_activation_system_images",
+    )
+
+    selection_of_target_population = models.TextField(
+        verbose_name=_("Selection of Target Population"),
+        help_text=_("Describe the process used to select the target population for early actions."),
+    )
+
+    stop_mechanism = models.TextField(
+        verbose_name=_("Stop Mechanism"),
+        help_text=_(
+            "Explain how it would be communicated to communities and stakeholders that the activities are being stopped."
+        ),
+    )
+
+    activation_process_relevant_files = models.ManyToManyField(
+        EAPFile,
+        blank=True,
+        verbose_name=_("Activation Relevant Files"),
+        related_name="activation_process_relevant_files",
+    )
+
+    activation_process_source_of_information = models.ManyToManyField(
+        SourceInformation,
+        verbose_name=_("Activation Process Source of Information"),
+        related_name="activation_process_source_of_information",
+        blank=True,
+    )
+
+    # MEAL
+
+    meal = models.TextField(
+        verbose_name=_("MEAL Plan Description"),
+    )
+    meal_relevant_files = models.ManyToManyField(
+        EAPFile,
+        blank=True,
+        verbose_name=_("Meal files"),
+        related_name="full_eap_meal_files",
+    )
+
+    # NATIONAL SOCIETY CAPACITY
+    operational_administrative_capacity = models.TextField(
+        verbose_name=_("National Society Operational, thematic and administrative capacity"),
+        help_text=_("Describe how the NS has operative and administrative capacity to implement the EAPs."),
+    )
+    strategies_and_plans = models.TextField(
+        verbose_name=_("National Society Strategies and plans"),
+        help_text=_("Describe how the EAP aligned with disaster risk management strategy of NS."),
+    )
+    advance_financial_capacity = models.TextField(
+        verbose_name=_("National Society Financial capacity to advance funds"),
+        help_text=_("Indicate whether the NS has capacity to advance funds to start early actions."),
+    )
+    capacity_relevant_files = models.ManyToManyField(
+        EAPFile,
+        blank=True,
+        verbose_name=_("National society capacity relevant files"),
+        related_name="ns_capacity_relevant_files",
+    )
+
+    # FINANCE AND LOGISTICS
+
+    budget_description = models.TextField(verbose_name=_("Full EAP Budget Description"))
+    readiness_cost_description = models.TextField(verbose_name=_("Readiness Cost Description"))
+    prepositioning_cost_description = models.TextField(verbose_name=_("Prepositioning Cost Description"))
+    early_action_cost_description = models.TextField(verbose_name=_("Early Action Cost Description"))
+
+    # EAP ENDORSEMENT / APPROVAL
+
+    eap_endorsement = models.TextField(
+        verbose_name=_("EAP Endorsement Description"),
+        help_text=("Describe by whom,how and when the EAP was agreed and endorsed."),
+    )
+
+    # NOTE: Snapshot fields
+    version = models.IntegerField(
+        verbose_name=_("Version"),
+        help_text=_("Version identifier for the Full EAP."),
+        default=1,
+    )
+    is_locked = models.BooleanField(
+        verbose_name=_("Is Locked?"),
+        help_text=_("Indicates whether the Full EAP is locked for editing."),
+        default=False,
+    )
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        verbose_name=_("Parent FUll EAP"),
+        help_text=_("Reference to the parent Full EAP if this is a snapshot."),
+        null=True,
+        blank=True,
+        related_name="snapshots",
+    )
+
+    # TYPING
+    id: int
+    eap_registration_id: int
+    parent_id: int | None
+
+    class Meta:
+        verbose_name = _("Full EAP")
+        verbose_name_plural = _("Full EAPs")
+        ordering = ["-id"]
+
+    def __str__(self):
+        return f"Full EAP for {self.eap_registration}- version:{self.version}"
+
+    def generate_snapshot(self):
+        """
+        Generate a snapshot of the given Full EAP.
+        """
+
+        from eap.utils import copy_model_instance
+
+        with transaction.atomic():
+            instance = copy_model_instance(
+                self,
+                overrides={
+                    "parent_id": self.id,
+                    "version": self.version + 1,
+                    "created_by_id": self.created_by_id,
+                    "modified_by_id": self.modified_by_id,
+                    "updated_checklist_file": None,
+                },
+                exclude_clone_m2m_fields={
+                    "admin2",
+                    "cover_image",
+                    # Files
+                    "hazard_selection_images",
+                    "theory_of_change_table_file",
+                    "exposed_element_and_vulnerability_factor_images",
+                    "prioritized_impact_images",
+                    "risk_analysis_relevant_files",
+                    "forecast_selection_images",
+                    "definition_and_justification_impact_level_images",
+                    "identification_of_the_intervention_area_images",
+                    "trigger_model_relevant_files",
+                    "early_action_selection_process_images",
+                    "evidence_base_relevant_files",
+                    "early_action_implementation_images",
+                    "trigger_activation_system_images",
+                    "activation_process_relevant_files",
+                    "meal_relevant_files",
+                    "capacity_relevant_files",
+                },
+            )
+
+            # Setting Parent as locked
+            self.is_locked = True
+            self.save(update_fields=["is_locked"])
+        return instance
