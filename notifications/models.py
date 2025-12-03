@@ -320,3 +320,97 @@ class NotificationGUID(models.Model):
     )
     email_type = models.CharField(max_length=600, null=True, blank=True)
     to_list = models.TextField(null=True, blank=True)
+
+
+class HazardType(models.Model):
+    """Model representing a hazard category."""
+
+    class Type(models.IntegerChoices):
+        EARTHQUAKE = 100, _("Earthquake")
+        FLOOD = 200, _("Flood")
+        CYCLONE = 300, _("Cyclone")
+
+    type = models.IntegerField(
+        choices=Type.choices,
+        unique=True,
+        verbose_name=_("Hazard Type"),
+    )
+
+    class Meta:
+        verbose_name = _("Hazard Type")
+        verbose_name_plural = _("Hazard Types")
+
+    def __str__(self):
+        return self.get_type_display()
+
+
+class AlertSubscription(models.Model):
+    class AlertSource(models.IntegerChoices):
+        MONTANDON = 100, _("Montandon")
+        """Alerts provided by the Montandon platform."""
+
+    class AlertPerDay(models.IntegerChoices):
+        """Enum representing the maximum number of alerts per day."""
+
+        FIVE = 100, _("Five")
+        """Receive up to 5 alerts per day."""
+
+        TEN = 200, _("Ten")
+        """Receive up to 10 alerts per day."""
+
+        TWENTY = 300, _("Twenty")
+        """Receive up to 20 alerts per day."""
+
+        FIFTY = 400, _("Fifty")
+        """Receive up to 50 alerts per day."""
+
+        UNLIMITED = 500, _("Unlimited")
+        """No daily alert limit."""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_("User"),
+        on_delete=models.CASCADE,
+        related_name="alert_subscriptions_user",
+    )
+    countries = models.ManyToManyField(
+        Country,
+        related_name="alert_subscriptions_countries",
+        verbose_name=_("Countries"),
+    )
+    regions = models.ManyToManyField(
+        Region,
+        related_name="alert_subscriptions_regions",
+        blank=True,
+        verbose_name=_("Regions"),
+    )
+    alert_source = models.IntegerField(
+        choices=AlertSource.choices,
+        default=AlertSource.MONTANDON,
+        verbose_name=_("Alert Source"),
+    )
+
+    hazard_types = models.ManyToManyField(
+        HazardType,
+        related_name="alert_subscriptions_hazard_types",
+        verbose_name=_("Hazard Types"),
+        help_text="Types of hazards the user is subscribed to.",
+    )
+    alert_per_day = models.IntegerField(
+        choices=AlertPerDay.choices,
+        default=AlertPerDay.FIVE,
+        verbose_name=_("Alerts Per Day"),
+        help_text="Maximum number of alerts sent to the user per day.",
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated At"))
+    # Typing
+    id = int
+
+    class Meta:
+        ordering = ["-id"]
+        verbose_name = _("Alert Subscription")
+        verbose_name_plural = _("Alert Subscriptions")
+
+    def __str__(self):
+        return f"Alert subscription for {self.user}"

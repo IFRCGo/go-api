@@ -1,17 +1,20 @@
 # from datetime import datetime, timedelta, timezone
 # from django.db.models import Q
+from django.db.models.query import QuerySet
 from django_filters import rest_framework as filters
 from django_filters.widgets import CSVWidget
-from rest_framework import viewsets
+from rest_framework import mixins, viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 
 from deployments.models import MolnixTag
 from main.filters import CharInFilter
 from main.permissions import DenyGuestUserPermission
+from notifications.filter_set import AlertSubscriptionFilterSet
 
-from .models import Subscription, SurgeAlert
+from .models import AlertSubscription, Subscription, SurgeAlert
 from .serializers import (  # UnauthenticatedSurgeAlertSerializer,
+    AlertSubscriptionSerialize,
     SubscriptionSerializer,
     SurgeAlertCsvSerializer,
     SurgeAlertSerializer,
@@ -110,3 +113,34 @@ class SubscriptionViewset(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Subscription.objects.filter(user=self.request.user)
+
+
+class AlertSubscriptionViewSet(
+    viewsets.GenericViewSet,
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+):
+    queryset = AlertSubscription.objects.all()
+    serializer_class = AlertSubscriptionSerialize
+    filterset_class = AlertSubscriptionFilterSet
+    lookup_field = "id"
+    permission_classes = [
+        IsAuthenticated,
+        DenyGuestUserPermission,
+    ]
+
+    def get_queryset(self) -> QuerySet[AlertSubscription]:
+        return (
+            super()
+            .get_queryset()
+            .select_related(
+                "user",
+            )
+            .prefetch_related(
+                "countries",
+                "regions",
+                "hazard_types",
+            )
+        )
