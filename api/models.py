@@ -1223,6 +1223,15 @@ class Appeal(models.Model):
         default=0.00,
         editable=False,
     )
+    _force_history_save = None
+
+    @property
+    def force_history_save(self):
+        return self._force_history_save
+
+    @force_history_save.setter
+    def force_history_save(self, value):
+        self._force_history_save = value
 
     class Meta:
         ordering = (
