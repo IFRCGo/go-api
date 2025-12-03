@@ -280,7 +280,6 @@ cronjobs:
   - command: 'oauth_cleartokens'
     schedule: '0 1 * * *'
 
-
 elasticsearch:
   enabled: true
   httpPort: 9200
