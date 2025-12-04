@@ -5,6 +5,7 @@ from api import enums as api_enums
 from databank import enums as databank_enums
 from deployments import enums as deployments_enums
 from dref import enums as dref_enums
+from eap import enums as eap_enums
 from flash_update import enums as flash_update_enums
 from local_units import enums as local_units_enums
 from notifications import enums as notifications_enums
@@ -19,6 +20,7 @@ apps_enum_register = [
     ("notifications", notifications_enums.enum_register),
     ("databank", databank_enums.enum_register),
     ("local_units", local_units_enums.enum_register),
+    ("eap", eap_enums.enum_register),
 ]
 
 
