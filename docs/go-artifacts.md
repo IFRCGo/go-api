@@ -27,7 +27,7 @@ This is a **GitHub repository** used to store and manage **build files**, **gene
 
 Command
 ```bash
-docker compose run --rm serve ./manage.py spectacular --file .assets/openapi-schema.yaml
+docker compose run --rm serve ./manage.py spectacular --file ./assets/openapi-schema.yaml
 ```
 
 ### 🚨 Manually added files
