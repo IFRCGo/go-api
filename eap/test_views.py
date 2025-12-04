@@ -1641,7 +1641,7 @@ class EAPPDFExportTestCase(APITestCase):
         )
         data = {
             "export_type": Export.ExportType.SIMPLIFIED_EAP,
-            "export_id": self.simplified_eap.id,
+            "export_id": self.eap_registration.id,
             "is_pga": False,
         }
 
@@ -1652,7 +1652,7 @@ class EAPPDFExportTestCase(APITestCase):
         self.assert_201(response)
         self.assertIsNotNone(response.data["id"], response.data)
 
-        expected_url = f"{settings.GO_WEB_INTERNAL_URL}/{Export.ExportType.SIMPLIFIED_EAP}/{self.simplified_eap.id}/export/"
+        expected_url = f"{settings.GO_WEB_INTERNAL_URL}/eap/{self.eap_registration.id}/{Export.ExportType.SIMPLIFIED_EAP}/export/"
         self.assertEqual(response.data["url"], expected_url)
         self.assertEqual(response.data["status"], Export.ExportStatus.PENDING)
 
@@ -1679,7 +1679,7 @@ class EAPPDFExportTestCase(APITestCase):
         )
         data = {
             "export_type": Export.ExportType.FULL_EAP,
-            "export_id": self.full_eap.id,
+            "export_id": self.eap_registration.id,
             "is_pga": False,
         }
 
@@ -1689,7 +1689,7 @@ class EAPPDFExportTestCase(APITestCase):
             response = self.client.post(self.url, data, format="json")
         self.assert_201(response)
         self.assertIsNotNone(response.data["id"], response.data)
-        expected_url = f"{settings.GO_WEB_INTERNAL_URL}/{Export.ExportType.FULL_EAP}/{self.full_eap.id}/export/"
+        expected_url = f"{settings.GO_WEB_INTERNAL_URL}/eap/{self.eap_registration.id}/{Export.ExportType.FULL_EAP}/export/"
         self.assertEqual(response.data["url"], expected_url)
         self.assertEqual(response.data["status"], Export.ExportStatus.PENDING)
 
