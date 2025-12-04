@@ -56,13 +56,14 @@ class SendMail(threading.Thread):
             CronJob.sync_cron(cron_rec)
 
 
-def construct_msg(subject, html):
+def construct_msg(cc_addresses, subject, html):
     msg = MIMEMultipart("alternative")
 
     msg["Subject"] = subject
     msg["From"] = settings.EMAIL_USER.upper()
     msg["To"] = "no-reply@ifrc.org"
-
+    if cc_addresses:
+        msg["Cc"] = ",".join(cc_addresses)
     text_body = MIMEText(strip_tags(html), "plain")
     html_body = MIMEText(html, "html")
 
@@ -72,8 +73,9 @@ def construct_msg(subject, html):
     return msg
 
 
-def send_notification(subject, recipients, html, mailtype="", files=None):
+def send_notification(subject, recipients, html, mailtype="", cc_recipients=None, files=None):
     """Generic email sending method, handly only HTML emails currently"""
+    cc_recipients = cc_recipients or []
     if not settings.EMAIL_USER or not settings.EMAIL_API_ENDPOINT:
         logger.warning("Cannot send notifications.\n" "No username and/or API endpoint set as environment variables.")
         if settings.DEBUG:
@@ -81,6 +83,11 @@ def send_notification(subject, recipients, html, mailtype="", files=None):
             print(f"subject={subject}\nrecipients={recipients}\nhtml={html}\nmailtype={mailtype}")
             print("-" * 22, "EMAIL END -", "-" * 22)
         return
+
+    to_addresses = recipients if isinstance(recipients, list) else [recipients]
+    cc_addresses = cc_recipients if isinstance(cc_recipients, list) else [cc_recipients]
+    addresses = to_addresses + cc_addresses
+
     if settings.DEBUG_EMAIL:
         print("-" * 22, "EMAIL START", "-" * 22)
         print(f"\n{html}\n")
@@ -88,14 +95,12 @@ def send_notification(subject, recipients, html, mailtype="", files=None):
 
     if settings.FORCE_USE_SMTP:
         logger.info("Forcing SMPT usage for sending emails.")
-        msg = construct_msg(subject, html)
-        SendMail(recipients, msg).start()
+        msg = construct_msg(cc_addresses, subject, html)
+        SendMail(addresses, msg).start()
         return
 
     if "?" not in settings.EMAIL_API_ENDPOINT:  # a.k.a dirty disabling email sending
         return
-
-    to_addresses = recipients if isinstance(recipients, list) else [recipients]
 
     #    if not IS_PROD:
     #        logger.info('Using test email addresses...')
@@ -116,6 +121,7 @@ def send_notification(subject, recipients, html, mailtype="", files=None):
     #                to_addresses.append(eml)
 
     recipients_as_string = ",".join(to_addresses)
+    cc_recipients_as_string = ",".join(cc_addresses)
     if not recipients_as_string:
         if len(to_addresses) > 0:
             warn_msg = "Recipients failed to be converted to string, 1st rec.: {}".format(to_addresses[0])
@@ -131,7 +137,7 @@ def send_notification(subject, recipients, html, mailtype="", files=None):
     payload = {
         "FromAsBase64": str(base64.b64encode(settings.EMAIL_USER.encode("utf-8")), "utf-8"),
         "ToAsBase64": str(base64.b64encode(EMAIL_TO.encode("utf-8")), "utf-8"),
-        "CcAsBase64": "",
+        "CcAsBase64": str(base64.b64encode(cc_recipients_as_string.encode("utf-8")), "utf-8"),
         "BccAsBase64": str(base64.b64encode(recipients_as_string.encode("utf-8")), "utf-8"),
         "SubjectAsBase64": str(base64.b64encode(subject.encode("utf-8")), "utf-8"),
         "BodyAsBase64": str(base64.b64encode(html.encode("utf-8")), "utf-8"),
@@ -154,7 +160,9 @@ def send_notification(subject, recipients, html, mailtype="", files=None):
         # Saving GUID into a table so that the API can be queried with it to get info about
         # if the actual sending has failed or not.
         NotificationGUID.objects.create(
-            api_guid=res_text, email_type=mailtype, to_list=f"To: {EMAIL_TO}; Bcc: {recipients_as_string}"
+            api_guid=res_text,
+            email_type=mailtype,
+            to_list=f"To: {EMAIL_TO}; Cc: {cc_recipients_as_string}; Bcc: {recipients_as_string}",
         )
 
         logger.info("E-mails were sent successfully.")
@@ -167,6 +175,6 @@ def send_notification(subject, recipients, html, mailtype="", files=None):
         )
         # Try sending with Python smtplib, if reaching the API fails
         logger.warning(f"Authorization/authentication failed ({res.status_code}) to the e-mail sender API.")
-        msg = construct_msg(subject, html)
-        SendMail(to_addresses, msg).start()
+        msg = construct_msg(cc_addresses, subject, html)
+        SendMail(addresses, msg).start()
     return res.text

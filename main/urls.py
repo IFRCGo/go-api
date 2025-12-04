@@ -57,6 +57,7 @@ from databank.views import CountryOverviewViewSet
 from deployments import drf_views as deployment_views
 from dref import views as dref_views
 from eap import views as eap_views
+from eap.dev_views import EAPEmailPreview
 from flash_update import views as flash_views
 from lang import views as lang_views
 from local_units import views as local_units_views
@@ -287,6 +288,7 @@ if settings.DEBUG:
             # For django versions before 2.0:
             # url(r'^__debug__/', include(debug_toolbar.urls)),
             url(r"^dev/email-preview/local-units/", LocalUnitsEmailPreview.as_view()),
+            url(r"^dev/email-preview/eap/", EAPEmailPreview.as_view()),
         ]
         + urlpatterns
         + static.static(

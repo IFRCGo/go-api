@@ -1,0 +1,45 @@
+{% include "design/head3.html" %}
+
+<table width="80%" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff">
+    <tr>
+        <td>
+            <!-- Greeting -->
+            <p>
+                Dear <span style=" font-weight: bold;">{{ national_society }}</span> colleagues,
+            </p>
+
+            <!-- Intro paragraph -->
+            <p>
+                We are glad to inform you that the {{country_name}} {{disaster_type}} EAP has been <span style=" font-weight: bold;">Technically Validated</span>. Congratulations!
+            </p>
+            <p>
+                The Validation Committee expresses its thanks to {{ national_society }} and the IFRC delegation for all the work done in providing clear answers to all feedback. This is very much appreciated.
+            </p>
+            <p>
+                In terms of next steps, we ask the IFRC Project Manager to get the technical validation of the budget. 
+                Once the validated budget is uploaded in GO, we will process the approval by the DREF Appeal Manager.
+            </p>
+
+            <p>
+                If you have any questions on the process or the next steps, please don’t hesitate to reach out to 
+                <a href="mailto:DREF.anticipatorypillar@ifrc.org">DREF.anticipatorypillar@ifrc.org</a>.
+            </p>
+            <!-- Signature -->
+            <p >
+                Congratulations again and warm wishes,<br>
+                IFRC-DREF AA Team<br>
+                You can access your GO account and check the progress of your EAP <a href="{{ frontend_url }}/account/my-forms/eap-applications">here.</a>
+            </p>
+
+            <p >
+                Attachments:
+                <p >
+                Review Checklist
+                </p>
+            </p>
+
+        </td>
+    </tr>
+</table>
+
+{% include "design/foot1.html" %}
