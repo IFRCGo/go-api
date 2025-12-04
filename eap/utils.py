@@ -1,9 +1,55 @@
 import os
 from typing import Any, Dict, Set, TypeVar
 
+from django.conf import settings
 from django.contrib.auth.models import Permission, User
 from django.core.exceptions import ValidationError
 from django.db import models
+
+from api.models import Region, RegionName
+
+REGION_EMAIL_MAP = {
+    RegionName.AFRICA: settings.EMAIL_EAP_AFRICA_COORDINATORS,
+    RegionName.AMERICAS: settings.EMAIL_EAP_AMERICAS_COORDINATORS,
+    RegionName.ASIA_PACIFIC: settings.EMAIL_EAP_ASIA_PACIFIC_COORDINATORS,
+    RegionName.EUROPE: settings.EMAIL_EAP_EUROPE_COORDINATORS,
+    RegionName.MENA: settings.EMAIL_EAP_MENA_COORDINATORS,
+}
+
+
+def get_coordinator_emails_by_region(region: Region | None) -> list[str]:
+    """
+    This function uses the REGION_EMAIL_MAP dictionary to map Region name to the corresponding list of email addresses.
+    Args:
+        region: Region instance for which the coordinator emails are needed.
+    Returns:
+        List of email addresses corresponding to the region coordinators.
+        Returns an empty list if the region is None or not found in the mapping.
+    """
+    if not region:
+        return []
+
+    return REGION_EMAIL_MAP.get(region.name, [])
+
+
+def get_eap_registration_email_context(instance):
+    from eap.serializers import EAPRegistrationSerializer
+
+    eap_registration_data = EAPRegistrationSerializer(instance).data
+
+    email_context = {
+        "registration_id": eap_registration_data["id"],
+        "eap_type_display": eap_registration_data["eap_type_display"],
+        "country_name": eap_registration_data["country_details"]["name"],
+        "national_society": eap_registration_data["national_society_details"]["society_name"],
+        "supporting_partners": eap_registration_data["partners_details"],
+        "disaster_type": eap_registration_data["disaster_type_details"]["name"],
+        "ns_contact_name": eap_registration_data["national_society_contact_name"],
+        "ns_contact_email": eap_registration_data["national_society_contact_email"],
+        "ns_contact_phone": eap_registration_data["national_society_contact_phone_number"],
+        "frontend_url": settings.GO_WEB_URL,
+    }
+    return email_context
 
 
 def has_country_permission(user: User, country_id: int) -> bool:

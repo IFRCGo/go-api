@@ -191,6 +191,16 @@ class EAPRegistrationSerializer(
             "latest_full_eap",
         ]
 
+    def create(self, validated_data: dict[str, typing.Any]):
+        instance = super().create(validated_data)
+
+        transaction.on_commit(
+            lambda: send_new_eap_registration_email.delay(
+                instance.id,
+            )
+        )
+        return instance
+
     def update(self, instance: EAPRegistration, validated_data: dict[str, typing.Any]) -> dict[str, typing.Any]:
         # NOTE: Cannot update once EAP application is being created.
         if instance.has_eap_application:
