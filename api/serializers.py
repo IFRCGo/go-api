@@ -2544,6 +2544,11 @@ class ExportSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(source="get_status_display", read_only=True)
     # NOTE: is_pga is used to determine if the export contains PGA or not
     is_pga = serializers.BooleanField(default=False, required=False, write_only=True)
+    # NOTE: diff is used to determine if the export is requested for diff view or not
+    # Currently only used for EAP exports
+    diff = serializers.BooleanField(default=False, required=False, write_only=True)
+    # NOTE: Version of a EAP export being requested, only applicable for full and simplified EAP exports
+    version = serializers.IntegerField(required=False, write_only=True)
 
     class Meta:
         model = Export
@@ -2559,6 +2564,7 @@ class ExportSerializer(serializers.ModelSerializer):
         export_id = validated_data.get("export_id")
         export_type = validated_data.get("export_type")
         country_id = validated_data.get("per_country")
+        version = validated_data.get("version", None)
         if export_type == Export.ExportType.DREF:
             title = Dref.objects.filter(id=export_id).first().title
         elif export_type == Export.ExportType.OPS_UPDATE:
@@ -2569,12 +2575,20 @@ class ExportSerializer(serializers.ModelSerializer):
             overview = Overview.objects.filter(id=export_id).first()
             title = f"{overview.country.name}-preparedness-{overview.get_phase_display()}"
         elif export_type == Export.ExportType.SIMPLIFIED_EAP:
-            simplified_eap = SimplifiedEAP.objects.filter(id=export_id).first()
+            if version:
+                simplified_eap = (
+                    SimplifiedEAP.objects.filter(eap_registration__id=export_id, version=version).order_by("-version").first()
+                )
+            else:
+                simplified_eap = SimplifiedEAP.objects.filter(eap_registration__id=export_id).order_by("-version").first()
             title = (
                 f"{simplified_eap.eap_registration.national_society.name}-{simplified_eap.eap_registration.disaster_type.name}"
             )
         elif export_type == Export.ExportType.FULL_EAP:
-            full_eap = FullEAP.objects.filter(id=export_id).first()
+            if version:
+                full_eap = FullEAP.objects.filter(eap_registration__id=export_id, version=version).order_by("-version").first()
+            else:
+                full_eap = FullEAP.objects.filter(eap_registration__id=export_id).order_by("-version").first()
             title = f"{full_eap.eap_registration.national_society.name}-{full_eap.eap_registration.disaster_type.name}"
         else:
             title = "Export"
@@ -2582,6 +2596,19 @@ class ExportSerializer(serializers.ModelSerializer):
 
         if export_type == Export.ExportType.PER:
             validated_data["url"] = f"{settings.GO_WEB_INTERNAL_URL}/countries/{country_id}/{export_type}/{export_id}/export/"
+
+        if export_type in [
+            Export.ExportType.SIMPLIFIED_EAP,
+            Export.ExportType.FULL_EAP,
+        ]:
+            validated_data["url"] = f"{settings.GO_WEB_INTERNAL_URL}/eap/{export_id}/{export_type}/export/"
+            # NOTE: EAP exports with diff view only for EAPs exports
+            diff = validated_data.pop("diff")
+            if diff:
+                validated_data["url"] += "?diff=true"
+            if version:
+                validated_data["url"] += f"&version={version}" if diff else f"?version={version}"
+
         else:
             validated_data["url"] = f"{settings.GO_WEB_INTERNAL_URL}/{export_type}/{export_id}/export/"
 
