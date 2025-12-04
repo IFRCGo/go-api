@@ -1,6 +1,7 @@
 import typing
 
 from django.contrib.auth.models import User
+from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import gettext
 from rest_framework import serializers
@@ -32,6 +33,7 @@ from eap.models import (
     TimeFrame,
     YearsTimeFrameChoices,
 )
+from eap.tasks import send_new_eap_registration_email
 from eap.utils import (
     has_country_permission,
     is_user_ifrc_admin,
@@ -184,6 +186,16 @@ class EAPRegistrationSerializer(
             "latest_simplified_eap",
             "latest_full_eap",
         ]
+
+    def create(self, validated_data: dict[str, typing.Any]):
+        instance = super().create(validated_data)
+
+        transaction.on_commit(
+            lambda: send_new_eap_registration_email.delay(
+                instance.id,
+            )
+        )
+        return instance
 
     def update(self, instance: EAPRegistration, validated_data: dict[str, typing.Any]) -> dict[str, typing.Any]:
         # NOTE: Cannot update once EAP application is being created.

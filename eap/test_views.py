@@ -122,7 +122,8 @@ class EAPRegistrationTestCase(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data["results"]), 5)
 
-    def test_create_eap_registration(self):
+    @mock.patch("eap.tasks.send_eap_registration_email")
+    def test_create_eap_registration(self, send_eap_registration_email):
         url = "/api/v2/eap-registration/"
         data = {
             "eap_type": EAPType.FULL_EAP,
@@ -157,6 +158,7 @@ class EAPRegistrationTestCase(APITestCase):
                 self.disaster_type.id,
             },
         )
+        self.assertTrue(send_eap_registration_email)
 
     def test_retrieve_eap_registration(self):
         eap_registration = EAPRegistrationFactory.create(
