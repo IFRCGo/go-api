@@ -122,8 +122,6 @@ def generate_url(url, export_id, user, title, language):
                     file_name = f'SIMPLIFIED EAP {title} ({datetime.now().strftime("%Y-%m-%d %H-%M-%S")}).pdf'
                 elif export.export_type == Export.ExportType.FULL_EAP:
                     file_name = f'FULL EAP {title} ({datetime.now().strftime("%Y-%m-%d %H-%M-%S")}).pdf'
-                elif export.export_type == Export.ExportType.EAP_REGISTRATION:
-                    file_name = f'EAP REGISTRATION {title} ({datetime.now().strftime("%Y-%m-%d %H-%M-%S")}).pdf'
                 else:
                     file_name = f'DREF {title} ({datetime.now().strftime("%Y-%m-%d %H-%M-%S")}).pdf'
                 file = ContentFile(

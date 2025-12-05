@@ -2559,12 +2559,25 @@ class ExportSerializer(serializers.ModelSerializer):
         validate_file_type(pdf_file)
         return pdf_file
 
+    def get_latest(self, model: type[SimplifiedEAP | FullEAP], eap_registration_id: int, version: int | None = None):
+        """
+        Get the latest version of the EAP (Simplified or Full) based on the eap_registration_id and optional version.
+        if version is provided, it fetches that specific version, otherwise it fetches the latest version.
+        """
+        filters = {
+            "eap_registration__id": eap_registration_id,
+        }
+        if version:
+            filters["version"] = version
+
+        return model.objects.filter(**filters).order_by("-version").first()
+
     def create(self, validated_data):
         language = django_get_language()
         export_id = validated_data.get("export_id")
         export_type = validated_data.get("export_type")
         country_id = validated_data.get("per_country")
-        version = validated_data.get("version", None)
+        version = validated_data.pop("version", None)
         if export_type == Export.ExportType.DREF:
             title = Dref.objects.filter(id=export_id).first().title
         elif export_type == Export.ExportType.OPS_UPDATE:
@@ -2575,20 +2588,20 @@ class ExportSerializer(serializers.ModelSerializer):
             overview = Overview.objects.filter(id=export_id).first()
             title = f"{overview.country.name}-preparedness-{overview.get_phase_display()}"
         elif export_type == Export.ExportType.SIMPLIFIED_EAP:
-            if version:
-                simplified_eap = (
-                    SimplifiedEAP.objects.filter(eap_registration__id=export_id, version=version).order_by("-version").first()
-                )
-            else:
-                simplified_eap = SimplifiedEAP.objects.filter(eap_registration__id=export_id).order_by("-version").first()
+            simplified_eap = self.get_latest(
+                model=SimplifiedEAP,
+                eap_registration_id=export_id,
+                version=version,
+            )
             title = (
                 f"{simplified_eap.eap_registration.national_society.name}-{simplified_eap.eap_registration.disaster_type.name}"
             )
         elif export_type == Export.ExportType.FULL_EAP:
-            if version:
-                full_eap = FullEAP.objects.filter(eap_registration__id=export_id, version=version).order_by("-version").first()
-            else:
-                full_eap = FullEAP.objects.filter(eap_registration__id=export_id).order_by("-version").first()
+            full_eap = self.get_latest(
+                model=FullEAP,
+                eap_registration_id=export_id,
+                version=version,
+            )
             title = f"{full_eap.eap_registration.national_society.name}-{full_eap.eap_registration.disaster_type.name}"
         else:
             title = "Export"
@@ -2597,17 +2610,17 @@ class ExportSerializer(serializers.ModelSerializer):
         if export_type == Export.ExportType.PER:
             validated_data["url"] = f"{settings.GO_WEB_INTERNAL_URL}/countries/{country_id}/{export_type}/{export_id}/export/"
 
-        if export_type in [
+        elif export_type in [
             Export.ExportType.SIMPLIFIED_EAP,
             Export.ExportType.FULL_EAP,
         ]:
             validated_data["url"] = f"{settings.GO_WEB_INTERNAL_URL}/eap/{export_id}/{export_type}/export/"
             # NOTE: EAP exports with diff view only for EAPs exports
+            if version:
+                validated_data["url"] += f"?version={version}"
             diff = validated_data.pop("diff")
             if diff:
-                validated_data["url"] += "?diff=true"
-            if version:
-                validated_data["url"] += f"&version={version}" if diff else f"?version={version}"
+                validated_data["url"] += "&diff=true" if version else "?diff=true"
 
         else:
             validated_data["url"] = f"{settings.GO_WEB_INTERNAL_URL}/{export_type}/{export_id}/export/"
