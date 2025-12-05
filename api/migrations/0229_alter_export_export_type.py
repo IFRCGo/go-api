@@ -4,15 +4,26 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('api', '0228_alter_export_export_type'),
+        ("api", "0228_alter_export_export_type"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='export',
-            name='export_type',
-            field=models.CharField(choices=[('dref-applications', 'DREF Application'), ('dref-operational-updates', 'DREF Operational Update'), ('dref-final-reports', 'DREF Final Report'), ('old-dref-final-reports', 'Old DREF Final Report'), ('per', 'Per'), ('simplified', 'Simplified EAP'), ('full', 'Full EAP')], max_length=255, verbose_name='Export Type'),
+            model_name="export",
+            name="export_type",
+            field=models.CharField(
+                choices=[
+                    ("dref-applications", "DREF Application"),
+                    ("dref-operational-updates", "DREF Operational Update"),
+                    ("dref-final-reports", "DREF Final Report"),
+                    ("old-dref-final-reports", "Old DREF Final Report"),
+                    ("per", "Per"),
+                    ("simplified", "Simplified EAP"),
+                    ("full", "Full EAP"),
+                ],
+                max_length=255,
+                verbose_name="Export Type",
+            ),
         ),
     ]
