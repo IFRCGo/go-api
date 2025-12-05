@@ -445,6 +445,15 @@ class EAPSimplifiedTestCase(APITestCase):
         )
         data = {
             "eap_registration": eap_registration.id,
+            "prioritized_hazard_and_impact": "Floods with potential heavy impact.",
+            "risks_selected_protocols": "Protocol A and Protocol B.",
+            "selected_early_actions": "The early actions selected.",
+            "overall_objective_intervention": "To reduce risks through early actions.",
+            "potential_geographical_high_risk_areas": "Area 1, Area 2, and Area 3.",
+            "trigger_threshold_justification": "Based on historical data and expert analysis.",
+            "early_action_capability": "High capability with trained staff.",
+            "rcrc_movement_involvement": "Involves multiple RCRC societies.",
+            "assisted_through_operation": "5000",
             "budget_file": budget_file.id,
             "total_budget": 10000,
             "seap_timeframe": 3,
@@ -463,6 +472,16 @@ class EAPSimplifiedTestCase(APITestCase):
                     "ap_code": 111,
                     "people_targeted": 10000,
                     "budget_per_sector": 100000,
+                    "indicators": [
+                        {
+                            "title": "indicator 1",
+                            "target": 100,
+                        },
+                        {
+                            "title": "indicator 2",
+                            "target": 200,
+                        },
+                    ],
                     "early_action_activities": [
                         {
                             "activity": "early action activity",
@@ -497,7 +516,16 @@ class EAPSimplifiedTestCase(APITestCase):
                     "ap_code": 11,
                     "approach": EnableApproach.Approach.SECRETARIAT_SERVICES,
                     "budget_per_approach": 10000,
-                    "indicator_target": 10000,
+                    "indicators": [
+                        {
+                            "title": "indicator enable approach 1",
+                            "target": 100,
+                        },
+                        {
+                            "title": "indicator enable approach 2",
+                            "target": 200,
+                        },
+                    ],
                     "early_action_activities": [
                         {
                             "activity": "early action activity",
@@ -601,7 +629,6 @@ class EAPSimplifiedTestCase(APITestCase):
             approach=EnableApproach.Approach.SECRETARIAT_SERVICES,
             budget_per_approach=5000,
             ap_code=123,
-            indicator_target=500,
             readiness_activities=[
                 enable_approach_readiness_operation_activity_1.id,
                 enable_approach_readiness_operation_activity_2.id,
@@ -704,7 +731,6 @@ class EAPSimplifiedTestCase(APITestCase):
                     "approach": EnableApproach.Approach.NATIONAL_SOCIETY_STRENGTHENING,
                     "budget_per_approach": 8000,
                     "ap_code": 123,
-                    "indicator_target": 800,
                     "readiness_activities": [
                         {
                             "id": enable_approach_readiness_operation_activity_1.id,
@@ -735,7 +761,6 @@ class EAPSimplifiedTestCase(APITestCase):
                     "approach": EnableApproach.Approach.PARTNERSHIP_AND_COORDINATION,
                     "budget_per_approach": 9000,
                     "ap_code": 124,
-                    "indicator_target": 900,
                     "readiness_activities": [
                         {
                             "activity": "New Enable Approach Readiness Activity",
@@ -775,6 +800,16 @@ class EAPSimplifiedTestCase(APITestCase):
                     "ap_code": 456,
                     "people_targeted": 8000,
                     "budget_per_sector": 80000,
+                    "indicators": [
+                        {
+                            "title": "indicator 1",
+                            "target": 100,
+                        },
+                        {
+                            "title": "indicator 2",
+                            "target": 200,
+                        },
+                    ],
                     "readiness_activities": [
                         {
                             "id": planned_operation_readiness_operation_activity_1.id,
@@ -873,24 +908,20 @@ class EAPSimplifiedTestCase(APITestCase):
                 response.data["enable_approaches"][0]["approach"],
                 response.data["enable_approaches"][0]["budget_per_approach"],
                 response.data["enable_approaches"][0]["ap_code"],
-                response.data["enable_approaches"][0]["indicator_target"],
                 # NEW DATA
                 response.data["enable_approaches"][1]["approach"],
                 response.data["enable_approaches"][1]["budget_per_approach"],
                 response.data["enable_approaches"][1]["ap_code"],
-                response.data["enable_approaches"][1]["indicator_target"],
             },
             {
                 enable_approach.id,
                 data["enable_approaches"][0]["approach"],
                 data["enable_approaches"][0]["budget_per_approach"],
                 data["enable_approaches"][0]["ap_code"],
-                data["enable_approaches"][0]["indicator_target"],
                 # NEW DATA
                 data["enable_approaches"][1]["approach"],
                 data["enable_approaches"][1]["budget_per_approach"],
                 data["enable_approaches"][1]["ap_code"],
-                data["enable_approaches"][1]["indicator_target"],
             },
         )
         self.assertEqual(
@@ -1568,6 +1599,8 @@ class EAPFullTestCase(APITestCase):
             "eap_registration": eap_registration.id,
             "budget_file": budget_file_instance.id,
             "total_budget": 10000,
+            "objective": "FUll eap objective",
+            "lead_time": 5,
             "seap_timeframe": 5,
             "readiness_budget": 3000,
             "pre_positioning_budget": 4000,
@@ -1620,6 +1653,16 @@ class EAPFullTestCase(APITestCase):
                     "ap_code": 111,
                     "people_targeted": 10000,
                     "budget_per_sector": 100000,
+                    "indicators": [
+                        {
+                            "title": "indicator 1",
+                            "target": 100,
+                        },
+                        {
+                            "title": "indicator 2",
+                            "target": 200,
+                        },
+                    ],
                     "early_action_activities": [
                         {
                             "activity": "early action activity",
@@ -1654,7 +1697,16 @@ class EAPFullTestCase(APITestCase):
                     "ap_code": 11,
                     "approach": EnableApproach.Approach.SECRETARIAT_SERVICES,
                     "budget_per_approach": 10000,
-                    "indicator_target": 10000,
+                    "indicators": [
+                        {
+                            "title": "indicator enable approach 1",
+                            "target": 300,
+                        },
+                        {
+                            "title": "indicator enable approach 2",
+                            "target": 400,
+                        },
+                    ],
                     "early_action_activities": [
                         {
                             "activity": "early action activity",
@@ -1784,7 +1836,6 @@ class TestSnapshotEAP(APITestCase):
             approach=EnableApproach.Approach.SECRETARIAT_SERVICES,
             budget_per_approach=5000,
             ap_code=123,
-            indicator_target=500,
         )
         hazard_selection_image_1 = EAPFileFactory._create_file(
             created_by=self.user,
