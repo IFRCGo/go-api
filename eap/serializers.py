@@ -14,12 +14,14 @@ from api.serializers import (
 )
 from eap.models import (
     DaysTimeFrameChoices,
+    EAPAction,
     EAPFile,
     EAPRegistration,
     EAPType,
     EnableApproach,
     FullEAP,
     HoursTimeFrameChoices,
+    Indicator,
     KeyActor,
     MonthsTimeFrameChoices,
     OperationActivity,
@@ -288,12 +290,24 @@ class OperationActivitySerializer(
         return validated_data
 
 
+class IndicatorSerializer(
+    serializers.ModelSerializer,
+):
+    id = serializers.IntegerField(required=False)
+
+    class Meta:
+        model = Indicator
+        fields = "__all__"
+
+
 class PlannedOperationSerializer(
     NestedUpdateMixin,
     NestedCreateMixin,
     serializers.ModelSerializer,
 ):
     id = serializers.IntegerField(required=False)
+
+    indicators = IndicatorSerializer(many=True, required=True)
 
     # activities
     readiness_activities = OperationActivitySerializer(many=True, required=True)
@@ -311,6 +325,8 @@ class EnableApproachSerializer(
     serializers.ModelSerializer,
 ):
     id = serializers.IntegerField(required=False)
+
+    indicators = IndicatorSerializer(many=True, required=True)
 
     # activities
     readiness_activities = OperationActivitySerializer(many=True, required=True)
@@ -344,6 +360,22 @@ class KeyActorSerializer(
 
     class Meta:
         model = KeyActor
+        fields = "__all__"
+
+
+class ActionSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
+
+    class Meta:
+        model = EAPAction
+        fields = "__all__"
+
+
+class ImpactSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
+
+    class Meta:
+        model = EAPAction
         fields = "__all__"
 
 
@@ -493,7 +525,10 @@ class FullEAPSerializer(
     # admins
     key_actors = KeyActorSerializer(many=True, required=True)
 
-    # SOURCE OF INFOMATIONS
+    early_actions = ActionSerializer(many=True, required=False)
+    prioritized_impacts = ImpactSerializer(many=True, required=False)
+
+    # SOURCE OF INFORMATIONS
     risk_analysis_source_of_information = SourceInformationSerializer(many=True, required=False)
     trigger_statement_source_of_information = SourceInformationSerializer(many=True, required=False)
     trigger_model_source_of_information = SourceInformationSerializer(many=True, required=False)

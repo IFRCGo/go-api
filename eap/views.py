@@ -16,8 +16,10 @@ from eap.models import (
     EAPRegistration,
     EAPStatus,
     EAPType,
+    EnableApproach,
     FullEAP,
     KeyActor,
+    PlannedOperation,
     SimplifiedEAP,
 )
 from eap.permissions import (
@@ -194,8 +196,24 @@ class SimplifiedEAPViewSet(EAPModelViewSet):
                 "hazard_impact_images",
                 "risk_selected_protocols_images",
                 "selected_early_actions_images",
-                "planned_operations",
-                "enable_approaches",
+                Prefetch(
+                    "planned_operations",
+                    queryset=PlannedOperation.objects.prefetch_related(
+                        "indicators",
+                        "readiness_activities",
+                        "prepositioning_activities",
+                        "early_action_activities",
+                    ),
+                ),
+                Prefetch(
+                    "enable_approaches",
+                    queryset=EnableApproach.objects.prefetch_related(
+                        "indicators",
+                        "readiness_activities",
+                        "prepositioning_activities",
+                        "early_action_activities",
+                    ),
+                ),
             )
         )
 
@@ -222,6 +240,8 @@ class FullEAPViewSet(EAPModelViewSet):
             )
             .prefetch_related(
                 "admin2",
+                "prioritized_impacts",
+                "early_actions",
                 # source information
                 "risk_analysis_source_of_information",
                 "trigger_statement_source_of_information",
@@ -248,6 +268,24 @@ class FullEAPViewSet(EAPModelViewSet):
                 Prefetch(
                     "key_actors",
                     queryset=KeyActor.objects.select_related("national_society"),
+                ),
+                Prefetch(
+                    "planned_operations",
+                    queryset=PlannedOperation.objects.prefetch_related(
+                        "indicators",
+                        "readiness_activities",
+                        "prepositioning_activities",
+                        "early_action_activities",
+                    ),
+                ),
+                Prefetch(
+                    "enable_approaches",
+                    queryset=EnableApproach.objects.prefetch_related(
+                        "indicators",
+                        "readiness_activities",
+                        "prepositioning_activities",
+                        "early_action_activities",
+                    ),
                 ),
             )
         )
