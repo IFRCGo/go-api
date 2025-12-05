@@ -105,7 +105,6 @@ class EnableApproachFactory(factory.django.DjangoModelFactory):
     approach = fuzzy.FuzzyChoice(EnableApproach.Approach)
     budget_per_approach = fuzzy.FuzzyInteger(1000, 1000000)
     ap_code = fuzzy.FuzzyInteger(100, 999)
-    indicator_target = fuzzy.FuzzyInteger(10, 1000)
 
     @factory.post_generation
     def readiness_activities(self, create, extracted, **kwargs):
@@ -184,6 +183,7 @@ class FullEAPFactory(factory.django.DjangoModelFactory):
         model = FullEAP
 
     seap_timeframe = fuzzy.FuzzyInteger(5)
+    lead_time = fuzzy.FuzzyInteger(1, 100)
     total_budget = fuzzy.FuzzyInteger(1000, 1000000)
     readiness_budget = fuzzy.FuzzyInteger(1000, 1000000)
     pre_positioning_budget = fuzzy.FuzzyInteger(1000, 1000000)

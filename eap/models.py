@@ -323,12 +323,38 @@ class OperationActivity(models.Model):
         return f"{self.activity}"
 
 
-# TODO(susilnem): Verify indicarors?
-# class OperationIndicator(models.Model):
-#     class IndicatorChoices(models.IntegerChoices):
-#         INDICATOR_1 = 10, _("Indicator 1")
-#         INDICATOR_2 = 20, _("Indicator 2")
-#     indicator = models.IntegerField(choices=IndicatorChoices.choices, verbose_name=_("Indicator"))
+class Indicator(models.Model):
+    title = models.CharField(max_length=255, verbose_name=_("Indicator Title"))
+    target = models.IntegerField(verbose_name=_("Indicator Target"))
+
+    class Meta:
+        verbose_name = _("Indicator")
+        verbose_name_plural = _("Indicators")
+
+    def __str__(self):
+        return self.title
+
+
+class EAPAction(models.Model):
+    action = models.CharField(max_length=255, verbose_name=_("Early Action"))
+
+    class Meta:
+        verbose_name = _("Early Action")
+        verbose_name_plural = _("Early Actions")
+
+    def __str__(self):
+        return f"{self.action}"
+
+
+class EAPImpact(models.Model):
+    impact = models.CharField(max_length=255, verbose_name=_("Impact"))
+
+    class Meta:
+        verbose_name = _(" Impact")
+        verbose_name_plural = _("Expected Impacts")
+
+    def __str__(self):
+        return f"{self.impact}"
 
 
 class PlannedOperation(models.Model):
@@ -353,13 +379,12 @@ class PlannedOperation(models.Model):
     budget_per_sector = models.IntegerField(verbose_name=_("Budget per sector (CHF)"))
     ap_code = models.IntegerField(verbose_name=_("AP Code"), null=True, blank=True)
 
-    # TODO(susilnem): verify indicators?
-
-    # indicators = models.ManyToManyField(
-    #     OperationIndicator,
-    #     verbose_name=_("Operation Indicators"),
-    #     blank=True,
-    # )
+    indicators = models.ManyToManyField(
+        Indicator,
+        verbose_name=_("Operation Indicators"),
+        blank=True,
+        related_name="planned_operation_indicators",
+    )
 
     # Activities
     readiness_activities = models.ManyToManyField(
@@ -398,14 +423,13 @@ class EnableApproach(models.Model):
     approach = models.IntegerField(choices=Approach.choices, verbose_name=_("Approach"))
     budget_per_approach = models.IntegerField(verbose_name=_("Budget per approach (CHF)"))
     ap_code = models.IntegerField(verbose_name=_("AP Code"), null=True, blank=True)
-    indicator_target = models.IntegerField(verbose_name=_("Indicator Target"), null=True, blank=True)
 
-    # TODO(susilnem): verify indicators?
-    # indicators = models.ManyToManyField(
-    #     OperationIndicator,
-    #     verbose_name=_("Operation Indicators"),
-    #     blank=True,
-    # )
+    indicators = models.ManyToManyField(
+        Indicator,
+        verbose_name=_("Enable Approach Indicators"),
+        blank=True,
+        related_name="enable_approach_indicators",
+    )
 
     # Activities
     readiness_activities = models.ManyToManyField(
@@ -886,8 +910,6 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
     # RISK ANALYSIS #
     prioritized_hazard_and_impact = models.TextField(
         verbose_name=_("Prioritized Hazard and its  historical impact."),
-        null=True,
-        blank=True,
     )
     hazard_impact_images = models.ManyToManyField(
         EAPFile,
@@ -898,8 +920,6 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
 
     risks_selected_protocols = models.TextField(
         verbose_name=_("Risk selected for the protocols."),
-        null=True,
-        blank=True,
     )
 
     risk_selected_protocols_images = models.ManyToManyField(
@@ -912,8 +932,6 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
     # EARLY ACTION SELECTION #
     selected_early_actions = models.TextField(
         verbose_name=_("Selected Early Actions"),
-        null=True,
-        blank=True,
     )
     selected_early_actions_images = models.ManyToManyField(
         EAPFile,
@@ -926,20 +944,14 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
     overall_objective_intervention = models.TextField(
         verbose_name=_("Overall objective of the intervention"),
         help_text=_("Provide an objective statement that describe the main of the intervention."),
-        null=True,
-        blank=True,
     )
 
     potential_geographical_high_risk_areas = models.TextField(
         verbose_name=_("Potential geographical high-risk areas"),
-        null=True,
-        blank=True,
     )
 
     assisted_through_operation = models.TextField(
         verbose_name=_("Assisted through the operation"),
-        null=True,
-        blank=True,
     )
     selection_criteria = models.TextField(
         verbose_name=_("Selection Criteria."),
@@ -977,8 +989,6 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
     trigger_threshold_justification = models.TextField(
         verbose_name=_("Trigger Threshold Justification"),
         help_text=_("Explain how the trigger were set and provide information"),
-        null=True,
-        blank=True,
     )
     next_step_towards_full_eap = models.TextField(
         verbose_name=_("Next Steps towards Full EAP"),
@@ -1006,14 +1016,10 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
     early_action_capability = models.TextField(
         verbose_name=_("Experience or Capacity to implement Early Action."),
         help_text=_("Assumptions or minimum conditions needed to deliver the early actions."),
-        null=True,
-        blank=True,
     )
     rcrc_movement_involvement = models.TextField(
         verbose_name=_("RCRC Movement Involvement."),
         help_text=_("RCRC Movement partners, Governmental/other agencies consulted/involved."),
-        null=True,
-        blank=True,
     )
 
     # NOTE: Snapshot fields
@@ -1046,6 +1052,12 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
         verbose_name = _("Simplified EAP")
         verbose_name_plural = _("Simplified EAPs")
         ordering = ["-id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["eap_registration", "version"],
+                name="unique_simplified_eap_version",
+            )
+        ]
 
     def __str__(self):
         return f"Simplified EAP for {self.eap_registration}- version:{self.version}"
@@ -1091,6 +1103,11 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         on_delete=models.CASCADE,
         verbose_name=_("EAP Development Registration"),
         related_name="full_eap",
+    )
+
+    objective = models.TextField(
+        verbose_name=_("Overall Objective of the EAP."),
+        help_text=_("Provide an objective statement that describe the main goal of intervention."),
     )
 
     # STAKEHOLDERS
@@ -1155,6 +1172,12 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         help_text=_("Describe the impacts that have been prioritized and who is most likely to be affected."),
     )
 
+    prioritized_impacts = models.ManyToManyField(
+        EAPImpact,
+        verbose_name=_("Prioritized impacts"),
+        related_name="full_eap_prioritized_impacts",
+    )
+
     prioritized_impact_images = models.ManyToManyField(
         EAPFile,
         verbose_name=_("Prioritized impact images"),
@@ -1182,9 +1205,12 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         help_text=_("Explain in one sentence what exactly the trigger of your EAP will be."),
     )
 
+    # NOTE: In days
+    lead_time = models.IntegerField(verbose_name=_("Lead Time"))
+
     trigger_statement_source_of_information = models.ManyToManyField(
         SourceInformation,
-        verbose_name=_("Trigger Statement Source of Information"),
+        verbose_name=_("Trigger Statement Source of Forecast"),
         related_name="trigger_statement_source_of_information",
         blank=True,
     )
@@ -1243,6 +1269,12 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
     )
 
     # SELECTION OF ACTION
+
+    early_actions = models.ManyToManyField(
+        EAPAction,
+        verbose_name=_("Early Actions"),
+        related_name="full_eap_early_actions",
+    )
 
     early_action_selection_process = models.TextField(
         verbose_name=_("Early action selection process"),
@@ -1435,6 +1467,12 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         verbose_name = _("Full EAP")
         verbose_name_plural = _("Full EAPs")
         ordering = ["-id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["eap_registration", "version"],
+                name="unique_full_eap_version",
+            )
+        ]
 
     def __str__(self):
         return f"Full EAP for {self.eap_registration}- version:{self.version}"
