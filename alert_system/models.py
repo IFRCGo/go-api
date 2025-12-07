@@ -154,7 +154,7 @@ class LoadItem(BaseItem):
         return self.stac_id
 
 
-class LoadItems(BaseItem):
+class LoadItem(BaseItem):
     """
     Model for Load items.
     """
