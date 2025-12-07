@@ -34,15 +34,15 @@ class BaseTransformerClass(ABC):
 
     @abstractmethod
     def process_hazard(self, hazard_item: ExtractionItem | None) -> HazardType:
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def process_impact(self, impact_items: List[ExtractionItem]) -> ImpactType:
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def process_event(self, event_item: ExtractionItem) -> EventType:
-        pass
+        raise NotImplementedError()
 
     def transform_stac_item(self):
         """
