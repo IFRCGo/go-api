@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Connector, ExtractionItem, LoadItems
+from .models import Connector, ExtractionItem, LoadItem
 
 
 @admin.register(Connector)
@@ -25,14 +25,15 @@ class EventAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(LoadItems)
-class LoadAdmin(admin.ModelAdmin):
+@admin.register(LoadItem)
+class LoadItemAdmin(admin.ModelAdmin):
     list_display = (
         "id",
         "event_title",
         "created_at",
         "correlation_id",
         "item_eligible",
+        "is_past_event",
     )
     list_filter = (
         "connector",

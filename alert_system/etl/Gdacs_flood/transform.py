@@ -1,5 +1,4 @@
 import logging
-from typing import Dict, Tuple
 
 from alert_system.etl.base.transform import BaseTransformerClass
 
@@ -12,22 +11,11 @@ class GdacsTransformer(BaseTransformerClass):
     Extracts and normalizes impact fields, computes derived values, and stores metadata.
     """
 
-    # Mapping of (category, type) → flattened key
-    IMPACT_MAP: Dict[Tuple[str, str], str] = {
-        ("people", "potentially_affected"): "people.potentially_affected",
-        ("people", "death"): "people.death",
-        ("people", "affected_total"): "people.affected_total",
-        ("people", "affected_direct"): "people.affected_direct",
-        ("people", "affected_indirect"): "people.affected_indirect",
-        ("people", "highest_risk"): "people.highest_risk",
-        ("buildings", "destroyed"): "buildings.destroyed",
-    }
-
     # NOTE: This logic might change in future
     def compute_people_exposed(self, metadata_list) -> int:
-        for m in metadata_list:
-            if m["category"] == "people" and m["type"] == "affected_total":
-                return m["value"]
+        for data in metadata_list:
+            if data["category"] == "people" and data["type"] == "affected_total":
+                return data["value"]
         return 0
 
     # NOTE: This logic might change in future
@@ -35,11 +23,12 @@ class GdacsTransformer(BaseTransformerClass):
         """
         Compute the 'buildings_exposed' field.
         """
-        for m in metadata_list:
-            if m["category"] == "buildings" and m["type"] == "damaged":
-                return m["value"]
+        for data in metadata_list:
+            if data["category"] == "buildings" and data["type"] == "damaged":
+                return data["value"]
         return 0
 
+    # NOTE: This logic will change with changes in montandon.
     def process_impact(self, impact_items) -> BaseTransformerClass.ImpactType:
         metadata = []
         largest_values_metadata = {}

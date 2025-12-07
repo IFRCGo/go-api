@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 class Command(BaseCommand):
     help = "Command to extract data of gdacs-flood from eoapi"
 
-    SOURCE_TYPE = 100
+    SOURCE_TYPE = Connector.ConnectorType.GDACS_FLOOD
 
     def handle(self, *args, **options):
         if not self.SOURCE_TYPE:
@@ -25,5 +25,3 @@ class Command(BaseCommand):
         process_connector_task.delay(connector.id)
 
         logger.info("Connector task dispatched.")
-
-        self.stdout.write("Extraction task finished.")

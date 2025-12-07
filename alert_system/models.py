@@ -54,6 +54,10 @@ class BaseItem(models.Model):
 
     """
 
+    extraction_run_id = models.UUIDField(
+        null=True, blank=True, db_index=True, help_text="UUID field for tracking the extraction run through ETL pipeline"
+    )
+
     connector = models.ForeignKey(
         Connector,
         on_delete=models.CASCADE,
@@ -109,7 +113,7 @@ class ExtractionItem(BaseItem):
         return self.stac_id
 
 
-class LoadItems(BaseItem):
+class LoadItem(BaseItem):
     """
     Model for Load items.
     """
@@ -126,7 +130,9 @@ class LoadItems(BaseItem):
         help_text=_("Description of the event"),
     )
 
-    country = ArrayField(models.CharField(max_length=150), null=True, help_text="Country of the item")
+    country_codes = ArrayField(
+        models.CharField(max_length=150), null=True, help_text="List of country codes(ISO3) of afffected countries"
+    )
 
     severity_unit = models.CharField(
         max_length=100, null=True, blank=True, verbose_name=_("Severity Unit"), help_text=_("Unit of measurement for severity")

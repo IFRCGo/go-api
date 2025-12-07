@@ -2,7 +2,7 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Dict
 
-from alert_system.models import Connector, LoadItems
+from alert_system.models import Connector, LoadItem
 
 logger = logging.getLogger(__name__)
 
@@ -14,11 +14,7 @@ class BaseLoaderClass(ABC):
     def filter_eligible_items(self, load_obj):
         raise NotImplementedError()
 
-    # @abstractmethod
-    # def fetch_similar_past_events(self, load_obj):
-    #     raise NotImplementedError()
-
-    def load(self, transformed_data: Dict, connector: Connector, is_past_event: bool = False) -> LoadItems:
+    def load(self, transformed_data: Dict, connector: Connector, run_id: str, is_past_event: bool = False) -> LoadItem:
         """
         Save aggregated event.
 
@@ -32,13 +28,13 @@ class BaseLoaderClass(ABC):
         correlation_id = transformed_data["correlation_id"]
         is_item_eligible = self.filter_eligible_items(transformed_data)
 
-        load_obj, created = LoadItems.objects.update_or_create(
+        load_obj, created = LoadItem.objects.update_or_create(
             correlation_id=correlation_id,
             defaults={
                 "connector": connector,
                 "event_title": transformed_data.get("title"),
                 "event_description": transformed_data.get("description"),
-                "country": transformed_data.get("country"),
+                "country_codes": transformed_data.get("country"),
                 "severity_value": transformed_data.get("severity_value"),
                 "severity_label": transformed_data.get("severity_label"),
                 "severity_unit": transformed_data.get("severity_unit"),
@@ -47,6 +43,7 @@ class BaseLoaderClass(ABC):
                 "impact_metadata": transformed_data.get("impact_metadata"),
                 "item_eligible": is_item_eligible,
                 "is_past_event": is_past_event,
+                "extraction_run_id": run_id,
             },
         )
 
