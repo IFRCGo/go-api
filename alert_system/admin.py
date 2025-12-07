@@ -11,10 +11,18 @@ class ConnectorAdmin(admin.ModelAdmin):
 
 @admin.register(ExtractionItem)
 class EventAdmin(admin.ModelAdmin):
-    list_display = ("stac_id", "created_at", "collection")
+    list_display = (
+        "stac_id",
+        "created_at",
+        "collection",
+        "correlation_id",
+    )
     list_filter = ("connector", "collection")
     readonly_fields = ("connector",)
-    search_fields = ("stac_id",)
+    search_fields = (
+        "stac_id",
+        "correlation_id",
+    )
 
 
 @admin.register(LoadItems)
@@ -29,6 +37,14 @@ class LoadAdmin(admin.ModelAdmin):
     list_filter = (
         "connector",
         "item_eligible",
+        "is_past_event",
     )
-    readonly_fields = ("connector", "item_eligible")
-    search_fields = ("id",)
+    readonly_fields = (
+        "connector",
+        "item_eligible",
+        "related_events",
+    )
+    search_fields = (
+        "id",
+        "correlation_id",
+    )

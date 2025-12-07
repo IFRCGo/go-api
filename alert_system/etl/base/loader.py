@@ -14,7 +14,11 @@ class BaseLoaderClass(ABC):
     def filter_eligible_items(self, load_obj):
         raise NotImplementedError()
 
-    def load(self, transformed_data: Dict, connector: Connector) -> LoadItems:
+    # @abstractmethod
+    # def fetch_similar_past_events(self, load_obj):
+    #     raise NotImplementedError()
+
+    def load(self, transformed_data: Dict, connector: Connector, is_past_event: bool = False) -> LoadItems:
         """
         Save aggregated event.
 
@@ -42,6 +46,7 @@ class BaseLoaderClass(ABC):
                 "total_buildings_exposed": transformed_data.get("buildings_exposed"),
                 "impact_metadata": transformed_data.get("impact_metadata"),
                 "item_eligible": is_item_eligible,
+                "is_past_event": is_past_event,
             },
         )
 
