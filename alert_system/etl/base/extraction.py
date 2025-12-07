@@ -7,7 +7,7 @@ from typing import Dict, Generator, List, Optional
 import httpx
 from django.db import transaction
 
-from alert_system.models import Connector, ExtractionItem
+from alert_system.models import Connector, ExtractionItem, LoadItems
 
 from .loader import BaseLoaderClass
 from .transform import BaseTransformerClass
@@ -31,7 +31,8 @@ class BaseExtractionClass(ABC):
         self.connector = connector
         self.base_url = connector.source_url.rstrip("/")
 
-    def fetch_stac_data(self, url: str, filters: Optional[Dict] = None) -> Generator[Dict, None, None]:
+    @staticmethod
+    def fetch_stac_data(url: str, filters: Optional[Dict] = None) -> Generator[Dict, None, None]:
         """
         Fetch STAC data with pagination support.
 
@@ -58,6 +59,10 @@ class BaseExtractionClass(ABC):
     def get_loader_class(self) -> type[BaseLoaderClass]:
         raise NotImplementedError()
 
+    # @abc.abstractmethod
+    # def fetch_past_events(self, load_obj):
+    #     raise NotImplementedError()
+
     def _get_correlation_id(self, feature: Dict) -> str:
         """Extract correlation ID from feature properties."""
         return feature.get("properties", {}).get("monty:corr_id")
@@ -80,10 +85,10 @@ class BaseExtractionClass(ABC):
         now = datetime.now(timezone.utc)
         last_run = self.connector.last_success_run
 
-        start_time = last_run if last_run else (now - timedelta(days=15))
+        start_time = last_run if last_run else (now - timedelta(days=10))
         return f"{start_time.isoformat()}/{now.isoformat()}"
 
-    def _build_filter(self, base_filter: Optional[Dict], correlation_id: str) -> Dict:
+    def _build_filter(self, correlation_id: str, base_filter: Optional[Dict] = {}) -> Dict:
         """Build filter dict with correlation ID."""
         filters = base_filter.copy() if base_filter else {}
         filters["filter"] = f"monty:corr_id = '{correlation_id}'"
@@ -96,7 +101,7 @@ class BaseExtractionClass(ABC):
         """
         url = f"{self.base_url}{endpoint}"
         base_filter = getattr(self.connector, filter_attr, None)
-        filters = self._build_filter(base_filter, correlation_id)
+        filters = self._build_filter(correlation_id=correlation_id, base_filter=base_filter)
 
         return self.fetch_stac_data(url, filters)
 
@@ -165,11 +170,14 @@ class BaseExtractionClass(ABC):
         hazard_obj = self._save_stac_item(hazard_id, defaults, "hazard")
         return hazard_obj
 
-    def process_event_items(self) -> None:
+    def process_event_items(self, correlation_id: str | None = None, is_past_event: bool = False) -> None:
         """Process all event items from the connector source."""
         event_url = f"{self.base_url}{self.event_endpoint}"
-        event_filter = (self.filter_event or {}).copy()
-        event_filter["datetime"] = self.get_datetime_filter()
+        if not is_past_event:
+            event_filter = (self.filter_event or {}).copy()
+            event_filter["datetime"] = self.get_datetime_filter()
+        else:
+            event_filter = self._build_filter(correlation_id=correlation_id)
 
         transformer_class = self.get_transformer_class()
         loader_class = self.get_loader_class()
@@ -205,20 +213,75 @@ class BaseExtractionClass(ABC):
                     )
                     transformed_data = transformer.transform_stac_item()
 
-                loader.load(transformed_data, self.connector)
+                load_obj = loader.load(transformed_data, self.connector, is_past_event=is_past_event)
 
                 logger.info(f"Successfully processed event {event_id}")
+
+                if load_obj.item_eligible and not is_past_event:
+                    self.fetch_past_events(load_obj)
 
             except Exception as e:
                 logger.error(f"Failed to process event {event_id}: {e}", exc_info=True)
                 raise
 
-    def run(self) -> None:
+    def _construct_filter(self, impact_metadata: list[dict]) -> str:
+        filters = []
+
+        for detail in impact_metadata:
+            category = detail.get("category")
+            type_ = detail.get("type")
+            value = detail.get("value")
+
+            if category and type_ and value is not None:
+                filters.append(
+                    f"monty:impact_detail.category = '{category}' AND "
+                    f"monty:impact_detail.type = '{type_}' AND "
+                    f"monty:impact_detail.value >= {value}"
+                )
+
+        return " OR ".join(f"({f})" for f in filters) if filters else ""
+
+    def fetch_past_events(self, load_obj):
+        url = self.connector.source_url + self.impact_endpoint
+        filter_str = self._construct_filter(load_obj.impact_metadata)
+        filters = {"filter": filter_str}
+        start_time = datetime.now(timezone.utc) - timedelta(weeks=16)
+        filters["datetime"] = f"{start_time.isoformat()}/{datetime.now(timezone.utc).isoformat()}"
+        impact_data = self.fetch_stac_data(url=url, filters=filters)
+        load_obj_corr_id = load_obj.correlation_id
+        related_ids = []
+        logger.info(f"Fetching past event for event={load_obj.id}")
+        for feature in impact_data:
+            corr_id = self._get_correlation_id(feature)
+            # Skip the current correlation id
+            if not corr_id or corr_id == load_obj_corr_id:
+                continue
+
+            # Past event already exists → attach it
+            if LoadItems.objects.filter(correlation_id=corr_id).exists():
+                related_ids.append(LoadItems.objects.get(correlation_id=corr_id).id)
+                continue
+
+            # Otherwise extract + load it as past event
+            self.run(correlation_id=corr_id, is_past_event=True)
+
+            related_event_obj = LoadItems.objects.filter(correlation_id=corr_id).first()
+
+            if related_event_obj:
+                related_ids.append(related_event_obj.id)
+
+                # Add PARENT → CHILD link
+                related_event_obj.related_events.add(load_obj.id)
+        # Attach related events (M2M)
+        if related_ids:
+            load_obj.related_events.set(related_ids)
+
+    def run(self, correlation_id: str | None = None, is_past_event: bool = False) -> None:
         """Main entry point for running the connector."""
         logger.info(f"Starting connector run for {self.connector}")
 
         try:
-            self.process_event_items()
+            self.process_event_items(correlation_id, is_past_event)
             logger.info("Connector run completed successfully")
         except Exception as e:
             logger.error(f"Connector run failed: {e}", exc_info=True)

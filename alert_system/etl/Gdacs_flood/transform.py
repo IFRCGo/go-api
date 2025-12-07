@@ -24,29 +24,25 @@ class GdacsTransformer(BaseTransformerClass):
     }
 
     # NOTE: This logic might change in future
-    def compute_people_exposed(self, impacts: dict) -> int:
-        value = next(
-            (
-                impacts.get(key)
-                for key in ["people.affected_total", "people.potentially_affected", "people.affected_direct"]
-                if impacts.get(key)
-            ),
-            0,
-        )
-        if not isinstance(value, int):
-            logger.warning(f"people_exposed value is not int: {value}")
-            return 0
-        return value
+    def compute_people_exposed(self, metadata_list) -> int:
+        for m in metadata_list:
+            if m["category"] == "people" and m["type"] == "affected_total":
+                return m["value"]
+        return 0
 
     # NOTE: This logic might change in future
-    def compute_buildings_exposed(self, impacts: dict) -> int:
+    def compute_buildings_exposed(self, metadata_list) -> int:
         """
         Compute the 'buildings_exposed' field.
         """
-        return impacts.get("buildings.destroyed") or 0
+        for m in metadata_list:
+            if m["category"] == "buildings" and m["type"] == "damaged":
+                return m["value"]
+        return 0
 
     def process_impact(self, impact_items) -> BaseTransformerClass.ImpactType:
-        raw_impacts, metadata = {}, {}
+        metadata = []
+        largest_values_metadata = {}
         for item in impact_items:
             properties = item.resp_data.get("properties", {})
             impact_detail = properties.get("monty:impact_detail", {})
@@ -54,13 +50,20 @@ class GdacsTransformer(BaseTransformerClass):
             type_ = impact_detail.get("type")
             value = impact_detail.get("value")
             if category and type_:
-                field = self.IMPACT_MAP.get((category, type_)) or f"{category}.{type_}"
-                raw_impacts[field] = value
-                metadata[field] = impact_detail
+                key = (category, type_)
 
+                if key not in largest_values_metadata or value > largest_values_metadata[key]["value"]:
+                    largest_values_metadata[key] = {
+                        "category": category,
+                        "type": type_,
+                        "value": value,
+                        "unit": impact_detail.get("unit", ""),
+                        "estimate_type": impact_detail.get("estimate_type", ""),
+                    }
+        metadata.extend(largest_values_metadata.values())
         return {
-            "people_exposed": self.compute_people_exposed(raw_impacts),
-            "buildings_exposed": self.compute_buildings_exposed(raw_impacts),
+            "people_exposed": self.compute_people_exposed(metadata),
+            "buildings_exposed": self.compute_buildings_exposed(metadata),
             "impact_metadata": metadata,
         }
 
