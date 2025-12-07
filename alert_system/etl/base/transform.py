@@ -12,7 +12,7 @@ class BaseTransformerClass(ABC):
     class ImpactType(TypedDict):
         people_exposed: int
         buildings_exposed: int
-        impact_metadata: dict[str, dict]
+        impact_metadata: list
 
     class HazardType(TypedDict):
         severity_unit: str

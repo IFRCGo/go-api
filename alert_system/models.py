@@ -83,9 +83,9 @@ class ExtractionItem(BaseItem):
     """
 
     class CollectionType(models.IntegerChoices):
-        EVENT = 100, _("Impacts")
+        EVENT = 100, _("event")
         HAZARD = 200, _("Hazard")
-        IMPACT = 300, _("Impact")
+        IMPACT = 300, _("Impacts")
 
     collection = models.IntegerField(
         choices=CollectionType.choices,
@@ -166,6 +166,13 @@ class LoadItems(BaseItem):
     item_eligible = models.BooleanField(
         help_text=_("Is the item eligible for alerting"),
     )
+
+    is_past_event = models.BooleanField(
+        help_text=_("Is the item in load table a past event"),
+        default=False,
+    )
+
+    related_events = models.ManyToManyField("self", symmetrical=False, related_name="related_to", blank=True)
 
     class Meta:
         verbose_name = _("Eligible Item")
