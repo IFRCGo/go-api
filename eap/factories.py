@@ -1,4 +1,7 @@
+from datetime import datetime
+
 import factory
+import pytz
 from factory import fuzzy
 
 from eap.models import (
@@ -183,6 +186,7 @@ class FullEAPFactory(factory.django.DjangoModelFactory):
         model = FullEAP
 
     seap_timeframe = fuzzy.FuzzyInteger(5)
+    expected_submission_time = fuzzy.FuzzyDateTime(datetime(2025, 1, 1, tzinfo=pytz.utc))
     lead_time = fuzzy.FuzzyInteger(1, 100)
     total_budget = fuzzy.FuzzyInteger(1000, 1000000)
     readiness_budget = fuzzy.FuzzyInteger(1000, 1000000)
