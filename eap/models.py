@@ -1245,6 +1245,15 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         help_text=_("Explain which forecast's and observations will be used and why they are chosen"),
     )
 
+    forecast_table_file = models.ForeignKey(
+        EAPFile,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        verbose_name=_("Forecast Table File"),
+        related_name="forecast_table_file",
+    )
+
     forecast_selection_images = models.ManyToManyField(
         EAPFile,
         verbose_name=_("Forecast Selection Images"),
