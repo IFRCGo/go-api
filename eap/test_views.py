@@ -570,6 +570,13 @@ class EAPSimplifiedTestCase(APITestCase):
             EAPType.SIMPLIFIED_EAP,
         )
 
+        # Check latest simplified EAP in registration
+        eap_registration.refresh_from_db()
+        self.assertEqual(
+            eap_registration.latest_simplified_eap.id,
+            response.data["id"],
+        )
+
         # Cannot create Simplified EAP for the same EAP Registration again
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, 400)
@@ -1078,7 +1085,6 @@ class EAPStatusTransitionTestCase(APITestCase):
         )
         self.url = f"/api/v2/eap-registration/{self.eap_registration.id}/status/"
 
-    # TODO(susilnem): Update test case for file uploads once implemented
     def test_status_transition(self):
         # Create permissions
         management.call_command("make_permissions")
@@ -1125,6 +1131,8 @@ class EAPStatusTransitionTestCase(APITestCase):
                 modified_by=self.country_admin,
             ),
         )
+        self.eap_registration.latest_simplified_eap = simplified_eap
+        self.eap_registration.save()
 
         # SUCCESS: As Simplified EAP exists
         response = self.client.post(self.url, data, format="json")
@@ -1201,6 +1209,11 @@ class EAPStatusTransitionTestCase(APITestCase):
                 second_snapshot.updated_checklist_file.name,
                 "Latest Snapshot shouldn't have the updated checklist file.",
             )
+            # Check if the latest_simplified_eap is updated in EAPRegistration
+            self.assertEqual(
+                self.eap_registration.latest_simplified_eap.id,
+                second_snapshot.id,
+            )
 
         # NOTE: Transition to UNDER_REVIEW
         # NS_ADDRESSING_COMMENTS -> UNDER_REVIEW
@@ -1263,14 +1276,14 @@ class EAPStatusTransitionTestCase(APITestCase):
             )
 
             # Check version of the latest snapshot
-            # Version should be 2
+            # Version should be 3
             third_snapshot = eap_simplified_queryset.order_by("-version").first()
             assert third_snapshot is not None, "Third snapshot should not be None."
 
             self.assertEqual(
                 third_snapshot.version,
                 3,
-                "Latest snapshot version should be 2.",
+                "Latest snapshot version should be 3.",
             )
             # Check for parent_id
             self.assertEqual(
@@ -1286,6 +1299,13 @@ class EAPStatusTransitionTestCase(APITestCase):
             self.assertFalse(
                 third_snapshot.updated_checklist_file.name,
                 "Latest snapshot shouldn't have the updated checklist file.",
+            )
+
+            # Check if the latest_simplified_eap is updated in EAPRegistration
+            self.eap_registration.refresh_from_db()
+            self.assertEqual(
+                self.eap_registration.latest_simplified_eap.id,
+                third_snapshot.id,
             )
 
         # NOTE: Again Transition to UNDER_REVIEW
@@ -1335,10 +1355,127 @@ class EAPStatusTransitionTestCase(APITestCase):
             self.eap_registration.technically_validated_at,
         )
 
-        # NOTE: Transition to APPROVED
-        # TECHNICALLY_VALIDATED -> APPROVED
+        # AGAIN NOTE: Transition to NS_ADDRESSING_COMMENTS
         data = {
-            "status": EAPStatus.APPROVED,
+            "status": EAPStatus.NS_ADDRESSING_COMMENTS,
+        }
+
+        # Uploading checklist file
+        # Create a temporary .xlsx file for testing
+        with tempfile.NamedTemporaryFile(suffix=".xlsx") as tmp_file:
+            tmp_file.write(b"Test content")
+            tmp_file.seek(0)
+
+            data["review_checklist_file"] = tmp_file
+
+            response = self.client.post(self.url, data, format="multipart")
+            self.assertEqual(response.status_code, 200, response.data)
+            self.assertEqual(response.data["status"], EAPStatus.NS_ADDRESSING_COMMENTS)
+
+            # Check if four snapshots are created now
+            self.eap_registration.refresh_from_db()
+            eap_simplified_queryset = SimplifiedEAP.objects.filter(
+                eap_registration=self.eap_registration,
+            )
+            self.assertEqual(
+                eap_simplified_queryset.count(),
+                4,
+                "There should be four snapshots created.",
+            )
+
+            # Check version of the latest snapshot
+            # Version should be 4
+            fourth_snapshot = eap_simplified_queryset.order_by("-version").first()
+            assert fourth_snapshot is not None, "fourth snapshot should not be None."
+
+            self.assertEqual(
+                fourth_snapshot.version,
+                4,
+                "Latest snapshot version should be 4.",
+            )
+            # Check for parent_id
+            self.assertEqual(
+                fourth_snapshot.parent_id,
+                third_snapshot.id,
+                "Latest snapshot's parent_id should be the third Snapshot id.",
+            )
+
+            # Check if the second snapshot is locked.
+            third_snapshot.refresh_from_db()
+            self.assertTrue(third_snapshot.is_locked)
+            # Snapshot Shouldn't have the updated checklist file
+            self.assertFalse(
+                fourth_snapshot.updated_checklist_file.name,
+                "Latest snapshot shouldn't have the updated checklist file.",
+            )
+
+            # Check if the latest_simplified_eap is updated in EAPRegistration
+            self.eap_registration.refresh_from_db()
+            self.assertEqual(
+                self.eap_registration.latest_simplified_eap.id,
+                fourth_snapshot.id,
+            )
+
+        # NOTE: NS Updates the latest changes on the fourth snapshot and update checklist file
+
+        # NOTE: Again Transition to UNDER_REVIEW
+        # NS_ADDRESSING_COMMENTS -> UNDER_REVIEW
+        data = {
+            "status": EAPStatus.UNDER_REVIEW,
+        }
+
+        # Upload updated checklist file
+        # UPDATES on the second snapshot
+        url = f"/api/v2/simplified-eap/{fourth_snapshot.id}/"
+        with tempfile.NamedTemporaryFile(suffix=".xlsx") as tmp_file:
+            tmp_file.write(b"Updated Test content")
+            tmp_file.seek(0)
+
+            file_data = {
+                "prioritized_hazard_and_impact": "Floods with potential heavy impact.",
+                "risks_selected_protocols": "Protocol A and Protocol B.",
+                "selected_early_actions": "The early actions selected.",
+                "overall_objective_intervention": "To reduce risks through early actions.",
+                "eap_registration": third_snapshot.eap_registration_id,
+                "updated_checklist_file": tmp_file,
+            }
+
+            response = self.client.patch(url, file_data, format="multipart")
+            self.assertEqual(response.status_code, 200)
+
+        # SUCCESS:
+        self.authenticate(self.country_admin)
+        response = self.client.post(self.url, data, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["status"], EAPStatus.UNDER_REVIEW)
+
+        # NOTE: Transition to TECHNICALLY_VALIDATED
+        # UNDER_REVIEW -> TECHNICALLY_VALIDATED
+        data = {
+            "status": EAPStatus.TECHNICALLY_VALIDATED,
+        }
+
+        # Login as NS user
+        # FAILS: As only ifrc admins or superuser can
+        self.authenticate(self.country_admin)
+        response = self.client.post(self.url, data, format="json")
+        self.assertEqual(response.status_code, 400)
+
+        # Login as IFRC admin user
+        # SUCCESS: As only ifrc admins or superuser can
+        self.authenticate(self.ifrc_admin_user)
+        response = self.client.post(self.url, data, format="json")
+        self.assertEqual(response.status_code, 200, response.data)
+        self.assertEqual(response.data["status"], EAPStatus.TECHNICALLY_VALIDATED)
+        self.eap_registration.refresh_from_db()
+        self.assertIsNotNone(
+            self.eap_registration.technically_validated_at,
+        )
+
+        # NOTE: Transition to APPROVED
+        # TECHNICALLY_VALIDATED -> PENDING_PFA
+        data = {
+            "status": EAPStatus.PENDING_PFA,
         }
 
         # LOGIN as country admin user
@@ -1364,19 +1501,19 @@ class EAPStatusTransitionTestCase(APITestCase):
 
         # LOGIN as IFRC admin user
         # SUCCESS: As only ifrc admins or superuser can
-        self.assertIsNone(self.eap_registration.approved_at)
+        self.assertIsNone(self.eap_registration.pending_pfa_at)
         self.authenticate(self.ifrc_admin_user)
         response = self.client.post(self.url, data, format="json")
         self.assertEqual(response.status_code, 200, response.data)
-        self.assertEqual(response.data["status"], EAPStatus.APPROVED)
+        self.assertEqual(response.data["status"], EAPStatus.PENDING_PFA)
         # Check is the approved timeline is added
         self.eap_registration.refresh_from_db()
-        self.assertIsNotNone(self.eap_registration.approved_at)
+        self.assertIsNotNone(self.eap_registration.pending_pfa_at)
 
-        # NOTE: Transition to PFA_SIGNED
-        # APPROVED -> PFA_SIGNED
+        # NOTE: Transition to APPROVED
+        # PENDING_PFA -> APPROVED
         data = {
-            "status": EAPStatus.PFA_SIGNED,
+            "status": EAPStatus.APPROVED,
         }
 
         # LOGIN as country admin user
@@ -1387,17 +1524,17 @@ class EAPStatusTransitionTestCase(APITestCase):
 
         # LOGIN as IFRC admin user
         # SUCCESS: As only ifrc admins or superuser can
-        self.assertIsNone(self.eap_registration.activated_at)
+        self.assertIsNone(self.eap_registration.approved_at)
         self.authenticate(self.ifrc_admin_user)
         response = self.client.post(self.url, data, format="json")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["status"], EAPStatus.PFA_SIGNED)
+        self.assertEqual(response.data["status"], EAPStatus.APPROVED)
         # Check is the pfa_signed timeline is added
         self.eap_registration.refresh_from_db()
-        self.assertIsNotNone(self.eap_registration.pfa_signed_at)
+        self.assertIsNotNone(self.eap_registration.approved_at)
 
         # NOTE: Transition to ACTIVATED
-        # PFA_SIGNED -> ACTIVATED
+        # APPROVED -> ACTIVATED
         data = {
             "status": EAPStatus.ACTIVATED,
         }
@@ -1601,6 +1738,7 @@ class EAPFullTestCase(APITestCase):
             "total_budget": 10000,
             "objective": "FUll eap objective",
             "lead_time": 5,
+            "expected_submission_time": "2024-12-31",
             "seap_timeframe": 5,
             "readiness_budget": 3000,
             "pre_positioning_budget": 4000,
@@ -1753,6 +1891,13 @@ class EAPFullTestCase(APITestCase):
         self.assertFalse(
             response.data["is_locked"],
             "Newly created Full EAP should not be locked.",
+        )
+
+        # Check latest simplified EAP in registration
+        eap_registration.refresh_from_db()
+        self.assertEqual(
+            eap_registration.latest_full_eap.id,
+            response.data["id"],
         )
 
         # Cannot create Full EAP for the same EAP Registration again
