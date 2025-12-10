@@ -276,6 +276,7 @@ class FullEAPViewSet(EAPModelViewSet):
                 "activation_process_relevant_files",
                 "meal_relevant_files",
                 "capacity_relevant_files",
+                "forecast_table_file",
                 Prefetch(
                     "key_actors",
                     queryset=KeyActor.objects.select_related("national_society"),
