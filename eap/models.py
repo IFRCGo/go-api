@@ -523,15 +523,17 @@ class EAPStatus(models.IntegerChoices):
 
     TECHNICALLY_VALIDATED = 40, _("Technically Validated")
     """EAP has been technically validated by IFRC and/or technical partners.
+    IFRC can change status to NS_ADDRESSING_COMMENTS or PENDING_PFA.
     """
 
-    APPROVED = 50, _("Approved")
+    PENDING_PFA = 50, _("Pending PFA")
+    """EAP is in the process of signing the PFA between IFRC and NS.
+    """
+
+    APPROVED = 60, _("Approved")
     """IFRC has to upload validated budget file.
     Cannot be changed back to previous statuses.
     """
-
-    PFA_SIGNED = 60, _("PFA Signed")
-    """EAP should be APPROVED before changing to this status."""
 
     ACTIVATED = 70, _("Activated")
     """EAP has been activated"""
@@ -615,6 +617,24 @@ class EAPRegistration(EAPBaseModel):
         blank=True,
     )
 
+    # Latest EAPs
+    latest_simplified_eap = models.ForeignKey(
+        "SimplifiedEAP",
+        on_delete=models.SET_NULL,
+        verbose_name=_("Latest Simplified EAP"),
+        related_name="+",
+        null=True,
+        blank=True,
+    )
+    latest_full_eap = models.ForeignKey(
+        "FullEAP",
+        on_delete=models.SET_NULL,
+        verbose_name=_("Latest Full EAP"),
+        related_name="+",
+        null=True,
+        blank=True,
+    )
+
     # Contacts
     # National Society
     national_society_contact_name = models.CharField(
@@ -659,11 +679,11 @@ class EAPRegistration(EAPBaseModel):
         verbose_name=_("approved at"),
         help_text=_("Timestamp when the EAP was approved."),
     )
-    pfa_signed_at = models.DateTimeField(
+    pending_pfa_at = models.DateTimeField(
         null=True,
         blank=True,
-        verbose_name=_("PFA signed at"),
-        help_text=_("Timestamp when the PFA was signed."),
+        verbose_name=_("pending pfa at"),
+        help_text=_("Timestamp when the EAP was marked as pending PFA."),
     )
     activated_at = models.DateTimeField(
         null=True,
@@ -1103,6 +1123,11 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         on_delete=models.CASCADE,
         verbose_name=_("EAP Development Registration"),
         related_name="full_eap",
+    )
+
+    expected_submission_time = models.DateField(
+        verbose_name=_("Expected submission time"),
+        help_text=_("Include the propose time of submission, accounting for the time it will take to deliver the application."),
     )
 
     objective = models.TextField(
