@@ -549,21 +549,6 @@ class FullEAPSerializer(
     evidence_base_source_of_information = SourceInformationSerializer(many=True, required=False)
     activation_process_source_of_information = SourceInformationSerializer(many=True, required=False)
 
-    # NOTE: When adding new image fields, include their names in IMAGE_FIELDS below
-    # if the image fields are to be validated against the MAX_NUMBER_OF_IMAGES limit.
-
-    IMAGE_FIELDS = [
-        "hazard_selection_images",
-        "exposed_element_and_vulnerability_factor_images",
-        "prioritized_impact_images",
-        "forecast_selection_images",
-        "definition_and_justification_impact_level_images",
-        "identification_of_the_intervention_area_images",
-        "early_action_selection_process_images",
-        "early_action_implementation_images",
-        "trigger_activation_system_images",
-    ]
-
     # IMAGES
     hazard_selection_images = EAPFileUpdateSerializer(
         many=True,
@@ -612,6 +597,13 @@ class FullEAPSerializer(
     )
 
     # FILES
+    forecast_table_file_details = EAPFileSerializer(source="forecast_table_file", read_only=True)
+    forecast_table_file = serializers.PrimaryKeyRelatedField(
+        queryset=EAPFile.objects.all(),
+        required=True,
+        allow_null=False,
+    )
+
     theory_of_change_table_file_details = EAPFileSerializer(source="theory_of_change_table_file", read_only=True)
     risk_analysis_relevant_files_details = EAPFileSerializer(source="risk_analysis_relevant_files", many=True, read_only=True)
     evidence_base_relevant_files_details = EAPFileSerializer(source="evidence_base_relevant_files", many=True, read_only=True)
@@ -621,6 +613,21 @@ class FullEAPSerializer(
     trigger_model_relevant_files_details = EAPFileSerializer(source="trigger_model_relevant_files", many=True, read_only=True)
     meal_relevant_files_details = EAPFileSerializer(source="meal_relevant_files", many=True, read_only=True)
     capacity_relevant_files_details = EAPFileSerializer(source="capacity_relevant_files", many=True, read_only=True)
+
+    # NOTE: When adding new image fields, include their names in IMAGE_FIELDS below
+    # if the image fields are to be validated against the MAX_NUMBER_OF_IMAGES limit.
+
+    IMAGE_FIELDS = [
+        "hazard_selection_images",
+        "exposed_element_and_vulnerability_factor_images",
+        "prioritized_impact_images",
+        "forecast_selection_images",
+        "definition_and_justification_impact_level_images",
+        "identification_of_the_intervention_area_images",
+        "early_action_selection_process_images",
+        "early_action_implementation_images",
+        "trigger_activation_system_images",
+    ]
 
     class Meta:
         model = FullEAP

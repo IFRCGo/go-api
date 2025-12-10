@@ -1732,9 +1732,15 @@ class EAPFullTestCase(APITestCase):
             created_by=self.country_admin,
             modified_by=self.country_admin,
         )
+        forecast_table_file = EAPFileFactory._create_file(
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
+        )
+
         data = {
             "eap_registration": eap_registration.id,
             "budget_file": budget_file_instance.id,
+            "forecast_table_file": forecast_table_file.id,
             "total_budget": 10000,
             "objective": "FUll eap objective",
             "lead_time": 5,
