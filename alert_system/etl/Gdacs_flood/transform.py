@@ -1,5 +1,4 @@
 import logging
-from typing import Dict, Tuple
 
 from alert_system.etl.base.transform import BaseTransformerClass
 
@@ -11,17 +10,6 @@ class GdacsTransformer(BaseTransformerClass):
     Transformer for GDACS STAC impacts.
     Extracts and normalizes impact fields, computes derived values, and stores metadata.
     """
-
-    # Mapping of (category, type) → flattened key
-    IMPACT_MAP: Dict[Tuple[str, str], str] = {
-        ("people", "potentially_affected"): "people.potentially_affected",
-        ("people", "death"): "people.death",
-        ("people", "affected_total"): "people.affected_total",
-        ("people", "affected_direct"): "people.affected_direct",
-        ("people", "affected_indirect"): "people.affected_indirect",
-        ("people", "highest_risk"): "people.highest_risk",
-        ("buildings", "destroyed"): "buildings.destroyed",
-    }
 
     # NOTE: This logic might change in future
     def compute_people_exposed(self, impacts: dict) -> int:
@@ -45,6 +33,7 @@ class GdacsTransformer(BaseTransformerClass):
         """
         return impacts.get("buildings.destroyed") or 0
 
+    # NOTE: This logic will change with changes in montandon.
     def process_impact(self, impact_items) -> BaseTransformerClass.ImpactType:
         raw_impacts, metadata = {}, {}
         for item in impact_items:
