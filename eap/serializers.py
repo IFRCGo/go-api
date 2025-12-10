@@ -16,6 +16,7 @@ from eap.models import (
     DaysTimeFrameChoices,
     EAPAction,
     EAPFile,
+    EAPImpact,
     EAPRegistration,
     EAPType,
     EnableApproach,
@@ -45,7 +46,7 @@ ALLOWED_FILE_EXTENTIONS: list[str] = ["pdf", "docx", "pptx", "xlsx"]
 class BaseEAPSerializer(serializers.ModelSerializer):
     def get_fields(self):
         fields = super().get_fields()
-        # NOTE: Setting `created_by` and `modified_by` required to Flase
+        # NOTE: Setting `created_by` and `modified_by` required to False
         fields["created_by"] = serializers.PrimaryKeyRelatedField(
             queryset=User.objects.all(),
             required=False,
@@ -174,6 +175,8 @@ class EAPRegistrationSerializer(
             "modified_at",
             "created_by",
             "modified_by",
+            "latest_simplified_eap",
+            "latest_full_eap",
         ]
 
     def update(self, instance: EAPRegistration, validated_data: dict[str, typing.Any]) -> dict[str, typing.Any]:
@@ -375,7 +378,7 @@ class ImpactSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
 
     class Meta:
-        model = EAPAction
+        model = EAPImpact
         fields = "__all__"
 
 
@@ -399,9 +402,12 @@ class CommonEAPFieldsSerializer(serializers.ModelSerializer):
         fields["budget_file_details"] = EAPFileSerializer(source="budget_file", read_only=True)
         return fields
 
-    def validate_images_field(self, images):
+    def validate_images_field(self, field_name, images):
         if images and len(images) > self.MAX_NUMBER_OF_IMAGES:
-            raise serializers.ValidationError(f"Maximum {self.MAX_NUMBER_OF_IMAGES} images are allowed.")
+            raise serializers.ValidationError(
+                {field_name: [f"Maximum {self.MAX_NUMBER_OF_IMAGES} images are allowed."]},
+            )
+
         validate_file_type(images)
         return images
 
@@ -422,6 +428,17 @@ class SimplifiedEAPSerializer(
     seap_lead_timeframe_unit_display = serializers.CharField(source="get_seap_lead_timeframe_unit_display", read_only=True)
     operational_timeframe_unit_display = serializers.CharField(source="get_operational_timeframe_unit_display", read_only=True)
 
+    # IMAGES
+
+    # NOTE: When adding new image fields, include their names in IMAGE_FIELDS below
+    # if the image fields are to be validated against the MAX_NUMBER_OF_IMAGES limit.
+
+    IMAGE_FIELDS = [
+        "hazard_impact_images",
+        "selected_early_actions_images",
+        "risk_selected_protocols_images",
+    ]
+
     class Meta:
         model = SimplifiedEAP
         read_only_fields = [
@@ -429,18 +446,6 @@ class SimplifiedEAPSerializer(
             "is_locked",
         ]
         exclude = ("cover_image",)
-
-    def validate_hazard_impact_images(self, images):
-        self.validate_images_field(images)
-        return images
-
-    def validate_risk_selected_protocols_images(self, images):
-        self.validate_images_field(images)
-        return images
-
-    def validate_selected_early_actions_images(self, images):
-        self.validate_images_field(images)
-        return images
 
     def _validate_timeframe(self, data: dict[str, typing.Any]) -> None:
         # --- seap lead TimeFrame ---
@@ -506,12 +511,21 @@ class SimplifiedEAPSerializer(
         eap_type = eap_registration.get_eap_type_enum
         if eap_type and eap_type != EAPType.SIMPLIFIED_EAP:
             raise serializers.ValidationError("Cannot create Simplified EAP for non-simplified EAP registration.")
+
+        # Validate timeframe fields
         self._validate_timeframe(data)
+
+        # Validate all image fields in one place
+        for field in self.IMAGE_FIELDS:
+            if field in data:
+                self.validate_images_field(field, data[field])
         return data
 
     def create(self, validated_data: dict[str, typing.Any]):
         instance: SimplifiedEAP = super().create(validated_data)
         instance.eap_registration.update_eap_type(EAPType.SIMPLIFIED_EAP)
+        instance.eap_registration.latest_simplified_eap = instance
+        instance.eap_registration.save(update_fields=["latest_simplified_eap"])
         return instance
 
 
@@ -534,6 +548,21 @@ class FullEAPSerializer(
     trigger_model_source_of_information = SourceInformationSerializer(many=True, required=False)
     evidence_base_source_of_information = SourceInformationSerializer(many=True, required=False)
     activation_process_source_of_information = SourceInformationSerializer(many=True, required=False)
+
+    # NOTE: When adding new image fields, include their names in IMAGE_FIELDS below
+    # if the image fields are to be validated against the MAX_NUMBER_OF_IMAGES limit.
+
+    IMAGE_FIELDS = [
+        "hazard_selection_images",
+        "exposed_element_and_vulnerability_factor_images",
+        "prioritized_impact_images",
+        "forecast_selection_images",
+        "definition_and_justification_impact_level_images",
+        "identification_of_the_intervention_area_images",
+        "early_action_selection_process_images",
+        "early_action_implementation_images",
+        "trigger_activation_system_images",
+    ]
 
     # IMAGES
     hazard_selection_images = EAPFileUpdateSerializer(
@@ -601,19 +630,6 @@ class FullEAPSerializer(
         )
         exclude = ("cover_image",)
 
-    # TODO(susilnem): Add validation for multiple image fields similar to SimplifiedEAP
-    def validate_hazard_selection_images(self, images):
-        self.validate_images_field(images)
-        return images
-
-    def validate_exposed_element_and_vulnerability_factor_files(self, images):
-        self.validate_images_field(images)
-        return images
-
-    def validate_prioritized_impact_images(self, images):
-        self.validate_images_field(images)
-        return images
-
     def validate(self, data: dict[str, typing.Any]) -> dict[str, typing.Any]:
         original_eap_registration = getattr(self.instance, "eap_registration", None) if self.instance else None
         eap_registration: EAPRegistration | None = data.get("eap_registration", original_eap_registration)
@@ -632,7 +648,19 @@ class FullEAPSerializer(
         eap_type = eap_registration.get_eap_type_enum
         if eap_type and eap_type != EAPType.FULL_EAP:
             raise serializers.ValidationError("Cannot create Full EAP for non-full EAP registration.")
+
+        # Validate all image fields in one place
+        for field in self.IMAGE_FIELDS:
+            if field in data:
+                self.validate_images_field(field, data[field])
         return data
+
+    def create(self, validated_data: dict[str, typing.Any]):
+        instance: FullEAP = super().create(validated_data)
+        instance.eap_registration.update_eap_type(EAPType.FULL_EAP)
+        instance.eap_registration.latest_full_eap = instance
+        instance.eap_registration.save(update_fields=["latest_full_eap"])
+        return instance
 
 
 # STATUS TRANSITION SERIALIZER
@@ -643,15 +671,17 @@ VALID_NS_EAP_STATUS_TRANSITIONS = set(
     ]
 )
 
+
 VALID_IFRC_EAP_STATUS_TRANSITIONS = set(
     [
         (EAPRegistration.Status.UNDER_DEVELOPMENT, EAPRegistration.Status.UNDER_REVIEW),
         (EAPRegistration.Status.UNDER_REVIEW, EAPRegistration.Status.NS_ADDRESSING_COMMENTS),
         (EAPRegistration.Status.NS_ADDRESSING_COMMENTS, EAPRegistration.Status.UNDER_REVIEW),
         (EAPRegistration.Status.UNDER_REVIEW, EAPRegistration.Status.TECHNICALLY_VALIDATED),
-        (EAPRegistration.Status.TECHNICALLY_VALIDATED, EAPRegistration.Status.APPROVED),
-        (EAPRegistration.Status.APPROVED, EAPRegistration.Status.PFA_SIGNED),
-        (EAPRegistration.Status.PFA_SIGNED, EAPRegistration.Status.ACTIVATED),
+        (EAPRegistration.Status.TECHNICALLY_VALIDATED, EAPRegistration.Status.NS_ADDRESSING_COMMENTS),
+        (EAPRegistration.Status.TECHNICALLY_VALIDATED, EAPRegistration.Status.PENDING_PFA),
+        (EAPRegistration.Status.PENDING_PFA, EAPRegistration.Status.APPROVED),
+        (EAPRegistration.Status.APPROVED, EAPRegistration.Status.ACTIVATED),
     ]
 )
 
@@ -688,10 +718,12 @@ class EAPStatusSerializer(BaseEAPSerializer):
                 % (EAPRegistration.Status(current_status).label, EAPRegistration.Status(new_status).label)
             )
 
-        if (current_status, new_status) == (
-            EAPRegistration.Status.UNDER_REVIEW,
-            EAPRegistration.Status.NS_ADDRESSING_COMMENTS,
-        ):
+        # NOTE: IFRC Admins should be able to transition from TECHNICALLY_VALIDATED
+        # to NS_ADDRESSING_COMMENTS to allow NS users to update their EAP changes after validated budget has been set.
+        if (current_status, new_status) in [
+            (EAPRegistration.Status.UNDER_REVIEW, EAPRegistration.Status.NS_ADDRESSING_COMMENTS),
+            (EAPRegistration.Status.TECHNICALLY_VALIDATED, EAPRegistration.Status.NS_ADDRESSING_COMMENTS),
+        ]:
             if not is_user_ifrc_admin(user):
                 raise PermissionDenied(
                     gettext("You do not have permission to change status to %s.") % EAPRegistration.Status(new_status).label
@@ -703,15 +735,15 @@ class EAPStatusSerializer(BaseEAPSerializer):
                     % EAPRegistration.Status(new_status).label
                 )
 
-            # latest Simplified EAP
-            eap_instance = SimplifiedEAP.objects.filter(eap_registration=self.instance).order_by("-version").first()
-
-            # If no Simplified EAP, check for Full EAP
-            if not eap_instance:
-                eap_instance = FullEAP.objects.filter(eap_registration=self.instance).order_by("-version").first()
-
-            assert eap_instance is not None, "EAP instance does not exist."
-            eap_instance.generate_snapshot()
+            # latest EAP
+            if self.instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP:
+                snapshot_instance = self.instance.latest_simplified_eap.generate_snapshot()
+                self.instance.latest_simplified_eap = snapshot_instance
+                self.instance.save(update_fields=["latest_simplified_eap"])
+            else:
+                snapshot_instance = self.instance.latest_full_eap.generate_snapshot()
+                self.instance.latest_full_eap = snapshot_instance
+                self.instance.save(update_fields=["latest_full_eap"])
 
         elif (current_status, new_status) == (
             EAPRegistration.Status.UNDER_REVIEW,
@@ -739,24 +771,38 @@ class EAPStatusSerializer(BaseEAPSerializer):
                     gettext("You do not have permission to change status to %s.") % EAPRegistration.Status(new_status).label
                 )
 
-            latest_simplified_eap: SimplifiedEAP | None = (
-                SimplifiedEAP.objects.filter(
-                    eap_registration=self.instance,
-                )
-                .order_by("-version")
-                .first()
-            )
+            # Check latest EAP has NS Addressing Comments file uploaded
+            if self.instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP:
+                if not (self.instance.latest_simplified_eap and self.instance.latest_simplified_eap.updated_checklist_file):
+                    raise serializers.ValidationError(
+                        gettext("NS Addressing Comments file must be uploaded before changing status to %s.")
+                        % EAPRegistration.Status(new_status).label
+                    )
+            else:
+                if not (self.instance.latest_full_eap and self.instance.latest_full_eap.updated_checklist_file):
+                    raise serializers.ValidationError(
+                        gettext("NS Addressing Comments file must be uploaded before changing status to %s.")
+                        % EAPRegistration.Status(new_status).label
+                    )
 
-            # TODO(susilnem): Add checks for FULL EAP
-            if not (latest_simplified_eap and latest_simplified_eap.updated_checklist_file):
+        elif (current_status, new_status) == (
+            EAPRegistration.Status.TECHNICALLY_VALIDATED,
+            EAPRegistration.Status.NS_ADDRESSING_COMMENTS,
+        ):
+            if not is_user_ifrc_admin(user):
+                raise PermissionDenied(
+                    gettext("You do not have permission to change status to %s.") % EAPRegistration.Status(new_status).label
+                )
+
+            if not validated_data.get("review_checklist_file"):
                 raise serializers.ValidationError(
-                    gettext("NS Addressing Comments file must be uploaded before changing status to %s.")
+                    gettext("Review checklist file must be uploaded before changing status to %s.")
                     % EAPRegistration.Status(new_status).label
                 )
 
         elif (current_status, new_status) == (
             EAPRegistration.Status.TECHNICALLY_VALIDATED,
-            EAPRegistration.Status.APPROVED,
+            EAPRegistration.Status.PENDING_PFA,
         ):
             if not is_user_ifrc_admin(user):
                 raise PermissionDenied(
@@ -770,6 +816,18 @@ class EAPStatusSerializer(BaseEAPSerializer):
                 )
 
             # Update timestamp
+            self.instance.pending_pfa_at = timezone.now()
+            self.instance.save(
+                update_fields=[
+                    "pending_pfa_at",
+                ]
+            )
+
+        elif (current_status, new_status) == (
+            EAPRegistration.Status.PENDING_PFA,
+            EAPRegistration.Status.APPROVED,
+        ):
+            # Update timestamp
             self.instance.approved_at = timezone.now()
             self.instance.save(
                 update_fields=[
@@ -779,18 +837,6 @@ class EAPStatusSerializer(BaseEAPSerializer):
 
         elif (current_status, new_status) == (
             EAPRegistration.Status.APPROVED,
-            EAPRegistration.Status.PFA_SIGNED,
-        ):
-            # Update timestamp
-            self.instance.pfa_signed_at = timezone.now()
-            self.instance.save(
-                update_fields=[
-                    "pfa_signed_at",
-                ]
-            )
-
-        elif (current_status, new_status) == (
-            EAPRegistration.Status.PFA_SIGNED,
             EAPRegistration.Status.ACTIVATED,
         ):
             # Update timestamp

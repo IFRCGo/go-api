@@ -185,17 +185,16 @@ class SimplifiedEAPViewSet(EAPModelViewSet):
             .select_related(
                 "created_by",
                 "modified_by",
-                "cover_image",
-                "budget_file",
+                "cover_image__created_by",
+                "cover_image__modified_by",
+                "budget_file__created_by",
+                "budget_file__modified_by",
                 "eap_registration__country",
                 "eap_registration__disaster_type",
             )
             .prefetch_related(
                 "eap_registration__partners",
                 "admin2",
-                "hazard_impact_images",
-                "risk_selected_protocols_images",
-                "selected_early_actions_images",
                 Prefetch(
                     "planned_operations",
                     queryset=PlannedOperation.objects.prefetch_related(
@@ -213,6 +212,18 @@ class SimplifiedEAPViewSet(EAPModelViewSet):
                         "prepositioning_activities",
                         "early_action_activities",
                     ),
+                ),
+                Prefetch(
+                    "hazard_impact_images",
+                    queryset=EAPFile.objects.select_related("created_by", "modified_by"),
+                ),
+                Prefetch(
+                    "risk_selected_protocols_images",
+                    queryset=EAPFile.objects.select_related("created_by", "modified_by"),
+                ),
+                Prefetch(
+                    "selected_early_actions_images",
+                    queryset=EAPFile.objects.select_related("created_by", "modified_by"),
                 ),
             )
         )
