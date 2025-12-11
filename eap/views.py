@@ -1,6 +1,5 @@
 # Create your views here.
-from django.db.models import Case, IntegerField, Subquery, When
-from django.db.models.expressions import OuterRef
+from django.db.models import Case, F, IntegerField, When
 from django.db.models.query import Prefetch, QuerySet
 from drf_spectacular.utils import extend_schema
 from rest_framework import mixins, permissions, response, status, viewsets
@@ -58,18 +57,6 @@ class ActiveEAPViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     filterset_class = EAPRegistrationFilterSet
 
     def get_queryset(self) -> QuerySet[EAPRegistration]:
-        latest_simplified_eap = (
-            SimplifiedEAP.objects.filter(eap_registration=OuterRef("id"), is_locked=False)
-            .order_by("-version")
-            .values("total_budget")[:1]
-        )
-
-        latest_full_eap = (
-            FullEAP.objects.filter(eap_registration=OuterRef("id"), is_locked=False)
-            .order_by("-version")
-            .values("total_budget")[:1]
-        )
-
         return (
             super()
             .get_queryset()
@@ -79,11 +66,11 @@ class ActiveEAPViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
                 requirement_cost=Case(
                     When(
                         eap_type=EAPType.SIMPLIFIED_EAP,
-                        then=Subquery(latest_simplified_eap),
+                        then=F("latest_simplified_eap__total_budget"),
                     ),
                     When(
                         eap_type=EAPType.FULL_EAP,
-                        then=Subquery(latest_full_eap),
+                        then=F("latest_full_eap__total_budget"),
                     ),
                     output_field=IntegerField(),
                 )
