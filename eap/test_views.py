@@ -260,6 +260,7 @@ class EAPRegistrationTestCase(APITestCase):
         )
         EAPRegistrationFactory.create(
             country=self.country,
+            eap_type=None,
             national_society=self.national_society,
             disaster_type=self.disaster_type,
             partners=[self.partner1.id, self.partner2.id],
@@ -270,6 +271,7 @@ class EAPRegistrationTestCase(APITestCase):
 
         EAPRegistrationFactory.create(
             country=self.country,
+            eap_type=None,
             national_society=self.national_society,
             disaster_type=self.disaster_type,
             partners=[self.partner1.id, self.partner2.id],
@@ -316,6 +318,8 @@ class EAPRegistrationTestCase(APITestCase):
             is_locked=False,
             version=3,
         )
+        eap_registration_1.latest_full_eap = full_eap_snapshot_2
+        eap_registration_1.save()
 
         simplifed_eap_1 = SimplifiedEAPFactory.create(
             eap_registration=eap_registration_1,
@@ -327,6 +331,9 @@ class EAPRegistrationTestCase(APITestCase):
                 modified_by=self.country_admin,
             ),
         )
+        eap_registration_2.latest_simplified_eap = simplifed_eap_1
+        eap_registration_2.save()
+
         simplifed_eap_snapshot_1 = SimplifiedEAPFactory.create(
             eap_registration=eap_registration_2,
             total_budget=10_000,
@@ -354,6 +361,8 @@ class EAPRegistrationTestCase(APITestCase):
             is_locked=False,
             version=3,
         )
+        eap_registration_2.latest_simplified_eap = simplifed_eap_snapshot_2
+        eap_registration_2.save()
 
         url = "/api/v2/active-eap/"
         self.authenticate()
