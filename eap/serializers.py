@@ -407,8 +407,6 @@ class CommonEAPFieldsSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {field_name: [f"Maximum {self.MAX_NUMBER_OF_IMAGES} images are allowed."]},
             )
-
-        validate_file_type(images)
         return images
 
 
