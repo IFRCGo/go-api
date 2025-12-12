@@ -1614,8 +1614,11 @@ class EAPPDFExportTestCase(APITestCase):
         self.partner2 = CountryFactory.create(name="partner2", iso3="AAA", iso="AA")
 
         self.user = UserFactory.create()
+        self.url = "/api/v2/pdf-export/"
 
-        self.eap_registration = EAPRegistrationFactory.create(
+    @mock.patch("api.serializers.generate_url.delay")
+    def test_simplified_eap_export(self, mock_generate_url):
+        eap_registration = EAPRegistrationFactory.create(
             eap_type=EAPType.SIMPLIFIED_EAP,
             country=self.country,
             national_society=self.national_society,
@@ -1624,13 +1627,8 @@ class EAPPDFExportTestCase(APITestCase):
             created_by=self.user,
             modified_by=self.user,
         )
-
-        self.url = "/api/v2/pdf-export/"
-
-    @mock.patch("api.serializers.generate_url.delay")
-    def test_simplified_eap_export(self, mock_generate_url):
-        self.simplified_eap = SimplifiedEAPFactory.create(
-            eap_registration=self.eap_registration,
+        simplified_eap = SimplifiedEAPFactory.create(
+            eap_registration=eap_registration,
             created_by=self.user,
             modified_by=self.user,
             national_society_contact_title="NS Title Example",
@@ -1639,9 +1637,12 @@ class EAPPDFExportTestCase(APITestCase):
                 modified_by=self.user,
             ),
         )
+        eap_registration.latest_simplified_eap = simplified_eap
+        eap_registration.save()
+
         data = {
             "export_type": Export.ExportType.SIMPLIFIED_EAP,
-            "export_id": self.eap_registration.id,
+            "export_id": eap_registration.id,
             "is_pga": False,
         }
 
@@ -1652,7 +1653,7 @@ class EAPPDFExportTestCase(APITestCase):
         self.assert_201(response)
         self.assertIsNotNone(response.data["id"], response.data)
 
-        expected_url = f"{settings.GO_WEB_INTERNAL_URL}/eap/{self.eap_registration.id}/{Export.ExportType.SIMPLIFIED_EAP}/export/"
+        expected_url = f"{settings.GO_WEB_INTERNAL_URL}/eap/{eap_registration.id}/{Export.ExportType.SIMPLIFIED_EAP}/export/"
         self.assertEqual(response.data["url"], expected_url)
         self.assertEqual(response.data["status"], Export.ExportStatus.PENDING)
 
@@ -1669,12 +1670,12 @@ class EAPPDFExportTestCase(APITestCase):
         # Test Export Snapshot
 
         # create a new snapshot
-        simplfied_eap_snapshot = self.simplified_eap.generate_snapshot()
+        simplfied_eap_snapshot = simplified_eap.generate_snapshot()
         assert simplfied_eap_snapshot.version == 2, "Snapshot version should be 2"
 
         data = {
             "export_type": Export.ExportType.SIMPLIFIED_EAP,
-            "export_id": self.eap_registration.id,
+            "export_id": eap_registration.id,
             "version": 2,
         }
 
@@ -1684,7 +1685,7 @@ class EAPPDFExportTestCase(APITestCase):
         self.assertIsNotNone(response.data["id"], response.data)
 
         expected_url = (
-            f"{settings.GO_WEB_INTERNAL_URL}/eap/{self.eap_registration.id}/{Export.ExportType.SIMPLIFIED_EAP}/export/?version=2"
+            f"{settings.GO_WEB_INTERNAL_URL}/eap/{eap_registration.id}/{Export.ExportType.SIMPLIFIED_EAP}/export/?version=2"
         )
         self.assertEqual(response.data["url"], expected_url)
 
@@ -1699,7 +1700,7 @@ class EAPPDFExportTestCase(APITestCase):
             modified_by=self.user,
         )
 
-        FullEAPFactory.create(
+        full_eap = FullEAPFactory.create(
             eap_registration=eap_registration,
             created_by=self.user,
             modified_by=self.user,
@@ -1708,6 +1709,10 @@ class EAPPDFExportTestCase(APITestCase):
                 modified_by=self.user,
             ),
         )
+
+        eap_registration.latest_full_eap = full_eap
+        eap_registration.save()
+
         data = {
             "export_type": Export.ExportType.FULL_EAP,
             "export_id": eap_registration.id,
@@ -1745,7 +1750,7 @@ class EAPPDFExportTestCase(APITestCase):
             modified_by=self.user,
         )
 
-        SimplifiedEAPFactory.create(
+        simplified_eap = SimplifiedEAPFactory.create(
             eap_registration=eap_registration,
             created_by=self.user,
             modified_by=self.user,
@@ -1754,6 +1759,9 @@ class EAPPDFExportTestCase(APITestCase):
                 modified_by=self.user,
             ),
         )
+
+        eap_registration.latest_simplified_eap = simplified_eap
+        eap_registration.save()
 
         self.authenticate(self.user)
         data = {
