@@ -352,7 +352,7 @@ class EnableApproachSerializer(
         )
 
 
-class SourceInformationSerializer(
+class EAPSourceInformationSerializer(
     serializers.ModelSerializer,
 ):
     id = serializers.IntegerField(required=False)
@@ -373,7 +373,7 @@ class KeyActorSerializer(
         fields = "__all__"
 
 
-class ActionSerializer(serializers.ModelSerializer):
+class EAPActionSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
 
     class Meta:
@@ -560,15 +560,15 @@ class FullEAPSerializer(
     # admins
     key_actors = KeyActorSerializer(many=True, required=True)
 
-    early_actions = ActionSerializer(many=True, required=False)
+    early_actions = EAPActionSerializer(many=True, required=False)
     prioritized_impacts = ImpactSerializer(many=True, required=False)
 
     # SOURCE OF INFORMATIONS
-    risk_analysis_source_of_information = SourceInformationSerializer(many=True, required=False)
-    trigger_statement_source_of_information = SourceInformationSerializer(many=True, required=False)
-    trigger_model_source_of_information = SourceInformationSerializer(many=True, required=False)
-    evidence_base_source_of_information = SourceInformationSerializer(many=True, required=False)
-    activation_process_source_of_information = SourceInformationSerializer(many=True, required=False)
+    risk_analysis_source_of_information = EAPSourceInformationSerializer(many=True, required=False)
+    trigger_statement_source_of_information = EAPSourceInformationSerializer(many=True, required=False)
+    trigger_model_source_of_information = EAPSourceInformationSerializer(many=True, required=False)
+    evidence_base_source_of_information = EAPSourceInformationSerializer(many=True, required=False)
+    activation_process_source_of_information = EAPSourceInformationSerializer(many=True, required=False)
 
     # IMAGES
     hazard_selection_images = EAPFileUpdateSerializer(
