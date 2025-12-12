@@ -1,6 +1,5 @@
 # Create your views here.
-from django.db.models import Case, IntegerField, Subquery, When
-from django.db.models.expressions import OuterRef
+from django.db.models import Case, F, IntegerField, When
 from django.db.models.query import Prefetch, QuerySet
 from drf_spectacular.utils import extend_schema
 from rest_framework import mixins, permissions, response, status, viewsets
@@ -16,8 +15,10 @@ from eap.models import (
     EAPRegistration,
     EAPStatus,
     EAPType,
+    EnableApproach,
     FullEAP,
     KeyActor,
+    PlannedOperation,
     SimplifiedEAP,
 )
 from eap.permissions import (
@@ -56,18 +57,6 @@ class ActiveEAPViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     filterset_class = EAPRegistrationFilterSet
 
     def get_queryset(self) -> QuerySet[EAPRegistration]:
-        latest_simplified_eap = (
-            SimplifiedEAP.objects.filter(eap_registration=OuterRef("id"), is_locked=False)
-            .order_by("-version")
-            .values("total_budget")[:1]
-        )
-
-        latest_full_eap = (
-            FullEAP.objects.filter(eap_registration=OuterRef("id"), is_locked=False)
-            .order_by("-version")
-            .values("total_budget")[:1]
-        )
-
         return (
             super()
             .get_queryset()
@@ -77,11 +66,11 @@ class ActiveEAPViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
                 requirement_cost=Case(
                     When(
                         eap_type=EAPType.SIMPLIFIED_EAP,
-                        then=Subquery(latest_simplified_eap),
+                        then=F("latest_simplified_eap__total_budget"),
                     ),
                     When(
                         eap_type=EAPType.FULL_EAP,
-                        then=Subquery(latest_full_eap),
+                        then=F("latest_full_eap__total_budget"),
                     ),
                     output_field=IntegerField(),
                 )
@@ -183,19 +172,46 @@ class SimplifiedEAPViewSet(EAPModelViewSet):
             .select_related(
                 "created_by",
                 "modified_by",
-                "cover_image",
-                "budget_file",
+                "cover_image__created_by",
+                "cover_image__modified_by",
+                "budget_file__created_by",
+                "budget_file__modified_by",
                 "eap_registration__country",
                 "eap_registration__disaster_type",
             )
             .prefetch_related(
                 "eap_registration__partners",
                 "admin2",
-                "hazard_impact_images",
-                "risk_selected_protocols_images",
-                "selected_early_actions_images",
-                "planned_operations",
-                "enable_approaches",
+                Prefetch(
+                    "planned_operations",
+                    queryset=PlannedOperation.objects.prefetch_related(
+                        "indicators",
+                        "readiness_activities",
+                        "prepositioning_activities",
+                        "early_action_activities",
+                    ),
+                ),
+                Prefetch(
+                    "enable_approaches",
+                    queryset=EnableApproach.objects.prefetch_related(
+                        "indicators",
+                        "readiness_activities",
+                        "prepositioning_activities",
+                        "early_action_activities",
+                    ),
+                ),
+                Prefetch(
+                    "hazard_impact_images",
+                    queryset=EAPFile.objects.select_related("created_by", "modified_by"),
+                ),
+                Prefetch(
+                    "risk_selected_protocols_images",
+                    queryset=EAPFile.objects.select_related("created_by", "modified_by"),
+                ),
+                Prefetch(
+                    "selected_early_actions_images",
+                    queryset=EAPFile.objects.select_related("created_by", "modified_by"),
+                ),
             )
         )
 
@@ -222,6 +238,8 @@ class FullEAPViewSet(EAPModelViewSet):
             )
             .prefetch_related(
                 "admin2",
+                "prioritized_impacts",
+                "early_actions",
                 # source information
                 "risk_analysis_source_of_information",
                 "trigger_statement_source_of_information",
@@ -245,9 +263,28 @@ class FullEAPViewSet(EAPModelViewSet):
                 "activation_process_relevant_files",
                 "meal_relevant_files",
                 "capacity_relevant_files",
+                "forecast_table_file",
                 Prefetch(
                     "key_actors",
                     queryset=KeyActor.objects.select_related("national_society"),
+                ),
+                Prefetch(
+                    "planned_operations",
+                    queryset=PlannedOperation.objects.prefetch_related(
+                        "indicators",
+                        "readiness_activities",
+                        "prepositioning_activities",
+                        "early_action_activities",
+                    ),
+                ),
+                Prefetch(
+                    "enable_approaches",
+                    queryset=EnableApproach.objects.prefetch_related(
+                        "indicators",
+                        "readiness_activities",
+                        "prepositioning_activities",
+                        "early_action_activities",
+                    ),
                 ),
             )
         )
