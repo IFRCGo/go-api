@@ -243,6 +243,13 @@ class EAPFileUpdateSerializer(BaseEAPSerializer):
             "modified_by",
         )
 
+    def validate_id(self, id: int) -> int:
+        try:
+            EAPFile.objects.get(id=id)
+        except EAPFile.DoesNotExist:
+            raise serializers.ValidationError(gettext("Invalid pk '%s' - object does not exist.") % id)
+        return id
+
     def validate_file(self, file):
         validate_file_type(file)
         return file
@@ -395,12 +402,28 @@ class CommonEAPFieldsSerializer(serializers.ModelSerializer):
 
     def get_fields(self):
         fields = super().get_fields()
+        # TODO(susilnem): Make admin2 required once we verify the data!
         fields["admin2_details"] = Admin2Serializer(source="admin2", many=True, read_only=True)
         fields["cover_image_file"] = EAPFileUpdateSerializer(source="cover_image", required=False, allow_null=True)
         fields["planned_operations"] = PlannedOperationSerializer(many=True, required=False)
         fields["enable_approaches"] = EnableApproachSerializer(many=True, required=False)
         fields["budget_file_details"] = EAPFileSerializer(source="budget_file", read_only=True)
         return fields
+
+    def validate_budget_file(self, file: typing.Optional[EAPFile]) -> typing.Optional[EAPFile]:
+        if file is None:
+            return
+
+        validate_file_extention(file.file.name, ALLOWED_FILE_EXTENTIONS)
+        return file
+
+    def validate_updated_checklist_file(self, file):
+        if file is None:
+            return
+
+        validate_file_extention(file.name, ALLOWED_FILE_EXTENTIONS)
+        validate_file_type(file)
+        return file
 
     def validate_images_field(self, field_name, images):
         if images and len(images) > self.MAX_NUMBER_OF_IMAGES:
