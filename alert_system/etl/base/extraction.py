@@ -241,7 +241,7 @@ class BaseExtractionClass(ABC):
 
                     loader.load(transformed_data, self.connector, is_past_event=is_past_event, run_id=extraction_run_id)
 
-                    logger.info(f"Successfully processed event {event_id}")
+                logger.info(f"Successfully processed event {event_id}")
 
             except Exception as e:
                 logger.warning(f"Failed to process event {event_id}: {e}", exc_info=True)

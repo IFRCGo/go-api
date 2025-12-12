@@ -171,7 +171,9 @@ class LoadItem(BaseItem):
         help_text=_("Description of the event"),
     )
 
-    country_codes = ArrayField(models.CharField(max_length=150), null=True, help_text="Country of the item")
+    country_codes = ArrayField(
+        models.CharField(max_length=150), null=True, help_text="List of country codes(ISO3) of afffected countries"
+    )
 
     severity_unit = models.CharField(
         max_length=100, null=True, blank=True, verbose_name=_("Severity Unit"), help_text=_("Unit of measurement for severity")
