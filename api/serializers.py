@@ -15,7 +15,7 @@ from api.tasks import generate_url
 from api.utils import CountryValidator, RegionValidator
 from deployments.models import EmergencyProject, Personnel, PersonnelDeployment
 from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
-from eap.models import FullEAP, SimplifiedEAP
+from eap.models import EAPRegistration, FullEAP, SimplifiedEAP
 from lang.models import String
 from lang.serializers import ModelSerializer
 from local_units.models import DelegationOffice
@@ -2561,19 +2561,6 @@ class ExportSerializer(serializers.ModelSerializer):
         validate_file_type(pdf_file)
         return pdf_file
 
-    def get_latest(self, model: type[SimplifiedEAP | FullEAP], eap_registration_id: int, version: int | None = None):
-        """
-        Get the latest version of the EAP (Simplified or Full) based on the eap_registration_id and optional version.
-        if version is provided, it fetches that specific version, otherwise it fetches the latest version.
-        """
-        filters = {
-            "eap_registration__id": eap_registration_id,
-        }
-        if version:
-            filters["version"] = version
-
-        return model.objects.filter(**filters).order_by("-version").first()
-
     def create(self, validated_data):
         language = django_get_language()
         export_id = validated_data.get("export_id")
@@ -2590,20 +2577,42 @@ class ExportSerializer(serializers.ModelSerializer):
             overview = Overview.objects.filter(id=export_id).first()
             title = f"{overview.country.name}-preparedness-{overview.get_phase_display()}"
         elif export_type == Export.ExportType.SIMPLIFIED_EAP:
-            simplified_eap = self.get_latest(
-                model=SimplifiedEAP,
-                eap_registration_id=export_id,
-                version=version,
-            )
+            if version:
+                simplified_eap = SimplifiedEAP.objects.filter(
+                    eap_registration=export_id,
+                    version=version,
+                ).first()
+                if not simplified_eap:
+                    raise serializers.ValidationError("No Simplified EAP found for the given EAP Registration ID and version")
+            else:
+                eap_registration = EAPRegistration.objects.filter(id=export_id).first()
+                if not eap_registration:
+                    raise serializers.ValidationError("No EAP Registration found for the given ID")
+
+                simplified_eap = eap_registration.latest_simplified_eap
+                if not simplified_eap:
+                    serializers.ValidationError("No Simplified EAP found for the given EAP Registration ID")
+
             title = (
                 f"{simplified_eap.eap_registration.national_society.name}-{simplified_eap.eap_registration.disaster_type.name}"
             )
         elif export_type == Export.ExportType.FULL_EAP:
-            full_eap = self.get_latest(
-                model=FullEAP,
-                eap_registration_id=export_id,
-                version=version,
-            )
+            if version:
+                full_eap = FullEAP.objects.filter(
+                    eap_registration=export_id,
+                    version=version,
+                ).first()
+                if not full_eap:
+                    raise serializers.ValidationError("No Full EAP found for the given EAP Registration ID and version")
+            else:
+                eap_registration = EAPRegistration.objects.filter(id=export_id).first()
+                if not eap_registration:
+                    raise serializers.ValidationError("No EAP Registration found for the given ID")
+
+                full_eap = eap_registration.latest_full_eap
+                if not full_eap:
+                    serializers.ValidationError("No Full EAP found for the given EAP Registration ID")
+
             title = f"{full_eap.eap_registration.national_society.name}-{full_eap.eap_registration.disaster_type.name}"
         else:
             title = "Export"

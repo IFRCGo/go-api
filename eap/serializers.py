@@ -98,6 +98,8 @@ class MiniSimplifiedEAPSerializer(
             "version",
             "is_locked",
             "updated_checklist_file",
+            "created_at",
+            "modified_at",
         ]
 
 
@@ -118,6 +120,8 @@ class MiniFullEAPSerializer(
             "version",
             "is_locked",
             "updated_checklist_file",
+            "created_at",
+            "modified_at",
         ]
 
 
@@ -143,6 +147,8 @@ class MiniEAPSerializer(serializers.ModelSerializer):
             "requirement_cost",
             "activated_at",
             "approved_at",
+            "created_at",
+            "modified_at",
         ]
 
 
