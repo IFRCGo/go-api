@@ -452,6 +452,16 @@ class EAPSimplifiedTestCase(APITestCase):
             created_by=self.country_admin,
             modified_by=self.country_admin,
         )
+
+        image_1 = EAPFileFactory._create_image(
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
+        )
+        image_2 = EAPFileFactory._create_image(
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
+        )
+
         data = {
             "eap_registration": eap_registration.id,
             "prioritized_hazard_and_impact": "Floods with potential heavy impact.",
@@ -464,6 +474,26 @@ class EAPSimplifiedTestCase(APITestCase):
             "rcrc_movement_involvement": "Involves multiple RCRC societies.",
             "assisted_through_operation": "5000",
             "budget_file": budget_file.id,
+            "hazard_impact_images": [
+                {
+                    "id": image_1.id,
+                    "caption": "Image 1 caption",
+                },
+                {
+                    "id": image_2.id,
+                    "caption": "Image 2 caption",
+                },
+            ],
+            "selected_early_actions_images": [
+                {
+                    "id": image_1.id,
+                    "caption": "Image 1 caption for early actions",
+                },
+                {
+                    "id": image_2.id,
+                    "caption": "Image 2 caption for early actions",
+                },
+            ],
             "total_budget": 10000,
             "seap_timeframe": 3,
             "seap_lead_timeframe_unit": TimeFrame.MONTHS,
@@ -1746,10 +1776,56 @@ class EAPFullTestCase(APITestCase):
             modified_by=self.country_admin,
         )
 
+        image_1 = EAPFileFactory._create_image(
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
+        )
+        image_2 = EAPFileFactory._create_image(
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
+        )
+
         data = {
             "eap_registration": eap_registration.id,
             "budget_file": budget_file_instance.id,
             "forecast_table_file": forecast_table_file.id,
+            "hazard_selection_images": [
+                {
+                    "id": image_1.id,
+                    "caption": "Image 1 caption",
+                },
+                {
+                    "id": image_2.id,
+                    "caption": "Image 2 caption",
+                },
+            ],
+            "exposed_element_and_vulnerability_factor_images": [
+                {
+                    "id": image_1.id,
+                    "caption": "Image 1 caption",
+                },
+                {
+                    "id": image_2.id,
+                    "caption": "Image 2 caption",
+                },
+            ],
+            "prioritized_impact_images": [
+                {
+                    "id": image_1.id,
+                },
+                {
+                    "id": image_2.id,
+                },
+            ],
+            "forecast_selection_images": [
+                {
+                    "id": image_1.id,
+                },
+                {
+                    "id": image_2.id,
+                    "caption": "Image caption",
+                },
+            ],
             "total_budget": 10000,
             "objective": "FUll eap objective",
             "lead_time": 5,
