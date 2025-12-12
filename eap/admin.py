@@ -141,6 +141,7 @@ class FullEAPAdmin(admin.ModelAdmin):
         "activation_process_relevant_files",
         "meal_relevant_files",
         "capacity_relevant_files",
+        "forecast_table_file",
     )
 
     def get_queryset(self, request):
