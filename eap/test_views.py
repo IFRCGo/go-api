@@ -1245,7 +1245,7 @@ class EAPStatusTransitionTestCase(APITestCase):
             )
             # Snapshot Shouldn't have the updated checklist file
             self.assertFalse(
-                second_snapshot.updated_checklist_file.name,
+                second_snapshot.updated_checklist_file,
                 "Latest Snapshot shouldn't have the updated checklist file.",
             )
             # Check if the latest_simplified_eap is updated in EAPRegistration
@@ -1268,14 +1268,18 @@ class EAPStatusTransitionTestCase(APITestCase):
         # Upload updated checklist file
         # UPDATES on the second snapshot
         url = f"/api/v2/simplified-eap/{second_snapshot.id}/"
-        with tempfile.NamedTemporaryFile(suffix=".xlsx") as tmp_file:
-            tmp_file.write(b"Updated Test content")
-            tmp_file.seek(0)
+        checklist_file_instance = EAPFileFactory._create_file(
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
+        )
+        file_data = {
+            "prioritized_hazard_and_impact": "Floods with potential heavy impact.",
+            "eap_registration": second_snapshot.eap_registration_id,
+            "updated_checklist_file": checklist_file_instance.id,
+        }
 
-            file_data = {"eap_registration": second_snapshot.eap_registration_id, "updated_checklist_file": tmp_file}
-
-            response = self.client.patch(url, file_data, format="multipart")
-            self.assertEqual(response.status_code, 200, response.data)
+        response = self.client.patch(url, file_data, format="json")
+        self.assertEqual(response.status_code, 200, response.data)
 
         # SUCCESS:
         self.authenticate(self.country_admin)
@@ -1336,7 +1340,7 @@ class EAPStatusTransitionTestCase(APITestCase):
             self.assertTrue(second_snapshot.is_locked)
             # Snapshot Shouldn't have the updated checklist file
             self.assertFalse(
-                third_snapshot.updated_checklist_file.name,
+                third_snapshot.updated_checklist_file,
                 "Latest snapshot shouldn't have the updated checklist file.",
             )
 
@@ -1356,14 +1360,17 @@ class EAPStatusTransitionTestCase(APITestCase):
         # Upload updated checklist file
         # UPDATES on the second snapshot
         url = f"/api/v2/simplified-eap/{third_snapshot.id}/"
-        with tempfile.NamedTemporaryFile(suffix=".xlsx") as tmp_file:
-            tmp_file.write(b"Updated Test content")
-            tmp_file.seek(0)
+        file_data = {
+            "prioritized_hazard_and_impact": "Floods with potential heavy impact.",
+            "risks_selected_protocols": "Protocol A and Protocol B.",
+            "selected_early_actions": "The early actions selected.",
+            "overall_objective_intervention": "To reduce risks through early actions.",
+            "eap_registration": third_snapshot.eap_registration_id,
+            "updated_checklist_file": checklist_file_instance.id,
+        }
 
-            file_data = {"eap_registration": third_snapshot.eap_registration_id, "updated_checklist_file": tmp_file}
-
-            response = self.client.patch(url, file_data, format="multipart")
-            self.assertEqual(response.status_code, 200)
+        response = self.client.patch(url, file_data, format="json")
+        self.assertEqual(response.status_code, 200)
 
         # SUCCESS:
         self.authenticate(self.country_admin)
@@ -1444,7 +1451,7 @@ class EAPStatusTransitionTestCase(APITestCase):
             self.assertTrue(third_snapshot.is_locked)
             # Snapshot Shouldn't have the updated checklist file
             self.assertFalse(
-                fourth_snapshot.updated_checklist_file.name,
+                fourth_snapshot.updated_checklist_file,
                 "Latest snapshot shouldn't have the updated checklist file.",
             )
 
@@ -1466,21 +1473,17 @@ class EAPStatusTransitionTestCase(APITestCase):
         # Upload updated checklist file
         # UPDATES on the second snapshot
         url = f"/api/v2/simplified-eap/{fourth_snapshot.id}/"
-        with tempfile.NamedTemporaryFile(suffix=".xlsx") as tmp_file:
-            tmp_file.write(b"Updated Test content")
-            tmp_file.seek(0)
+        file_data = {
+            "prioritized_hazard_and_impact": "Floods with potential heavy impact.",
+            "risks_selected_protocols": "Protocol A and Protocol B.",
+            "selected_early_actions": "The early actions selected.",
+            "overall_objective_intervention": "To reduce risks through early actions.",
+            "eap_registration": third_snapshot.eap_registration_id,
+            "updated_checklist_file": checklist_file_instance.id,
+        }
 
-            file_data = {
-                "prioritized_hazard_and_impact": "Floods with potential heavy impact.",
-                "risks_selected_protocols": "Protocol A and Protocol B.",
-                "selected_early_actions": "The early actions selected.",
-                "overall_objective_intervention": "To reduce risks through early actions.",
-                "eap_registration": third_snapshot.eap_registration_id,
-                "updated_checklist_file": tmp_file,
-            }
-
-            response = self.client.patch(url, file_data, format="multipart")
-            self.assertEqual(response.status_code, 200)
+        response = self.client.patch(url, file_data, format="json")
+        self.assertEqual(response.status_code, 200)
 
         # SUCCESS:
         self.authenticate(self.country_admin)
@@ -1614,8 +1617,11 @@ class EAPPDFExportTestCase(APITestCase):
         self.partner2 = CountryFactory.create(name="partner2", iso3="AAA", iso="AA")
 
         self.user = UserFactory.create()
+        self.url = "/api/v2/pdf-export/"
 
-        self.eap_registration = EAPRegistrationFactory.create(
+    @mock.patch("api.serializers.generate_url.delay")
+    def test_simplified_eap_export(self, mock_generate_url):
+        eap_registration = EAPRegistrationFactory.create(
             eap_type=EAPType.SIMPLIFIED_EAP,
             country=self.country,
             national_society=self.national_society,
@@ -1624,13 +1630,8 @@ class EAPPDFExportTestCase(APITestCase):
             created_by=self.user,
             modified_by=self.user,
         )
-
-        self.url = "/api/v2/pdf-export/"
-
-    @mock.patch("api.serializers.generate_url.delay")
-    def test_simplified_eap_export(self, mock_generate_url):
-        self.simplified_eap = SimplifiedEAPFactory.create(
-            eap_registration=self.eap_registration,
+        simplified_eap = SimplifiedEAPFactory.create(
+            eap_registration=eap_registration,
             created_by=self.user,
             modified_by=self.user,
             national_society_contact_title="NS Title Example",
@@ -1639,9 +1640,12 @@ class EAPPDFExportTestCase(APITestCase):
                 modified_by=self.user,
             ),
         )
+        eap_registration.latest_simplified_eap = simplified_eap
+        eap_registration.save()
+
         data = {
             "export_type": Export.ExportType.SIMPLIFIED_EAP,
-            "export_id": self.simplified_eap.id,
+            "export_id": eap_registration.id,
             "is_pga": False,
         }
 
@@ -1652,7 +1656,79 @@ class EAPPDFExportTestCase(APITestCase):
         self.assert_201(response)
         self.assertIsNotNone(response.data["id"], response.data)
 
-        expected_url = f"{settings.GO_WEB_INTERNAL_URL}/{Export.ExportType.SIMPLIFIED_EAP}/{self.simplified_eap.id}/export/"
+        expected_url = f"{settings.GO_WEB_INTERNAL_URL}/eap/{eap_registration.id}/{Export.ExportType.SIMPLIFIED_EAP}/export/"
+        self.assertEqual(response.data["url"], expected_url)
+        self.assertEqual(response.data["status"], Export.ExportStatus.PENDING)
+
+        self.assertEqual(mock_generate_url.called, True)
+        title = f"{self.national_society.name}-{self.disaster_type.name}"
+        mock_generate_url.assert_called_once_with(
+            expected_url,
+            response.data["id"],
+            self.user.id,
+            title,
+            django_get_language(),
+        )
+
+        # Test Export Snapshot
+
+        # create a new snapshot
+        simplfied_eap_snapshot = simplified_eap.generate_snapshot()
+        assert simplfied_eap_snapshot.version == 2, "Snapshot version should be 2"
+
+        data = {
+            "export_type": Export.ExportType.SIMPLIFIED_EAP,
+            "export_id": eap_registration.id,
+            "version": 2,
+        }
+
+        with self.capture_on_commit_callbacks(execute=True):
+            response = self.client.post(self.url, data, format="json")
+        self.assert_201(response)
+        self.assertIsNotNone(response.data["id"], response.data)
+
+        expected_url = (
+            f"{settings.GO_WEB_INTERNAL_URL}/eap/{eap_registration.id}/{Export.ExportType.SIMPLIFIED_EAP}/export/?version=2"
+        )
+        self.assertEqual(response.data["url"], expected_url)
+
+    @mock.patch("api.serializers.generate_url.delay")
+    def test_full_eap_export(self, mock_generate_url):
+        eap_registration = EAPRegistrationFactory.create(
+            eap_type=EAPType.FULL_EAP,
+            country=self.country,
+            national_society=self.national_society,
+            disaster_type=self.disaster_type,
+            created_by=self.user,
+            modified_by=self.user,
+        )
+
+        full_eap = FullEAPFactory.create(
+            eap_registration=eap_registration,
+            created_by=self.user,
+            modified_by=self.user,
+            budget_file=EAPFileFactory._create_file(
+                created_by=self.user,
+                modified_by=self.user,
+            ),
+        )
+
+        eap_registration.latest_full_eap = full_eap
+        eap_registration.save()
+
+        data = {
+            "export_type": Export.ExportType.FULL_EAP,
+            "export_id": eap_registration.id,
+            "is_pga": False,
+        }
+
+        self.authenticate(self.user)
+
+        with self.capture_on_commit_callbacks(execute=True):
+            response = self.client.post(self.url, data, format="json")
+        self.assert_201(response)
+        self.assertIsNotNone(response.data["id"], response.data)
+        expected_url = f"{settings.GO_WEB_INTERNAL_URL}/eap/{eap_registration.id}/{Export.ExportType.FULL_EAP}/export/"
         self.assertEqual(response.data["url"], expected_url)
         self.assertEqual(response.data["status"], Export.ExportStatus.PENDING)
 
@@ -1667,9 +1743,18 @@ class EAPPDFExportTestCase(APITestCase):
         )
 
     @mock.patch("api.serializers.generate_url.delay")
-    def test_full_eap_export(self, mock_generate_url):
-        self.full_eap = FullEAPFactory.create(
-            eap_registration=self.eap_registration,
+    def test_diff_export_eap(self, mock_generate_url):
+        eap_registration = EAPRegistrationFactory.create(
+            eap_type=EAPType.SIMPLIFIED_EAP,
+            country=self.country,
+            national_society=self.national_society,
+            disaster_type=self.disaster_type,
+            created_by=self.user,
+            modified_by=self.user,
+        )
+
+        simplified_eap = SimplifiedEAPFactory.create(
+            eap_registration=eap_registration,
             created_by=self.user,
             modified_by=self.user,
             budget_file=EAPFileFactory._create_file(
@@ -1677,10 +1762,15 @@ class EAPPDFExportTestCase(APITestCase):
                 modified_by=self.user,
             ),
         )
+
+        eap_registration.latest_simplified_eap = simplified_eap
+        eap_registration.save()
+
+        self.authenticate(self.user)
         data = {
-            "export_type": Export.ExportType.FULL_EAP,
-            "export_id": self.full_eap.id,
-            "is_pga": False,
+            "export_type": Export.ExportType.SIMPLIFIED_EAP,
+            "export_id": eap_registration.id,
+            "diff": True,
         }
 
         self.authenticate(self.user)
@@ -1689,9 +1779,11 @@ class EAPPDFExportTestCase(APITestCase):
             response = self.client.post(self.url, data, format="json")
         self.assert_201(response)
         self.assertIsNotNone(response.data["id"], response.data)
-        expected_url = f"{settings.GO_WEB_INTERNAL_URL}/{Export.ExportType.FULL_EAP}/{self.full_eap.id}/export/"
+
+        expected_url = (
+            f"{settings.GO_WEB_INTERNAL_URL}/eap/{eap_registration.id}/{Export.ExportType.SIMPLIFIED_EAP}/export/?diff=true"
+        )
         self.assertEqual(response.data["url"], expected_url)
-        self.assertEqual(response.data["status"], Export.ExportStatus.PENDING)
 
         self.assertEqual(mock_generate_url.called, True)
         title = f"{self.national_society.name}-{self.disaster_type.name}"

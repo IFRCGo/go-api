@@ -104,7 +104,6 @@ class EAPRegistrationViewSet(EAPModelViewSet):
                 "partners",
                 "simplified_eap",
             )
-            .order_by("id")
         )
 
     @action(

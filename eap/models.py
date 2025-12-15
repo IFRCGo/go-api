@@ -879,9 +879,10 @@ class CommonEAPFields(models.Model):
     )
 
     # Review Checklist
-    updated_checklist_file = SecureFileField(
-        verbose_name=_("Updated Checklist File"),
-        upload_to="eap/files/",
+    updated_checklist_file = models.ForeignKey[EAPFile | None, EAPFile | None](
+        EAPFile,
+        on_delete=models.SET_NULL,
+        verbose_name=_("Updated Review Checklist File"),
         null=True,
         blank=True,
     )
