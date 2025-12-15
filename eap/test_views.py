@@ -1245,7 +1245,7 @@ class EAPStatusTransitionTestCase(APITestCase):
             )
             # Snapshot Shouldn't have the updated checklist file
             self.assertFalse(
-                second_snapshot.updated_checklist_file.name,
+                second_snapshot.updated_checklist_file,
                 "Latest Snapshot shouldn't have the updated checklist file.",
             )
             # Check if the latest_simplified_eap is updated in EAPRegistration
@@ -1268,14 +1268,18 @@ class EAPStatusTransitionTestCase(APITestCase):
         # Upload updated checklist file
         # UPDATES on the second snapshot
         url = f"/api/v2/simplified-eap/{second_snapshot.id}/"
-        with tempfile.NamedTemporaryFile(suffix=".xlsx") as tmp_file:
-            tmp_file.write(b"Updated Test content")
-            tmp_file.seek(0)
+        checklist_file_instance = EAPFileFactory._create_file(
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
+        )
+        file_data = {
+            "prioritized_hazard_and_impact": "Floods with potential heavy impact.",
+            "eap_registration": second_snapshot.eap_registration_id,
+            "updated_checklist_file": checklist_file_instance.id,
+        }
 
-            file_data = {"eap_registration": second_snapshot.eap_registration_id, "updated_checklist_file": tmp_file}
-
-            response = self.client.patch(url, file_data, format="multipart")
-            self.assertEqual(response.status_code, 200, response.data)
+        response = self.client.patch(url, file_data, format="json")
+        self.assertEqual(response.status_code, 200, response.data)
 
         # SUCCESS:
         self.authenticate(self.country_admin)
@@ -1336,7 +1340,7 @@ class EAPStatusTransitionTestCase(APITestCase):
             self.assertTrue(second_snapshot.is_locked)
             # Snapshot Shouldn't have the updated checklist file
             self.assertFalse(
-                third_snapshot.updated_checklist_file.name,
+                third_snapshot.updated_checklist_file,
                 "Latest snapshot shouldn't have the updated checklist file.",
             )
 
@@ -1356,14 +1360,17 @@ class EAPStatusTransitionTestCase(APITestCase):
         # Upload updated checklist file
         # UPDATES on the second snapshot
         url = f"/api/v2/simplified-eap/{third_snapshot.id}/"
-        with tempfile.NamedTemporaryFile(suffix=".xlsx") as tmp_file:
-            tmp_file.write(b"Updated Test content")
-            tmp_file.seek(0)
+        file_data = {
+            "prioritized_hazard_and_impact": "Floods with potential heavy impact.",
+            "risks_selected_protocols": "Protocol A and Protocol B.",
+            "selected_early_actions": "The early actions selected.",
+            "overall_objective_intervention": "To reduce risks through early actions.",
+            "eap_registration": third_snapshot.eap_registration_id,
+            "updated_checklist_file": checklist_file_instance.id,
+        }
 
-            file_data = {"eap_registration": third_snapshot.eap_registration_id, "updated_checklist_file": tmp_file}
-
-            response = self.client.patch(url, file_data, format="multipart")
-            self.assertEqual(response.status_code, 200)
+        response = self.client.patch(url, file_data, format="json")
+        self.assertEqual(response.status_code, 200)
 
         # SUCCESS:
         self.authenticate(self.country_admin)
@@ -1444,7 +1451,7 @@ class EAPStatusTransitionTestCase(APITestCase):
             self.assertTrue(third_snapshot.is_locked)
             # Snapshot Shouldn't have the updated checklist file
             self.assertFalse(
-                fourth_snapshot.updated_checklist_file.name,
+                fourth_snapshot.updated_checklist_file,
                 "Latest snapshot shouldn't have the updated checklist file.",
             )
 
@@ -1466,21 +1473,17 @@ class EAPStatusTransitionTestCase(APITestCase):
         # Upload updated checklist file
         # UPDATES on the second snapshot
         url = f"/api/v2/simplified-eap/{fourth_snapshot.id}/"
-        with tempfile.NamedTemporaryFile(suffix=".xlsx") as tmp_file:
-            tmp_file.write(b"Updated Test content")
-            tmp_file.seek(0)
+        file_data = {
+            "prioritized_hazard_and_impact": "Floods with potential heavy impact.",
+            "risks_selected_protocols": "Protocol A and Protocol B.",
+            "selected_early_actions": "The early actions selected.",
+            "overall_objective_intervention": "To reduce risks through early actions.",
+            "eap_registration": third_snapshot.eap_registration_id,
+            "updated_checklist_file": checklist_file_instance.id,
+        }
 
-            file_data = {
-                "prioritized_hazard_and_impact": "Floods with potential heavy impact.",
-                "risks_selected_protocols": "Protocol A and Protocol B.",
-                "selected_early_actions": "The early actions selected.",
-                "overall_objective_intervention": "To reduce risks through early actions.",
-                "eap_registration": third_snapshot.eap_registration_id,
-                "updated_checklist_file": tmp_file,
-            }
-
-            response = self.client.patch(url, file_data, format="multipart")
-            self.assertEqual(response.status_code, 200)
+        response = self.client.patch(url, file_data, format="json")
+        self.assertEqual(response.status_code, 200)
 
         # SUCCESS:
         self.authenticate(self.country_admin)
