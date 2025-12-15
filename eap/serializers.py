@@ -427,8 +427,8 @@ class CommonEAPFieldsSerializer(serializers.ModelSerializer):
         if file is None:
             return
 
-        validate_file_extention(file.name, ALLOWED_FILE_EXTENTIONS)
-        validate_file_type(file)
+        validate_file_extention(file.file.name, ALLOWED_FILE_EXTENTIONS)
+        validate_file_type(file.file)
         return file
 
     def validate_images_field(self, field_name, images):
