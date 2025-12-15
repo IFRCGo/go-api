@@ -24,7 +24,7 @@ def send_new_eap_registration_email(eap_registration_id: int):
     if not instance:
         return None
 
-    regional_coordinator_emails = get_coordinator_emails_by_region(instance.country.region)
+    regional_coordinator_emails: list[str] = get_coordinator_emails_by_region(instance.country.region)
 
     recipients = [
         settings.EMAIL_EAP_DREF_ANTICIPATORY_PILLAR,
