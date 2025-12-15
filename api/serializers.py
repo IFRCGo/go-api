@@ -2623,7 +2623,7 @@ class ExportSerializer(serializers.ModelSerializer):
             Export.ExportType.SIMPLIFIED_EAP,
             Export.ExportType.FULL_EAP,
         ]:
-            validated_data["url"] = f"{settings.GO_WEB_INTERNAL_URL}/eap/{export_id}/{export_type}/export/"
+            validated_data["url"] = f"{settings.GO_WEB_INTERNAL_URL}/eap/{export_id}/export/"
             # NOTE: EAP exports with diff view only for EAPs exports
             if version:
                 validated_data["url"] += f"?version={version}"
