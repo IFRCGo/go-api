@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Connector, ExtractionItem, LoadItem
+from .models import Connector, EmailAlertLog, ExtractionItem, LoadItem
 
 
 @admin.register(Connector)
@@ -50,3 +50,12 @@ class LoadItemAdmin(admin.ModelAdmin):
         "id",
         "correlation_id",
     )
+
+
+@admin.register(EmailAlertLog)
+class EmailAlertLogAdmin(admin.ModelAdmin):
+    list_display = ("id", "message_id", "status")
+    list_select_related = True
+    search_fields = ("user__username", "message_id")
+    autocomplete_fields = ("user", "subscription", "item")
+    list_filter = ("status",)

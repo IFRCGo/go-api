@@ -322,28 +322,6 @@ class NotificationGUID(models.Model):
     to_list = models.TextField(null=True, blank=True)
 
 
-class HazardType(models.Model):
-    """Model representing a hazard category."""
-
-    class Type(models.IntegerChoices):
-        EARTHQUAKE = 100, _("Earthquake")
-        FLOOD = 200, _("Flood")
-        CYCLONE = 300, _("Cyclone")
-
-    type = models.IntegerField(
-        choices=Type.choices,
-        unique=True,
-        verbose_name=_("Hazard Type"),
-    )
-
-    class Meta:
-        verbose_name = _("Hazard Type")
-        verbose_name_plural = _("Hazard Types")
-
-    def __str__(self):
-        return self.get_type_display()
-
-
 class AlertSubscription(models.Model):
     class AlertSource(models.IntegerChoices):
         MONTANDON = 100, _("Montandon")
@@ -352,20 +330,17 @@ class AlertSubscription(models.Model):
     class AlertPerDay(models.IntegerChoices):
         """Enum representing the maximum number of alerts per day."""
 
-        FIVE = 100, _("Five")
+        FIVE = 5, _("Five")
         """Receive up to 5 alerts per day."""
 
-        TEN = 200, _("Ten")
+        TEN = 10, _("Ten")
         """Receive up to 10 alerts per day."""
 
-        TWENTY = 300, _("Twenty")
+        TWENTY = 20, _("Twenty")
         """Receive up to 20 alerts per day."""
 
-        FIFTY = 400, _("Fifty")
+        FIFTY = 50, _("Fifty")
         """Receive up to 50 alerts per day."""
-
-        UNLIMITED = 500, _("Unlimited")
-        """No daily alert limit."""
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -391,16 +366,17 @@ class AlertSubscription(models.Model):
     )
 
     hazard_types = models.ManyToManyField(
-        HazardType,
+        DisasterType,
         related_name="alert_subscriptions_hazard_types",
         verbose_name=_("Hazard Types"),
         help_text="Types of hazards the user is subscribed to.",
     )
     alert_per_day = models.IntegerField(
         choices=AlertPerDay.choices,
-        default=AlertPerDay.FIVE,
+        blank=True,
+        null=True,
         verbose_name=_("Alerts Per Day"),
-        help_text="Maximum number of alerts sent to the user per day.",
+        help_text="Maximum number of alerts sent to the user per day. Leave empty to allow unlimited alerts.",
     )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created At"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated At"))

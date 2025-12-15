@@ -8,10 +8,15 @@ from django.db import transaction
 from django.db.models import Max
 
 from alert_system.etl.base.extraction import PastEventExtractionClass
+from alert_system.utils import (
+    get_alert_email_context,
+    get_alert_subscriptions_for_load_item,
+)
 from api.models import Event
+from notifications.notification import send_notification
 
 from .helpers import get_connector_processor, set_connector_status
-from .models import Connector, LoadItem
+from .models import Connector, EmailAlertLog, LoadItem
 
 logger = logging.getLogger(__name__)
 
@@ -167,3 +172,95 @@ def process_connector_task(connector_id):
     return chain(
         polling_task.s(connector_id), group(fetch_past_events_from_go.s(connector_id), fetch_past_events_from_monty.s())
     ).apply_async()
+
+
+@shared_task()
+def send_alert_email_notification(load_item_id: int):
+
+    load_item = LoadItem.objects.select_related("connector", "connector__dtype").filter(id=load_item_id).first()
+
+    if not load_item:
+        return None
+
+    today = timezone.now().date()
+
+    subscriptions = get_alert_subscriptions_for_load_item(load_item)
+
+    if not subscriptions.exists():
+        logger.info(f"No alert subscriptions matched for LoadItem ID [{load_item_id}])")
+
+    for subscription in subscriptions:
+        user = subscription.user
+
+        # Check Daily alert limit
+        sent_today = EmailAlertLog.objects.filter(
+            user=user,
+            subscription=subscription,
+            status=EmailAlertLog.Status.SENT,
+            sent_at=today,
+        ).count()
+
+        if subscription.alert_per_day and sent_today >= subscription.alert_per_day:
+            logger.info(f"Daily alert limit reached for subscription ID [{subscription.id}] of user [{user.get_full_name()}]")
+            continue
+
+        # Deduplication check
+        if EmailAlertLog.objects.filter(
+            user=user,
+            subscription=subscription,
+            item=load_item,
+            status=EmailAlertLog.Status.SENT,
+        ).exists():
+            logger.info(
+                f"Duplicate alert skipped for user [{user.get_full_name}] subscription_id=[{subscription.id}] "
+                f"load_item=[{load_item_id}]"
+            )
+            continue
+
+        message_id = str(uuid.uuid4())
+
+        email_log = EmailAlertLog.objects.create(
+            user=user,
+            subscription=subscription,
+            item=load_item,
+            status=EmailAlertLog.Status.PROCESSING,
+            message_id=message_id,
+            processed_at=timezone.now(),
+        )
+        logger.info(f"Processing alert email for user=[{user.get_full_name}] with message_id={message_id}")
+
+        try:
+            email_subject = f"New Hazard Alert:{load_item.event_title}"
+            email_context = get_alert_email_context(load_item, user)
+
+            email_body = render_to_string(
+                "email/alert_system/alert.html",
+                email_context,
+            )
+
+            send_notification(
+                subject=email_subject,
+                recipients=user.email,
+                message_id=message_id,
+                html=email_body,
+                mailtype="Alert Notification",
+            )
+
+            email_log.status = EmailAlertLog.Status.SENT
+            email_log.sent_at = timezone.now()
+            email_log.save(update_fields=["status", "sent_at"])
+            logger.info(
+                f"Alert email sent successfully to user=[{user.get_full_name}] with subscription_id={subscription.id} "
+                f"load_item_id={load_item_id} "
+            )
+        except Exception:
+            email_log.status = EmailAlertLog.Status.FAILED
+            email_log.save(update_fields=["status"])
+            logger.warning(
+                f"Alert email semt failed: "
+                f"user=[{user.get_full_name()}] "
+                f"subscription_id=[{subscription.id}] "
+                f"load_item_id=[{load_item_id}] "
+                f"message_id=[{message_id}] "
+            )
+            raise

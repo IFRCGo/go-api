@@ -1,8 +1,16 @@
+from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+<<<<<<< HEAD
 from api.models import DisasterType, Event
+||||||| parent of 3595f6e2 (feat(alert-system): Add email notification setup for alert system)
+from api.models import DisasterType
+=======
+from api.models import DisasterType
+from notifications.models import AlertSubscription
+>>>>>>> 3595f6e2 (feat(alert-system): Add email notification setup for alert system)
 
 
 class Connector(models.Model):
@@ -229,3 +237,50 @@ class LoadItem(BaseItem):
     class Meta:
         verbose_name = _("Eligible Item")
         verbose_name_plural = _("Eligible Items")
+
+
+class EmailAlertLog(models.Model):
+    """Track emails sent to users for rate limiting"""
+
+    class Status(models.IntegerChoices):
+        PENDING = 100, _("Pending")
+        PROCESSING = 200, ("Processing")
+        SENT = 300, _("Sent")
+        FAILED = 400, _("Failed")
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="alert_email",
+    )
+    subscription = models.ForeignKey[AlertSubscription, AlertSubscription](
+        AlertSubscription,
+        on_delete=models.CASCADE,
+        related_name="email_logs",
+    )
+    item = models.ForeignKey[LoadItem, LoadItem](
+        LoadItem,
+        on_delete=models.CASCADE,
+        related_name="alert_emails",
+    )
+    message_id = models.CharField(
+        max_length=255,
+        unique=True,
+        help_text=_("Email Message-ID"),
+    )
+    status = models.IntegerField(
+        choices=Status.choices,
+        default=Status.PENDING,
+    )
+    processed_at = models.DateTimeField(null=True, blank=True)
+    sent_at = models.DateTimeField(null=True, blank=True)
+
+    # typing
+    id: int
+    subscription_id: int
+    item_id: int
+
+    class Meta:
+        verbose_name = _("EmailAlertLog")
+        verbose_name_plural = _("EmailAlertLogs")
+        ordering = ["-id"]

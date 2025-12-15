@@ -3,7 +3,7 @@ from factory import fuzzy
 
 from deployments.factories.user import UserFactory
 
-from .models import AlertSubscription, HazardType, SurgeAlert, SurgeAlertStatus
+from .models import AlertSubscription, SurgeAlert, SurgeAlertStatus
 
 
 class SurgeAlertFactory(factory.django.DjangoModelFactory):
@@ -54,8 +54,3 @@ class AlertSubscriptionFactory(factory.django.DjangoModelFactory):
         if extracted:
             for alert_type in extracted:
                 self.hazard_types.add(alert_type)
-
-
-class HazardTypeFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = HazardType
