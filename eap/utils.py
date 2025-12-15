@@ -8,7 +8,7 @@ from django.db import models
 
 from api.models import Region, RegionName
 
-REGION_EMAIL_MAP = {
+REGION_EMAIL_MAP: dict[RegionName, list[str]] = {
     RegionName.AFRICA: settings.EMAIL_EAP_AFRICA_COORDINATORS,
     RegionName.AMERICAS: settings.EMAIL_EAP_AMERICAS_COORDINATORS,
     RegionName.ASIA_PACIFIC: settings.EMAIL_EAP_ASIA_PACIFIC_COORDINATORS,
