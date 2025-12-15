@@ -98,6 +98,8 @@ class MiniSimplifiedEAPSerializer(
             "version",
             "is_locked",
             "updated_checklist_file",
+            "created_at",
+            "modified_at",
         ]
 
 
@@ -118,6 +120,8 @@ class MiniFullEAPSerializer(
             "version",
             "is_locked",
             "updated_checklist_file",
+            "created_at",
+            "modified_at",
         ]
 
 
@@ -143,6 +147,8 @@ class MiniEAPSerializer(serializers.ModelSerializer):
             "requirement_cost",
             "activated_at",
             "approved_at",
+            "created_at",
+            "modified_at",
         ]
 
 
@@ -421,8 +427,8 @@ class CommonEAPFieldsSerializer(serializers.ModelSerializer):
         if file is None:
             return
 
-        validate_file_extention(file.name, ALLOWED_FILE_EXTENTIONS)
-        validate_file_type(file)
+        validate_file_extention(file.file.name, ALLOWED_FILE_EXTENTIONS)
+        validate_file_type(file.file)
         return file
 
     def validate_images_field(self, field_name, images):
