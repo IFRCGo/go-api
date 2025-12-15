@@ -1656,7 +1656,7 @@ class EAPPDFExportTestCase(APITestCase):
         self.assert_201(response)
         self.assertIsNotNone(response.data["id"], response.data)
 
-        expected_url = f"{settings.GO_WEB_INTERNAL_URL}/eap/{eap_registration.id}/{Export.ExportType.SIMPLIFIED_EAP}/export/"
+        expected_url = f"{settings.GO_WEB_INTERNAL_URL}/eap/{eap_registration.id}/export/"
         self.assertEqual(response.data["url"], expected_url)
         self.assertEqual(response.data["status"], Export.ExportStatus.PENDING)
 
@@ -1687,9 +1687,7 @@ class EAPPDFExportTestCase(APITestCase):
         self.assert_201(response)
         self.assertIsNotNone(response.data["id"], response.data)
 
-        expected_url = (
-            f"{settings.GO_WEB_INTERNAL_URL}/eap/{eap_registration.id}/{Export.ExportType.SIMPLIFIED_EAP}/export/?version=2"
-        )
+        expected_url = f"{settings.GO_WEB_INTERNAL_URL}/eap/{eap_registration.id}/export/?version=2"
         self.assertEqual(response.data["url"], expected_url)
 
     @mock.patch("api.serializers.generate_url.delay")
@@ -1728,7 +1726,7 @@ class EAPPDFExportTestCase(APITestCase):
             response = self.client.post(self.url, data, format="json")
         self.assert_201(response)
         self.assertIsNotNone(response.data["id"], response.data)
-        expected_url = f"{settings.GO_WEB_INTERNAL_URL}/eap/{eap_registration.id}/{Export.ExportType.FULL_EAP}/export/"
+        expected_url = f"{settings.GO_WEB_INTERNAL_URL}/eap/{eap_registration.id}/export/"
         self.assertEqual(response.data["url"], expected_url)
         self.assertEqual(response.data["status"], Export.ExportStatus.PENDING)
 
@@ -1780,9 +1778,7 @@ class EAPPDFExportTestCase(APITestCase):
         self.assert_201(response)
         self.assertIsNotNone(response.data["id"], response.data)
 
-        expected_url = (
-            f"{settings.GO_WEB_INTERNAL_URL}/eap/{eap_registration.id}/{Export.ExportType.SIMPLIFIED_EAP}/export/?diff=true"
-        )
+        expected_url = f"{settings.GO_WEB_INTERNAL_URL}/eap/{eap_registration.id}/export/?diff=true"
         self.assertEqual(response.data["url"], expected_url)
 
         self.assertEqual(mock_generate_url.called, True)
