@@ -4,6 +4,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.template.loader import render_to_string
 from django.utils import timezone
+from sentry_sdk.crons import monitor
 
 from local_units.models import LocalUnit, Validator
 from local_units.utils import (
@@ -11,20 +12,20 @@ from local_units.utils import (
     get_local_unit_global_validators,
     get_local_unit_region_validators,
 )
-
-# from main.sentry import SentryMonitor
+from main.sentry import SentryMonitor
 from notifications.notification import send_notification
-
-# from sentry_sdk.crons import monitor
 
 
 class Command(BaseCommand):
     help = "Notify validators for the pending local units in different period of time"
 
-    # @monitor(monitor_slug=SentryMonitor.NOTIFY_VALIDATORS) # NOTE: Disabled for now
+    @monitor(monitor_slug=SentryMonitor.NOTIFY_VALIDATORS)
     def handle(self, *args, **options):
         self.stdout.write(self.style.NOTICE("Notifying the validators..."))
-        # NOTE: In production use standard email notification time(7days/14days),shorter delays(1day/2days) elsewhere for testing
+        """NOTE:
+            Notification delays are environment-dependent:
+            7/14 days in production, 1/2 days in other environments for testing purposes.
+        """
         production = settings.GO_ENVIRONMENT == "production"
         if production:
             regional_email_notification_days = 7
@@ -32,7 +33,7 @@ class Command(BaseCommand):
         else:
             regional_email_notification_days = 1
             global_email_notification_days = 2
-        # Regional Validators: 14 days
+        # Regional Validators: 7 days
         queryset_for_regional_validators = LocalUnit.objects.filter(
             status__in=[LocalUnit.Status.UNVALIDATED, LocalUnit.Status.PENDING_EDIT_VALIDATION],
             is_deprecated=False,
@@ -40,7 +41,7 @@ class Command(BaseCommand):
             created_at__lte=timezone.now() - timedelta(days=regional_email_notification_days),
         )
 
-        # Global Validators: 28 days
+        # Global Validators: 14 days
         queryset_for_global_validators = LocalUnit.objects.filter(
             status__in=[LocalUnit.Status.UNVALIDATED, LocalUnit.Status.PENDING_EDIT_VALIDATION],
             is_deprecated=False,
