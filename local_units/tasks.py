@@ -29,7 +29,6 @@ def send_local_unit_email(local_unit_id: int, new: bool = True):
         get_local_unit_country_validators(instance)
         or get_local_unit_region_validators(instance)
         or get_local_unit_global_validators(instance)
-        or User.objects.filter(is_superuser=True)
     )
 
     email_context = get_email_context(instance)
