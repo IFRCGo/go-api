@@ -72,16 +72,13 @@ def get_model_field_names(
 
 
 def normalize_bool(value):
-    if isinstance(value, bool):
-        return value
     if not value:
         return False
     val = str(value).strip().lower()
-    if val in ("true", "1", "yes", "y"):
+    if val in ("yes"):
         return True
-    if val in ("false", "0", "no", "n"):
+    if val in ("no"):
         return False
-    return False
 
 
 def wash(string):
@@ -91,4 +88,4 @@ def wash(string):
 
 
 def numerize(value):
-    return value if value.isdigit() else 0
+    return value if value else 0

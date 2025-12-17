@@ -32,6 +32,7 @@ from .models import (
     LocalUnitChangeRequest,
     LocalUnitLevel,
     LocalUnitType,
+    OtherProfile,
     PrimaryHCC,
     ProfessionalTrainingFacility,
     SpecializedMedicalService,
@@ -106,6 +107,14 @@ class ProfessionalTrainingFacilitySerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class OtherProfileSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
+
+    class Meta:
+        model = OtherProfile
+        fields = "__all__"
+
+
 class MiniHealthDataSerializer(serializers.ModelSerializer):
     health_facility_type_details = FacilityTypeSerializer(source="health_facility_type", read_only=True)
 
@@ -146,6 +155,10 @@ class HealthDataSerializer(
     )
     professional_training_facilities_details = ProfessionalTrainingFacilitySerializer(
         source="professional_training_facilities", many=True, read_only=True
+    )
+    other_profiles = OtherProfileSerializer(
+        many=True,
+        required=False,
     )
     modified_by_details = LocalUnitMiniUserSerializer(source="modified_by", read_only=True)
     created_by_details = LocalUnitMiniUserSerializer(source="created_by", read_only=True)
@@ -660,6 +673,7 @@ class ExternallyManagedLocalUnitSerializer(serializers.ModelSerializer):
 
 
 class LocalUnitBulkUploadSerializer(serializers.ModelSerializer):
+    VALID_FILE_EXTENSIONS = (".xlsx", ".xlsm")
     country = serializers.PrimaryKeyRelatedField(
         queryset=Country.objects.filter(
             is_deprecated=False, independent=True, iso3__isnull=False, record_type=CountryType.COUNTRY
@@ -690,8 +704,8 @@ class LocalUnitBulkUploadSerializer(serializers.ModelSerializer):
         )
 
     def validate_file(self, file):
-        if not file.name.endswith(".csv"):
-            raise serializers.ValidationError(gettext("File must be a CSV file."))
+        if not file.name.lower().endswith(self.VALID_FILE_EXTENSIONS):
+            raise serializers.ValidationError(gettext("The uploaded file must be an Excel document (.xlsx or .xlsm)."))
         if file.size > 10 * 1024 * 1024:
             raise serializers.ValidationError(gettext("File must be less than 10 MB."))
         return file
@@ -840,7 +854,6 @@ class HealthDataBulkUploadSerializer(NestedCreateMixin):
         parse_m2m("specialized_medical_beyond_primary_level", self.specializedmedicalservice_map)
         parse_m2m("blood_services", self.bloodservice_map)
         parse_m2m("professional_training_facilities", self.professionaltrainingfacility_map)
-
         return super().to_internal_value(data)
 
     def create(self, validated_data):
@@ -859,7 +872,7 @@ class LocalUnitBulkUploadDetailSerializer(serializers.ModelSerializer):
     visibility = serializers.CharField(required=True, allow_blank=True)
     date_of_data = serializers.CharField(required=False, allow_null=True)
     level = serializers.CharField(required=False, allow_null=True)
-    health = HealthDataBulkUploadSerializer(required=False)
+    health = serializers.PrimaryKeyRelatedField(queryset=HealthData.objects.all(), required=False, allow_null=True)
 
     class Meta:
         model = LocalUnit
@@ -940,10 +953,6 @@ class LocalUnitBulkUploadDetailSerializer(serializers.ModelSerializer):
         validated_data["status"] = LocalUnit.Status.EXTERNALLY_MANAGED
 
         # NOTE: Bulk upload doesn't call create() method
-        health_data = validated_data.pop("health", None)
-        if health_data:
-            health_instance = HealthData.objects.create(**health_data)
-            validated_data["health"] = health_instance
         return validated_data
 
 
