@@ -21,7 +21,18 @@
                 If you have any questions on the process or the next steps, please don’t hesitate to reach out to 
                 <a href="mailto:DREF.anticipatorypillar@ifrc.org">DREF.anticipatorypillar@ifrc.org</a>.
             </p>
-            <!-- Signature -->
+
+            <p>
+                <strong>Attached documents:</strong><br>
+                Export Pdf: <br> 
+                Validated budget file: 
+                {% if validated_budget_file %}
+                    {{ validated_budget_file }}
+                {% else %}
+                    N/A
+                {% endif %}
+            </p>
+
             <p style="margin-top:16px;">
                 Congratulations again and warm wishes,<br>
                 IFRC-DREF AA Team<br>

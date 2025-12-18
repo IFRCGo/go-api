@@ -20,7 +20,7 @@
                 </tr>
                 <tr>
                     <td style="border:1px solid #000000; width:40%; font-weight: bold;">Type of EAP</td>
-                    <td style="border:1px solid #000000;">{{ eap_type_display|default:"Not Sure" }}</td>
+                    <td style="border:1px solid #000000;">{{ eap_type_display }}</td>
                 </tr>
                 <tr>
                     <td style="border:1px solid #000000; width:40%; font-weight: bold;">Hazard</td>
@@ -28,7 +28,7 @@
                 </tr>
                 <tr>
                     <td style="border:1px solid #000000; width:40%; font-weight: bold;">People targeted</td>
-                    <td style="border:1px solid #000000;">100</td>
+                    <td style="border:1px solid #000000;">{{ people_targeted }}</td>
                 </tr>
                 <tr>
                     <td style="border:1px solid #000000; width:40%; font-weight: bold;">Total Budget</td>
@@ -59,8 +59,8 @@
 
             <p>
                 <strong>Attached documents:</strong><br>
-                Export Pdf:<br>
-                budget file:
+                Export Pdf: <br> 
+                budget file: {{ budget_file }}
             </p>
 
             <!-- Signature -->
