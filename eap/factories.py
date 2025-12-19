@@ -49,6 +49,8 @@ class EAPRegistrationFactory(factory.django.DjangoModelFactory):
 
     status = fuzzy.FuzzyChoice(EAPStatus)
     eap_type = fuzzy.FuzzyChoice(EAPType)
+    national_society_contact_name = fuzzy.FuzzyText(length=10, prefix="NS-")
+    national_society_contact_email = factory.LazyAttribute(lambda obj: f"{obj.national_society_contact_name.lower()}@example.com")
 
     @factory.post_generation
     def partners(self, create, extracted, **kwargs):
@@ -73,6 +75,14 @@ class SimplifiedEAPFactory(factory.django.DjangoModelFactory):
     seap_lead_timeframe_unit = fuzzy.FuzzyInteger(TimeFrame.MONTHS)
     seap_lead_time = fuzzy.FuzzyInteger(1, 12)
     operational_timeframe = fuzzy.FuzzyInteger(1, 12)
+    national_society_contact_name = fuzzy.FuzzyText(length=10, prefix="NS-")
+    national_society_contact_email = factory.LazyAttribute(lambda obj: f"{obj.national_society_contact_name.lower()}@example.com")
+    ifrc_delegation_focal_point_name = fuzzy.FuzzyText(length=10, prefix="IFRC-")
+    ifrc_delegation_focal_point_email = factory.LazyAttribute(
+        lambda obj: f"{obj.ifrc_delegation_focal_point_name.lower()}@example.com"
+    )
+    ifrc_head_of_delegation_name = fuzzy.FuzzyText(length=10, prefix="ifrc-head-")
+    ifrc_head_of_delegation_email = factory.LazyAttribute(lambda obj: f"{obj.ifrc_head_of_delegation_name.lower()}@example.com")
 
     @factory.post_generation
     def enable_approaches(self, create, extracted, **kwargs):
@@ -185,7 +195,6 @@ class FullEAPFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = FullEAP
 
-    seap_timeframe = fuzzy.FuzzyInteger(5)
     expected_submission_time = fuzzy.FuzzyDateTime(datetime(2025, 1, 1, tzinfo=pytz.utc))
     lead_time = fuzzy.FuzzyInteger(1, 100)
     total_budget = fuzzy.FuzzyInteger(1000, 1000000)
@@ -193,3 +202,20 @@ class FullEAPFactory(factory.django.DjangoModelFactory):
     pre_positioning_budget = fuzzy.FuzzyInteger(1000, 1000000)
     early_action_budget = fuzzy.FuzzyInteger(1000, 1000000)
     people_targeted = fuzzy.FuzzyInteger(100, 100000)
+    national_society_contact_name = fuzzy.FuzzyText(length=10, prefix="NS-")
+    national_society_contact_email = factory.LazyAttribute(lambda obj: f"{obj.national_society_contact_name.lower()}@example.com")
+    ifrc_delegation_focal_point_name = fuzzy.FuzzyText(length=10, prefix="IFRC-")
+    ifrc_delegation_focal_point_email = factory.LazyAttribute(
+        lambda obj: f"{obj.ifrc_delegation_focal_point_name.lower()}@example.com"
+    )
+    ifrc_head_of_delegation_name = fuzzy.FuzzyText(length=10, prefix="ifrc-head-")
+    ifrc_head_of_delegation_email = factory.LazyAttribute(lambda obj: f"{obj.ifrc_head_of_delegation_name.lower()}@example.com")
+
+    @factory.post_generation
+    def key_actors(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for actor in extracted:
+                self.key_actors.add(actor)
