@@ -740,7 +740,7 @@ class OpsLearning(models.Model):
                 self.sector_validated.add(*[x[0] for x in self.sector.values_list()])
                 self.per_component_validated.add(*[x[0] for x in self.per_component.values_list()])
 
-        return super(OpsLearning, self).save(*args, **kwargs)
+        return super().save(*args, **kwargs)
 
 
 class PerDocumentUpload(models.Model):

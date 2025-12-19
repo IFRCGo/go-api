@@ -9,6 +9,7 @@ from dref.models import (
     NationalSocietyAction,
     PlannedIntervention,
     PlannedInterventionIndicators,
+    ProposedActionActivities,
     RiskSecurity,
 )
 
@@ -148,3 +149,8 @@ class RiskSecurityTO(TranslationOptions):
         "risk",
         "mitigation",
     )
+
+
+@register(ProposedActionActivities)
+class ProposedActionActivitiesTO(TranslationOptions):
+    fields = ("activity",)
