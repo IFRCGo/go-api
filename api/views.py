@@ -587,10 +587,8 @@ class ProjectPrimarySectors(APIView):
         responses=ProjectPrimarySectorsSerializer(many=True),
     )
     def get(cls, request):
-        keys_labels = [
-            {"key": s.id, "label": s.title, "color": s.color, "is_deprecated": s.is_deprecated} for s in Sector.objects.all()
-        ]
-        return Response(ProjectPrimarySectorsSerializer(keys_labels, many=True).data)
+        queryset = Sector.objects.filter(is_deprecated=False).all()
+        return Response(ProjectPrimarySectorsSerializer(queryset, many=True).data)
 
 
 class ProjectSecondarySectors(APIView):
