@@ -749,11 +749,6 @@ class CommonEAPFields(models.Model):
         related_name="+",
     )
 
-    seap_timeframe = models.IntegerField(
-        verbose_name=_("Timeframe (Years) of the EAP"),
-        help_text=_("Timeframe of the EAP in years."),
-    )
-
     admin2 = models.ManyToManyField(
         Admin2,
         verbose_name=_("admin"),
@@ -768,13 +763,15 @@ class CommonEAPFields(models.Model):
     # Contacts
     # National Society
     national_society_contact_name = models.CharField(
-        verbose_name=_("national society contact name"), max_length=255, null=True, blank=True
+        verbose_name=_("national society contact name"),
+        max_length=255,
     )
     national_society_contact_title = models.CharField(
         verbose_name=_("national society contact title"), max_length=255, null=True, blank=True
     )
     national_society_contact_email = models.CharField(
-        verbose_name=_("national society contact email"), max_length=255, null=True, blank=True
+        verbose_name=_("national society contact email"),
+        max_length=255,
     )
     national_society_contact_phone_number = models.CharField(
         verbose_name=_("national society contact phone number"), max_length=100, null=True, blank=True
@@ -787,12 +784,8 @@ class CommonEAPFields(models.Model):
     partner_ns_phone_number = models.CharField(verbose_name=_("Partner NS phone number"), max_length=100, null=True, blank=True)
 
     # Delegations
-    ifrc_delegation_focal_point_name = models.CharField(
-        verbose_name=_("IFRC delegation focal point name"), max_length=255, null=True, blank=True
-    )
-    ifrc_delegation_focal_point_email = models.CharField(
-        verbose_name=_("IFRC delegation focal point email"), max_length=255, null=True, blank=True
-    )
+    ifrc_delegation_focal_point_name = models.CharField(verbose_name=_("IFRC delegation focal point name"), max_length=255)
+    ifrc_delegation_focal_point_email = models.CharField(verbose_name=_("IFRC delegation focal point email"), max_length=255)
     ifrc_delegation_focal_point_title = models.CharField(
         verbose_name=_("IFRC delegation focal point title"), max_length=255, null=True, blank=True
     )
@@ -800,12 +793,8 @@ class CommonEAPFields(models.Model):
         verbose_name=_("IFRC delegation focal point phone number"), max_length=100, null=True, blank=True
     )
 
-    ifrc_head_of_delegation_name = models.CharField(
-        verbose_name=_("IFRC head of delegation name"), max_length=255, null=True, blank=True
-    )
-    ifrc_head_of_delegation_email = models.CharField(
-        verbose_name=_("IFRC head of delegation email"), max_length=255, null=True, blank=True
-    )
+    ifrc_head_of_delegation_name = models.CharField(verbose_name=_("IFRC head of delegation name"), max_length=255)
+    ifrc_head_of_delegation_email = models.CharField(verbose_name=_("IFRC head of delegation email"), max_length=255)
     ifrc_head_of_delegation_title = models.CharField(
         verbose_name=_("IFRC head of delegation title"), max_length=255, null=True, blank=True
     )
@@ -924,6 +913,11 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
         on_delete=models.CASCADE,
         verbose_name=_("EAP Development Registration"),
         related_name="simplified_eap",
+    )
+
+    seap_timeframe = models.IntegerField(
+        verbose_name=_("Timeframe (Years) of the EAP"),
+        help_text=_("Timeframe of the EAP in years."),
     )
 
     # RISK ANALYSIS and EARLY ACTION SELECTION #
@@ -1282,11 +1276,6 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         verbose_name=_("Intervention Area Images"),
         related_name="+",
         blank=True,
-    )
-
-    selection_area = models.TextField(
-        verbose_name=_("Areas selection rationale"),
-        help_text=_("Add description for the selection of the areas."),
     )
 
     trigger_model_relevant_files = models.ManyToManyField(
