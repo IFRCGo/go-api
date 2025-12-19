@@ -1,9 +1,11 @@
 import logging
 import uuid
 
-from celery import chain, shared_task
+from celery import chain, group, shared_task
 from celery.exceptions import MaxRetriesExceededError
 from django.db import transaction
+
+from api.models import Event
 
 from .helpers import get_connector_processor, set_connector_status
 from .models import Connector, LoadItem
@@ -18,23 +20,20 @@ def polling_task(self, connector_id):
     """
     extraction_run_id = str(uuid.uuid4())
     processor, connector = get_connector_processor(connector_id)
-    set_connector_status(connector, Connector.Status.RUNNING)
 
     try:
+        set_connector_status(connector, Connector.Status.RUNNING)
         logger.info(f"[ETL] Starting connector: {connector.id}")
 
-        # Run ETL inside a transaction
-        with transaction.atomic():
-            processor.run(extraction_run_id=extraction_run_id)
+        processor.run(extraction_run_id=extraction_run_id)
 
-            set_connector_status(connector, Connector.Status.SUCCESS)
-
+        set_connector_status(connector, Connector.Status.SUCCESS)
         logger.info(f"[ETL] Completed connector: {connector.id}")
         return extraction_run_id
 
     except Exception as exc:
         logger.exception(f"[ETL] Connector {connector.id} failed: {exc}")
-        set_connector_status(connector, Connector.Status.SUCCESS)
+        set_connector_status(connector, Connector.Status.FAILED)
 
         try:
             raise self.retry(exc=exc)
@@ -44,7 +43,7 @@ def polling_task(self, connector_id):
 
 
 @shared_task(bind=True, max_retries=3, retry_backoff=True)
-def fetch_past_events_for_run(self, extraction_run_id):
+def fetch_past_events_from_monty(self, extraction_run_id):
     """
     Fetch past events for all eligible items from a specific extraction run.
     This task is chained after process_connector_task.
@@ -106,6 +105,26 @@ def fetch_past_events_for_run(self, extraction_run_id):
             raise
 
 
+@shared_task(bind=True, max_retries=3, retry_backoff=True)
+def fetch_past_events_from_go(self, extraction_run_id, connector_id):
+    _, connector = get_connector_processor(connector_id=connector_id)
+    eligible_items = LoadItem.objects.filter(
+        extraction_run_id=extraction_run_id,
+        item_eligible=True,
+        is_past_event=False,
+    ).only("id", "total_people_exposed")
+
+    for item in eligible_items.iterator():
+        go_event_ids = list(
+            Event.objects.filter(field_reports__num_affected__gte=item.total_people_exposed, dtype=connector.dtype)
+            .values_list("id", flat=True)
+            .distinct()
+        )
+
+        item.related_go_events = go_event_ids
+        item.save(update_fields=["related_go_events"])
+
+
 @shared_task
 def process_connector_task(connector_id):
     """
@@ -114,5 +133,5 @@ def process_connector_task(connector_id):
     2. Fetch past events for eligible items
     """
     return chain(
-        polling_task.s(connector_id), fetch_past_events_for_run.s()  # Receives extraction_run_id from previous task
+        polling_task.s(connector_id), group(fetch_past_events_from_go.s(connector_id), fetch_past_events_from_monty.s())
     ).apply_async()
