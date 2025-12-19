@@ -13,7 +13,7 @@ from rest_framework import serializers
 # from api.utils import pdf_exporter
 from api.tasks import generate_url
 from api.utils import CountryValidator, RegionValidator
-from deployments.models import EmergencyProject, Personnel, PersonnelDeployment
+from deployments.models import EmergencyProject, Personnel, PersonnelDeployment, Sector
 from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
 from lang.models import String
 from lang.serializers import ModelSerializer
@@ -2455,11 +2455,10 @@ class SearchSerializer(serializers.Serializer):
     reports = SearchReportSerializer(many=True, required=False, allow_null=True)
 
 
-class ProjectPrimarySectorsSerializer(serializers.Serializer):
-    key = serializers.IntegerField()
-    label = serializers.CharField()
-    color = serializers.CharField()
-    is_deprecated = serializers.BooleanField()
+class ProjectPrimarySectorsSerializer(ModelSerializer):
+    class Meta:
+        model = Sector
+        fields = "__all__"
 
 
 class ProjectSecondarySectorsSerializer(serializers.Serializer):
