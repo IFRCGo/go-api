@@ -638,13 +638,15 @@ class EAPRegistration(EAPBaseModel):
     # Contacts
     # National Society
     national_society_contact_name = models.CharField(
-        verbose_name=_("national society contact name"), max_length=255, null=True, blank=True
+        verbose_name=_("national society contact name"),
+        max_length=255,
     )
     national_society_contact_title = models.CharField(
         verbose_name=_("national society contact title"), max_length=255, null=True, blank=True
     )
     national_society_contact_email = models.CharField(
-        verbose_name=_("national society contact email"), max_length=255, null=True, blank=True
+        verbose_name=_("national society contact email"),
+        max_length=255,
     )
     national_society_contact_phone_number = models.CharField(
         verbose_name=_("national society contact phone number"), max_length=100, null=True, blank=True
