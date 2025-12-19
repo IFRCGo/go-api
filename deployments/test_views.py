@@ -205,6 +205,14 @@ class ProjectGetTest(APITestCase):
         district1a = District.objects.create(name="district1aa", country=country1)
         district2 = District.objects.create(name="district2", country=country2)
         district2a = District.objects.create(name="district2a", country=country2)
+        sector_1 = Sector.objects.create(title="Sector 1")
+        sector_2 = Sector.objects.create(title="Sector 2")
+        sector_3 = Sector.objects.create(title="Sector 3")
+        sector_4 = Sector.objects.create(title="Sector 4")
+        sector_5 = Sector.objects.create(title="Sector 5")
+        sector_6 = Sector.objects.create(title="Sector 6")
+        sector_7 = Sector.objects.create(title="Sector 7")
+        sector_8 = Sector.objects.create(title="Sector 8")
 
         mock_now.return_value = datetime.datetime(2011, 11, 11, tzinfo=pytz.utc)
         # Create new Projects
@@ -214,7 +222,7 @@ class ProjectGetTest(APITestCase):
                     rcountry1,
                     [district1, district1a],
                     ProgrammeTypes.BILATERAL,
-                    Sector.objects.get(pk=0),
+                    sector_1,
                     OperationTypes.PROGRAMME,
                     [datetime.date(2011, 11, 12), datetime.date(2011, 12, 13)],
                     6000,
@@ -225,7 +233,7 @@ class ProjectGetTest(APITestCase):
                     rcountry1,
                     [district1],
                     ProgrammeTypes.MULTILATERAL,
-                    Sector.objects.get(pk=0),
+                    sector_2,
                     OperationTypes.EMERGENCY_OPERATION,
                     [datetime.date(2011, 11, 1), datetime.date(2011, 12, 15)],
                     1000,
@@ -236,7 +244,7 @@ class ProjectGetTest(APITestCase):
                     rcountry1,
                     [district2, district2a],
                     ProgrammeTypes.DOMESTIC,
-                    Sector.objects.get(pk=2),
+                    sector_3,
                     OperationTypes.PROGRAMME,
                     [datetime.date(2011, 11, 1), datetime.date(2011, 12, 15)],
                     4000,
@@ -247,7 +255,7 @@ class ProjectGetTest(APITestCase):
                     rcountry1,
                     [district2],
                     ProgrammeTypes.BILATERAL,
-                    Sector.objects.get(pk=9),
+                    sector_4,
                     OperationTypes.EMERGENCY_OPERATION,
                     [datetime.date(2010, 11, 12), datetime.date(2010, 1, 13)],
                     6000,
@@ -258,7 +266,7 @@ class ProjectGetTest(APITestCase):
                     rcountry2,
                     [district1, district1a],
                     ProgrammeTypes.BILATERAL,
-                    Sector.objects.get(pk=0),
+                    sector_5,
                     OperationTypes.PROGRAMME,
                     [datetime.date(2011, 11, 12), datetime.date(2011, 12, 13)],
                     86000,
@@ -269,7 +277,7 @@ class ProjectGetTest(APITestCase):
                     rcountry2,
                     [district1],
                     ProgrammeTypes.MULTILATERAL,
-                    Sector.objects.get(pk=8),
+                    sector_6,
                     OperationTypes.EMERGENCY_OPERATION,
                     [datetime.date(2010, 11, 12), datetime.date(2010, 1, 13)],
                     6000,
@@ -280,7 +288,7 @@ class ProjectGetTest(APITestCase):
                     rcountry2,
                     [district2, district2a],
                     ProgrammeTypes.DOMESTIC,
-                    Sector.objects.get(pk=5),
+                    sector_7,
                     OperationTypes.PROGRAMME,
                     [datetime.date(2011, 11, 12), datetime.date(2011, 12, 13)],
                     100,
@@ -291,7 +299,7 @@ class ProjectGetTest(APITestCase):
                     rcountry2,
                     [district2],
                     ProgrammeTypes.BILATERAL,
-                    Sector.objects.get(pk=3),
+                    sector_8,
                     OperationTypes.PROGRAMME,
                     [datetime.date(2010, 11, 12), datetime.date(2010, 1, 13)],
                     2,
@@ -329,87 +337,141 @@ class ProjectGetTest(APITestCase):
             resp.json(),
         )
 
+        def deep_sort_response(data):
+            data["countries_count"] = sorted(data["countries_count"], key=lambda x: x["id"])
+            data["country_ns_sector_count"] = sorted(data["country_ns_sector_count"], key=lambda x: x["id"])
+
+            for country in data["country_ns_sector_count"]:
+                country["reporting_national_societies"] = sorted(country["reporting_national_societies"], key=lambda x: x["id"])
+
+                for ns in country["reporting_national_societies"]:
+                    ns["sectors"] = sorted(ns["sectors"], key=lambda x: x["id"])
+
+            data["supporting_ns"] = sorted(data["supporting_ns"], key=lambda x: x["id"])
+            return data
+
         resp = self.client.get(f"/api/v2/region-project/{region.pk}/movement-activities/", format="json")
-        self.assertEqual(
-            "".join(
-                sorted(
-                    json.dumps(
+
+        resp_data = resp.json()
+
+        expected_data = {
+            "total_projects": 8,
+            "countries_count": [
+                {
+                    "id": country1.id,
+                    "name": country1.name,
+                    "iso": country1.iso,
+                    "iso3": country1.iso3,
+                    "projects_count": 4,
+                    "planned_projects_count": 2,
+                    "ongoing_projects_count": 1,
+                    "completed_projects_count": 1,
+                },
+                {
+                    "id": country2.id,
+                    "name": country2.name,
+                    "iso": country2.iso,
+                    "iso3": country2.iso3,
+                    "projects_count": 4,
+                    "planned_projects_count": 1,
+                    "ongoing_projects_count": 1,
+                    "completed_projects_count": 2,
+                },
+            ],
+            "country_ns_sector_count": [
+                {
+                    "id": country1.id,
+                    "name": country1.name,
+                    "reporting_national_societies": [
                         {
-                            "total_projects": 8,
-                            "countries_count": [
+                            "id": rcountry1.id,
+                            "name": rcountry1.name,
+                            "sectors": [
                                 {
-                                    "id": country1.id,
-                                    "name": "country1",
-                                    "iso": "WZ",
-                                    "iso3": None,
-                                    "projects_count": 4,
-                                    "planned_projects_count": 2,
-                                    "ongoing_projects_count": 1,
-                                    "completed_projects_count": 1,
+                                    "id": sector_1.id,
+                                    "sector": sector_1.title,
+                                    "count": 1,
                                 },
                                 {
-                                    "id": country2.id,
-                                    "name": "country2",
-                                    "iso": "WW",
-                                    "iso3": None,
-                                    "projects_count": 4,
-                                    "planned_projects_count": 1,
-                                    "ongoing_projects_count": 1,
-                                    "completed_projects_count": 2,
+                                    "id": sector_2.id,
+                                    "sector": sector_2.title,
+                                    "count": 1,
                                 },
                             ],
-                            "country_ns_sector_count": [
+                        },
+                        {
+                            "id": rcountry2.id,
+                            "name": rcountry2.name,
+                            "sectors": [
                                 {
-                                    "id": country1.id,
-                                    "name": "country1",
-                                    "reporting_national_societies": [
-                                        {
-                                            "id": rcountry1.id,
-                                            "name": "rcountry1",
-                                            "sectors": [{"id": 0, "sector": Sector.objects.get(pk=0).title, "count": 2}],
-                                        },
-                                        {
-                                            "id": rcountry2.id,
-                                            "name": "rcountry2",
-                                            "sectors": [
-                                                {"id": 0, "sector": Sector.objects.get(pk=0).title, "count": 1},
-                                                {"id": 8, "sector": Sector.objects.get(pk=8).title, "count": 1},
-                                            ],
-                                        },
-                                    ],
+                                    "id": sector_5.id,
+                                    "sector": sector_5.title,
+                                    "count": 1,
                                 },
                                 {
-                                    "id": country2.id,
-                                    "name": "country2",
-                                    "reporting_national_societies": [
-                                        {
-                                            "id": rcountry1.id,
-                                            "name": "rcountry1",
-                                            "sectors": [
-                                                {"id": 2, "sector": Sector.objects.get(pk=2).title, "count": 1},
-                                                {"id": 9, "sector": Sector.objects.get(pk=9).title, "count": 1},
-                                            ],
-                                        },
-                                        {
-                                            "id": rcountry2.id,
-                                            "name": "rcountry2",
-                                            "sectors": [
-                                                {"id": 3, "sector": Sector.objects.get(pk=3).title, "count": 1},
-                                                {"id": 5, "sector": Sector.objects.get(pk=5).title, "count": 1},
-                                            ],
-                                        },
-                                    ],
+                                    "id": sector_6.id,
+                                    "sector": sector_6.title,
+                                    "count": 1,
                                 },
                             ],
-                            "supporting_ns": [
-                                {"count": 4, "id": rcountry1.id, "name": "rcountry1"},
-                                {"count": 4, "id": rcountry2.id, "name": "rcountry2"},
+                        },
+                    ],
+                },
+                {
+                    "id": country2.id,
+                    "name": country2.name,
+                    "reporting_national_societies": [
+                        {
+                            "id": rcountry1.id,
+                            "name": rcountry1.name,
+                            "sectors": [
+                                {
+                                    "id": sector_3.id,
+                                    "sector": sector_3.title,
+                                    "count": 1,
+                                },
+                                {
+                                    "id": sector_4.id,
+                                    "sector": sector_4.title,
+                                    "count": 1,
+                                },
                             ],
-                        }
-                    )
-                )
-            ),
-            "".join(sorted(json.dumps(resp.json()))),
+                        },
+                        {
+                            "id": rcountry2.id,
+                            "name": rcountry2.name,
+                            "sectors": [
+                                {
+                                    "id": sector_7.id,
+                                    "sector": sector_7.title,
+                                    "count": 1,
+                                },
+                                {
+                                    "id": sector_8.id,
+                                    "sector": sector_8.title,
+                                    "count": 1,
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+            "supporting_ns": [
+                {
+                    "id": rcountry1.id,
+                    "name": rcountry1.name,
+                    "count": 4,
+                },
+                {
+                    "id": rcountry2.id,
+                    "name": rcountry2.name,
+                    "count": 4,
+                },
+            ],
+        }
+        self.assertEqual(
+            deep_sort_response(expected_data),
+            deep_sort_response(resp_data),
         )
         # ^ the order of the deep recursive dict could vary, that is why this flat comparison
 
