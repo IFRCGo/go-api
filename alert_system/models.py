@@ -2,6 +2,8 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from api.models import DisasterType
+
 
 class Connector(models.Model):
     """
@@ -38,6 +40,8 @@ class Connector(models.Model):
     last_success_run = models.DateTimeField(
         null=True, blank=True, verbose_name=_("Last Successful Run"), help_text=_("Timestamp of the last successful data fetch")
     )
+
+    dtype = models.ForeignKey(DisasterType, verbose_name=_("disaster type"), null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
         return self.get_type_display()  # type: ignore[attr-defined]
@@ -178,7 +182,9 @@ class LoadItem(BaseItem):
         default=False,
     )
 
-    related_events = models.ManyToManyField("self", symmetrical=False, related_name="related_to", blank=True)
+    related_montandon_events = models.ManyToManyField("self", symmetrical=False, related_name="related_to", blank=True)
+
+    related_go_events = ArrayField(models.IntegerField(), blank=True, default=list, help_text="List of IDs of the events in GO.")
 
     class Meta:
         verbose_name = _("Eligible Item")
