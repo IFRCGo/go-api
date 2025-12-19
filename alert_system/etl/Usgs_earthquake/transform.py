@@ -1,0 +1,78 @@
+import logging
+
+from alert_system.etl.base.transform import BaseTransformerClass
+
+logger = logging.getLogger(__name__)
+
+
+class USGSTransformer(BaseTransformerClass):
+    """
+    Transformer for USGS STAC impacts.
+    Extracts and normalizes impact fields, computes derived values, and stores metadata.
+    """
+
+    # NOTE: This logic might change in future
+    def compute_people_exposed(self, metadata_list) -> int:
+        for data in metadata_list:
+            if data["category"] == "people" and data["type"] == "affected_total":
+                return data["value"]
+        return 0
+
+    # NOTE: This logic might change in future
+    def compute_buildings_exposed(self, metadata_list) -> int:
+        """
+        Compute the 'buildings_exposed' field.
+        """
+        for data in metadata_list:
+            if data["category"] == "buildings" and data["type"] == "damaged":
+                return data["value"]
+        return 0
+
+    def process_impact(self, impact_items) -> BaseTransformerClass.ImpactType:
+        metadata = []
+        values_metadata = {}
+        for item in impact_items:
+            properties = item.resp_data.get("properties", {})
+            impact_detail = properties.get("monty:impact_detail", {})
+            category = impact_detail.get("category")
+            type_ = impact_detail.get("type")
+            value = impact_detail.get("value")
+            if category and type_:
+                values_metadata = {
+                    "category": category,
+                    "type": type_,
+                    "value": value,
+                    "unit": impact_detail.get("unit", ""),
+                    "estimate_type": impact_detail.get("estimate_type", ""),
+                }
+            metadata.append(values_metadata)
+        return {
+            "people_exposed": self.compute_people_exposed(metadata),
+            "buildings_exposed": self.compute_buildings_exposed(metadata),
+            "impact_metadata": metadata,
+        }
+
+    def process_hazard(self, hazard_item) -> BaseTransformerClass.HazardType:
+        if not hazard_item:
+            return {
+                "severity_unit": "",
+                "severity_label": "",
+                "severity_value": 0,
+            }
+
+        properties = hazard_item.resp_data.get("properties", {})
+        detail = properties.get("monty:hazard_detail", {})
+
+        return {
+            "severity_unit": detail.get("severity_unit", ""),
+            "severity_label": detail.get("severity_label", ""),
+            "severity_value": detail.get("severity_value", 0),
+        }
+
+    def process_event(self, event_item) -> BaseTransformerClass.EventType:
+        properties = event_item.resp_data.get("properties", {})
+        return {
+            "title": properties.get("title", ""),
+            "description": properties.get("description", ""),
+            "country": properties.get("monty:country_codes", ""),
+        }
