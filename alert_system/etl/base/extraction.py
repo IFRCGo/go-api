@@ -286,16 +286,16 @@ class BaseExtractionClass(ABC):
             item = existing_map.get(corr_id)
             if item:
                 related_ids.append(item.id)
-                item.related_events.add(load_obj.id)
+                item.related_montandon_events.add(load_obj.id)
             else:
                 self.run(extraction_run_id=load_obj.extraction_run_id, correlation_id=corr_id, is_past_event=True)
                 new_item = LoadItem.objects.filter(correlation_id=corr_id).first()
                 if new_item:
                     related_ids.append(new_item.id)
-                    new_item.related_events.add(load_obj.id)
+                    new_item.related_montandon_events.add(load_obj.id)
 
         if related_ids:
-            load_obj.related_events.set(related_ids)
+            load_obj.related_montandon_events.set(related_ids)
 
     def run(self, extraction_run_id: str, correlation_id: str | None = None, is_past_event: bool = False) -> None:
         """Main entry point for running the connector."""

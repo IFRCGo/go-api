@@ -43,7 +43,8 @@ class LoadItemAdmin(admin.ModelAdmin):
     readonly_fields = (
         "connector",
         "item_eligible",
-        "related_events",
+        "related_montandon_events",
+        "related_go_events",
     )
     search_fields = (
         "id",
