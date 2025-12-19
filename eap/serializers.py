@@ -115,7 +115,6 @@ class MiniFullEAPSerializer(
             "readiness_budget",
             "pre_positioning_budget",
             "early_action_budget",
-            "seap_timeframe",
             "budget_file",
             "version",
             "is_locked",
@@ -448,8 +447,8 @@ class SimplifiedEAPSerializer(
 
     # FILES
     hazard_impact_images = EAPFileUpdateSerializer(required=False, many=True)
-    selected_early_actions_images = EAPFileUpdateSerializer(required=False, many=True)
-    risk_selected_protocols_images = EAPFileUpdateSerializer(required=False, many=True)
+    selected_early_actions_images = EAPFileUpdateSerializer(required=False, many=True, allow_null=True)
+    risk_selected_protocols_images = EAPFileUpdateSerializer(required=False, many=True, allow_null=True)
 
     # TimeFrame
     seap_lead_timeframe_unit_display = serializers.CharField(source="get_seap_lead_timeframe_unit_display", read_only=True)
@@ -570,11 +569,11 @@ class FullEAPSerializer(
     prioritized_impacts = ImpactSerializer(many=True, required=False)
 
     # SOURCE OF INFORMATIONS
-    risk_analysis_source_of_information = EAPSourceInformationSerializer(many=True, required=False)
-    trigger_statement_source_of_information = EAPSourceInformationSerializer(many=True, required=False)
-    trigger_model_source_of_information = EAPSourceInformationSerializer(many=True, required=False)
-    evidence_base_source_of_information = EAPSourceInformationSerializer(many=True, required=False)
-    activation_process_source_of_information = EAPSourceInformationSerializer(many=True, required=False)
+    risk_analysis_source_of_information = EAPSourceInformationSerializer(many=True, required=False, allow_null=True)
+    trigger_statement_source_of_information = EAPSourceInformationSerializer(many=True, required=False, allow_null=True)
+    trigger_model_source_of_information = EAPSourceInformationSerializer(many=True, required=False, allow_null=True)
+    evidence_base_source_of_information = EAPSourceInformationSerializer(many=True, required=False, allow_null=True)
+    activation_process_source_of_information = EAPSourceInformationSerializer(many=True, required=False, allow_null=True)
 
     # IMAGES
     hazard_selection_images = EAPFileUpdateSerializer(

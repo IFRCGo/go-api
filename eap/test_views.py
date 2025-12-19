@@ -131,6 +131,8 @@ class EAPRegistrationTestCase(APITestCase):
             "disaster_type": self.disaster_type.id,
             "expected_submission_time": "2024-12-31",
             "partners": [self.partner1.id, self.partner2.id],
+            "national_society_contact_name": "National society contact name",
+            "national_society_contact_email": "test@example.com",
         }
 
         self.authenticate(self.country_admin)
@@ -464,6 +466,12 @@ class EAPSimplifiedTestCase(APITestCase):
 
         data = {
             "eap_registration": eap_registration.id,
+            "national_society_contact_name": "National society contact name",
+            "national_society_contact_email": "test@example.com",
+            "ifrc_delegation_focal_point_name": "IFRC delegation focal point name",
+            "ifrc_delegation_focal_point_email": "test_ifrc@example.com",
+            "ifrc_head_of_delegation_name": "IFRC head of delegation name",
+            "ifrc_head_of_delegation_email": "ifrc_head@example.com",
             "prioritized_hazard_and_impact": "Floods with potential heavy impact.",
             "risks_selected_protocols": "Protocol A and Protocol B.",
             "selected_early_actions": "The early actions selected.",
@@ -1875,6 +1883,12 @@ class EAPFullTestCase(APITestCase):
 
         data = {
             "eap_registration": eap_registration.id,
+            "national_society_contact_name": "National society contact name",
+            "national_society_contact_email": "test@example.com",
+            "ifrc_delegation_focal_point_name": "IFRC delegation focal point name",
+            "ifrc_delegation_focal_point_email": "test_ifrc@example.com",
+            "ifrc_head_of_delegation_name": "IFRC head of delegation name",
+            "ifrc_head_of_delegation_email": "ifrc_head@example.com",
             "budget_file": budget_file_instance.id,
             "forecast_table_file": forecast_table_file.id,
             "hazard_selection_images": [
@@ -1918,7 +1932,6 @@ class EAPFullTestCase(APITestCase):
             "objective": "FUll eap objective",
             "lead_time": 5,
             "expected_submission_time": "2024-12-31",
-            "seap_timeframe": 5,
             "readiness_budget": 3000,
             "pre_positioning_budget": 4000,
             "early_action_budget": 3000,
@@ -1945,7 +1958,6 @@ class EAPFullTestCase(APITestCase):
             "forecast_selection": "Rainfall forecast",
             "definition_and_justification_impact_level": "Definition and justification of impact levels",
             "identification_of_the_intervention_area": "Identification of the intervention areas",
-            "selection_area": "Selection of the area",
             "early_action_selection_process": "Early action selection process",
             "evidence_base": "Evidence base",
             "usefulness_of_actions": "Usefulness of actions",
