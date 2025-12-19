@@ -925,7 +925,9 @@ class EAPStatusSerializer(BaseEAPSerializer):
             return updated_instance
 
         eap_registration_id = updated_instance.id
-        if updated_instance.eap_type == EAPType.SIMPLIFIED_EAP:
+        assert updated_instance.get_eap_type_enum is not None, "EAP type must not be None"
+
+        if updated_instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP:
             eap_count = SimplifiedEAP.objects.filter(eap_registration=updated_instance).count()
         else:
             eap_count = FullEAP.objects.filter(eap_registration=updated_instance).count()
@@ -963,7 +965,7 @@ class EAPStatusSerializer(BaseEAPSerializer):
 
             if eap_count == 2:
                 transaction.on_commit(lambda: send_feedback_email.delay(eap_registration_id))
-            else:
+            elif eap_count > 2:
                 transaction.on_commit(lambda: send_feedback_email_for_resubmitted_eap.delay(eap_registration_id))
 
         elif (old_status, new_status) == (

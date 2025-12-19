@@ -61,7 +61,7 @@ def send_new_eap_submission_email(eap_registration_id: int):
     if not instance:
         return None
 
-    if instance.eap_type == EAPType.SIMPLIFIED_EAP:
+    if instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP:
         latest_simplified_eap = instance.latest_simplified_eap
         partner_ns_email = latest_simplified_eap.partner_ns_email
     else:
@@ -108,7 +108,7 @@ def send_feedback_email(eap_registration_id: int):
     if not instance:
         return None
 
-    if instance.eap_type == EAPType.SIMPLIFIED_EAP:
+    if instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP:
         latest_simplified_eap = instance.latest_simplified_eap
         partner_ns_email = latest_simplified_eap.partner_ns_email
         ifrc_delegation_focal_point_email = latest_simplified_eap.ifrc_delegation_focal_point_email
@@ -159,7 +159,7 @@ def send_eap_resubmission_email(eap_registration_id: int):
     if not instance:
         return None
 
-    if instance.eap_type == EAPType.SIMPLIFIED_EAP:
+    if instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP:
         latest_simplified_eap = instance.latest_simplified_eap
         partner_ns_email = latest_simplified_eap.partner_ns_email
         latest_version = latest_simplified_eap.version
@@ -210,7 +210,7 @@ def send_feedback_email_for_resubmitted_eap(eap_registration_id: int):
     if not instance:
         return None
 
-    if instance.eap_type == EAPType.SIMPLIFIED_EAP:
+    if instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP:
         partner_ns_email = instance.latest_simplified_eap.partner_ns_email
         latest_version = instance.latest_simplified_eap.version
         qs = SimplifiedEAP.objects.filter(eap_registration=instance, version__lt=latest_version).order_by("-version").first()
@@ -263,7 +263,7 @@ def send_technical_validation_email(eap_registration_id: int):
     if not instance:
         return None
 
-    if instance.eap_type == EAPType.SIMPLIFIED_EAP:
+    if instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP:
         latest_simplified_eap = instance.latest_simplified_eap
         partner_ns_email = latest_simplified_eap.partner_ns_email
     else:
@@ -307,7 +307,7 @@ def send_pending_pfa_email(eap_registration_id: int):
     if not instance:
         return None
 
-    if instance.eap_type == EAPType.SIMPLIFIED_EAP:
+    if instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP:
         latest_simplified_eap = instance.latest_simplified_eap
         partner_ns_email = latest_simplified_eap.partner_ns_email
     else:
@@ -351,7 +351,7 @@ def send_approved_email(eap_registration_id: int):
     if not instance:
         return None
 
-    if instance.eap_type == EAPType.SIMPLIFIED_EAP:
+    if instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP:
         latest_simplified_eap = instance.latest_simplified_eap
         partner_ns_email = latest_simplified_eap.partner_ns_email
         email_context = "Simplified EAP"
@@ -397,7 +397,7 @@ def send_deadline_reminder_email(eap_registration_id: int):
     if not instance:
         return None
 
-    if instance.eap_type == EAPType.SIMPLIFIED_EAP:
+    if instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP:
         latest_simplified_eap = instance.latest_simplified_eap
         partner_ns_email = latest_simplified_eap.partner_ns_email
     else:

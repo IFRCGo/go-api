@@ -34,7 +34,7 @@ def get_coordinator_emails_by_region(region: Region | None) -> list[str]:
 
 
 # TODO @sudip-khanal: Add files to email context after implementing file sending in email notification
-# also include the deadline once it's added to the model.
+# also include the deadline field once it added to the model.
 
 
 def get_eap_email_context(instance):
@@ -57,7 +57,7 @@ def get_eap_email_context(instance):
         # "validated_budget_file":eap_registration_data["validated_budget_file"],
     }
 
-    if instance.eap_type == EAPType.SIMPLIFIED_EAP:
+    if instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP:
         latest_eap_data = instance.latest_simplified_eap
         latest_version = instance.latest_simplified_eap.version
         qs = SimplifiedEAP.objects.filter(eap_registration=instance, version__lt=latest_version).order_by("-version").first()
