@@ -202,8 +202,8 @@ class EAPRegistrationTestCase(APITestCase):
 
         # Authenticate as root user
         self.authenticate(self.root_user)
-        response = self.client.put(url, data, format="json")
-        self.assertEqual(response.status_code, 200)
+        response = self.client.patch(url, data, format="json")
+        self.assertEqual(response.status_code, 200, response.data)
 
         # Check modified_by
         self.assertIsNotNone(response.data["modified_by_details"])
