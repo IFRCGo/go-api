@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-17 10:36+0000\n"
+"POT-Creation-Date: 2025-12-19 09:42+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,1497 +18,1557 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: dref/apps.py:7 dref/models.py:742
+#: dref/apps.py:7 dref/models.py:749
 msgid "dref"
-msgstr ""
+msgstr "dref"
 
-#: dref/models.py:22
+#: dref/models.py:25
 msgid "Shelter, Housing And Settlements"
-msgstr ""
-
-#: dref/models.py:23 dref/models.py:85 dref/models.py:142
-msgid "Livelihoods And Basic Needs"
-msgstr ""
-
-#: dref/models.py:24 dref/models.py:143
-msgid "Multi Purpose Cash"
-msgstr ""
-
-#: dref/models.py:25 dref/models.py:87 dref/models.py:144
-msgid "Health"
-msgstr ""
+msgstr "Refugio, vivienda y asentamientos"
 
 #: dref/models.py:26 dref/models.py:88 dref/models.py:145
-msgid "Water, Sanitation And Hygiene"
-msgstr ""
+msgid "Livelihoods And Basic Needs"
+msgstr "Medios de vida y necesidades básicas"
 
-#: dref/models.py:27 dref/models.py:89 dref/models.py:146
-msgid "Protection, Gender And Inclusion"
-msgstr ""
+#: dref/models.py:27 dref/models.py:146
+msgid "Multi Purpose Cash"
+msgstr "Efectivo multiusos"
 
 #: dref/models.py:28 dref/models.py:90 dref/models.py:147
-msgid "Education"
-msgstr ""
+msgid "Health"
+msgstr "Salud"
 
 #: dref/models.py:29 dref/models.py:91 dref/models.py:148
-msgid "Migration And Displacement"
-msgstr ""
+msgid "Water, Sanitation And Hygiene"
+msgstr "Agua, Saneamiento e Higiene"
+
+#: dref/models.py:30 dref/models.py:92 dref/models.py:149
+msgid "Protection, Gender And Inclusion"
+msgstr "Protección, género e inclusión"
 
 #: dref/models.py:31 dref/models.py:93 dref/models.py:150
-msgid "Risk Reduction, Climate Adaptation And Recovery"
-msgstr ""
+msgid "Education"
+msgstr "Educación"
+
+#: dref/models.py:32 dref/models.py:94 dref/models.py:151
+msgid "Migration And Displacement"
+msgstr "Migración y desplazamiento"
 
 #: dref/models.py:34 dref/models.py:96 dref/models.py:153
+msgid "Risk Reduction, Climate Adaptation And Recovery"
+msgstr "Reducción de riesgos, adaptación climática y recuperación"
+
+#: dref/models.py:37 dref/models.py:99 dref/models.py:156
 msgid "Community Engagement And Accountability"
-msgstr ""
+msgstr "Participación y rendición de cuentas de la comunidad"
 
-#: dref/models.py:36 dref/models.py:98
+#: dref/models.py:39 dref/models.py:101
 msgid "Environment Sustainability"
-msgstr ""
-
-#: dref/models.py:37
-msgid "Coordination"
-msgstr ""
-
-#: dref/models.py:38
-msgid "National Society Readiness"
-msgstr ""
-
-#: dref/models.py:39 dref/models.py:253
-msgid "Assessment"
-msgstr ""
+msgstr "Sostenibilidad ambiental"
 
 #: dref/models.py:40
-msgid "Resource Mobilization"
-msgstr ""
+msgid "Coordination"
+msgstr "Coordinación"
 
 #: dref/models.py:41
-msgid "Activation Of Contingency Plans"
-msgstr ""
+msgid "National Society Readiness"
+msgstr "Preparación de la Sociedad Nacional"
 
-#: dref/models.py:42
-msgid "National Society EOC"
-msgstr ""
+#: dref/models.py:42 dref/models.py:256
+msgid "Assessment"
+msgstr "Evaluación"
 
 #: dref/models.py:43
+msgid "Resource Mobilization"
+msgstr "Movilización de recursos"
+
+#: dref/models.py:44
+msgid "Activation Of Contingency Plans"
+msgstr "Activación de planes de contingencia"
+
+#: dref/models.py:45
+msgid "National Society EOC"
+msgstr "Sociedad Nacional EOC"
+
+#: dref/models.py:46
 msgid "Other"
-msgstr ""
+msgstr "Otro"
 
-#: dref/models.py:45 dref/models.py:100 dref/models.py:160 dref/models.py:299
-#: dref/models.py:844 dref/models.py:1283
+#: dref/models.py:48 dref/models.py:103 dref/models.py:163 dref/models.py:306
+#: dref/models.py:851 dref/models.py:1290
 msgid "title"
-msgstr ""
+msgstr "título"
 
-#: dref/models.py:46 dref/models.py:101 dref/models.py:161
+#: dref/models.py:49 dref/models.py:104 dref/models.py:164
 msgid "description"
-msgstr ""
+msgstr "descripción"
 
-#: dref/models.py:49
+#: dref/models.py:52
 msgid "national society action"
-msgstr ""
+msgstr "acción de la sociedad nacional"
 
-#: dref/models.py:50 dref/models.py:392 dref/models.py:1034 dref/models.py:1550
+#: dref/models.py:53 dref/models.py:399 dref/models.py:1041
+#: dref/models.py:1557
 msgid "national society actions"
-msgstr ""
+msgstr "acciones de la sociedad nacional"
 
-#: dref/models.py:84 dref/models.py:141
+#: dref/models.py:87 dref/models.py:144
 msgid "Shelter Housing And Settlements"
-msgstr ""
+msgstr "Viviendas de refugio y asentamientos"
 
-#: dref/models.py:86
+#: dref/models.py:89
 msgid "Multi purpose cash grants"
-msgstr ""
+msgstr "Subvenciones en efectivo para múltiples fines"
 
-#: dref/models.py:104
+#: dref/models.py:107
 msgid "identified need"
-msgstr ""
+msgstr "necesidad identificada"
 
-#: dref/models.py:105
+#: dref/models.py:108
 msgid "identified needs"
-msgstr ""
+msgstr "necesidades identificadas"
 
-#: dref/models.py:128
+#: dref/models.py:131
 msgid "Target"
-msgstr ""
-
-#: dref/models.py:129
-msgid "Actual"
-msgstr ""
+msgstr "Objetivo"
 
 #: dref/models.py:132
+msgid "Actual"
+msgstr "Actual"
+
+#: dref/models.py:135
 msgid "planned intervention indicator"
-msgstr ""
+msgstr "indicador de intervención planificada"
 
-#: dref/models.py:133
+#: dref/models.py:136
 msgid "planned intervention indicators"
-msgstr ""
-
-#: dref/models.py:155
-msgid "Environmental Sustainability"
-msgstr ""
-
-#: dref/models.py:156
-msgid "Coordination And Partnerships"
-msgstr ""
-
-#: dref/models.py:157
-msgid "Secretariat Services"
-msgstr ""
+msgstr "indicadores de intervención planificada"
 
 #: dref/models.py:158
+msgid "Environmental Sustainability"
+msgstr "Sostenibilidad ambiental"
+
+#: dref/models.py:159
+msgid "Coordination And Partnerships"
+msgstr "Coordinación y asociaciones"
+
+#: dref/models.py:160
+msgid "Secretariat Services"
+msgstr "Servicios de Secretaría"
+
+#: dref/models.py:161
 msgid "National Society Strengthening"
-msgstr ""
-
-#: dref/models.py:162
-msgid "person targeted"
-msgstr ""
-
-#: dref/models.py:163
-msgid "person assisted"
-msgstr ""
-
-#: dref/models.py:164
-msgid "budget"
-msgstr ""
+msgstr "Fortalecimiento de la Sociedad Nacional"
 
 #: dref/models.py:165
-msgid "male"
-msgstr ""
+msgid "person targeted"
+msgstr "persona objetivo"
 
 #: dref/models.py:166
-msgid "female"
-msgstr ""
+msgid "person assisted"
+msgstr "persona asistida"
+
+#: dref/models.py:167
+msgid "budget"
+msgstr "presupuesto"
+
+#: dref/models.py:168
+msgid "male"
+msgstr "masculino"
 
 #: dref/models.py:169
-msgid "Indicators"
-msgstr ""
+msgid "female"
+msgstr "femenino"
 
 #: dref/models.py:172
+msgid "Indicators"
+msgstr "Indicadores"
+
+#: dref/models.py:175
 msgid "Progress Towards Outcome"
-msgstr ""
-
-#: dref/models.py:174
-msgid "Narrative description of achievements"
-msgstr ""
-
-#: dref/models.py:176
-msgid "Challenges"
-msgstr ""
+msgstr "Progreso hacia el resultado"
 
 #: dref/models.py:177
+msgid "Narrative description of achievements"
+msgstr "Descripción narrativa de los logros"
+
+#: dref/models.py:179
+msgid "Challenges"
+msgstr "Desafíos"
+
+#: dref/models.py:180
 msgid "Lessons learnt"
-msgstr ""
+msgstr "Lecciones aprendidas"
 
-#: dref/models.py:180 dref/models.py:487 dref/models.py:1106
-#: dref/models.py:1494
+#: dref/models.py:183 dref/models.py:494 dref/models.py:1113
+#: dref/models.py:1501
 msgid "planned intervention"
-msgstr ""
+msgstr "intervención planificada"
 
-#: dref/models.py:181
+#: dref/models.py:184
 msgid "planned interventions"
-msgstr ""
+msgstr "intervenciones planificadas"
 
-#: dref/models.py:206 dref/models.py:213
+#: dref/models.py:209 dref/models.py:216
 msgid "client_id"
-msgstr ""
+msgstr "id_del_cliente"
 
-#: dref/models.py:207
+#: dref/models.py:210
 msgid "Risk"
-msgstr ""
+msgstr "Riesgo"
 
-#: dref/models.py:208
+#: dref/models.py:211
 msgid "Mitigation"
-msgstr ""
+msgstr "Mitigación"
 
-#: dref/models.py:214
+#: dref/models.py:217
 msgid "Source Name"
-msgstr ""
+msgstr "Nombre de la fuente"
 
-#: dref/models.py:215
+#: dref/models.py:218
 msgid "Source Link"
-msgstr ""
+msgstr "Enlace de origen"
 
-#: dref/models.py:219
+#: dref/models.py:222
 msgid "Sector Tag"
-msgstr ""
-
-#: dref/models.py:220
-msgid "Activity"
-msgstr ""
+msgstr "Etiqueta de sector"
 
 #: dref/models.py:223
+msgid "Activity"
+msgstr "Actividad"
+
+#: dref/models.py:226
 msgid "Proposed action activity"
-msgstr ""
+msgstr "Actividad de acción propuesta"
 
-#: dref/models.py:224
+#: dref/models.py:227
 msgid "Proposed action activities"
-msgstr ""
+msgstr "Actividades de acción propuestas"
 
-#: dref/models.py:229
+#: dref/models.py:232
 msgid "Early Actions"
-msgstr ""
+msgstr "Acciones tempranas"
 
-#: dref/models.py:230
+#: dref/models.py:233
 msgid "Early Response"
-msgstr ""
-
-#: dref/models.py:234
-msgid "dref proposed action"
-msgstr ""
-
-#: dref/models.py:236
-msgid "Activities"
-msgstr ""
+msgstr "Respuesta temprana"
 
 #: dref/models.py:237
-msgid "Total Purpose Action Budget"
-msgstr ""
+msgid "dref proposed action"
+msgstr "Acción propuesta por el Dr."
 
 #: dref/models.py:239
-msgid "Expenditure"
-msgstr ""
+msgid "Activities"
+msgstr "Actividades"
+
+#: dref/models.py:240
+msgid "Total Purpose Action Budget"
+msgstr "Presupuesto de acción de propósito total"
 
 #: dref/models.py:242
+msgid "Expenditure"
+msgstr "Gasto"
+
+#: dref/models.py:245
 msgid "Total expenditure for the proposed action"
-msgstr ""
-
-#: dref/models.py:252
-msgid "Imminent"
-msgstr ""
-
-#: dref/models.py:254
-msgid "Response"
-msgstr ""
+msgstr "Gasto total para la acción propuesta"
 
 #: dref/models.py:255
-msgid "Loan"
-msgstr ""
+msgid "Imminent"
+msgstr "Inminente"
+
+#: dref/models.py:257
+msgid "Response"
+msgstr "Respuesta"
 
 #: dref/models.py:258
-msgid "Slow"
-msgstr ""
+msgid "Loan"
+msgstr "Préstamo"
 
-#: dref/models.py:259
-msgid "Sudden"
-msgstr ""
+#: dref/models.py:261
+msgid "Slow"
+msgstr "Lento"
 
 #: dref/models.py:262
+msgid "Sudden"
+msgstr "Repentino"
+
+#: dref/models.py:265
 msgid "Yellow"
-msgstr ""
+msgstr "Amarillo"
 
-#: dref/models.py:263
+#: dref/models.py:266
 msgid "Orange"
-msgstr ""
-
-#: dref/models.py:264
-msgid "Red"
-msgstr ""
+msgstr "Naranja"
 
 #: dref/models.py:267
+msgid "Red"
+msgstr "Rojo"
+
+#: dref/models.py:270
 msgid "Draft"
-msgstr ""
+msgstr "Borrador"
 
-#: dref/models.py:269
+#: dref/models.py:272
+msgid "Finalizing"
+msgstr "Finalizando"
+
+#: dref/models.py:274
 msgid "Finalized"
-msgstr ""
+msgstr "Finalizado"
 
-#: dref/models.py:271
+#: dref/models.py:276
 msgid "Approved"
-msgstr ""
+msgstr "Aprobado"
 
-#: dref/models.py:274 dref/models.py:826 dref/models.py:1265
+#: dref/models.py:278
+msgid "Failed"
+msgstr "Fallido"
+
+#: dref/models.py:281 dref/models.py:833 dref/models.py:1272
 msgid "created at"
-msgstr ""
+msgstr "creado en"
 
-#: dref/models.py:275 dref/models.py:827 dref/models.py:1266
+#: dref/models.py:282 dref/models.py:834 dref/models.py:1273
 msgid "modified at"
-msgstr ""
-
-#: dref/models.py:278 dref/models.py:830 dref/models.py:1269
-msgid "created by"
-msgstr ""
+msgstr "modificado en"
 
 #: dref/models.py:285 dref/models.py:837 dref/models.py:1276
+msgid "created by"
+msgstr "creado por"
+
+#: dref/models.py:292 dref/models.py:844 dref/models.py:1283
 msgid "modified by"
-msgstr ""
+msgstr "modificado por"
 
-#: dref/models.py:290 dref/models.py:1118 dref/models.py:1506
+#: dref/models.py:297 dref/models.py:1125 dref/models.py:1513
 msgid "users"
-msgstr ""
+msgstr "usuarios"
 
-#: dref/models.py:293
+#: dref/models.py:300
 msgid "field report"
-msgstr ""
+msgstr "informe de campo"
 
-#: dref/models.py:300 dref/models.py:849 dref/models.py:1288
+#: dref/models.py:307 dref/models.py:856 dref/models.py:1295
 msgid "title prefix"
-msgstr ""
+msgstr "prefijo del título"
 
-#: dref/models.py:303 dref/models.py:852 dref/models.py:1291
+#: dref/models.py:310 dref/models.py:859 dref/models.py:1298
 msgid "national_society"
-msgstr ""
+msgstr "sociedad nacional"
 
-#: dref/models.py:307 dref/models.py:859 dref/models.py:1298
+#: dref/models.py:314 dref/models.py:866 dref/models.py:1305
 msgid "disaster type"
-msgstr ""
+msgstr "tipo de desastre"
 
-#: dref/models.py:309 dref/models.py:861 dref/models.py:1300
+#: dref/models.py:316 dref/models.py:868 dref/models.py:1307
 msgid "dref type"
-msgstr ""
+msgstr "tipo dref"
 
-#: dref/models.py:310 dref/models.py:862 dref/models.py:1301
+#: dref/models.py:317 dref/models.py:869 dref/models.py:1308
 msgid "onset type"
-msgstr ""
+msgstr "tipo de inicio"
 
-#: dref/models.py:313 dref/models.py:1607
+#: dref/models.py:320 dref/models.py:1614
 msgid "Is DREF Imminent V2?"
-msgstr ""
+msgstr "¿Es inminente el DREF V2?"
 
-#: dref/models.py:315
+#: dref/models.py:322
 msgid ""
 "Is this DREF Imminent V2? If yes, it will be used for the new dref imminent "
 "type."
 msgstr ""
+"¿Es este DREF inminente V2? De ser así, se usará para el nuevo tipo de dref "
+"inminente."
 
-#: dref/models.py:318 dref/models.py:864 dref/models.py:1303
+#: dref/models.py:325 dref/models.py:871 dref/models.py:1310
 msgid "disaster category"
-msgstr ""
+msgstr "categoría de desastre"
 
-#: dref/models.py:325
+#: dref/models.py:332
 msgid "If available please upload Disaster categorization Analysis"
 msgstr ""
+"Si está disponible, cargue el análisis de categorización de desastres."
 
-#: dref/models.py:333
+#: dref/models.py:340
 msgid ""
 "If available please upload additional support documentation for targeting "
 "strategy"
 msgstr ""
+"Si está disponible, cargue documentación de soporte adicional para la "
+"estrategia de segmentación."
 
-#: dref/models.py:336 dref/models.py:866 dref/models.py:1305
+#: dref/models.py:343 dref/models.py:873 dref/models.py:1312
 msgid "status"
-msgstr ""
+msgstr "estado"
 
-#: dref/models.py:340 dref/models.py:870 dref/models.py:1309
+#: dref/models.py:347 dref/models.py:877 dref/models.py:1316
 msgid "Starting language"
-msgstr ""
+msgstr "Idioma inicial"
 
-#: dref/models.py:343 dref/models.py:1569
+#: dref/models.py:350 dref/models.py:1576
 msgid "number of assisted"
-msgstr ""
+msgstr "Número de asistidos"
 
-#: dref/models.py:344
+#: dref/models.py:351
 msgid "number of affected"
-msgstr ""
+msgstr "número de afectados"
 
-#: dref/models.py:346 dref/models.py:876 dref/models.py:1315
+#: dref/models.py:353 dref/models.py:883 dref/models.py:1322
 msgid "estimated number of affected male"
-msgstr ""
+msgstr "Número estimado de varones afectados"
 
-#: dref/models.py:349 dref/models.py:879 dref/models.py:1318
+#: dref/models.py:356 dref/models.py:886 dref/models.py:1325
 msgid "estimated number of affected female"
-msgstr ""
+msgstr "Número estimado de mujeres afectadas"
 
-#: dref/models.py:352 dref/models.py:882 dref/models.py:1321
+#: dref/models.py:359 dref/models.py:889 dref/models.py:1328
 msgid "estimated number of affected girls under 18"
-msgstr ""
+msgstr "Número estimado de niñas menores de 18 años afectadas"
 
-#: dref/models.py:355 dref/models.py:885 dref/models.py:1324
+#: dref/models.py:362 dref/models.py:892 dref/models.py:1331
 msgid "estimated number of affected boys under 18"
-msgstr ""
+msgstr "Número estimado de niños afectados menores de 18 años"
 
-#: dref/models.py:357
+#: dref/models.py:364
 msgid "amount requested"
-msgstr ""
+msgstr "cantidad solicitada"
 
-#: dref/models.py:358 dref/models.py:1150 dref/models.py:1552
+#: dref/models.py:365 dref/models.py:1157 dref/models.py:1559
 msgid "people in need"
-msgstr ""
+msgstr "personas necesitadas"
 
-#: dref/models.py:359 dref/models.py:890
+#: dref/models.py:366 dref/models.py:897
 msgid "emergency appeal planned "
-msgstr ""
+msgstr "Llamamiento de emergencia planeado"
 
-#: dref/models.py:361 dref/models.py:1152 dref/models.py:1547
+#: dref/models.py:368 dref/models.py:1159 dref/models.py:1554
 msgid "event date"
-msgstr ""
+msgstr "fecha del evento"
 
-#: dref/models.py:361 dref/models.py:1547
+#: dref/models.py:368 dref/models.py:1554
 msgid "Date of event/Approximate date of impact"
-msgstr ""
+msgstr "Fecha del evento/Fecha aproximada del impacto"
 
-#: dref/models.py:363 dref/models.py:1216 dref/models.py:1553
+#: dref/models.py:370 dref/models.py:1223 dref/models.py:1560
 msgid "event text"
-msgstr ""
+msgstr "texto del evento"
 
-#: dref/models.py:365 dref/models.py:1157 dref/models.py:1555
+#: dref/models.py:372 dref/models.py:1164 dref/models.py:1562
 msgid "ns respond date"
-msgstr ""
+msgstr "fecha de respuesta de ns"
 
-#: dref/models.py:365 dref/models.py:1555
+#: dref/models.py:372 dref/models.py:1562
 msgid "NS anticipatory actions started/NS response"
-msgstr ""
+msgstr "Acciones anticipadas de NS iniciadas/Respuesta de NS"
 
-#: dref/models.py:368
+#: dref/models.py:375
 msgid "Has a similar event affected the same areas in the past?"
 msgstr ""
-
-#: dref/models.py:370
-msgid "Did it affect the same population?"
-msgstr ""
-
-#: dref/models.py:371
-msgid "affect same population text"
-msgstr ""
-
-#: dref/models.py:372 dref/models.py:1161
-msgid "Did NS respond"
-msgstr ""
-
-#: dref/models.py:374
-msgid "Did the NS request funding from DREF?"
-msgstr ""
-
-#: dref/models.py:376
-msgid "ns request text"
-msgstr ""
+"¿Ha ocurrido un evento similar en el pasado que haya afectado las mismas "
+"áreas?"
 
 #: dref/models.py:377
-msgid "dref recurrent text"
-msgstr ""
+msgid "Did it affect the same population?"
+msgstr "¿Afectó a la misma población?"
 
 #: dref/models.py:378
-msgid "lessons learned"
-msgstr ""
+msgid "affect same population text"
+msgstr "texto que afecta al mismo grupo de población"
 
-#: dref/models.py:380
-msgid "Did you complete the child safeguarding risk analysis"
-msgstr ""
+#: dref/models.py:379 dref/models.py:1168
+msgid "Did NS respond"
+msgstr "¿Respondió NS?"
 
-#: dref/models.py:382
-msgid "Child safeguarding risk level"
-msgstr ""
+#: dref/models.py:381
+msgid "Did the NS request funding from DREF?"
+msgstr "¿El NS solicitó financiación al DREF?"
 
 #: dref/models.py:383
-msgid "event description"
-msgstr ""
+msgid "ns request text"
+msgstr "texto de solicitud de ns"
+
+#: dref/models.py:384
+msgid "dref recurrent text"
+msgstr "texto recurrente dref"
+
+#: dref/models.py:385
+msgid "lessons learned"
+msgstr "lecciones aprendidas"
 
 #: dref/models.py:387
+msgid "Did you complete the child safeguarding risk analysis"
+msgstr "¿Completó el análisis de riesgos de protección infantil?"
+
+#: dref/models.py:389
+msgid "Child safeguarding risk level"
+msgstr "Nivel de riesgo de protección infantil"
+
+#: dref/models.py:390
+msgid "event description"
+msgstr "descripción del evento"
+
+#: dref/models.py:394
 msgid "anticipatory actions"
-msgstr ""
+msgstr "acciones anticipatorias"
 
-#: dref/models.py:388
+#: dref/models.py:395
 msgid "Description of anticipatory actions or imminent disaster"
-msgstr ""
+msgstr "Descripción de acciones anticipatorias o desastre inminente"
 
-#: dref/models.py:390
+#: dref/models.py:397
 msgid "event scope"
-msgstr ""
+msgstr "alcance del evento"
 
-#: dref/models.py:390
+#: dref/models.py:397
 msgid "Scope and scale of event"
-msgstr ""
+msgstr "Alcance y escala del evento"
 
-#: dref/models.py:395 dref/models.py:1040 dref/models.py:1433
+#: dref/models.py:402 dref/models.py:1047 dref/models.py:1440
 msgid "Has government requested assistance"
-msgstr ""
+msgstr "¿El Gobierno ha solicitado ayuda?"
 
-#: dref/models.py:398
+#: dref/models.py:405
 msgid "government requested assistance date"
-msgstr ""
+msgstr "Fecha de solicitud de asistencia del gobierno"
 
-#: dref/models.py:400 dref/models.py:1042 dref/models.py:1435
+#: dref/models.py:407 dref/models.py:1049 dref/models.py:1442
 msgid "national authorities"
-msgstr ""
+msgstr "autoridades nacionales"
 
-#: dref/models.py:401 dref/models.py:1036 dref/models.py:1429
+#: dref/models.py:408 dref/models.py:1043 dref/models.py:1436
 msgid "ifrc"
-msgstr ""
+msgstr "Federación Internacional de Sociedades de la Cruz Roja"
 
-#: dref/models.py:402 dref/models.py:1037 dref/models.py:1430
+#: dref/models.py:409 dref/models.py:1044 dref/models.py:1437
 msgid "icrc"
-msgstr ""
+msgstr "CICR"
 
-#: dref/models.py:403 dref/models.py:1038 dref/models.py:1431
+#: dref/models.py:410 dref/models.py:1045 dref/models.py:1438
 msgid "partner national society"
-msgstr ""
+msgstr "sociedad nacional socia"
 
-#: dref/models.py:404 dref/models.py:1044 dref/models.py:1436
+#: dref/models.py:411 dref/models.py:1051 dref/models.py:1443
 msgid "un or other"
-msgstr ""
+msgstr "un u otro"
 
-#: dref/models.py:408
+#: dref/models.py:415
 msgid "Is major coordination mechanism"
-msgstr ""
+msgstr "Es el principal mecanismo de coordinación"
 
-#: dref/models.py:413 dref/models.py:1051 dref/models.py:1440
-#: dref/models.py:1523
+#: dref/models.py:420 dref/models.py:1058 dref/models.py:1447
+#: dref/models.py:1530
 msgid "major coordination mechanism"
-msgstr ""
+msgstr "mecanismo principal de coordinación"
 
-#: dref/models.py:414
+#: dref/models.py:421
 msgid "List major coordination mechanisms in place"
-msgstr ""
+msgstr "Enumere los principales mecanismos de coordinación existentes"
 
-#: dref/models.py:416 dref/models.py:1053 dref/models.py:1442
+#: dref/models.py:423 dref/models.py:1060 dref/models.py:1449
 msgid "needs identified"
-msgstr ""
+msgstr "necesidades identificadas"
 
-#: dref/models.py:418 dref/models.py:1210
+#: dref/models.py:425 dref/models.py:1217
 msgid "identified gaps"
-msgstr ""
+msgstr "brechas identificadas"
 
-#: dref/models.py:421 dref/models.py:1213
+#: dref/models.py:428 dref/models.py:1220
 msgid "Any identified gaps/limitations in the assessment"
-msgstr ""
+msgstr "Cualquier brecha o limitación identificada en la evaluación"
 
-#: dref/models.py:423 dref/models.py:1054 dref/models.py:1443
+#: dref/models.py:430 dref/models.py:1061 dref/models.py:1450
 msgid "people assisted"
-msgstr ""
+msgstr "personas asistidas"
 
-#: dref/models.py:425 dref/models.py:1056 dref/models.py:1445
+#: dref/models.py:432 dref/models.py:1063 dref/models.py:1452
 msgid "selection criteria"
-msgstr ""
+msgstr "criterios de selección"
 
-#: dref/models.py:425 dref/models.py:1056 dref/models.py:1445
+#: dref/models.py:432 dref/models.py:1063 dref/models.py:1452
 msgid "Selection criteria for affected people"
-msgstr ""
+msgstr "Criterios de selección de personas afectadas"
 
-#: dref/models.py:428 dref/models.py:1065 dref/models.py:1454
+#: dref/models.py:435 dref/models.py:1072 dref/models.py:1461
 msgid "entity affected"
-msgstr ""
+msgstr "entidad afectada"
 
-#: dref/models.py:431 dref/models.py:1068 dref/models.py:1457
+#: dref/models.py:438 dref/models.py:1075 dref/models.py:1464
 msgid "Protection, gender, Inclusion affected in this process"
-msgstr ""
+msgstr "Protección, género, inclusión afectados en este proceso"
 
-#: dref/models.py:434 dref/models.py:1059 dref/models.py:1448
+#: dref/models.py:441 dref/models.py:1066 dref/models.py:1455
 msgid "community involved"
-msgstr ""
+msgstr "comunidad involucrada"
 
-#: dref/models.py:437 dref/models.py:1062 dref/models.py:1451
+#: dref/models.py:444 dref/models.py:1069 dref/models.py:1458
 msgid "Community been involved in the analysis of the process"
-msgstr ""
+msgstr "La comunidad ha estado involucrada en el análisis del proceso."
 
-#: dref/models.py:439 dref/models.py:1070 dref/models.py:1466
+#: dref/models.py:446 dref/models.py:1077 dref/models.py:1473
 msgid "women"
-msgstr ""
+msgstr "mujer"
 
-#: dref/models.py:440 dref/models.py:1071 dref/models.py:1467
+#: dref/models.py:447 dref/models.py:1078 dref/models.py:1474
 msgid "men"
-msgstr ""
+msgstr "hombres"
 
-#: dref/models.py:441 dref/models.py:1072 dref/models.py:1468
+#: dref/models.py:448 dref/models.py:1079 dref/models.py:1475
 msgid "girls"
-msgstr ""
+msgstr "chicas"
 
-#: dref/models.py:441 dref/models.py:1072 dref/models.py:1468
+#: dref/models.py:448 dref/models.py:1079 dref/models.py:1475
 msgid "Girls under 18"
-msgstr ""
+msgstr "Niñas menores de 18 años"
 
-#: dref/models.py:442 dref/models.py:1073 dref/models.py:1469
+#: dref/models.py:449 dref/models.py:1080 dref/models.py:1476
 msgid "boys"
-msgstr ""
+msgstr "chicos"
 
-#: dref/models.py:442 dref/models.py:1073 dref/models.py:1469
+#: dref/models.py:449 dref/models.py:1080 dref/models.py:1476
 msgid "Boys under 18"
-msgstr ""
+msgstr "Niños menores de 18 años"
 
-#: dref/models.py:444 dref/models.py:1162 dref/models.py:1525
+#: dref/models.py:451 dref/models.py:1169 dref/models.py:1532
 msgid "total targeted population"
-msgstr ""
+msgstr "población total objetivo"
 
-#: dref/models.py:445
+#: dref/models.py:452
 msgid "Estimated number of targeted people"
-msgstr ""
+msgstr "Número estimado de personas objetivo"
 
-#: dref/models.py:450 dref/models.py:1075 dref/models.py:1470
+#: dref/models.py:457 dref/models.py:1082 dref/models.py:1477
 msgid "disability people per"
-msgstr ""
+msgstr "personas con discapacidad por"
 
-#: dref/models.py:451 dref/models.py:1076
+#: dref/models.py:458 dref/models.py:1083
 msgid "Estimated % people disability"
-msgstr ""
+msgstr "% estimado de personas con discapacidad"
 
-#: dref/models.py:456 dref/models.py:1081 dref/models.py:1471
+#: dref/models.py:463 dref/models.py:1088 dref/models.py:1478
 msgid "people per urban"
-msgstr ""
+msgstr "personas por zona urbana"
 
-#: dref/models.py:457 dref/models.py:1082
+#: dref/models.py:464 dref/models.py:1089
 msgid "Estimated % people Urban"
-msgstr ""
+msgstr "% estimado de personas urbanas"
 
-#: dref/models.py:462 dref/models.py:1087 dref/models.py:1472
+#: dref/models.py:469 dref/models.py:1094 dref/models.py:1479
 msgid "people per local"
-msgstr ""
+msgstr "personas por local"
 
-#: dref/models.py:463 dref/models.py:1088
+#: dref/models.py:470 dref/models.py:1095
 msgid "Estimated % people Rural"
-msgstr ""
+msgstr "% estimado de personas rurales"
 
-#: dref/models.py:468 dref/models.py:1093 dref/models.py:1474
+#: dref/models.py:475 dref/models.py:1100 dref/models.py:1481
 msgid "people targeted with early actions"
-msgstr ""
+msgstr "personas a las que se dirigen las acciones tempranas"
 
-#: dref/models.py:469
+#: dref/models.py:476
 msgid "Number of persons targeted with early actions"
-msgstr ""
+msgstr "Número de personas destinatarias de acciones tempranas"
 
-#: dref/models.py:474 dref/models.py:1095 dref/models.py:1476
+#: dref/models.py:481 dref/models.py:1102 dref/models.py:1483
 msgid "displaced people"
-msgstr ""
+msgstr "personas desplazadas"
 
-#: dref/models.py:474
+#: dref/models.py:481
 msgid "Estimated number of displaced people"
-msgstr ""
+msgstr "Número estimado de personas desplazadas"
 
-#: dref/models.py:477 dref/models.py:1097 dref/models.py:1478
+#: dref/models.py:484 dref/models.py:1104 dref/models.py:1485
 msgid "operation objective"
-msgstr ""
+msgstr "objetivo de la operación"
 
-#: dref/models.py:478
+#: dref/models.py:485
 msgid "Overall objective of the operation"
-msgstr ""
+msgstr "Objetivo general de la operación"
 
-#: dref/models.py:483 dref/models.py:1102 dref/models.py:1483
+#: dref/models.py:490 dref/models.py:1109 dref/models.py:1490
 msgid "response strategy"
-msgstr ""
+msgstr "estrategia de respuesta"
 
-#: dref/models.py:488 dref/models.py:1217 dref/models.py:1557
+#: dref/models.py:495 dref/models.py:1224 dref/models.py:1564
 msgid "Did National Society"
-msgstr ""
+msgstr "¿La Sociedad Nacional?"
 
-#: dref/models.py:489
+#: dref/models.py:496
 msgid "ns request date"
-msgstr ""
-
-#: dref/models.py:490
-msgid "submission to geneva"
-msgstr ""
-
-#: dref/models.py:491
-msgid "date of approval"
-msgstr ""
-
-#: dref/models.py:492
-msgid "end date"
-msgstr ""
-
-#: dref/models.py:493
-msgid "publishing date"
-msgstr ""
-
-#: dref/models.py:494
-msgid "operation timeframe"
-msgstr ""
+msgstr "fecha de solicitud de ns"
 
 #: dref/models.py:497
+msgid "submission to geneva"
+msgstr "sumisión a ginebra"
+
+#: dref/models.py:498
+msgid "date of approval"
+msgstr "fecha de aprobación"
+
+#: dref/models.py:499
+msgid "end date"
+msgstr "fecha de finalización"
+
+#: dref/models.py:500
+msgid "publishing date"
+msgstr "fecha de publicación"
+
+#: dref/models.py:501
+msgid "operation timeframe"
+msgstr "plazo de operación"
+
+#: dref/models.py:504
 msgid "operation timeframe for imminent type"
-msgstr ""
-
-#: dref/models.py:499 dref/models.py:945 dref/models.py:1334
-msgid "appeal code"
-msgstr ""
-
-#: dref/models.py:500 dref/models.py:946 dref/models.py:1335
-msgid "glide number"
-msgstr ""
-
-#: dref/models.py:501 dref/models.py:947 dref/models.py:1336
-msgid "ifrc appeal manager name"
-msgstr ""
-
-#: dref/models.py:503 dref/models.py:949 dref/models.py:1338
-msgid "ifrc appeal manager email"
-msgstr ""
+msgstr "plazo de operación para tipo inminente"
 
 #: dref/models.py:506 dref/models.py:952 dref/models.py:1341
+msgid "appeal code"
+msgstr "código de apelación"
+
+#: dref/models.py:507 dref/models.py:953 dref/models.py:1342
+msgid "glide number"
+msgstr "número de planeo"
+
+#: dref/models.py:508 dref/models.py:954 dref/models.py:1343
+msgid "ifrc appeal manager name"
+msgstr "Nombre del gerente de apelaciones de la FICR"
+
+#: dref/models.py:510 dref/models.py:956 dref/models.py:1345
+msgid "ifrc appeal manager email"
+msgstr "Correo electrónico del administrador de apelaciones de la FICR"
+
+#: dref/models.py:513 dref/models.py:959 dref/models.py:1348
 msgid "ifrc appeal manager title"
-msgstr ""
+msgstr "Título de gerente de apelaciones de la FICR"
 
-#: dref/models.py:509 dref/models.py:955 dref/models.py:1344
+#: dref/models.py:516 dref/models.py:962 dref/models.py:1351
 msgid "ifrc appeal manager phone number"
-msgstr ""
+msgstr "Número de teléfono del administrador de apelaciones de la FICR"
 
-#: dref/models.py:512 dref/models.py:958 dref/models.py:1347
+#: dref/models.py:519 dref/models.py:965 dref/models.py:1354
 msgid "ifrc project manager name"
-msgstr ""
+msgstr "Nombre del gerente de proyecto de la IFRC"
 
-#: dref/models.py:515 dref/models.py:961 dref/models.py:1350
+#: dref/models.py:522 dref/models.py:968 dref/models.py:1357
 msgid "ifrc project manager email"
-msgstr ""
+msgstr "Correo electrónico del gerente de proyecto de la FICR"
 
-#: dref/models.py:518 dref/models.py:964 dref/models.py:1353
+#: dref/models.py:525 dref/models.py:971 dref/models.py:1360
 msgid "ifrc project manager title"
-msgstr ""
+msgstr "Título de gerente de proyecto de la FICR"
 
-#: dref/models.py:521 dref/models.py:967 dref/models.py:1356
+#: dref/models.py:528 dref/models.py:974 dref/models.py:1363
 msgid "ifrc project manager phone number"
-msgstr ""
+msgstr "Número de teléfono del gerente de proyecto de la FICR"
 
-#: dref/models.py:524 dref/models.py:970 dref/models.py:1359
+#: dref/models.py:531 dref/models.py:977 dref/models.py:1366
 msgid "national society contact name"
-msgstr ""
+msgstr "nombre de contacto de la sociedad nacional"
 
-#: dref/models.py:527 dref/models.py:973 dref/models.py:1362
+#: dref/models.py:534 dref/models.py:980 dref/models.py:1369
 msgid "national society contact email"
-msgstr ""
+msgstr "correo electrónico de contacto de la sociedad nacional"
 
-#: dref/models.py:530 dref/models.py:976 dref/models.py:1365
+#: dref/models.py:537 dref/models.py:983 dref/models.py:1372
 msgid "national society contact title"
-msgstr ""
+msgstr "Título de contacto de la sociedad nacional"
 
-#: dref/models.py:533 dref/models.py:979 dref/models.py:1368
+#: dref/models.py:540 dref/models.py:986 dref/models.py:1375
 msgid "national society contact phone number"
-msgstr ""
+msgstr "Número de teléfono de contacto de la sociedad nacional"
 
-#: dref/models.py:536 dref/models.py:982 dref/models.py:1371
+#: dref/models.py:543 dref/models.py:989 dref/models.py:1378
 msgid "national society integrity contact name"
-msgstr ""
+msgstr "Nombre de contacto de la sociedad nacional de integridad"
 
-#: dref/models.py:539 dref/models.py:985 dref/models.py:1374
+#: dref/models.py:546 dref/models.py:992 dref/models.py:1381
 msgid "national society integrity contact email"
-msgstr ""
+msgstr "Correo electrónico de contacto de la Sociedad Nacional de Integridad"
 
-#: dref/models.py:542 dref/models.py:988 dref/models.py:1377
+#: dref/models.py:549 dref/models.py:995 dref/models.py:1384
 msgid "national society integrity contact title"
-msgstr ""
+msgstr "Título de contacto de integridad de la sociedad nacional"
 
-#: dref/models.py:545 dref/models.py:991 dref/models.py:1380
+#: dref/models.py:552 dref/models.py:998 dref/models.py:1387
 msgid "national society integrity contact phone number"
-msgstr ""
+msgstr "Número de teléfono de contacto de la Sociedad Nacional de Integridad"
 
-#: dref/models.py:548 dref/models.py:994 dref/models.py:1383
+#: dref/models.py:555 dref/models.py:1001 dref/models.py:1390
 msgid "national society hotline phone number"
-msgstr ""
+msgstr "Número de teléfono de la línea directa de la sociedad nacional"
 
-#: dref/models.py:550 dref/models.py:996 dref/models.py:1391
+#: dref/models.py:557 dref/models.py:1003 dref/models.py:1398
 msgid "media contact name"
-msgstr ""
+msgstr "nombre del contacto de medios"
 
-#: dref/models.py:551 dref/models.py:997 dref/models.py:1392
+#: dref/models.py:558 dref/models.py:1004 dref/models.py:1399
 msgid "media contact email"
-msgstr ""
+msgstr "correo electrónico de contacto de medios"
 
-#: dref/models.py:552 dref/models.py:998 dref/models.py:1393
+#: dref/models.py:559 dref/models.py:1005 dref/models.py:1400
 msgid "media contact title"
-msgstr ""
+msgstr "título del contacto de medios"
 
-#: dref/models.py:554 dref/models.py:1000 dref/models.py:1395
+#: dref/models.py:561 dref/models.py:1007 dref/models.py:1402
 msgid "media_contact phone number"
-msgstr ""
+msgstr "número de teléfono de contacto de medios"
 
-#: dref/models.py:556 dref/models.py:1002 dref/models.py:1385
+#: dref/models.py:563 dref/models.py:1009 dref/models.py:1392
 msgid "ifrc emergency name"
-msgstr ""
+msgstr "Nombre de emergencia de la FICR"
 
-#: dref/models.py:557 dref/models.py:1003 dref/models.py:1386
+#: dref/models.py:564 dref/models.py:1010 dref/models.py:1393
 msgid "ifrc emergency email"
 msgstr ""
+"Correo electrónico de emergencia de la Federación Internacional de "
+"Sociedades de la Cruz Roja y de la Media Luna Roja"
 
-#: dref/models.py:558 dref/models.py:1004 dref/models.py:1387
+#: dref/models.py:565 dref/models.py:1011 dref/models.py:1394
 msgid "ifrc emergency title"
-msgstr ""
+msgstr "Título de emergencia de la FICR"
 
-#: dref/models.py:560 dref/models.py:1006 dref/models.py:1389
+#: dref/models.py:567 dref/models.py:1013 dref/models.py:1396
 msgid "ifrc emergency phone number"
 msgstr ""
+"Número de teléfono de emergencia de la Federación Internacional de "
+"Sociedades de la Cruz Roja y de la Media Luna Roja"
 
-#: dref/models.py:562
+#: dref/models.py:569
 msgid "originator name"
-msgstr ""
+msgstr "nombre del originador"
 
-#: dref/models.py:563
+#: dref/models.py:570
 msgid "originator email"
-msgstr ""
+msgstr "correo electrónico del originador"
 
-#: dref/models.py:564
+#: dref/models.py:571
 msgid "originator title"
-msgstr ""
+msgstr "título del originador"
 
-#: dref/models.py:565
+#: dref/models.py:572
 msgid "originator phone number"
-msgstr ""
+msgstr "número de teléfono del originador"
 
-#: dref/models.py:567 dref/models.py:1009 dref/models.py:1398
+#: dref/models.py:574 dref/models.py:1016 dref/models.py:1405
 msgid "regional focal point name"
-msgstr ""
+msgstr "nombre del punto focal regional"
 
-#: dref/models.py:570 dref/models.py:1012 dref/models.py:1401
+#: dref/models.py:577 dref/models.py:1019 dref/models.py:1408
 msgid "regional focal point email"
-msgstr ""
+msgstr "Correo electrónico del punto focal regional"
 
-#: dref/models.py:573 dref/models.py:1015 dref/models.py:1404
+#: dref/models.py:580 dref/models.py:1022 dref/models.py:1411
 msgid "regional focal point title"
-msgstr ""
+msgstr "título del punto focal regional"
 
-#: dref/models.py:576 dref/models.py:1018 dref/models.py:1407
+#: dref/models.py:583 dref/models.py:1025 dref/models.py:1414
 msgid "regional focal point phone number"
-msgstr ""
-
-#: dref/models.py:581 dref/models.py:1169
-msgid "human resource"
-msgstr ""
-
-#: dref/models.py:582 dref/models.py:1170
-msgid "how many volunteers and staff involved in the response?"
-msgstr ""
-
-#: dref/models.py:587 dref/models.py:1175
-msgid "is volunteer team diverse"
-msgstr ""
+msgstr "número de teléfono del punto focal regional"
 
 #: dref/models.py:588 dref/models.py:1176
+msgid "human resource"
+msgstr "recursos humanos"
+
+#: dref/models.py:589 dref/models.py:1177
+msgid "how many volunteers and staff involved in the response?"
+msgstr "¿Cuántos voluntarios y personal participan en la respuesta?"
+
+#: dref/models.py:594 dref/models.py:1182
+msgid "is volunteer team diverse"
+msgstr "¿El equipo de voluntarios es diverso?"
+
+#: dref/models.py:595 dref/models.py:1183
 msgid ""
 "Does your volunteer team reflect the gender, age, and cultural diversity of "
 "the people you’re helping?"
 msgstr ""
-
-#: dref/models.py:590 dref/models.py:1178
-msgid "Is surge personnel deployed"
-msgstr ""
-
-#: dref/models.py:592 dref/models.py:1180
-msgid "surge personnel deployed"
-msgstr ""
-
-#: dref/models.py:592 dref/models.py:1180
-msgid "Will a Surge personnel be deployed?"
-msgstr ""
+"¿Su equipo de voluntarios refleja la diversidad de género, edad y cultura de"
+" las personas a las que está ayudando?"
 
 #: dref/models.py:597 dref/models.py:1185
-msgid "logistic capacity of ns"
-msgstr ""
+msgid "Is surge personnel deployed"
+msgstr "¿Se ha desplegado personal de refuerzo?"
 
-#: dref/models.py:598 dref/models.py:1186
-msgid "what is the logistics capacity of the National Society?"
-msgstr ""
+#: dref/models.py:599 dref/models.py:1187
+msgid "surge personnel deployed"
+msgstr "personal de refuerzo desplegado"
 
-#: dref/models.py:603 dref/models.py:1191
-msgid "safety concerns"
-msgstr ""
+#: dref/models.py:599 dref/models.py:1187
+msgid "Will a Surge personnel be deployed?"
+msgstr "¿Se desplegará un contingente de personal?"
 
 #: dref/models.py:604 dref/models.py:1192
+msgid "logistic capacity of ns"
+msgstr "capacidad logística de ns"
+
+#: dref/models.py:605 dref/models.py:1193
+msgid "what is the logistics capacity of the National Society?"
+msgstr "¿Cuál es la capacidad logística de la Sociedad Nacional?"
+
+#: dref/models.py:610 dref/models.py:1198
+msgid "safety concerns"
+msgstr "preocupaciones de seguridad"
+
+#: dref/models.py:611 dref/models.py:1199
 msgid ""
 "Are there any safety/security concerns which may impact the implementation "
 "of this operation?"
 msgstr ""
+"¿Existen preocupaciones de seguridad que puedan afectar la implementación de"
+" esta operación?"
 
-#: dref/models.py:606 dref/models.py:1194
+#: dref/models.py:613 dref/models.py:1201
 msgid "pmer"
-msgstr ""
+msgstr "pmer"
 
-#: dref/models.py:606 dref/models.py:1194
+#: dref/models.py:613 dref/models.py:1201
 msgid "Does the NS have PMER capacity?"
-msgstr ""
+msgstr "¿Tiene el NS capacidad PMER?"
 
-#: dref/models.py:608 dref/models.py:1196
+#: dref/models.py:615 dref/models.py:1203
 msgid "organization"
-msgstr ""
+msgstr "organización"
 
-#: dref/models.py:608 dref/models.py:1196
+#: dref/models.py:615 dref/models.py:1203
 msgid "Does the NS have Communications capacity?"
-msgstr ""
+msgstr "¿Tiene el NS capacidad de comunicaciones?"
 
-#: dref/models.py:615 dref/models.py:896 dref/models.py:1414
+#: dref/models.py:622 dref/models.py:903 dref/models.py:1421
 msgid "event map"
-msgstr ""
+msgstr "mapa de eventos"
 
-#: dref/models.py:622 dref/models.py:900 dref/models.py:930 dref/models.py:1417
-#: dref/models.py:1508
+#: dref/models.py:629 dref/models.py:907 dref/models.py:937
+#: dref/models.py:1424 dref/models.py:1515
 msgid "images"
-msgstr ""
+msgstr "imágenes"
 
-#: dref/models.py:630 dref/models.py:915
+#: dref/models.py:637 dref/models.py:922
 msgid "budget file"
-msgstr ""
+msgstr "archivo de presupuesto"
 
-#: dref/models.py:633 dref/models.py:919
+#: dref/models.py:640 dref/models.py:926
 msgid "budget file preview"
-msgstr ""
+msgstr "vista previa del archivo de presupuesto"
 
-#: dref/models.py:639 dref/models.py:926 dref/models.py:1423
+#: dref/models.py:646 dref/models.py:933 dref/models.py:1430
 msgid "Assessment Report"
-msgstr ""
+msgstr "Informe de evaluación"
 
-#: dref/models.py:647
+#: dref/models.py:654
 msgid "Supporting Document"
-msgstr ""
+msgstr "Documento de apoyo"
 
-#: dref/models.py:655 dref/models.py:907 dref/models.py:1514
+#: dref/models.py:662 dref/models.py:914 dref/models.py:1521
 msgid "cover image"
-msgstr ""
+msgstr "imagen de portada"
 
-#: dref/models.py:660
+#: dref/models.py:667
 msgid "Is final report created"
-msgstr ""
-
-#: dref/models.py:664 dref/models.py:1109 dref/models.py:1497
-msgid "country"
-msgstr ""
-
-#: dref/models.py:666 dref/models.py:1111 dref/models.py:1499
-msgid "Affected County"
-msgstr ""
+msgstr "¿Se crea el informe final?"
 
 #: dref/models.py:671 dref/models.py:1116 dref/models.py:1504
+msgid "country"
+msgstr "país"
+
+#: dref/models.py:673 dref/models.py:1118 dref/models.py:1506
+msgid "Affected County"
+msgstr "Condado afectado"
+
+#: dref/models.py:678 dref/models.py:1123 dref/models.py:1511
 msgid "district"
-msgstr ""
+msgstr "distrito"
 
-#: dref/models.py:672 dref/models.py:1120 dref/models.py:1526
+#: dref/models.py:679 dref/models.py:1127 dref/models.py:1533
 msgid "Risk Security"
-msgstr ""
+msgstr "Seguridad de riesgos"
 
-#: dref/models.py:674 dref/models.py:1138 dref/models.py:1528
+#: dref/models.py:681 dref/models.py:1145 dref/models.py:1535
 msgid "Has the child safeguarding risk analysis assessment been completed?"
 msgstr ""
+"¿Se ha completado la evaluación del análisis de riesgos de protección "
+"infantil?"
 
-#: dref/models.py:676 dref/models.py:1121 dref/models.py:1530
+#: dref/models.py:683 dref/models.py:1128 dref/models.py:1537
 msgid "Risk Security Concern"
-msgstr ""
+msgstr "Preocupación por la seguridad del riesgo"
 
-#: dref/models.py:678 dref/models.py:1123 dref/models.py:1532
+#: dref/models.py:685 dref/models.py:1130 dref/models.py:1539
 msgid "Has anti-fraud and corruption policy"
-msgstr ""
+msgstr "Tiene una política antifraude y anticorrupción"
 
-#: dref/models.py:681 dref/models.py:1126 dref/models.py:1535
+#: dref/models.py:688 dref/models.py:1133 dref/models.py:1542
 msgid "Has prevention of sexual exploitation and abuse policy"
-msgstr ""
+msgstr "Tiene una política de prevención de la explotación y el abuso sexual"
 
-#: dref/models.py:684 dref/models.py:1129 dref/models.py:1538
+#: dref/models.py:691 dref/models.py:1136 dref/models.py:1545
 msgid "Has child protection/child safeguarding policy"
-msgstr ""
+msgstr "Tiene una política de protección infantil/salvaguarda infantil"
 
-#: dref/models.py:687 dref/models.py:1132 dref/models.py:1541
+#: dref/models.py:694 dref/models.py:1139 dref/models.py:1548
 msgid "Has whistleblower protection policy"
-msgstr ""
+msgstr "Tiene una política de protección de denunciantes"
 
-#: dref/models.py:690 dref/models.py:1135 dref/models.py:1544
+#: dref/models.py:697 dref/models.py:1142 dref/models.py:1551
 msgid "Has anti-sexual harassment policy"
-msgstr ""
+msgstr "Tiene una política contra el acoso sexual"
 
-#: dref/models.py:692 dref/models.py:1215
+#: dref/models.py:699 dref/models.py:1222
 msgid "Is Man-made Event"
-msgstr ""
+msgstr "¿Es un evento provocado por el hombre?"
 
-#: dref/models.py:694
+#: dref/models.py:701
 msgid "Is Active"
-msgstr ""
+msgstr "Está activo"
 
-#: dref/models.py:695 dref/models.py:1220 dref/models.py:1604
+#: dref/models.py:702 dref/models.py:1227 dref/models.py:1611
 msgid "Source Information"
-msgstr ""
+msgstr "Información de la fuente"
 
-#: dref/models.py:696 dref/models.py:1620
+#: dref/models.py:703 dref/models.py:1627
 msgid "Proposed Action"
-msgstr ""
+msgstr "Acción propuesta"
 
-#: dref/models.py:697 dref/models.py:1621
+#: dref/models.py:704 dref/models.py:1628
 msgid "Sub total Cost"
-msgstr ""
+msgstr "Subtotal Costo"
 
-#: dref/models.py:698 dref/models.py:1627
+#: dref/models.py:705 dref/models.py:1634
 msgid "Surge Deployment Cost"
-msgstr ""
+msgstr "Costo de implementación de aumento repentino"
 
-#: dref/models.py:699 dref/models.py:1633
+#: dref/models.py:706 dref/models.py:1640
 msgid "Indirect Cost"
-msgstr ""
+msgstr "Costo indirecto"
 
-#: dref/models.py:700 dref/models.py:1639
+#: dref/models.py:707 dref/models.py:1646
 msgid "Total Cost"
-msgstr ""
+msgstr "Costo total"
 
-#: dref/models.py:702
+#: dref/models.py:709
 msgid "When is the hazard expected to happen?"
-msgstr ""
-
-#: dref/models.py:707
-msgid "Hazard Date and Location"
-msgstr ""
-
-#: dref/models.py:708
-msgid "When and where is the hazard expected to happen?"
-msgstr ""
-
-#: dref/models.py:713
-msgid "Hazard Vulnerabilities and Risks"
-msgstr ""
+msgstr "¿Cuándo se espera que ocurra el peligro?"
 
 #: dref/models.py:714
+msgid "Hazard Date and Location"
+msgstr "Fecha y ubicación del peligro"
+
+#: dref/models.py:715
+msgid "When and where is the hazard expected to happen?"
+msgstr "¿Cuándo y dónde se espera que ocurra el peligro?"
+
+#: dref/models.py:720
+msgid "Hazard Vulnerabilities and Risks"
+msgstr "Vulnerabilidades y riesgos de peligros"
+
+#: dref/models.py:721
 msgid ""
 "Explain the underlying vulnerabilities and risks the hazard poses for at-"
 "risk communities?"
 msgstr ""
+"Explique las vulnerabilidades y los riesgos subyacentes que el peligro "
+"plantea para las comunidades en riesgo."
 
-#: dref/models.py:723
+#: dref/models.py:730
 msgid "Scenario Analysis Supporting Document"
-msgstr ""
+msgstr "Documento de apoyo al análisis de escenarios"
 
-#: dref/models.py:731
+#: dref/models.py:738
 msgid "Contingency Plans Supporting Document"
-msgstr ""
+msgstr "Documento de apoyo a los planes de contingencia"
 
-#: dref/models.py:735
+#: dref/models.py:742
 msgid "Addressed Humanitarian Impacts"
-msgstr ""
+msgstr "Impactos humanitarios abordados"
 
-#: dref/models.py:736
+#: dref/models.py:743
 msgid ""
 " Which of the expected severe humanitarian impacts of the hazard are your "
 "actions addressing?"
 msgstr ""
+"¿Cuáles de los graves impactos humanitarios previstos del peligro están "
+"abordando sus acciones?"
 
-#: dref/models.py:743
+#: dref/models.py:750
 msgid "drefs"
-msgstr ""
+msgstr "referencias"
 
-#: dref/models.py:799
+#: dref/models.py:806
 msgid "file"
-msgstr ""
+msgstr "archivo"
 
-#: dref/models.py:804
+#: dref/models.py:811
 msgid "created_by"
-msgstr ""
+msgstr "creado_por"
 
-#: dref/models.py:812
+#: dref/models.py:819
 msgid "dref file"
-msgstr ""
+msgstr "archivo dref"
 
-#: dref/models.py:813
+#: dref/models.py:820
 msgid "dref files"
-msgstr ""
+msgstr "archivos dref"
 
-#: dref/models.py:842 dref/models.py:1281
+#: dref/models.py:849 dref/models.py:1288
 msgid "Dref"
-msgstr ""
+msgstr "Dref"
 
-#: dref/models.py:873 dref/models.py:1312
+#: dref/models.py:880 dref/models.py:1319
 msgid "Number of people targeted"
-msgstr ""
+msgstr "Número de personas objetivo"
 
-#: dref/models.py:874 dref/models.py:1313
+#: dref/models.py:881 dref/models.py:1320
 msgid "number of people affected"
-msgstr ""
+msgstr "Número de personas afectadas"
 
-#: dref/models.py:887
+#: dref/models.py:894
 msgid "Dref allocated so far"
-msgstr ""
+msgstr "Dref asignado hasta ahora"
 
-#: dref/models.py:888
+#: dref/models.py:895
 msgid "Additional allocation"
-msgstr ""
+msgstr "Asignación adicional"
 
-#: dref/models.py:889 dref/models.py:1326
+#: dref/models.py:896 dref/models.py:1333
 msgid "Total dref allocation"
-msgstr ""
+msgstr "Asignación total de dref"
 
-#: dref/models.py:932
+#: dref/models.py:939
 msgid "Operational Update Number"
-msgstr ""
-
-#: dref/models.py:933
-msgid "Reporting Timeframe"
-msgstr ""
-
-#: dref/models.py:937
-msgid "Update Date"
-msgstr ""
+msgstr "Número de actualización operativa"
 
 #: dref/models.py:940
+msgid "Reporting Timeframe"
+msgstr "Plazo de presentación de informes"
+
+#: dref/models.py:944
+msgid "Update Date"
+msgstr "Fecha de actualización"
+
+#: dref/models.py:947
 msgid "Is Timeframe Extension Required"
-msgstr ""
+msgstr "¿Es necesaria una extensión del plazo?"
 
-#: dref/models.py:942
+#: dref/models.py:949
 msgid "New Operation Start Date"
-msgstr ""
+msgstr "Nueva fecha de inicio de la operación"
 
-#: dref/models.py:943
+#: dref/models.py:950
 msgid "New Operation End Date"
-msgstr ""
+msgstr "Nueva fecha de finalización de la operación"
 
-#: dref/models.py:944 dref/models.py:1328
+#: dref/models.py:951 dref/models.py:1335
 msgid "Total Operation Timeframe"
-msgstr ""
-
-#: dref/models.py:1020
-msgid "Changing time operation"
-msgstr ""
-
-#: dref/models.py:1021
-msgid "Changing operation strategy"
-msgstr ""
-
-#: dref/models.py:1023
-msgid "Changing target population of operation"
-msgstr ""
-
-#: dref/models.py:1025
-msgid "Changing geographic location"
-msgstr ""
-
-#: dref/models.py:1026
-msgid "Changing budget"
-msgstr ""
+msgstr "Plazo total de operación"
 
 #: dref/models.py:1027
-msgid "Request for second allocation"
-msgstr ""
+msgid "Changing time operation"
+msgstr "Operación de cambio de hora"
 
 #: dref/models.py:1028
+msgid "Changing operation strategy"
+msgstr "Cambio de estrategia operativa"
+
+#: dref/models.py:1030
+msgid "Changing target population of operation"
+msgstr "Cambio de la población objetivo de la operación"
+
+#: dref/models.py:1032
+msgid "Changing geographic location"
+msgstr "Cambiar la ubicación geográfica"
+
+#: dref/models.py:1033
+msgid "Changing budget"
+msgstr "Cambio de presupuesto"
+
+#: dref/models.py:1034
+msgid "Request for second allocation"
+msgstr "Solicitud de segunda asignación"
+
+#: dref/models.py:1035
 msgid "Summary of change"
-msgstr ""
+msgstr "Resumen del cambio"
 
-#: dref/models.py:1029
+#: dref/models.py:1036
 msgid "Has change since request"
-msgstr ""
+msgstr "Ha cambiado desde la solicitud"
 
-#: dref/models.py:1030 dref/models.py:1426
+#: dref/models.py:1037 dref/models.py:1433
 msgid "Event description"
-msgstr ""
+msgstr "Descripción del evento"
 
-#: dref/models.py:1031 dref/models.py:1427
+#: dref/models.py:1038 dref/models.py:1434
 msgid "Anticipatory actions"
-msgstr ""
+msgstr "Acciones anticipatorias"
 
-#: dref/models.py:1032 dref/models.py:1428
+#: dref/models.py:1039 dref/models.py:1435
 msgid "Event scope"
-msgstr ""
+msgstr "Alcance del evento"
 
-#: dref/models.py:1043
+#: dref/models.py:1050
 msgid "Is there un_or_other_actor"
-msgstr ""
+msgstr "¿Hay un u otro actor?"
 
-#: dref/models.py:1046 dref/models.py:1518
+#: dref/models.py:1053 dref/models.py:1525
 msgid "Is there major coordinate mechanism"
-msgstr ""
+msgstr "¿Existe un mecanismo de coordenadas principal?"
 
-#: dref/models.py:1142
+#: dref/models.py:1149
 msgid "Has Forecasted Event Materialize"
-msgstr ""
+msgstr "¿Se ha materializado el evento previsto?"
 
-#: dref/models.py:1145
+#: dref/models.py:1152
 msgid ""
 "Please explain how is the operation is transitioning from Anticipatory to "
 "Response"
 msgstr ""
+"Por favor, explique cómo está la operación en transición de Anticipativa a "
+"Respuesta."
 
-#: dref/models.py:1149
+#: dref/models.py:1156
 msgid "Specified Trigger Met"
-msgstr ""
+msgstr "Se cumplió el disparador especificado"
 
-#: dref/models.py:1163
+#: dref/models.py:1170
 msgid "Has Event occurred"
-msgstr ""
+msgstr "¿Ha ocurrido el evento?"
 
-#: dref/models.py:1164
+#: dref/models.py:1171
 msgid "Reporting Time Start Date"
-msgstr ""
+msgstr "Fecha de inicio del informe"
 
-#: dref/models.py:1165
+#: dref/models.py:1172
 msgid "Reporting Time End Date"
-msgstr ""
+msgstr "Fecha de finalización del informe"
 
-#: dref/models.py:1200
+#: dref/models.py:1207
 msgid "Ns request date"
-msgstr ""
+msgstr "Fecha de solicitud de Ns"
 
-#: dref/models.py:1205 dref/models.py:1598
+#: dref/models.py:1212 dref/models.py:1605
 msgid "Date of Approval"
-msgstr ""
-
-#: dref/models.py:1218
-msgid "Reporting Start Date"
-msgstr ""
-
-#: dref/models.py:1219
-msgid "Reporting End Date"
-msgstr ""
-
-#: dref/models.py:1224
-msgid "Dref Operational Update"
-msgstr ""
+msgstr "Fecha de aprobación"
 
 #: dref/models.py:1225
+msgid "Reporting Start Date"
+msgstr "Fecha de inicio del informe"
+
+#: dref/models.py:1226
+msgid "Reporting End Date"
+msgstr "Fecha de finalización del informe"
+
+#: dref/models.py:1231
+msgid "Dref Operational Update"
+msgstr "Actualización operativa de Dref"
+
+#: dref/models.py:1232
 msgid "Dref Operational Updates"
-msgstr ""
+msgstr "Actualizaciones operativas de Dref"
 
-#: dref/models.py:1327
+#: dref/models.py:1334
 msgid "Date of publication"
-msgstr ""
+msgstr "Fecha de publicación"
 
-#: dref/models.py:1331
+#: dref/models.py:1338
 msgid "total operation timeframe for imminent type"
-msgstr ""
+msgstr "Tiempo total de operación para el tipo inminente"
 
-#: dref/models.py:1333
+#: dref/models.py:1340
 msgid "Operation Start Date"
-msgstr ""
+msgstr "Fecha de inicio de la operación"
 
-#: dref/models.py:1460 dref/models.py:1464
+#: dref/models.py:1467 dref/models.py:1471
 msgid "Change in operational strategy"
-msgstr ""
+msgstr "Cambio en la estrategia operativa"
 
-#: dref/models.py:1488
+#: dref/models.py:1495
 msgid "Want to report"
-msgstr ""
+msgstr "¿Quieres reportar?"
 
-#: dref/models.py:1492
+#: dref/models.py:1499
 msgid "Additional National Societies Actions"
-msgstr ""
+msgstr "Acciones adicionales de las Sociedades Nacionales"
 
-#: dref/models.py:1563
+#: dref/models.py:1570
 msgid "financial report"
-msgstr ""
+msgstr "informe financiero"
 
-#: dref/models.py:1567
+#: dref/models.py:1574
 msgid "financial preview"
-msgstr ""
+msgstr "vista previa financiera"
 
-#: dref/models.py:1571
+#: dref/models.py:1578
 msgid "Number of women assisted"
-msgstr ""
+msgstr "Número de mujeres asistidas"
 
-#: dref/models.py:1576
+#: dref/models.py:1583
 msgid "Number of men assisted"
-msgstr ""
+msgstr "Número de hombres asistidos"
 
-#: dref/models.py:1581
+#: dref/models.py:1588
 msgid "Number of girls under 18 assisted"
-msgstr ""
+msgstr "Número de niñas menores de 18 años asistidas"
 
-#: dref/models.py:1586
+#: dref/models.py:1593
 msgid "Number of boys under 18 assisted"
-msgstr ""
+msgstr "Número de niños menores de 18 años asistidos"
 
-#: dref/models.py:1591
+#: dref/models.py:1598
 msgid "Has national society conducted any intervention"
-msgstr ""
+msgstr "¿Ha realizado la sociedad nacional alguna intervención?"
 
-#: dref/models.py:1594
+#: dref/models.py:1601
 msgid "National Society conducted description"
-msgstr ""
-
-#: dref/models.py:1596
-msgid "Financial Report Description"
-msgstr ""
-
-#: dref/models.py:1602
-msgid "Main Donors"
-msgstr ""
+msgstr "Descripción realizada por la Sociedad Nacional"
 
 #: dref/models.py:1603
+msgid "Financial Report Description"
+msgstr "Descripción del informe financiero"
+
+#: dref/models.py:1609
+msgid "Main Donors"
+msgstr "Principales donantes"
+
+#: dref/models.py:1610
 msgid "Operation End Date"
-msgstr ""
+msgstr "Fecha de finalización de la operación"
 
-#: dref/models.py:1611
+#: dref/models.py:1618
 msgid "Mitigation Efforts and Achievements"
-msgstr ""
-
-#: dref/models.py:1616
-msgid "Lessons learnt and challenges"
-msgstr ""
+msgstr "Esfuerzos y logros de mitigación"
 
 #: dref/models.py:1623
+msgid "Lessons learnt and challenges"
+msgstr "Lecciones aprendidas y desafíos"
+
+#: dref/models.py:1630
 msgid "Sub total Expenditure Cost"
-msgstr ""
+msgstr "Subtotal Gasto Costo"
 
-#: dref/models.py:1629
+#: dref/models.py:1636
 msgid "Surge Deployment Expenditure Cost"
-msgstr ""
+msgstr "Costo del gasto de despliegue de aumento"
 
-#: dref/models.py:1635
+#: dref/models.py:1642
 msgid "Indirect Expenditure Cost"
-msgstr ""
-
-#: dref/models.py:1641
-msgid "Total Expenditure Cost"
-msgstr ""
+msgstr "Costo de gasto indirecto"
 
 #: dref/models.py:1648
+msgid "Total Expenditure Cost"
+msgstr "Costo total del gasto"
+
+#: dref/models.py:1655
 msgid "Dref Final Report"
-msgstr ""
+msgstr "Informe final de Dref"
 
-#: dref/models.py:1649
+#: dref/models.py:1656
 msgid "Dref Final Reports"
-msgstr ""
+msgstr "Informes finales de Dref"
 
-#: dref/serializers.py:110
+#: dref/serializers.py:116
 msgid "Caption"
-msgstr ""
+msgstr "Subtítulo"
 
-#: dref/serializers.py:480
+#: dref/serializers.py:475 dref/serializers.py:751 dref/serializers.py:1158
+msgid "Cannot be updated while the translation is in progress"
+msgstr "No se puede actualizar mientras la traducción esté en progreso"
+
+#: dref/serializers.py:481
 #, python-format
 msgid "Cannot add event_date if onset type not in %s or %s"
 msgstr ""
+"No se puede agregar event_date si el tipo de inicio no está en %s o %s"
 
-#: dref/serializers.py:488
-#, python-format
-msgid "Can't Update %s dref for approved Final Report"
-msgstr ""
+#: dref/serializers.py:489
+msgid "Can't Update dref for approved Final Report"
+msgstr "No se puede actualizar el dref para el informe final aprobado"
 
-#: dref/serializers.py:491
+#: dref/serializers.py:492
 #, python-format
 msgid "Operation timeframe can't be greater than %s for assessment_report"
 msgstr ""
+"El período de tiempo de la operación no puede ser mayor a %s para "
+"evaluation_report"
 
-#: dref/serializers.py:505 dref/serializers.py:1181
+#: dref/serializers.py:506 dref/serializers.py:1190
 msgid "Proposed Action is required for type DREF Imminent"
-msgstr ""
+msgstr "La acción propuesta es necesaria para el tipo DREF Inminente"
 
-#: dref/serializers.py:508 dref/serializers.py:1184
+#: dref/serializers.py:509 dref/serializers.py:1193
 msgid "Sub-total is required for Imminent DREF"
-msgstr ""
+msgstr "Se requiere subtotal para DREF inminente"
 
-#: dref/serializers.py:511 dref/serializers.py:1191
+#: dref/serializers.py:512 dref/serializers.py:1200
 #, python-format
 msgid "Sub-total should be equal to %s for Imminent DREF"
-msgstr ""
+msgstr "El subtotal debe ser igual a %s para DREF inminente"
 
-#: dref/serializers.py:515
+#: dref/serializers.py:516
 msgid "Surge Deployment is required for Imminent DREF"
 msgstr ""
+"Se requiere un aumento repentino del despliegue para el DREF inminente"
 
-#: dref/serializers.py:518 dref/serializers.py:1194
+#: dref/serializers.py:519 dref/serializers.py:1203
 msgid "Indirect Cost is required for Imminent DREF"
-msgstr ""
+msgstr "Se requiere el costo indirecto para el DREF inminente"
 
-#: dref/serializers.py:520 dref/serializers.py:1200
+#: dref/serializers.py:521 dref/serializers.py:1209
 msgid "Total is required for Imminent DREF"
-msgstr ""
+msgstr "Se requiere total para DREF inminente"
 
-#: dref/serializers.py:531
+#: dref/serializers.py:532
 #, python-format
 msgid ""
 "Surge Deployment Cost should be equal to %s for Surge Personnel Deployed"
 msgstr ""
+"El costo del despliegue de refuerzo debe ser igual a %s para el personal de "
+"refuerzo desplegado"
 
-#: dref/serializers.py:540
+#: dref/serializers.py:541
 #, python-format
 msgid "Indirect Cost should be equal to %s for Surge Personnel Deployed"
 msgstr ""
+"El costo indirecto debe ser igual a %s para el personal desplegado en caso "
+"de aumento"
 
-#: dref/serializers.py:550
+#: dref/serializers.py:551
 #, python-format
 msgid "Indirect Cost should be equal to %s for No Surge Personnel Deployed"
 msgstr ""
+"El costo indirecto debe ser igual a %s para el personal no incrementado "
+"desplegado"
 
-#: dref/serializers.py:559
+#: dref/serializers.py:560
 msgid ""
 "Total should be equal to sum of Sub-total, Surge Deployment Cost and "
 "Indirect Cost"
 msgstr ""
+"El total debe ser igual a la suma del subtotal, el costo de implementación "
+"del aumento y el costo indirecto."
 
-#: dref/serializers.py:566
+#: dref/serializers.py:567
 #, python-format
 msgid "Can add utmost %s images"
-msgstr ""
+msgstr "Puede agregar hasta %s imágenes"
 
-#: dref/serializers.py:581
+#: dref/serializers.py:582
 #, python-format
 msgid "Only image owner can attach image. Not allowed image ids: %s"
 msgstr ""
+"Solo el propietario de la imagen puede adjuntarla. ID de imagen no "
+"permitidos: %s"
 
-#: dref/serializers.py:607
+#: dref/serializers.py:608
 #, python-brace-format
 msgid ""
 "Operation timeframe can't be greater than {self.MAX_OPERATION_TIMEFRAME}"
 msgstr ""
+"El período de tiempo de la operación no puede ser mayor que "
+"{self.MAX_OPERATION_TIMEFRAME}"
 
-#: dref/serializers.py:751
-#, python-format
-msgid "Can't create Operational Update for not approved %s dref."
+#: dref/serializers.py:754
+msgid "Can't create Operational Update for not approved dref."
 msgstr ""
+"No se puede crear una actualización operativa para un dref no aprobado."
 
-#: dref/serializers.py:760
+#: dref/serializers.py:763
 #, python-format
 msgid ""
 "Can't create Operational Update for not                         approved "
 "Operational Update %s id and Operational Update Number %i."
 msgstr ""
+"No se puede crear una actualización operativa para la actualización "
+"operativa no aprobada %s id y el número de actualización operativa %i."
 
-#: dref/serializers.py:796 dref/serializers.py:802 dref/serializers.py:1255
-#: dref/serializers.py:1262
+#: dref/serializers.py:798 dref/serializers.py:1263
+msgid "Starting language does not match the expected language."
+msgstr "El idioma inicial no coincide con el idioma esperado."
+
+#: dref/serializers.py:801 dref/serializers.py:1266
 #, python-brace-format
 msgid ""
-"Language must be either '{valid_languages[0]}' or '{valid_languages[1]}'."
+"Invalid starting language. Supported options are '{valid_languages[0]}' and "
+"'{valid_languages[1]}'."
 msgstr ""
+"Idioma de inicio no válido. Las opciones admitidas son "
+"\"{valid_languages[0]}\" y \"{valid_languages[1]}\"."
 
-#: dref/serializers.py:1153
-#, python-format
-msgid "Can't create Final Report for not approved dref %s."
-msgstr ""
+#: dref/serializers.py:1162
+msgid "Can't create Final Report for not approved dref."
+msgstr "No se puede crear el informe final para un dref no aprobado."
 
-#: dref/serializers.py:1160
+#: dref/serializers.py:1169
 #, python-format
 msgid "Can't create Final Report for not approved Operational Update %s ids "
 msgstr ""
+"No se puede crear el informe final para la actualización operativa no "
+"aprobada %s ids"
 
-#: dref/serializers.py:1166
-#, python-format
-msgid "Can't update approved final report %s."
-msgstr ""
+#: dref/serializers.py:1175
+msgid "Can't update approved final report."
+msgstr "No se puede actualizar el informe final aprobado."
 
-#: dref/serializers.py:1187
+#: dref/serializers.py:1196
 msgid "Sub-total Expenditure is required for Imminent DREF"
-msgstr ""
+msgstr "Se requiere un subtotal de gastos para el DREF inminente"
 
-#: dref/serializers.py:1197
+#: dref/serializers.py:1206
 msgid "Indirect Expenditure is required for Imminent DREF"
-msgstr ""
-
-#: dref/serializers.py:1203
-msgid "Total Expenditure is required for Imminent DREF"
-msgstr ""
+msgstr "Se requiere gasto indirecto para el DREF inminente"
 
 #: dref/serializers.py:1212
-msgid "Sub-total should be equal to proposed budget."
-msgstr ""
+msgid "Total Expenditure is required for Imminent DREF"
+msgstr "Se requiere un gasto total para el DREF inminente"
 
-#: dref/serializers.py:1215
-msgid "Sub-total Expenditure should be equal to proposed expenditure."
-msgstr ""
+#: dref/serializers.py:1221
+msgid "Sub-total should be equal to proposed budget."
+msgstr "El subtotal debe ser igual al presupuesto propuesto."
 
 #: dref/serializers.py:1224
+msgid "Sub-total Expenditure should be equal to proposed expenditure."
+msgstr "El subtotal del gasto debe ser igual al gasto propuesto."
+
+#: dref/serializers.py:1233
 msgid ""
 "Total Expenditure Cost should be equal to sum of Sub-total Expenditure, "
 "Surge Deployment Expenditure and Indirect Expenditure Cost."
 msgstr ""
+"El costo total del gasto debe ser igual a la suma del gasto subtotal, el "
+"gasto de despliegue repentino y el costo del gasto indirecto."
 
-#: dref/serializers.py:1386 dref/serializers.py:1511
+#: dref/serializers.py:1390 dref/serializers.py:1515
 #, python-format
 msgid "Can't create final report for dref type %s"
-msgstr ""
+msgstr "No se puede crear el informe final para el tipo dref %s"
 
-#: dref/views.py:94
+#: dref/views.py:98
+msgid "This Dref has already been approved."
+msgstr "Este Dref ya ha sido aprobado."
+
+#: dref/views.py:100
 msgid "Must be finalized before it can be approved"
-msgstr ""
+msgstr "Debe estar finalizado antes de poder aprobarse."
 
-#: dref/views.py:96
-#, python-format
-msgid "Dref %s is already approved"
-msgstr ""
-
-#: dref/views.py:111 dref/views.py:205 dref/views.py:270
+#: dref/views.py:116 dref/views.py:213 dref/views.py:281
 #, python-format
 msgid "Cannot be finalized because it is already %s"
-msgstr ""
+msgstr "No se puede finalizar porque ya es %s"
 
-#: dref/views.py:115 dref/views.py:210 dref/views.py:275
+#: dref/views.py:128 dref/views.py:226 dref/views.py:294
 msgid ""
 "The translation is currently being processed. Please wait a little while "
 "before trying again."
 msgstr ""
+"La traducción se está procesando. Espere un momento antes de volver a "
+"intentarlo."
 
-#: dref/views.py:186 dref/views.py:248
+#: dref/views.py:193
+msgid "This Operational update has already been approved."
+msgstr "Esta actualización operativa ya ha sido aprobada."
+
+#: dref/views.py:195 dref/views.py:260
 msgid "Must be finalized before it can be approved."
-msgstr ""
+msgstr "Debe finalizarse antes de poder aprobarse."
 
-#: dref/views.py:188
-#, python-format
-msgid "Operational update %s is already approved"
-msgstr ""
-
-#: dref/views.py:250
-#, python-format
-msgid "Final Report %s is already approved"
-msgstr ""
+#: dref/views.py:257
+msgid "This Final Report has already been approved."
+msgstr "Este Informe Final ya ha sido aprobado."
