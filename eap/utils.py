@@ -52,6 +52,7 @@ def get_eap_email_context(instance):
         "ns_contact_name": eap_registration_data["national_society_contact_name"],
         "ns_contact_email": eap_registration_data["national_society_contact_email"],
         "ns_contact_phone": eap_registration_data["national_society_contact_phone_number"],
+        "dead_line": eap_registration_data["dead_line"],
         "frontend_url": settings.GO_WEB_URL,
         # "review_checklist_file":eap_registration_data["review_checklist_file"],
         # "validated_budget_file":eap_registration_data["validated_budget_file"],

@@ -576,7 +576,7 @@ def send_deadline_reminder_email(eap_registration_id: int):
     )
     email_context = get_eap_email_context(instance)
     email_subject = f"[DREF {instance.get_eap_type_display()} SUBMISSION REMINDER] {instance.country} {instance.disaster_type}"
-    email_body = render_to_string("email/eap/approved.html", email_context)
+    email_body = render_to_string("email/eap/reminder.html", email_context)
     email_type = "Approved EAP"
     send_notification(
         subject=email_subject,

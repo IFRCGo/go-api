@@ -722,6 +722,14 @@ class EAPRegistration(EAPBaseModel):
         help_text=_("Timestamp when the EAP was activated."),
     )
 
+    # EAP submission deadline
+    dead_line = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name=_("deadline"),
+        help_text=_("Date by which the EAP submission must be completed."),
+    )
+
     # TYPING
     id: int
     national_society_id: int
