@@ -1,4 +1,5 @@
 import typing
+from datetime import timedelta
 
 from django.contrib.auth.models import User
 from django.db import transaction
@@ -193,6 +194,7 @@ class EAPRegistrationSerializer(
             "modified_by",
             "latest_simplified_eap",
             "latest_full_eap",
+            "dead_line",
         ]
 
     def create(self, validated_data: dict[str, typing.Any]):
@@ -960,11 +962,28 @@ class EAPStatusSerializer(BaseEAPSerializer):
                 Therefore:
                 - version == 2 always corresponds to the first IFRC feedback cycle
                 - Any later versions (>= 3) correspond to resubmitted cycles
+
+               Deadline update rules:
+                - First IFRC feedback cycle: deadline is set to 90 days from the current date.
+                - Subsequent feedback or resubmission cycles: deadline is set to 30 days from the current date.
             """
 
             if eap_count == 2:
+                updated_instance.dead_line = timezone.now().date() + timedelta(days=90)
+                updated_instance.save(
+                    update_fields=[
+                        "dead_line",
+                    ]
+                )
                 transaction.on_commit(lambda: send_feedback_email.delay(eap_registration_id))
+
             elif eap_count > 2:
+                updated_instance.dead_line = timezone.now().date() + timedelta(days=30)
+                updated_instance.save(
+                    update_fields=[
+                        "dead_line",
+                    ]
+                )
                 transaction.on_commit(lambda: send_feedback_email_for_resubmitted_eap.delay(eap_registration_id))
 
         elif (old_status, new_status) == (
@@ -976,6 +995,12 @@ class EAPStatusSerializer(BaseEAPSerializer):
             EAPRegistration.Status.TECHNICALLY_VALIDATED,
             EAPRegistration.Status.NS_ADDRESSING_COMMENTS,
         ):
+            updated_instance.dead_line = timezone.now().date() + timedelta(days=30)
+            updated_instance.save(
+                update_fields=[
+                    "dead_line",
+                ]
+            )
             transaction.on_commit(lambda: send_feedback_email_for_resubmitted_eap.delay(eap_registration_id))
 
         elif (old_status, new_status) == (
