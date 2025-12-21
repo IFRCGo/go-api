@@ -10,15 +10,15 @@ from main.sentry import SentryMonitor
 
 
 class Command(BaseCommand):
-    help = "Send EAP submission reminder emails 10 days before deadline"
+    help = "Send EAP submission reminder emails 1 week before deadline"
 
     @monitor(monitor_slug=SentryMonitor.EAP_SUBMISSION_REMINDER)
     def handle(self, *args, **options):
         """
-        Finds EAP-registrations whose submission deadline is exactly 10 days from today
+        Finds EAP-registrations whose submission deadline is exactly 1 week from today
         and sends reminder emails for each matching registration.
         """
-        target_date = timezone.now().date() + timedelta(days=10)
+        target_date = timezone.now().date() + timedelta(weeks=1)
         queryset = EAPRegistration.objects.filter(
             dead_line=target_date,
         )
