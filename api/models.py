@@ -3202,4 +3202,37 @@ class DimWarehouse(models.Model):
 
     def __str__(self):
         return f"{self.id} - {self.name if self.name else self.site}"
+
+
+class FctAgreement(models.Model):
+    agreement_id = models.CharField(verbose_name=_("Agreement ID"), max_length=100, primary_key=True)
+    buyer_group = models.CharField(verbose_name=_("Buyer Group"), max_length=100, null=True, blank=True)
+    vendor = models.CharField(verbose_name=_("Vendor"), max_length=100, null=True, blank=True)
+    parent_agreement = models.CharField(verbose_name=_("Parent Agreement"), max_length=100, null=True, blank=True)
+    managing_business_unit_organizational_unit = models.CharField(verbose_name=_("Managing Business Unit Organizational Unit"), max_length=100, null=True, blank=True)
+    requesting_department_organizational_unit = models.CharField(verbose_name=_("Requesting Department Organizational Unit"), max_length=100, null=True, blank=True)
+    preparer_worker = models.CharField(verbose_name=_("Preparer Worker"), max_length=100, null=True, blank=True)
+    classification = models.CharField(verbose_name=_("Classification"), max_length=100, null=True, blank=True)
+    status = models.CharField(verbose_name=_("Status"), max_length=100, null=True, blank=True)
+    currency_code = models.CharField(verbose_name=_("Currency Code"), max_length=10, null=True, blank=True)
+    default_delivery_name = models.CharField(verbose_name=_("Default Delivery Name"), max_length=255, null=True, blank=True)
+    default_payment_term = models.CharField(verbose_name=_("Default Payment Term"), max_length=255, null=True, blank=True)
+    document_title = models.CharField(verbose_name=_("Document Title"), max_length=255, null=True, blank=True)
+    purpose = models.CharField(verbose_name=_("Purpose"), max_length=255, null=True, blank=True)
+    document_external_reference = models.CharField(verbose_name=_("Document External Reference"), max_length=255, null=True, blank=True)
+    code = models.CharField(verbose_name=_("Code"), max_length=100, null=True, blank=True)
+    workflow_status = models.CharField(verbose_name=_("Workflow Status"), max_length=100, null=True, blank=True)
+    default_agreement_line_effective_date = models.DateField(verbose_name=_("Default Agreement Line Effective Date"), null=True, blank=True)
+    default_agreement_line_expiration_date = models.DateField(verbose_name=_("Default Agreement Line Expiration Date"), null=True, blank=True)
+    created_by = models.CharField(verbose_name=_("Created By"), max_length=100, null=True, blank=True)
+    created_datetime = models.DateTimeField(verbose_name=_("Created DateTime"), null=True, blank=True)
+    modified_by = models.CharField(verbose_name=_("Modified By"), max_length=100, null=True, blank=True)
+    modified_datetime = models.DateTimeField(verbose_name=_("Modified DateTime"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("Agreement")
+        verbose_name_plural = _("Agreements")
+
+    def __str__(self):
+        return f"{self.agreement_id} - {self.status if self.status else 'Agreement'}"
     
