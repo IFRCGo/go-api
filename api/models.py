@@ -2675,7 +2675,7 @@ class FrameworkAgreementLineItem(models.Model):
 
 
 class DimAgreementLine(models.Model):
-    """Agreement Line Items Dimension"""
+    """Agreements"""
 
     agreement_line_id = models.CharField(verbose_name=_("Agreement Line ID"), max_length=100, unique=True)
     agreement_id = models.CharField(verbose_name=_("Agreement ID"), max_length=100)
@@ -2722,4 +2722,16 @@ class DimAgreementLine(models.Model):
 
     def __str__(self):
         return f"{self.agreement_line_id}"
+
+
+class DimAppeal(models.Model):
+    id = models.CharField(verbose_name=_("Appeal ID"), max_length=100, primary_key=True)
+    appeal_name = models.CharField(verbose_name=_("Appeal Name"), max_length=255)
+
+    class Meta:
+        verbose_name = _("Appeal")
+        verbose_name_plural = _("Appeals")
+
+    def __str__(self):
+        return f"{self.id} - {self.appeal_name}"
 
