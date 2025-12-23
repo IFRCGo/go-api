@@ -2969,3 +2969,19 @@ class DimPackingSlipLine(models.Model):
 
     def __str__(self):
         return f"{self.id} - {self.sales_order_line}" if self.sales_order_line else self.id
+
+
+class DimProduct(models.Model):
+    id = models.CharField(verbose_name=_("Product ID"), max_length=100, primary_key=True)
+    name = models.CharField(verbose_name=_("Product Name"), max_length=255)
+    type = models.CharField(verbose_name=_("Product Type"), max_length=100, null=True, blank=True)
+    unit_of_measure = models.CharField(verbose_name=_("Unit of Measure"), max_length=50, null=True, blank=True)
+    product_category = models.CharField(verbose_name=_("Product Category"), max_length=100, null=True, blank=True)
+    project_category = models.CharField(verbose_name=_("Project Category"), max_length=200, null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("Product")
+        verbose_name_plural = _("Products")
+
+    def __str__(self):
+        return f"{self.id} - {self.name}"
