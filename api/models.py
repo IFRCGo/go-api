@@ -2672,3 +2672,54 @@ class FrameworkAgreementLineItem(models.Model):
     class Meta:
         verbose_name = _("Framework Agreement Line Item")
         verbose_name_plural = _("Framework Agreement Line Items")
+
+
+class DimAgreementLine(models.Model):
+    """Agreement Line Items Dimension"""
+
+    agreement_line_id = models.CharField(verbose_name=_("Agreement Line ID"), max_length=100, unique=True)
+    agreement_id = models.CharField(verbose_name=_("Agreement ID"), max_length=100)
+    line_number = models.IntegerField(verbose_name=_("Line Number"))
+    product = models.CharField(verbose_name=_("Product"), max_length=255, blank=True, null=True)
+    product_category = models.CharField(verbose_name=_("Product Category"), max_length=255, blank=True, null=True)
+    effective_date = models.DateTimeField(verbose_name=_("Effective Date"), blank=True, null=True)
+    expiration_date = models.DateTimeField(verbose_name=_("Expiration Date"), blank=True, null=True)
+    commitment_type = models.CharField(verbose_name=_("Commitment Type"), max_length=255, blank=True, null=True)
+    committed_quantity = models.DecimalField(
+        verbose_name=_("Committed Quantity"),
+        max_digits=20,
+        decimal_places=6,
+        blank=True,
+        null=True,
+    )
+    committed_amount = models.DecimalField(
+        verbose_name=_("Committed Amount"),
+        max_digits=20,
+        decimal_places=2,
+        blank=True,
+        null=True,
+    )
+    delivery_term = models.CharField(verbose_name=_("Delivery Term"), max_length=100, blank=True, null=True)
+    unit_of_measure = models.CharField(verbose_name=_("Unit of Measure"), max_length=100, blank=True, null=True)
+    price_per_unit = models.DecimalField(
+        verbose_name=_("Price Per Unit"),
+        max_digits=20,
+        decimal_places=6,
+        blank=True,
+        null=True,
+    )
+    line_discount_percent = models.DecimalField(
+        verbose_name=_("Line Discount Percent"),
+        max_digits=10,
+        decimal_places=6,
+        blank=True,
+        null=True,
+    )
+
+    class Meta:
+        verbose_name = _("Agreement Line")
+        verbose_name_plural = _("Agreement Lines")
+
+    def __str__(self):
+        return f"{self.agreement_line_id}"
+
