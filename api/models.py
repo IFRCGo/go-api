@@ -3235,4 +3235,17 @@ class FctAgreement(models.Model):
 
     def __str__(self):
         return f"{self.agreement_id} - {self.status if self.status else 'Agreement'}"
+
+
+class FctProductReceipt(models.Model):
+    id = models.CharField(verbose_name=_("Product Receipt ID"), max_length=100, primary_key=True)
+    purchase_order = models.CharField(verbose_name=_("Purchase Order"), max_length=100, null=True, blank=True)
+    delivery_date = models.DateField(verbose_name=_("Delivery Date"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("Product Receipt")
+        verbose_name_plural = _("Product Receipts")
+
+    def __str__(self):
+        return f"{self.id} - {self.purchase_order if self.purchase_order else 'Product Receipt'}"
     
