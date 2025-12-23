@@ -2780,3 +2780,15 @@ class DimDonor(models.Model):
 
     def __str__(self):
         return f"{self.donor_code} - {self.donor_name}"
+
+
+class DimInventoryItem(models.Model):
+    id = models.CharField(verbose_name=_("Inventory Item ID"), max_length=100, primary_key=True)
+    unit_of_measure = models.CharField(verbose_name=_("Unit of Measure"), max_length=100)
+
+    class Meta:
+        verbose_name = _("Inventory Item")
+        verbose_name_plural = _("Inventory Items")
+
+    def __str__(self):
+        return f"{self.id} - {self.unit_of_measure}"
