@@ -3301,4 +3301,19 @@ class FctSalesOrder(models.Model):
 
     def __str__(self):
         return f"{self.id} - {self.customer if self.customer else 'Sales Order'}"
+
+
+class ProductCategoryHierarchyFlattened(models.Model):
+    product_category = models.CharField(verbose_name=_("Product Category"), max_length=100, primary_key=True)
+    level_4_product_category = models.CharField(verbose_name=_("Level 4 Product Category"), max_length=100, null=True, blank=True)
+    level_3_product_category = models.CharField(verbose_name=_("Level 3 Product Category"), max_length=100, null=True, blank=True)
+    level_2_product_category = models.CharField(verbose_name=_("Level 2 Product Category"), max_length=100, null=True, blank=True)
+    level_1_product_category = models.CharField(verbose_name=_("Level 1 Product Category"), max_length=100, null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("Product Category Hierarchy Flattened")
+        verbose_name_plural = _("Product Category Hierarchy Flattened")
+
+    def __str__(self):
+        return f"{self.product_category} - {self.level_1_product_category if self.level_1_product_category else 'Category'}"
     
