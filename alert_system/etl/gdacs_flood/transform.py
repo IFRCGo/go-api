@@ -5,9 +5,9 @@ from alert_system.etl.base.transform import BaseTransformerClass
 logger = logging.getLogger(__name__)
 
 
-class USGSTransformer(BaseTransformerClass):
+class GdacsTransformer(BaseTransformerClass):
     """
-    Transformer for USGS STAC impacts.
+    Transformer for GDACS STAC impacts.
     Extracts and normalizes impact fields, computes derived values, and stores metadata.
     """
 
@@ -28,24 +28,25 @@ class USGSTransformer(BaseTransformerClass):
                 return data["value"]
         return 0
 
+    # NOTE: This logic will change with changes in montandon.
     def process_impact(self, impact_items) -> BaseTransformerClass.ImpactType:
         metadata = []
-        values_metadata = {}
         for item in impact_items:
             properties = item.resp_data.get("properties", {})
             impact_detail = properties.get("monty:impact_detail", {})
             category = impact_detail.get("category")
             type_ = impact_detail.get("type")
             value = impact_detail.get("value")
-            if category and type_:
-                values_metadata = {
-                    "category": category,
-                    "type": type_,
-                    "value": value,
-                    "unit": impact_detail.get("unit", ""),
-                    "estimate_type": impact_detail.get("estimate_type", ""),
-                }
-            metadata.append(values_metadata)
+            if category == "people" and type_ == "affected_total":
+                metadata = [
+                    {
+                        "category": category,
+                        "type": type_,
+                        "value": value,
+                        "unit": impact_detail.get("unit", ""),
+                        "estimate_type": impact_detail.get("estimate_type", ""),
+                    }
+                ]
         return {
             "people_exposed": self.compute_people_exposed(metadata),
             "buildings_exposed": self.compute_buildings_exposed(metadata),
@@ -75,4 +76,6 @@ class USGSTransformer(BaseTransformerClass):
             "title": properties.get("title", ""),
             "description": properties.get("description", ""),
             "country": properties.get("monty:country_codes", ""),
+            "start_datetime": properties.get("start_datetime"),
+            "end_datetime": properties.get("end_datetime"),
         }

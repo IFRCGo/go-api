@@ -41,6 +41,8 @@ class BaseLoaderClass(ABC):
                 "total_people_exposed": transformed_data.get("people_exposed"),
                 "total_buildings_exposed": transformed_data.get("buildings_exposed"),
                 "impact_metadata": transformed_data.get("impact_metadata"),
+                "start_datetime": transformed_data.get("start_datetime"),
+                "end_datetime": transformed_data.get("end_datetime"),
                 "item_eligible": is_item_eligible,
                 "is_past_event": is_past_event,
                 "extraction_run_id": run_id,
@@ -48,6 +50,6 @@ class BaseLoaderClass(ABC):
         )
 
         action = "Created" if created else "Updated"
-        logger.info(f"{action} Event for correlation_id={correlation_id}")
+        logger.info(f"{action} Event for {correlation_id=}")
 
         return load_obj

@@ -2,7 +2,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from api.models import DisasterType
+from api.models import DisasterType, Event
 
 
 class Connector(models.Model):
@@ -46,6 +46,8 @@ class Connector(models.Model):
     def __str__(self):
         return self.get_type_display()  # type: ignore[attr-defined]
 
+    id: int
+
     class Meta:
         verbose_name = _("Connector")
         verbose_name_plural = _("Connectors")
@@ -80,6 +82,8 @@ class BaseItem(models.Model):
         help_text=_("Correlation identifier linking all models"),
     )
 
+    id: int
+
     class Meta:
         abstract = True
         ordering = ["-created_at"]
@@ -108,7 +112,7 @@ class ExtractionItem(BaseItem):
         verbose_name=_("Event ID"),
         help_text=_("Unique identifier for the event item"),
     )
-
+    # NOTE: This might increase the database size massively.
     resp_data = models.JSONField(
         null=True, blank=True, verbose_name=_("Response Data"), help_text=_("Raw JSON response from the STAC API")
     )
@@ -133,6 +137,10 @@ class LoadItem(BaseItem):
         verbose_name=_("Event Description"),
         help_text=_("Description of the event"),
     )
+
+    start_datetime = models.DateTimeField(null=False, blank=False, help_text="Start datetime of the event")
+
+    end_datetime = models.DateTimeField(null=True, blank=False, help_text="End datetime of the event")
 
     country_codes = ArrayField(
         models.CharField(max_length=150), null=True, help_text="List of country codes(ISO3) of afffected countries"
@@ -184,7 +192,10 @@ class LoadItem(BaseItem):
 
     related_montandon_events = models.ManyToManyField("self", symmetrical=False, related_name="related_to", blank=True)
 
-    related_go_events = ArrayField(models.IntegerField(), blank=True, default=list, help_text="List of IDs of the events in GO.")
+    related_go_events = models.ManyToManyField(Event, verbose_name="Related GO Events", blank=True)
+
+    def __str__(self):
+        return self.event_title
 
     class Meta:
         verbose_name = _("Eligible Item")

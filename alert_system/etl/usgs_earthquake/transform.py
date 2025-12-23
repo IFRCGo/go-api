@@ -5,9 +5,9 @@ from alert_system.etl.base.transform import BaseTransformerClass
 logger = logging.getLogger(__name__)
 
 
-class GdacsTransformer(BaseTransformerClass):
+class USGSTransformer(BaseTransformerClass):
     """
-    Transformer for GDACS STAC impacts.
+    Transformer for USGS STAC impacts.
     Extracts and normalizes impact fields, computes derived values, and stores metadata.
     """
 
@@ -28,10 +28,10 @@ class GdacsTransformer(BaseTransformerClass):
                 return data["value"]
         return 0
 
-    # NOTE: This logic will change with changes in montandon.
+    # NOTE: To be changed.
     def process_impact(self, impact_items) -> BaseTransformerClass.ImpactType:
         metadata = []
-        largest_values_metadata = {}
+        values_metadata = {}
         for item in impact_items:
             properties = item.resp_data.get("properties", {})
             impact_detail = properties.get("monty:impact_detail", {})
@@ -39,17 +39,14 @@ class GdacsTransformer(BaseTransformerClass):
             type_ = impact_detail.get("type")
             value = impact_detail.get("value")
             if category and type_:
-                key = (category, type_)
-
-                if key not in largest_values_metadata or value > largest_values_metadata[key]["value"]:
-                    largest_values_metadata[key] = {
-                        "category": category,
-                        "type": type_,
-                        "value": value,
-                        "unit": impact_detail.get("unit", ""),
-                        "estimate_type": impact_detail.get("estimate_type", ""),
-                    }
-        metadata.extend(largest_values_metadata.values())
+                values_metadata = {
+                    "category": category,
+                    "type": type_,
+                    "value": value,
+                    "unit": impact_detail.get("unit", ""),
+                    "estimate_type": impact_detail.get("estimate_type", ""),
+                }
+            metadata.append(values_metadata)
         return {
             "people_exposed": self.compute_people_exposed(metadata),
             "buildings_exposed": self.compute_buildings_exposed(metadata),
@@ -79,4 +76,6 @@ class GdacsTransformer(BaseTransformerClass):
             "title": properties.get("title", ""),
             "description": properties.get("description", ""),
             "country": properties.get("monty:country_codes", ""),
+            "start_datetime": properties.get("start_datetime"),
+            "end_datetime": properties.get("end_datetime"),
         }
