@@ -1,7 +1,8 @@
 # Create your views here.
 from django.db.models import Case, F, IntegerField, When
 from django.db.models.query import Prefetch, QuerySet
-from drf_spectacular.utils import extend_schema
+from django.templatetags.static import static
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import mixins, permissions, response, status, viewsets
 from rest_framework.decorators import action
 
@@ -31,6 +32,7 @@ from eap.serializers import (
     EAPFileSerializer,
     EAPRegistrationSerializer,
     EAPStatusSerializer,
+    EAPTemplateFilesSerializer,
     EAPValidatedBudgetFileSerializer,
     FullEAPSerializer,
     MiniEAPSerializer,
@@ -324,3 +326,54 @@ class EAPFileViewSet(
             file_serializer.save()
             return response.Response(file_serializer.data, status=status.HTTP_201_CREATED)
         return response.Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @extend_schema(
+        request=None,
+        responses=EAPTemplateFilesSerializer,
+        parameters=[
+            OpenApiParameter(
+                name="get_template_files",
+                description="Type of template to download",
+                required=False,
+                type=str,
+                enum=[
+                    "eap_budget",
+                    "full_eap_forecast_table",
+                    "full_eap_theory_of_change_table",
+                ],
+            )
+        ],
+    )
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="get-template-files",
+        permission_classes=[permissions.IsAuthenticated, DenyGuestUserPermission],
+    )
+    def get_template_files(self, request):
+        template_type = request.query_params.get("get_template_files")
+
+        template_map = {
+            "eap_budget": "files/eap/eap_budget_template.xlsm",
+            "full_eap_forecast_table": "files/eap/full_eap_forecasts_table.docx",
+            "full_eap_theory_of_change_table": "files/eap/full_eap_theory_of_change_table.docx",
+        }
+
+        if not template_type:
+            return response.Response(
+                {
+                    "detail": "Please provide a template type.",
+                    "available_types": list(template_map.keys()),
+                },
+                status=400,
+            )
+        if template_type not in template_map:
+            return response.Response(
+                {
+                    "detail": f"Invalid template type '{template_type}'.",
+                    "available_types": list(template_map.keys()),
+                },
+                status=400,
+            )
+        file_url = request.build_absolute_uri(static(template_map[template_type]))
+        return response.Response({"template_url": file_url})

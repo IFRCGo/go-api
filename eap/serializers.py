@@ -40,7 +40,7 @@ from eap.utils import (
 from main.writable_nested_serializers import NestedCreateMixin, NestedUpdateMixin
 from utils.file_check import validate_file_type
 
-ALLOWED_FILE_EXTENTIONS: list[str] = ["pdf", "docx", "pptx", "xlsx"]
+ALLOWED_FILE_EXTENTIONS: list[str] = ["pdf", "docx", "pptx", "xlsx", "xlsm"]
 
 
 class BaseEAPSerializer(serializers.ModelSerializer):
@@ -216,6 +216,10 @@ class EAPValidatedBudgetFileSerializer(serializers.ModelSerializer):
 
 class EAPFileInputSerializer(serializers.Serializer):
     file = serializers.ListField(child=serializers.FileField(required=True))
+
+
+class EAPTemplateFilesSerializer(serializers.Serializer):
+    template_url = serializers.URLField(read_only=True)
 
 
 class EAPFileSerializer(BaseEAPSerializer):

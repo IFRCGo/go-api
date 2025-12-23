@@ -42,6 +42,7 @@ class EAPFileTestCase(APITestCase):
 
         path = os.path.join(settings.TEST_DIR, "documents")
         self.file = os.path.join(path, "go.png")
+        self.template_url = "/api/v2/eap-file/get-template-files/"
 
     def test_upload_file(self):
         file_count = EAPFile.objects.count()
@@ -81,6 +82,46 @@ class EAPFileTestCase(APITestCase):
         self.assert_400(response)
         # no new files to be created
         self.assertEqual(EAPFile.objects.count(), file_count)
+
+    def test_get_template_files_invalid_param(self):
+        self.authenticate()
+        response = self.client.get(self.template_url, {"get_template_files": "invalid_type"})
+
+        self.assert_400(response)
+        self.assertEqual(
+            response.data["detail"],
+            "Invalid template type 'invalid_type'.",
+        )
+        self.assertIn("available_types", response.data)
+
+    def test_get_eap_budget_template(self):
+
+        self.authenticate()
+        response = self.client.get(self.template_url, {"get_template_files": "eap_budget"})
+
+        self.assert_200(response)
+        self.assertIn("template_url", response.data)
+        self.assertTrue(response.data["template_url"].endswith("files/eap/eap_budget_template.xlsm"))
+
+    def test_get_full_eap_forecast_table_template(self):
+        self.authenticate()
+        response = self.client.get(self.template_url, {"get_template_files": "full_eap_forecast_table"})
+
+        self.assert_200(response)
+        self.assertIn("template_url", response.data)
+        self.assertTrue(response.data["template_url"].endswith("files/eap/full_eap_forecasts_table.docx"))
+
+    def test_get_full_eap_theory_of_change_template(self):
+        self.authenticate()
+        response = self.client.get(self.template_url, {"get_template_files": "full_eap_theory_of_change_table"})
+
+        self.assert_200(response)
+        self.assertIn("template_url", response.data)
+        self.assertTrue(response.data["template_url"].endswith("files/eap/full_eap_theory_of_change_table.docx"))
+
+    def test_get_template_files_unauthenticated(self):
+        response = self.client.get(self.template_url)
+        self.assert_401(response)
 
 
 class EAPRegistrationTestCase(APITestCase):
