@@ -2768,3 +2768,15 @@ class DimDeliveryMode(models.Model):
 
     def __str__(self):
         return f"{self.id} - {self.description}"
+
+
+class DimDonor(models.Model):
+    donor_code = models.CharField(verbose_name=_("Donor Code"), max_length=100, primary_key=True)
+    donor_name = models.CharField(verbose_name=_("Donor Name"), max_length=255)
+
+    class Meta:
+        verbose_name = _("Donor")
+        verbose_name_plural = _("Donors")
+
+    def __str__(self):
+        return f"{self.donor_code} - {self.donor_name}"
