@@ -3170,4 +3170,21 @@ class DimVendorContactEmail(models.Model):
 
     def __str__(self):
         return f"{self.id} - {self.email_address if self.email_address else 'No Email'}"
+
+
+class DimVendorPhysicalAddress(models.Model):
+    id = models.CharField(verbose_name=_("Address ID"), max_length=100, primary_key=True)
+    valid_from = models.DateTimeField(verbose_name=_("Valid From"), null=True, blank=True)
+    valid_to = models.DateTimeField(verbose_name=_("Valid To"), null=True, blank=True)
+    country = models.CharField(verbose_name=_("Country"), max_length=100, null=True, blank=True)
+    city = models.CharField(verbose_name=_("City"), max_length=100, null=True, blank=True)
+    street = models.CharField(verbose_name=_("Street"), max_length=255, null=True, blank=True)
+    zip_code = models.CharField(verbose_name=_("Zip Code"), max_length=20, null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("Vendor Physical Address")
+        verbose_name_plural = _("Vendor Physical Addresses")
+
+    def __str__(self):
+        return f"{self.id} - {self.city}, {self.country}" if self.city and self.country else self.id
     
