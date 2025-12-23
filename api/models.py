@@ -2792,3 +2792,15 @@ class DimInventoryItem(models.Model):
 
     def __str__(self):
         return f"{self.id} - {self.unit_of_measure}"
+
+
+class DimInventoryItemStatus(models.Model):
+    id = models.CharField(verbose_name=_("Status ID"), max_length=100, primary_key=True)
+    name = models.CharField(verbose_name=_("Status Name"), max_length=255)
+
+    class Meta:
+        verbose_name = _("Inventory Item Status")
+        verbose_name_plural = _("Inventory Item Statuses")
+
+    def __str__(self):
+        return f"{self.id} - {self.name}"
