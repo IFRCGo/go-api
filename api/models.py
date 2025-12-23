@@ -2735,3 +2735,15 @@ class DimAppeal(models.Model):
     def __str__(self):
         return f"{self.id} - {self.appeal_name}"
 
+
+class DimBuyerGroup(models.Model):
+    code = models.CharField(verbose_name=_("Buyer Group Code"), max_length=100, primary_key=True)
+    name = models.CharField(verbose_name=_("Buyer Group Name"), max_length=500)
+
+    class Meta:
+        verbose_name = _("Buyer Group")
+        verbose_name_plural = _("Buyer Groups")
+
+    def __str__(self):
+        return f"{self.code} - {self.name}"
+
