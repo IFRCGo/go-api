@@ -3078,4 +3078,44 @@ class DimPurchaseOrderLine(models.Model):
 
     def __str__(self):
         return f"{self.id} - {self.description if self.description else self.purchase_order}"
+
+
+class DimSalesOrderLine(models.Model):
+    id = models.CharField(verbose_name=_("Sales Order Line ID"), max_length=100, primary_key=True)
+    status = models.CharField(verbose_name=_("Status"), max_length=100, null=True, blank=True)
+    type = models.CharField(verbose_name=_("Type"), max_length=100, null=True, blank=True)
+    product = models.CharField(verbose_name=_("Product"), max_length=100, null=True, blank=True)
+    product_category = models.CharField(verbose_name=_("Product Category"), max_length=100, null=True, blank=True)
+    description = models.CharField(verbose_name=_("Description"), max_length=255, null=True, blank=True)
+    unit_of_measure = models.CharField(verbose_name=_("Unit of Measure"), max_length=50, null=True, blank=True)
+    ordered_quantity_sales_unit = models.DecimalField(verbose_name=_("Ordered Quantity (Sales Unit)"), max_digits=20, decimal_places=6, null=True, blank=True)
+    currency_code = models.CharField(verbose_name=_("Currency Code"), max_length=10, null=True, blank=True)
+    amount = models.DecimalField(verbose_name=_("Amount"), max_digits=20, decimal_places=6, null=True, blank=True)
+    amount_accounting_currency = models.DecimalField(verbose_name=_("Amount (Accounting Currency)"), max_digits=20, decimal_places=6, null=True, blank=True)
+    price_per_unit = models.DecimalField(verbose_name=_("Price Per Unit"), max_digits=20, decimal_places=6, null=True, blank=True)
+    price_per_unit_accounting_currency = models.DecimalField(verbose_name=_("Price Per Unit (Accounting Currency)"), max_digits=20, decimal_places=6, null=True, blank=True)
+    donated_price_per_unit = models.DecimalField(verbose_name=_("Donated Price Per Unit"), max_digits=20, decimal_places=6, null=True, blank=True)
+    donated_price_per_unit_accounting_currency = models.DecimalField(verbose_name=_("Donated Price Per Unit (Accounting Currency)"), max_digits=20, decimal_places=6, null=True, blank=True)
+    donated_amount = models.DecimalField(verbose_name=_("Donated Amount"), max_digits=20, decimal_places=6, null=True, blank=True)
+    donated_amount_accounting_currency = models.DecimalField(verbose_name=_("Donated Amount (Accounting Currency)"), max_digits=20, decimal_places=6, null=True, blank=True)
+    exchange_rate_factor = models.DecimalField(verbose_name=_("Exchange Rate Factor"), max_digits=20, decimal_places=6, null=True, blank=True)
+    delivery_type = models.CharField(verbose_name=_("Delivery Type"), max_length=100, null=True, blank=True)
+    requested_shipping_date = models.DateTimeField(verbose_name=_("Requested Shipping Date"), null=True, blank=True)
+    requested_receipt_date = models.DateTimeField(verbose_name=_("Requested Receipt Date"), null=True, blank=True)
+    delivery_mode = models.CharField(verbose_name=_("Delivery Mode"), max_length=100, null=True, blank=True)
+    delivery_postal_address = models.CharField(verbose_name=_("Delivery Postal Address"), max_length=255, null=True, blank=True)
+    delivery_postal_address_country = models.CharField(verbose_name=_("Delivery Postal Address Country"), max_length=100, null=True, blank=True)
+    warehouse = models.CharField(verbose_name=_("Warehouse"), max_length=100, null=True, blank=True)
+    item_batch = models.CharField(verbose_name=_("Item Batch"), max_length=200, null=True, blank=True)
+    inventory_owner = models.CharField(verbose_name=_("Inventory Owner"), max_length=100, null=True, blank=True)
+    financial_dimension_project = models.CharField(verbose_name=_("Financial Dimension Project"), max_length=100, null=True, blank=True)
+    financial_dimension_appeal = models.CharField(verbose_name=_("Financial Dimension Appeal"), max_length=100, null=True, blank=True)
+    financial_dimension_funding_arrangement = models.CharField(verbose_name=_("Financial Dimension Funding Arrangement"), max_length=100, null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("Sales Order Line")
+        verbose_name_plural = _("Sales Order Lines")
+
+    def __str__(self):
+        return f"{self.id} - {self.description if self.description else self.product}"
     
