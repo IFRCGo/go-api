@@ -3284,4 +3284,21 @@ class FctPurchaseOrder(models.Model):
 
     def __str__(self):
         return f"{self.id} - {self.status if self.status else 'Purchase Order'}"
+
+
+class FctSalesOrder(models.Model):
+    id = models.CharField(verbose_name=_("Sales Order ID"), max_length=100, primary_key=True)
+    created_by_business_unit = models.CharField(verbose_name=_("Created By Business Unit"), max_length=100, null=True, blank=True)
+    customer = models.CharField(verbose_name=_("Customer"), max_length=100, null=True, blank=True)
+    humanitarian_procurement_center_transaction = models.BooleanField(verbose_name=_("Humanitarian Procurement Center Transaction"), null=True, blank=True)
+    customer_reference = models.CharField(verbose_name=_("Customer Reference"), max_length=255, null=True, blank=True)
+    customer_requisition = models.CharField(verbose_name=_("Customer Requisition"), max_length=255, null=True, blank=True)
+    created_datetime = models.DateTimeField(verbose_name=_("Created DateTime"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("Sales Order")
+        verbose_name_plural = _("Sales Orders")
+
+    def __str__(self):
+        return f"{self.id} - {self.customer if self.customer else 'Sales Order'}"
     
