@@ -3118,4 +3118,16 @@ class DimSalesOrderLine(models.Model):
 
     def __str__(self):
         return f"{self.id} - {self.description if self.description else self.product}"
+
+
+class DimSite(models.Model):
+    id = models.CharField(verbose_name=_("Site ID"), max_length=100, primary_key=True)
+    name = models.CharField(verbose_name=_("Site Name"), max_length=255)
+
+    class Meta:
+        verbose_name = _("Site")
+        verbose_name_plural = _("Sites")
+
+    def __str__(self):
+        return f"{self.id} - {self.name}"
     
