@@ -3026,4 +3026,56 @@ class DimProject(models.Model):
 
     def __str__(self):
         return f"{self.id} - {self.project_name}"
+
+
+class DimPurchaseOrderLine(models.Model):
+    id = models.CharField(verbose_name=_("Purchase Order Line ID"), max_length=100, primary_key=True)
+    line_number = models.IntegerField(verbose_name=_("Line Number"), null=True, blank=True)
+    purchase_order = models.CharField(verbose_name=_("Purchase Order"), max_length=100, null=True, blank=True)
+    description = models.CharField(verbose_name=_("Description"), max_length=255, null=True, blank=True)
+    status = models.CharField(verbose_name=_("Status"), max_length=100, null=True, blank=True)
+    type = models.CharField(verbose_name=_("Type"), max_length=100, null=True, blank=True)
+    product = models.CharField(verbose_name=_("Product"), max_length=100, null=True, blank=True)
+    product_category = models.CharField(verbose_name=_("Product Category"), max_length=100, null=True, blank=True)
+    agreement = models.CharField(verbose_name=_("Agreement"), max_length=100, null=True, blank=True)
+    unit_of_measure = models.CharField(verbose_name=_("Unit of Measure"), max_length=50, null=True, blank=True)
+    currency_code = models.CharField(verbose_name=_("Currency Code"), max_length=10, null=True, blank=True)
+    humanitarian_procurement_center_transaction = models.BooleanField(verbose_name=_("Humanitarian Procurement Center Transaction"), null=True, blank=True)
+    ordered_quantity_inventory_unit = models.DecimalField(verbose_name=_("Ordered Quantity (Inventory Unit)"), max_digits=20, decimal_places=6, null=True, blank=True)
+    ordered_quantity_purchasing_unit = models.DecimalField(verbose_name=_("Ordered Quantity (Purchasing Unit)"), max_digits=20, decimal_places=6, null=True, blank=True)
+    price_per_unit = models.DecimalField(verbose_name=_("Price Per Unit"), max_digits=20, decimal_places=6, null=True, blank=True)
+    price_per_unit_accounting_currency = models.DecimalField(verbose_name=_("Price Per Unit (Accounting Currency)"), max_digits=20, decimal_places=6, null=True, blank=True)
+    donated_price_per_unit = models.DecimalField(verbose_name=_("Donated Price Per Unit"), max_digits=20, decimal_places=6, null=True, blank=True)
+    donated_price_per_unit_accounting_currency = models.DecimalField(verbose_name=_("Donated Price Per Unit (Accounting Currency)"), max_digits=20, decimal_places=6, null=True, blank=True)
+    amount = models.DecimalField(verbose_name=_("Amount"), max_digits=20, decimal_places=6, null=True, blank=True)
+    amount_accounting_currency = models.DecimalField(verbose_name=_("Amount (Accounting Currency)"), max_digits=20, decimal_places=6, null=True, blank=True)
+    donated_amount = models.DecimalField(verbose_name=_("Donated Amount"), max_digits=20, decimal_places=6, null=True, blank=True)
+    donated_amount_accounting_currency = models.DecimalField(verbose_name=_("Donated Amount (Accounting Currency)"), max_digits=20, decimal_places=6, null=True, blank=True)
+    actual_weight = models.DecimalField(verbose_name=_("Actual Weight"), max_digits=20, decimal_places=6, null=True, blank=True)
+    actual_volume = models.DecimalField(verbose_name=_("Actual Volume"), max_digits=20, decimal_places=6, null=True, blank=True)
+    warehouse = models.CharField(verbose_name=_("Warehouse"), max_length=100, null=True, blank=True)
+    owner = models.CharField(verbose_name=_("Owner"), max_length=100, null=True, blank=True)
+    item_batch = models.CharField(verbose_name=_("Item Batch"), max_length=100, null=True, blank=True)
+    consignment = models.CharField(verbose_name=_("Consignment"), max_length=100, null=True, blank=True)
+    financial_dimension_project = models.CharField(verbose_name=_("Financial Dimension Project"), max_length=100, null=True, blank=True)
+    financial_dimension_appeal = models.CharField(verbose_name=_("Financial Dimension Appeal"), max_length=100, null=True, blank=True)
+    financial_dimension_funding_arrangement = models.CharField(verbose_name=_("Financial Dimension Funding Arrangement"), max_length=100, null=True, blank=True)
+    requested_delivery_date = models.DateTimeField(verbose_name=_("Requested Delivery Date"), null=True, blank=True)
+    confirmed_delivery_date = models.DateTimeField(verbose_name=_("Confirmed Delivery Date"), null=True, blank=True)
+    delivery_mode = models.CharField(verbose_name=_("Delivery Mode"), max_length=100, null=True, blank=True)
+    delivery_name = models.CharField(verbose_name=_("Delivery Name"), max_length=255, null=True, blank=True)
+    delivery_address_description = models.CharField(verbose_name=_("Delivery Address Description"), max_length=255, null=True, blank=True)
+    delivery_postal_address = models.CharField(verbose_name=_("Delivery Postal Address"), max_length=255, null=True, blank=True)
+    delivery_postal_address_country = models.CharField(verbose_name=_("Delivery Postal Address Country"), max_length=100, null=True, blank=True)
+    created_by = models.CharField(verbose_name=_("Created By"), max_length=100, null=True, blank=True)
+    created_datetime = models.DateTimeField(verbose_name=_("Created DateTime"), null=True, blank=True)
+    modified_by = models.CharField(verbose_name=_("Modified By"), max_length=100, null=True, blank=True)
+    modified_datetime = models.DateTimeField(verbose_name=_("Modified DateTime"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("Purchase Order Line")
+        verbose_name_plural = _("Purchase Order Lines")
+
+    def __str__(self):
+        return f"{self.id} - {self.description if self.description else self.purchase_order}"
     
