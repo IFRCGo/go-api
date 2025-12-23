@@ -2898,3 +2898,27 @@ class DimInventoryTransactionOrigin(models.Model):
         if self.reference_number:
             return f"{self.id} - {self.reference_category} - {self.reference_number}"
         return f"{self.id} - {self.reference_category}"
+
+
+class DimItemBatch(models.Model):
+    id = models.CharField(verbose_name=_("Batch ID"), max_length=200, primary_key=True)
+    customer = models.CharField(verbose_name=_("Customer"), max_length=100, null=True, blank=True)
+    vendor = models.CharField(verbose_name=_("Vendor"), max_length=100, null=True, blank=True)
+    unit_volume = models.DecimalField(verbose_name=_("Unit Volume"), max_digits=20, decimal_places=6, null=True)
+    unit_weight = models.DecimalField(verbose_name=_("Unit Weight"), max_digits=20, decimal_places=12, null=True)
+    expiration_date = models.DateTimeField(verbose_name=_("Expiration Date"), null=True, blank=True)
+    vendor_expiration_date = models.DateTimeField(verbose_name=_("Vendor Expiration Date"), null=True, blank=True)
+    price = models.DecimalField(verbose_name=_("Price"), max_digits=20, decimal_places=6, null=True)
+    currency = models.CharField(verbose_name=_("Currency"), max_length=10, null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("Item Batch")
+        verbose_name_plural = _("Item Batches")
+
+    def __str__(self):
+        text = f"{self.id}"
+        if self.vendor:
+            text += f" - {self.vendor}"
+        if self.currency and self.price is not None:
+            text += f" - {self.currency} {self.price}"
+        return text
