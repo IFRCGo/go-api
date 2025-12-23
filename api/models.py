@@ -2985,3 +2985,17 @@ class DimProduct(models.Model):
 
     def __str__(self):
         return f"{self.id} - {self.name}"
+
+class DimProductCategory(models.Model):
+    category_code = models.CharField(verbose_name=_("Category Code"), max_length=100, primary_key=True)
+    name = models.CharField(verbose_name=_("Category Name"), max_length=255)
+    parent_category_code = models.CharField(verbose_name=_("Parent Category Code"), max_length=100, null=True, blank=True)
+    level = models.IntegerField(verbose_name=_("Level"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("Product Category")
+        verbose_name_plural = _("Product Categories")
+
+    def __str__(self):
+        return f"{self.category_code} - {self.name}"
+    
