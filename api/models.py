@@ -2846,3 +2846,39 @@ class DimInventoryTransaction(models.Model):
             return f"{self.id} - {self.reference_category} - {self.reference_number}"
         return f"{self.id} - {self.reference_category}"
     
+
+class DimInventoryTransactionLine(models.Model):
+    id = models.CharField(verbose_name=_("Inventory Transaction Line ID"), max_length=50, primary_key=True)
+    item_status = models.CharField(verbose_name=_("Item Status"), max_length=50, null=True, blank=True)
+    item_status_name = models.CharField(verbose_name=_("Item Status Name"), max_length=100, null=True, blank=True)
+    product = models.CharField(verbose_name=_("Product"), max_length=100, null=True, blank=True)
+    voucher_physical = models.CharField(verbose_name=_("Voucher Physical"), max_length=100, null=True, blank=True)
+    project = models.CharField(verbose_name=_("Project"), max_length=100, null=True, blank=True)
+    batch = models.CharField(verbose_name=_("Batch"), max_length=200, null=True, blank=True)
+    warehouse = models.CharField(verbose_name=_("Warehouse"), max_length=50, null=True, blank=True)
+    owner = models.CharField(verbose_name=_("Owner"), max_length=100, null=True, blank=True)
+    inventory_transaction = models.CharField(verbose_name=_("Inventory Transaction ID"), max_length=100, null=True, blank=True)
+    project_category = models.CharField(verbose_name=_("Project Category"), max_length=200, null=True, blank=True)
+    activity = models.CharField(verbose_name=_("Activity"), max_length=200, null=True, blank=True)
+    physical_date = models.DateTimeField(verbose_name=_("Physical Date"), null=True, blank=True)
+    financial_date = models.DateTimeField(verbose_name=_("Financial Date"), null=True, blank=True)
+    status_date = models.DateTimeField(verbose_name=_("Status Date"), null=True, blank=True)
+    expected_date = models.DateTimeField(verbose_name=_("Expected Date"), null=True, blank=True)
+    quantity = models.DecimalField(verbose_name=_("Quantity"), max_digits=20, decimal_places=6, null=True)
+    cost_amount_posted = models.DecimalField(verbose_name=_("Cost Amount Posted"), max_digits=20, decimal_places=6, null=True)
+    cost_amount_adjustment = models.DecimalField(verbose_name=_("Cost Amount Adjustment"), max_digits=20, decimal_places=6, null=True)
+    status = models.CharField(verbose_name=_("Status"), max_length=50, null=True, blank=True)
+    packing_slip = models.CharField(verbose_name=_("Packing Slip"), max_length=200, null=True, blank=True)
+    packing_slip_returned = models.BooleanField(verbose_name=_("Packing Slip Returned"), null=True)
+
+    class Meta:
+        verbose_name = _("Inventory Transaction Line")
+        verbose_name_plural = _("Inventory Transaction Lines")
+
+    def __str__(self):
+        base = f"{self.id}"
+        if self.product and self.inventory_transaction:
+            return f"{base} - {self.product} - {self.inventory_transaction}"
+        if self.product:
+            return f"{base} - {self.product}"
+        return base
