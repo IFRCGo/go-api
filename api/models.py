@@ -3130,4 +3130,16 @@ class DimSite(models.Model):
 
     def __str__(self):
         return f"{self.id} - {self.name}"
+
+
+class DimVendor(models.Model):
+    code = models.CharField(verbose_name=_("Vendor Code"), max_length=100, primary_key=True)
+    name = models.CharField(verbose_name=_("Vendor Name"), max_length=255)
+
+    class Meta:
+        verbose_name = _("Vendor")
+        verbose_name_plural = _("Vendors")
+
+    def __str__(self):
+        return f"{self.code} - {self.name}"
     
