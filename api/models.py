@@ -3157,4 +3157,17 @@ class DimVendorContact(models.Model):
 
     def __str__(self):
         return f"{self.id} - {self.first_name} {self.last_name}".strip()
+
+
+class DimVendorContactEmail(models.Model):
+    id = models.CharField(verbose_name=_("Email ID"), max_length=100, primary_key=True)
+    email_address = models.CharField(verbose_name=_("Email Address"), max_length=255, null=True, blank=True)
+    primary = models.BooleanField(verbose_name=_("Primary"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("Vendor Contact Email")
+        verbose_name_plural = _("Vendor Contact Emails")
+
+    def __str__(self):
+        return f"{self.id} - {self.email_address if self.email_address else 'No Email'}"
     
