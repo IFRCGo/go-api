@@ -2922,3 +2922,15 @@ class DimItemBatch(models.Model):
         if self.currency and self.price is not None:
             text += f" - {self.currency} {self.price}"
         return text
+
+
+class DimLocation(models.Model):
+    id = models.CharField(verbose_name=_("Location ID"), max_length=100, primary_key=True)
+    location = models.CharField(verbose_name=_("Location"), max_length=100)
+
+    class Meta:
+        verbose_name = _("Location")
+        verbose_name_plural = _("Locations")
+
+    def __str__(self):
+        return f"{self.id} - {self.location}"
