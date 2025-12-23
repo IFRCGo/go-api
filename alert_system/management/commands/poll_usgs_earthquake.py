@@ -14,8 +14,6 @@ class Command(BaseCommand):
     SOURCE_TYPE = Connector.ConnectorType.USGS_EARTHQUAKE
 
     def handle(self, *args, **options):
-        if not self.SOURCE_TYPE:
-            raise ValueError("SOURCE_TYPE must be defined.")
         self.stdout.write("Starting extraction task...")
         connector = Connector.objects.filter(type=self.SOURCE_TYPE).first()
         if not connector:

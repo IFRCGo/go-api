@@ -1,11 +1,8 @@
 from dataclasses import dataclass
 
 from alert_system.etl.base.extraction import BaseExtractionClass
-from alert_system.etl.base.loader import BaseLoaderClass
-from alert_system.etl.base.transform import BaseTransformerClass
-from alert_system.etl.Gdacs_flood.extraction import GdacsFloodExtraction
-from alert_system.etl.Gdacs_flood.loader import GdacsLoader
-from alert_system.etl.Gdacs_flood.transform import GdacsTransformer
+from alert_system.etl.gdacs_flood.extraction import GdacsFloodExtraction
+from alert_system.etl.usgs_earthquake.extraction import USGSEarthquakeExtraction
 from alert_system.models import Connector
 
 
@@ -13,12 +10,9 @@ from alert_system.models import Connector
 @dataclass
 class ConnectorClasses:
     extractor: type[BaseExtractionClass]
-    transfomer: type[BaseTransformerClass]
-    loader: type[BaseLoaderClass]
 
 
 CONNECTOR_REGISTRY = {
-    Connector.ConnectorType.GDACS_FLOOD: ConnectorClasses(
-        extractor=GdacsFloodExtraction, transfomer=GdacsTransformer, loader=GdacsLoader
-    ),
+    Connector.ConnectorType.GDACS_FLOOD: ConnectorClasses(extractor=GdacsFloodExtraction),
+    Connector.ConnectorType.USGS_EARTHQUAKE: ConnectorClasses(extractor=USGSEarthquakeExtraction),
 }

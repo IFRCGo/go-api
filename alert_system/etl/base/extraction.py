@@ -1,14 +1,16 @@
 import logging
 from abc import ABC
-from datetime import datetime, timedelta, timezone
-from typing import Dict, Generator, List, Optional
+from datetime import timedelta
+from typing import Dict, Generator, List, Optional, Type
 
 import httpx
 from django.db import transaction
+from django.utils import timezone
 
 from alert_system.helpers import build_stac_search
 from alert_system.models import Connector, ExtractionItem, LoadItem
 
+from .config import ExtractionConfig
 from .loader import BaseLoaderClass
 from .transform import BaseTransformerClass
 
@@ -29,18 +31,27 @@ class BaseExtractionClass(ABC):
     """
 
     event_collection_type: str
-    hazard_collection_type: str | None
-    impact_collection_type: str | None
+    transformer_class: Type[BaseTransformerClass]
+    loader_class: Type[BaseLoaderClass]
+
+    hazard_collection_type: Optional[str] = None
+    impact_collection_type: Optional[str] = None
+
     filter_event: Optional[Dict] = None
     filter_hazard: Optional[Dict] = None
     filter_impact: Optional[Dict] = None
-    transformer_class: type[BaseTransformerClass]
-    loader_class: type[BaseLoaderClass]
+
+    config: ExtractionConfig
 
     def __init__(self, connector: Connector):
         self.connector = connector
         self.base_url = connector.source_url.rstrip("/")
+        self.load_config()
         self._validate_required_attributes()
+
+    def load_config(self):
+        for key, value in self.config.items():
+            setattr(self, key, value)
 
     def _validate_required_attributes(self):
         missing_attr = []
@@ -96,10 +107,10 @@ class BaseExtractionClass(ABC):
             ISO 8601 datetime range string
         """
 
-        now = datetime.now(timezone.utc)
+        now = timezone.now()
         last_run = self.connector.last_success_run
 
-        start_time = last_run if last_run else (now - timedelta(days=10))  # NOTE: Arbitrary value for failure case.
+        start_time = last_run if last_run else (now - timedelta(days=30))  # NOTE: Arbitrary value for failure case.
         return f"{start_time.isoformat()}/{now.isoformat()}"
 
     def _save_stac_item(self, stac_id: str, defaults: Dict) -> Optional[ExtractionItem]:
@@ -200,7 +211,7 @@ class BaseExtractionClass(ABC):
                 ),
             )
         except Exception as e:
-            logger.error(f"Failed to fetch events: {e}")
+            logger.warning(f"Failed to fetch events: {e}")
             raise
 
         for feature in event_items:
@@ -233,77 +244,127 @@ class BaseExtractionClass(ABC):
                     logger.info(f"Successfully processed event {event_id}")
 
             except Exception as e:
-                logger.error(f"Failed to process event {event_id}: {e}", exc_info=True)
+                logger.warning(f"Failed to process event {event_id}: {e}", exc_info=True)
                 raise
 
-    def _construct_filter_for_past_events(self, impact_metadata: list[dict]) -> str:
+    def run(self, extraction_run_id: str, correlation_id: str | None = None, is_past_event: bool = False) -> None:
+        """Main entry point for running the connector."""
+        try:
+            self.process_event_items(extraction_run_id, correlation_id, is_past_event)
+        except Exception as e:
+            logger.warning(f"Connector run failed: {e}", exc_info=True)
+            raise
+
+
+class PastEventExtractionClass:
+    LOOKBACK_WEEKS = 520
+
+    def __init__(self, extractor: BaseExtractionClass):
+        self.extractor = extractor
+        self.base_url = extractor.base_url
+
+    def _impact_filter(self, impact_metadata: list[dict]) -> str:
         filters = []
 
-        for detail in impact_metadata:
-            category = detail.get("category")
-            type_ = detail.get("type")
-            value = detail.get("value")
-
-            if category and type_ and value is not None:
+        for data in impact_metadata or []:
+            if data.get("category") and data.get("type") and data.get("value") is not None:
                 filters.append(
-                    f"monty:impact_detail.category = '{category}' AND "
-                    f"monty:impact_detail.type = '{type_}' AND "
-                    f"monty:impact_detail.value >= {value}"
+                    f"monty:impact_detail.category = '{data['category']}' AND "
+                    f"monty:impact_detail.type = '{data['type']}' AND "
+                    f"monty:impact_detail.value >= {data['value']}"
                 )
 
-        return " OR ".join(f"({f})" for f in filters) if filters else ""
+        return " OR ".join(f"({filter})" for filter in filters)
 
-    def fetch_past_events(self, load_obj):
-        if not self.impact_collection_type:
-            logger.warning(f"Impact does not exist for event {load_obj}")
-            return
-        start_time = datetime.now(timezone.utc) - timedelta(weeks=16)  # NOTE: Arbitrary value for lookback.
-        filters = [self._construct_filter_for_past_events(load_obj.impact_metadata)]
-        impact_data = self.fetch_stac_data(
-            self.base_url,
-            build_stac_search(
-                collections=self.impact_collection_type,
-                additional_filters=filters,
-                datetime_range=f"{start_time.isoformat()}/{datetime.now(timezone.utc).isoformat()}",
-            ),
-        )
-        load_obj_corr_id = load_obj.correlation_id
-        related_ids = []
-        logger.info(f"Fetching past event for event={load_obj.id}")
+    def _country_filter(self, country_codes) -> list[str]:
+        filters = []
+        if country_codes:
+            country_cql = " OR ".join(f"a_contains(monty:country_codes, '{code}')" for code in country_codes)
+            filters.append(f"({country_cql})")
+        return filters
+
+    def _hazard_filter(self, unit: str, value: int) -> str:
+        return f"monty:hazard_detail.severity_unit = '{unit}' AND " f"monty:hazard_detail.severity_value >= {value}"
+
+    def _collect_corr_ids(self, features, exclude: str) -> set[str]:
         corr_ids = set()
-        for feature in impact_data:
-            corr_id = self._get_correlation_id(feature)
-            if corr_id and corr_id != load_obj_corr_id:
+        for feature in features or []:
+            corr_id = self.extractor._get_correlation_id(feature)
+            if corr_id and corr_id != exclude:
                 corr_ids.add(corr_id)
+        return corr_ids
+
+    def find_related_corr_ids(self, load_obj: LoadItem) -> set[str]:
+        start = timezone.now() - timedelta(weeks=self.LOOKBACK_WEEKS)
+        end = timezone.now()
+
+        corr_ids = set()
+
+        if self.extractor.impact_collection_type:
+            impact_filter = self._impact_filter(load_obj.impact_metadata)
+            country_filters = self._country_filter(load_obj.country_codes)
+
+            additional_filters = []
+
+            if impact_filter:
+                additional_filters.append(impact_filter)
+
+            additional_filters.extend(country_filters)
+
+            features = self.extractor.fetch_stac_data(
+                self.base_url,
+                build_stac_search(
+                    collections=self.extractor.impact_collection_type,
+                    additional_filters=additional_filters,
+                    datetime_range=f"{start.isoformat()}/{end.isoformat()}",
+                ),
+            )
+
+            corr_ids |= self._collect_corr_ids(features, load_obj.correlation_id)
+
+        # NOTE: Returns too many correlation_ids.
+        # if self.extractor.hazard_collection_type:
+        #     hazard_filter = self._hazard_filter(
+        #         load_obj.severity_unit,
+        #         load_obj.severity_value,
+        #     )
+        #     features = self.extractor.fetch_stac_data(
+        #         self.base_url,
+        #         build_stac_search(
+        #             collections=self.extractor.hazard_collection_type,
+        #             additional_filters=[hazard_filter],
+        #             datetime_range=f"{start.isoformat()}/{end.isoformat()}",
+        #         ),
+        #     )
+        #     corr_ids |= self._collect_corr_ids(features, load_obj.correlation_id)
+
+        return corr_ids
+
+    def extract_past_events(self, load_obj: LoadItem) -> None:
+        corr_ids = self.find_related_corr_ids(load_obj)
 
         if not corr_ids:
             return
 
         existing_items = LoadItem.objects.filter(correlation_id__in=corr_ids)
-        existing_map = {item.correlation_id: item for item in existing_items}
+        existing_map = {i.correlation_id: i for i in existing_items}
+
+        related_ids = []
 
         for corr_id in corr_ids:
             item = existing_map.get(corr_id)
+
+            if not item:
+                self.extractor.run(
+                    extraction_run_id=load_obj.extraction_run_id,
+                    correlation_id=corr_id,
+                    is_past_event=True,
+                )
+                item = LoadItem.objects.filter(correlation_id=corr_id).first()
+
             if item:
                 related_ids.append(item.id)
                 item.related_montandon_events.add(load_obj.id)
-            else:
-                self.run(extraction_run_id=load_obj.extraction_run_id, correlation_id=corr_id, is_past_event=True)
-                new_item = LoadItem.objects.filter(correlation_id=corr_id).first()
-                if new_item:
-                    related_ids.append(new_item.id)
-                    new_item.related_montandon_events.add(load_obj.id)
 
         if related_ids:
             load_obj.related_montandon_events.set(related_ids)
-
-    def run(self, extraction_run_id: str, correlation_id: str | None = None, is_past_event: bool = False) -> None:
-        """Main entry point for running the connector."""
-        logger.info(f"Starting connector run for {self.connector}")
-
-        try:
-            self.process_event_items(extraction_run_id, correlation_id, is_past_event)
-            logger.info("Connector run completed successfully")
-        except Exception as e:
-            logger.error(f"Connector run failed: {e}", exc_info=True)
-            raise
