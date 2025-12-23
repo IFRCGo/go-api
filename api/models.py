@@ -3248,4 +3248,40 @@ class FctProductReceipt(models.Model):
 
     def __str__(self):
         return f"{self.id} - {self.purchase_order if self.purchase_order else 'Product Receipt'}"
+
+
+class FctPurchaseOrder(models.Model):
+    id = models.CharField(verbose_name=_("Purchase Order ID"), max_length=100, primary_key=True)
+    buyer_group = models.CharField(verbose_name=_("Buyer Group"), max_length=100, null=True, blank=True)
+    vendor = models.CharField(verbose_name=_("Vendor"), max_length=100, null=True, blank=True)
+    agreement = models.CharField(verbose_name=_("Agreement"), max_length=100, null=True, blank=True)
+    project = models.CharField(verbose_name=_("Project"), max_length=100, null=True, blank=True)
+    financial_dimension_funding_arrangement = models.CharField(verbose_name=_("Financial Dimension Funding Arrangement"), max_length=100, null=True, blank=True)
+    created_by_business_unit = models.CharField(verbose_name=_("Created By Business Unit"), max_length=100, null=True, blank=True)
+    requested_by_organizational_unit = models.CharField(verbose_name=_("Requested By Organizational Unit"), max_length=100, null=True, blank=True)
+    sales_order = models.CharField(verbose_name=_("Sales Order"), max_length=100, null=True, blank=True)
+    in_kind_donation_pledge = models.CharField(verbose_name=_("In-Kind Donation Pledge"), max_length=100, null=True, blank=True)
+    type = models.CharField(verbose_name=_("Type"), max_length=100, null=True, blank=True)
+    coordination_type = models.CharField(verbose_name=_("Coordination Type"), max_length=100, null=True, blank=True)
+    apply_procurement_fees = models.BooleanField(verbose_name=_("Apply Procurement Fees"), null=True, blank=True)
+    origin = models.CharField(verbose_name=_("Origin"), max_length=100, null=True, blank=True)
+    status = models.CharField(verbose_name=_("Status"), max_length=100, null=True, blank=True)
+    approval_status = models.CharField(verbose_name=_("Approval Status"), max_length=100, null=True, blank=True)
+    delivery_mode = models.CharField(verbose_name=_("Delivery Mode"), max_length=100, null=True, blank=True)
+    currency_code = models.CharField(verbose_name=_("Currency Code"), max_length=10, null=True, blank=True)
+    customer_reference = models.CharField(verbose_name=_("Customer Reference"), max_length=255, null=True, blank=True)
+    in_kind_donor_reference = models.CharField(verbose_name=_("In-Kind Donor Reference"), max_length=255, null=True, blank=True)
+    intercompany_origin = models.CharField(verbose_name=_("Intercompany Origin"), max_length=100, null=True, blank=True)
+    exchange_rate = models.DecimalField(verbose_name=_("Exchange Rate"), max_digits=20, decimal_places=10, null=True, blank=True)
+    created_by = models.CharField(verbose_name=_("Created By"), max_length=100, null=True, blank=True)
+    created_datetime = models.DateTimeField(verbose_name=_("Created DateTime"), null=True, blank=True)
+    modified_by = models.CharField(verbose_name=_("Modified By"), max_length=100, null=True, blank=True)
+    modified_datetime = models.DateTimeField(verbose_name=_("Modified DateTime"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("Purchase Order")
+        verbose_name_plural = _("Purchase Orders")
+
+    def __str__(self):
+        return f"{self.id} - {self.status if self.status else 'Purchase Order'}"
     
