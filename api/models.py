@@ -2675,8 +2675,6 @@ class FrameworkAgreementLineItem(models.Model):
 
 
 class DimAgreementLine(models.Model):
-    """Agreements"""
-
     agreement_line_id = models.CharField(verbose_name=_("Agreement Line ID"), max_length=100, unique=True)
     agreement_id = models.CharField(verbose_name=_("Agreement ID"), max_length=100)
     line_number = models.IntegerField(verbose_name=_("Line Number"))
@@ -2746,4 +2744,16 @@ class DimBuyerGroup(models.Model):
 
     def __str__(self):
         return f"{self.code} - {self.name}"
+
+
+class DimConsignment(models.Model):
+    id = models.CharField(verbose_name=_("Consignment ID"), max_length=100, primary_key=True)
+    delivery_mode = models.CharField(verbose_name=_("Delivery Mode"), max_length=100)
+
+    class Meta:
+        verbose_name = _("Consignment")
+        verbose_name_plural = _("Consignments")
+
+    def __str__(self):
+        return f"{self.id} - {self.delivery_mode}"
 
