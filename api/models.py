@@ -2998,4 +2998,20 @@ class DimProductCategory(models.Model):
 
     def __str__(self):
         return f"{self.category_code} - {self.name}"
+
+
+class DimProductReceiptLine(models.Model):
+    id = models.CharField(verbose_name=_("Receipt Line ID"), max_length=100, primary_key=True)
+    product_receipt = models.CharField(verbose_name=_("Product Receipt"), max_length=100, null=True, blank=True)
+    purchase_order_line = models.CharField(verbose_name=_("Purchase Order Line"), max_length=100, null=True, blank=True)
+    received_quantity = models.DecimalField(verbose_name=_("Received Quantity"), max_digits=20, decimal_places=6, null=True, blank=True)
+    unit = models.CharField(verbose_name=_("Unit"), max_length=50, null=True, blank=True)
+    value_accounting_currency = models.DecimalField(verbose_name=_("Value in Accounting Currency"), max_digits=20, decimal_places=6, null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("Product Receipt Line")
+        verbose_name_plural = _("Product Receipt Lines")
+
+    def __str__(self):
+        return f"{self.id} - {self.product_receipt}"
     
