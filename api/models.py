@@ -2757,3 +2757,14 @@ class DimConsignment(models.Model):
     def __str__(self):
         return f"{self.id} - {self.delivery_mode}"
 
+
+class DimDeliveryMode(models.Model):
+    id = models.CharField(verbose_name=_("Delivery Mode ID"), max_length=100, primary_key=True)
+    description = models.CharField(verbose_name=_("Description"), max_length=255)
+
+    class Meta:
+        verbose_name = _("Delivery Mode")
+        verbose_name_plural = _("Delivery Modes")
+
+    def __str__(self):
+        return f"{self.id} - {self.description}"
