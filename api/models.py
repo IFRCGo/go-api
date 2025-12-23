@@ -3142,4 +3142,19 @@ class DimVendor(models.Model):
 
     def __str__(self):
         return f"{self.code} - {self.name}"
+
+
+class DimVendorContact(models.Model):
+    id = models.CharField(verbose_name=_("Contact ID"), max_length=100, primary_key=True)
+    first_name = models.CharField(verbose_name=_("First Name"), max_length=100, null=True, blank=True)
+    last_name = models.CharField(verbose_name=_("Last Name"), max_length=100, null=True, blank=True)
+    active = models.BooleanField(verbose_name=_("Active"), null=True, blank=True)
+    vendor = models.CharField(verbose_name=_("Vendor"), max_length=100, null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("Vendor Contact")
+        verbose_name_plural = _("Vendor Contacts")
+
+    def __str__(self):
+        return f"{self.id} - {self.first_name} {self.last_name}".strip()
     
