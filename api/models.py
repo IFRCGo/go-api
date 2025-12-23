@@ -2934,3 +2934,24 @@ class DimLocation(models.Model):
 
     def __str__(self):
         return f"{self.id} - {self.location}"
+
+
+class DimLogisticsLocation(models.Model):
+    id = models.CharField(verbose_name=_("Logistics Location ID"), max_length=100, primary_key=True)
+    postal_address = models.CharField(verbose_name=_("Postal Address"), max_length=255, null=True, blank=True)
+    country = models.CharField(verbose_name=_("Country"), max_length=100, null=True, blank=True)
+    city = models.CharField(verbose_name=_("City"), max_length=100, null=True, blank=True)
+    street = models.CharField(verbose_name=_("Street"), max_length=255, null=True, blank=True)
+    zip_code = models.CharField(verbose_name=_("Zip Code"), max_length=20, null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("Logistics Location")
+        verbose_name_plural = _("Logistics Locations")
+
+    def __str__(self):
+        parts = [self.id]
+        if self.city:
+            parts.append(self.city)
+        if self.country:
+            parts.append(self.country)
+        return " - ".join(parts)
