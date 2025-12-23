@@ -2818,3 +2818,15 @@ class DimInventoryModule(models.Model):
 
     def __str__(self):
         return f"{self.id} - {self.item_id}"
+
+
+class DimInventoryOwner(models.Model):
+    id = models.CharField(verbose_name=_("Inventory Owner ID"), max_length=100, primary_key=True)
+    name = models.CharField(verbose_name=_("Inventory Owner Name"), max_length=500)
+
+    class Meta:
+        verbose_name = _("Inventory Owner")
+        verbose_name_plural = _("Inventory Owners")
+
+    def __str__(self):
+        return f"{self.id} - {self.name}"
