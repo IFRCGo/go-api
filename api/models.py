@@ -2830,3 +2830,19 @@ class DimInventoryOwner(models.Model):
 
     def __str__(self):
         return f"{self.id} - {self.name}"
+
+class DimInventoryTransaction(models.Model):
+    id = models.CharField(verbose_name=_("Inventory Transaction ID"), max_length=100, primary_key=True)
+    reference_category = models.CharField(verbose_name=_("Reference Category"), max_length=100, null=True, blank=True)
+    reference_number = models.CharField(verbose_name=_("Reference Number"), max_length=100, null=True, blank=True)
+    excluded_from_inventory_value = models.BooleanField(verbose_name=_("Excluded From Inventory Value"), null=True)
+
+    class Meta:
+        verbose_name = _("Inventory Transaction")
+        verbose_name_plural = _("Inventory Transactions")
+
+    def __str__(self):
+        if self.reference_number:
+            return f"{self.id} - {self.reference_category} - {self.reference_number}"
+        return f"{self.id} - {self.reference_category}"
+    
