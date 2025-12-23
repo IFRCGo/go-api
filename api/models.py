@@ -2955,3 +2955,17 @@ class DimLogisticsLocation(models.Model):
         if self.country:
             parts.append(self.country)
         return " - ".join(parts)
+
+
+class DimPackingSlipLine(models.Model):
+    id = models.CharField(verbose_name=_("Packing Slip Line ID"), max_length=100, primary_key=True)
+    sales_order_line = models.CharField(verbose_name=_("Sales Order Line"), max_length=100, null=True, blank=True)
+    delivery_date = models.DateTimeField(verbose_name=_("Delivery Date"), null=True, blank=True)
+    quantity_delivered = models.DecimalField(verbose_name=_("Quantity Delivered"), max_digits=20, decimal_places=6, null=True)
+
+    class Meta:
+        verbose_name = _("Packing Slip Line")
+        verbose_name_plural = _("Packing Slip Lines")
+
+    def __str__(self):
+        return f"{self.id} - {self.sales_order_line}" if self.sales_order_line else self.id
