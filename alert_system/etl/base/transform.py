@@ -1,5 +1,6 @@
 import logging
 from abc import ABC, abstractmethod
+from datetime import datetime
 from typing import List, Optional, TypedDict
 
 from alert_system.models import ExtractionItem
@@ -23,6 +24,8 @@ class BaseTransformerClass(ABC):
         title: str
         description: str
         country: str
+        start_datetime: datetime
+        end_datetime: datetime
 
     def __init__(
         self, event_obj: ExtractionItem, hazard_obj: Optional[ExtractionItem] = None, impact_obj: List[ExtractionItem] = []
