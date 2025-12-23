@@ -3014,4 +3014,16 @@ class DimProductReceiptLine(models.Model):
 
     def __str__(self):
         return f"{self.id} - {self.product_receipt}"
+
+
+class DimProject(models.Model):
+    id = models.CharField(verbose_name=_("Project ID"), max_length=100, primary_key=True)
+    project_name = models.CharField(verbose_name=_("Project Name"), max_length=255)
+
+    class Meta:
+        verbose_name = _("Project")
+        verbose_name_plural = _("Projects")
+
+    def __str__(self):
+        return f"{self.id} - {self.project_name}"
     
