@@ -4,7 +4,7 @@ class GdacsFloodConfig:
         self.event_collection_type = "gdacs-events"
         self.hazard_collection_type = "gdacs-hazards"
         self.impact_collection_type = "gdacs-impacts"
-        self.people_exposed_threshold = 5
+        self.people_exposed_threshold = 500
         self.filter_event = {"hazard_codes": ["FL", "MH0600", "nat-hyd-flo-flo"]}
 
 
