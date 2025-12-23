@@ -3187,4 +3187,19 @@ class DimVendorPhysicalAddress(models.Model):
 
     def __str__(self):
         return f"{self.id} - {self.city}, {self.country}" if self.city and self.country else self.id
+
+
+class DimWarehouse(models.Model):
+    id = models.CharField(verbose_name=_("Warehouse ID"), max_length=100, primary_key=True)
+    site = models.CharField(verbose_name=_("Site"), max_length=100, null=True, blank=True)
+    name = models.CharField(verbose_name=_("Warehouse Name"), max_length=255, null=True, blank=True)
+    postal_address = models.CharField(verbose_name=_("Postal Address"), max_length=255, null=True, blank=True)
+    country = models.CharField(verbose_name=_("Country"), max_length=100, null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("Warehouse")
+        verbose_name_plural = _("Warehouses")
+
+    def __str__(self):
+        return f"{self.id} - {self.name if self.name else self.site}"
     
