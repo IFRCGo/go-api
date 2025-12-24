@@ -199,6 +199,7 @@ router.register(r"eap-registration", eap_views.EAPRegistrationViewSet, basename=
 router.register(r"simplified-eap", eap_views.SimplifiedEAPViewSet, basename="simplified_eap")
 router.register(r"full-eap", eap_views.FullEAPViewSet, basename="full_eap")
 router.register(r"eap-file", eap_views.EAPFileViewSet, basename="eap_file")
+router.register(r"eap/global-files", eap_views.EAPGlobalFilesViewSet, basename="eap_global_files")
 
 admin.site.site_header = "IFRC Go administration"
 admin.site.site_title = "IFRC Go admin"
