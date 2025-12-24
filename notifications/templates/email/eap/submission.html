@@ -56,13 +56,24 @@
                 Please proceed by sharing the attached narrative and budget for comments with the IFRC Delegation,
                 Regional Office and with the Validation Committee.
             </p>
+            <strong>Attached documents:</strong><br>
+            <ul>
+                {% if export_file %}
+                    <li>
+                        <a href="{{ export_file }}">
+                            Export PDF
+                        </a>
+                    </li>
+                {% endif %}
 
-            <p>
-                <strong>Attached documents:</strong><br>
-                Export Pdf: <br> 
-                budget file: {{ budget_file }}
-            </p>
-
+                {% if budget_file %}
+                    <li>
+                        <a href="{{ budget_file }}">
+                            Budget file
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
             <!-- Signature -->
             <p style="margin-top:16px;">
                 Kind regards,<br>

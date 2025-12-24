@@ -1,3 +1,4 @@
+
 {% include "design/head3.html" %}
 
 <table width="80%" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff">
@@ -81,15 +82,23 @@
             </p>
 
             <p>Attachments:</p>
-            <p>Revised EAP PDF with modifications in tracked changes:</p>
-            <p>Revised EAP budget: {{ budget_file }}</p>
-            <p>Review checklist with National Society response to comments:  
-            {% if updated_checklist_file %}
-                {{ updated_checklist_file }}"
-            {% else %}
-                N/A
+            <ul>
+            <li>Revised EAP PDF with modifications in tracked changes</li>
+            {% if budget_file %}
+                <li>
+                    <a href="{{ budget_file }}">
+                        Revised EAP budget
+                    </a>
+                </li>
             {% endif %}
-
+            {% if updated_checklist_file %}
+                <li>
+                    <a href="{{ updated_checklist_file }}">
+                        Review checklist with National Society response to comments
+                    </a>
+                </li>
+            {% endif %}
+            </ul>
             <!-- Signature -->
             <p style="margin-top:16px;">
                 Kind regards,<br>

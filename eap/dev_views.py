@@ -47,6 +47,7 @@ class EAPEmailPreview(APIView):
                 "country_name": "Test Country",
                 "national_society": "Test National Society",
                 "people_targated": 100,
+                "latest_eap_id": 1,
                 "supporting_partners": [
                     {"society_name": "Partner NS 1"},
                     {"society_name": "Partner NS 2"},
@@ -58,11 +59,13 @@ class EAPEmailPreview(APIView):
                 "ns_contact_phone": "+977-9800000000",
             },
             "feedback_to_national_society": {
+                "registration_id": 1,
                 "eap_type_display": "FULL EAP",
                 "country_name": "Test Country",
                 "national_society": "Test National Society",
             },
             "resubmission_of_revised_eap": {
+                "latest_eap_id": 1,
                 "eap_type_display": "SIMPLIFIED EAP",
                 "country_name": "Test Country",
                 "national_society": "Test National Society",
@@ -79,12 +82,14 @@ class EAPEmailPreview(APIView):
                 "ns_contact_phone": "+977-9800000000",
             },
             "feedback_for_revised_eap": {
+                "registration_id": 1,
                 "eap_type_display": "FULL EAP",
                 "country_name": "Test Country",
                 "national_society": "Test National Society",
                 "version": 2,
             },
             "technically_validated_eap": {
+                "registration_id": 1,
                 "eap_type_display": "FULL EAP",
                 "country_name": "Test Country",
                 "national_society": "Test National Society",

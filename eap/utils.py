@@ -33,15 +33,24 @@ def get_coordinator_emails_by_region(region: Region | None) -> list[str]:
     return REGION_EMAIL_MAP.get(region.name, [])
 
 
-# TODO @sudip-khanal: Add files to email context after implementing file sending in email notification
-# also include the deadline field once it added to the model.
+def get_file_url(file_obj):
+    """
+    This function returns the URL of a file field if it exists.
+    Args:
+        file_obj: A model instance or object containing a file field.
+    Returns:
+        str | None: The URL of the file if available, otherwise None.
+    """
+    if not file_obj:
+        return None
+    if hasattr(file_obj, "file"):
+        return file_obj.file.url
 
 
 def get_eap_email_context(instance):
     from eap.serializers import EAPRegistrationSerializer
 
     eap_registration_data = EAPRegistrationSerializer(instance).data
-
     email_context = {
         "registration_id": eap_registration_data["id"],
         "eap_type_display": eap_registration_data["eap_type_display"],
@@ -52,31 +61,46 @@ def get_eap_email_context(instance):
         "ns_contact_name": eap_registration_data["national_society_contact_name"],
         "ns_contact_email": eap_registration_data["national_society_contact_email"],
         "ns_contact_phone": eap_registration_data["national_society_contact_phone_number"],
-        "dead_line": eap_registration_data["dead_line"],
+        "deadline": eap_registration_data["deadline"],
         "frontend_url": settings.GO_WEB_URL,
-        # "review_checklist_file":eap_registration_data["review_checklist_file"],
-        # "validated_budget_file":eap_registration_data["validated_budget_file"],
+        "validated_budget_file": (instance.validated_budget_file.url if instance.validated_budget_file else None),
+        "summary_file": (instance.summary_file.url if instance.summary_file else None),
     }
 
     if instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP:
         latest_eap_data = instance.latest_simplified_eap
-        latest_version = instance.latest_simplified_eap.version
-        qs = SimplifiedEAP.objects.filter(eap_registration=instance, version__lt=latest_version).order_by("-version").first()
-        previous_version = qs.version if qs else None
+        eap_model = SimplifiedEAP
     else:
         latest_eap_data = instance.latest_full_eap
-        latest_version = instance.latest_full_eap
-        qs = FullEAP.objects.filter(eap_registration=instance, version__lt=latest_version).order_by("-version").first()
-        previous_version = qs.version if qs else None
+        eap_model = FullEAP
+
+    latest_version = latest_eap_data.version
+
+    previous_eap = (
+        eap_model.objects.filter(
+            eap_registration=instance,
+            version__lt=latest_version,
+        )
+        .order_by("-version")
+        .first()
+    )
+
+    previous_version = previous_eap.version if previous_eap else None
 
     email_context.update(
         {
+            "latest_eap_id": latest_eap_data.id,
             "people_targeted": latest_eap_data.people_targeted,
             "total_budget": latest_eap_data.total_budget,
             "latest_version": latest_eap_data.version,
             "previous_version": previous_version,
-            # "updated_checklist_file": latest_eap_data.updated_checklist_file,
-            # "budget_file":latest_eap_data.budget_file,
+            "export_file": (latest_eap_data.export_file.url if latest_eap_data.export_file else None),
+            "diff_file": (latest_eap_data.diff_file.url if latest_eap_data.diff_file else None),
+            "budget_file": get_file_url(latest_eap_data.budget_file),
+            "updated_checklist_file": get_file_url(latest_eap_data.updated_checklist_file),
+            "review_checklist_file": (
+                latest_eap_data.review_checklist_file.url if latest_eap_data.review_checklist_file else None
+            ),
         }
     )
     return email_context

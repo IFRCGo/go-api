@@ -1,3 +1,4 @@
+
 {% include "design/head3.html" %}
 
 <table width="80%" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff">
@@ -21,18 +22,17 @@
                 If you have any questions on the process or the next steps, please don’t hesitate to reach out to 
                 <a href="mailto:DREF.anticipatorypillar@ifrc.org">DREF.anticipatorypillar@ifrc.org</a>.
             </p>
-
-            <p>
-                <strong>Attached documents:</strong><br>
-                Export Pdf: <br> 
-                Validated budget file: 
+            <p><strong>Attached documents:</strong></p>
+               <ul>
                 {% if validated_budget_file %}
-                    {{ validated_budget_file }}
-                {% else %}
-                    N/A
+                    <li>
+                        <a href="{{ validated_budget_file }}">
+                            Validated Budget File
+                        </a>
+                    </li>
                 {% endif %}
-            </p>
-
+                    <li>Auto-generated Summary PDF</li>
+            </ul>
             <p style="margin-top:16px;">
                 Congratulations again and warm wishes,<br>
                 IFRC-DREF AA Team<br>

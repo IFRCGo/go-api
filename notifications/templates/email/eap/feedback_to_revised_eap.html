@@ -1,3 +1,4 @@
+
 {% include "design/head3.html" %}
 
 <table width="80%" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff">
@@ -31,25 +32,24 @@
             <!-- Deadline paragraph -->
             <p>
                 The NS has 1 month to address these comments, which means that we expect to receive the new version of the EAP no later than 
-                <span style="font-weight: bold;">{{ dead_line }}</span> (1 month). 
+                <span style="font-weight: bold;">{{ deadline }}</span> (1 month). 
                 In case the NS has any questions about the feedback provided, we are available to organize a feedback call. 
                 Do not hesitate to contact us should you have any further questions at 
                 <a href="mailto:DREF.anticipatorypillar@ifrc.org">DREF.anticipatorypillar@ifrc.org</a>.
             </p>
-
+            <p> You can access your GO account and check the progress of your EAP <a href="{{ frontend_url }}/eap-registration/{{ registration_id }}/">here.</a></p>
+            <!-- Attachment -->
+            <p><strong>Attached documents:</strong><br></p>
+             {% if review_checklist_file %}
+                <ul>
+                    <li><a href="{{ review_checklist_file }}">Review checklist uploaded by IFRC</a></li>
+                </ul>
+            {% endif %} 
             <!-- Signature -->
             <p style="margin-top:16px;">
                 Kind regards,<br>
                 IFRC-DREF AA Team<br>
-                You can access your GO account and check the progress of your EAP <a href="{{ frontend_url }}/eap-registration/{{ registration_id }}/">here.</a>
             </p>
-
-            <!-- Attachment info -->
-            <p>
-                <strong>Attached documents:</strong><br>
-                Review checklist uploaded by IFRC: {{ review_checklist_file }}
-            </p>
-
         </td>
     </tr>
 </table>

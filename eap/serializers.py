@@ -40,8 +40,6 @@ from eap.tasks import (
     generate_eap_summary_pdf,
     generate_export_diff_pdf,
     generate_export_eap_pdf,
-)
-from eap.tasks import (
     send_approved_email,
     send_eap_resubmission_email,
     send_feedback_email,
@@ -200,7 +198,7 @@ class EAPRegistrationSerializer(
             "modified_by",
             "latest_simplified_eap",
             "latest_full_eap",
-            "dead_line",
+            "deadline",
         ]
 
     def create(self, validated_data: dict[str, typing.Any]):
@@ -1037,19 +1035,19 @@ class EAPStatusSerializer(BaseEAPSerializer):
             """
 
             if eap_count == 2:
-                updated_instance.dead_line = timezone.now().date() + timedelta(days=90)
+                updated_instance.deadline = timezone.now().date() + timedelta(days=90)
                 updated_instance.save(
                     update_fields=[
-                        "dead_line",
+                        "deadline",
                     ]
                 )
                 transaction.on_commit(lambda: send_feedback_email.delay(eap_registration_id))
 
             elif eap_count > 2:
-                updated_instance.dead_line = timezone.now().date() + timedelta(days=30)
+                updated_instance.deadline = timezone.now().date() + timedelta(days=30)
                 updated_instance.save(
                     update_fields=[
-                        "dead_line",
+                        "deadline",
                     ]
                 )
                 transaction.on_commit(lambda: send_feedback_email_for_resubmitted_eap.delay(eap_registration_id))
@@ -1063,10 +1061,10 @@ class EAPStatusSerializer(BaseEAPSerializer):
             EAPRegistration.Status.TECHNICALLY_VALIDATED,
             EAPRegistration.Status.NS_ADDRESSING_COMMENTS,
         ):
-            updated_instance.dead_line = timezone.now().date() + timedelta(days=30)
+            updated_instance.deadline = timezone.now().date() + timedelta(days=30)
             updated_instance.save(
                 update_fields=[
-                    "dead_line",
+                    "deadline",
                 ]
             )
             transaction.on_commit(lambda: send_feedback_email_for_resubmitted_eap.delay(eap_registration_id))
