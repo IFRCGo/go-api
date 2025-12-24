@@ -30,9 +30,9 @@ from eap.permissions import (
 from eap.serializers import (
     EAPFileInputSerializer,
     EAPFileSerializer,
+    EAPGlobalFilesSerializer,
     EAPRegistrationSerializer,
     EAPStatusSerializer,
-    EAPTemplateFilesSerializer,
     EAPValidatedBudgetFileSerializer,
     FullEAPSerializer,
     MiniEAPSerializer,
@@ -329,10 +329,10 @@ class EAPFileViewSet(
 
     @extend_schema(
         request=None,
-        responses=EAPTemplateFilesSerializer,
+        responses=EAPGlobalFilesSerializer,
         parameters=[
             OpenApiParameter(
-                name="get_template_files",
+                name="template_type",
                 description="Type of template to download",
                 required=False,
                 type=str,
@@ -347,11 +347,11 @@ class EAPFileViewSet(
     @action(
         detail=False,
         methods=["get"],
-        url_path="get-template-files",
+        url_path="global-files",
         permission_classes=[permissions.IsAuthenticated, DenyGuestUserPermission],
     )
-    def get_template_files(self, request):
-        template_type = request.query_params.get("get_template_files")
+    def get_global_files(self, request):
+        template_type = request.query_params.get("template_type")
 
         template_map = {
             "eap_budget": "files/eap/eap_budget_template.xlsm",
@@ -362,18 +362,20 @@ class EAPFileViewSet(
         if not template_type:
             return response.Response(
                 {
-                    "detail": "Please provide a template type.",
+                    "detail": "Please provide a template file type.",
                     "available_types": list(template_map.keys()),
                 },
                 status=400,
             )
+
         if template_type not in template_map:
             return response.Response(
                 {
-                    "detail": f"Invalid template type '{template_type}'.",
+                    "detail": f"Invalid template file type '{template_type}'.",
                     "available_types": list(template_map.keys()),
                 },
                 status=400,
             )
+
         file_url = request.build_absolute_uri(static(template_map[template_type]))
         return response.Response({"template_url": file_url})

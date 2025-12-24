@@ -218,7 +218,7 @@ class EAPFileInputSerializer(serializers.Serializer):
     file = serializers.ListField(child=serializers.FileField(required=True))
 
 
-class EAPTemplateFilesSerializer(serializers.Serializer):
+class EAPGlobalFilesSerializer(serializers.Serializer):
     template_url = serializers.URLField(read_only=True)
 
 
