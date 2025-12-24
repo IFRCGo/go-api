@@ -20,7 +20,7 @@ class Command(BaseCommand):
         """
         target_date = timezone.now().date() + timedelta(weeks=1)
         queryset = EAPRegistration.objects.filter(
-            dead_line=target_date,
+            deadline=target_date,
         )
 
         if not queryset.exists():
