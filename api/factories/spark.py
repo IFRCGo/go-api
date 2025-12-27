@@ -82,3 +82,13 @@ class DimInventoryItemStatusFactory(factory.django.DjangoModelFactory):
 
     id = factory.Iterator(["AVAILABLE", "BROKEN", "INCORRECT", "QUALITY", "OK", "CHECK"])
     name = factory.Iterator(["Available", "Broken", "Incorrect item", "Quality Issue", "Available", "To be checked"])
+
+
+class DimInventoryModuleFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.DimInventoryModule
+
+    id = factory.Sequence(lambda n: f"TESTMODULE{n:02d}#{n:01d}")
+    unit_of_measure = fuzzy.FuzzyChoice(["ea", "kg", "g", "m2"])
+    item_id = factory.Sequence(lambda n: f"TESTMODULE{n:02d}")
+    type = fuzzy.FuzzyChoice(["purchase", "sales", "inventory"])
