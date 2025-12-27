@@ -2672,3 +2672,648 @@ class FrameworkAgreementLineItem(models.Model):
     class Meta:
         verbose_name = _("Framework Agreement Line Item")
         verbose_name_plural = _("Framework Agreement Line Items")
+
+
+class DimAgreementLine(models.Model):
+    agreement_line_id = models.CharField(verbose_name=_("Agreement Line ID"), max_length=100, unique=True)
+    agreement_id = models.CharField(verbose_name=_("Agreement ID"), max_length=100)
+    line_number = models.IntegerField(verbose_name=_("Line Number"))
+    product = models.CharField(verbose_name=_("Product"), max_length=255, blank=True, null=True)
+    product_category = models.CharField(verbose_name=_("Product Category"), max_length=255, blank=True, null=True)
+    effective_date = models.DateTimeField(verbose_name=_("Effective Date"), blank=True, null=True)
+    expiration_date = models.DateTimeField(verbose_name=_("Expiration Date"), blank=True, null=True)
+    commitment_type = models.CharField(verbose_name=_("Commitment Type"), max_length=255, blank=True, null=True)
+    committed_quantity = models.DecimalField(
+        verbose_name=_("Committed Quantity"),
+        max_digits=20,
+        decimal_places=6,
+        blank=True,
+        null=True,
+    )
+    committed_amount = models.DecimalField(
+        verbose_name=_("Committed Amount"),
+        max_digits=20,
+        decimal_places=2,
+        blank=True,
+        null=True,
+    )
+    delivery_term = models.CharField(verbose_name=_("Delivery Term"), max_length=100, blank=True, null=True)
+    unit_of_measure = models.CharField(verbose_name=_("Unit of Measure"), max_length=100, blank=True, null=True)
+    price_per_unit = models.DecimalField(
+        verbose_name=_("Price Per Unit"),
+        max_digits=20,
+        decimal_places=6,
+        blank=True,
+        null=True,
+    )
+    line_discount_percent = models.DecimalField(
+        verbose_name=_("Line Discount Percent"),
+        max_digits=10,
+        decimal_places=6,
+        blank=True,
+        null=True,
+    )
+
+    class Meta:
+        verbose_name = _("Agreement Line")
+        verbose_name_plural = _("Agreement Lines")
+
+    def __str__(self):
+        return f"{self.agreement_line_id}"
+
+
+class DimAppeal(models.Model):
+    id = models.CharField(verbose_name=_("Appeal ID"), max_length=100, primary_key=True)
+    appeal_name = models.CharField(verbose_name=_("Appeal Name"), max_length=255)
+
+    class Meta:
+        verbose_name = _("Appeal")
+        verbose_name_plural = _("Appeals")
+
+    def __str__(self):
+        return f"{self.id} - {self.appeal_name}"
+
+
+class DimBuyerGroup(models.Model):
+    code = models.CharField(verbose_name=_("Buyer Group Code"), max_length=100, primary_key=True)
+    name = models.CharField(verbose_name=_("Buyer Group Name"), max_length=500)
+
+    class Meta:
+        verbose_name = _("Buyer Group")
+        verbose_name_plural = _("Buyer Groups")
+
+    def __str__(self):
+        return f"{self.code} - {self.name}"
+
+
+class DimConsignment(models.Model):
+    id = models.CharField(verbose_name=_("Consignment ID"), max_length=100, primary_key=True)
+    delivery_mode = models.CharField(verbose_name=_("Delivery Mode"), max_length=100)
+
+    class Meta:
+        verbose_name = _("Consignment")
+        verbose_name_plural = _("Consignments")
+
+    def __str__(self):
+        return f"{self.id} - {self.delivery_mode}"
+
+
+class DimDeliveryMode(models.Model):
+    id = models.CharField(verbose_name=_("Delivery Mode ID"), max_length=100, primary_key=True)
+    description = models.CharField(verbose_name=_("Description"), max_length=255)
+
+    class Meta:
+        verbose_name = _("Delivery Mode")
+        verbose_name_plural = _("Delivery Modes")
+
+    def __str__(self):
+        return f"{self.id} - {self.description}"
+
+
+class DimDonor(models.Model):
+    donor_code = models.CharField(verbose_name=_("Donor Code"), max_length=100, primary_key=True)
+    donor_name = models.CharField(verbose_name=_("Donor Name"), max_length=255)
+
+    class Meta:
+        verbose_name = _("Donor")
+        verbose_name_plural = _("Donors")
+
+    def __str__(self):
+        return f"{self.donor_code} - {self.donor_name}"
+
+
+class DimInventoryItem(models.Model):
+    id = models.CharField(verbose_name=_("Inventory Item ID"), max_length=100, primary_key=True)
+    unit_of_measure = models.CharField(verbose_name=_("Unit of Measure"), max_length=100)
+
+    class Meta:
+        verbose_name = _("Inventory Item")
+        verbose_name_plural = _("Inventory Items")
+
+    def __str__(self):
+        return f"{self.id} - {self.unit_of_measure}"
+
+
+class DimInventoryItemStatus(models.Model):
+    id = models.CharField(verbose_name=_("Status ID"), max_length=100, primary_key=True)
+    name = models.CharField(verbose_name=_("Status Name"), max_length=255)
+
+    class Meta:
+        verbose_name = _("Inventory Item Status")
+        verbose_name_plural = _("Inventory Item Statuses")
+
+    def __str__(self):
+        return f"{self.id} - {self.name}"
+
+
+class DimInventoryModule(models.Model):
+    id = models.CharField(verbose_name=_("Inventory Module ID"), max_length=100, primary_key=True)
+    unit_of_measure = models.CharField(verbose_name=_("Unit of Measure"), max_length=100)
+    item_id = models.CharField(verbose_name=_("Item ID"), max_length=100)
+    type = models.CharField(verbose_name=_("Type"), max_length=100)
+
+    class Meta:
+        verbose_name = _("Inventory Module")
+        verbose_name_plural = _("Inventory Modules")
+
+    def __str__(self):
+        return f"{self.id} - {self.item_id}"
+
+
+class DimInventoryOwner(models.Model):
+    id = models.CharField(verbose_name=_("Inventory Owner ID"), max_length=100, primary_key=True)
+    name = models.CharField(verbose_name=_("Inventory Owner Name"), max_length=500)
+
+    class Meta:
+        verbose_name = _("Inventory Owner")
+        verbose_name_plural = _("Inventory Owners")
+
+    def __str__(self):
+        return f"{self.id} - {self.name}"
+
+class DimInventoryTransaction(models.Model):
+    id = models.CharField(verbose_name=_("Inventory Transaction ID"), max_length=100, primary_key=True)
+    reference_category = models.CharField(verbose_name=_("Reference Category"), max_length=100, null=True, blank=True)
+    reference_number = models.CharField(verbose_name=_("Reference Number"), max_length=100, null=True, blank=True)
+    excluded_from_inventory_value = models.BooleanField(verbose_name=_("Excluded From Inventory Value"), null=True)
+
+    class Meta:
+        verbose_name = _("Inventory Transaction")
+        verbose_name_plural = _("Inventory Transactions")
+
+    def __str__(self):
+        if self.reference_number:
+            return f"{self.id} - {self.reference_category} - {self.reference_number}"
+        return f"{self.id} - {self.reference_category}"
+    
+
+class DimInventoryTransactionLine(models.Model):
+    id = models.CharField(verbose_name=_("Inventory Transaction Line ID"), max_length=50, primary_key=True)
+    item_status = models.CharField(verbose_name=_("Item Status"), max_length=50, null=True, blank=True)
+    item_status_name = models.CharField(verbose_name=_("Item Status Name"), max_length=100, null=True, blank=True)
+    product = models.CharField(verbose_name=_("Product"), max_length=100, null=True, blank=True)
+    voucher_physical = models.CharField(verbose_name=_("Voucher Physical"), max_length=100, null=True, blank=True)
+    project = models.CharField(verbose_name=_("Project"), max_length=100, null=True, blank=True)
+    batch = models.CharField(verbose_name=_("Batch"), max_length=200, null=True, blank=True)
+    warehouse = models.CharField(verbose_name=_("Warehouse"), max_length=50, null=True, blank=True)
+    owner = models.CharField(verbose_name=_("Owner"), max_length=100, null=True, blank=True)
+    inventory_transaction = models.CharField(verbose_name=_("Inventory Transaction ID"), max_length=100, null=True, blank=True)
+    project_category = models.CharField(verbose_name=_("Project Category"), max_length=200, null=True, blank=True)
+    activity = models.CharField(verbose_name=_("Activity"), max_length=200, null=True, blank=True)
+    physical_date = models.DateTimeField(verbose_name=_("Physical Date"), null=True, blank=True)
+    financial_date = models.DateTimeField(verbose_name=_("Financial Date"), null=True, blank=True)
+    status_date = models.DateTimeField(verbose_name=_("Status Date"), null=True, blank=True)
+    expected_date = models.DateTimeField(verbose_name=_("Expected Date"), null=True, blank=True)
+    quantity = models.DecimalField(verbose_name=_("Quantity"), max_digits=20, decimal_places=6, null=True)
+    cost_amount_posted = models.DecimalField(verbose_name=_("Cost Amount Posted"), max_digits=20, decimal_places=6, null=True)
+    cost_amount_adjustment = models.DecimalField(verbose_name=_("Cost Amount Adjustment"), max_digits=20, decimal_places=6, null=True)
+    status = models.CharField(verbose_name=_("Status"), max_length=50, null=True, blank=True)
+    packing_slip = models.CharField(verbose_name=_("Packing Slip"), max_length=200, null=True, blank=True)
+    packing_slip_returned = models.BooleanField(verbose_name=_("Packing Slip Returned"), null=True)
+
+    class Meta:
+        verbose_name = _("Inventory Transaction Line")
+        verbose_name_plural = _("Inventory Transaction Lines")
+
+    def __str__(self):
+        base = f"{self.id}"
+        if self.product and self.inventory_transaction:
+            return f"{base} - {self.product} - {self.inventory_transaction}"
+        if self.product:
+            return f"{base} - {self.product}"
+        return base
+
+
+class DimInventoryTransactionOrigin(models.Model):
+    id = models.CharField(verbose_name=_("Inventory Transaction Origin ID"), max_length=100, primary_key=True)
+    reference_category = models.CharField(verbose_name=_("Reference Category"), max_length=100, null=True, blank=True)
+    reference_number = models.CharField(verbose_name=_("Reference Number"), max_length=100, null=True, blank=True)
+    excluded_from_inventory_value = models.BooleanField(verbose_name=_("Excluded From Inventory Value"), null=True)
+
+    class Meta:
+        verbose_name = _("Inventory Transaction Origin")
+        verbose_name_plural = _("Inventory Transaction Origins")
+
+    def __str__(self):
+        if self.reference_number:
+            return f"{self.id} - {self.reference_category} - {self.reference_number}"
+        return f"{self.id} - {self.reference_category}"
+
+
+class DimItemBatch(models.Model):
+    id = models.CharField(verbose_name=_("Batch ID"), max_length=200, primary_key=True)
+    customer = models.CharField(verbose_name=_("Customer"), max_length=100, null=True, blank=True)
+    vendor = models.CharField(verbose_name=_("Vendor"), max_length=100, null=True, blank=True)
+    unit_volume = models.DecimalField(verbose_name=_("Unit Volume"), max_digits=20, decimal_places=6, null=True)
+    unit_weight = models.DecimalField(verbose_name=_("Unit Weight"), max_digits=20, decimal_places=12, null=True)
+    expiration_date = models.DateTimeField(verbose_name=_("Expiration Date"), null=True, blank=True)
+    vendor_expiration_date = models.DateTimeField(verbose_name=_("Vendor Expiration Date"), null=True, blank=True)
+    price = models.DecimalField(verbose_name=_("Price"), max_digits=20, decimal_places=6, null=True)
+    currency = models.CharField(verbose_name=_("Currency"), max_length=10, null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("Item Batch")
+        verbose_name_plural = _("Item Batches")
+
+    def __str__(self):
+        text = f"{self.id}"
+        if self.vendor:
+            text += f" - {self.vendor}"
+        if self.currency and self.price is not None:
+            text += f" - {self.currency} {self.price}"
+        return text
+
+
+class DimLocation(models.Model):
+    id = models.CharField(verbose_name=_("Location ID"), max_length=100, primary_key=True)
+    location = models.CharField(verbose_name=_("Location"), max_length=100)
+
+    class Meta:
+        verbose_name = _("Location")
+        verbose_name_plural = _("Locations")
+
+    def __str__(self):
+        return f"{self.id} - {self.location}"
+
+
+class DimLogisticsLocation(models.Model):
+    id = models.CharField(verbose_name=_("Logistics Location ID"), max_length=100, primary_key=True)
+    postal_address = models.CharField(verbose_name=_("Postal Address"), max_length=255, null=True, blank=True)
+    country = models.CharField(verbose_name=_("Country"), max_length=100, null=True, blank=True)
+    city = models.CharField(verbose_name=_("City"), max_length=100, null=True, blank=True)
+    street = models.CharField(verbose_name=_("Street"), max_length=255, null=True, blank=True)
+    zip_code = models.CharField(verbose_name=_("Zip Code"), max_length=20, null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("Logistics Location")
+        verbose_name_plural = _("Logistics Locations")
+
+    def __str__(self):
+        parts = [self.id]
+        if self.city:
+            parts.append(self.city)
+        if self.country:
+            parts.append(self.country)
+        return " - ".join(parts)
+
+
+class DimPackingSlipLine(models.Model):
+    id = models.CharField(verbose_name=_("Packing Slip Line ID"), max_length=100, primary_key=True)
+    sales_order_line = models.CharField(verbose_name=_("Sales Order Line"), max_length=100, null=True, blank=True)
+    delivery_date = models.DateTimeField(verbose_name=_("Delivery Date"), null=True, blank=True)
+    quantity_delivered = models.DecimalField(verbose_name=_("Quantity Delivered"), max_digits=20, decimal_places=6, null=True)
+
+    class Meta:
+        verbose_name = _("Packing Slip Line")
+        verbose_name_plural = _("Packing Slip Lines")
+
+    def __str__(self):
+        return f"{self.id} - {self.sales_order_line}" if self.sales_order_line else self.id
+
+
+class DimProduct(models.Model):
+    id = models.CharField(verbose_name=_("Product ID"), max_length=100, primary_key=True)
+    name = models.CharField(verbose_name=_("Product Name"), max_length=255)
+    type = models.CharField(verbose_name=_("Product Type"), max_length=100, null=True, blank=True)
+    unit_of_measure = models.CharField(verbose_name=_("Unit of Measure"), max_length=50, null=True, blank=True)
+    product_category = models.CharField(verbose_name=_("Product Category"), max_length=100, null=True, blank=True)
+    project_category = models.CharField(verbose_name=_("Project Category"), max_length=200, null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("Product")
+        verbose_name_plural = _("Products")
+
+    def __str__(self):
+        return f"{self.id} - {self.name}"
+
+class DimProductCategory(models.Model):
+    category_code = models.CharField(verbose_name=_("Category Code"), max_length=100, primary_key=True)
+    name = models.CharField(verbose_name=_("Category Name"), max_length=255)
+    parent_category_code = models.CharField(verbose_name=_("Parent Category Code"), max_length=100, null=True, blank=True)
+    level = models.IntegerField(verbose_name=_("Level"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("Product Category")
+        verbose_name_plural = _("Product Categories")
+
+    def __str__(self):
+        return f"{self.category_code} - {self.name}"
+
+
+class DimProductReceiptLine(models.Model):
+    id = models.CharField(verbose_name=_("Receipt Line ID"), max_length=100, primary_key=True)
+    product_receipt = models.CharField(verbose_name=_("Product Receipt"), max_length=100, null=True, blank=True)
+    purchase_order_line = models.CharField(verbose_name=_("Purchase Order Line"), max_length=100, null=True, blank=True)
+    received_quantity = models.DecimalField(verbose_name=_("Received Quantity"), max_digits=20, decimal_places=6, null=True, blank=True)
+    unit = models.CharField(verbose_name=_("Unit"), max_length=50, null=True, blank=True)
+    value_accounting_currency = models.DecimalField(verbose_name=_("Value in Accounting Currency"), max_digits=20, decimal_places=6, null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("Product Receipt Line")
+        verbose_name_plural = _("Product Receipt Lines")
+
+    def __str__(self):
+        return f"{self.id} - {self.product_receipt}"
+
+
+class DimProject(models.Model):
+    id = models.CharField(verbose_name=_("Project ID"), max_length=100, primary_key=True)
+    project_name = models.CharField(verbose_name=_("Project Name"), max_length=255)
+
+    class Meta:
+        verbose_name = _("Project")
+        verbose_name_plural = _("Projects")
+
+    def __str__(self):
+        return f"{self.id} - {self.project_name}"
+
+
+class DimPurchaseOrderLine(models.Model):
+    id = models.CharField(verbose_name=_("Purchase Order Line ID"), max_length=100, primary_key=True)
+    line_number = models.IntegerField(verbose_name=_("Line Number"), null=True, blank=True)
+    purchase_order = models.CharField(verbose_name=_("Purchase Order"), max_length=100, null=True, blank=True)
+    description = models.CharField(verbose_name=_("Description"), max_length=255, null=True, blank=True)
+    status = models.CharField(verbose_name=_("Status"), max_length=100, null=True, blank=True)
+    type = models.CharField(verbose_name=_("Type"), max_length=100, null=True, blank=True)
+    product = models.CharField(verbose_name=_("Product"), max_length=100, null=True, blank=True)
+    product_category = models.CharField(verbose_name=_("Product Category"), max_length=100, null=True, blank=True)
+    agreement = models.CharField(verbose_name=_("Agreement"), max_length=100, null=True, blank=True)
+    unit_of_measure = models.CharField(verbose_name=_("Unit of Measure"), max_length=50, null=True, blank=True)
+    currency_code = models.CharField(verbose_name=_("Currency Code"), max_length=10, null=True, blank=True)
+    humanitarian_procurement_center_transaction = models.BooleanField(verbose_name=_("Humanitarian Procurement Center Transaction"), null=True, blank=True)
+    ordered_quantity_inventory_unit = models.DecimalField(verbose_name=_("Ordered Quantity (Inventory Unit)"), max_digits=20, decimal_places=6, null=True, blank=True)
+    ordered_quantity_purchasing_unit = models.DecimalField(verbose_name=_("Ordered Quantity (Purchasing Unit)"), max_digits=20, decimal_places=6, null=True, blank=True)
+    price_per_unit = models.DecimalField(verbose_name=_("Price Per Unit"), max_digits=20, decimal_places=6, null=True, blank=True)
+    price_per_unit_accounting_currency = models.DecimalField(verbose_name=_("Price Per Unit (Accounting Currency)"), max_digits=20, decimal_places=6, null=True, blank=True)
+    donated_price_per_unit = models.DecimalField(verbose_name=_("Donated Price Per Unit"), max_digits=20, decimal_places=6, null=True, blank=True)
+    donated_price_per_unit_accounting_currency = models.DecimalField(verbose_name=_("Donated Price Per Unit (Accounting Currency)"), max_digits=20, decimal_places=6, null=True, blank=True)
+    amount = models.DecimalField(verbose_name=_("Amount"), max_digits=20, decimal_places=6, null=True, blank=True)
+    amount_accounting_currency = models.DecimalField(verbose_name=_("Amount (Accounting Currency)"), max_digits=20, decimal_places=6, null=True, blank=True)
+    donated_amount = models.DecimalField(verbose_name=_("Donated Amount"), max_digits=20, decimal_places=6, null=True, blank=True)
+    donated_amount_accounting_currency = models.DecimalField(verbose_name=_("Donated Amount (Accounting Currency)"), max_digits=20, decimal_places=6, null=True, blank=True)
+    actual_weight = models.DecimalField(verbose_name=_("Actual Weight"), max_digits=20, decimal_places=6, null=True, blank=True)
+    actual_volume = models.DecimalField(verbose_name=_("Actual Volume"), max_digits=20, decimal_places=6, null=True, blank=True)
+    warehouse = models.CharField(verbose_name=_("Warehouse"), max_length=100, null=True, blank=True)
+    owner = models.CharField(verbose_name=_("Owner"), max_length=100, null=True, blank=True)
+    item_batch = models.CharField(verbose_name=_("Item Batch"), max_length=100, null=True, blank=True)
+    consignment = models.CharField(verbose_name=_("Consignment"), max_length=100, null=True, blank=True)
+    financial_dimension_project = models.CharField(verbose_name=_("Financial Dimension Project"), max_length=100, null=True, blank=True)
+    financial_dimension_appeal = models.CharField(verbose_name=_("Financial Dimension Appeal"), max_length=100, null=True, blank=True)
+    financial_dimension_funding_arrangement = models.CharField(verbose_name=_("Financial Dimension Funding Arrangement"), max_length=100, null=True, blank=True)
+    requested_delivery_date = models.DateTimeField(verbose_name=_("Requested Delivery Date"), null=True, blank=True)
+    confirmed_delivery_date = models.DateTimeField(verbose_name=_("Confirmed Delivery Date"), null=True, blank=True)
+    delivery_mode = models.CharField(verbose_name=_("Delivery Mode"), max_length=100, null=True, blank=True)
+    delivery_name = models.CharField(verbose_name=_("Delivery Name"), max_length=255, null=True, blank=True)
+    delivery_address_description = models.CharField(verbose_name=_("Delivery Address Description"), max_length=255, null=True, blank=True)
+    delivery_postal_address = models.CharField(verbose_name=_("Delivery Postal Address"), max_length=255, null=True, blank=True)
+    delivery_postal_address_country = models.CharField(verbose_name=_("Delivery Postal Address Country"), max_length=100, null=True, blank=True)
+    created_by = models.CharField(verbose_name=_("Created By"), max_length=100, null=True, blank=True)
+    created_datetime = models.DateTimeField(verbose_name=_("Created DateTime"), null=True, blank=True)
+    modified_by = models.CharField(verbose_name=_("Modified By"), max_length=100, null=True, blank=True)
+    modified_datetime = models.DateTimeField(verbose_name=_("Modified DateTime"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("Purchase Order Line")
+        verbose_name_plural = _("Purchase Order Lines")
+
+    def __str__(self):
+        return f"{self.id} - {self.description if self.description else self.purchase_order}"
+
+
+class DimSalesOrderLine(models.Model):
+    id = models.CharField(verbose_name=_("Sales Order Line ID"), max_length=100, primary_key=True)
+    status = models.CharField(verbose_name=_("Status"), max_length=100, null=True, blank=True)
+    type = models.CharField(verbose_name=_("Type"), max_length=100, null=True, blank=True)
+    product = models.CharField(verbose_name=_("Product"), max_length=100, null=True, blank=True)
+    product_category = models.CharField(verbose_name=_("Product Category"), max_length=100, null=True, blank=True)
+    description = models.CharField(verbose_name=_("Description"), max_length=255, null=True, blank=True)
+    unit_of_measure = models.CharField(verbose_name=_("Unit of Measure"), max_length=50, null=True, blank=True)
+    ordered_quantity_sales_unit = models.DecimalField(verbose_name=_("Ordered Quantity (Sales Unit)"), max_digits=20, decimal_places=6, null=True, blank=True)
+    currency_code = models.CharField(verbose_name=_("Currency Code"), max_length=10, null=True, blank=True)
+    amount = models.DecimalField(verbose_name=_("Amount"), max_digits=20, decimal_places=6, null=True, blank=True)
+    amount_accounting_currency = models.DecimalField(verbose_name=_("Amount (Accounting Currency)"), max_digits=20, decimal_places=6, null=True, blank=True)
+    price_per_unit = models.DecimalField(verbose_name=_("Price Per Unit"), max_digits=20, decimal_places=6, null=True, blank=True)
+    price_per_unit_accounting_currency = models.DecimalField(verbose_name=_("Price Per Unit (Accounting Currency)"), max_digits=20, decimal_places=6, null=True, blank=True)
+    donated_price_per_unit = models.DecimalField(verbose_name=_("Donated Price Per Unit"), max_digits=20, decimal_places=6, null=True, blank=True)
+    donated_price_per_unit_accounting_currency = models.DecimalField(verbose_name=_("Donated Price Per Unit (Accounting Currency)"), max_digits=20, decimal_places=6, null=True, blank=True)
+    donated_amount = models.DecimalField(verbose_name=_("Donated Amount"), max_digits=20, decimal_places=6, null=True, blank=True)
+    donated_amount_accounting_currency = models.DecimalField(verbose_name=_("Donated Amount (Accounting Currency)"), max_digits=20, decimal_places=6, null=True, blank=True)
+    exchange_rate_factor = models.DecimalField(verbose_name=_("Exchange Rate Factor"), max_digits=20, decimal_places=6, null=True, blank=True)
+    delivery_type = models.CharField(verbose_name=_("Delivery Type"), max_length=100, null=True, blank=True)
+    requested_shipping_date = models.DateTimeField(verbose_name=_("Requested Shipping Date"), null=True, blank=True)
+    requested_receipt_date = models.DateTimeField(verbose_name=_("Requested Receipt Date"), null=True, blank=True)
+    delivery_mode = models.CharField(verbose_name=_("Delivery Mode"), max_length=100, null=True, blank=True)
+    delivery_postal_address = models.CharField(verbose_name=_("Delivery Postal Address"), max_length=255, null=True, blank=True)
+    delivery_postal_address_country = models.CharField(verbose_name=_("Delivery Postal Address Country"), max_length=100, null=True, blank=True)
+    warehouse = models.CharField(verbose_name=_("Warehouse"), max_length=100, null=True, blank=True)
+    item_batch = models.CharField(verbose_name=_("Item Batch"), max_length=200, null=True, blank=True)
+    inventory_owner = models.CharField(verbose_name=_("Inventory Owner"), max_length=100, null=True, blank=True)
+    financial_dimension_project = models.CharField(verbose_name=_("Financial Dimension Project"), max_length=100, null=True, blank=True)
+    financial_dimension_appeal = models.CharField(verbose_name=_("Financial Dimension Appeal"), max_length=100, null=True, blank=True)
+    financial_dimension_funding_arrangement = models.CharField(verbose_name=_("Financial Dimension Funding Arrangement"), max_length=100, null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("Sales Order Line")
+        verbose_name_plural = _("Sales Order Lines")
+
+    def __str__(self):
+        return f"{self.id} - {self.description if self.description else self.product}"
+
+
+class DimSite(models.Model):
+    id = models.CharField(verbose_name=_("Site ID"), max_length=100, primary_key=True)
+    name = models.CharField(verbose_name=_("Site Name"), max_length=255)
+
+    class Meta:
+        verbose_name = _("Site")
+        verbose_name_plural = _("Sites")
+
+    def __str__(self):
+        return f"{self.id} - {self.name}"
+
+
+class DimVendor(models.Model):
+    code = models.CharField(verbose_name=_("Vendor Code"), max_length=100, primary_key=True)
+    name = models.CharField(verbose_name=_("Vendor Name"), max_length=255)
+
+    class Meta:
+        verbose_name = _("Vendor")
+        verbose_name_plural = _("Vendors")
+
+    def __str__(self):
+        return f"{self.code} - {self.name}"
+
+
+class DimVendorContact(models.Model):
+    id = models.CharField(verbose_name=_("Contact ID"), max_length=100, primary_key=True)
+    first_name = models.CharField(verbose_name=_("First Name"), max_length=100, null=True, blank=True)
+    last_name = models.CharField(verbose_name=_("Last Name"), max_length=100, null=True, blank=True)
+    active = models.BooleanField(verbose_name=_("Active"), null=True, blank=True)
+    vendor = models.CharField(verbose_name=_("Vendor"), max_length=100, null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("Vendor Contact")
+        verbose_name_plural = _("Vendor Contacts")
+
+    def __str__(self):
+        return f"{self.id} - {self.first_name} {self.last_name}".strip()
+
+
+class DimVendorContactEmail(models.Model):
+    id = models.CharField(verbose_name=_("Email ID"), max_length=100, primary_key=True)
+    email_address = models.CharField(verbose_name=_("Email Address"), max_length=255, null=True, blank=True)
+    primary = models.BooleanField(verbose_name=_("Primary"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("Vendor Contact Email")
+        verbose_name_plural = _("Vendor Contact Emails")
+
+    def __str__(self):
+        return f"{self.id} - {self.email_address if self.email_address else 'No Email'}"
+
+
+class DimVendorPhysicalAddress(models.Model):
+    id = models.CharField(verbose_name=_("Address ID"), max_length=100, primary_key=True)
+    valid_from = models.DateTimeField(verbose_name=_("Valid From"), null=True, blank=True)
+    valid_to = models.DateTimeField(verbose_name=_("Valid To"), null=True, blank=True)
+    country = models.CharField(verbose_name=_("Country"), max_length=100, null=True, blank=True)
+    city = models.CharField(verbose_name=_("City"), max_length=100, null=True, blank=True)
+    street = models.CharField(verbose_name=_("Street"), max_length=255, null=True, blank=True)
+    zip_code = models.CharField(verbose_name=_("Zip Code"), max_length=20, null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("Vendor Physical Address")
+        verbose_name_plural = _("Vendor Physical Addresses")
+
+    def __str__(self):
+        return f"{self.id} - {self.city}, {self.country}" if self.city and self.country else self.id
+
+
+class DimWarehouse(models.Model):
+    id = models.CharField(verbose_name=_("Warehouse ID"), max_length=100, primary_key=True)
+    site = models.CharField(verbose_name=_("Site"), max_length=100, null=True, blank=True)
+    name = models.CharField(verbose_name=_("Warehouse Name"), max_length=255, null=True, blank=True)
+    postal_address = models.CharField(verbose_name=_("Postal Address"), max_length=255, null=True, blank=True)
+    country = models.CharField(verbose_name=_("Country"), max_length=100, null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("Warehouse")
+        verbose_name_plural = _("Warehouses")
+
+    def __str__(self):
+        return f"{self.id} - {self.name if self.name else self.site}"
+
+
+class FctAgreement(models.Model):
+    agreement_id = models.CharField(verbose_name=_("Agreement ID"), max_length=100, primary_key=True)
+    buyer_group = models.CharField(verbose_name=_("Buyer Group"), max_length=100, null=True, blank=True)
+    vendor = models.CharField(verbose_name=_("Vendor"), max_length=100, null=True, blank=True)
+    parent_agreement = models.CharField(verbose_name=_("Parent Agreement"), max_length=100, null=True, blank=True)
+    managing_business_unit_organizational_unit = models.CharField(verbose_name=_("Managing Business Unit Organizational Unit"), max_length=100, null=True, blank=True)
+    requesting_department_organizational_unit = models.CharField(verbose_name=_("Requesting Department Organizational Unit"), max_length=100, null=True, blank=True)
+    preparer_worker = models.CharField(verbose_name=_("Preparer Worker"), max_length=100, null=True, blank=True)
+    classification = models.CharField(verbose_name=_("Classification"), max_length=100, null=True, blank=True)
+    status = models.CharField(verbose_name=_("Status"), max_length=100, null=True, blank=True)
+    currency_code = models.CharField(verbose_name=_("Currency Code"), max_length=10, null=True, blank=True)
+    default_delivery_name = models.CharField(verbose_name=_("Default Delivery Name"), max_length=255, null=True, blank=True)
+    default_payment_term = models.CharField(verbose_name=_("Default Payment Term"), max_length=255, null=True, blank=True)
+    document_title = models.CharField(verbose_name=_("Document Title"), max_length=255, null=True, blank=True)
+    purpose = models.CharField(verbose_name=_("Purpose"), max_length=255, null=True, blank=True)
+    document_external_reference = models.CharField(verbose_name=_("Document External Reference"), max_length=255, null=True, blank=True)
+    code = models.CharField(verbose_name=_("Code"), max_length=100, null=True, blank=True)
+    workflow_status = models.CharField(verbose_name=_("Workflow Status"), max_length=100, null=True, blank=True)
+    default_agreement_line_effective_date = models.DateField(verbose_name=_("Default Agreement Line Effective Date"), null=True, blank=True)
+    default_agreement_line_expiration_date = models.DateField(verbose_name=_("Default Agreement Line Expiration Date"), null=True, blank=True)
+    created_by = models.CharField(verbose_name=_("Created By"), max_length=100, null=True, blank=True)
+    created_datetime = models.DateTimeField(verbose_name=_("Created DateTime"), null=True, blank=True)
+    modified_by = models.CharField(verbose_name=_("Modified By"), max_length=100, null=True, blank=True)
+    modified_datetime = models.DateTimeField(verbose_name=_("Modified DateTime"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("Agreement")
+        verbose_name_plural = _("Agreements")
+
+    def __str__(self):
+        return f"{self.agreement_id} - {self.status if self.status else 'Agreement'}"
+
+
+class FctProductReceipt(models.Model):
+    id = models.CharField(verbose_name=_("Product Receipt ID"), max_length=100, primary_key=True)
+    purchase_order = models.CharField(verbose_name=_("Purchase Order"), max_length=100, null=True, blank=True)
+    delivery_date = models.DateField(verbose_name=_("Delivery Date"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("Product Receipt")
+        verbose_name_plural = _("Product Receipts")
+
+    def __str__(self):
+        return f"{self.id} - {self.purchase_order if self.purchase_order else 'Product Receipt'}"
+
+
+class FctPurchaseOrder(models.Model):
+    id = models.CharField(verbose_name=_("Purchase Order ID"), max_length=100, primary_key=True)
+    buyer_group = models.CharField(verbose_name=_("Buyer Group"), max_length=100, null=True, blank=True)
+    vendor = models.CharField(verbose_name=_("Vendor"), max_length=100, null=True, blank=True)
+    agreement = models.CharField(verbose_name=_("Agreement"), max_length=100, null=True, blank=True)
+    project = models.CharField(verbose_name=_("Project"), max_length=100, null=True, blank=True)
+    financial_dimension_funding_arrangement = models.CharField(verbose_name=_("Financial Dimension Funding Arrangement"), max_length=100, null=True, blank=True)
+    created_by_business_unit = models.CharField(verbose_name=_("Created By Business Unit"), max_length=100, null=True, blank=True)
+    requested_by_organizational_unit = models.CharField(verbose_name=_("Requested By Organizational Unit"), max_length=100, null=True, blank=True)
+    sales_order = models.CharField(verbose_name=_("Sales Order"), max_length=100, null=True, blank=True)
+    in_kind_donation_pledge = models.CharField(verbose_name=_("In-Kind Donation Pledge"), max_length=100, null=True, blank=True)
+    type = models.CharField(verbose_name=_("Type"), max_length=100, null=True, blank=True)
+    coordination_type = models.CharField(verbose_name=_("Coordination Type"), max_length=100, null=True, blank=True)
+    apply_procurement_fees = models.BooleanField(verbose_name=_("Apply Procurement Fees"), null=True, blank=True)
+    origin = models.CharField(verbose_name=_("Origin"), max_length=100, null=True, blank=True)
+    status = models.CharField(verbose_name=_("Status"), max_length=100, null=True, blank=True)
+    approval_status = models.CharField(verbose_name=_("Approval Status"), max_length=100, null=True, blank=True)
+    delivery_mode = models.CharField(verbose_name=_("Delivery Mode"), max_length=100, null=True, blank=True)
+    currency_code = models.CharField(verbose_name=_("Currency Code"), max_length=10, null=True, blank=True)
+    customer_reference = models.CharField(verbose_name=_("Customer Reference"), max_length=255, null=True, blank=True)
+    in_kind_donor_reference = models.CharField(verbose_name=_("In-Kind Donor Reference"), max_length=255, null=True, blank=True)
+    intercompany_origin = models.CharField(verbose_name=_("Intercompany Origin"), max_length=100, null=True, blank=True)
+    exchange_rate = models.DecimalField(verbose_name=_("Exchange Rate"), max_digits=20, decimal_places=10, null=True, blank=True)
+    created_by = models.CharField(verbose_name=_("Created By"), max_length=100, null=True, blank=True)
+    created_datetime = models.DateTimeField(verbose_name=_("Created DateTime"), null=True, blank=True)
+    modified_by = models.CharField(verbose_name=_("Modified By"), max_length=100, null=True, blank=True)
+    modified_datetime = models.DateTimeField(verbose_name=_("Modified DateTime"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("Purchase Order")
+        verbose_name_plural = _("Purchase Orders")
+
+    def __str__(self):
+        return f"{self.id} - {self.status if self.status else 'Purchase Order'}"
+
+
+class FctSalesOrder(models.Model):
+    id = models.CharField(verbose_name=_("Sales Order ID"), max_length=100, primary_key=True)
+    created_by_business_unit = models.CharField(verbose_name=_("Created By Business Unit"), max_length=100, null=True, blank=True)
+    customer = models.CharField(verbose_name=_("Customer"), max_length=100, null=True, blank=True)
+    humanitarian_procurement_center_transaction = models.BooleanField(verbose_name=_("Humanitarian Procurement Center Transaction"), null=True, blank=True)
+    customer_reference = models.CharField(verbose_name=_("Customer Reference"), max_length=255, null=True, blank=True)
+    customer_requisition = models.CharField(verbose_name=_("Customer Requisition"), max_length=255, null=True, blank=True)
+    created_datetime = models.DateTimeField(verbose_name=_("Created DateTime"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("Sales Order")
+        verbose_name_plural = _("Sales Orders")
+
+    def __str__(self):
+        return f"{self.id} - {self.customer if self.customer else 'Sales Order'}"
+
+
+class ProductCategoryHierarchyFlattened(models.Model):
+    product_category = models.CharField(verbose_name=_("Product Category"), max_length=100, primary_key=True)
+    level_4_product_category = models.CharField(verbose_name=_("Level 4 Product Category"), max_length=100, null=True, blank=True)
+    level_3_product_category = models.CharField(verbose_name=_("Level 3 Product Category"), max_length=100, null=True, blank=True)
+    level_2_product_category = models.CharField(verbose_name=_("Level 2 Product Category"), max_length=100, null=True, blank=True)
+    level_1_product_category = models.CharField(verbose_name=_("Level 1 Product Category"), max_length=100, null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("Product Category Hierarchy Flattened")
+        verbose_name_plural = _("Product Category Hierarchy Flattened")
+
+    def __str__(self):
+        return f"{self.product_category} - {self.level_1_product_category if self.level_1_product_category else 'Category'}"
+    
