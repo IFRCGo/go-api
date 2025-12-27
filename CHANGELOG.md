@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+### Added
+ - Models used to store data coming from Microsoft Fabric
+ - Factories for SPARK models to support testing 
+
 ## 1.1.508
 
 ### Added
