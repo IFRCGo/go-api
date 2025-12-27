@@ -204,3 +204,13 @@ class DimProductFactory(factory.django.DjangoModelFactory):
     type = fuzzy.FuzzyChoice(["Item", "Service"])
     unit_of_measure = fuzzy.FuzzyChoice(["ea", "kg", "g", "m2"])
     product_category = fuzzy.FuzzyText(length=30, prefix="ifrc#{n:04d}i - TESTCATEGORY")
+
+
+class DimProductCategoryFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.DimProductCategory
+
+    category_code = fuzzy.FuzzyText(length=8)
+    name = fuzzy.FuzzyText(length=20)
+    parent_category_code = fuzzy.FuzzyText(length=4)
+    level = fuzzy.FuzzyInteger(1, 5)
