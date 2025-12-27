@@ -26,3 +26,11 @@ class DimAgreementLineFactory(factory.django.DjangoModelFactory):
     unit_of_measure = fuzzy.FuzzyChoice(["ea", "kg", "g", "m2"])
     price_per_unit = fuzzy.FuzzyDecimal(0, 500)
     line_discount_percent = fuzzy.FuzzyDecimal(0, 0.5)
+
+
+class DimAppealFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.DimAppeal
+
+    id = factory.Sequence(lambda n: f"TESTAPPEAL{n:04d}")
+    appeal_name = fuzzy.FuzzyText(length=20)
