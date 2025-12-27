@@ -34,3 +34,11 @@ class DimAppealFactory(factory.django.DjangoModelFactory):
 
     id = factory.Sequence(lambda n: f"TESTAPPEAL{n:04d}")
     appeal_name = fuzzy.FuzzyText(length=20)
+
+
+class DimBuyerGroupFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.DimBuyerGroup
+
+    code = factory.Sequence(lambda n: f"TESTBUYERGROUP{n:04d}")
+    name = fuzzy.FuzzyText(length=20)
