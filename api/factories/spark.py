@@ -333,3 +333,14 @@ class DimVendorFactory(factory.django.DjangoModelFactory):
 
     code = factory.Sequence(lambda n: f"TESTVENDOR{n:05d}")
     name = fuzzy.FuzzyText(length=20)
+
+
+class DimVendorContactFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.DimVendorContact
+
+    id = factory.Sequence(lambda n: f"VC-{n:05d}")
+    first_name = fuzzy.FuzzyText(length=30)
+    last_name = fuzzy.FuzzyText(length=30)
+    active = fuzzy.FuzzyChoice([True, False])
+    vendor = factory.Sequence(lambda n: f"TESTVENDOR{n:05d}")
