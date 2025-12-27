@@ -415,3 +415,35 @@ class FctProductReceiptFactory(factory.django.DjangoModelFactory):
     id = factory.Sequence(lambda n: f"GRN-{n:05d}")
     purchase_order = factory.Sequence(lambda n: f"PO-{n:05d}")
     delivery_date = fuzzy.FuzzyDate(datetime.date(2008, 1, 1))
+
+
+class FctPurchaseOrderFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.FctPurchaseOrder
+
+    id = factory.Sequence(lambda n: f"FPO-{n:05d}")
+    status = "Draft"
+    delivery_mode = fuzzy.FuzzyChoice(["AIR", "ROAD", "SEA", "SEARO"])
+    currency_code = fuzzy.FuzzyChoice(["USD", "CHF", "EUR", "JPY", "AED"])
+    buyer_group = fuzzy.FuzzyText(length=12)
+    vendor = factory.Sequence(lambda n: f"TESTVENDOR{n:05d}")
+    agreement = factory.Sequence(lambda n: f"FA-AA{n:05d}")
+    project = factory.Sequence(lambda n: f"TESTPROJECT{n:05d}")
+    financial_dimension_funding_arrangement = fuzzy.FuzzyText(length=15)
+    created_by_business_unit = fuzzy.FuzzyText(length=12)
+    requested_by_organizational_unit = fuzzy.FuzzyText(length=12)
+    sales_order = "NULL"
+    in_kind_donation_pledge = factory.Sequence(lambda n: f"ifrc#{n:05d}")
+    type = fuzzy.FuzzyChoice(["Purchase", "Return"]) 
+    coordination_type = fuzzy.FuzzyText(length=12)
+    apply_procurement_fees = fuzzy.FuzzyChoice([True, False])
+    origin = fuzzy.FuzzyText(length=12)
+    approval_status = fuzzy.FuzzyChoice(["Pending", "Approved", "Rejected"]) 
+    customer_reference = fuzzy.FuzzyText(length=20)
+    in_kind_donor_reference = fuzzy.FuzzyText(length=20)
+    intercompany_origin = fuzzy.FuzzyText(length=12)
+    exchange_rate = fuzzy.FuzzyDecimal(0, 10)
+    created_by = fuzzy.FuzzyText(length=30)
+    created_datetime = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
+    modified_by = fuzzy.FuzzyText(length=30)
+    modified_datetime = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
