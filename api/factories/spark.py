@@ -214,3 +214,15 @@ class DimProductCategoryFactory(factory.django.DjangoModelFactory):
     name = fuzzy.FuzzyText(length=20)
     parent_category_code = fuzzy.FuzzyText(length=4)
     level = fuzzy.FuzzyInteger(1, 5)
+
+
+class DimProductReceiptLineFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.DimProductReceiptLine
+
+    id = factory.Sequence(lambda n: f"TESTPRODUCTRECEIPTLINE{n:05d}#{n:02d}")
+    product_receipt = factory.Sequence(lambda n: f"TESTPRODUCTRECEIPTLINE{n:05d}")
+    purchase_order_line = factory.Sequence(lambda n: f"TESTPURCHASEORDER{n:05d}")
+    received_quantity = fuzzy.FuzzyDecimal(0, 1000)
+    unit = fuzzy.FuzzyChoice(["ea", "kg", "g", "m2"])
+    value_accounting_currency = fuzzy.FuzzyDecimal(-1000000, 1000000)
