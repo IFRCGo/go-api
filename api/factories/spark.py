@@ -163,3 +163,11 @@ class DimItemBatchFactory(factory.django.DjangoModelFactory):
     vendor_expiration_date = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=timezone.utc))
     price = fuzzy.FuzzyDecimal(0, 1000000000)
     currency = fuzzy.FuzzyChoice(["USD", "CHF", "EUR", "JPY", "AED"])
+
+
+class DimLocationFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.DimLocation
+
+    id = factory.Sequence(lambda n: f"TESTLOC{n:03d}")
+    location = "STOCK"
