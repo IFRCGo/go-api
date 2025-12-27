@@ -138,3 +138,13 @@ class DimInventoryTransactionLineFactory(factory.django.DjangoModelFactory):
     status = fuzzy.FuzzyChoice(["Purchased", "Sold", "Deducted", "Ordered", "Received"])
     packing_slip = factory.LazyFunction(lambda: fuzzy.FuzzyDate(datetime.date(2008, 1, 1)).fuzz().strftime("%d/%m/%Y"))
     packing_slip_returned = fuzzy.FuzzyChoice([True, False])
+
+
+class DimInventoryTransactionOriginFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.DimInventoryTransactionOrigin
+
+    id = factory.Sequence(lambda n: f"{n:06d}")
+    reference_category = fuzzy.FuzzyChoice(["Purchase Order", "Sales Order", "Counting", "Transaction"])
+    reference_number = factory.Sequence(lambda n: f"TESTREF{n:07d}")
+    excluded_from_inventory_value = fuzzy.FuzzyChoice(["No", "Yes"])
