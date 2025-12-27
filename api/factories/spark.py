@@ -171,3 +171,15 @@ class DimLocationFactory(factory.django.DjangoModelFactory):
 
     id = factory.Sequence(lambda n: f"TESTLOC{n:03d}")
     location = "STOCK"
+
+
+class DimLogisticsLocationFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.DimLogisticsLocation
+
+    id = factory.Sequence(lambda n: f"{n:09d}")
+    postal_address = fuzzy.FuzzyText(length=30)
+    country = fuzzy.FuzzyText(length=3)
+    city = fuzzy.FuzzyText(length=16)
+    street = fuzzy.FuzzyText(length=30)
+    zip_code = fuzzy.FuzzyText(length=9)
