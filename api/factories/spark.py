@@ -234,3 +234,51 @@ class DimProjectFactory(factory.django.DjangoModelFactory):
 
     id = factory.Sequence(lambda n: f"TESTPROJECT{n:03d}")
     project_name = fuzzy.FuzzyText(length=30)
+
+
+class DimPurchaseOrderLineFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.DimPurchaseOrderLine
+
+    id = factory.Sequence(lambda n: f"TESTPURCHASEORDERLINE{n:05d}")
+    line_number = factory.Sequence(lambda n: n + 1)
+    description = fuzzy.FuzzyText(length=20)
+    purchase_order = factory.Sequence(lambda n: f"TESTPURCHASEORDER{n:05d}")
+    product = factory.Sequence(lambda n: f"TESTPRODUCT{n:05d}")
+    product_category = "TESTPRODUCT"
+    status = fuzzy.FuzzyChoice(["Open Order", "Received", "Invoiced", "Cancelled"])
+    type = "OrderLine"
+    agreement = "NULL"
+    unit_of_measure = fuzzy.FuzzyChoice(["ea", "kg", "g", "m2"])
+    currency_code = fuzzy.FuzzyChoice(["USD", "CHF", "EUR", "JPY", "AED"])
+    humanitarian_procurement_center_transaction = fuzzy.FuzzyChoice([True, False])
+    ordered_quantity_inventory_unit = fuzzy.FuzzyDecimal(0, 100000)
+    ordered_quantity_purchasing_unit = fuzzy.FuzzyDecimal(-100000, 100000)
+    price_per_unit = fuzzy.FuzzyDecimal(0, 100000000)
+    price_per_unit_accounting_currency = fuzzy.FuzzyDecimal(0, 100000000)
+    donated_price_per_unit = fuzzy.FuzzyDecimal(0, 100000000)
+    donated_price_per_unit_accounting_currency = fuzzy.FuzzyDecimal(0, 100000000)
+    amount = fuzzy.FuzzyDecimal(-100000000, 1000000000)
+    amount_accounting_currency = fuzzy.FuzzyDecimal(-100000000, 1000000000)
+    donated_amount = fuzzy.FuzzyDecimal(0, 1000000000)
+    donated_amount_accounting_currency = fuzzy.FuzzyDecimal(0, 1000000000)
+    actual_weight = fuzzy.FuzzyDecimal(0, 100000)
+    actual_volume = fuzzy.FuzzyDecimal(0, 100000)
+    warehouse = fuzzy.FuzzyText(length=10, prefix="WH{n:02d}")
+    owner = fuzzy.FuzzyText(length=12, prefix="TESTOWNER{n:02d}")
+    item_batch = factory.Sequence(lambda n: f"TESTBATCH{n:05d}")
+    consignment = factory.Sequence(lambda n: f"CSGN{n:06d}")
+    financial_dimension_project = factory.Sequence(lambda n: f"TESTPRJ{n:05d}")
+    financial_dimension_appeal = factory.Sequence(lambda n: f"TESTAPPEAL{n:04d}")
+    financial_dimension_funding_arrangement = factory.Sequence(lambda n: f"TESTFUND{n:04d}")
+    requested_delivery_date = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
+    confirmed_delivery_date = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
+    delivery_mode = fuzzy.FuzzyChoice(["AIR", "ROAD", "NULL"])
+    delivery_name = fuzzy.FuzzyText(length=20)
+    delivery_address_description = fuzzy.FuzzyText(length=30)
+    delivery_postal_address = fuzzy.FuzzyText(length=30)
+    delivery_postal_address_country = fuzzy.FuzzyText(length=3)
+    created_by = fuzzy.FuzzyText(length=12)
+    created_datetime = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
+    modified_by = fuzzy.FuzzyText(length=12)
+    modified_datetime = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
