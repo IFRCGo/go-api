@@ -6,7 +6,6 @@ from django.utils import timezone
 from factory import fuzzy
 
 from .. import models
-from .country import CountryFactory
 
 class DimAgreementLineFactory(factory.django.DjangoModelFactory):
     class Meta:
