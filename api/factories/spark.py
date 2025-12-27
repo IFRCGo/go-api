@@ -66,3 +66,11 @@ class DimDonorFactory(factory.django.DjangoModelFactory):
 
     donor_code = factory.Sequence(lambda n: f"TESTDONOR{n:03d}")
     donor_name = fuzzy.FuzzyText(length=20)
+
+
+class DimInventoryItemFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.DimInventoryItem
+
+    id = fuzzy.FuzzyText(length=10)
+    unit_of_measure = fuzzy.FuzzyChoice(["ea", "kg", "g", "m2"])
