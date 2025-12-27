@@ -50,3 +50,11 @@ class DimConsignmentFactory(factory.django.DjangoModelFactory):
 
     id = factory.Sequence(lambda n: f"CSGN{n:06d}")
     delivery_mode = fuzzy.FuzzyChoice(["AIR", "ROAD", "SEA", "SEARO"])
+
+
+class DimDeliveryModeFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.DimDeliveryMode
+
+    id = fuzzy.FuzzyText(length=6)
+    description = fuzzy.FuzzyText(length=20)
