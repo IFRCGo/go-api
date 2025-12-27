@@ -353,3 +353,16 @@ class DimVendorContactEmailFactory(factory.django.DjangoModelFactory):
     id = factory.Sequence(lambda n: f"{n:06d}")
     email_address = factory.LazyAttribute(lambda obj: f"{obj.id.lower()}@example.com")
     primary = fuzzy.FuzzyChoice([True, False])
+
+
+class DimVendorPhysicalAddressFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.DimVendorPhysicalAddress
+
+    id = factory.Sequence(lambda n: f"VPA-{n:05d}")
+    country = fuzzy.FuzzyText(length=3)
+    city = fuzzy.FuzzyText(length=20)
+    street = fuzzy.FuzzyText(length=20)
+    valid_from = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
+    valid_to = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
+    zip_code = fuzzy.FuzzyText(length=9)
