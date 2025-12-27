@@ -148,3 +148,18 @@ class DimInventoryTransactionOriginFactory(factory.django.DjangoModelFactory):
     reference_category = fuzzy.FuzzyChoice(["Purchase Order", "Sales Order", "Counting", "Transaction"])
     reference_number = factory.Sequence(lambda n: f"TESTREF{n:07d}")
     excluded_from_inventory_value = fuzzy.FuzzyChoice(["No", "Yes"])
+
+
+class DimItemBatchFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.DimItemBatch
+
+    id = factory.Sequence(lambda n: f"TESTBATCH{n:06d}")
+    customer = factory.Sequence(lambda n: f"ifrc#VENDOR{n:03d}")
+    vendor = fuzzy.FuzzyText(length=20, prefix="TESTVENDOR{n:06d}")
+    unit_volume = fuzzy.FuzzyDecimal(0, 100000)
+    unit_weight = fuzzy.FuzzyDecimal(0, 100000)
+    expiration_date = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=timezone.utc))
+    vendor_expiration_date = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=timezone.utc))
+    price = fuzzy.FuzzyDecimal(0, 1000000000)
+    currency = fuzzy.FuzzyChoice(["USD", "CHF", "EUR", "JPY", "AED"])
