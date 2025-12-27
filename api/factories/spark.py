@@ -58,3 +58,11 @@ class DimDeliveryModeFactory(factory.django.DjangoModelFactory):
 
     id = fuzzy.FuzzyText(length=6)
     description = fuzzy.FuzzyText(length=20)
+
+
+class DimDonorFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.DimDonor
+
+    donor_code = factory.Sequence(lambda n: f"TESTDONOR{n:03d}")
+    donor_name = fuzzy.FuzzyText(length=20)
