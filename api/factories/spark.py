@@ -447,3 +447,16 @@ class FctPurchaseOrderFactory(factory.django.DjangoModelFactory):
     created_datetime = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
     modified_by = fuzzy.FuzzyText(length=30)
     modified_datetime = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
+
+
+class FctSalesOrderFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.FctSalesOrder
+
+    id = factory.Sequence(lambda n: f"FSO-{n:05d}")
+    customer = fuzzy.FuzzyText(length=12)
+    created_by_business_unit = fuzzy.FuzzyText(length=12)
+    humanitarian_procurement_center_transaction = fuzzy.FuzzyChoice([True, False])
+    customer_reference = fuzzy.FuzzyText(length=20)
+    customer_requisition = fuzzy.FuzzyText(length=20)
+    created_datetime = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
