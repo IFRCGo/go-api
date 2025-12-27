@@ -460,3 +460,14 @@ class FctSalesOrderFactory(factory.django.DjangoModelFactory):
     customer_reference = fuzzy.FuzzyText(length=20)
     customer_requisition = fuzzy.FuzzyText(length=20)
     created_datetime = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
+
+
+class ProductCategoryHierarchyFlattenedFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.ProductCategoryHierarchyFlattened
+
+    product_category = fuzzy.FuzzyText(length=7)
+    level_4_product_category = fuzzy.FuzzyText(length=4)
+    level_3_product_category = fuzzy.FuzzyText(length=1)
+    level_2_product_category = "LVL#2_SUBMAIN"
+    level_1_product_category = "LVL#1_MAIN"
