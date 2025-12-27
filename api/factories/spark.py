@@ -226,3 +226,11 @@ class DimProductReceiptLineFactory(factory.django.DjangoModelFactory):
     received_quantity = fuzzy.FuzzyDecimal(0, 1000)
     unit = fuzzy.FuzzyChoice(["ea", "kg", "g", "m2"])
     value_accounting_currency = fuzzy.FuzzyDecimal(-1000000, 1000000)
+
+
+class DimProjectFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.DimProject
+
+    id = factory.Sequence(lambda n: f"TESTPROJECT{n:03d}")
+    project_name = fuzzy.FuzzyText(length=30)
