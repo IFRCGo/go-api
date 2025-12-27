@@ -282,3 +282,38 @@ class DimPurchaseOrderLineFactory(factory.django.DjangoModelFactory):
     created_datetime = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
     modified_by = fuzzy.FuzzyText(length=12)
     modified_datetime = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
+
+
+class DimSalesOrderLineFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.DimSalesOrderLine
+
+    id = factory.Sequence(lambda n: f"SOL-{n:05d}")
+    description = fuzzy.FuzzyText(length=20, prefix="sol-")
+    product = factory.Sequence(lambda n: f"TESTPRODUCT{n:05d}")
+    product_category = factory.Sequence(lambda n: f"PCAT{n:04d}")
+    unit_of_measure = fuzzy.FuzzyChoice(["ea", "kg", "g", "m2"])
+    currency_code = fuzzy.FuzzyChoice(["USD", "CHF", "EUR", "JPY", "AED"])
+    status = fuzzy.FuzzyChoice(["Open", "Closed", "Pending"])
+    type = fuzzy.FuzzyChoice(["OrderLine", "ReturnLine"]) 
+    ordered_quantity_sales_unit = fuzzy.FuzzyDecimal(0, 100000)
+    amount = fuzzy.FuzzyDecimal(-100000000, 1000000000)
+    amount_accounting_currency = fuzzy.FuzzyDecimal(-100000000, 1000000000)
+    price_per_unit = fuzzy.FuzzyDecimal(0, 100000000)
+    price_per_unit_accounting_currency = fuzzy.FuzzyDecimal(0, 100000000)
+    donated_price_per_unit = fuzzy.FuzzyDecimal(0, 100000000)
+    donated_price_per_unit_accounting_currency = fuzzy.FuzzyDecimal(0, 100000000)
+    donated_amount = fuzzy.FuzzyDecimal(0, 1000000000)
+    donated_amount_accounting_currency = fuzzy.FuzzyDecimal(0, 1000000000)
+    exchange_rate_factor = fuzzy.FuzzyDecimal(0, 10)
+    delivery_mode = fuzzy.FuzzyChoice(["Air", "Road"])
+    requested_shipping_date = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
+    requested_receipt_date = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
+    delivery_postal_address = fuzzy.FuzzyText(length=30, prefix="postal-")
+    delivery_postal_address_country = fuzzy.FuzzyText(length=3)
+    warehouse = factory.Sequence(lambda n: f"WH-{n:05d}")
+    item_batch = factory.Sequence(lambda n: f"BATCH-{n:05d}")
+    inventory_owner = fuzzy.FuzzyText(length=12, prefix="owner-")
+    financial_dimension_project = factory.Sequence(lambda n: f"PRJ-{n:05d}")
+    financial_dimension_appeal = factory.Sequence(lambda n: f"TESTAPPEAL{n:04d}")
+    financial_dimension_funding_arrangement = fuzzy.FuzzyText(length=15, prefix="fund-")
