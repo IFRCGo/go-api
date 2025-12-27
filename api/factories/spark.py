@@ -317,3 +317,11 @@ class DimSalesOrderLineFactory(factory.django.DjangoModelFactory):
     financial_dimension_project = factory.Sequence(lambda n: f"PRJ-{n:05d}")
     financial_dimension_appeal = factory.Sequence(lambda n: f"TESTAPPEAL{n:04d}")
     financial_dimension_funding_arrangement = fuzzy.FuzzyText(length=15, prefix="fund-")
+
+
+class DimSiteFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.DimSite
+
+    id = factory.Sequence(lambda n: f"TESTSITE{n:02d}")
+    name = fuzzy.FuzzyText(length=20)
