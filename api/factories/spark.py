@@ -193,3 +193,14 @@ class DimPackingSlipLineFactory(factory.django.DjangoModelFactory):
     sales_order_line = factory.Sequence(lambda n: f"TESTSLIP{n:05d} - {n:02d}")
     delivery_date = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=timezone.utc))
     quantity_delivered = fuzzy.FuzzyDecimal(0, 100000)
+
+
+class DimProductFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.DimProduct
+
+    id = factory.Sequence(lambda n: f"TESTPRODUCT{n:05d}")
+    name = fuzzy.FuzzyText(length=20)
+    type = fuzzy.FuzzyChoice(["Item", "Service"])
+    unit_of_measure = fuzzy.FuzzyChoice(["ea", "kg", "g", "m2"])
+    product_category = fuzzy.FuzzyText(length=30, prefix="ifrc#{n:04d}i - TESTCATEGORY")
