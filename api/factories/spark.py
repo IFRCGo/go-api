@@ -325,3 +325,11 @@ class DimSiteFactory(factory.django.DjangoModelFactory):
 
     id = factory.Sequence(lambda n: f"TESTSITE{n:02d}")
     name = fuzzy.FuzzyText(length=20)
+
+
+class DimVendorFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.DimVendor
+
+    code = factory.Sequence(lambda n: f"TESTVENDOR{n:05d}")
+    name = fuzzy.FuzzyText(length=20)
