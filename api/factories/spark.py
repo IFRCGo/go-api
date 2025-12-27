@@ -344,3 +344,12 @@ class DimVendorContactFactory(factory.django.DjangoModelFactory):
     last_name = fuzzy.FuzzyText(length=30)
     active = fuzzy.FuzzyChoice([True, False])
     vendor = factory.Sequence(lambda n: f"TESTVENDOR{n:05d}")
+
+
+class DimVendorContactEmailFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.DimVendorContactEmail
+
+    id = factory.Sequence(lambda n: f"{n:06d}")
+    email_address = factory.LazyAttribute(lambda obj: f"{obj.id.lower()}@example.com")
+    primary = fuzzy.FuzzyChoice([True, False])
