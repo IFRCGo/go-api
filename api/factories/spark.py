@@ -92,3 +92,11 @@ class DimInventoryModuleFactory(factory.django.DjangoModelFactory):
     unit_of_measure = fuzzy.FuzzyChoice(["ea", "kg", "g", "m2"])
     item_id = factory.Sequence(lambda n: f"TESTMODULE{n:02d}")
     type = fuzzy.FuzzyChoice(["purchase", "sales", "inventory"])
+
+
+class DimInventoryOwnerFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.DimInventoryOwner
+
+    id = factory.Sequence(lambda n: f"ifrc#CODE{n:02d}")
+    name = fuzzy.FuzzyText(length=16)
