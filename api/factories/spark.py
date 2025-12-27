@@ -406,3 +406,12 @@ class FctAgreementFactory(factory.django.DjangoModelFactory):
     created_datetime = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
     modified_by = fuzzy.FuzzyText(length=12)
     modified_datetime = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
+
+
+class FctProductReceiptFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.FctProductReceipt
+
+    id = factory.Sequence(lambda n: f"GRN-{n:05d}")
+    purchase_order = factory.Sequence(lambda n: f"PO-{n:05d}")
+    delivery_date = fuzzy.FuzzyDate(datetime.date(2008, 1, 1))
