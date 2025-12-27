@@ -110,3 +110,31 @@ class DimInventoryTransactionFactory(factory.django.DjangoModelFactory):
     reference_category = fuzzy.FuzzyChoice(["Purchase Order", "Sales Order", "Counting", "Transaction"])
     reference_number = factory.Sequence(lambda n: f"TESTREF{n:04d}")
     excluded_from_inventory_value = fuzzy.FuzzyChoice([True, False])
+
+
+class DimInventoryTransactionLineFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.DimInventoryTransactionLine
+
+    id = factory.Sequence(lambda n: f"{n:010d}")
+    item_status = factory.Iterator(["OK", "NULL", "CHECK"])
+    item_status_name = factory.Iterator(["Available", "NULL","To be checked"])
+    product = factory.Sequence(lambda n: f"TESTPRODUCT{n:05d}")
+    voucher_physical = factory.Sequence(lambda n: f"ifrc#{n:05d}")
+    project = factory.Sequence(lambda n: f"ifrc#{n:05d}")
+    batch = factory.Sequence(lambda n: f"TESTBATCH{n:06d}")
+    warehouse = fuzzy.FuzzyText(length=10, prefix="WH{n:02d}")
+    owner = fuzzy.FuzzyText(length=12, prefix="ifrc#OWN{n:01d}")
+    inventory_transaction = factory.Sequence(lambda n: f"{n:06d}")
+    project_category = fuzzy.FuzzyText(length=30, prefix="ifrc#{n:04d}i - TESTCATEGORY")
+    activity = fuzzy.FuzzyText(length=20, prefix="ifrc#TESTACTIVITY{n:03d}")
+    physical_date = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
+    financial_date = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
+    status_date = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
+    expected_date = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
+    quantity = fuzzy.FuzzyDecimal(0, 1000)
+    cost_amount_posted = fuzzy.FuzzyDecimal(-1000000, 1000000)
+    cost_amount_adjustment = fuzzy.FuzzyDecimal(-10000, 10000)
+    status = fuzzy.FuzzyChoice(["Purchased", "Sold", "Deducted", "Ordered", "Received"])
+    packing_slip = factory.LazyFunction(lambda: fuzzy.FuzzyDate(datetime.date(2008, 1, 1)).fuzz().strftime("%d/%m/%Y"))
+    packing_slip_returned = fuzzy.FuzzyChoice([True, False])
