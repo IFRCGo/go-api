@@ -366,3 +366,14 @@ class DimVendorPhysicalAddressFactory(factory.django.DjangoModelFactory):
     valid_from = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
     valid_to = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
     zip_code = fuzzy.FuzzyText(length=9)
+
+
+class DimWarehouseFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.DimWarehouse
+
+    id = factory.Sequence(lambda n: f"WH{n:05d}")
+    site = factory.Sequence(lambda n: f"TESTSITE{n:05d}")
+    name = fuzzy.FuzzyText(length=20)
+    country = fuzzy.FuzzyText(length=3)
+    postal_address = fuzzy.FuzzyText(length=30)
