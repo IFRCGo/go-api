@@ -100,3 +100,13 @@ class DimInventoryOwnerFactory(factory.django.DjangoModelFactory):
 
     id = factory.Sequence(lambda n: f"ifrc#CODE{n:02d}")
     name = fuzzy.FuzzyText(length=16)
+
+
+class DimInventoryTransactionFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.DimInventoryTransaction
+
+    id = factory.Sequence(lambda n: f"{n:06d}")
+    reference_category = fuzzy.FuzzyChoice(["Purchase Order", "Sales Order", "Counting", "Transaction"])
+    reference_number = factory.Sequence(lambda n: f"TESTREF{n:04d}")
+    excluded_from_inventory_value = fuzzy.FuzzyChoice([True, False])
