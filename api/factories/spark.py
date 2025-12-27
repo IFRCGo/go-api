@@ -183,3 +183,13 @@ class DimLogisticsLocationFactory(factory.django.DjangoModelFactory):
     city = fuzzy.FuzzyText(length=16)
     street = fuzzy.FuzzyText(length=30)
     zip_code = fuzzy.FuzzyText(length=9)
+
+
+class DimPackingSlipLineFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.DimPackingSlipLine
+
+    id = factory.Sequence(lambda n: f"TESTSLIP{n:05d}")
+    sales_order_line = factory.Sequence(lambda n: f"TESTSLIP{n:05d} - {n:02d}")
+    delivery_date = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=timezone.utc))
+    quantity_delivered = fuzzy.FuzzyDecimal(0, 100000)
