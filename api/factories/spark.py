@@ -377,3 +377,32 @@ class DimWarehouseFactory(factory.django.DjangoModelFactory):
     name = fuzzy.FuzzyText(length=20)
     country = fuzzy.FuzzyText(length=3)
     postal_address = fuzzy.FuzzyText(length=30)
+
+
+class FctAgreementFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.FctAgreement
+
+    agreement_id = factory.Sequence(lambda n: f"PA-AA{n:07d}")
+    status = fuzzy.FuzzyChoice(["Effective", "On hold", "Closed"])
+    currency_code = fuzzy.FuzzyChoice(["USD", "CHF", "EUR", "JPY", "AED"])
+    buyer_group = fuzzy.FuzzyText(length=12)
+    vendor = factory.Sequence(lambda n: f"TESTVENDOR{n:05d}")
+    parent_agreement = factory.Sequence(lambda n: f"PA-AA{n:07d}")
+    managing_business_unit_organizational_unit = fuzzy.FuzzyText(length=20)
+    requesting_department_organizational_unit = fuzzy.FuzzyText(length=20)
+    preparer_worker = fuzzy.FuzzyText(length=12)
+    classification = fuzzy.FuzzyChoice(["Local Service", "Global Service", "Regional Service", "Goods"])
+    default_delivery_name = fuzzy.FuzzyText(length=20)
+    default_payment_term = fuzzy.FuzzyText(length=20)
+    document_title = fuzzy.FuzzyText(length=20)
+    purpose = fuzzy.FuzzyText(length=20)
+    document_external_reference = fuzzy.FuzzyText(length=20)
+    code = factory.Sequence(lambda n: f"CLMX{n:06d}")
+    workflow_status = fuzzy.FuzzyChoice(["Draft", "Active", "Closed"]) 
+    default_agreement_line_effective_date = fuzzy.FuzzyDate(datetime.date(2008, 1, 1))
+    default_agreement_line_expiration_date = fuzzy.FuzzyDate(datetime.date(2008, 1, 1))
+    created_by = fuzzy.FuzzyText(length=12)
+    created_datetime = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
+    modified_by = fuzzy.FuzzyText(length=12)
+    modified_datetime = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
