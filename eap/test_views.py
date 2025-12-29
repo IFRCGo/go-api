@@ -472,6 +472,18 @@ class EAPSimplifiedTestCase(APITestCase):
             "ifrc_delegation_focal_point_email": "test_ifrc@example.com",
             "ifrc_head_of_delegation_name": "IFRC head of delegation name",
             "ifrc_head_of_delegation_email": "ifrc_head@example.com",
+            "partner_contacts": [
+                {
+                    "name": "Partner 1 Contact",
+                    "email": "partner1@example.com",
+                    "title": "Partner 1 Title",
+                },
+                {
+                    "name": "Partner 2 Contact",
+                    "email": "partner2@example.com",
+                    "title": "Partner 2 Title",
+                },
+            ],
             "prioritized_hazard_and_impact": "Floods with potential heavy impact.",
             "risks_selected_protocols": "Protocol A and Protocol B.",
             "selected_early_actions": "The early actions selected.",
@@ -631,6 +643,7 @@ class EAPSimplifiedTestCase(APITestCase):
     def test_update_simplified_eap(self):
         eap_registration = EAPRegistrationFactory.create(
             eap_type=EAPType.SIMPLIFIED_EAP,
+            status=EAPStatus.UNDER_DEVELOPMENT,
             country=self.country,
             national_society=self.national_society,
             disaster_type=self.disaster_type,
@@ -1889,6 +1902,18 @@ class EAPFullTestCase(APITestCase):
             "ifrc_delegation_focal_point_email": "test_ifrc@example.com",
             "ifrc_head_of_delegation_name": "IFRC head of delegation name",
             "ifrc_head_of_delegation_email": "ifrc_head@example.com",
+            "partner_contacts": [
+                {
+                    "name": "Partner 1 Contact",
+                    "email": "partner1@example.com",
+                    "title": "Partner 1 Title",
+                },
+                {
+                    "name": "Partner 2 Contact",
+                    "email": "partner2@example.com",
+                    "title": "Partner 2 Title",
+                },
+            ],
             "budget_file": budget_file_instance.id,
             "forecast_table_file": forecast_table_file.id,
             "hazard_selection_images": [

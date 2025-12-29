@@ -15,6 +15,7 @@ from api.serializers import (
 from eap.models import (
     DaysTimeFrameChoices,
     EAPAction,
+    EAPContact,
     EAPFile,
     EAPImpact,
     EAPRegistration,
@@ -398,8 +399,24 @@ class ImpactSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class EAPContactSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
+
+    class Meta:
+        model = EAPContact
+        fields = (
+            "id",
+            "name",
+            "email",
+            "phone_number",
+        )
+
+
 class CommonEAPFieldsSerializer(serializers.ModelSerializer):
     MAX_NUMBER_OF_IMAGES = 5
+
+    # Partner NS Contact
+    partner_contacts = EAPContactSerializer(many=True, required=False)
 
     planned_operations = PlannedOperationSerializer(many=True, required=False)
     enable_approaches = EnableApproachSerializer(many=True, required=False)
@@ -411,6 +428,7 @@ class CommonEAPFieldsSerializer(serializers.ModelSerializer):
 
     def get_fields(self):
         fields = super().get_fields()
+        fields["partner_contacts"] = EAPContactSerializer(many=True, required=False)
         # TODO(susilnem): Make admin2 required once we verify the data!
         fields["admin2_details"] = Admin2Serializer(source="admin2", many=True, read_only=True)
         fields["cover_image_file"] = EAPFileUpdateSerializer(source="cover_image", required=False, allow_null=True)
@@ -533,6 +551,9 @@ class SimplifiedEAPSerializer(
 
         if not self.instance and eap_registration.has_eap_application:
             raise serializers.ValidationError("Simplified EAP for this EAP registration already exists.")
+
+        if self.instance and eap_registration.get_status_enum == EAPRegistration.Status.UNDER_REVIEW:
+            raise serializers.ValidationError("Cannot update while EAP Application is in under review.")
 
         # NOTE: Cannot update locked Simplified EAP
         if self.instance and self.instance.is_locked:
@@ -677,6 +698,9 @@ class FullEAPSerializer(
 
         if not self.instance and eap_registration.has_eap_application:
             raise serializers.ValidationError("Full EAP for this EAP registration already exists.")
+
+        if self.instance and eap_registration.get_status_enum == EAPRegistration.Status.UNDER_REVIEW:
+            raise serializers.ValidationError("Cannot update while EAP Application is in under review.")
 
         # NOTE: Cannot update locked Full EAP
         if self.instance and self.instance.is_locked:

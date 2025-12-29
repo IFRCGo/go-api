@@ -232,6 +232,20 @@ class EAPFile(EAPBaseModel):
         ordering = ["-id"]
 
 
+class EAPContact(models.Model):
+    name = models.CharField(max_length=255, verbose_name=_("Contact Name"))
+    email = models.EmailField(max_length=255, verbose_name=_("Contact Email"))
+    title = models.CharField(max_length=255, verbose_name=_("Contact Title"), null=True, blank=True)
+    phone_number = models.CharField(max_length=100, verbose_name=_("Contact Phone Number"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("EAP Contact")
+        verbose_name_plural = _("EAP Contacts")
+
+    def __str__(self):
+        return f"{self.name}"
+
+
 class TimeFrame(models.IntegerChoices):
     YEARS = 10, _("Years")
     MONTHS = 20, _("Months")
@@ -780,10 +794,12 @@ class CommonEAPFields(models.Model):
     )
 
     # Partners NS
-    partner_ns_name = models.CharField(verbose_name=_("Partner NS name"), max_length=255, null=True, blank=True)
-    partner_ns_email = models.CharField(verbose_name=_("Partner NS email"), max_length=255, null=True, blank=True)
-    partner_ns_title = models.CharField(verbose_name=_("Partner NS title"), max_length=255, null=True, blank=True)
-    partner_ns_phone_number = models.CharField(verbose_name=_("Partner NS phone number"), max_length=100, null=True, blank=True)
+    partner_contacts = models.ManyToManyField(
+        EAPContact,
+        verbose_name=_("Partner NS Contacts"),
+        related_name="+",
+        blank=True,
+    )
 
     # Delegations
     ifrc_delegation_focal_point_name = models.CharField(verbose_name=_("IFRC delegation focal point name"), max_length=255)
