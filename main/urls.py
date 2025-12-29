@@ -261,6 +261,45 @@ urlpatterns = [
     path("docs/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
     path("api-docs/", SpectacularAPIView.as_view(), name="schema"),
     path("api-docs/swagger-ui/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+    # Pull Fabric Data # REMOVE REDUNDANT APIS AFTER PROCUREMENT CALL
+    url(r"^api/v2/fabric/dim-agreement-line/", api_views.FabricDimAgreementLine.as_view(), name="dim-agreement-line"),
+    url(r"^api/v2/fabric/dim-appeal/", api_views.FabricDimAppeal.as_view(), name="dim-appeal"),
+    url(r"^api/v2/fabric/dim-buyer-group/", api_views.FabricDimBuyerGroup.as_view(), name="dim-buyer-group"),
+    url(r"^api/v2/fabric/dim-consignment/", api_views.FabricDimConsignment.as_view(), name="dim-consignment"),
+    url(r"^api/v2/fabric/dim-delivery-mode/", api_views.FabricDimDeliveryMode.as_view(), name="dim-delivery-mode"),
+    url(r"^api/v2/fabric/dim-donor/", api_views.FabricDimDonor.as_view(), name="dim-donor"),
+    url(r"^api/v2/fabric/dim-inventory-item/", api_views.FabricDimInventoryItem.as_view(), name="dim-inventory-item"),
+    url(r"^api/v2/fabric/dim-inventory-item-status/", api_views.FabricDimInventoryItemStatus.as_view(), name="dim-inventory-item-status"),
+    url(r"^api/v2/fabric/dim-inventory-module/", api_views.FabricDimInventoryModule.as_view(), name="dim-inventory-module"),
+    url(r"^api/v2/fabric/dim-inventory-owner/", api_views.FabricDimInventoryOwner.as_view(), name="dim-inventory-owner"),
+    url(r"^api/v2/fabric/dim-inventory-transaction/", api_views.FabricDimInventoryTransaction.as_view(), name="dim-inventory-transaction"),
+    url(r"^api/v2/fabric/dim-inventory-transaction-line/", api_views.FabricDimInventoryTransactionLine.as_view(), name="dim-inventory-transaction-line"),
+    url(r"^api/v2/fabric/dim-inventory-transaction-origin/", api_views.FabricDimInventoryTransactionOrigin.as_view(), name="dim-inventory-transaction-origin"),
+    url(r"^api/v2/fabric/dim-item-batch/", api_views.FabricDimItemBatch.as_view(), name="dim-item-batch"),
+    url(r"^api/v2/fabric/dim-location/", api_views.FabricDimLocation.as_view(), name="dim-location"),
+    url(r"^api/v2/fabric/dim-logistics-location/", api_views.FabricDimLogisticsLocation.as_view(), name="dim-logistics-location"),
+    url(r"^api/v2/fabric/dim-packing-slip-line/", api_views.FabricDimPackingSlipLine.as_view(), name="dim-packing-slip-line"),
+    url(r"^api/v2/fabric/dim-product/", api_views.FabricDimProduct.as_view(), name="dim-product"),
+    url(r"^api/v2/fabric/dim-product-category/", api_views.FabricDimProductCategory.as_view(), name="dim-product-category"),
+    url(r"^api/v2/fabric/dim-product-receipt-line/", api_views.FabricDimProductReceiptLine.as_view(), name="dim-product-receipt-line"),
+    url(r"^api/v2/fabric/dim-project/", api_views.FabricDimProject.as_view(), name="dim-project"),
+    url(r"^api/v2/fabric/dim-purchase-order-line/", api_views.FabricDimPurchaseOrderLine.as_view(), name="dim-purchase-order-line"),
+    url(r"^api/v2/fabric/dim-sales-order-line/", api_views.FabricDimSalesOrderLine.as_view(), name="dim-sales-order-line"),
+    url(r"^api/v2/fabric/dim-site/", api_views.FabricDimSite.as_view(), name="dim-site"),
+    url(r"^api/v2/fabric/dim-vendor/", api_views.FabricDimVendor.as_view(), name="dim-vendor"),
+    url(r"^api/v2/fabric/dim-vendor-contact/", api_views.FabricDimVendorContact.as_view(), name="dim-vendor-contact"),
+    url(r"^api/v2/fabric/dim-vendor-contact-email/", api_views.FabricDimVendorContactEmail.as_view(), name="dim-vendor-contact-email"),
+    url(r"^api/v2/fabric/dim-vendor-physical-address/", api_views.FabricDimVendorPhysicalAddress.as_view(), name="dim-vendor-physical-address"),
+    url(r"^api/v2/fabric/dim-warehouse/", api_views.FabricDimWarehouse.as_view(), name="dim-warehouse"),
+
+    url(r"^api/v2/fabric/fct-agreement/", api_views.FabricFctAgreement.as_view(), name="fct-agreement"),
+    url(r"^api/v2/fabric/fct-product-receipt/", api_views.FabricFctProductReceipt.as_view(), name="fct-product-receipt"),
+    url(r"^api/v2/fabric/fct-purchase-order/", api_views.FabricFctPurchaseOrder.as_view(), name="fct-purchase-order"),
+    url(r"^api/v2/fabric/fct-sales-order/", api_views.FabricFctSalesOrder.as_view(), name="fct-sales-order"),
+
+    url(r"^api/v2/fabric/product-category-hierarchy-flattened/", api_views.FabricProductCategoryHierarchyFlattened.as_view(), name="product-category-hierarchy-flattened"),
+
+    
 ]
 
 if settings.OIDC_ENABLE:
