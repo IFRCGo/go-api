@@ -27,7 +27,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.NOTICE("No EAP registrations found for deadline reminder."))
             return
 
-        for instance in queryset:
+        for instance in queryset.iterator():
             self.stdout.write(self.style.NOTICE(f"Sending deadline reminder email for EAPRegistration ID={instance.id}"))
             send_deadline_reminder_email(instance.id)
 
