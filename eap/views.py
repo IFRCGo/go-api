@@ -1,7 +1,8 @@
 # Create your views here.
 from django.db.models import Case, F, IntegerField, When
 from django.db.models.query import Prefetch, QuerySet
-from drf_spectacular.utils import extend_schema
+from django.templatetags.static import static
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import mixins, permissions, response, status, viewsets
 from rest_framework.decorators import action
 
@@ -29,6 +30,7 @@ from eap.permissions import (
 from eap.serializers import (
     EAPFileInputSerializer,
     EAPFileSerializer,
+    EAPGlobalFilesSerializer,
     EAPRegistrationSerializer,
     EAPStatusSerializer,
     EAPValidatedBudgetFileSerializer,
@@ -324,3 +326,54 @@ class EAPFileViewSet(
             file_serializer.save()
             return response.Response(file_serializer.data, status=status.HTTP_201_CREATED)
         return response.Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class EAPGlobalFilesViewSet(
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet,
+):
+
+    serializer_class = EAPGlobalFilesSerializer
+    permission_classes = permissions.IsAuthenticated, DenyGuestUserPermission
+
+    lookup_field = "template_type"
+    lookup_url_kwarg = "template_type"
+
+    template_map = {
+        "budget_template": "files/eap/budget_template.xlsm",
+        "forecast_table": "files/eap/forecasts_table.docx",
+        "theory_of_change_table": "files/eap/theory_of_change_table.docx",
+    }
+
+    @extend_schema(
+        request=None,
+        responses=EAPGlobalFilesSerializer,
+        parameters=[
+            OpenApiParameter(
+                name="template_type",
+                location=OpenApiParameter.PATH,
+                description="Type of EAP template to download",
+                required=True,
+                type=str,
+                enum=list(template_map.keys()),
+            )
+        ],
+    )
+    def retrieve(self, request, *args, **kwargs):
+        template_type = kwargs.get("template_type")
+        if not template_type:
+            return response.Response(
+                {
+                    "detail": "Template file type not found.",
+                },
+                status=400,
+            )
+        if template_type not in self.template_map:
+            return response.Response(
+                {
+                    "detail": f"Invalid template file type '{template_type}'.Please use one of the following values:{(self.template_map.keys())}."  # noqa
+                },
+                status=400,
+            )
+        serializer = EAPGlobalFilesSerializer({"url": request.build_absolute_uri(static(self.template_map[template_type]))})
+        return response.Response(serializer.data)
