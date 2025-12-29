@@ -2308,3 +2308,40 @@ class TestSnapshotEAP(APITestCase):
             orig_actors[0].description,
             snapshot_actors[0].description,
         )
+
+
+class EAPGlobalFileTestCase(APITestCase):
+    def setUp(self):
+        super().setUp()
+        self.url = "/api/v2/eap/global-files/"
+
+    def test_get_template_files_invalid_param(self):
+        self.authenticate()
+        response = self.client.get(f"{self.url}invalid_type/")
+        self.assert_400(response)
+        self.assertIn("detail", response.data)
+
+    def test_get_budget_template(self):
+        self.authenticate()
+        response = self.client.get(f"{self.url}budget_template/")
+        self.assert_200(response)
+        self.assertIn("url", response.data)
+        self.assertTrue(response.data["url"].endswith("files/eap/budget_template.xlsm"))
+
+    def test_get_forecast_table_template(self):
+        self.authenticate()
+        response = self.client.get(f"{self.url}forecast_table/")
+        self.assert_200(response)
+        self.assertIn("url", response.data)
+        self.assertTrue(response.data["url"].endswith("files/eap/forecasts_table.docx"))
+
+    def test_get_theory_of_change_template(self):
+        self.authenticate()
+        response = self.client.get(f"{self.url}theory_of_change_table/")
+        self.assert_200(response)
+        self.assertIn("url", response.data)
+        self.assertTrue(response.data["url"].endswith("files/eap/theory_of_change_table.docx"))
+
+    def test_get_template_files_unauthenticated(self):
+        response = self.client.get(f"{self.url}budget_template/")
+        self.assert_401(response)
