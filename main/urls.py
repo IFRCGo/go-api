@@ -283,7 +283,6 @@ urlpatterns = [
     url(r"^api/v2/fabric/dim-product-category/", api_views.FabricDimProductCategory.as_view(), name="dim-product-category"),
     url(r"^api/v2/fabric/dim-product-receipt-line/", api_views.FabricDimProductReceiptLine.as_view(), name="dim-product-receipt-line"),
     url(r"^api/v2/fabric/dim-project/", api_views.FabricDimProject.as_view(), name="dim-project"),
-    url(r"^api/v2/fabric/dim-purchase-order-line/", api_views.FabricDimPurchaseOrderLine.as_view(), name="dim-purchase-order-line"),
     url(r"^api/v2/fabric/dim-sales-order-line/", api_views.FabricDimSalesOrderLine.as_view(), name="dim-sales-order-line"),
     url(r"^api/v2/fabric/dim-site/", api_views.FabricDimSite.as_view(), name="dim-site"),
     url(r"^api/v2/fabric/dim-vendor/", api_views.FabricDimVendor.as_view(), name="dim-vendor"),
