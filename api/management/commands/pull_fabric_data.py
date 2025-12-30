@@ -24,7 +24,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--chunk-size",
             type=int,
-            default=250,
+            default=10000,
             help="Rows per batch to fetch from Fabric (default: 250).",
         )
         parser.add_argument(
