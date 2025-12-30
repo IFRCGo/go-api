@@ -2686,14 +2686,14 @@ class DimAgreementLine(models.Model):
     committed_quantity = models.DecimalField(
         verbose_name=_("Committed Quantity"),
         max_digits=20,
-        decimal_places=6,
+        decimal_places=10,
         blank=True,
         null=True,
     )
     committed_amount = models.DecimalField(
         verbose_name=_("Committed Amount"),
         max_digits=20,
-        decimal_places=2,
+        decimal_places=10,
         blank=True,
         null=True,
     )
@@ -2702,14 +2702,14 @@ class DimAgreementLine(models.Model):
     price_per_unit = models.DecimalField(
         verbose_name=_("Price Per Unit"),
         max_digits=20,
-        decimal_places=6,
+        decimal_places=10,
         blank=True,
         null=True,
     )
     line_discount_percent = models.DecimalField(
         verbose_name=_("Line Discount Percent"),
-        max_digits=10,
-        decimal_places=6,
+        max_digits=20,
+        decimal_places=10,
         blank=True,
         null=True,
     )
@@ -2723,15 +2723,27 @@ class DimAgreementLine(models.Model):
 
 
 class DimAppeal(models.Model):
-    id = models.CharField(verbose_name=_("Appeal ID"), max_length=100, primary_key=True)
-    appeal_name = models.CharField(verbose_name=_("Appeal Name"), max_length=255)
+    # Existing Fabric/business identifier (currently the DB PK)
+    id = models.CharField(
+        max_length=100,
+        primary_key=True,
+        verbose_name=_("Appeal ID"),
+    )
+
+    appeal_name = models.CharField(
+        verbose_name=_("Appeal Name"),
+        max_length=255,
+    )
 
     class Meta:
+        db_table = "api_dimappeal"
+        managed = False   # 🔑 critical
         verbose_name = _("Appeal")
         verbose_name_plural = _("Appeals")
 
     def __str__(self):
         return f"{self.id} - {self.appeal_name}"
+
 
 
 class DimBuyerGroup(models.Model):
