@@ -1813,18 +1813,6 @@ class FabricDimProject(APIView):
             return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-class FabricDimPurchaseOrderLine(APIView):
-    def get(self, request):
-        try:
-            sql = """
-            SELECT TOP (10) *
-            FROM [logistics_gold].[dbo].[dim_purchase_order_line]
-            """
-            data = fetch_all(sql)
-            return Response({"count": len(data), "results": data})
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 class FabricDimSalesOrderLine(APIView):
     def get(self, request):
