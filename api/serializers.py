@@ -2546,9 +2546,13 @@ class ExportSerializer(serializers.ModelSerializer):
     is_pga = serializers.BooleanField(default=False, required=False, write_only=True)
     # NOTE: diff is used to determine if the export is requested for diff view or not
     # Currently only used for EAP exports
-    diff = serializers.BooleanField(default=False, required=False, write_only=True)
+    diff = serializers.BooleanField(default=False, required=False, write_only=True, help_text="Only applicable for EAP exports")
     # NOTE: Version of a EAP export being requested, only applicable for full and simplified EAP exports
-    version = serializers.IntegerField(required=False, write_only=True)
+    version = serializers.IntegerField(required=False, write_only=True, help_text="Only applicable for EAP exports")
+    # NOTE: summary is used to determine if the export is requested for summary view or not on full EAP exports
+    summary = serializers.BooleanField(
+        default=False, required=False, write_only=True, help_text="Only applicable for Full EAP exports"
+    )
 
     class Meta:
         model = Export
@@ -2560,11 +2564,12 @@ class ExportSerializer(serializers.ModelSerializer):
         return pdf_file
 
     def create(self, validated_data):
-        language = django_get_language()
         export_id = validated_data.get("export_id")
         export_type = validated_data.get("export_type")
         country_id = validated_data.get("per_country")
         version = validated_data.pop("version", None)
+        diff = validated_data.pop("diff", False)
+        summary = validated_data.pop("summary", False)
         if export_type == Export.ExportType.DREF:
             title = Dref.objects.filter(id=export_id).first().title
         elif export_type == Export.ExportType.OPS_UPDATE:
@@ -2627,15 +2632,18 @@ class ExportSerializer(serializers.ModelSerializer):
             # NOTE: EAP exports with diff view only for EAPs exports
             if version:
                 validated_data["url"] += f"?version={version}"
-            diff = validated_data.pop("diff")
             if diff:
                 validated_data["url"] += "&diff=true" if version else "?diff=true"
+
+            # NOTE: Adding summary export url for full EAP exports
+            if export_type == Export.ExportType.FULL_EAP and summary:
+                validated_data["url"] = f"{settings.GO_WEB_INTERNAL_URL}/eap/{export_id}/summary/export/"
 
         else:
             validated_data["url"] = f"{settings.GO_WEB_INTERNAL_URL}/{export_type}/{export_id}/export/"
 
         # Adding is_pga to the url
-        is_pga = validated_data.pop("is_pga")
+        is_pga = validated_data.pop("is_pga", False)
         if is_pga:
             validated_data["url"] += "?is_pga=true"
         validated_data["requested_by"] = user
@@ -2645,6 +2653,7 @@ class ExportSerializer(serializers.ModelSerializer):
             export.requested_at = timezone.now()
             export.save(update_fields=["status", "requested_at"])
 
+            language = django_get_language()
             transaction.on_commit(lambda: generate_url.delay(export.url, export.id, user.id, title, language))
         return export
 

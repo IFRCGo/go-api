@@ -1667,7 +1667,6 @@ class EAPPDFExportTestCase(APITestCase):
         data = {
             "export_type": Export.ExportType.SIMPLIFIED_EAP,
             "export_id": eap_registration.id,
-            "is_pga": False,
         }
 
         self.authenticate(self.user)
@@ -1738,7 +1737,6 @@ class EAPPDFExportTestCase(APITestCase):
         data = {
             "export_type": Export.ExportType.FULL_EAP,
             "export_id": eap_registration.id,
-            "is_pga": False,
         }
 
         self.authenticate(self.user)
@@ -1801,6 +1799,56 @@ class EAPPDFExportTestCase(APITestCase):
 
         expected_url = f"{settings.GO_WEB_INTERNAL_URL}/eap/{eap_registration.id}/export/?diff=true"
         self.assertEqual(response.data["url"], expected_url)
+
+        self.assertEqual(mock_generate_url.called, True)
+        title = f"{self.national_society.name}-{self.disaster_type.name}"
+        mock_generate_url.assert_called_once_with(
+            expected_url,
+            response.data["id"],
+            self.user.id,
+            title,
+            django_get_language(),
+        )
+
+    @mock.patch("api.serializers.generate_url.delay")
+    def test_eap_summary_export(self, mock_generate_url):
+        eap_registration = EAPRegistrationFactory.create(
+            eap_type=EAPType.FULL_EAP,
+            country=self.country,
+            national_society=self.national_society,
+            disaster_type=self.disaster_type,
+            created_by=self.user,
+            modified_by=self.user,
+        )
+
+        full_eap = FullEAPFactory.create(
+            eap_registration=eap_registration,
+            created_by=self.user,
+            modified_by=self.user,
+            budget_file=EAPFileFactory._create_file(
+                created_by=self.user,
+                modified_by=self.user,
+            ),
+        )
+
+        eap_registration.latest_full_eap = full_eap
+        eap_registration.save()
+
+        data = {
+            "export_type": Export.ExportType.FULL_EAP,
+            "export_id": eap_registration.id,
+            "summary": True,
+        }
+
+        self.authenticate(self.user)
+
+        with self.capture_on_commit_callbacks(execute=True):
+            response = self.client.post(self.url, data, format="json")
+        self.assert_201(response)
+        self.assertIsNotNone(response.data["id"], response.data)
+        expected_url = f"{settings.GO_WEB_INTERNAL_URL}/eap/{eap_registration.id}/summary/export/"
+        self.assertEqual(response.data["url"], expected_url)
+        self.assertEqual(response.data["status"], Export.ExportStatus.PENDING)
 
         self.assertEqual(mock_generate_url.called, True)
         title = f"{self.national_society.name}-{self.disaster_type.name}"
