@@ -552,8 +552,14 @@ class SimplifiedEAPSerializer(
         if not self.instance and eap_registration.has_eap_application:
             raise serializers.ValidationError("Simplified EAP for this EAP registration already exists.")
 
-        if self.instance and eap_registration.get_status_enum == EAPRegistration.Status.UNDER_REVIEW:
-            raise serializers.ValidationError("Cannot update while EAP Application is in under review.")
+        if self.instance and eap_registration.get_status_enum in [
+            EAPRegistration.Status.UNDER_REVIEW,
+            EAPRegistration.Status.APPROVED,
+        ]:
+            raise serializers.ValidationError(
+                gettext("Cannot update while EAP Application is in %s."),
+                EAPRegistration.Status(eap_registration.get_status_enum).label,
+            )
 
         # NOTE: Cannot update locked Simplified EAP
         if self.instance and self.instance.is_locked:
@@ -699,8 +705,14 @@ class FullEAPSerializer(
         if not self.instance and eap_registration.has_eap_application:
             raise serializers.ValidationError("Full EAP for this EAP registration already exists.")
 
-        if self.instance and eap_registration.get_status_enum == EAPRegistration.Status.UNDER_REVIEW:
-            raise serializers.ValidationError("Cannot update while EAP Application is in under review.")
+        if self.instance and eap_registration.get_status_enum not in [
+            EAPRegistration.Status.UNDER_DEVELOPMENT,
+            EAPRegistration.Status.NS_ADDRESSING_COMMENTS,
+        ]:
+            raise serializers.ValidationError(
+                gettext("Cannot update while EAP Application is in %s."),
+                EAPRegistration.Status(eap_registration.get_status_enum).label,
+            )
 
         # NOTE: Cannot update locked Full EAP
         if self.instance and self.instance.is_locked:

@@ -18,8 +18,16 @@ def has_country_permission(
             codename__startswith="country_admin_",
         ).values_list("codename", flat=True)
     ]
-    # TODO(susilnem): Add region admin check if needed in future
-    return national_society_id in country_admin_ids
+
+    regional_admin_ids = [
+        int(codename.replace("region_admin_", ""))
+        for codename in Permission.objects.filter(
+            group__user=user,
+            codename__startswith="region_admin_",
+        ).values_list("codename", flat=True)
+    ]
+
+    return national_society_id in country_admin_ids or national_society_id in regional_admin_ids
 
 
 class EAPRegistrationPermissions(BasePermission):

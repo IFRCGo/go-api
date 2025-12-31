@@ -443,6 +443,7 @@ class EAPSimplifiedTestCase(APITestCase):
         url = "/api/v2/simplified-eap/"
         eap_registration = EAPRegistrationFactory.create(
             eap_type=EAPType.SIMPLIFIED_EAP,
+            status=EAPStatus.UNDER_DEVELOPMENT,
             country=self.country,
             national_society=self.national_society,
             disaster_type=self.disaster_type,
@@ -1199,6 +1200,19 @@ class EAPStatusTransitionTestCase(APITestCase):
         self.assertEqual(response.status_code, 200, response.data)
         self.assertEqual(response.data["status"], EAPStatus.UNDER_REVIEW)
 
+        # NOTE: Check if the NS can update after changing to UNDER_REVIEW
+        # FAILS: As simplified EAP is in UNDER_REVIEW, cannot update
+        self.authenticate(self.country_admin)
+        update_data = {
+            "total_budget": 15000,
+            "readiness_budget": 5000,
+            "pre_positioning_budget": 5000,
+            "early_action_budget": 5000,
+        }
+        url = f"/api/v2/simplified-eap/{simplified_eap.id}/"
+        response = self.client.patch(url, update_data, format="json")
+        self.assertEqual(response.status_code, 400)
+
         # NOTE: Transition to NS_ADDRESSING_COMMENTS
         # UNDER_REVIEW -> NS_ADDRESSING_COMMENTS
         data = {
@@ -1573,6 +1587,12 @@ class EAPStatusTransitionTestCase(APITestCase):
         self.eap_registration.refresh_from_db()
         self.assertIsNotNone(self.eap_registration.pending_pfa_at)
 
+        # NOTE: Check as if user cannot update after PENDING_PFA_AT
+        # FAILS As simplified EAP is in PENDING_PFA, cannot updated
+        url = f"/api/v2/simplified-eap/{simplified_eap.id}/"
+        response = self.client.patch(url, update_data, format="json")
+        self.assertEqual(response.status_code, 400)
+
         # NOTE: Transition to APPROVED
         # PENDING_PFA -> APPROVED
         data = {
@@ -1596,6 +1616,13 @@ class EAPStatusTransitionTestCase(APITestCase):
         self.eap_registration.refresh_from_db()
         self.assertIsNotNone(self.eap_registration.approved_at)
 
+        # Check as if NS user cannot update after APPROVED
+        # FAILS As simplified EAP is in APPROVED, cannot update
+        self.authenticate(self.country_admin)
+        url = f"/api/v2/simplified-eap/{simplified_eap.id}/"
+        response = self.client.patch(url, update_data, format="json")
+        self.assertEqual(response.status_code, 400)
+
         # NOTE: Transition to ACTIVATED
         # APPROVED -> ACTIVATED
         data = {
@@ -1618,6 +1645,13 @@ class EAPStatusTransitionTestCase(APITestCase):
         # Check is the activated timeline is added
         self.eap_registration.refresh_from_db()
         self.assertIsNotNone(self.eap_registration.activated_at)
+
+        # Check as if NS user cannot update after ACTIVATED
+        # FAILS As simplified EAP is in ACTIVATED, cannot updated
+        self.authenticate(self.country_admin)
+        url = f"/api/v2/simplified-eap/{simplified_eap.id}/"
+        response = self.client.patch(url, update_data, format="json")
+        self.assertEqual(response.status_code, 400)
 
 
 class EAPPDFExportTestCase(APITestCase):
@@ -2172,6 +2206,7 @@ class EAPFullTestCase(APITestCase):
         # Create EAP Registration
         eap_registration = EAPRegistrationFactory.create(
             eap_type=EAPType.FULL_EAP,
+            status=EAPStatus.UNDER_DEVELOPMENT,
             country=self.country,
             national_society=self.national_society,
             disaster_type=self.disaster_type,
