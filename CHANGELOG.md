@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
  - Models used to store data coming from Microsoft Fabric
  - Factories for SPARK models to support testing 
+ - Command for pulling all data from lakehouse into db
 
 ## 1.1.508
 
