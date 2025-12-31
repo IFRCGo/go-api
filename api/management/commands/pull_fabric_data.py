@@ -9,7 +9,7 @@ from api.fabric_import_map import FABRIC_IMPORT_STAGES, FABRIC_DB, FABRIC_SCHEMA
 from api.fabric_sql import fetch_all
 
 
-DEFAULT_APP_LABEL = "api"  # <-- change if your Fabric models live in another Django app
+DEFAULT_APP_LABEL = "api" 
 
 
 class Command(BaseCommand):
@@ -83,11 +83,9 @@ class Command(BaseCommand):
                 kwargs["fabric_id"] = value
                 continue
 
-            # Never manually set Django PK
             if col == "id" and model_fields["id"].primary_key:
                 continue
-
-            # Normal field copy if it exists on the model
+            
             if col in model_fields:
                 kwargs[col] = value
 
@@ -119,13 +117,12 @@ class Command(BaseCommand):
             self.stdout.write(f"  Target model: {model_cls.__module__}.{model_cls.__name__}")
             self.stdout.write(f"  Pagination: {pagination} | page_key: {page_key} | chunk_size: {chunk_size}")
 
-            # Optional quick sanity check
             t0 = time.time()
             test_sql = f"SELECT TOP (1) * FROM {fq_table}"
             _ = fetch_all(test_sql, limit=1)
             self.stdout.write(self.style.SUCCESS(f"  [TEST] Fabric reachable ({time.time() - t0:.2f}s)"))
 
-            # Truncate local table once per stage (recommended for one-time loads)
+            # Truncate local table once per stage 
             if not no_truncate:
                 self.stdout.write("  Truncating local table...")
                 with transaction.atomic():
@@ -178,7 +175,6 @@ class Command(BaseCommand):
                     ))
 
             elif pagination == "row_number":
-                # Note: row_number recomputes each time; acceptable for one-off imports.
                 last_rn = 0
                 while True:
                     start_rn = last_rn + 1
