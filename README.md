@@ -37,7 +37,13 @@ email-verification only, is to be found
 ### Applying the last migration files to database
 
      $ docker-compose run --rm migrate
-
+### Pulling Fabric Data
+     $ Docker compose build
+     $ Docker compose up serve celery
+     $ Docker compose run --rm migrate
+     $ Docker compose exec serve az login #Follow instructions on screen
+     $ Docker compose exec serve python manage.py pull_fabric_data 
+     
 ### Accessing python shell
 
      $ docker-compose run --rm shell
