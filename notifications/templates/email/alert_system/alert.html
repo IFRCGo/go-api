@@ -4,14 +4,15 @@
     <tr>
         <td>
             <h3>Dear {{ user_name }},</h3>
-
-            <p>
-                A new alert, <strong>{{ event_title }}</strong>, has been observed in 
+           <p>
+                A new alert, <strong>{{ event_title }}</strong>, has been observed in
                 {% for country in country_name %}
                     {{ country }}{% if not forloop.last %}, {% endif %}
-                {% endfor %} on full date and time.
+                {% endfor %}
+                {% if start_datetime %}
+                    at {{ start_datetime }}
+                {% endif %}
             </p>
-
             <h4>Key Figures</h4>
             <ul>
                <li>Total People Exposed: {{ total_people_exposed }}</li>

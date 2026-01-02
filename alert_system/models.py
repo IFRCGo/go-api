@@ -3,14 +3,8 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-<<<<<<< HEAD
 from api.models import DisasterType, Event
-||||||| parent of 3595f6e2 (feat(alert-system): Add email notification setup for alert system)
-from api.models import DisasterType
-=======
-from api.models import DisasterType
 from notifications.models import AlertSubscription
->>>>>>> 3595f6e2 (feat(alert-system): Add email notification setup for alert system)
 
 
 class Connector(models.Model):
@@ -145,39 +139,9 @@ class LoadItem(BaseItem):
         verbose_name=_("Event Description"),
         help_text=_("Description of the event"),
     )
-
     start_datetime = models.DateTimeField(null=False, blank=False, help_text="Start datetime of the event")
 
     end_datetime = models.DateTimeField(null=True, blank=False, help_text="End datetime of the event")
-
-    country_codes = ArrayField(
-        models.CharField(max_length=150), null=True, help_text="List of country codes(ISO3) of afffected countries"
-    )
-
-    resp_data = models.JSONField(
-        null=True, blank=True, verbose_name=_("Response Data"), help_text=_("Raw JSON response from the STAC API")
-    )
-
-    def __str__(self):
-        return self.stac_id
-
-
-class LoadItem(BaseItem):
-    """
-    Model for Load items.
-    """
-
-    # TODO:  New id to be used in the future.
-    event_title = models.CharField(
-        max_length=255,
-        verbose_name=_("Event Title"),
-        help_text=_("Title of the event"),
-    )
-
-    event_description = models.TextField(
-        verbose_name=_("Event Description"),
-        help_text=_("Description of the event"),
-    )
 
     country_codes = ArrayField(
         models.CharField(max_length=150), null=True, help_text="List of country codes(ISO3) of afffected countries"

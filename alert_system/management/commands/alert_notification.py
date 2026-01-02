@@ -20,7 +20,7 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.NOTICE("Sending alert email notification"))
 
-        for item in items.iterator():
+        for item in items:
             send_alert_email_notification.delay(load_item_id=item.id)
 
         self.stdout.write(self.style.SUCCESS("All alert notification email send successfully"))

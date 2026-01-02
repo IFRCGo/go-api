@@ -18,6 +18,8 @@ class AlertEmailPreview(APIView):
                 "user_name": "Test User",
                 "event_title": "Test Title",
                 "event_description": "This is a test description for the alert email.",
+                "start_datetime": "2025-11-28 01:00:00",
+                "end_datetime": "2025-11-28 01:00:00",
                 "country_name": [
                     "Nepal",
                 ],

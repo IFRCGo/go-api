@@ -6,6 +6,8 @@ from celery import chain, group, shared_task
 from celery.exceptions import MaxRetriesExceededError
 from django.db import transaction
 from django.db.models import Max
+from django.template.loader import render_to_string
+from django.utils import timezone
 
 from alert_system.etl.base.extraction import PastEventExtractionClass
 from alert_system.utils import (
@@ -212,8 +214,8 @@ def send_alert_email_notification(load_item_id: int):
             status=EmailAlertLog.Status.SENT,
         ).exists():
             logger.info(
-                f"Duplicate alert skipped for user [{user.get_full_name}] subscription_id=[{subscription.id}] "
-                f"load_item=[{load_item_id}]"
+                f"Duplicate alert skipped for user [{user.get_full_name()}] with subscription ID [{subscription.id}] "
+                f"loadItem ID [{load_item_id}]"
             )
             continue
 
@@ -227,7 +229,7 @@ def send_alert_email_notification(load_item_id: int):
             message_id=message_id,
             processed_at=timezone.now(),
         )
-        logger.info(f"Processing alert email for user=[{user.get_full_name}] with message_id={message_id}")
+        logger.info(f"Processing alert email for user [{user.get_full_name()}] with message ID [{message_id}]")
 
         try:
             email_subject = f"New Hazard Alert:{load_item.event_title}"
@@ -250,17 +252,15 @@ def send_alert_email_notification(load_item_id: int):
             email_log.sent_at = timezone.now()
             email_log.save(update_fields=["status", "sent_at"])
             logger.info(
-                f"Alert email sent successfully to user=[{user.get_full_name}] with subscription_id={subscription.id} "
-                f"load_item_id={load_item_id} "
+                f"Alert email sent successfully to user [{user.get_full_name()}] with subscription ID [{subscription.id}] "
+                f"loadItem ID [{load_item_id}]"
             )
-        except Exception:
+        except Exception as e:
             email_log.status = EmailAlertLog.Status.FAILED
             email_log.save(update_fields=["status"])
             logger.warning(
-                f"Alert email semt failed: "
-                f"user=[{user.get_full_name()}] "
-                f"subscription_id=[{subscription.id}] "
-                f"load_item_id=[{load_item_id}] "
-                f"message_id=[{message_id}] "
+                f"Alert email sent failed with exception: {e} "
+                f"for user [{user.get_full_name()}] with subscription ID [{subscription.id}]",
+                exc_info=True,
             )
             raise

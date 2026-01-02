@@ -20,11 +20,13 @@ def get_alert_email_context(load_item: LoadItem, user):
         "total_people_exposed": load_item.total_people_exposed,
         "total_buildings_exposed": load_item.total_buildings_exposed,
         "hazard_types": load_item.connector.dtype,
-        "related_go_events": load_item.related_go_events,
+        "related_go_events": load_item.related_go_events.all(),
         "related_montandon_events": load_item.related_montandon_events.filter(item_eligible=True).order_by(
             "-total_people_exposed"
         ),
         "frontend_url": settings.GO_WEB_URL,
+        "start_datetime": load_item.start_datetime,
+        "end_datetime": load_item.end_datetime,
     }
     return email_context
 
