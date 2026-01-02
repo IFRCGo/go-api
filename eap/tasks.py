@@ -4,6 +4,7 @@ from celery import shared_task
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.template.loader import render_to_string
+from django.utils import timezone
 
 from eap.models import EAPRegistration, EAPType, FullEAP, SimplifiedEAP
 from eap.utils import get_coordinator_emails_by_region, get_eap_email_context
@@ -114,7 +115,7 @@ def send_feedback_email(eap_registration_id: int):
         ifrc_delegation_focal_point_email = latest_simplified_eap.ifrc_delegation_focal_point_email
     else:
         latest_full_eap = instance.latest_full_eap
-        partner_ns_email = latest_full_eap.partner_ns_name
+        partner_ns_email = latest_full_eap.partner_ns_email
         ifrc_delegation_focal_point_email = latest_full_eap.ifrc_delegation_focal_point_email
 
     regional_coordinator_emails: list[str] = get_coordinator_emails_by_region(instance.country.region)
@@ -165,7 +166,7 @@ def send_eap_resubmission_email(eap_registration_id: int):
         latest_version = latest_simplified_eap.version
     else:
         latest_full_eap = instance.latest_full_eap
-        partner_ns_email = latest_full_eap.partner_ns_name
+        partner_ns_email = latest_full_eap.partner_ns_email
         latest_version = latest_full_eap.version
 
     regional_coordinator_emails: list[str] = get_coordinator_emails_by_region(instance.country.region)
@@ -268,7 +269,7 @@ def send_technical_validation_email(eap_registration_id: int):
         partner_ns_email = latest_simplified_eap.partner_ns_email
     else:
         latest_full_eap = instance.latest_full_eap
-        partner_ns_email = latest_full_eap.partner_ns_name
+        partner_ns_email = latest_full_eap.partner_ns_email
 
     regional_coordinator_emails: list[str] = get_coordinator_emails_by_region(instance.country.region)
 
@@ -312,7 +313,7 @@ def send_pending_pfa_email(eap_registration_id: int):
         partner_ns_email = latest_simplified_eap.partner_ns_email
     else:
         latest_full_eap = instance.latest_full_eap
-        partner_ns_email = latest_full_eap.partner_ns_name
+        partner_ns_email = latest_full_eap.partner_ns_email
 
     regional_coordinator_emails: list[str] = get_coordinator_emails_by_region(instance.country.region)
 
@@ -357,7 +358,7 @@ def send_approved_email(eap_registration_id: int):
         email_context = "Simplified EAP"
     else:
         latest_full_eap = instance.latest_full_eap
-        partner_ns_email = latest_full_eap.partner_ns_name
+        partner_ns_email = latest_full_eap.partner_ns_email
         email_context = "Full EAP"
 
     regional_coordinator_emails: list[str] = get_coordinator_emails_by_region(instance.country.region)
@@ -402,7 +403,7 @@ def send_deadline_reminder_email(eap_registration_id: int):
         partner_ns_email = latest_simplified_eap.partner_ns_email
     else:
         latest_full_eap = instance.latest_full_eap
-        partner_ns_email = latest_full_eap.partner_ns_name
+        partner_ns_email = latest_full_eap.partner_ns_email
 
     regional_coordinator_emails: list[str] = get_coordinator_emails_by_region(instance.country.region)
 
@@ -422,7 +423,7 @@ def send_deadline_reminder_email(eap_registration_id: int):
     )
     email_context = get_eap_email_context(instance)
     email_subject = f"[DREF {instance.get_eap_type_display()} SUBMISSION REMINDER] {instance.country} {instance.disaster_type}"
-    email_body = render_to_string("email/eap/approved.html", email_context)
+    email_body = render_to_string("email/eap/reminder.html", email_context)
     email_type = "Approved EAP"
     send_notification(
         subject=email_subject,
@@ -431,4 +432,7 @@ def send_deadline_reminder_email(eap_registration_id: int):
         mailtype=email_type,
         cc_recipients=cc_recipients,
     )
+    instance.deadline_remainder_sent_at = timezone.now()
+    instance.save(update_fields=["deadline_remainder_sent_at"])
+
     return email_context

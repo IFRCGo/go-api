@@ -130,6 +130,7 @@ class SentryMonitor(models.TextChoices):
     INGEST_ICRC = "ingest_icrc", "0 3 * * 0"
     # NOTIFY_VALIDATORS = "notify_validators", "0 0 * * *" # NOTE: Disable local unit email notification for now
     OAUTH_CLEARTOKENS = "oauth_cleartokens", "0 1 * * *"
+    EAP_SUBMISSION_REMINDER = "eap_submission_reminder", "0 0 * * *"
 
     @staticmethod
     def load_cron_data() -> typing.List[typing.Tuple[str, str]]:
