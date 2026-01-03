@@ -22,7 +22,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django_filters import rest_framework as rest_filters
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import filters, mixins, serializers, viewsets
+from rest_framework import filters, mixins, serializers, viewsets, status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -65,6 +65,8 @@ from main.permissions import DenyGuestUserMutationPermission, DenyGuestUserPermi
 from main.utils import is_tableau
 from per.models import Overview
 from per.serializers import CountryLatestOverviewSerializer
+
+from .fabric_sql import fetch_all
 
 from .exceptions import BadRequest
 from .models import (
@@ -1536,3 +1538,434 @@ class CountrySupportingPartnerViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return CountrySupportingPartner.objects.select_related("country")
+
+
+class FabricDimAgreementLine(APIView):
+    def get(self, request):
+        try:
+            sql = """
+            SELECT TOP (10) *
+            FROM [logistics_gold].[dbo].[dim_agreement_line]
+            """
+            data = fetch_all(sql)
+            return Response({"count": len(data), "results": data})
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class FabricDimAppeal(APIView):
+    def get(self, request):
+        try:
+            sql = """
+            SELECT TOP (10) *
+            FROM [logistics_gold].[dbo].[dim_appeal]
+            """
+            data = fetch_all(sql)
+            return Response({"count": len(data), "results": data})
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class FabricDimBuyerGroup(APIView):
+    def get(self, request):
+        try:
+            sql = """
+            SELECT TOP (10) *
+            FROM [logistics_gold].[dbo].[dim_buyer_group]
+            """
+            data = fetch_all(sql)
+            return Response({"count": len(data), "results": data})
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class FabricDimConsignment(APIView):
+    def get(self, request):
+        try:
+            sql = """
+            SELECT TOP (10) *
+            FROM [logistics_gold].[dbo].[dim_consignment]
+            """
+            data = fetch_all(sql)
+            return Response({"count": len(data), "results": data})
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class FabricDimDeliveryMode(APIView):
+    def get(self, request):
+        try:
+            sql = """
+            SELECT TOP (10) *
+            FROM [logistics_gold].[dbo].[dim_delivery_mode]
+            """
+            data = fetch_all(sql)
+            return Response({"count": len(data), "results": data})
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class FabricDimDonor(APIView):
+    def get(self, request):
+        try:
+            sql = """
+            SELECT TOP (10) *
+            FROM [logistics_gold].[dbo].[dim_donor]
+            """
+            data = fetch_all(sql)
+            return Response({"count": len(data), "results": data})
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class FabricDimInventoryItem(APIView):
+    def get(self, request):
+        try:
+            sql = """
+            SELECT TOP (10) *
+            FROM [logistics_gold].[dbo].[dim_inventory_item]
+            """
+            data = fetch_all(sql)
+            return Response({"count": len(data), "results": data})
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class FabricDimInventoryItemStatus(APIView):
+    def get(self, request):
+        try:
+            sql = """
+            SELECT TOP (10) *
+            FROM [logistics_gold].[dbo].[dim_inventory_item_status]
+            """
+            data = fetch_all(sql)
+            return Response({"count": len(data), "results": data})
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class FabricDimInventoryModule(APIView):
+    def get(self, request):
+        try:
+            sql = """
+            SELECT TOP (10) *
+            FROM [logistics_gold].[dbo].[dim_inventory_module]
+            """
+            data = fetch_all(sql)
+            return Response({"count": len(data), "results": data})
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class FabricDimInventoryOwner(APIView):
+    def get(self, request):
+        try:
+            sql = """
+            SELECT TOP (10) *
+            FROM [logistics_gold].[dbo].[dim_inventory_owner]
+            """
+            data = fetch_all(sql)
+            return Response({"count": len(data), "results": data})
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class FabricDimInventoryTransaction(APIView):
+    def get(self, request):
+        try:
+            sql = """
+            SELECT TOP (10) *
+            FROM [logistics_gold].[dbo].[dim_inventory_transaction]
+            """
+            data = fetch_all(sql)
+            return Response({"count": len(data), "results": data})
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class FabricDimInventoryTransactionLine(APIView):
+    def get(self, request):
+        try:
+            sql = """
+            SELECT TOP (10) *
+            FROM [logistics_gold].[dbo].[dim_inventory_transaction_line]
+            """
+            data = fetch_all(sql)
+            return Response({"count": len(data), "results": data})
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class FabricDimInventoryTransactionOrigin(APIView):
+    def get(self, request):
+        try:
+            sql = """
+            SELECT TOP (10) *
+            FROM [logistics_gold].[dbo].[dim_inventory_transaction_origin]
+            """
+            data = fetch_all(sql)
+            return Response({"count": len(data), "results": data})
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class FabricDimItemBatch(APIView):
+    def get(self, request):
+        try:
+            sql = """
+            SELECT TOP (10) *
+            FROM [logistics_gold].[dbo].[dim_item_batch]
+            """
+            data = fetch_all(sql)
+            return Response({"count": len(data), "results": data})
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class FabricDimLocation(APIView):
+    def get(self, request):
+        try:
+            sql = """
+            SELECT TOP (10) *
+            FROM [logistics_gold].[dbo].[dim_location]
+            """
+            data = fetch_all(sql)
+            return Response({"count": len(data), "results": data})
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class FabricDimLogisticsLocation(APIView):
+    def get(self, request):
+        try:
+            sql = """
+            SELECT TOP (10) *
+            FROM [logistics_gold].[dbo].[dim_logistics_location]
+            """
+            data = fetch_all(sql)
+            return Response({"count": len(data), "results": data})
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class FabricDimPackingSlipLine(APIView):
+    def get(self, request):
+        try:
+            sql = """
+            SELECT TOP (10) *
+            FROM [logistics_gold].[dbo].[dim_packing_slip_line]
+            """
+            data = fetch_all(sql)
+            return Response({"count": len(data), "results": data})
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class FabricDimProduct(APIView):
+    def get(self, request):
+        try:
+            sql = """
+            SELECT TOP (10) *
+            FROM [logistics_gold].[dbo].[dim_product]
+            """
+            data = fetch_all(sql)
+            return Response({"count": len(data), "results": data})
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class FabricDimProductCategory(APIView):
+    def get(self, request):
+        try:
+            sql = """
+            SELECT TOP (10) *
+            FROM [logistics_gold].[dbo].[dim_product_category]
+            """
+            data = fetch_all(sql)
+            return Response({"count": len(data), "results": data})
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class FabricDimProductReceiptLine(APIView):
+    def get(self, request):
+        try:
+            sql = """
+            SELECT TOP (10) *
+            FROM [logistics_gold].[dbo].[dim_product_receipt_line]
+            """
+            data = fetch_all(sql)
+            return Response({"count": len(data), "results": data})
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class FabricDimProject(APIView):
+    def get(self, request):
+        try:
+            sql = """
+            SELECT TOP (10) *
+            FROM [logistics_gold].[dbo].[dim_project]
+            """
+            data = fetch_all(sql)
+            return Response({"count": len(data), "results": data})
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+class FabricDimSalesOrderLine(APIView):
+    def get(self, request):
+        try:
+            sql = """
+            SELECT TOP (10) *
+            FROM [logistics_gold].[dbo].[dim_sales_order_line]
+            """
+            data = fetch_all(sql)
+            return Response({"count": len(data), "results": data})
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class FabricDimSite(APIView):
+    def get(self, request):
+        try:
+            sql = """
+            SELECT TOP (10) *
+            FROM [logistics_gold].[dbo].[dim_site]
+            """
+            data = fetch_all(sql)
+            return Response({"count": len(data), "results": data})
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class FabricDimVendor(APIView):
+    def get(self, request):
+        try:
+            sql = """
+            SELECT TOP (10) *
+            FROM [logistics_gold].[dbo].[dim_vendor]
+            """
+            data = fetch_all(sql)
+            return Response({"count": len(data), "results": data})
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class FabricDimVendorContact(APIView):
+    def get(self, request):
+        try:
+            sql = """
+            SELECT TOP (10) *
+            FROM [logistics_gold].[dbo].[dim_vendor_contact]
+            """
+            data = fetch_all(sql)
+            return Response({"count": len(data), "results": data})
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class FabricDimVendorContactEmail(APIView):
+    def get(self, request):
+        try:
+            sql = """
+            SELECT TOP (10) *
+            FROM [logistics_gold].[dbo].[dim_vendor_contact_email]
+            """
+            data = fetch_all(sql)
+            return Response({"count": len(data), "results": data})
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class FabricDimVendorPhysicalAddress(APIView):
+    def get(self, request):
+        try:
+            sql = """
+            SELECT TOP (10) *
+            FROM [logistics_gold].[dbo].[dim_vendor_physical_address]
+            """
+            data = fetch_all(sql)
+            return Response({"count": len(data), "results": data})
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class FabricDimWarehouse(APIView):
+    def get(self, request):
+        try:
+            sql = """
+            SELECT TOP (10) *
+            FROM [logistics_gold].[dbo].[dim_warehouse]
+            """
+            data = fetch_all(sql)
+            return Response({"count": len(data), "results": data})
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class FabricFctAgreement(APIView):
+    def get(self, request):
+        try:
+            sql = """
+            SELECT TOP (10) *
+            FROM [logistics_gold].[dbo].[fct_agreement]
+            """
+            data = fetch_all(sql)
+            return Response({"count": len(data), "results": data})
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class FabricFctProductReceipt(APIView):
+    def get(self, request):
+        try:
+            sql = """
+            SELECT TOP (10) *
+            FROM [logistics_gold].[dbo].[fct_product_receipt]
+            """
+            data = fetch_all(sql)
+            return Response({"count": len(data), "results": data})
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class FabricFctPurchaseOrder(APIView):
+    def get(self, request):
+        try:
+            sql = """
+            SELECT TOP (10) *
+            FROM [logistics_gold].[dbo].[fct_purchase_order]
+            """
+            data = fetch_all(sql)
+            return Response({"count": len(data), "results": data})
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class FabricFctSalesOrder(APIView):
+    def get(self, request):
+        try:
+            sql = """
+            SELECT TOP (10) *
+            FROM [logistics_gold].[dbo].[fct_sales_order]
+            """
+            data = fetch_all(sql)
+            return Response({"count": len(data), "results": data})
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class FabricProductCategoryHierarchyFlattened(APIView):
+    def get(self, request):
+        try:
+            sql = """
+            SELECT TOP (10) *
+            FROM [logistics_gold].[dbo].[product_category_hierarchy_flattened]
+            """
+            data = fetch_all(sql)
+            return Response({"count": len(data), "results": data})
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
