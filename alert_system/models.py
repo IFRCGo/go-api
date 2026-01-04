@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils import timezone
@@ -5,6 +6,7 @@ from django.utils.module_loading import import_string
 from django.utils.translation import gettext_lazy as _
 
 from api.models import DisasterType, Event
+from notifications.models import AlertSubscription
 
 
 class ImpactDetailsEnum:
@@ -188,7 +190,6 @@ class LoadItem(BaseItem):
         verbose_name=_("Event Description"),
         help_text=_("Description of the event"),
     )
-
     start_datetime = models.DateTimeField(null=False, blank=False, help_text="Start datetime of the event")
 
     end_datetime = models.DateTimeField(null=True, blank=False, help_text="End datetime of the event")
@@ -253,3 +254,140 @@ class LoadItem(BaseItem):
     class Meta:
         verbose_name = _("Eligible Item")
         verbose_name_plural = _("Eligible Items")
+
+
+class AlertEmailThread(models.Model):
+    """
+    Represents a single email conversation (thread) for alert emails.
+    """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="alert_email_threads",
+    )
+
+    correlation_id = models.CharField(
+        max_length=255,
+        db_index=True,
+        help_text=_("Identifier linking related LoadItems into the same email thread."),
+    )
+
+    root_email_message_id = models.CharField(
+        max_length=255,
+        unique=True,
+        help_text=_("Message-ID of the first email in this thread."),
+    )
+
+    root_message_sent_at = models.DateTimeField(
+        help_text=_("Timestamp when the root email was sent."),
+    )
+
+    reply_until = models.DateTimeField(
+        help_text=_("Replies allowed until this timestamp (root email send date + 30 days)."),
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "correlation_id"],
+                name="unique_user_correlation_thread",
+            )
+        ]
+
+    def is_reply_allowed(self) -> bool:
+        return timezone.now() <= self.reply_until
+
+    def __str__(self):
+        return f"Email Thread for {self.user.get_full_name()}-{self.root_email_message_id}"
+
+
+class AlertEmailLog(models.Model):
+    """Log of alert emails sent to users, tracking status, type, and threading."""
+
+    class Status(models.IntegerChoices):
+        PENDING = 100, _("Pending")
+        PROCESSING = 200, _("Processing")
+        SENT = 300, _("Sent")
+        FAILED = 400, _("Failed")
+
+    class EmailType(models.IntegerChoices):
+        NEW = 100, _("New email")
+        REPLY = 200, _("Reply email")
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        verbose_name=_("User"),
+        help_text=_("The recipient of this alert email."),
+    )
+
+    subscription = models.ForeignKey[AlertSubscription, AlertSubscription](
+        AlertSubscription,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="email_alert_subscription",
+        verbose_name=_("Alert Subscription"),
+    )
+
+    item = models.ForeignKey[LoadItem, LoadItem](
+        LoadItem,
+        on_delete=models.CASCADE,
+        related_name="email_alert_load_item",
+        verbose_name=_("Load Item"),
+    )
+
+    message_id = models.CharField(
+        max_length=255,
+        unique=True,
+        verbose_name=_("Message ID"),
+        help_text=_("Unique Message-ID of email for tracking and threading."),
+    )
+
+    in_reply_to = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        verbose_name=_("In-Reply-To"),
+        help_text=_("Message-ID of the root email this message replies to. Null if this is the root."),
+    )
+
+    status = models.IntegerField(
+        choices=Status.choices,
+        default=Status.PENDING,
+        verbose_name=_("Email Status"),
+    )
+
+    email_type = models.IntegerField(
+        choices=EmailType.choices,
+        verbose_name=_("Email Type"),
+        help_text=_("Indicates if the email is a new root email or a reply in a thread."),
+    )
+
+    sent_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_("Sent At"),
+        help_text=_("Timestamp when the email was successfully sent."),
+    )
+
+    thread = models.ForeignKey[AlertEmailThread, AlertEmailThread](
+        AlertEmailThread,
+        on_delete=models.CASCADE,
+        related_name="email_alert_thread",
+        null=True,
+        blank=True,
+        verbose_name=_("Email Thread"),
+    )
+
+    id: int
+    subscription_id: int
+    item_id: int
+    thread_id: int
+
+    class Meta:
+        verbose_name = _("Email Alert Log")
+        verbose_name_plural = _("Email Alert Logs")
+        ordering = ["-id"]

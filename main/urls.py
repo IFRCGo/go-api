@@ -21,6 +21,7 @@ from oauth2_provider import urls as oauth2_urls
 # DRF routes
 from rest_framework import routers
 
+from alert_system.dev_views import AlertEmailPreview
 from api import drf_views as api_views
 from api.admin_reports import UsersPerPermissionViewSet
 from api.views import (
@@ -284,6 +285,7 @@ if settings.DEBUG:
             # For django versions before 2.0:
             # url(r'^__debug__/', include(debug_toolbar.urls)),
             url(r"^dev/email-preview/local-units/", LocalUnitsEmailPreview.as_view()),
+            url(r"^dev/email-preview/alert-system/", AlertEmailPreview.as_view()),
         ]
         + urlpatterns
         + static.static(
