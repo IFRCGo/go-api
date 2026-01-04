@@ -5,21 +5,17 @@ from django.utils import timezone
 from modeltranslation.utils import build_localized_fieldname
 
 from api.factories.country import CountryFactory
+from api.factories.disaster_type import DisasterTypeFactory
 from api.factories.region import RegionFactory
 from api.models import RegionName
 from deployments.factories.molnix_tag import MolnixTagFactory
 from deployments.factories.user import UserFactory
 from lang.serializers import TranslatedModelSerializerMixin
 from main.test_case import APITestCase
-from notifications.factories import (
-    AlertSubscriptionFactory,
-    HazardTypeFactory,
-    SurgeAlertFactory,
-)
+from notifications.factories import AlertSubscriptionFactory, SurgeAlertFactory
 from notifications.management.commands.ingest_alerts import categories, timeformat
 from notifications.models import (
     AlertSubscription,
-    HazardType,
     SurgeAlert,
     SurgeAlertStatus,
     SurgeAlertType,
@@ -252,8 +248,8 @@ class AlertSubscriptionTestCase(APITestCase):
             iso="PH",
             region=self.region,
         )
-        self.hazard_type1 = HazardTypeFactory.create(type=HazardType.Type.EARTHQUAKE)
-        self.hazard_type2 = HazardTypeFactory.create(type=HazardType.Type.FLOOD)
+        self.hazard_type1 = DisasterTypeFactory.create(name="Flood")
+        self.hazard_type2 = DisasterTypeFactory.create(name="Earthquake")
 
         self.alert_subscription = AlertSubscriptionFactory.create(
             user=self.user1,
@@ -308,11 +304,11 @@ class AlertSubscriptionTestCase(APITestCase):
         url = f"/api/v2/alert-subscription/{self.alert_subscription.id}/"
         data = {
             "countries": [self.country_1.id],
-            "alert_per_day": AlertSubscription.AlertPerDay.UNLIMITED,
+            "alert_per_day": AlertSubscription.AlertPerDay.TEN,
         }
         self.authenticate(self.user1)
         response = self.client.patch(url, data=data, format="json")
         self.assert_200(response)
         self.alert_subscription.refresh_from_db()
         self.assertEqual(self.alert_subscription.countries.first().id, self.country_1.id)
-        self.assertEqual(self.alert_subscription.alert_per_day, AlertSubscription.AlertPerDay.UNLIMITED)
+        self.assertEqual(self.alert_subscription.alert_per_day, AlertSubscription.AlertPerDay.TEN)
