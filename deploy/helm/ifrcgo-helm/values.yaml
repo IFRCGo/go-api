@@ -283,8 +283,8 @@ cronjobs:
     schedule: '0 0 * * 0'
   - command: 'poll_usgs_earthquake'
     schedule: '0 0 * * 0'
-  # - command: 'notify_validators' 
-  #   schedule: '0 0 * * *'
+  - command: 'alert_notification'
+    schedule: '0 */3 * * *'
   # https://github.com/jazzband/django-oauth-toolkit/blob/master/docs/management_commands.rst#cleartokens
   - command: 'oauth_cleartokens'
     schedule: '0 1 * * *'

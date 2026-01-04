@@ -68,16 +68,11 @@ admin.site.register(models.Subscription, SubscriptionAdmin)
 admin.site.register(models.SurgeAlert, SurgeAlertAdmin)
 
 
-@admin.register(models.HazardType)
-class AlertTypeAdmin(admin.ModelAdmin):
-    list_display = ("type",)
-    search_fields = ("type",)
-
-
 @admin.register(models.AlertSubscription)
 class AlertSubscriptionAdmin(admin.ModelAdmin):
     list_select_related = True
     list_display = ("user", "created_at", "alert_per_day")
+    search_fields = ("user__username", "user__email")
     autocomplete_fields = ("user", "regions", "countries", "hazard_types")
 
     def get_queryset(self, request):
