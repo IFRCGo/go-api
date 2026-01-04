@@ -1,0 +1,69 @@
+{% include "design/head3.html" %}
+
+<table width="80%" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff" style="padding: 20px; font-family: Arial, sans-serif;">
+    <tr>
+        <td>
+            <h3>Dear {{ user_name }},</h3>
+           <p>
+                A new alert, <strong>{{ event_title }}</strong>, has been observed in
+                {% for country in country_name %}
+                    {{ country }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+                {% if start_datetime %}
+                    at {{ start_datetime }}
+                {% endif %}
+            </p>
+            <h4>Key Figures</h4>
+            <ul>
+               <li>Total People Exposed: {{ total_people_exposed }}</li>
+               <li>Total Buildings Exposed: {{ total_buildings_exposed }}</li>
+                <li>Hazard Type: {{ hazard_types }}</li>
+            </ul>
+
+           <h4>Similar Past Events</h4>
+            {% if related_montandon_events %}
+                <ul>
+                {% for event in related_montandon_events|slice:":4" %}
+                    <li>
+                        <strong>{{ event.event_title }}</strong>
+                        <ul>
+                            <li>Total People Exposed: {{ event.total_people_exposed }}</li>
+                            <li>Total Buildings Exposed: {{ event.total_buildings_exposed }}</li>
+                            <li>Start Date Time: {{ event.start_datetime|default:"N/A" }}</li>
+                            <li>End Date Time: {{ event.end_datetime|default:"N/A" }}</li>
+                        </ul>
+                    </li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <p>N/A</p>
+            {% endif %}
+
+            <h4>Related Events in GO Platform</h4>
+            {% if related_go_events %}
+                <ul>
+                {% for event in related_go_events|slice:":3" %}
+                    <li>
+                        <a href="{{ frontend_url }}/emergencies/{{ event.id }}/details/"
+                        target="_blank"
+                        style="font-family: 'Lato', Arial, sans-serif; text-decoration: underline; color: #000;">
+                            {{ event }}
+                        </a>
+                    </li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <p>N/A</p>
+            {% endif %}
+            <br>
+            <p>
+                We recommend staying alert and following local safety guidelines.
+            </p>
+
+            <p>Stay safe,<br>
+            <strong>IFRC GO</strong></p>
+        </td>
+    </tr>
+</table>
+
+{% include "design/foot2.html" %}
