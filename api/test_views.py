@@ -1,6 +1,6 @@
+import datetime
 import re
 import uuid
-import datetime
 from unittest.mock import patch
 
 from django.contrib.auth.models import User
