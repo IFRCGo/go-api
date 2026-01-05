@@ -1,7 +1,14 @@
 from django.contrib import admin
 from django.db import transaction
 
-from eap.models import EAPFile, EAPRegistration, EAPType, FullEAP, KeyActor, SimplifiedEAP
+from eap.models import (
+    EAPFile,
+    EAPRegistration,
+    EAPType,
+    FullEAP,
+    KeyActor,
+    SimplifiedEAP,
+)
 
 
 @admin.register(EAPFile)
