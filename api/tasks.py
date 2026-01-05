@@ -1,15 +1,8 @@
-import json
-import pathlib
-import tempfile
-import time
 from datetime import datetime
 
 from celery import shared_task
-from django.conf import settings
 from django.contrib.auth.models import User
-from django.core.files.base import ContentFile
 from django.utils import timezone
-from playwright.sync_api import sync_playwright
 from rest_framework.authtoken.models import Token
 
 from api.playwright import render_pdf_from_url
@@ -17,7 +10,6 @@ from main.utils import logger_context
 
 from .logger import logger
 from .models import Export
-from .utils import DebugPlaywright
 
 
 def build_export_filename(export: Export, title: str) -> str:
@@ -31,7 +23,6 @@ def build_export_filename(export: Export, title: str) -> str:
 
     prefix = prefix_map.get(export.export_type, "DREF")
     return f"{prefix} {title} ({timestamp}).pdf"
-
 
 
 @shared_task
