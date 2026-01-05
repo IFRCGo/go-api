@@ -232,6 +232,20 @@ class EAPFile(EAPBaseModel):
         ordering = ["-id"]
 
 
+class EAPContact(models.Model):
+    name = models.CharField(max_length=255, verbose_name=_("Contact Name"))
+    email = models.EmailField(max_length=255, verbose_name=_("Contact Email"))
+    title = models.CharField(max_length=255, verbose_name=_("Contact Title"), null=True, blank=True)
+    phone_number = models.CharField(max_length=100, verbose_name=_("Contact Phone Number"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("EAP Contact")
+        verbose_name_plural = _("EAP Contacts")
+
+    def __str__(self):
+        return f"{self.name}"
+
+
 class TimeFrame(models.IntegerChoices):
     YEARS = 10, _("Years")
     MONTHS = 20, _("Months")
@@ -609,9 +623,9 @@ class EAPRegistration(EAPBaseModel):
         help_text=_("Upload the validated budget file once the EAP is technically validated."),
     )
 
-    # Review checklist
-    review_checklist_file = SecureFileField(
-        verbose_name=_("Review Checklist File"),
+    # NOTE: Only Full EAP have summary PDF
+    summary_file = SecureFileField(
+        verbose_name=_("EAP Summary PDF"),
         upload_to="eap/files/",
         null=True,
         blank=True,
@@ -780,10 +794,12 @@ class CommonEAPFields(models.Model):
     )
 
     # Partners NS
-    partner_ns_name = models.CharField(verbose_name=_("Partner NS name"), max_length=255, null=True, blank=True)
-    partner_ns_email = models.CharField(verbose_name=_("Partner NS email"), max_length=255, null=True, blank=True)
-    partner_ns_title = models.CharField(verbose_name=_("Partner NS title"), max_length=255, null=True, blank=True)
-    partner_ns_phone_number = models.CharField(verbose_name=_("Partner NS phone number"), max_length=100, null=True, blank=True)
+    partner_contacts = models.ManyToManyField(
+        EAPContact,
+        verbose_name=_("Partner NS Contacts"),
+        related_name="+",
+        blank=True,
+    )
 
     # Delegations
     ifrc_delegation_focal_point_name = models.CharField(verbose_name=_("IFRC delegation focal point name"), max_length=255)
@@ -869,7 +885,30 @@ class CommonEAPFields(models.Model):
         verbose_name=_("IFRC global ops coordinator phone number"), max_length=100, null=True, blank=True
     )
 
+    # NOTE: Export files for EAPs,
+    export_file = SecureFileField(
+        verbose_name=_("EAP Export File"),
+        upload_to="eap/files/exports/",
+        null=True,
+        blank=True,
+    )
+
+    diff_file = SecureFileField(
+        verbose_name=_("EAP Diff PDF file"),
+        upload_to="eap/files/",
+        null=True,
+        blank=True,
+    )
+
     # Review Checklist
+
+    review_checklist_file = SecureFileField(
+        verbose_name=_("Review Checklist File"),
+        upload_to="eap/files/",
+        null=True,
+        blank=True,
+    )
+
     updated_checklist_file = models.ForeignKey[EAPFile | None, EAPFile | None](
         EAPFile,
         on_delete=models.SET_NULL,
@@ -1095,7 +1134,9 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
                     "version": self.version + 1,
                     "created_by_id": self.created_by_id,
                     "modified_by_id": self.modified_by_id,
+                    "review_checklist_file": None,
                     "updated_checklist_file": None,
+                    "diff_file": None,
                 },
                 exclude_clone_m2m_fields={
                     "admin2",
@@ -1518,7 +1559,9 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
                     "version": self.version + 1,
                     "created_by_id": self.created_by_id,
                     "modified_by_id": self.modified_by_id,
+                    "review_checklist_file": None,
                     "updated_checklist_file": None,
+                    "diff_file": None,
                 },
                 exclude_clone_m2m_fields={
                     "admin2",

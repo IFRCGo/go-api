@@ -1,6 +1,7 @@
 from django.contrib.auth.models import Permission
 from rest_framework.permissions import BasePermission
 
+from api.models import Country
 from eap.models import EAPRegistration
 
 
@@ -18,8 +19,26 @@ def has_country_permission(
             codename__startswith="country_admin_",
         ).values_list("codename", flat=True)
     ]
-    # TODO(susilnem): Add region admin check if needed in future
+
     return national_society_id in country_admin_ids
+
+
+def has_regional_permission(
+    user,
+    region_id: int,
+) -> bool:
+    if user.is_superuser or user.has_perm("api.ifrc_admin"):
+        return True
+
+    regional_admin_ids = [
+        int(codename.replace("region_admin_", ""))
+        for codename in Permission.objects.filter(
+            group__user=user,
+            codename__startswith="region_admin_",
+        ).values_list("codename", flat=True)
+    ]
+
+    return region_id in regional_admin_ids
 
 
 class EAPRegistrationPermissions(BasePermission):
@@ -31,7 +50,18 @@ class EAPRegistrationPermissions(BasePermission):
 
         user = request.user
         national_society_id = request.data.get("national_society")
-        return user.is_superuser or has_country_permission(user=user, national_society_id=national_society_id)
+        national_society = Country.objects.filter(id=national_society_id).first()
+        if not national_society:
+            return False
+
+        return (
+            user.is_superuser
+            or has_country_permission(user=user, national_society_id=national_society.pk)
+            or has_regional_permission(
+                user=user,
+                region_id=national_society.region.pk,
+            )
+        )
 
 
 class EAPBasePermission(BasePermission):
@@ -48,7 +78,14 @@ class EAPBasePermission(BasePermission):
         assert eap_registration is not None, "EAP Registration does not exist"
         national_society_id = eap_registration.national_society_id
 
-        return user.is_superuser or has_country_permission(user=user, national_society_id=national_society_id)
+        return (
+            user.is_superuser
+            or has_country_permission(user=user, national_society_id=national_society_id)
+            or has_regional_permission(
+                user=user,
+                region_id=eap_registration.national_society.region.pk,
+            )
+        )
 
 
 class EAPValidatedBudgetPermission(BasePermission):
