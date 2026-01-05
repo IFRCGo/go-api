@@ -5,6 +5,7 @@ import pytz
 from factory import fuzzy
 
 from eap.models import (
+    EAPContact,
     EAPFile,
     EAPRegistration,
     EAPStatus,
@@ -41,6 +42,16 @@ class EAPFileFactory(factory.django.DjangoModelFactory):
             caption="EAP Document",
             **kwargs,
         )
+
+
+class EAPContactFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = EAPContact
+
+    title = fuzzy.FuzzyText(length=5, prefix="Title-")
+    name = fuzzy.FuzzyText(length=10, prefix="Contact-")
+    email = factory.LazyAttribute(lambda obj: f"{obj.name.lower()}@example.com")
+    phone_number = fuzzy.FuzzyText(length=10, prefix="12345")
 
 
 class EAPRegistrationFactory(factory.django.DjangoModelFactory):
