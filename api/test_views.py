@@ -1,5 +1,7 @@
 import re
 import uuid
+import datetime
+from django.utils import timezone
 from unittest.mock import patch
 
 from django.contrib.auth.models import User
@@ -868,73 +870,81 @@ class AppealTest(APITestCase):
     fixtures = ["DisasterTypes"]
 
     def test_appeal_key_figure(self):
-        region1 = models.Region.objects.create(name=1)
-        region2 = models.Region.objects.create(name=2)
-        country1 = models.Country.objects.create(name="Nepal", iso3="NPL", region=region1)
-        country2 = models.Country.objects.create(name="India", iso3="IND", region=region2)
-        dtype1 = models.DisasterType.objects.get(pk=1)
-        dtype2 = models.DisasterType.objects.get(pk=2)
-        event1 = EventFactory.create(
-            name="test1",
-            dtype=dtype1,
-        )
-        event2 = EventFactory.create(name="test0", dtype=dtype1, num_affected=10000, countries=[country1])
-        event3 = EventFactory.create(name="test2", dtype=dtype2, num_affected=99999, countries=[country2])
-        AppealFactory.create(
-            event=event1,
-            dtype=dtype1,
-            num_beneficiaries=9000,
-            amount_requested=10000,
-            amount_funded=1899999,
-            code=12,
-            start_date="2024-1-1",
-            end_date="2024-1-1",
-            atype=AppealType.APPEAL,
-            country=country1,
-        )
-        AppealFactory.create(
-            event=event2,
-            dtype=dtype2,
-            num_beneficiaries=90023,
-            amount_requested=100440,
-            amount_funded=12299999,
-            code=123,
-            start_date="2024-2-2",
-            end_date="2024-2-2",
-            atype=AppealType.DREF,
-            country=country1,
-        )
-        AppealFactory.create(
-            event=event3,
-            dtype=dtype2,
-            num_beneficiaries=91000,
-            amount_requested=10000888,
-            amount_funded=678888,
-            code=1234,
-            start_date="2024-3-3",
-            end_date="2024-3-3",
-            atype=AppealType.APPEAL,
-            country=country1,
-        )
-        AppealFactory.create(
-            event=event3,
-            dtype=dtype2,
-            num_beneficiaries=91000,
-            amount_requested=10000888,
-            amount_funded=678888,
-            code=12345,
-            start_date="2024-4-4",
-            end_date="2024-4-4",
-            atype=AppealType.APPEAL,
-            country=country1,
-        )
-        url = f"/api/v2/country/{country1.id}/figure/"
-        self.client.force_authenticate(self.user)
-        response = self.client.get(url)
-        self.assert_200(response)
-        self.assertIsNotNone(response.json())
-        self.assertEqual(response.data["active_drefs"], 1)
-        self.assertEqual(response.data["active_appeals"], 2)
+        creation_time = datetime.datetime(2023, 1, 5, 17, 4, 42, tzinfo=datetime.timezone.utc)
+        view_time = datetime.datetime(2024, 6, 1, 12, 0, 0, tzinfo=datetime.timezone.utc)
+
+        with patch("django.utils.timezone.now") as mock_now:
+            mock_now.return_value = creation_time
+            region1 = models.Region.objects.create(name=1)
+            region2 = models.Region.objects.create(name=2)
+            country1 = models.Country.objects.create(name="Nepal", iso3="NPL", region=region1)
+            country2 = models.Country.objects.create(name="India", iso3="IND", region=region2)
+            dtype1 = models.DisasterType.objects.get(pk=1)
+            dtype2 = models.DisasterType.objects.get(pk=2)
+            event1 = EventFactory.create(
+                name="test1",
+                dtype=dtype1,
+            )
+            event2 = EventFactory.create(name="test0", dtype=dtype1, num_affected=10000, countries=[country1])
+            event3 = EventFactory.create(name="test2", dtype=dtype2, num_affected=99999, countries=[country2])
+            AppealFactory.create(
+                event=event1,
+                dtype=dtype1,
+                num_beneficiaries=9000,
+                amount_requested=10000,
+                amount_funded=1899999,
+                code=12,
+                start_date="2024-1-1",
+                end_date="2024-1-1",
+                atype=AppealType.APPEAL,
+                country=country1,
+            )
+            AppealFactory.create(
+                event=event2,
+                dtype=dtype2,
+                num_beneficiaries=90023,
+                amount_requested=100440,
+                amount_funded=12299999,
+                code=123,
+                start_date="2024-2-2",
+                end_date="2024-2-2",
+                atype=AppealType.DREF,
+                country=country1,
+            )
+            AppealFactory.create(
+                event=event3,
+                dtype=dtype2,
+                num_beneficiaries=91000,
+                amount_requested=10000888,
+                amount_funded=678888,
+                code=1234,
+                start_date="2024-3-3",
+                end_date="2024-3-3",
+                atype=AppealType.APPEAL,
+                country=country1,
+            )
+            AppealFactory.create(
+                event=event3,
+                dtype=dtype2,
+                num_beneficiaries=91000,
+                amount_requested=10000888,
+                amount_funded=678888,
+                code=12345,
+                start_date="2024-4-4",
+                end_date="2024-4-4",
+                atype=AppealType.APPEAL,
+                country=country1,
+            )
+
+            mock_now.return_value = view_time
+            url = f"/api/v2/country/{country1.id}/figure/"
+            self.client.force_authenticate(self.user)
+            response = self.client.get(url)
+
+            self.assert_200(response)
+            self.assertIsNotNone(response.json())
+            self.assertEqual(response.data["active_drefs"], 1)
+            self.assertEqual(response.data["active_appeals"], 3)
 
 
 class RegionSnippetVisibilityTest(APITestCase):
