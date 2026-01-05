@@ -1,7 +1,7 @@
 import typing
 
-from django.db import transaction
 from django.contrib.auth.models import User
+from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import gettext
 from rest_framework import serializers
@@ -398,8 +398,6 @@ class ImpactSerializer(serializers.ModelSerializer):
     class Meta:
         model = EAPImpact
         fields = "__all__"
-
-
 
 
 class EAPContactSerializer(serializers.ModelSerializer):
