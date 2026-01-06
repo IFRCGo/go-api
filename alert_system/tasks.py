@@ -1,22 +1,16 @@
 import logging
 import uuid
 from collections import defaultdict
-from datetime import timedelta
 
 from celery import chain, group, shared_task
 from celery.exceptions import MaxRetriesExceededError
 from django.db import transaction
-from django.db.models import Max
-from django.template.loader import render_to_string
+from django.db.models import Count, Max
 from django.utils import timezone
 
 from alert_system.etl.base.extraction import PastEventExtractionClass
-from alert_system.utils import (
-    get_alert_email_context,
-    get_alert_subscriptions_for_load_item,
-)
+from alert_system.utils import get_alert_subscriptions, send_alert_email_notification
 from api.models import Event
-from notifications.notification import send_notification
 
 from .helpers import get_connector_processor, set_connector_status
 from .models import AlertEmailLog, AlertEmailThread, Connector, LoadItem
@@ -181,177 +175,72 @@ def process_connector_task(connector_id):
 
 
 @shared_task()
-def send_alert_email_notification(load_item_id: int):
-
+def process_email_alert(load_item_id: int) -> None:
     load_item = LoadItem.objects.select_related("connector", "connector__dtype").filter(id=load_item_id).first()
 
     if not load_item:
-        return None
+        logger.warning(f"LoadItem with ID [{load_item_id}] not found")
+        return
+
+    subscriptions = get_alert_subscriptions(load_item)
+    if not subscriptions.exists():
+        logger.info(f"No alert subscriptions matched for LoadItem ID [{load_item_id}]")
+        return
 
     today = timezone.now().date()
+    subscriptions_list = list(subscriptions)
+    user_ids = [sub.user.id for sub in subscriptions_list]
+    subscription_ids = [sub.id for sub in subscriptions_list]
 
-    subscriptions = get_alert_subscriptions_for_load_item(load_item)
+    # Daily email counts per user
+    daily_counts = (
+        AlertEmailLog.objects.filter(
+            user_id__in=user_ids,
+            subscription_id__in=subscription_ids,
+            status=AlertEmailLog.Status.SENT,
+            email_sent_at__date=today,
+        )
+        .values("user_id", "subscription_id")
+        .annotate(sent_count=Count("id"))
+    )
+    daily_count_map = {(item["user_id"], item["subscription_id"]): item["sent_count"] for item in daily_counts}
 
-    if not subscriptions.exists():
-        logger.info(f"No alert subscriptions matched for LoadItem ID [{load_item_id}])")
+    # Emails already sent for this item (per user)
+    already_sent = set(
+        AlertEmailLog.objects.filter(
+            user_id__in=user_ids,
+            subscription_id__in=subscription_ids,
+            item_id=load_item_id,
+            status=AlertEmailLog.Status.SENT,
+        ).values_list("user_id", "subscription_id")
+    )
+
+    # Existing threads for this correlation_id
+    threads_qs = AlertEmailThread.objects.filter(
+        correlation_id=load_item.correlation_id,
+        user_id__in=user_ids,
+    ).select_related("user")
+
+    existing_threads = {thread.user.id: thread for thread in threads_qs}
 
     for subscription in subscriptions:
         user = subscription.user
+        user_id: int = user.id
+        subscription_id: int = subscription.id
 
-        # Check Daily alert limit
-        sent_today = AlertEmailLog.objects.filter(
-            user=user,
-            subscription=subscription,
-            status=AlertEmailLog.Status.SENT,
-            sent_at=today,
-        ).count()
+        # Reply if this specific user has an existing thread
+        thread = existing_threads.get(user_id)
+        is_reply: bool = thread is not None
 
+        # Skip if daily alert limit reached
+        sent_today: int = daily_count_map.get((user_id, subscription_id), 0)
         if subscription.alert_per_day and sent_today >= subscription.alert_per_day:
-            logger.info(f"Daily alert limit reached for subscription ID [{subscription.id}] of user [{user.get_full_name()}]")
+            logger.info(f"Daily alert limit reached for user [{user.get_full_name()}]")
             continue
 
-        # Item-level deduplication check
-        if AlertEmailLog.objects.filter(
-            user=user,
-            subscription=subscription,
-            item=load_item,
-            status=AlertEmailLog.Status.SENT,
-        ).exists():
-            logger.info(
-                f"Duplicate alert skipped for user [{user.get_full_name()}] with subscription ID [{subscription.id}] "
-                f"loadItem ID [{load_item_id}]"
-            )
+        # Skip duplicate emails for same item
+        if (user_id, subscription_id) in already_sent:
+            logger.info(f"Duplicate alert skipped for user [{user.get_full_name()}] " f"with LoadItem ID [{subscription_id}]")
             continue
 
-        # Correlation-level rule (no new root ever)
-        if AlertEmailThread.objects.filter(
-            user=user,
-            correlation_id=load_item.correlation_id,
-        ).exists():
-            logger.info(
-                f"Root email skipped (existing thread) for user [{user.get_full_name()}] "
-                f"with correlation ID [{load_item.correlation_id}]",
-            )
-
-            continue
-
-        message_id = str(uuid.uuid4())
-
-        email_log = AlertEmailLog.objects.create(
-            user=user,
-            subscription=subscription,
-            item=load_item,
-            status=AlertEmailLog.Status.PROCESSING,
-            message_id=message_id,
-            email_type=AlertEmailLog.EmailType.NEW,
-        )
-
-        try:
-            email_subject = f"New Hazard Alert:{load_item.event_title}"
-            email_context = get_alert_email_context(load_item, user)
-            email_body = render_to_string("email/alert_system/alert_notification.html", email_context)
-            email_type = "Alert Email Notification"
-            send_notification(
-                subject=email_subject,
-                recipients=user.email,
-                message_id=message_id,
-                html=email_body,
-                mailtype=email_type,
-            )
-
-            email_log.status = AlertEmailLog.Status.SENT
-            email_log.sent_at = timezone.now()
-
-            thread, created = AlertEmailThread.objects.get_or_create(
-                user=user,
-                correlation_id=load_item.correlation_id,
-                root_email_message_id=message_id,
-                root_message_sent_at=timezone.now(),
-                reply_until=timezone.now() + timedelta(days=30),
-            )
-
-            email_log.thread = thread
-            email_log.save(update_fields=["status", "sent_at", "thread"])
-            logger.info(
-                f"Alert email sent successfully to user [{user.get_full_name()}] "
-                f"with subscription ID [{subscription.id}] loadItem ID [{load_item_id}] "
-            )
-        except Exception as e:
-            email_log.status = AlertEmailLog.Status.FAILED
-            email_log.save(update_fields=["status"])
-            logger.warning(f"Alert email sent failed with exception: {e}", exc_info=True)
-
-
-@shared_task()
-def send_alert_email_replies(load_item_id: int):
-
-    load_item = LoadItem.objects.filter(id=load_item_id).first()
-    if not load_item:
-        return
-
-    threads = AlertEmailThread.objects.filter(
-        correlation_id=load_item.correlation_id,
-    ).select_related("user")
-
-    if not threads.exists():
-        logger.info(
-            f"No email threads found for correlation ID [{load_item.correlation_id}]",
-        )
-        return
-
-    for thread in threads.iterator():
-        if not thread.is_reply_allowed():
-            logger.info(f"Reply window expired for thread message ID [{thread.root_email_message_id}]")
-            continue
-
-        user = thread.user
-
-        # Item-level deduplication check: one reply per item per user
-        if AlertEmailLog.objects.filter(
-            user=user,
-            item=load_item,
-            status=AlertEmailLog.Status.SENT,
-        ).exists():
-            logger.info(
-                f"Duplicate reply skipped  for user [{user.get_full_name()}] Item ID [{load_item_id}]",
-            )
-            continue
-
-        message_id = str(uuid.uuid4())
-
-        email_log = AlertEmailLog.objects.create(
-            user=user,
-            item=load_item,
-            status=AlertEmailLog.Status.PROCESSING,
-            message_id=message_id,
-            in_reply_to=thread.root_email_message_id,
-            thread=thread,
-            email_type=AlertEmailLog.EmailType.REPLY,
-        )
-
-        try:
-            subject = f"Re: Hazard Alert: {load_item.event_title}"
-            email_context = get_alert_email_context(load_item, user)
-            email_body = render_to_string("email/alert_system/alert_notification_reply.html", email_context)
-            email_type = "Alert Email Notification Reply"
-
-            send_notification(
-                subject=subject,
-                recipients=user.email,
-                message_id=message_id,
-                in_reply_to=thread.root_email_message_id,
-                html=email_body,
-                mailtype=email_type,
-            )
-
-            email_log.status = AlertEmailLog.Status.SENT
-            email_log.sent_at = timezone.now()
-            email_log.save(update_fields=["status", "sent_at"])
-
-            logger.info(
-                f"Reply email sent to user [{user.get_full_name()}]  with thread root message ID [{thread.root_email_message_id}]"
-            )
-        except Exception as e:
-            email_log.status = AlertEmailLog.Status.FAILED
-            email_log.save(update_fields=["status"])
-            logger.warning(f"Failed to send reply email with exception: {e}", exc_info=True)
+        send_alert_email_notification(load_item=load_item, user=user, subscription=subscription, thread=thread, is_reply=is_reply)
