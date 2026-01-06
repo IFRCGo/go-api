@@ -1,5 +1,6 @@
 import typing
 
+from celery import group
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.utils import timezone
@@ -34,7 +35,11 @@ from eap.models import (
     TimeFrame,
     YearsTimeFrameChoices,
 )
-from eap.tasks import generate_eap_summary_pdf, generate_export_diff_pdf
+from eap.tasks import (
+    generate_eap_summary_pdf,
+    generate_export_diff_pdf,
+    generate_export_eap_pdf,
+)
 from eap.utils import (
     has_country_permission,
     is_user_ifrc_admin,
@@ -418,10 +423,10 @@ class CommonEAPFieldsSerializer(serializers.ModelSerializer):
     MAX_NUMBER_OF_IMAGES = 5
 
     # Partner NS Contact
-    partner_contacts = EAPContactSerializer(many=True, required=False)
+    partner_contacts = EAPContactSerializer(many=True, required=False, allow_null=True)
 
-    planned_operations = PlannedOperationSerializer(many=True, required=False)
-    enable_approaches = EnableApproachSerializer(many=True, required=False)
+    planned_operations = PlannedOperationSerializer(many=True, required=True)
+    enable_approaches = EnableApproachSerializer(many=True, required=True)
 
     # FILES
     cover_image_file = EAPFileUpdateSerializer(source="cover_image", required=False, allow_null=True)
@@ -434,8 +439,8 @@ class CommonEAPFieldsSerializer(serializers.ModelSerializer):
         # TODO(susilnem): Make admin2 required once we verify the data!
         fields["admin2_details"] = Admin2Serializer(source="admin2", many=True, read_only=True)
         fields["cover_image_file"] = EAPFileUpdateSerializer(source="cover_image", required=False, allow_null=True)
-        fields["planned_operations"] = PlannedOperationSerializer(many=True, required=False)
-        fields["enable_approaches"] = EnableApproachSerializer(many=True, required=False)
+        fields["planned_operations"] = PlannedOperationSerializer(many=True, required=True)
+        fields["enable_approaches"] = EnableApproachSerializer(many=True, required=True)
         fields["budget_file_details"] = EAPFileSerializer(source="budget_file", read_only=True)
         return fields
 
@@ -598,8 +603,8 @@ class FullEAPSerializer(
     # admins
     key_actors = KeyActorSerializer(many=True, required=True)
 
-    early_actions = EAPActionSerializer(many=True, required=False)
-    prioritized_impacts = ImpactSerializer(many=True, required=False)
+    early_actions = EAPActionSerializer(many=True, required=True)
+    prioritized_impacts = ImpactSerializer(many=True, required=True)
 
     # SOURCE OF INFORMATIONS
     risk_analysis_source_of_information = EAPSourceInformationSerializer(many=True, required=False, allow_null=True)
@@ -822,6 +827,8 @@ class EAPStatusSerializer(BaseEAPSerializer):
             else:
                 snapshot_instance = self.instance.latest_full_eap.generate_snapshot()
                 self.instance.latest_full_eap = snapshot_instance
+                snapshot_instance.review_checklist_file = review_checklist_file
+                snapshot_instance.save(update_fields=["review_checklist_file"])
                 self.instance.save(update_fields=["latest_full_eap"])
 
         elif (current_status, new_status) == (
@@ -858,12 +865,20 @@ class EAPStatusSerializer(BaseEAPSerializer):
                         % EAPRegistration.Status(new_status).label
                     )
 
+                # Generating PDFs asynchronously
                 transaction.on_commit(
-                    lambda: generate_export_diff_pdf.delay(
-                        eap_registration_id=self.instance.id,
-                        version=self.instance.latest_simplified_eap.version,
-                    )
+                    lambda: group(
+                        generate_export_eap_pdf.s(
+                            eap_registration_id=self.instance.id,
+                            version=self.instance.latest_simplified_eap.version,
+                        ),
+                        generate_export_diff_pdf.s(
+                            eap_registration_id=self.instance.id,
+                            version=self.instance.latest_simplified_eap.version,
+                        ),
+                    ).apply_async()
                 )
+
             else:
                 if not (self.instance.latest_full_eap and self.instance.latest_full_eap.updated_checklist_file):
                     raise serializers.ValidationError(
@@ -871,11 +886,18 @@ class EAPStatusSerializer(BaseEAPSerializer):
                         % EAPRegistration.Status(new_status).label
                     )
 
+                # Generating PDFs asynchronously
                 transaction.on_commit(
-                    lambda: generate_export_diff_pdf.delay(
-                        eap_registration_id=self.instance.id,
-                        version=self.instance.latest_full_eap.version,
-                    )
+                    lambda: group(
+                        generate_export_eap_pdf.s(
+                            eap_registration_id=self.instance.id,
+                            version=self.instance.latest_full_eap.version,
+                        ),
+                        generate_export_diff_pdf.s(
+                            eap_registration_id=self.instance.id,
+                            version=self.instance.latest_full_eap.version,
+                        ),
+                    ).apply_async()
                 )
 
         elif (current_status, new_status) == (
@@ -901,6 +923,10 @@ class EAPStatusSerializer(BaseEAPSerializer):
                 ]
             )
 
+            # Generate summary eap for full eap
+            if self.instance.get_eap_type_enum == EAPType.FULL_EAP:
+                transaction.on_commit(lambda: generate_eap_summary_pdf.delay(self.instance.id))
+
         elif (current_status, new_status) == (
             EAPRegistration.Status.PENDING_PFA,
             EAPRegistration.Status.APPROVED,
@@ -912,10 +938,6 @@ class EAPStatusSerializer(BaseEAPSerializer):
                     "approved_at",
                 ]
             )
-
-            # Generate summary eap for full eap
-            if self.instance.get_eap_type_enum == EAPType.FULL_EAP:
-                transaction.on_commit(lambda: generate_eap_summary_pdf.delay(self.instance.id))
 
         elif (current_status, new_status) == (
             EAPRegistration.Status.APPROVED,
