@@ -1930,6 +1930,22 @@ class EAPFullTestCase(APITestCase):
             "ifrc_delegation_focal_point_email": "test_ifrc@example.com",
             "ifrc_head_of_delegation_name": "IFRC head of delegation name",
             "ifrc_head_of_delegation_email": "ifrc_head@example.com",
+            "early_actions": [
+                {
+                    "action": "Early action 1",
+                },
+                {
+                    "action": "Early action 2",
+                },
+            ],
+            "prioritized_impacts": [
+                {
+                    "impact": "Prioritized impact 1",
+                },
+                {
+                    "impact": "Prioritized impact 2",
+                },
+            ],
             "partner_contacts": [
                 {
                     "name": "Partner 1 Contact",
