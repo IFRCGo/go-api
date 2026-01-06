@@ -106,7 +106,24 @@ class SimplifiedEAPAdmin(admin.ModelAdmin):
     )
     actions = [
         "regenerate_diff_pdf_file",
+        "regenerate_export_eap_file",
     ]
+
+    def regenerate_export_eap_file(self, request, queryset):
+        """
+        Admin action to regenerate EAP export files for selected Simplified EAP.
+        """
+        from eap.tasks import generate_export_eap_pdf
+
+        for simplified_eap in queryset:
+            transaction.on_commit(
+                lambda: generate_export_eap_pdf.delay(
+                    eap_registration_id=simplified_eap.eap_registration.id,
+                    version=simplified_eap.version,
+                )
+            )
+
+    regenerate_export_eap_file.short_description = "Regenerate EAP export PDF files for selected Simplified EAPs"
 
     def regenerate_diff_pdf_file(self, request, queryset):
         """
@@ -192,7 +209,24 @@ class FullEAPAdmin(admin.ModelAdmin):
     )
     actions = [
         "regenerate_diff_pdf_file",
+        "regenerate_export_eap_file",
     ]
+
+    def regenerate_export_eap_file(self, request, queryset):
+        """
+        Admin action to regenerate EAP export PDF files for selected EAP registrations.
+        """
+        from eap.tasks import generate_export_eap_pdf
+
+        for full_eap in queryset:
+            transaction.on_commit(
+                lambda: generate_export_eap_pdf.delay(
+                    eap_registration_id=full_eap.eap_registration.id,
+                    version=full_eap.version,
+                )
+            )
+
+    regenerate_export_eap_file.short_description = "Regenerate EAP export PDF files for selected Full EAPs"
 
     def regenerate_diff_pdf_file(self, request, queryset):
         """
