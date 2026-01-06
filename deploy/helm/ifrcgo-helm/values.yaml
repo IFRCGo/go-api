@@ -276,15 +276,14 @@ cronjobs:
     schedule: '0 3 * * 0'
   - command: 'notify_validators'
     schedule: '0 0 * * *'
-  # Schedule time yet to be decided
   - command: 'poll_gdacs_cyclone'
     schedule: '0 0 * * 0'
   - command: 'poll_gdacs_flood'
-    schedule: '0 0 * * 0'
+    schedule: '15 9 * * *'
   - command: 'poll_usgs_earthquake'
     schedule: '0 0 * * 0'
   - command: 'alert_notification'
-    schedule: '0 */3 * * *'
+    schedule: '0 */2 * * *'
   # https://github.com/jazzband/django-oauth-toolkit/blob/master/docs/management_commands.rst#cleartokens
   - command: 'oauth_cleartokens'
     schedule: '0 1 * * *'
