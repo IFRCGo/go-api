@@ -1,12 +1,12 @@
-from datetime import datetime, timedelta
 from unittest import mock
+from uuid import uuid4
 
 from django.core.management import call_command
 from django.test import TestCase
 from django.utils import timezone
 
-from alert_system.models import AlertEmailLog, Connector
-from alert_system.tasks import send_alert_email_notification, send_alert_email_replies
+from alert_system.models import AlertEmailLog, AlertEmailThread, Connector
+from alert_system.tasks import process_email_alert
 from api.factories.country import CountryFactory
 from api.factories.disaster_type import DisasterTypeFactory
 from api.factories.region import RegionFactory
@@ -22,145 +22,12 @@ from .factories import (
 )
 
 
-class AlertEmailNotificationsTestCase(TestCase):
+class AlertEmailNotificationTestCase(TestCase):
+    """Comprehensive test suite for alert email notifications (both root and reply emails)"""
 
     def setUp(self):
-        self.user1 = UserFactory.create(email="testuser1@com")
-        self.user2 = UserFactory.create(email="testuser2@com")
-
-        self.region = RegionFactory.create()
-        self.country = CountryFactory.create(
-            name="Nepal",
-            iso3="NEP",
-            iso="NP",
-            region=self.region,
-        )
-
-        self.hazard_type1 = DisasterTypeFactory.create(name="Flood")
-        self.hazard_type2 = DisasterTypeFactory.create(name="Earthquake")
-
-        self.connector = ConnectorFactory.create(
-            type=Connector.ConnectorType.GDACS_FLOOD,
-            dtype=self.hazard_type1,
-            status=Connector.Status.SUCCESS,
-            source_url="https://test.com/stac",
-        )
-
-        self.subscription = AlertSubscriptionFactory.create(
-            user=self.user1,
-            countries=[self.country],
-            hazard_types=[self.hazard_type1],
-            alert_per_day=AlertSubscription.AlertPerDay.FIVE,
-        )
-
-        self.eligible_item = LoadItemFactory.create(
-            connector=self.connector,
-            item_eligible=True,
-            is_past_event=False,
-            start_datetime=timezone.now(),
-            event_title="Flood in Nepal",
-            event_description="Heavy flooding reported",
-            country_codes=["NEP"],
-            total_people_exposed=100,
-            total_buildings_exposed=50,
-            impact_metadata={
-                "summary": "Test impact metadata",
-                "source": "unit-test",
-            },
-        )
-
-        self.ineligible_item = LoadItemFactory.create(
-            connector=self.connector,
-            item_eligible=False,
-            is_past_event=False,
-            start_datetime=timezone.now(),
-            event_title="Ignored Event",
-            event_description="Should not trigger email",
-            country_codes=["IND"],
-            total_people_exposed=10,
-            total_buildings_exposed=5,
-            impact_metadata={
-                "summary": "Test impact metadata",
-                "source": "unit-test",
-            },
-        )
-
-    @mock.patch("alert_system.tasks.send_alert_email_notification.delay")
-    @mock.patch("alert_system.tasks.send_notification")
-    def test_trigger_command_for_eligible_items(
-        self,
-        mock_send_notification,
-        mock_send_alert_email_notification,
-    ):
-
-        call_command("alert_notification")
-        # Task enqueued once with eligible item
-        mock_send_alert_email_notification.assert_called_once_with(load_item_id=self.eligible_item.id)
-        send_alert_email_notification(self.eligible_item.id)
-        mock_send_notification.assert_called_once()
-        self.assertEqual(AlertEmailLog.objects.count(), 1)
-
-    @mock.patch("alert_system.tasks.send_notification")
-    def test_alert_email_for_eligible_item(self, mock_send_notification):
-
-        mock_send_notification.return_value = None
-        send_alert_email_notification(self.eligible_item.id)
-        mock_send_notification.assert_called_once()
-
-        self.assertEqual(AlertEmailLog.objects.count(), 1)
-        log = AlertEmailLog.objects.first()
-
-        self.assertEqual(log.user, self.user1)
-        self.assertEqual(log.item, self.eligible_item)
-        self.assertEqual(log.subscription, self.subscription)
-        self.assertEqual(log.status, AlertEmailLog.Status.SENT)
-        self.assertIsNotNone(log.sent_at)
-
-    @mock.patch("alert_system.tasks.send_notification")
-    def test_duplicate_email_not_sent(self, mock_send_notification):
-        # Test Duplicate alerts for same user/item are skipped
-        AlertEmailLogFactory.create(
-            user=self.user1,
-            subscription=self.subscription,
-            item=self.eligible_item,
-            message_id="alert-duplicate",
-            status=AlertEmailLog.Status.SENT,
-            email_type=AlertEmailLog.EmailType.NEW,
-            sent_at=timezone.now(),
-        )
-
-        send_alert_email_notification(self.eligible_item.id)
-
-        self.assertEqual(AlertEmailLog.objects.count(), 1)
-        mock_send_notification.assert_not_called()
-
-    @mock.patch("alert_system.tasks.send_notification")
-    def test_daily_email_notification_limit(self, mock_send_notification):
-
-        for _ in range(self.subscription.alert_per_day):
-            AlertEmailLogFactory.create(
-                user=self.user1,
-                subscription=self.subscription,
-                item=self.eligible_item,
-                message_id=f"alert-old-{_}",
-                status=AlertEmailLog.Status.SENT,
-                email_type=AlertEmailLog.EmailType.NEW,
-                sent_at=timezone.now(),
-            )
-
-        send_alert_email_notification(self.eligible_item.id)
-        self.assertEqual(
-            AlertEmailLog.objects.filter(status=AlertEmailLog.Status.SENT).count(),
-            self.subscription.alert_per_day,
-        )
-        mock_send_notification.assert_not_called()
-
-
-class AlertEmailReplyTestCase(TestCase):
-
-    def setUp(self):
-
-        self.user = UserFactory.create(email="replyuser@test.com")
+        self.user1 = UserFactory.create(email="testuser1@example.com")
+        self.user2 = UserFactory.create(email="testuser2@example.com")
 
         self.region = RegionFactory.create()
         self.country = CountryFactory.create(
@@ -179,270 +46,482 @@ class AlertEmailReplyTestCase(TestCase):
             source_url="https://test.com/stac",
         )
 
-        self.subscription = AlertSubscriptionFactory.create(
-            user=self.user,
+        self.subscription1 = AlertSubscriptionFactory.create(
+            user=self.user1,
             countries=[self.country],
             hazard_types=[self.hazard_type],
+            alert_per_day=AlertSubscription.AlertPerDay.FIVE,
         )
 
-        self.item_1 = LoadItemFactory.create(
-            connector=self.connector,
+        self.subscription2 = AlertSubscriptionFactory.create(
+            user=self.user2,
+            countries=[self.country],
+            hazard_types=[self.hazard_type],
+            alert_per_day=AlertSubscription.AlertPerDay.FIVE,
+        )
+
+        self.eligible_item = LoadItemFactory.create(
             correlation_id="corr-001",
+            connector=self.connector,
             item_eligible=True,
             is_past_event=False,
             start_datetime=timezone.now(),
-            event_title="Flood in Nepal",
+            event_title="Test Flood Event",
+            event_description="Initial flood event",
             country_codes=["NEP"],
-            total_people_exposed=100,
-            total_buildings_exposed=50,
+            total_people_exposed=10,
+            total_buildings_exposed=5,
             impact_metadata={
                 "summary": "Test impact metadata",
                 "source": "unit-test",
             },
         )
 
-        # Item for reply
-        self.item_2 = LoadItemFactory.create(
+        self.ineligible_item = LoadItemFactory.create(
             connector=self.connector,
-            correlation_id="corr-001",
+            item_eligible=False,
+            is_past_event=False,
+            start_datetime=timezone.now(),
+            event_title="Test Event",
+            country_codes=["IND"],
+            event_description="Should not trigger email",
+            total_people_exposed=10,
+            total_buildings_exposed=5,
+            impact_metadata={
+                "summary": "Test impact metadata",
+                "source": "unit-test",
+            },
+        )
+
+    @mock.patch("alert_system.utils.send_notification")
+    def test_sent_email_for_eligible_item(self, mock_send_notification):
+
+        process_email_alert(self.eligible_item.id)
+
+        log = AlertEmailLog.objects.get(user=self.user1, item=self.eligible_item)
+        thread = AlertEmailThread.objects.get(user=self.user1)
+
+        self.assertEqual(log.user, self.user1)
+        self.assertEqual(log.item, self.eligible_item)
+        self.assertEqual(log.subscription, self.subscription1)
+        self.assertEqual(log.status, AlertEmailLog.Status.SENT)
+        self.assertIsNotNone(log.email_sent_at)
+
+        self.assertEqual(thread.user, self.user1)
+        self.assertEqual(thread.correlation_id, self.eligible_item.correlation_id)
+        self.assertEqual(thread.root_email_message_id, log.message_id)
+        self.assertEqual(log.thread, thread)
+
+        mock_send_notification.assert_called()
+
+    @mock.patch("alert_system.utils.send_notification")
+    def test_sent_email_to_multiple_users(self, mock_send_notification):
+
+        process_email_alert(self.eligible_item.id)
+
+        logs = AlertEmailLog.objects.filter(item=self.eligible_item, status=AlertEmailLog.Status.SENT)
+        self.assertEqual(logs.count(), 2)
+
+        threads = AlertEmailThread.objects.filter(correlation_id=self.eligible_item.correlation_id)
+        self.assertEqual(threads.count(), 2)
+
+        self.assertEqual(mock_send_notification.call_count, 2)
+
+        # Verify each user got their own thread
+        user1_log = logs.get(user=self.user1)
+        user2_log = logs.get(user=self.user2)
+        user1_thread = threads.get(user=self.user1)
+        user2_thread = threads.get(user=self.user2)
+
+        self.assertEqual(user1_log.thread, user1_thread)
+        self.assertEqual(user2_log.thread, user2_thread)
+        self.assertNotEqual(user1_thread.root_email_message_id, user2_thread.root_email_message_id)
+
+    @mock.patch("alert_system.utils.send_notification")
+    def test_daily_email_alert_limit(self, mock_send_notification):
+
+        user = UserFactory.create(email="t@example.com")
+        country = CountryFactory.create(
+            name="Philippines",
+            iso3="PHI",
+            iso="PH",
+            region=self.region,
+        )
+
+        subscription = AlertSubscriptionFactory.create(
+            user=user,
+            countries=[country],
+            hazard_types=[self.hazard_type],
+            alert_per_day=AlertSubscription.AlertPerDay.FIVE,
+        )
+
+        item = LoadItemFactory.create(
+            connector=self.connector,
+            item_eligible=True,
+            is_past_event=False,
+            start_datetime=timezone.now(),
+            event_title="Test Flood Event",
+            country_codes=["PHI"],
+            event_description="Should not trigger email",
+            total_people_exposed=10,
+            total_buildings_exposed=5,
+            impact_metadata={
+                "summary": "Test impact metadata",
+                "source": "unit-test",
+            },
+        )
+
+        for _ in range(subscription.alert_per_day):
+            AlertEmailLogFactory.create(
+                user=user,
+                subscription=subscription,
+                item=item,
+                status=AlertEmailLog.Status.SENT,
+                email_sent_at=timezone.now(),
+                message_id=uuid4(),
+            )
+
+        sent_before = AlertEmailLog.objects.filter(
+            user=user,
+            subscription=subscription,
+            status=AlertEmailLog.Status.SENT,
+        ).count()
+
+        process_email_alert(item.id)
+
+        sent_after = AlertEmailLog.objects.filter(
+            user=user,
+            subscription=subscription,
+            status=AlertEmailLog.Status.SENT,
+        ).count()
+
+        self.assertEqual(sent_before, sent_after)
+        mock_send_notification.assert_not_called()
+
+    # Test Reply emails
+
+    @mock.patch("alert_system.utils.send_notification")
+    def test_reply_email_for_existing_thread(self, mock_send_notification):
+
+        initial_item = LoadItemFactory.create(
+            correlation_id="corr-reply-001",
+            connector=self.connector,
+            item_eligible=True,
+            is_past_event=False,
+            start_datetime=timezone.now(),
+            event_title="Initial Flood",
+            country_codes=["NEP"],
+            total_people_exposed=10,
+            total_buildings_exposed=5,
+            impact_metadata={"summary": "Initial", "source": "unit-test"},
+        )
+
+        thread = AlertEmailThreadFactory.create(
+            user=self.user1,
+            correlation_id=initial_item.correlation_id,
+            root_email_message_id="root-msg-123",
+            root_message_sent_at=timezone.now(),
+        )
+
+        AlertEmailLogFactory.create(
+            user=self.user1,
+            subscription=self.subscription1,
+            item=initial_item,
+            thread=thread,
+            message_id="root-msg-123",
+            status=AlertEmailLog.Status.SENT,
+            email_sent_at=timezone.now(),
+        )
+
+        # Create update item with same correlation_id
+        update_item = LoadItemFactory.create(
+            correlation_id="corr-reply-001",
+            connector=self.connector,
             item_eligible=True,
             is_past_event=False,
             start_datetime=timezone.now(),
             event_title="Flood Update",
             country_codes=["NEP"],
-            total_people_exposed=100,
-            total_buildings_exposed=50,
-            impact_metadata={
-                "summary": "Test impact metadata",
-                "source": "unit-test",
-            },
+            total_people_exposed=20,
+            total_buildings_exposed=10,
+            impact_metadata={"summary": "Update", "source": "unit-test"},
         )
 
-        # Thread + root email log
-        self.thread = AlertEmailThreadFactory.create(
-            user=self.user,
-            correlation_id=self.item_1.correlation_id,
-            root_email_message_id="root-msg-123",
-            root_message_sent_at=timezone.now(),
-            reply_until=timezone.now() + timedelta(days=30),
-        )
+        process_email_alert(update_item.id)
 
-        self.root_email_log = AlertEmailLogFactory.create(
-            user=self.user,
-            subscription=self.subscription,
-            item=self.item_1,
-            thread=self.thread,
-            message_id="root-msg-123",
-            email_type=AlertEmailLog.EmailType.NEW,
-            status=AlertEmailLog.Status.SENT,
-            sent_at=timezone.now(),
-        )
-
-    @mock.patch("alert_system.tasks.send_notification")
-    def test_reply_without_root_email(self, mock_send_notification):
-        """No reply sent if root email doesn't exist"""
-        # Create item with different correlation_id
-        new_item = LoadItemFactory.create(
-            connector=self.connector,
-            correlation_id="corr-999",
-            item_eligible=True,
-            is_past_event=False,
-            start_datetime=timezone.now(),
-            event_title="No root email item",
-            country_codes=["NEP"],
-            total_people_exposed=100,
-            total_buildings_exposed=50,
-            impact_metadata={
-                "summary": "Test impact metadata",
-                "source": "unit-test",
-            },
-        )
-
-        send_alert_email_replies(new_item.id)
-
-        self.assertFalse(AlertEmailLog.objects.filter(email_type=AlertEmailLog.EmailType.REPLY).exists())
-        mock_send_notification.assert_not_called()
-
-    @mock.patch("alert_system.tasks.send_alert_email_replies.delay")
-    def test_new_related_item_reply(self, mock_send_alert_email_replies):
-
-        old_item = LoadItemFactory.create(
-            connector=self.connector,
-            correlation_id="corr-0012323",
-            item_eligible=True,
-            is_past_event=False,
-            start_datetime=timezone.now(),
-            event_title="No root email item",
-            country_codes=["NEP"],
-            total_people_exposed=100,
-            total_buildings_exposed=50,
-            impact_metadata={
-                "summary": "Test impact metadata",
-                "source": "unit-test",
-            },
-        )
-
-        AlertEmailLogFactory.create(
-            user=self.user,
-            subscription=self.subscription,
-            item=old_item,
-            status=AlertEmailLog.Status.SENT,
-            email_type=AlertEmailLog.EmailType.NEW,
-        )
-
-        new_item = LoadItemFactory.create(
-            connector=self.connector,
-            correlation_id="corr-0012323",
-            item_eligible=True,
-            is_past_event=False,
-            start_datetime=timezone.now(),
-            event_title="No root email item",
-            country_codes=["NEP"],
-            total_people_exposed=100,
-            total_buildings_exposed=50,
-            impact_metadata={
-                "summary": "Test impact metadata",
-                "source": "unit-test",
-            },
-        )
-
-        call_command("alert_notification_reply")
-
-        mock_send_alert_email_replies.assert_called_with(load_item_id=new_item.id)
-
-    @mock.patch("alert_system.tasks.send_notification")
-    def test_reply_email_within_30_days(self, mock_send_notification):
-        """Reply is sent when inside 30-day window"""
-        # Mock timezone.now()
-        patcher = mock.patch("django.utils.timezone.now")
-        mock_timezone_now = patcher.start()
-        mock_now = datetime(2026, 1, 15, 12, 0, 0)  # inside 30-day window
-        mock_timezone_now.return_value = timezone.make_aware(mock_now)
-
-        send_alert_email_replies(self.item_2.id)
-
-        # Fetch reply specifically for the user and item
-        reply_logs = AlertEmailLog.objects.filter(
-            email_type=AlertEmailLog.EmailType.REPLY, user=self.user, item=self.item_2, thread=self.thread
-        )
-        self.assertEqual(reply_logs.count(), 1)
+        reply_log = AlertEmailLog.objects.get(user=self.user1, item=update_item)
+        self.assertEqual(reply_log.status, AlertEmailLog.Status.SENT)
+        self.assertIsNotNone(reply_log.email_sent_at)
         mock_send_notification.assert_called_once()
-        patcher.stop()
+        # Verify no new thread was created
+        threads = AlertEmailThread.objects.filter(correlation_id=initial_item.correlation_id)
+        self.assertEqual(threads.count(), 1)
 
-    @mock.patch("alert_system.tasks.send_notification")
-    def test_reply_email_after_30_days(self, mock_send_notification):
-        """Reply is NOT sent when outside 30-day window"""
-        # Mock now to a datetime after the 30-day reply window
-        patcher = mock.patch("django.utils.timezone.now")
-        mock_timezone_now = patcher.start()
-        mock_now = datetime(2026, 2, 15, 12, 0, 0)
-        mock_timezone_now.return_value = timezone.make_aware(mock_now)
+    @mock.patch("alert_system.utils.send_notification")
+    def test_reply_email_to_multiple_users(self, mock_send_notification):
 
-        reply_exists = AlertEmailLog.objects.filter(
-            email_type=AlertEmailLog.EmailType.REPLY, user=self.user, item=self.item_2, thread=self.thread
-        ).exists()
-        self.assertFalse(reply_exists)
-        mock_send_notification.assert_not_called()
-        patcher.stop()
+        correlation_id = str(uuid4())
 
-    @mock.patch("alert_system.tasks.send_notification")
-    def test_duplicate_reply(self, mock_send_notification):
-
-        # Already sent reply
-        AlertEmailLogFactory.create(
-            user=self.user,
-            subscription=self.subscription,
-            item=self.item_2,
-            thread=self.thread,
-            message_id="reply-msg-001",
-            email_type=AlertEmailLog.EmailType.REPLY,
-            status=AlertEmailLog.Status.SENT,
-            sent_at=timezone.now(),
-        )
-
-        send_alert_email_replies(self.item_2.id)
-
-        replies = AlertEmailLog.objects.filter(email_type=AlertEmailLog.EmailType.REPLY)
-        self.assertEqual(replies.count(), 1)
-        mock_send_notification.assert_not_called()
-
-    @mock.patch("alert_system.tasks.send_notification")
-    def test_reply_to_multiple_users_separate_threads(self, mock_send_notification):
-        # Mock timezone
-        patcher = mock.patch("django.utils.timezone.now")
-        mock_timezone_now = patcher.start()
-        mock_now = datetime(2026, 1, 15, 12, 0, 0)  # inside 30-day window
-        mock_timezone_now.return_value = timezone.make_aware(mock_now)
-
-        # New item for this test
-        new_item = LoadItemFactory.create(
+        # Create initial item
+        initial_item = LoadItemFactory.create(
+            correlation_id=correlation_id,
             connector=self.connector,
-            correlation_id="corr-multi-users",
             item_eligible=True,
             is_past_event=False,
             start_datetime=timezone.now(),
-            event_title="Flood Multi-user",
+            event_title="Initial Event",
             country_codes=["NEP"],
-            total_people_exposed=100,
-            total_buildings_exposed=50,
-            impact_metadata={"summary": "Test", "source": "unit-test"},
+            total_people_exposed=10,
+            total_buildings_exposed=5,
+            impact_metadata={"summary": "Initial", "source": "unit-test"},
         )
 
-        # Thread for self.user
-        thread_user1 = AlertEmailThreadFactory.create(
-            user=self.user,
-            correlation_id=new_item.correlation_id,
-            root_email_message_id="root-msg-user1",
+        # Create threads for both users
+        thread1 = AlertEmailThreadFactory.create(
+            user=self.user1,
+            correlation_id=correlation_id,
+            root_email_message_id="message-id-1",
             root_message_sent_at=timezone.now(),
-            reply_until=timezone.now() + timedelta(days=30),
-        )
-        AlertEmailLogFactory.create(
-            user=self.user,
-            subscription=self.subscription,
-            item=new_item,
-            thread=thread_user1,
-            message_id="root-msg-user1",
-            email_type=AlertEmailLog.EmailType.NEW,
-            status=AlertEmailLog.Status.PROCESSING,
         )
 
-        # Second user + thread
-        user2 = UserFactory.create(email="second@test.com")
-        subscription2 = AlertSubscriptionFactory.create(
-            user=user2,
-            countries=[self.country],
-            hazard_types=[self.hazard_type],
-        )
-        thread_user2 = AlertEmailThreadFactory.create(
-            user=user2,
-            correlation_id=new_item.correlation_id,
-            root_email_message_id="root-msg-user2",
+        thread2 = AlertEmailThreadFactory.create(
+            user=self.user2,
+            correlation_id=correlation_id,
+            root_email_message_id="message-id-2",
             root_message_sent_at=timezone.now(),
-            reply_until=timezone.now() + timedelta(days=30),
         )
+
         AlertEmailLogFactory.create(
-            user=user2,
-            subscription=subscription2,
-            item=new_item,
-            thread=thread_user2,
-            message_id="root-msg-user2",
-            email_type=AlertEmailLog.EmailType.NEW,
-            status=AlertEmailLog.Status.PROCESSING,
+            user=self.user1,
+            subscription=self.subscription1,
+            item=initial_item,
+            thread=thread1,
+            message_id="message-id-1",
+            status=AlertEmailLog.Status.SENT,
+            email_sent_at=timezone.now(),
         )
 
-        # Send replies
-        send_alert_email_replies(new_item.id)
+        AlertEmailLogFactory.create(
+            user=self.user2,
+            subscription=self.subscription2,
+            item=initial_item,
+            thread=thread2,
+            message_id="message-id-2",
+            status=AlertEmailLog.Status.SENT,
+            email_sent_at=timezone.now(),
+        )
 
-        replies = AlertEmailLog.objects.filter(email_type=AlertEmailLog.EmailType.REPLY, item=new_item)
+        related_item = LoadItemFactory.create(
+            correlation_id=correlation_id,
+            connector=self.connector,
+            item_eligible=True,
+            is_past_event=False,
+            start_datetime=timezone.now(),
+            event_title="Update Event",
+            country_codes=["NEP"],
+            total_people_exposed=20,
+            total_buildings_exposed=10,
+            impact_metadata={"summary": "Update", "source": "test"},
+        )
+
+        process_email_alert(related_item.id)
+
+        replies = AlertEmailLog.objects.filter(item=related_item, status=AlertEmailLog.Status.SENT)
         self.assertEqual(replies.count(), 2)
         self.assertEqual(mock_send_notification.call_count, 2)
 
-        reply_user1 = replies.get(user=self.user)
-        reply_user2 = replies.get(user=user2)
-
-        self.assertEqual(reply_user1.thread, thread_user1)
-        self.assertEqual(reply_user2.thread, thread_user2)
-        self.assertEqual(reply_user1.in_reply_to, thread_user1.root_email_message_id)
-        self.assertEqual(reply_user2.in_reply_to, thread_user2.root_email_message_id)
+        reply_user1 = replies.get(user=self.user1)
+        reply_user2 = replies.get(user=self.user2)
         self.assertNotEqual(reply_user1.message_id, reply_user2.message_id)
-        patcher.stop()
+
+    @mock.patch("alert_system.utils.send_notification")
+    def test_duplicate_reply(self, mock_send_notification):
+
+        correlation_id = "corr-dup-reply"
+
+        LoadItemFactory.create(
+            correlation_id=correlation_id,
+            connector=self.connector,
+            item_eligible=True,
+            is_past_event=False,
+            start_datetime=timezone.now(),
+            event_title="Initial",
+            country_codes=["NEP"],
+            total_people_exposed=10,
+            total_buildings_exposed=5,
+            impact_metadata={"summary": "Initial", "source": "unit-test"},
+        )
+
+        thread = AlertEmailThreadFactory.create(
+            user=self.user1,
+            correlation_id=correlation_id,
+            root_email_message_id="root-123",
+            root_message_sent_at=timezone.now(),
+        )
+
+        update_item = LoadItemFactory.create(
+            correlation_id=correlation_id,
+            connector=self.connector,
+            item_eligible=True,
+            is_past_event=False,
+            start_datetime=timezone.now(),
+            event_title="Update",
+            country_codes=["NEP"],
+            total_people_exposed=20,
+            total_buildings_exposed=10,
+            impact_metadata={"summary": "Update", "source": "unit-test"},
+        )
+
+        # Create existing reply log
+        AlertEmailLogFactory.create(
+            user=self.user1,
+            subscription=self.subscription1,
+            item=update_item,
+            thread=thread,
+            message_id="reply-123",
+            status=AlertEmailLog.Status.SENT,
+            email_sent_at=timezone.now(),
+        )
+
+        process_email_alert(update_item.id)
+
+        replies = AlertEmailLog.objects.filter(user=self.user1, item=update_item)
+        self.assertEqual(replies.count(), 1)
+        mock_send_notification.assert_not_called()
+
+    @mock.patch("alert_system.utils.send_notification")
+    def test_reply_email_for_daily_limit(self, mock_send_notification):
+
+        correlation_id = "corr-limit-reply"
+        LoadItemFactory.create(
+            correlation_id=correlation_id,
+            connector=self.connector,
+            item_eligible=True,
+            is_past_event=False,
+            start_datetime=timezone.now(),
+            event_title="Initial",
+            country_codes=["NEP"],
+            total_people_exposed=10,
+            total_buildings_exposed=5,
+            impact_metadata={"summary": "Initial", "source": "unit-test"},
+        )
+
+        AlertEmailThreadFactory.create(
+            user=self.user1,
+            correlation_id=correlation_id,
+            root_email_message_id="root-123",
+            root_message_sent_at=timezone.now(),
+        )
+
+        for i in range(self.subscription1.alert_per_day):
+            other_item = LoadItemFactory.create(
+                correlation_id=f"corr-other-{i}",
+                connector=self.connector,
+                item_eligible=True,
+                is_past_event=False,
+                start_datetime=timezone.now(),
+                event_title=f"Event {i}",
+                country_codes=["NEP"],
+                total_people_exposed=10,
+                total_buildings_exposed=5,
+                impact_metadata={"summary": "Test", "source": "unit-test"},
+            )
+            AlertEmailLogFactory.create(
+                user=self.user1,
+                subscription=self.subscription1,
+                item=other_item,
+                status=AlertEmailLog.Status.SENT,
+                email_sent_at=timezone.now(),
+                message_id=str(uuid4()),
+            )
+
+        related_item = LoadItemFactory.create(
+            correlation_id=correlation_id,
+            connector=self.connector,
+            item_eligible=True,
+            is_past_event=False,
+            start_datetime=timezone.now(),
+            event_title="Update",
+            country_codes=["NEP"],
+            total_people_exposed=20,
+            total_buildings_exposed=10,
+            impact_metadata={"summary": "Update", "source": "unit-test"},
+        )
+
+        process_email_alert(related_item.id)
+
+        # Should not create reply log
+        reply_exists = AlertEmailLog.objects.filter(user=self.user1, item=related_item).exists()
+        self.assertFalse(reply_exists)
+        mock_send_notification.assert_not_called()
+
+    @mock.patch("alert_system.utils.send_notification")
+    def test_reply_without_subscription(self, mock_send_notification):
+
+        correlation_id = str(uuid4())
+        item = LoadItemFactory.create(
+            correlation_id=correlation_id,
+            connector=self.connector,
+            item_eligible=True,
+            is_past_event=False,
+            start_datetime=timezone.now(),
+            event_title="Initial",
+            country_codes=["NEP"],
+            total_people_exposed=10,
+            total_buildings_exposed=5,
+            impact_metadata={"summary": "Initial", "source": "unit-test"},
+        )
+
+        AlertEmailThreadFactory.create(
+            user=self.user1,
+            correlation_id=correlation_id,
+            root_email_message_id="root-123",
+            root_message_sent_at=timezone.now(),
+        )
+
+        # Delete subscription
+        self.subscription1.delete()
+
+        process_email_alert(item.id)
+        reply_exists = AlertEmailLog.objects.filter(item=item).exists()
+        self.assertFalse(reply_exists)
+        mock_send_notification.assert_not_called()
+
+    # Test command trigger
+    @mock.patch("alert_system.tasks.process_email_alert.delay")
+    def test_command_triggers_task_for_eligible_items(self, mock_task_delay):
+        """Test that management command queues eligible items"""
+        call_command("alert_notification")
+
+        mock_task_delay.assert_called_once_with(load_item_id=self.eligible_item.id)
+
+    @mock.patch("alert_system.tasks.process_email_alert.delay")
+    def test_command_for_ineligible_items(self, mock_task_delay):
+
+        # Delete eligible item
+        self.eligible_item.delete()
+
+        call_command("alert_notification")
+
+        mock_task_delay.assert_not_called()
+
+    @mock.patch("alert_system.tasks.process_email_alert.delay")
+    def test_command_trigger_for_past_events(self, mock_task_delay):
+
+        self.eligible_item.is_past_event = True
+        self.eligible_item.save()
+
+        call_command("alert_notification")
+
+        mock_task_delay.assert_not_called()
+
+    @mock.patch("alert_system.utils.send_notification")
+    def test_email_send_failed(self, mock_send_notification):
+
+        mock_send_notification.side_effect = Exception("Email service error")
+
+        process_email_alert(self.eligible_item.id)
+
+        log = AlertEmailLog.objects.get(user=self.user1, item=self.eligible_item)
+        self.assertEqual(log.status, AlertEmailLog.Status.FAILED)
+        self.assertIsNone(log.email_sent_at)
