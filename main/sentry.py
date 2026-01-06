@@ -130,7 +130,7 @@ class SentryMonitor(models.TextChoices):
     INGEST_ICRC = "ingest_icrc", "0 3 * * 0"
     NOTIFY_VALIDATORS = "notify_validators", "0 0 * * *"
     POLL_USGS_EARTHQUAKE = "poll_usgs_earthquake", "0 0 * * 0"
-    POLL_GDACS_FLOOD = "poll_gdacs_flood", "0 0 * * 0"
+    POLL_GDACS_FLOOD = "poll_gdacs_flood", "15 9 * * *"
     POLL_GDACS_CYCLONE = "poll_gdacs_cyclone", "0 0 * * 0"
     OAUTH_CLEARTOKENS = "oauth_cleartokens", "0 1 * * *"
     EAP_SUBMISSION_REMINDER = "eap_submission_reminder", "0 0 * * *"
