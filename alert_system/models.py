@@ -258,7 +258,7 @@ class LoadItem(BaseItem):
 
 class AlertEmailThread(models.Model):
     """
-    Represents a single email conversation (thread) for alert emails.
+    Represents a single email conversation thread for alert emails.
     """
 
     user = models.ForeignKey(
@@ -269,7 +269,6 @@ class AlertEmailThread(models.Model):
 
     correlation_id = models.CharField(
         max_length=255,
-        db_index=True,
         help_text=_("Identifier linking related LoadItems into the same email thread."),
     )
 
@@ -283,29 +282,24 @@ class AlertEmailThread(models.Model):
         help_text=_("Timestamp when the root email was sent."),
     )
 
-    reply_until = models.DateTimeField(
-        help_text=_("Replies allowed until this timestamp (root email send date + 30 days)."),
-    )
-
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["user", "correlation_id"],
-                name="unique_user_correlation_thread",
-            )
+        verbose_name = _("Email Thread")
+        verbose_name_plural = _("Email Threads")
+        ordering = ["-id"]
+        indexes = [
+            models.Index(fields=["correlation_id", "user"]),
         ]
 
-    def is_reply_allowed(self) -> bool:
-        return timezone.now() <= self.reply_until
-
     def __str__(self):
-        return f"Email Thread for {self.user.get_full_name()}-{self.root_email_message_id}"
+        return f"Thread: {self.user.get_full_name()}-{self.correlation_id}"
 
 
 class AlertEmailLog(models.Model):
-    """Log of alert emails sent to users, tracking status, type, and threading."""
+    """
+    Log of alert emails sent to users, tracking status, type, and threading.
+    """
 
     class Status(models.IntegerChoices):
         PENDING = 100, _("Pending")
@@ -313,21 +307,15 @@ class AlertEmailLog(models.Model):
         SENT = 300, _("Sent")
         FAILED = 400, _("Failed")
 
-    class EmailType(models.IntegerChoices):
-        NEW = 100, _("New email")
-        REPLY = 200, _("Reply email")
-
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         verbose_name=_("User"),
         help_text=_("The recipient of this alert email."),
     )
-
     subscription = models.ForeignKey[AlertSubscription, AlertSubscription](
         AlertSubscription,
         on_delete=models.CASCADE,
-        null=True,
         related_name="email_alert_subscription",
         verbose_name=_("Alert Subscription"),
     )
@@ -346,34 +334,21 @@ class AlertEmailLog(models.Model):
         help_text=_("Unique Message-ID of email for tracking and threading."),
     )
 
-    in_reply_to = models.CharField(
-        max_length=255,
-        null=True,
-        blank=True,
-        verbose_name=_("In-Reply-To"),
-        help_text=_("Message-ID of the root email this message replies to. Null if this is the root."),
-    )
-
     status = models.IntegerField(
         choices=Status.choices,
         default=Status.PENDING,
+        db_index=True,
         verbose_name=_("Email Status"),
     )
 
-    email_type = models.IntegerField(
-        choices=EmailType.choices,
-        verbose_name=_("Email Type"),
-        help_text=_("Indicates if the email is a new root email or a reply in a thread."),
-    )
-
-    sent_at = models.DateTimeField(
+    email_sent_at = models.DateTimeField(
         null=True,
         blank=True,
         verbose_name=_("Sent At"),
-        help_text=_("Timestamp when the email was successfully sent."),
+        help_text=_("Timestamp when email was successfully sent."),
     )
 
-    thread = models.ForeignKey[AlertEmailThread, AlertEmailThread](
+    thread = models.ForeignKey(
         AlertEmailThread,
         on_delete=models.CASCADE,
         related_name="email_alert_thread",
@@ -391,3 +366,7 @@ class AlertEmailLog(models.Model):
         verbose_name = _("Email Alert Log")
         verbose_name_plural = _("Email Alert Logs")
         ordering = ["-id"]
+        indexes = [
+            models.Index(fields=["user", "subscription", "email_sent_at"]),
+            models.Index(fields=["user", "item", "status"]),
+        ]
