@@ -237,6 +237,7 @@ class EAPContact(models.Model):
     email = models.EmailField(max_length=255, verbose_name=_("Contact Email"))
     title = models.CharField(max_length=255, verbose_name=_("Contact Title"), null=True, blank=True)
     phone_number = models.CharField(max_length=100, verbose_name=_("Contact Phone Number"), null=True, blank=True)
+    previous_id = models.PositiveIntegerField(verbose_name=_("Previous ID"), null=True, blank=True)
 
     class Meta:
         verbose_name = _("EAP Contact")
@@ -328,6 +329,7 @@ class OperationActivity(models.Model):
         base_field=models.IntegerField(),
         verbose_name=_("Activity time span"),
     )
+    previous_id = models.PositiveIntegerField(verbose_name=_("Previous ID"), null=True, blank=True)
 
     class Meta:
         verbose_name = _("Operation Activity")
@@ -340,6 +342,7 @@ class OperationActivity(models.Model):
 class Indicator(models.Model):
     title = models.CharField(max_length=255, verbose_name=_("Indicator Title"))
     target = models.IntegerField(verbose_name=_("Indicator Target"))
+    previous_id = models.PositiveIntegerField(verbose_name=_("Previous ID"), null=True, blank=True)
 
     class Meta:
         verbose_name = _("Indicator")
@@ -351,6 +354,7 @@ class Indicator(models.Model):
 
 class EAPAction(models.Model):
     action = models.CharField(max_length=255, verbose_name=_("Early Action"))
+    previous_id = models.PositiveIntegerField(verbose_name=_("Previous ID"), null=True, blank=True)
 
     class Meta:
         verbose_name = _("Early Action")
@@ -362,6 +366,7 @@ class EAPAction(models.Model):
 
 class EAPImpact(models.Model):
     impact = models.CharField(max_length=255, verbose_name=_("Impact"))
+    previous_id = models.PositiveIntegerField(verbose_name=_("Previous ID"), null=True, blank=True)
 
     class Meta:
         verbose_name = _(" Impact")
@@ -392,6 +397,7 @@ class PlannedOperation(models.Model):
     people_targeted = models.IntegerField(verbose_name=_("People Targeted"))
     budget_per_sector = models.IntegerField(verbose_name=_("Budget per sector (CHF)"))
     ap_code = models.IntegerField(verbose_name=_("AP Code"), null=True, blank=True)
+    previous_id = models.PositiveIntegerField(verbose_name=_("Previous ID"), null=True, blank=True)
 
     indicators = models.ManyToManyField(
         Indicator,
@@ -437,6 +443,7 @@ class EnableApproach(models.Model):
     approach = models.IntegerField(choices=Approach.choices, verbose_name=_("Approach"))
     budget_per_approach = models.IntegerField(verbose_name=_("Budget per approach (CHF)"))
     ap_code = models.IntegerField(verbose_name=_("AP Code"), null=True, blank=True)
+    previous_id = models.PositiveIntegerField(verbose_name=_("Previous ID"), null=True, blank=True)
 
     indicators = models.ManyToManyField(
         Indicator,
@@ -482,6 +489,11 @@ class SourceInformation(models.Model):
         verbose_name=_("Source Link"),
         max_length=255,
     )
+    previous_id = models.PositiveIntegerField(
+        verbose_name=_("Previous ID"),
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         verbose_name = _("Source of Information")
@@ -504,6 +516,8 @@ class KeyActor(models.Model):
         verbose_name=_("Description"),
         help_text=_("Describe this actor’s involvement."),
     )
+
+    previous_id = models.PositiveIntegerField(verbose_name=_("Previous ID"), null=True, blank=True)
 
     class Meta:
         verbose_name = _("Key Actor")
