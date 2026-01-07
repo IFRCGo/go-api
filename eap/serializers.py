@@ -333,6 +333,7 @@ class PlannedOperationSerializer(
 ):
     id = serializers.IntegerField(required=False)
 
+    sector_display = serializers.CharField(source="get_sector_display", read_only=True)
     indicators = IndicatorSerializer(many=True, required=True)
 
     # activities
@@ -352,6 +353,7 @@ class EnableApproachSerializer(
 ):
     id = serializers.IntegerField(required=False)
 
+    approach_display = serializers.CharField(source="get_approach_display", read_only=True)
     indicators = IndicatorSerializer(many=True, required=True)
 
     # activities
@@ -410,13 +412,7 @@ class EAPContactSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EAPContact
-        fields = (
-            "id",
-            "title",
-            "name",
-            "email",
-            "phone_number",
-        )
+        fields = "__all__"
 
 
 class CommonEAPFieldsSerializer(serializers.ModelSerializer):
@@ -431,6 +427,7 @@ class CommonEAPFieldsSerializer(serializers.ModelSerializer):
     # FILES
     cover_image_file = EAPFileUpdateSerializer(source="cover_image", required=False, allow_null=True)
     admin2_details = Admin2Serializer(source="admin2", many=True, read_only=True)
+    budget_file = serializers.PrimaryKeyRelatedField(queryset=EAPFile.objects.all(), required=True)
     budget_file_details = EAPFileSerializer(source="budget_file", read_only=True)
 
     def get_fields(self):
@@ -441,6 +438,7 @@ class CommonEAPFieldsSerializer(serializers.ModelSerializer):
         fields["cover_image_file"] = EAPFileUpdateSerializer(source="cover_image", required=False, allow_null=True)
         fields["planned_operations"] = PlannedOperationSerializer(many=True, required=True)
         fields["enable_approaches"] = EnableApproachSerializer(many=True, required=True)
+        fields["budget_file"] = serializers.PrimaryKeyRelatedField(queryset=EAPFile.objects.all(), required=True)
         fields["budget_file_details"] = EAPFileSerializer(source="budget_file", read_only=True)
         return fields
 
