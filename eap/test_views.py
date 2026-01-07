@@ -2380,6 +2380,18 @@ class TestSnapshotEAP(APITestCase):
             snapshot_actors[0].description,
         )
 
+        # Assert previous_id for all M2M objects
+        for orig, snap in zip(original.key_actors.all(), snapshot.key_actors.all()):
+            self.assertEqual(snap.previous_id, orig.pk)
+
+        for orig, snap in zip(original.enable_approaches.all(), snapshot.enable_approaches.all()):
+            self.assertEqual(snap.previous_id, orig.pk)
+
+        for orig_op, snap_op in zip(original.planned_operations.all(), snapshot.planned_operations.all()):
+            self.assertEqual(snap_op.previous_id, orig_op.pk)
+            for orig_act, snap_act in zip(orig_op.readiness_activities.all(), snap_op.readiness_activities.all()):
+                self.assertEqual(snap_act.previous_id, orig_act.pk)
+
 
 class EAPGlobalFileTestCase(APITestCase):
     def setUp(self):
