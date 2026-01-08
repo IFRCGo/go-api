@@ -1,6 +1,14 @@
 from django.contrib import admin
+from django.db import transaction
 
-from eap.models import EAPFile, EAPRegistration, FullEAP, KeyActor, SimplifiedEAP
+from eap.models import (
+    EAPFile,
+    EAPRegistration,
+    EAPType,
+    FullEAP,
+    KeyActor,
+    SimplifiedEAP,
+)
 
 
 @admin.register(EAPFile)
@@ -16,6 +24,7 @@ class DevelopmentRegistrationEAPAdmin(admin.ModelAdmin):
         "country__name",
         "disaster_type__name",
     )
+    readonly_fields = ("summary_file",)
     list_filter = ("eap_type",)
     list_display = (
         "national_society_name",
@@ -30,6 +39,22 @@ class DevelopmentRegistrationEAPAdmin(admin.ModelAdmin):
         "created_by",
         "modified_by",
     )
+    actions = [
+        "regenerate_full_eap_summary",
+    ]
+
+    def regenerate_full_eap_summary(self, request, queryset):
+        """
+        Admin action to regenerate EAP summary PDF files for selected EAP registrations.
+        """
+        from eap.tasks import generate_eap_summary_pdf
+
+        for eap_registration in queryset:
+            if eap_registration.get_eap_type_enum != EAPType.FULL_EAP:
+                continue
+            transaction.on_commit(lambda: generate_eap_summary_pdf.delay(eap_registration.id))
+
+    regenerate_full_eap_summary.short_description = "Regenerate EAP summary PDF files for Full EAP"
 
     def national_society_name(self, obj):
         return obj.national_society.society_name
@@ -69,6 +94,7 @@ class SimplifiedEAPAdmin(admin.ModelAdmin):
     )
     readonly_fields = (
         "cover_image",
+        "partner_contacts",
         "hazard_impact_images",
         "risk_selected_protocols_images",
         "selected_early_actions_images",
@@ -78,6 +104,42 @@ class SimplifiedEAPAdmin(admin.ModelAdmin):
         "is_locked",
         "version",
     )
+    actions = [
+        "regenerate_diff_pdf_file",
+        "regenerate_export_eap_file",
+    ]
+
+    def regenerate_export_eap_file(self, request, queryset):
+        """
+        Admin action to regenerate EAP export files for selected Simplified EAP.
+        """
+        from eap.tasks import generate_export_eap_pdf
+
+        for simplified_eap in queryset:
+            transaction.on_commit(
+                lambda: generate_export_eap_pdf.delay(
+                    eap_registration_id=simplified_eap.eap_registration.id,
+                    version=simplified_eap.version,
+                )
+            )
+
+    regenerate_export_eap_file.short_description = "Regenerate EAP export PDF files for selected Simplified EAPs"
+
+    def regenerate_diff_pdf_file(self, request, queryset):
+        """
+        Admin action to regenerate EAP diff PDF files for selected Simplified EAP.
+        """
+        from eap.tasks import generate_export_diff_pdf
+
+        for simplified_eap in queryset:
+            transaction.on_commit(
+                lambda: generate_export_diff_pdf.delay(
+                    eap_registration_id=simplified_eap.eap_registration.id,
+                    version=simplified_eap.version,
+                )
+            )
+
+    regenerate_diff_pdf_file.short_description = "Regenerate EAP diff PDF files for selected Simplified EAPs"
 
     def simplifed_eap_application(self, obj):
         return f"{obj.eap_registration.national_society.society_name} - {obj.eap_registration.disaster_type.name}"
@@ -97,6 +159,7 @@ class SimplifiedEAPAdmin(admin.ModelAdmin):
             )
             .prefetch_related(
                 "admin2",
+                "partner_contacts",
             )
         )
 
@@ -121,6 +184,7 @@ class FullEAPAdmin(admin.ModelAdmin):
         "admin2",
     )
     readonly_fields = (
+        "partner_contacts",
         "cover_image",
         "planned_operations",
         "enable_approaches",
@@ -143,6 +207,42 @@ class FullEAPAdmin(admin.ModelAdmin):
         "capacity_relevant_files",
         "forecast_table_file",
     )
+    actions = [
+        "regenerate_diff_pdf_file",
+        "regenerate_export_eap_file",
+    ]
+
+    def regenerate_export_eap_file(self, request, queryset):
+        """
+        Admin action to regenerate EAP export PDF files for selected EAP registrations.
+        """
+        from eap.tasks import generate_export_eap_pdf
+
+        for full_eap in queryset:
+            transaction.on_commit(
+                lambda: generate_export_eap_pdf.delay(
+                    eap_registration_id=full_eap.eap_registration.id,
+                    version=full_eap.version,
+                )
+            )
+
+    regenerate_export_eap_file.short_description = "Regenerate EAP export PDF files for selected Full EAPs"
+
+    def regenerate_diff_pdf_file(self, request, queryset):
+        """
+        Admin action to regenerate EAP diff PDF files for selected EAP registrations.
+        """
+        from eap.tasks import generate_export_diff_pdf
+
+        for full_eap in queryset:
+            transaction.on_commit(
+                lambda: generate_export_diff_pdf.delay(
+                    eap_registration_id=full_eap.eap_registration.id,
+                    version=full_eap.version,
+                )
+            )
+
+    regenerate_diff_pdf_file.short_description = "Regenerate EAP diff PDF files for selected Full EAPs"
 
     def get_queryset(self, request):
         return (
@@ -158,6 +258,7 @@ class FullEAPAdmin(admin.ModelAdmin):
             )
             .prefetch_related(
                 "admin2",
+                "partner_contacts",
                 "key_actors",
                 "risk_analysis_source_of_information",
                 "trigger_statement_source_of_information",

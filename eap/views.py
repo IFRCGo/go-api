@@ -182,6 +182,7 @@ class SimplifiedEAPViewSet(EAPModelViewSet):
             )
             .prefetch_related(
                 "eap_registration__partners",
+                "partner_contacts",
                 "admin2",
                 Prefetch(
                     "planned_operations",
@@ -239,6 +240,7 @@ class FullEAPViewSet(EAPModelViewSet):
             )
             .prefetch_related(
                 "admin2",
+                "partner_contacts",
                 "prioritized_impacts",
                 "early_actions",
                 # source information
