@@ -156,3 +156,27 @@ class RegionValidator(TypedDict):
 class CountryValidator(TypedDict):
     country: int
     local_unit_types: list[int]
+
+
+def generate_eap_export_url(
+    registration_id: int,
+    diff: bool = False,
+    version: Optional[int] = None,
+    summary: bool = False,
+) -> str:
+    """
+    Generate EAP export URL for given registration ID, version and diff flag.
+    """
+    from django.conf import settings
+
+    url = f"{settings.GO_WEB_INTERNAL_URL}/eap/{registration_id}/export/"
+    if version:
+        url += f"?version={version}"
+
+    # NOTE: EAP exports with diff view only for EAPs exports
+    if diff:
+        url += "&diff=true" if version else "?diff=true"
+
+    if summary:
+        url = f"{settings.GO_WEB_INTERNAL_URL}/eap/{registration_id}/summary/export/"
+    return url
