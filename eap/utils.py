@@ -74,12 +74,12 @@ def copy_model_instance(
 
     key = (instance.__class__, instance.pk)
 
-    # already cloned → return that clone
+    # already cloned -> return that clone
     if key in clone_cache:
         return clone_cache[key]
 
     opts = instance._meta
-    data = {}
+    data: Dict[str, Any] = {}
 
     # Cloning standard fields
     for field in opts.fields:
@@ -91,7 +91,7 @@ def copy_model_instance(
 
     data.update(overrides)
 
-    clone = instance.__class__.objects.create(**data)
+    clone: T = instance.__class__.objects.create(**data)
     # NOTE: Register the clone in cache before cloning M2M to handle circular references
     clone_cache[key] = clone
 
@@ -105,15 +105,20 @@ def copy_model_instance(
             continue
 
         related = getattr(instance, name).all()
-        cloned_related = [
-            copy_model_instance(
+        cloned_related: list[T] = []
+
+        for obj in related:
+            overrides_obj = {}
+            if hasattr(obj, "previous_id"):
+                overrides_obj["previous_id"] = obj.pk
+
+            cloned_obj = copy_model_instance(
                 obj,
-                overrides=None,
+                overrides=overrides_obj,
                 exclude_clone_m2m_fields=exclude_m2m,
                 clone_cache=clone_cache,
             )
-            for obj in related
-        ]
+            cloned_related.append(cloned_obj)
 
         getattr(clone, name).set(cloned_related)
 
