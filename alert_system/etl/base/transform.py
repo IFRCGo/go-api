@@ -11,14 +11,14 @@ logger = logging.getLogger(__name__)
 class BaseTransformerClass(ABC):
 
     class ImpactType(TypedDict):
-        people_exposed: int
-        buildings_exposed: int
+        people_exposed: int | None
+        buildings_exposed: int | None
         impact_metadata: list
 
     class HazardType(TypedDict):
         severity_unit: str
         severity_label: Optional[str]
-        severity_value: int
+        severity_value: int | None
 
     class EventType(TypedDict):
         title: str

@@ -66,7 +66,7 @@ class BaseExtractionClass(ABC):
             raise NotImplementedError(f"{self.__class__.__name__} must define: {', '.join(missing_attr)}")
 
     @staticmethod
-    def fetch_stac_data(url: str, filters: Optional[Dict] = None) -> Generator[Dict, None, None]:
+    def fetch_stac_data(url: str, filters: Optional[Dict] = None, timeout: int | None = 60) -> Generator[Dict, None, None]:
         """
         Fetch STAC data with pagination support.
 
@@ -75,7 +75,7 @@ class BaseExtractionClass(ABC):
         current_payload = filters.copy() if filters else None
 
         while current_url:
-            response = httpx.get(current_url, params=current_payload, timeout=30)
+            response = httpx.get(current_url, params=current_payload, timeout=timeout)
             response.raise_for_status()
             data = response.json()
 
@@ -108,9 +108,8 @@ class BaseExtractionClass(ABC):
         """
 
         now = timezone.now()
-        last_run = self.connector.last_success_run
 
-        start_time = last_run if last_run else (now - timedelta(days=30))  # NOTE: Arbitrary value for failure case.
+        start_time = self.connector.last_success_run or self.connector.polling_start_datetime or (now - timedelta(days=1))
         return f"{start_time.isoformat()}/{now.isoformat()}"
 
     def _save_stac_item(self, stac_id: str, defaults: Dict) -> Optional[ExtractionItem]:
@@ -257,8 +256,6 @@ class BaseExtractionClass(ABC):
 
 
 class PastEventExtractionClass:
-    LOOKBACK_WEEKS = 520
-
     def __init__(self, extractor: BaseExtractionClass):
         self.extractor = extractor
         self.base_url = extractor.base_url
@@ -283,7 +280,9 @@ class PastEventExtractionClass:
             filters.append(f"({country_cql})")
         return filters
 
-    def _hazard_filter(self, unit: str, value: int) -> str:
+    def _hazard_filter(self, unit: str | None, value: int | None) -> Optional[str]:
+        if not unit or value is None:
+            return None
         return f"monty:hazard_detail.severity_unit = '{unit}' AND " f"monty:hazard_detail.severity_value >= {value}"
 
     def _collect_corr_ids(self, features, exclude: str) -> set[str]:
@@ -295,7 +294,7 @@ class PastEventExtractionClass:
         return corr_ids
 
     def find_related_corr_ids(self, load_obj: LoadItem) -> set[str]:
-        start = timezone.now() - timedelta(weeks=self.LOOKBACK_WEEKS)
+        start = timezone.now() - timedelta(weeks=self.extractor.connector.lookback_weeks)
         end = timezone.now()
 
         corr_ids = set()

@@ -5,6 +5,19 @@ from django.utils.translation import gettext_lazy as _
 from api.models import DisasterType, Event
 
 
+class ImpactDetailsEnum:
+    class Type(models.TextChoices):
+        POTENTIALLY_AFFECTED = "potentially_affected", _("Potentially Affected")
+        POTENTIALLY_DAMAGED = "potentially_damaged", _("Potentially Damaged")
+        HIGHEST_RISK = "highest_risk", _("Highest Risk")
+        AFFECTED_TOTAL = "affected_total", _("Affected Total")
+        AFFECTED_DIRECT = "affected_direct", _("Affected Direct")
+
+    class Category(models.TextChoices):
+        PEOPLE = "people", _("People")
+        BUILDINGS = "buildings", _("buildings")
+
+
 class Connector(models.Model):
     """
     Configuration for different data source connectors.
@@ -35,6 +48,12 @@ class Connector(models.Model):
         help_text=_("Current status of the connector"),
     )
 
+    polling_start_datetime = models.DateTimeField(
+        verbose_name=_("Polling Start DateTime"), help_text=_("Polling start date-time"), null=True, blank=True
+    )
+    lookback_weeks = models.IntegerField(
+        verbose_name=_("Lookback Weeks"), help_text=_("Lookback weeks for fetching past events."), default=520, blank=True
+    )  # NOTE: 10 years default lookback.
     source_url = models.URLField(verbose_name=_("Source URL"), help_text=_("Base URL for the STAC API endpoint"))
 
     last_success_run = models.DateTimeField(
@@ -166,11 +185,13 @@ class LoadItem(BaseItem):
     )
 
     total_people_exposed = models.IntegerField(
+        null=True,
         verbose_name=_("Total People Exposed"),
         help_text=_("Total number of people exposed to event"),
     )
 
     total_buildings_exposed = models.IntegerField(
+        null=True,
         verbose_name=_("Total Buildings Exposed"),
         help_text=_("Total number of buildings exposed to event"),
     )
