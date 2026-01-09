@@ -1,6 +1,8 @@
 import logging
+from typing import Optional
 
 from alert_system.etl.base.transform import BaseTransformerClass
+from alert_system.models import ImpactDetailsEnum
 
 logger = logging.getLogger(__name__)
 
@@ -12,21 +14,21 @@ class USGSTransformer(BaseTransformerClass):
     """
 
     # NOTE: This logic might change in future
-    def compute_people_exposed(self, metadata_list) -> int:
+    def compute_people_exposed(self, metadata_list) -> Optional[int]:
         for data in metadata_list:
-            if data["category"] == "people" and data["type"] == "affected_total":
+            if data["category"] == ImpactDetailsEnum.Category.PEOPLE and data["type"] == ImpactDetailsEnum.Type.AFFECTED_TOTAL:
                 return data["value"]
-        return 0
+        return None
 
     # NOTE: This logic might change in future
-    def compute_buildings_exposed(self, metadata_list) -> int:
+    def compute_buildings_exposed(self, metadata_list) -> Optional[int]:
         """
         Compute the 'buildings_exposed' field.
         """
         for data in metadata_list:
             if data["category"] == "buildings" and data["type"] == "damaged":
                 return data["value"]
-        return 0
+        return None
 
     # NOTE: To be changed.
     def process_impact(self, impact_items) -> BaseTransformerClass.ImpactType:
@@ -58,7 +60,7 @@ class USGSTransformer(BaseTransformerClass):
             return {
                 "severity_unit": "",
                 "severity_label": "",
-                "severity_value": 0,
+                "severity_value": None,
             }
 
         properties = hazard_item.resp_data.get("properties", {})
@@ -67,7 +69,7 @@ class USGSTransformer(BaseTransformerClass):
         return {
             "severity_unit": detail.get("severity_unit", ""),
             "severity_label": detail.get("severity_label", ""),
-            "severity_value": detail.get("severity_value", 0),
+            "severity_value": detail.get("severity_value"),
         }
 
     def process_event(self, event_item) -> BaseTransformerClass.EventType:
@@ -76,6 +78,6 @@ class USGSTransformer(BaseTransformerClass):
             "title": properties.get("title", ""),
             "description": properties.get("description", ""),
             "country": properties.get("monty:country_codes", ""),
-            "start_datetime": properties.get("start_datetime"),
+            "start_datetime": properties.get("datetime"),
             "end_datetime": properties.get("end_datetime"),
         }
