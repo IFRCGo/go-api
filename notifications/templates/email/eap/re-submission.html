@@ -83,14 +83,14 @@
 
             <p>Attachments:</p>
             <ul>
-            <li>Revised EAP PDF with modifications in tracked changes</li>
-            {% if budget_file %}
+            <li> <a href="{{ diff_file }}">
+                        Revised EAP PDF
+                    </a></li>
                 <li>
                     <a href="{{ budget_file }}">
                         Revised EAP budget
                     </a>
                 </li>
-            {% endif %}
             {% if updated_checklist_file %}
                 <li>
                     <a href="{{ updated_checklist_file }}">

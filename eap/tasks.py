@@ -11,7 +11,11 @@ from api.logger import logger
 from api.playwright import render_pdf_from_url
 from api.utils import generate_eap_export_url
 from eap.models import EAPRegistration, EAPType, FullEAP, SimplifiedEAP
-from eap.utils import get_coordinator_emails_by_region, get_eap_email_context
+from eap.utils import (
+    get_coordinator_emails_by_region,
+    get_eap_email_context,
+    get_eap_registration_email_context,
+)
 from main.utils import logger_context
 from notifications.notification import send_notification
 
@@ -113,7 +117,6 @@ def generate_export_eap_pdf(eap_registration_id, version):
     eap_registration = EAPRegistration.objects.get(id=eap_registration_id)
     user = User.objects.get(id=eap_registration.created_by_id)
     token = Token.objects.filter(user=user).last()
-
     url = generate_eap_export_url(
         registration_id=eap_registration_id,
         version=version,
@@ -181,7 +184,7 @@ def send_new_eap_registration_email(eap_registration_id: int):
             ]
         )
     )
-    email_context = get_eap_email_context(instance)
+    email_context = get_eap_registration_email_context(instance)
     email_subject = (
         f"[{instance.get_eap_type_display() if instance.get_eap_type_display() else 'EAP'} IN DEVELOPMENT] "
         f"{instance.country} {instance.disaster_type}"
@@ -206,12 +209,17 @@ def send_new_eap_submission_email(eap_registration_id: int):
     if not instance:
         return None
 
-    partner_contacts = (
-        instance.latest_simplified_eap.partner_contacts
-        if instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP
-        else instance.latest_full_eap.partner_contacts
-    )
+    if instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP:
+        latest_eap = instance.latest_simplified_eap
+    else:
+        latest_eap = instance.latest_full_eap
 
+    if not latest_eap.export_file:
+        generate_export_eap_pdf(
+            eap_registration_id=instance.id,
+            version=latest_eap.version,
+        )
+    partner_contacts = latest_eap.partner_contacts
     partner_ns_emails = list(partner_contacts.values_list("email", flat=True))
 
     regional_coordinator_emails: list[str] = get_coordinator_emails_by_region(instance.country.region)
@@ -258,7 +266,9 @@ def send_feedback_email(eap_registration_id: int):
         latest_eap = instance.latest_simplified_eap
     else:
         latest_eap = instance.latest_full_eap
+
     ifrc_delegation_focal_point_email = latest_eap.ifrc_delegation_focal_point_email
+
     partner_contacts = latest_eap.partner_contacts
     partner_ns_emails = list(partner_contacts.values_list("email", flat=True))
 
@@ -303,13 +313,19 @@ def send_eap_resubmission_email(eap_registration_id: int):
     instance = EAPRegistration.objects.filter(id=eap_registration_id).first()
     if not instance:
         return None
-
     if instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP:
         latest_eap = instance.latest_simplified_eap
     else:
         latest_eap = instance.latest_full_eap
 
     latest_version = latest_eap.version
+
+    if not latest_eap.diff_file:
+        generate_export_diff_pdf(
+            eap_registration_id=instance.id,
+            version=latest_eap.version,
+        )
+
     partner_contacts = latest_eap.partner_contacts
     partner_ns_emails = list(partner_contacts.values_list("email", flat=True))
 
@@ -464,12 +480,17 @@ def send_pending_pfa_email(eap_registration_id: int):
     if not instance:
         return None
 
-    partner_contacts = (
-        instance.latest_simplified_eap.partner_contacts
-        if instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP
-        else instance.latest_full_eap.partner_contacts
-    )
+    if instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP:
+        latest_eap = instance.latest_simplified_eap
+    else:
+        latest_eap = instance.latest_full_eap
 
+        if not latest_eap.summary_file:
+            generate_eap_summary_pdf(
+                eap_registration_id=instance.id,
+            )
+
+    partner_contacts = latest_eap.partner_contacts
     partner_ns_emails = list(partner_contacts.values_list("email", flat=True))
 
     regional_coordinator_emails: list[str] = get_coordinator_emails_by_region(instance.country.region)

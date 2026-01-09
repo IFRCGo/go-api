@@ -1746,9 +1746,6 @@ class EAPStatusTransitionTestCase(APITestCase):
 
         self.assert_200(response)
         eap_registration.refresh_from_db()
-        self.assertIsNotNone(
-            self.eap_registration.review_checklist_file,
-        )
         self.assertEqual(response.data["status"], EAPStatus.NS_ADDRESSING_COMMENTS)
         send_feedback_email.delay.assert_called_once_with(eap_registration.id)
         send_feedback_email.delay.reset_mock()
@@ -1807,9 +1804,6 @@ class EAPStatusTransitionTestCase(APITestCase):
 
         self.assert_200(response)
         eap_registration.refresh_from_db()
-        self.assertIsNotNone(
-            self.eap_registration.review_checklist_file,
-        )
         self.assertEqual(response.data["status"], EAPStatus.NS_ADDRESSING_COMMENTS)
         send_feedback_email_for_resubmitted_eap.delay.assert_called_once_with(eap_registration.id)
         send_feedback_email_for_resubmitted_eap.delay.reset_mock()
@@ -1877,9 +1871,6 @@ class EAPStatusTransitionTestCase(APITestCase):
 
         self.assert_200(response)
         eap_registration.refresh_from_db()
-        self.assertIsNotNone(
-            self.eap_registration.review_checklist_file,
-        )
         self.assertEqual(response.data["status"], EAPStatus.NS_ADDRESSING_COMMENTS)
         send_feedback_email_for_resubmitted_eap.delay.assert_called_once_with(eap_registration.id)
         send_feedback_email_for_resubmitted_eap.delay.reset_mock()

@@ -58,21 +58,16 @@
             </p>
             <strong>Attached documents:</strong><br>
             <ul>
-                {% if export_file %}
-                    <li>
-                        <a href="{{ export_file }}">
+                <li>
+                    <a href="{{ export_file }}">
                             Export PDF
                         </a>
                     </li>
-                {% endif %}
-
-                {% if budget_file %}
                     <li>
                         <a href="{{ budget_file }}">
                             Budget file
                         </a>
                     </li>
-                {% endif %}
             </ul>
             <!-- Signature -->
             <p style="margin-top:16px;">

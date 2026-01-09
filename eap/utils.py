@@ -47,6 +47,25 @@ def get_file_url(file_obj):
         return file_obj.file.url
 
 
+def get_eap_registration_email_context(instance):
+    from eap.serializers import EAPRegistrationSerializer
+
+    eap_registration_data = EAPRegistrationSerializer(instance).data
+    email_context = {
+        "registration_id": eap_registration_data["id"],
+        "eap_type_display": eap_registration_data["eap_type_display"],
+        "country_name": eap_registration_data["country_details"]["name"],
+        "national_society": eap_registration_data["national_society_details"]["society_name"],
+        "supporting_partners": eap_registration_data["partners_details"],
+        "disaster_type": eap_registration_data["disaster_type_details"]["name"],
+        "ns_contact_name": eap_registration_data["national_society_contact_name"],
+        "ns_contact_email": eap_registration_data["national_society_contact_email"],
+        "ns_contact_phone": eap_registration_data["national_society_contact_phone_number"],
+        "frontend_url": settings.GO_WEB_URL,
+    }
+    return email_context
+
+
 def get_eap_email_context(instance):
     from eap.serializers import EAPRegistrationSerializer
 
