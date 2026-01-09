@@ -382,6 +382,7 @@ class AlertSubscription(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated At"))
     # Typing
     id: int
+    user_id: int
 
     class Meta:
         ordering = ["-id"]
