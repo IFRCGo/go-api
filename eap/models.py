@@ -722,6 +722,21 @@ class EAPRegistration(EAPBaseModel):
         help_text=_("Timestamp when the EAP was activated."),
     )
 
+    # EAP submission deadline
+    deadline = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name=_("deadline"),
+        help_text=_("Date by which the EAP submission must be completed."),
+    )
+
+    deadline_remainder_sent_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_("deadline reminder email sent at"),
+        help_text=_("Timestamp when the deadline reminder email was sent."),
+    )
+
     # TYPING
     id: int
     national_society_id: int

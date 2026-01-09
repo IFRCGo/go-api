@@ -1,4 +1,5 @@
 import typing
+from datetime import timedelta
 
 from celery import group
 from django.contrib.auth.models import User
@@ -39,6 +40,14 @@ from eap.tasks import (
     generate_eap_summary_pdf,
     generate_export_diff_pdf,
     generate_export_eap_pdf,
+    send_approved_email,
+    send_eap_resubmission_email,
+    send_feedback_email,
+    send_feedback_email_for_resubmitted_eap,
+    send_new_eap_registration_email,
+    send_new_eap_submission_email,
+    send_pending_pfa_email,
+    send_technical_validation_email,
 )
 from eap.utils import (
     has_country_permission,
@@ -189,7 +198,18 @@ class EAPRegistrationSerializer(
             "modified_by",
             "latest_simplified_eap",
             "latest_full_eap",
+            "deadline",
         ]
+
+    def create(self, validated_data: dict[str, typing.Any]):
+        instance = super().create(validated_data)
+
+        transaction.on_commit(
+            lambda: send_new_eap_registration_email.delay(
+                instance.id,
+            )
+        )
+        return instance
 
     def update(self, instance: EAPRegistration, validated_data: dict[str, typing.Any]) -> dict[str, typing.Any]:
         # NOTE: Cannot update once EAP application is being created.
@@ -962,3 +982,109 @@ class EAPStatusSerializer(BaseEAPSerializer):
         validate_file_type(file)
 
         return file
+
+    def update(self, instance: EAPRegistration, validated_data: dict[str, typing.Any]) -> EAPRegistration:
+        old_status = instance.get_status_enum
+        updated_instance = super().update(instance, validated_data)
+        new_status = updated_instance.get_status_enum
+
+        if old_status == new_status:
+            return updated_instance
+
+        eap_registration_id = updated_instance.id
+        assert updated_instance.get_eap_type_enum is not None, "EAP type must not be None"
+
+        if updated_instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP:
+            eap_count = SimplifiedEAP.objects.filter(eap_registration=updated_instance).count()
+        else:
+            eap_count = FullEAP.objects.filter(eap_registration=updated_instance).count()
+
+        if (old_status, new_status) == (
+            EAPRegistration.Status.UNDER_DEVELOPMENT,
+            EAPRegistration.Status.UNDER_REVIEW,
+        ):
+            transaction.on_commit(lambda: send_new_eap_submission_email.delay(eap_registration_id))
+
+        elif (old_status, new_status) == (
+            EAPRegistration.Status.UNDER_REVIEW,
+            EAPRegistration.Status.NS_ADDRESSING_COMMENTS,
+        ):
+            """
+            NOTE:
+                At the transition (UNDER_REVIEW -> NS_ADDRESSING_COMMENTS), the EAP snapshot
+                is generated inside `_validate_status()` BEFORE we reach this `update()` method.
+
+                That snapshot operation:
+                - Locks the reviewed EAP (previous version)
+                - Creates a new snapshot (incremented version)
+                - Updates latest_simplified_eap or latest_full_eap to the new version
+
+                Email logic based on eap_count:
+                - If eap_count == 2 (i.e., first snapshot already exists and this is the first IFRC feedback cycle)
+                    - Send the first feedback email
+                - Else (eap_count > 2), indicating subsequent feedback cycles:
+                    - Send the resubmitted feedback email
+
+                Therefore:
+                - version == 2 always corresponds to the first IFRC feedback cycle
+                - Any later versions (>= 3) correspond to resubmitted cycles
+
+               Deadline update rules:
+                - First IFRC feedback cycle: deadline is set to 90 days from the current date.
+                - Subsequent feedback or resubmission cycles: deadline is set to 30 days from the current date.
+            """
+
+            if eap_count == 2:
+                updated_instance.deadline = timezone.now().date() + timedelta(days=90)
+                updated_instance.save(
+                    update_fields=[
+                        "deadline",
+                    ]
+                )
+                transaction.on_commit(lambda: send_feedback_email.delay(eap_registration_id))
+
+            elif eap_count > 2:
+                updated_instance.deadline = timezone.now().date() + timedelta(days=30)
+                updated_instance.save(
+                    update_fields=[
+                        "deadline",
+                    ]
+                )
+                transaction.on_commit(lambda: send_feedback_email_for_resubmitted_eap.delay(eap_registration_id))
+
+        elif (old_status, new_status) == (
+            EAPRegistration.Status.NS_ADDRESSING_COMMENTS,
+            EAPRegistration.Status.UNDER_REVIEW,
+        ):
+            transaction.on_commit(lambda: send_eap_resubmission_email.delay(eap_registration_id))
+        elif (old_status, new_status) == (
+            EAPRegistration.Status.TECHNICALLY_VALIDATED,
+            EAPRegistration.Status.NS_ADDRESSING_COMMENTS,
+        ):
+            updated_instance.deadline = timezone.now().date() + timedelta(days=30)
+            updated_instance.save(
+                update_fields=[
+                    "deadline",
+                ]
+            )
+            transaction.on_commit(lambda: send_feedback_email_for_resubmitted_eap.delay(eap_registration_id))
+
+        elif (old_status, new_status) == (
+            EAPRegistration.Status.UNDER_REVIEW,
+            EAPRegistration.Status.TECHNICALLY_VALIDATED,
+        ):
+            transaction.on_commit(lambda: send_technical_validation_email.delay(eap_registration_id))
+
+        elif (old_status, new_status) == (
+            EAPRegistration.Status.TECHNICALLY_VALIDATED,
+            EAPRegistration.Status.PENDING_PFA,
+        ):
+            transaction.on_commit(lambda: send_pending_pfa_email.delay(eap_registration_id))
+
+        elif (old_status, new_status) == (
+            EAPRegistration.Status.PENDING_PFA,
+            EAPRegistration.Status.APPROVED,
+        ):
+            transaction.on_commit(lambda: send_approved_email.delay(eap_registration_id))
+
+        return updated_instance

@@ -1,9 +1,128 @@
 import os
 from typing import Any, Dict, Set, TypeVar
 
+from django.conf import settings
 from django.contrib.auth.models import Permission, User
 from django.core.exceptions import ValidationError
 from django.db import models
+
+from api.models import Region, RegionName
+from eap.models import EAPType, FullEAP, SimplifiedEAP
+
+REGION_EMAIL_MAP: dict[RegionName, list[str]] = {
+    RegionName.AFRICA: settings.EMAIL_EAP_AFRICA_COORDINATORS,
+    RegionName.AMERICAS: settings.EMAIL_EAP_AMERICAS_COORDINATORS,
+    RegionName.ASIA_PACIFIC: settings.EMAIL_EAP_ASIA_PACIFIC_COORDINATORS,
+    RegionName.EUROPE: settings.EMAIL_EAP_EUROPE_COORDINATORS,
+    RegionName.MENA: settings.EMAIL_EAP_MENA_COORDINATORS,
+}
+
+
+def get_coordinator_emails_by_region(region: Region | None) -> list[str]:
+    """
+    This function uses the REGION_EMAIL_MAP dictionary to map Region name to the corresponding list of email addresses.
+    Args:
+        region: Region instance for which the coordinator emails are needed.
+    Returns:
+        List of email addresses corresponding to the region coordinators.
+        Returns an empty list if the region is None or not found in the mapping.
+    """
+    if not region:
+        return []
+
+    return REGION_EMAIL_MAP.get(region.name, [])
+
+
+def get_file_url(file_obj):
+    """
+    This function returns the URL of a file field if it exists.
+    Args:
+        file_obj: A model instance or object containing a file field.
+    Returns:
+        str | None: The URL of the file if available, otherwise None.
+    """
+    if not file_obj:
+        return None
+    if hasattr(file_obj, "file"):
+        return file_obj.file.url
+
+
+def get_eap_registration_email_context(instance):
+    from eap.serializers import EAPRegistrationSerializer
+
+    eap_registration_data = EAPRegistrationSerializer(instance).data
+    email_context = {
+        "registration_id": eap_registration_data["id"],
+        "eap_type_display": eap_registration_data["eap_type_display"],
+        "country_name": eap_registration_data["country_details"]["name"],
+        "national_society": eap_registration_data["national_society_details"]["society_name"],
+        "supporting_partners": eap_registration_data["partners_details"],
+        "disaster_type": eap_registration_data["disaster_type_details"]["name"],
+        "ns_contact_name": eap_registration_data["national_society_contact_name"],
+        "ns_contact_email": eap_registration_data["national_society_contact_email"],
+        "ns_contact_phone": eap_registration_data["national_society_contact_phone_number"],
+        "frontend_url": settings.GO_WEB_URL,
+    }
+    return email_context
+
+
+def get_eap_email_context(instance):
+    from eap.serializers import EAPRegistrationSerializer
+
+    eap_registration_data = EAPRegistrationSerializer(instance).data
+    email_context = {
+        "registration_id": eap_registration_data["id"],
+        "eap_type_display": eap_registration_data["eap_type_display"],
+        "country_name": eap_registration_data["country_details"]["name"],
+        "national_society": eap_registration_data["national_society_details"]["society_name"],
+        "supporting_partners": eap_registration_data["partners_details"],
+        "disaster_type": eap_registration_data["disaster_type_details"]["name"],
+        "ns_contact_name": eap_registration_data["national_society_contact_name"],
+        "ns_contact_email": eap_registration_data["national_society_contact_email"],
+        "ns_contact_phone": eap_registration_data["national_society_contact_phone_number"],
+        "deadline": eap_registration_data["deadline"],
+        "frontend_url": settings.GO_WEB_URL,
+        "validated_budget_file": (instance.validated_budget_file.url if instance.validated_budget_file else None),
+        "summary_file": (instance.summary_file.url if instance.summary_file else None),
+    }
+
+    if instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP:
+        latest_eap_data = instance.latest_simplified_eap
+        eap_model = SimplifiedEAP
+    else:
+        latest_eap_data = instance.latest_full_eap
+        eap_model = FullEAP
+
+    latest_version = latest_eap_data.version
+
+    previous_eap = (
+        eap_model.objects.filter(
+            eap_registration=instance,
+            version__lt=latest_version,
+        )
+        .order_by("-version")
+        .first()
+    )
+
+    previous_version = previous_eap.version if previous_eap else None
+
+    email_context.update(
+        {
+            "latest_eap_id": latest_eap_data.id,
+            "people_targeted": latest_eap_data.people_targeted,
+            "total_budget": latest_eap_data.total_budget,
+            "latest_version": latest_eap_data.version,
+            "previous_version": previous_version,
+            "export_file": (latest_eap_data.export_file.url if latest_eap_data.export_file else None),
+            "diff_file": (latest_eap_data.diff_file.url if latest_eap_data.diff_file else None),
+            "budget_file": get_file_url(latest_eap_data.budget_file),
+            "updated_checklist_file": get_file_url(latest_eap_data.updated_checklist_file),
+            "review_checklist_file": (
+                latest_eap_data.review_checklist_file.url if latest_eap_data.review_checklist_file else None
+            ),
+        }
+    )
+    return email_context
 
 
 def has_country_permission(user: User, country_id: int) -> bool:
