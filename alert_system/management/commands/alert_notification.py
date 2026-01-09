@@ -1,15 +1,18 @@
 from django.core.management.base import BaseCommand
-from sentry_sdk import monitor
 
 from alert_system.models import LoadItem
 from alert_system.tasks import process_email_alert
-from main.sentry import SentryMonitor
+
+# from sentry_sdk import monitor
+
+
+# from main.sentry import SentryMonitor
 
 
 class Command(BaseCommand):
     help = "Send alert email notifications for eligible load items"
 
-    @monitor(monitor_slug=SentryMonitor.ALERT_NOTIFICATION)
+    # @monitor(monitor_slug=SentryMonitor.ALERT_NOTIFICATION)
     def handle(self, *args, **options):
 
         items = LoadItem.objects.filter(item_eligible=True, is_past_event=False)
