@@ -284,6 +284,9 @@ class AlertEmailThread(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # Typing
+    user_id: int
+
     class Meta:
         verbose_name = _("Email Thread")
         verbose_name_plural = _("Email Threads")
@@ -358,6 +361,7 @@ class AlertEmailLog(models.Model):
     )
 
     id: int
+    user_id: int
     subscription_id: int
     item_id: int
     thread_id: int
