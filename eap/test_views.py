@@ -122,7 +122,8 @@ class EAPRegistrationTestCase(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data["results"]), 5)
 
-    def test_create_eap_registration(self):
+    @mock.patch("eap.tasks.send_new_eap_registration_email")
+    def test_create_eap_registration(self, send_new_eap_registration_email):
         url = "/api/v2/eap-registration/"
         data = {
             "eap_type": EAPType.FULL_EAP,
@@ -159,6 +160,7 @@ class EAPRegistrationTestCase(APITestCase):
                 self.disaster_type.id,
             },
         )
+        self.assertTrue(send_new_eap_registration_email)
 
     def test_retrieve_eap_registration(self):
         eap_registration = EAPRegistrationFactory.create(
@@ -1652,6 +1654,304 @@ class EAPStatusTransitionTestCase(APITestCase):
         url = f"/api/v2/simplified-eap/{simplified_eap.id}/"
         response = self.client.patch(url, update_data, format="json")
         self.assertEqual(response.status_code, 400)
+
+    @mock.patch("eap.serializers.send_new_eap_submission_email")
+    @mock.patch("eap.serializers.send_feedback_email")
+    @mock.patch("eap.serializers.send_eap_resubmission_email")
+    @mock.patch("eap.serializers.send_technical_validation_email")
+    @mock.patch("eap.serializers.send_feedback_email_for_resubmitted_eap")
+    @mock.patch("eap.serializers.send_pending_pfa_email")
+    @mock.patch("eap.serializers.send_approved_email")
+    def test_status_transitions_trigger_email(
+        self,
+        send_approved_email,
+        send_pending_pfa_email,
+        send_feedback_email_for_resubmitted_eap,
+        send_technical_validation_email,
+        send_eap_resubmission_email,
+        send_feedback_email,
+        send_new_eap_submission_email,
+    ):
+
+        # Create permissions
+        management.call_command("make_permissions")
+
+        self.country_admin = UserFactory.create()
+        country_admin_permission = Permission.objects.filter(codename="country_admin_%s" % self.national_society.id).first()
+        country_group = Group.objects.filter(name="%s Admins" % self.national_society.name).first()
+
+        self.country_admin.user_permissions.add(country_admin_permission)
+        self.country_admin.groups.add(country_group)
+
+        # Create IFRC Admin User and assign permission
+        self.ifrc_admin_user = UserFactory.create()
+        ifrc_admin_permission = Permission.objects.filter(codename="ifrc_admin").first()
+        ifrc_group = Group.objects.filter(name="IFRC Admins").first()
+        self.ifrc_admin_user.user_permissions.add(ifrc_admin_permission)
+        self.ifrc_admin_user.groups.add(ifrc_group)
+
+        eap_registration = EAPRegistrationFactory.create(
+            country=self.country,
+            national_society=self.national_society,
+            disaster_type=self.disaster_type,
+            eap_type=EAPType.SIMPLIFIED_EAP,
+            status=EAPStatus.UNDER_DEVELOPMENT,
+            partners=[self.partner1.id, self.partner2.id],
+            created_by=self.user,
+            modified_by=self.user,
+        )
+        simplified_eap = SimplifiedEAPFactory.create(
+            eap_registration=eap_registration,
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
+            budget_file=EAPFileFactory._create_file(
+                created_by=self.country_admin,
+                modified_by=self.country_admin,
+            ),
+        )
+        eap_registration.latest_simplified_eap = simplified_eap
+        eap_registration.save()
+
+        url = f"/api/v2/eap-registration/{eap_registration.id}/status/"
+
+        # UNDER_DEVELOPMENT -> UNDER_REVIEW
+        data = {"status": EAPStatus.UNDER_REVIEW}
+        self.authenticate(self.country_admin)
+        with self.capture_on_commit_callbacks(execute=True):
+            response = self.client.post(url, data, format="json")
+        self.assert_200(response)
+        eap_registration.refresh_from_db()
+        self.assertEqual(response.data["status"], EAPStatus.UNDER_REVIEW)
+        send_new_eap_submission_email.delay.assert_called_once_with(eap_registration.id)
+        send_new_eap_submission_email.delay.reset_mock()
+
+        # UNDER_REVIEW -> NS_ADDRESSING_COMMENTS
+        data = {
+            "status": EAPStatus.NS_ADDRESSING_COMMENTS,
+        }
+        # Login as IFRC admin user
+        self.authenticate(self.ifrc_admin_user)
+
+        # Upload checklist and change status in a single request
+        with tempfile.NamedTemporaryFile(suffix=".xlsx") as tmp_file:
+            tmp_file.write(b"Test content")
+            tmp_file.seek(0)
+
+            data = {
+                "status": EAPStatus.NS_ADDRESSING_COMMENTS,
+                "review_checklist_file": tmp_file,
+            }
+            with self.capture_on_commit_callbacks(execute=True):
+                response = self.client.post(url, data, format="multipart")
+
+        self.assert_200(response)
+        eap_registration.refresh_from_db()
+        self.assertEqual(response.data["status"], EAPStatus.NS_ADDRESSING_COMMENTS)
+        send_feedback_email.delay.assert_called_once_with(eap_registration.id)
+        send_feedback_email.delay.reset_mock()
+        # -----------------------------
+        # Check snapshots after the status change
+        # -----------------------------
+        snapshot = SimplifiedEAP.objects.filter(eap_registration=eap_registration).order_by("-version").first()
+        assert snapshot is not None, "Snapshot should exist now"
+        eap_registration.latest_simplified_eap = snapshot
+        eap_registration.save()
+
+        # NS_ADDRESSING_COMMENTS -> UNDER_REVIEW
+        # Upload updated checklist file
+        # UPDATES on the second snapshot
+        snapshot_url = f"/api/v2/simplified-eap/{snapshot.id}/"
+        checklist_file_instance = EAPFileFactory._create_file(
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
+        )
+        file_data = {
+            "prioritized_hazard_and_impact": "Floods with potential heavy impact.",
+            "eap_registration": snapshot.eap_registration_id,
+            "updated_checklist_file": checklist_file_instance.id,
+        }
+        self.authenticate(self.country_admin)
+        response = self.client.patch(snapshot_url, file_data, format="json")
+        self.assert_200(response)
+
+        data = {"status": EAPStatus.UNDER_REVIEW}
+        self.authenticate(self.country_admin)
+        with self.capture_on_commit_callbacks(execute=True):
+            response = self.client.post(url, data, format="json")
+        self.assert_200(response)
+        eap_registration.refresh_from_db()
+        self.assertEqual(response.data["status"], EAPStatus.UNDER_REVIEW)
+        send_eap_resubmission_email.delay.assert_called_once_with(eap_registration.id)
+        send_eap_resubmission_email.delay.reset_mock()
+
+        # AGAIN NOTE: Transition to NS_ADDRESSING_COMMENTS
+        # UNDER_REVIEW -> NS_ADDRESSING_COMMENTS
+        # Login as IFRC admin user
+        self.authenticate(self.ifrc_admin_user)
+
+        # Upload checklist and change status in a single request
+        with tempfile.NamedTemporaryFile(suffix=".xlsx") as tmp_file:
+            tmp_file.write(b"Test content")
+            tmp_file.seek(0)
+
+            data = {
+                "status": EAPStatus.NS_ADDRESSING_COMMENTS,
+                "review_checklist_file": tmp_file,
+            }
+
+            with self.capture_on_commit_callbacks(execute=True):
+                response = self.client.post(url, data, format="multipart")
+
+        self.assert_200(response)
+        eap_registration.refresh_from_db()
+        self.assertEqual(response.data["status"], EAPStatus.NS_ADDRESSING_COMMENTS)
+        send_feedback_email_for_resubmitted_eap.delay.assert_called_once_with(eap_registration.id)
+        send_feedback_email_for_resubmitted_eap.delay.reset_mock()
+        # -----------------------------
+        # Check snapshots after the status change
+        # -----------------------------
+        snapshot = SimplifiedEAP.objects.filter(eap_registration=eap_registration).order_by("-version").first()
+        assert snapshot is not None, "Snapshot should exist now"
+        eap_registration.latest_simplified_eap = snapshot
+        eap_registration.save()
+
+        # NOTE: Again Transition to UNDER_REVIEW
+        # NS_ADDRESSING_COMMENTS -> UNDER_REVIEW
+        snapshot_url = f"/api/v2/simplified-eap/{snapshot.id}/"
+        checklist_file_instance = EAPFileFactory._create_file(
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
+        )
+        file_data = {
+            "prioritized_hazard_and_impact": "Floods with potential heavy impact.",
+            "eap_registration": snapshot.eap_registration_id,
+            "updated_checklist_file": checklist_file_instance.id,
+        }
+        self.authenticate(self.country_admin)
+        response = self.client.patch(snapshot_url, file_data, format="json")
+        self.assert_200(response)
+
+        data = {"status": EAPStatus.UNDER_REVIEW}
+        self.authenticate(self.country_admin)
+        with self.capture_on_commit_callbacks(execute=True):
+            response = self.client.post(url, data, format="json")
+        self.assert_200(response)
+        eap_registration.refresh_from_db()
+        self.assertEqual(response.data["status"], EAPStatus.UNDER_REVIEW)
+        send_eap_resubmission_email.delay.assert_called_once_with(eap_registration.id)
+        send_eap_resubmission_email.delay.reset_mock()
+
+        # Transition UNDER_REVIEW -> TECHNICALLY_VALIDATED
+        data = {"status": EAPStatus.TECHNICALLY_VALIDATED}
+        self.authenticate(self.ifrc_admin_user)
+        with self.capture_on_commit_callbacks(execute=True):
+            response = self.client.post(url, data, format="json")
+        self.assert_200(response)
+        self.assertEqual(response.data["status"], EAPStatus.TECHNICALLY_VALIDATED)
+        eap_registration.refresh_from_db()
+        send_technical_validation_email.delay.assert_called_once_with(eap_registration.id)
+        send_technical_validation_email.delay.reset_mock()
+
+        # Transition TECHNICALLY_VALIDATED ->  NS_ADDRESSING_COMMENTS
+        # Login as IFRC admin user
+        self.authenticate(self.ifrc_admin_user)
+
+        # Upload checklist and change status in a single request
+        with tempfile.NamedTemporaryFile(suffix=".xlsx") as tmp_file:
+            tmp_file.write(b"Test content")
+            tmp_file.seek(0)
+
+            data = {
+                "status": EAPStatus.NS_ADDRESSING_COMMENTS,
+                "review_checklist_file": tmp_file,
+            }
+
+            with self.capture_on_commit_callbacks(execute=True):
+                response = self.client.post(url, data, format="multipart")
+
+        self.assert_200(response)
+        eap_registration.refresh_from_db()
+        self.assertEqual(response.data["status"], EAPStatus.NS_ADDRESSING_COMMENTS)
+        send_feedback_email_for_resubmitted_eap.delay.assert_called_once_with(eap_registration.id)
+        send_feedback_email_for_resubmitted_eap.delay.reset_mock()
+        # -----------------------------
+        # Check snapshots after the status change
+        # -----------------------------
+        snapshot = SimplifiedEAP.objects.filter(eap_registration=eap_registration).order_by("-version").first()
+        assert snapshot is not None, "Snapshot should exist now"
+        simplified_eap.refresh_from_db()
+        eap_registration.latest_simplified_eap = snapshot
+        eap_registration.save()
+
+        # NS_ADDRESSING_COMMENTS -> UNDER_REVIEW
+        # Upload updated checklist file
+        # UPDATES on the second snapshot
+        snapshot_url = f"/api/v2/simplified-eap/{snapshot.id}/"
+        checklist_file_instance = EAPFileFactory._create_file(
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
+        )
+        file_data = {
+            "prioritized_hazard_and_impact": "Floods with potential heavy impact.",
+            "eap_registration": snapshot.eap_registration_id,
+            "updated_checklist_file": checklist_file_instance.id,
+        }
+        self.authenticate(self.country_admin)
+        response = self.client.patch(snapshot_url, file_data, format="json")
+        self.assert_200(response)
+
+        data = {"status": EAPStatus.UNDER_REVIEW}
+        self.authenticate(self.country_admin)
+        with self.capture_on_commit_callbacks(execute=True):
+            response = self.client.post(url, data, format="json")
+        self.assert_200(response)
+        eap_registration.refresh_from_db()
+        self.assertEqual(response.data["status"], EAPStatus.UNDER_REVIEW)
+        send_eap_resubmission_email.delay.assert_called_once_with(eap_registration.id)
+        send_eap_resubmission_email.delay.reset_mock()
+
+        # Again Transition UNDER_REVIEW -> TECHNICALLY_VALIDATED
+        data = {"status": EAPStatus.TECHNICALLY_VALIDATED}
+        self.authenticate(self.ifrc_admin_user)
+        with self.capture_on_commit_callbacks(execute=True):
+            response = self.client.post(url, data, format="json")
+        self.assert_200(response)
+        eap_registration.refresh_from_db()
+        self.assertEqual(response.data["status"], EAPStatus.TECHNICALLY_VALIDATED)
+        send_technical_validation_email.delay.assert_called_once_with(eap_registration.id)
+        send_technical_validation_email.delay.reset_mock()
+
+        # Transition TECHNICALLY_VALIDATED -> PENDING_PFA
+        # Upload validated budget file
+        data = {"status": EAPStatus.PENDING_PFA}
+        upload_url = f"/api/v2/eap-registration/{eap_registration.id}/upload-validated-budget-file/"
+        with tempfile.NamedTemporaryFile(suffix=".xlsx") as tmp_file:
+            tmp_file.write(b"Test content")
+            tmp_file.seek(0)
+            file_data = {"validated_budget_file": tmp_file}
+            self.authenticate(self.ifrc_admin_user)
+            response = self.client.post(upload_url, file_data, format="multipart")
+            self.assert_200(response)
+
+        # Now change status → PENDING_PFA
+        status_url = f"/api/v2/eap-registration/{eap_registration.id}/status/"
+        data = {"status": EAPStatus.PENDING_PFA}
+
+        with self.capture_on_commit_callbacks(execute=True):
+            response = self.client.post(status_url, data, format="json")
+        self.assert_200(response)
+        self.assertEqual(response.data["status"], EAPStatus.PENDING_PFA)
+        eap_registration.refresh_from_db()
+        send_pending_pfa_email.delay.assert_called_once_with(eap_registration.id)
+
+        # Transition PENDING_PFA -> APPROVED
+        data = {"status": EAPStatus.APPROVED}
+        with self.capture_on_commit_callbacks(execute=True):
+            response = self.client.post(url, data, format="json")
+        self.assert_200(response)
+        self.assertEqual(response.data["status"], EAPStatus.APPROVED)
+        eap_registration.refresh_from_db()
+        send_approved_email.delay.assert_called_once_with(eap_registration.id)
 
 
 class EAPPDFExportTestCase(APITestCase):
