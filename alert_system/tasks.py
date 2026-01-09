@@ -186,15 +186,14 @@ def process_email_alert(load_item_id: int) -> None:
         logger.warning(f"LoadItem with ID [{load_item_id}] not found")
         return
 
-    subscriptions = get_alert_subscriptions(load_item)
-    if not subscriptions.exists():
+    subscriptions = list(get_alert_subscriptions(load_item))
+    if not subscriptions:
         logger.info(f"No alert subscriptions matched for LoadItem ID [{load_item_id}]")
         return
 
     today = timezone.now().date()
-    subscriptions_list = list(subscriptions)
-    user_ids = [sub.user.id for sub in subscriptions_list]
-    subscription_ids = [sub.id for sub in subscriptions_list]
+    user_ids = [sub.user_id for sub in subscriptions]
+    subscription_ids = [sub.id for sub in subscriptions]
 
     # Daily email counts per user
     daily_counts = (
@@ -220,12 +219,13 @@ def process_email_alert(load_item_id: int) -> None:
     )
 
     # Existing threads for this correlation_id
-    threads_qs = AlertEmailThread.objects.filter(
-        correlation_id=load_item.correlation_id,
-        user_id__in=user_ids,
-    ).select_related("user")
-
-    existing_threads = {thread.user.id: thread for thread in threads_qs}
+    existing_threads = {
+        thread.user_id: thread
+        for thread in AlertEmailThread.objects.filter(
+            correlation_id=load_item.correlation_id,
+            user_id__in=user_ids,
+        )
+    }
 
     for subscription in subscriptions:
         user = subscription.user

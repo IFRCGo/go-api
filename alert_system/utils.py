@@ -43,11 +43,11 @@ def get_alert_email_context(load_item: LoadItem, user: User):
 
 def get_alert_subscriptions(load_item: LoadItem):
 
-    regions = Country.objects.filter(iso3__in=load_item.country_codes).values_list("region_id", flat=True)
+    region_ids = Country.objects.filter(iso3__in=load_item.country_codes).values_list("region_id", flat=True)
 
     return (
         AlertSubscription.objects.filter(hazard_types=load_item.connector.dtype)
-        .filter(Q(countries__iso3__in=load_item.country_codes) | Q(regions__in=regions))
+        .filter(Q(countries__iso3__in=load_item.country_codes) | Q(regions__in=region_ids))
         .select_related("user")
         .distinct()
     )
