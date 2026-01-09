@@ -68,7 +68,7 @@ def fetch_past_events_from_monty(self, extraction_run_id):
 
         first_item = eligible_items_qs.first()
         if not first_item:
-            logger.info("No Connector found for the Event")
+            logger.info("No item found to extract related montandon events.")
             return
 
         connector_id = first_item.connector.id
@@ -113,6 +113,9 @@ def fetch_past_events_from_go(self, extraction_run_id, connector_id):
             is_past_event=False,
         ).only("id", "total_people_exposed", "country_codes")
     )
+    if not items:
+        logger.info("No Item found to extract related go events.")
+        return
 
     min_people = min(i.total_people_exposed for i in items)
     all_countries = set().union(*(i.country_codes for i in items))
