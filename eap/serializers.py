@@ -95,26 +95,80 @@ class BaseEAPSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
 
+class EAPFileInputSerializer(serializers.Serializer):
+    file = serializers.ListField(child=serializers.FileField(required=True))
+
+
+class EAPGlobalFilesSerializer(serializers.Serializer):
+    url = serializers.URLField(read_only=True)
+
+
+class EAPFileSerializer(BaseEAPSerializer):
+    id = serializers.IntegerField(required=False)
+    file = serializers.FileField(required=True)
+
+    class Meta:
+        model = EAPFile
+        fields = "__all__"
+        read_only_fields = (
+            "created_by",
+            "modified_by",
+        )
+
+    def validate_file(self, file):
+        validate_file_type(file)
+        return file
+
+
+# NOTE: Separate serializer for partial updating EAPFile instance
+class EAPFileUpdateSerializer(BaseEAPSerializer):
+    id = serializers.IntegerField(required=True)
+    file = serializers.FileField(required=False)
+
+    class Meta:
+        model = EAPFile
+        fields = "__all__"
+        read_only_fields = (
+            "created_by",
+            "modified_by",
+        )
+
+    def validate_id(self, id: int) -> int:
+        try:
+            EAPFile.objects.get(id=id)
+        except EAPFile.DoesNotExist:
+            raise serializers.ValidationError(gettext("Invalid pk '%s' - object does not exist.") % id)
+        return id
+
+    def validate_file(self, file):
+        validate_file_type(file)
+        return file
+
+
 # NOTE: Mini Serializers used for basic listing purpose
 
 
 class MiniSimplifiedEAPSerializer(
     serializers.ModelSerializer,
 ):
+    updated_checklist_file_details = EAPFileSerializer(source="updated_checklist_file", read_only=True)
+    budget_file_details = EAPFileSerializer(source="budget_file", read_only=True)
+
     class Meta:
         model = SimplifiedEAP
         fields = [
             "id",
-            "eap_registration",
             "total_budget",
             "readiness_budget",
             "pre_positioning_budget",
             "early_action_budget",
             "seap_timeframe",
             "budget_file",
+            "budget_file_details",
             "version",
             "is_locked",
-            "updated_checklist_file",
+            "review_checklist_file",
+            "updated_checklist_file_details",
             "created_at",
             "modified_at",
         ]
@@ -123,19 +177,23 @@ class MiniSimplifiedEAPSerializer(
 class MiniFullEAPSerializer(
     serializers.ModelSerializer,
 ):
+    updated_checklist_file_details = EAPFileSerializer(source="updated_checklist_file", read_only=True)
+    budget_file_details = EAPFileSerializer(source="budget_file", read_only=True)
+
     class Meta:
         model = FullEAP
         fields = [
             "id",
-            "eap_registration",
             "total_budget",
             "readiness_budget",
             "pre_positioning_budget",
             "early_action_budget",
             "budget_file",
+            "budget_file_details",
             "version",
             "is_locked",
-            "updated_checklist_file",
+            "review_checklist_file",
+            "updated_checklist_file_details",
             "created_at",
             "modified_at",
         ]
@@ -199,6 +257,7 @@ class EAPRegistrationSerializer(
             "latest_simplified_eap",
             "latest_full_eap",
             "deadline",
+            "summary_file",
         ]
 
     def create(self, validated_data: dict[str, typing.Any]):
@@ -241,56 +300,6 @@ class EAPValidatedBudgetFileSerializer(serializers.ModelSerializer):
         return validated_data
 
 
-class EAPFileInputSerializer(serializers.Serializer):
-    file = serializers.ListField(child=serializers.FileField(required=True))
-
-
-class EAPGlobalFilesSerializer(serializers.Serializer):
-    url = serializers.URLField(read_only=True)
-
-
-class EAPFileSerializer(BaseEAPSerializer):
-    id = serializers.IntegerField(required=False)
-    file = serializers.FileField(required=True)
-
-    class Meta:
-        model = EAPFile
-        fields = "__all__"
-        read_only_fields = (
-            "created_by",
-            "modified_by",
-        )
-
-    def validate_file(self, file):
-        validate_file_type(file)
-        return file
-
-
-# NOTE: Separate serializer for partial updating EAPFile instance
-class EAPFileUpdateSerializer(BaseEAPSerializer):
-    id = serializers.IntegerField(required=True)
-    file = serializers.FileField(required=False)
-
-    class Meta:
-        model = EAPFile
-        fields = "__all__"
-        read_only_fields = (
-            "created_by",
-            "modified_by",
-        )
-
-    def validate_id(self, id: int) -> int:
-        try:
-            EAPFile.objects.get(id=id)
-        except EAPFile.DoesNotExist:
-            raise serializers.ValidationError(gettext("Invalid pk '%s' - object does not exist.") % id)
-        return id
-
-    def validate_file(self, file):
-        validate_file_type(file)
-        return file
-
-
 ALLOWED_MAP_TIMEFRAMES_VALUE = {
     TimeFrame.YEARS: list(YearsTimeFrameChoices.values),
     TimeFrame.MONTHS: list(MonthsTimeFrameChoices.values),
@@ -303,6 +312,7 @@ class OperationActivitySerializer(
     serializers.ModelSerializer,
 ):
     id = serializers.IntegerField(required=False)
+    previous_id = serializers.IntegerField(read_only=True)
     timeframe = serializers.ChoiceField(
         choices=TimeFrame.choices,
         required=True,
@@ -340,6 +350,7 @@ class IndicatorSerializer(
     serializers.ModelSerializer,
 ):
     id = serializers.IntegerField(required=False)
+    previous_id = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Indicator
@@ -352,6 +363,7 @@ class PlannedOperationSerializer(
     serializers.ModelSerializer,
 ):
     id = serializers.IntegerField(required=False)
+    previous_id = serializers.IntegerField(read_only=True)
 
     sector_display = serializers.CharField(source="get_sector_display", read_only=True)
     indicators = IndicatorSerializer(many=True, required=True)
@@ -372,6 +384,7 @@ class EnableApproachSerializer(
     serializers.ModelSerializer,
 ):
     id = serializers.IntegerField(required=False)
+    previous_id = serializers.IntegerField(read_only=True)
 
     approach_display = serializers.CharField(source="get_approach_display", read_only=True)
     indicators = IndicatorSerializer(many=True, required=True)
@@ -384,16 +397,13 @@ class EnableApproachSerializer(
     class Meta:
         model = EnableApproach
         fields = "__all__"
-        read_only_fields = (
-            "created_by",
-            "modified_by",
-        )
 
 
 class EAPSourceInformationSerializer(
     serializers.ModelSerializer,
 ):
     id = serializers.IntegerField(required=False)
+    previous_id = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = SourceInformation
@@ -404,6 +414,7 @@ class KeyActorSerializer(
     serializers.ModelSerializer,
 ):
     id = serializers.IntegerField(required=False)
+    previous_id = serializers.IntegerField(read_only=True)
     national_society_details = MiniCountrySerializer(source="national_society", read_only=True)
 
     class Meta:
@@ -413,6 +424,7 @@ class KeyActorSerializer(
 
 class EAPActionSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
+    previous_id = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = EAPAction
@@ -421,6 +433,7 @@ class EAPActionSerializer(serializers.ModelSerializer):
 
 class ImpactSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
+    previous_id = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = EAPImpact
@@ -429,6 +442,7 @@ class ImpactSerializer(serializers.ModelSerializer):
 
 class EAPContactSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
+    previous_id = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = EAPContact
@@ -449,6 +463,7 @@ class CommonEAPFieldsSerializer(serializers.ModelSerializer):
     admin2_details = Admin2Serializer(source="admin2", many=True, read_only=True)
     budget_file = serializers.PrimaryKeyRelatedField(queryset=EAPFile.objects.all(), required=True)
     budget_file_details = EAPFileSerializer(source="budget_file", read_only=True)
+    updated_checklist_file_details = EAPFileSerializer(source="updated_checklist_file", read_only=True)
 
     def get_fields(self):
         fields = super().get_fields()
@@ -460,6 +475,7 @@ class CommonEAPFieldsSerializer(serializers.ModelSerializer):
         fields["enable_approaches"] = EnableApproachSerializer(many=True, required=True)
         fields["budget_file"] = serializers.PrimaryKeyRelatedField(queryset=EAPFile.objects.all(), required=True)
         fields["budget_file_details"] = EAPFileSerializer(source="budget_file", read_only=True)
+        fields["updated_checklist_file_details"] = EAPFileSerializer(source="updated_checklist_file", read_only=True)
         return fields
 
     def validate_budget_file(self, file: typing.Optional[EAPFile]) -> typing.Optional[EAPFile]:
