@@ -1944,3 +1944,33 @@ class TestHealthLocalUnitsPublicList(APITestCase):
         self.assertEqual(resp.data["results"][0]["subtype"].lower(), "mobile clinic".lower())
 
         # End of relevant assertions for this test.
+
+
+class TestMarkLocalUnitExternallyManage(APITestCase):
+    def setUp(self):
+        super().setUp()
+        self.user = UserFactory.create(is_superuser=True)
+        self.region = RegionFactory.create(name=2, label="Asia Pacific Test")
+        self.country = CountryFactory.create(name="Test", iso3="TST", region=self.region)
+        self.local_unit_type = LocalUnitType.objects.create(code=1, name="Test Administrative")
+        self.level = LocalUnitLevel.objects.create(level=0, name="Test National")
+
+        LocalUnitFactory.create_batch(
+            5,
+            country=self.country,
+            type=self.local_unit_type,
+            created_by=self.user,
+            level=self.level,
+        )
+
+    def test_mark_local_unit_externally_manage_command(self):
+        management.call_command("mark_local_units_externally_managed")
+
+        self.assertEqual(
+            LocalUnit.objects.filter(
+                country=self.country,
+                type=self.local_unit_type,
+                status=LocalUnit.Status.EXTERNALLY_MANAGED,
+            ).count(),
+            5,
+        )
