@@ -436,9 +436,15 @@ class DelegationOfficeDetailAPIView(RetrieveAPIView):
 
 
 class ExternallyManagedLocalUnitViewSet(
-    mixins.CreateModelMixin, mixins.UpdateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
 ):
-    queryset = ExternallyManagedLocalUnit.objects.select_related("country", "local_unit_type")
+    queryset = ExternallyManagedLocalUnit.objects.select_related(
+        "country",
+        "local_unit_type",
+    )
     serializer_class = ExternallyManagedLocalUnitSerializer
     filterset_class = ExternallyManagedLocalUnitFilters
     permission_classes = [permissions.IsAuthenticated, ExternallyManagedLocalUnitPermission]

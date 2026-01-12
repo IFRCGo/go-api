@@ -631,7 +631,10 @@ class LocalUnitDeprecateSerializer(serializers.ModelSerializer):
 class ExternallyManagedLocalUnitSerializer(serializers.ModelSerializer):
     country = serializers.PrimaryKeyRelatedField(
         queryset=Country.objects.filter(
-            is_deprecated=False, independent=True, iso3__isnull=False, record_type=CountryType.COUNTRY
+            is_deprecated=False,
+            independent=True,
+            iso3__isnull=False,
+            record_type=CountryType.COUNTRY,
         ),
         write_only=True,
     )
@@ -665,18 +668,45 @@ class ExternallyManagedLocalUnitSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data["created_by"] = self.context["request"].user
+
+        # NOTE: Check for existing local units which are not validated
+        unvalidated_local_units_qs = LocalUnit.objects.filter(
+            country=validated_data["country"],
+            type=validated_data["local_unit_type"],
+        ).exclude(status=LocalUnit.Status.VALIDATED)
+
+        if unvalidated_local_units_qs.exists():
+            raise serializers.ValidationError(
+                gettext(
+                    "Cannot create externally managed local unit for this country and type "
+                    "as there are existing local units which are not validated."
+                )
+            )
+
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
         validated_data["updated_by"] = self.context["request"].user
-        return super().update(instance, validated_data)
+        instance = super().update(instance, validated_data)
+
+        # NOTE: If disabling externally managed, set all related local units to VALIDATED
+        if not instance.enabled:
+            LocalUnit.objects.filter(
+                country=instance.country,
+                type=instance.local_unit_type,
+                status=LocalUnit.Status.EXTERNALLY_MANAGED,
+            ).update(status=LocalUnit.Status.VALIDATED)
+        return instance
 
 
 class LocalUnitBulkUploadSerializer(serializers.ModelSerializer):
     VALID_FILE_EXTENSIONS = (".xlsx", ".xlsm")
     country = serializers.PrimaryKeyRelatedField(
         queryset=Country.objects.filter(
-            is_deprecated=False, independent=True, iso3__isnull=False, record_type=CountryType.COUNTRY
+            is_deprecated=False,
+            independent=True,
+            iso3__isnull=False,
+            record_type=CountryType.COUNTRY,
         ),
         write_only=True,
     )
