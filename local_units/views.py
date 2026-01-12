@@ -10,6 +10,7 @@ from rest_framework.decorators import action
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 
 from api.utils import bad_request
+from local_units.export import export_health_localunit, export_localunit
 from local_units.filterset import (
     DelegationOfficeFilters,
     ExternallyManagedLocalUnitFilters,
@@ -53,6 +54,7 @@ from local_units.serializers import (
     LocalUnitOptionsSerializer,
     LocalUnitSerializer,
     LocalUnitTemplateFilesSerializer,
+    LocalUnitUploadInputSerializer,
     PrivateLocalUnitDetailSerializer,
     PrivateLocalUnitSerializer,
     RejectedReasonSerialzier,
@@ -489,3 +491,38 @@ class LocalUnitBulkUploadViewSet(
             )
         template = {"template_url": file_url}
         return response.Response(LocalUnitTemplateFilesSerializer(template).data)
+
+
+class ExportLocalUnitView(views.APIView):
+    permission_classes = [
+        permissions.IsAuthenticated,
+        DenyGuestUserPermission,
+        BulkUploadValidatorPermission,
+    ]
+
+    @extend_schema(
+        request=LocalUnitUploadInputSerializer,
+        responses=None,
+    )
+    def post(self, request, version=None):
+        serializer = LocalUnitUploadInputSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        country = serializer.validated_data["country"]
+        local_unit_type = serializer.validated_data["local_unit_type"]
+
+        local_unit_qs = LocalUnit.objects.filter(
+            country=country,
+            type=local_unit_type,
+        )
+
+        if local_unit_type.name.lower() == "health care":
+            return export_health_localunit(
+                queryset=local_unit_qs,
+                file_name=f"health_care_local_units_export_{country.iso3}.xlsx",
+            )
+        else:
+            return export_localunit(
+                queryset=local_unit_qs,
+                file_name=f"local_units_export_{country.iso3}_{local_unit_type.name}.xlsx",
+            )
