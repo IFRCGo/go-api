@@ -2686,14 +2686,14 @@ class DimAgreementLine(models.Model):
     committed_quantity = models.DecimalField(
         verbose_name=_("Committed Quantity"),
         max_digits=20,
-        decimal_places=6,
+        decimal_places=10,
         blank=True,
         null=True,
     )
     committed_amount = models.DecimalField(
         verbose_name=_("Committed Amount"),
         max_digits=20,
-        decimal_places=2,
+        decimal_places=10,
         blank=True,
         null=True,
     )
@@ -2702,14 +2702,14 @@ class DimAgreementLine(models.Model):
     price_per_unit = models.DecimalField(
         verbose_name=_("Price Per Unit"),
         max_digits=20,
-        decimal_places=6,
+        decimal_places=10,
         blank=True,
         null=True,
     )
     line_discount_percent = models.DecimalField(
         verbose_name=_("Line Discount Percent"),
-        max_digits=10,
-        decimal_places=6,
+        max_digits=20,
+        decimal_places=10,
         blank=True,
         null=True,
     )
@@ -2723,15 +2723,27 @@ class DimAgreementLine(models.Model):
 
 
 class DimAppeal(models.Model):
-    id = models.CharField(verbose_name=_("Appeal ID"), max_length=100, primary_key=True)
-    appeal_name = models.CharField(verbose_name=_("Appeal Name"), max_length=255)
+    # Existing Fabric/business identifier (currently the DB PK)
+    id = models.CharField(
+        max_length=100,
+        primary_key=True,
+        verbose_name=_("Appeal ID"),
+    )
+
+    appeal_name = models.CharField(
+        verbose_name=_("Appeal Name"),
+        max_length=255,
+    )
 
     class Meta:
+        db_table = "api_dimappeal"
+        managed = False   # 🔑 critical
         verbose_name = _("Appeal")
         verbose_name_plural = _("Appeals")
 
     def __str__(self):
         return f"{self.id} - {self.appeal_name}"
+
 
 
 class DimBuyerGroup(models.Model):
@@ -2888,7 +2900,7 @@ class DimInventoryTransactionOrigin(models.Model):
     id = models.CharField(verbose_name=_("Inventory Transaction Origin ID"), max_length=100, primary_key=True)
     reference_category = models.CharField(verbose_name=_("Reference Category"), max_length=100, null=True, blank=True)
     reference_number = models.CharField(verbose_name=_("Reference Number"), max_length=100, null=True, blank=True)
-    excluded_from_inventory_value = models.BooleanField(verbose_name=_("Excluded From Inventory Value"), null=True)
+    excluded_from_inventory_value = models.CharField(verbose_name=_("Excluded From Inventory Value"), max_length=10, null=True, blank=True)
 
     class Meta:
         verbose_name = _("Inventory Transaction Origin")
@@ -2973,7 +2985,7 @@ class DimPackingSlipLine(models.Model):
 
 class DimProduct(models.Model):
     id = models.CharField(verbose_name=_("Product ID"), max_length=100, primary_key=True)
-    name = models.CharField(verbose_name=_("Product Name"), max_length=255)
+    name = models.CharField(verbose_name=_("Product Name"), max_length=255, null=True, blank=True)
     type = models.CharField(verbose_name=_("Product Type"), max_length=100, null=True, blank=True)
     unit_of_measure = models.CharField(verbose_name=_("Unit of Measure"), max_length=50, null=True, blank=True)
     product_category = models.CharField(verbose_name=_("Product Category"), max_length=100, null=True, blank=True)
@@ -3086,7 +3098,7 @@ class DimSalesOrderLine(models.Model):
     type = models.CharField(verbose_name=_("Type"), max_length=100, null=True, blank=True)
     product = models.CharField(verbose_name=_("Product"), max_length=100, null=True, blank=True)
     product_category = models.CharField(verbose_name=_("Product Category"), max_length=100, null=True, blank=True)
-    description = models.CharField(verbose_name=_("Description"), max_length=255, null=True, blank=True)
+    description = models.TextField(verbose_name=_("Description"), null=True, blank=True)
     unit_of_measure = models.CharField(verbose_name=_("Unit of Measure"), max_length=50, null=True, blank=True)
     ordered_quantity_sales_unit = models.DecimalField(verbose_name=_("Ordered Quantity (Sales Unit)"), max_digits=20, decimal_places=6, null=True, blank=True)
     currency_code = models.CharField(verbose_name=_("Currency Code"), max_length=10, null=True, blank=True)

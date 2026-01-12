@@ -14,13 +14,22 @@ ENV UV_CACHE_DIR="/root/.cache/uv"
 EXPOSE 80
 EXPOSE 443
 
+# Microsoft repo for Debian 11 (bullseye) + ODBC Driver 18
+RUN apt-get update -y && apt-get install -y --no-install-recommends \
+      curl ca-certificates gnupg apt-transport-https && \
+    curl -sSL https://packages.microsoft.com/keys/microsoft.asc \
+      | gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg && \
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-prod.gpg] https://packages.microsoft.com/debian/11/prod bullseye main" \
+      > /etc/apt/sources.list.d/microsoft-prod.list
+
+
 RUN apt-get update -y && \
-    apt-get install -y --no-install-recommends \
-        # FIXME: Make sure all packages are used/required
+    ACCEPT_EULA=Y apt-get install -y --no-install-recommends \
         nginx mdbtools vim tidy less gettext \
         cron \
         wait-for-it \
-        binutils libproj-dev gdal-bin poppler-utils && \
+        binutils libproj-dev gdal-bin poppler-utils \
+        unixodbc unixodbc-dev msodbcsql18 && \
     apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/*
 
@@ -39,6 +48,9 @@ RUN perl -pi -e 's/ is 0 / == 0 /'      ${AZUREROOT}blob/_upload_chunking.py
 RUN perl -pi -e 's/ is not -1 / != 1 /' ${AZUREROOT}blob/baseblobservice.py
 RUN perl -pi -e "s/ is '' / == '' /"    ${AZUREROOT}common/_connection.py
 RUN perl -pi -e "s/ is '' / == '' /"    ${AZUREROOT}_connection.py
+
+# Azure CLI
+RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
 
 # To avoid dump of "Queue is full. Dropping telemetry." messages in log, 20241111:
 ENV OPENCENSUSINIT=/usr/local/lib/python3.11/site-packages/opencensus/common/schedule/__init__.py
