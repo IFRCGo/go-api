@@ -12,6 +12,7 @@ from api.factories import country as countryFactory
 from api.factories import event as eventFactory
 from api.factories import field_report as fieldReportFactory
 from api.factories.region import RegionFactory
+from api.factories import spark as sparkFactory
 from main.mock import erp_request_side_effect_mock
 
 
@@ -178,3 +179,137 @@ class EventSeverityLevelHistoryTest(TestCase):
 
         history = models.EventSeverityLevelHistory.objects.filter(event=self.event)
         self.assertEqual(history.count(), 0)
+
+
+class SparkModelStrTests(TestCase):
+    def setUp(self):
+        self.now = timezone.now()
+
+    def _framework_agreement(self):
+        return models.FrameworkAgreement.objects.create(
+            fa_number="FA-TEST001",
+            supplier_name="Test Supplier",
+            pa_type=models.FrameworkAgreement.PAType.GLOBAL_SERVICES,
+            pa_bu_region_name="Test Region",
+            pa_bu_country_name="Test Country",
+            pa_effective_date=self.now,
+            pa_expiration_date=self.now,
+            pa_workflow_status=models.FrameworkAgreement.WorkflowStatus.NOT_SUBMITTED,
+            pa_status=models.FrameworkAgreement.PAStatus.ON_HOLD,
+            pa_buyer_group_code="Test Buyer 1",
+            fa_owner_name="Owner",
+            fa_geographical_coverage=models.FrameworkAgreement.GeographicalCoverage.GLOBAL,
+            region_countries_covered="Test Region",
+            item_type="Item",
+            item_category="Category",
+            item_service_description="Test Description",
+        )
+
+    def _country(self):
+        return models.Country.objects.create(name="Test Country", iso="TL", record_type=models.CountryType.COUNTRY)
+
+    def test_framework_agreement_str(self):
+        agreement = self._framework_agreement()
+        self.assertEqual(str(agreement), "FA-TEST001 - Test Supplier")
+
+    def test_framework_agreement_country_str(self):
+        agreement = self._framework_agreement()
+        country = self._country()
+        fac = models.FrameworkAgreementCountry.objects.create(framework_agreement=agreement, country=country)
+        self.assertEqual(str(fac), "FA-TEST001 - Test Country")
+
+    def test_dim_agreement_line_str(self):
+        line = sparkFactory.DimAgreementLineFactory.create(
+            agreement_line_id="FA-TEST001",
+            agreement_id="FA-TEST001-01",
+            line_number=1,
+        )
+        self.assertEqual(str(line), "FA-TEST001")
+
+    def test_dim_appeal_str(self):
+        appeal = sparkFactory.DimAppealFactory.create(id="AP-TEST001", appeal_name="Appeal")
+        self.assertEqual(str(appeal), "AP-TEST001 - Appeal")
+
+    def test_dim_buyer_group_str(self):
+        buyer_group = sparkFactory.DimBuyerGroupFactory.create(code="BG-TEST001", name="Buyer Group")
+        self.assertEqual(str(buyer_group), "BG-TEST001 - Buyer Group")
+
+    def test_dim_consignment_str(self):
+        consignment = sparkFactory.DimConsignmentFactory.create(id="C-TEST001", delivery_mode="Air")
+        self.assertEqual(str(consignment), "C-TEST001 - Air")
+
+    def test_dim_delivery_mode_str(self):
+        delivery_mode = sparkFactory.DimDeliveryModeFactory.create(id="DM-TEST001", description="Test Description")
+        self.assertEqual(str(delivery_mode), "DM-TEST001 - Test Description")
+
+    def test_dim_donor_str(self):
+        donor = sparkFactory.DimDonorFactory.create(donor_code="D-TEST001", donor_name="Donor")
+        self.assertEqual(str(donor), "D-TEST001 - Donor")
+
+    def test_dim_inventory_item_str(self):
+        item = sparkFactory.DimInventoryItemFactory.create(id="ITEM-TEST001", unit_of_measure="KG")
+        self.assertEqual(str(item), "ITEM-TEST001 - KG")
+
+    def test_dim_inventory_item_status_str(self):
+        status = sparkFactory.DimInventoryItemStatusFactory.create(id="STATUS-TEST001", name="Available")
+        self.assertEqual(str(status), "STATUS-TEST001 - Available")
+
+    def test_dim_inventory_module_str(self):
+        module = sparkFactory.DimInventoryModuleFactory.create(id="MODULE-TEST001", unit_of_measure="KG", item_id="ITEM-TEST001", type="Type")
+        self.assertEqual(str(module), "MODULE-TEST001 - ITEM-TEST001")
+
+    def test_dim_inventory_owner_str(self):
+        owner = sparkFactory.DimInventoryOwnerFactory.create(id="OWNER-TEST001", name="Owner")
+        self.assertEqual(str(owner), "OWNER-TEST001 - Owner")
+
+    def test_dim_inventory_transaction_str_with_reference_number(self):
+        transaction = sparkFactory.DimInventoryTransactionFactory.create(
+            id="TRANSACTION-TEST001",
+            reference_category="Cat",
+            reference_number="Ref-1",
+            excluded_from_inventory_value=False,
+        )
+        self.assertEqual(str(transaction), "TRANSACTION-TEST001 - Cat - Ref-1")
+
+    def test_dim_inventory_transaction_str_without_reference_number(self):
+        transaction = sparkFactory.DimInventoryTransactionFactory.create(
+            id="TRANSACTION-TEST002",
+            reference_category="Cat",
+            reference_number=None,
+            excluded_from_inventory_value=False,
+        )
+        self.assertEqual(str(transaction), "TRANSACTION-TEST002 - Cat")
+
+    def test_dim_inventory_transaction_line_str_with_product_and_inventory(self):
+        line = sparkFactory.DimInventoryTransactionLineFactory.create(id="TL-TEST001", product="Prod", inventory_transaction="INV-TEST001")
+        self.assertEqual(str(line), "TL-TEST001 - Prod - INV-TEST001")
+
+    def test_dim_inventory_transaction_line_str_with_product_only(self):
+        line = sparkFactory.DimInventoryTransactionLineFactory.create(id="TL-TEST002", product="Prod", inventory_transaction=None)
+        self.assertEqual(str(line), "TL-TEST002 - Prod")
+
+    def test_dim_inventory_transaction_line_str_base(self):
+        line = sparkFactory.DimInventoryTransactionLineFactory.create(
+            id="TL-TEST003",
+            product=None,
+            inventory_transaction=None,
+        )
+        self.assertEqual(str(line), "TL-TEST003")
+
+    def test_dim_inventory_transaction_origin_str_with_reference_number(self):
+        origin = sparkFactory.DimInventoryTransactionOriginFactory.create(
+            id="O-TEST001",
+            reference_category="Cat",
+            reference_number="Ref-TEST001",
+            excluded_from_inventory_value=False,
+        )
+        self.assertEqual(str(origin), "O-TEST001 - Cat - Ref-TEST001")
+
+    def test_dim_inventory_transaction_origin_str_without_reference_number(self):
+        origin = sparkFactory.DimInventoryTransactionOriginFactory.create(
+            id="O-TEST002",
+            reference_category="Cat",
+            reference_number=None,
+            excluded_from_inventory_value=False,
+        )
+        self.assertEqual(str(origin), "O-TEST002 - Cat")
