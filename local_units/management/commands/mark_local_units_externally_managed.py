@@ -18,7 +18,7 @@ class Command(BaseCommand):
 
         if options["dry_run"]:
             self.stdout.write(
-                self.style.WARNING(f"[Dry Run]: {local_unit_qs.count} local units would be marked as externally managed.")
+                self.style.WARNING(f"[Dry Run]: {local_unit_qs.count()} local units would be marked as externally managed.")
             )
             return
 

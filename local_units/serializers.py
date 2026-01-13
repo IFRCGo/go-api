@@ -770,24 +770,6 @@ class LocalUnitTemplateFilesSerializer(serializers.Serializer):
     template_url = serializers.CharField(read_only=True)
 
 
-class LocalUnitUploadInputSerializer(serializers.Serializer):
-    country = serializers.PrimaryKeyRelatedField(
-        queryset=Country.objects.filter(
-            is_deprecated=False,
-            independent=True,
-            iso3__isnull=False,
-            record_type=CountryType.COUNTRY,
-        ),
-        write_only=True,
-        required=True,
-    )
-    local_unit_type = serializers.PrimaryKeyRelatedField(
-        queryset=LocalUnitType.objects.all(),
-        write_only=True,
-        required=True,
-    )
-
-
 # NOTE: The `HealthDataBulkUploadSerializer` is used to validate the data for bulk upload of local unit health care type.
 
 

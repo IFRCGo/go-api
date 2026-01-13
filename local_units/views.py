@@ -9,8 +9,9 @@ from rest_framework import mixins, permissions, response, status, views, viewset
 from rest_framework.decorators import action
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 
+from api.models import Country
 from api.utils import bad_request
-from local_units.export import export_health_localunit, export_localunit
+from local_units.export import export_local_units_to_excel
 from local_units.filterset import (
     DelegationOfficeFilters,
     ExternallyManagedLocalUnitFilters,
@@ -54,7 +55,6 @@ from local_units.serializers import (
     LocalUnitOptionsSerializer,
     LocalUnitSerializer,
     LocalUnitTemplateFilesSerializer,
-    LocalUnitUploadInputSerializer,
     PrivateLocalUnitDetailSerializer,
     PrivateLocalUnitSerializer,
     RejectedReasonSerialzier,
@@ -501,28 +501,61 @@ class ExportLocalUnitView(views.APIView):
     ]
 
     @extend_schema(
-        request=LocalUnitUploadInputSerializer,
         responses=None,
+        parameters=[
+            OpenApiParameter(
+                name="country",
+                description="Country ID for which local units need to be exported",
+                required=True,
+                type=int,
+            ),
+            OpenApiParameter(
+                name="local_unit_type",
+                description="Local Unit Type ID for which local units need to be exported",
+                required=True,
+                type=int,
+            ),
+        ],
     )
-    def post(self, request, version=None):
-        serializer = LocalUnitUploadInputSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+    def get(self, request, version=None):
+        country_id = request.GET.get("country")
+        local_unit_type_id = request.GET.get("local_unit_type")
 
-        country = serializer.validated_data["country"]
-        local_unit_type = serializer.validated_data["local_unit_type"]
+        country = get_object_or_404(Country, pk=country_id)
+        local_unit_type = get_object_or_404(LocalUnitType, pk=local_unit_type_id)
 
-        local_unit_qs = LocalUnit.objects.filter(
-            country=country,
-            type=local_unit_type,
+        local_unit_qs = (
+            LocalUnit.objects.filter(
+                country=country,
+                type=local_unit_type,
+            )
+            .select_related(
+                "health__affiliation",
+                "health__functionality",
+                "health__health_facility_type",
+                "health__hospital_type",
+                "health__primary_health_care_center",
+                "country",
+                "type",
+                "level",
+            )
+            .prefetch_related(
+                "health__general_medical_services",
+                "health__specialized_medical_beyond_primary_level",
+                "health__blood_services",
+                "health__professional_training_facilities",
+                "health__other_profiles",
+            )
         )
 
         if local_unit_type.name.lower() == "health care":
-            return export_health_localunit(
+            return export_local_units_to_excel(
                 queryset=local_unit_qs,
-                file_name=f"health_care_local_units_export_{country.iso3}.xlsx",
+                is_health=True,
+                file_name=f"health_local_units_{country.iso3}.xlsx",
             )
         else:
-            return export_localunit(
+            return export_local_units_to_excel(
                 queryset=local_unit_qs,
                 file_name=f"local_units_export_{country.iso3}_{local_unit_type.name}.xlsx",
             )

@@ -20,6 +20,13 @@ logger = logging.getLogger(__name__)
 
 ContextType = TypeVar("ContextType")
 
+START_ROW = 4
+
+
+# NOTE(IMPORTANT): These mappings should align with templates and serializer fields.
+# Also make sure to update export.py if there are changes here in the headers.
+
+
 BASE_HEADER_MAP = {
     "Date of Update": "date_of_data",
     "Local Unit Name (En)": "english_branch_name",
@@ -46,6 +53,8 @@ BASE_HEADER_MAP = {
 HEALTH_HEADER_MAP = {
     **BASE_HEADER_MAP,
     **{
+        "Focal Person Name (En)": "focal_person_en",
+        "Focal Person Name (Local)": "focal_person_loc",
         "Focal Person Email": "focal_point_email",
         "Focal Person Phone Number": "focal_point_phone_number",
         "Focal Person Position": "focal_point_position",
@@ -203,7 +212,7 @@ class BaseBulkUpload(Generic[ContextType]):
     def _validate_type(self, fieldnames) -> None:
         pass
 
-    def is_excel_data_empty(self, sheet, data_start_row=4):
+    def is_excel_data_empty(self, sheet, data_start_row=START_ROW):
         """Check if file is empty or not"""
         for row in sheet.iter_rows(values_only=True, min_row=data_start_row):
             if any(cell is not None for cell in row):
