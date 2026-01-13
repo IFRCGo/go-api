@@ -69,13 +69,13 @@ env = environ.Env(
     EMAIL_PASS=(str, None),
     DEBUG_EMAIL=(bool, False),  # This was 0/1 before
     # EAP-EMAILS
-    EMAIL_EAP_DREF_ANTICIPATORY_PILLAR=(str, None),
-    EMAIL_EAP_DREF_AA_GLOBAL_TEAM=(list, None),
-    EMAIL_EAP_AFRICA_COORDINATORS=(list, None),
-    EMAIL_EAP_AMERICAS_COORDINATORS=(list, None),
-    EMAIL_EAP_ASIA_PACIFIC_COORDINATORS=(list, None),
-    EMAIL_EAP_EUROPE_COORDINATORS=(list, None),
-    EMAIL_EAP_MENA_COORDINATORS=(list, None),
+    EMAIL_EAP_DREF_ANTICIPATORY_PILLAR=(str, ""),
+    EMAIL_EAP_DREF_AA_GLOBAL_TEAM=(list, []),
+    EMAIL_EAP_AFRICA_COORDINATORS=(list, []),
+    EMAIL_EAP_AMERICAS_COORDINATORS=(list, []),
+    EMAIL_EAP_ASIA_PACIFIC_COORDINATORS=(list, []),
+    EMAIL_EAP_EUROPE_COORDINATORS=(list, []),
+    EMAIL_EAP_MENA_COORDINATORS=(list, []),
     # TEST_EMAILS=(list, ['im@ifrc.org']), # maybe later
     # Translation
     # Translator Available:
