@@ -41,6 +41,7 @@ from api.filter_set import (
     CountrySupportingPartnerFilter,
     DistrictFilter,
     DistrictRMDFilter,
+    FabricDimAgreementLineFilter,
     EventFilter,
     EventSeverityLevelHistoryFilter,
     EventSnippetFilter,
@@ -84,6 +85,7 @@ from .models import (
     CountrySupportingPartner,
     DisasterType,
     District,
+    DimAgreementLine,
     Event,
     EventFeaturedDocument,
     EventSeverityLevelHistory,
@@ -130,6 +132,7 @@ from .serializers import (  # AppealSerializer,; Tableau Serializers; AppealTabl
     EventSeverityLevelHistorySerializer,
     ExportSerializer,
     ExternalPartnerSerializer,
+    FabricDimAgreementLineSerializer,
     FieldReportGeneratedTitleSerializer,
     FieldReportGenerateTitleSerializer,
     FieldReportSerializer,
@@ -1540,432 +1543,268 @@ class CountrySupportingPartnerViewSet(viewsets.ModelViewSet):
         return CountrySupportingPartner.objects.select_related("country")
 
 
-class FabricDimAgreementLine(APIView):
-    def get(self, request):
-        try:
-            sql = """
-            SELECT TOP (10) *
-            FROM [logistics_gold].[dbo].[dim_agreement_line]
-            """
-            data = fetch_all(sql)
-            return Response({"count": len(data), "results": data})
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class FabricDimAppeal(APIView):
-    def get(self, request):
-        try:
-            sql = """
-            SELECT TOP (10) *
-            FROM [logistics_gold].[dbo].[dim_appeal]
-            """
-            data = fetch_all(sql)
-            return Response({"count": len(data), "results": data})
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class FabricDimBuyerGroup(APIView):
-    def get(self, request):
-        try:
-            sql = """
-            SELECT TOP (10) *
-            FROM [logistics_gold].[dbo].[dim_buyer_group]
-            """
-            data = fetch_all(sql)
-            return Response({"count": len(data), "results": data})
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class FabricDimConsignment(APIView):
-    def get(self, request):
-        try:
-            sql = """
-            SELECT TOP (10) *
-            FROM [logistics_gold].[dbo].[dim_consignment]
-            """
-            data = fetch_all(sql)
-            return Response({"count": len(data), "results": data})
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class FabricDimDeliveryMode(APIView):
-    def get(self, request):
-        try:
-            sql = """
-            SELECT TOP (10) *
-            FROM [logistics_gold].[dbo].[dim_delivery_mode]
-            """
-            data = fetch_all(sql)
-            return Response({"count": len(data), "results": data})
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class FabricDimDonor(APIView):
-    def get(self, request):
-        try:
-            sql = """
-            SELECT TOP (10) *
-            FROM [logistics_gold].[dbo].[dim_donor]
-            """
-            data = fetch_all(sql)
-            return Response({"count": len(data), "results": data})
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class FabricDimInventoryItem(APIView):
-    def get(self, request):
-        try:
-            sql = """
-            SELECT TOP (10) *
-            FROM [logistics_gold].[dbo].[dim_inventory_item]
-            """
-            data = fetch_all(sql)
-            return Response({"count": len(data), "results": data})
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class FabricDimInventoryItemStatus(APIView):
-    def get(self, request):
-        try:
-            sql = """
-            SELECT TOP (10) *
-            FROM [logistics_gold].[dbo].[dim_inventory_item_status]
-            """
-            data = fetch_all(sql)
-            return Response({"count": len(data), "results": data})
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class FabricDimInventoryModule(APIView):
-    def get(self, request):
-        try:
-            sql = """
-            SELECT TOP (10) *
-            FROM [logistics_gold].[dbo].[dim_inventory_module]
-            """
-            data = fetch_all(sql)
-            return Response({"count": len(data), "results": data})
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class FabricDimInventoryOwner(APIView):
-    def get(self, request):
-        try:
-            sql = """
-            SELECT TOP (10) *
-            FROM [logistics_gold].[dbo].[dim_inventory_owner]
-            """
-            data = fetch_all(sql)
-            return Response({"count": len(data), "results": data})
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class FabricDimInventoryTransaction(APIView):
-    def get(self, request):
-        try:
-            sql = """
-            SELECT TOP (10) *
-            FROM [logistics_gold].[dbo].[dim_inventory_transaction]
-            """
-            data = fetch_all(sql)
-            return Response({"count": len(data), "results": data})
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class FabricDimInventoryTransactionLine(APIView):
-    def get(self, request):
-        try:
-            sql = """
-            SELECT TOP (10) *
-            FROM [logistics_gold].[dbo].[dim_inventory_transaction_line]
-            """
-            data = fetch_all(sql)
-            return Response({"count": len(data), "results": data})
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class FabricDimInventoryTransactionOrigin(APIView):
-    def get(self, request):
-        try:
-            sql = """
-            SELECT TOP (10) *
-            FROM [logistics_gold].[dbo].[dim_inventory_transaction_origin]
-            """
-            data = fetch_all(sql)
-            return Response({"count": len(data), "results": data})
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class FabricDimItemBatch(APIView):
-    def get(self, request):
-        try:
-            sql = """
-            SELECT TOP (10) *
-            FROM [logistics_gold].[dbo].[dim_item_batch]
-            """
-            data = fetch_all(sql)
-            return Response({"count": len(data), "results": data})
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class FabricDimLocation(APIView):
-    def get(self, request):
-        try:
-            sql = """
-            SELECT TOP (10) *
-            FROM [logistics_gold].[dbo].[dim_location]
-            """
-            data = fetch_all(sql)
-            return Response({"count": len(data), "results": data})
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class FabricDimLogisticsLocation(APIView):
-    def get(self, request):
-        try:
-            sql = """
-            SELECT TOP (10) *
-            FROM [logistics_gold].[dbo].[dim_logistics_location]
-            """
-            data = fetch_all(sql)
-            return Response({"count": len(data), "results": data})
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class FabricDimPackingSlipLine(APIView):
-    def get(self, request):
-        try:
-            sql = """
-            SELECT TOP (10) *
-            FROM [logistics_gold].[dbo].[dim_packing_slip_line]
-            """
-            data = fetch_all(sql)
-            return Response({"count": len(data), "results": data})
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class FabricDimProduct(APIView):
-    def get(self, request):
-        try:
-            sql = """
-            SELECT TOP (10) *
-            FROM [logistics_gold].[dbo].[dim_product]
-            """
-            data = fetch_all(sql)
-            return Response({"count": len(data), "results": data})
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class FabricDimProductCategory(APIView):
-    def get(self, request):
-        try:
-            sql = """
-            SELECT TOP (10) *
-            FROM [logistics_gold].[dbo].[dim_product_category]
-            """
-            data = fetch_all(sql)
-            return Response({"count": len(data), "results": data})
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class FabricDimProductReceiptLine(APIView):
-    def get(self, request):
-        try:
-            sql = """
-            SELECT TOP (10) *
-            FROM [logistics_gold].[dbo].[dim_product_receipt_line]
-            """
-            data = fetch_all(sql)
-            return Response({"count": len(data), "results": data})
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class FabricDimProject(APIView):
-    def get(self, request):
-        try:
-            sql = """
-            SELECT TOP (10) *
-            FROM [logistics_gold].[dbo].[dim_project]
-            """
-            data = fetch_all(sql)
-            return Response({"count": len(data), "results": data})
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-
-class FabricDimSalesOrderLine(APIView):
-    def get(self, request):
-        try:
-            sql = """
-            SELECT TOP (10) *
-            FROM [logistics_gold].[dbo].[dim_sales_order_line]
-            """
-            data = fetch_all(sql)
-            return Response({"count": len(data), "results": data})
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class FabricDimSite(APIView):
-    def get(self, request):
-        try:
-            sql = """
-            SELECT TOP (10) *
-            FROM [logistics_gold].[dbo].[dim_site]
-            """
-            data = fetch_all(sql)
-            return Response({"count": len(data), "results": data})
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class FabricDimVendor(APIView):
-    def get(self, request):
-        try:
-            sql = """
-            SELECT TOP (10) *
-            FROM [logistics_gold].[dbo].[dim_vendor]
-            """
-            data = fetch_all(sql)
-            return Response({"count": len(data), "results": data})
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class FabricDimVendorContact(APIView):
-    def get(self, request):
-        try:
-            sql = """
-            SELECT TOP (10) *
-            FROM [logistics_gold].[dbo].[dim_vendor_contact]
-            """
-            data = fetch_all(sql)
-            return Response({"count": len(data), "results": data})
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class FabricDimVendorContactEmail(APIView):
-    def get(self, request):
-        try:
-            sql = """
-            SELECT TOP (10) *
-            FROM [logistics_gold].[dbo].[dim_vendor_contact_email]
-            """
-            data = fetch_all(sql)
-            return Response({"count": len(data), "results": data})
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class FabricDimVendorPhysicalAddress(APIView):
-    def get(self, request):
-        try:
-            sql = """
-            SELECT TOP (10) *
-            FROM [logistics_gold].[dbo].[dim_vendor_physical_address]
-            """
-            data = fetch_all(sql)
-            return Response({"count": len(data), "results": data})
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class FabricDimWarehouse(APIView):
-    def get(self, request):
-        try:
-            sql = """
-            SELECT TOP (10) *
-            FROM [logistics_gold].[dbo].[dim_warehouse]
-            """
-            data = fetch_all(sql)
-            return Response({"count": len(data), "results": data})
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class FabricFctAgreement(APIView):
-    def get(self, request):
-        try:
-            sql = """
-            SELECT TOP (10) *
-            FROM [logistics_gold].[dbo].[fct_agreement]
-            """
-            data = fetch_all(sql)
-            return Response({"count": len(data), "results": data})
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class FabricFctProductReceipt(APIView):
-    def get(self, request):
-        try:
-            sql = """
-            SELECT TOP (10) *
-            FROM [logistics_gold].[dbo].[fct_product_receipt]
-            """
-            data = fetch_all(sql)
-            return Response({"count": len(data), "results": data})
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class FabricFctPurchaseOrder(APIView):
-    def get(self, request):
-        try:
-            sql = """
-            SELECT TOP (10) *
-            FROM [logistics_gold].[dbo].[fct_purchase_order]
-            """
-            data = fetch_all(sql)
-            return Response({"count": len(data), "results": data})
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class FabricFctSalesOrder(APIView):
-    def get(self, request):
-        try:
-            sql = """
-            SELECT TOP (10) *
-            FROM [logistics_gold].[dbo].[fct_sales_order]
-            """
-            data = fetch_all(sql)
-            return Response({"count": len(data), "results": data})
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class FabricProductCategoryHierarchyFlattened(APIView):
-    def get(self, request):
-        try:
-            sql = """
-            SELECT TOP (10) *
-            FROM [logistics_gold].[dbo].[product_category_hierarchy_flattened]
-            """
-            data = fetch_all(sql)
-            return Response({"count": len(data), "results": data})
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+class FabricDimAgreementLineViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FabricDimAgreementLineSerializer
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+    filterset_class = FabricDimAgreementLineFilter
+
+    def get_queryset(self):
+        return DimAgreementLine.objects.all()
+
+
+# class FabricDimAppealViewSet(viewsets.ReadOnlyModelViewSet):
+#     serializer_class = FabricDimAppealSerializer
+#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+
+#     def get_queryset(self):
+#         pass
+
+
+# class FabricDimBuyerGroupViewSet(viewsets.ReadOnlyModelViewSet):
+#     serializer_class = FabricDimBuyerGroupSerializer
+#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+
+#     def get_queryset(self):
+#         pass
+
+
+# class FabricDimConsignmentViewSet(viewsets.ReadOnlyModelViewSet):
+#     serializer_class = FabricDimConsignmentSerializer
+#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+
+#     def get_queryset(self):
+#         pass
+
+
+# class FabricDimDeliveryModeViewSet(viewsets.ReadOnlyModelViewSet):
+#     serializer_class = FabricDimDeliveryModeSerializer
+#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+
+#     def get_queryset(self):
+#         pass
+
+
+# class FabricDimDonorViewSet(viewsets.ReadOnlyModelViewSet):
+#     serializer_class = FabricDimDonorSerializer
+#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+
+#     def get_queryset(self):
+#         pass
+
+
+# class FabricDimInventoryItemViewSet(viewsets.ReadOnlyModelViewSet):
+#     serializer_class = FabricDimInventoryItemSerializer
+#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+
+#     def get_queryset(self):
+#         pass
+
+
+# class FabricDimInventoryItemStatusViewSet(viewsets.ReadOnlyModelViewSet):
+#     serializer_class = FabricDimInventoryItemStatusSerializer
+#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+
+#     def get_queryset(self):
+#         pass
+
+
+# class FabricDimInventoryModuleViewSet(viewsets.ReadOnlyModelViewSet):
+#     serializer_class = FabricDimInventoryModuleSerializer
+#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+
+#     def get_queryset(self):
+#         pass
+
+
+# class FabricDimInventoryOwnerViewSet(viewsets.ReadOnlyModelViewSet):
+#     serializer_class = FabricDimInventoryOwnerSerializer
+#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+
+#     def get_queryset(self):
+#         pass
+
+
+# class FabricDimInventoryTransactionViewSet(viewsets.ReadOnlyModelViewSet):
+#     serializer_class = FabricDimInventoryTransactionSerializer
+#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+
+#     def get_queryset(self):
+#         pass
+
+
+# class FabricDimInventoryTransactionLineViewSet(viewsets.ReadOnlyModelViewSet):
+#     serializer_class = FabricDimInventoryTransactionLineSerializer
+#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+
+#     def get_queryset(self):
+#         pass
+
+
+# class FabricDimInventoryTransactionOriginViewSet(viewsets.ReadOnlyModelViewSet):
+#     serializer_class = FabricDimInventoryTransactionOriginSerializer
+#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+
+#     def get_queryset(self):
+#         pass
+
+
+# class FabricDimItemBatchViewSet(viewsets.ReadOnlyModelViewSet):
+#     serializer_class = FabricDimItemBatchSerializer
+#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+
+#     def get_queryset(self):
+#         pass
+
+
+# class FabricDimLocationViewSet(viewsets.ReadOnlyModelViewSet):
+#     serializer_class = FabricDimLocationSerializer
+#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+
+#     def get_queryset(self):
+#         pass
+
+
+# class FabricDimLogisticsLocationViewSet(viewsets.ReadOnlyModelViewSet):
+#     serializer_class = FabricDimLogisticsLocationSerializer
+#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+
+#     def get_queryset(self):
+#         pass
+
+
+# class FabricDimPackingSlipLineViewSet(viewsets.ReadOnlyModelViewSet):
+#     serializer_class = FabricDimPackingSlipLineSerializer
+#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+
+#     def get_queryset(self):
+#         pass
+
+
+# class FabricDimProductViewSet(viewsets.ReadOnlyModelViewSet):
+#     serializer_class = FabricDimProductSerializer
+#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+
+#     def get_queryset(self):
+#         pass
+
+
+# class FabricDimProductCategoryViewSet(viewsets.ReadOnlyModelViewSet):
+#     serializer_class = FabricDimProductCategorySerializer
+#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+
+#     def get_queryset(self):
+#         pass
+
+
+# class FabricDimProductReceiptLineViewSet(viewsets.ReadOnlyModelViewSet):
+#     serializer_class = FabricDimProductReceiptLineSerializer
+#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+
+#     def get_queryset(self):
+#         pass
+
+
+# class FabricDimProjectViewSet(viewsets.ReadOnlyModelViewSet):
+#     serializer_class = FabricDimProjectSerializer
+#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+
+#     def get_queryset(self):
+#         pass
+
+
+
+# class FabricDimSalesOrderLineViewSet(viewsets.ReadOnlyModelViewSet):
+#     serializer_class = FabricDimSalesOrderLineSerializer
+#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+
+#     def get_queryset(self):
+#         pass
+
+
+# class FabricDimSiteViewSet(viewsets.ReadOnlyModelViewSet):
+#     serializer_class = FabricDimSiteSerializer
+#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+
+#     def get_queryset(self):
+#         pass
+
+
+# class FabricDimVendorViewSet(viewsets.ReadOnlyModelViewSet):
+#     serializer_class = FabricDimVendorSerializer
+#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+
+#     def get_queryset(self):
+#         pass
+
+
+# class FabricDimVendorContactViewSet(viewsets.ReadOnlyModelViewSet):
+#     serializer_class = FabricDimVendorContactSerializer
+#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+
+#     def get_queryset(self):
+#         pass
+
+
+# class FabricDimVendorContactEmailViewSet(viewsets.ReadOnlyModelViewSet):
+#     serializer_class = FabricDimVendorContactEmailSerializer
+#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+
+#     def get_queryset(self):
+#         pass
+
+
+# class FabricDimVendorPhysicalAddressViewSet(viewsets.ReadOnlyModelViewSet):
+#     serializer_class = FabricDimVendorPhysicalAddressSerializer
+#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+
+#     def get_queryset(self):
+#         pass
+
+
+# class FabricDimWarehouseViewSet(viewsets.ReadOnlyModelViewSet):
+#     serializer_class = FabricDimWarehouseSerializer
+#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+
+#     def get_queryset(self):
+#         pass
+
+
+# class FabricFctAgreementViewSet(viewsets.ReadOnlyModelViewSet):
+#     serializer_class = FabricFctAgreementSerializer
+#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+
+#     def get_queryset(self):
+#         pass
+
+
+# class FabricFctProductReceiptViewSet(viewsets.ReadOnlyModelViewSet):
+#     serializer_class = FabricFctProductReceiptSerializer
+#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+
+#     def get_queryset(self):
+#         pass
+
+
+# class FabricFctPurchaseOrderViewSet(viewsets.ReadOnlyModelViewSet):
+#     serializer_class = FabricFctPurchaseOrderSerializer
+#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+
+#     def get_queryset(self):
+#         pass
+
+
+# class FabricFctSalesOrderViewSet(viewsets.ReadOnlyModelViewSet):
+#     serializer_class = FabricFctSalesOrderSerializer
+#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+
+#     def get_queryset(self):
+#         pass
+
+
+# class FabricProductCategoryHierarchyFlattenedViewSet(viewsets.ReadOnlyModelViewSet):
+#     serializer_class = FabricProductCategoryHierarchyFlattenedSerializer
+#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+
+#     def get_queryset(self):
+#         pass
 
