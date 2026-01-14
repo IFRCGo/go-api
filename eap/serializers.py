@@ -598,8 +598,8 @@ class SimplifiedEAPSerializer(
             EAPRegistration.Status.NS_ADDRESSING_COMMENTS,
         ]:
             raise serializers.ValidationError(
-                gettext("Cannot update while EAP Application is in %s."),
-                EAPRegistration.Status(eap_registration.get_status_enum).label,
+                gettext("Cannot update while EAP Application is in %s.")
+                % EAPRegistration.Status(eap_registration.get_status_enum).label
             )
 
         # NOTE: Cannot update locked Simplified EAP
@@ -1007,9 +1007,8 @@ class EAPStatusSerializer(BaseEAPSerializer):
         if old_status == new_status:
             return updated_instance
 
+        # NOTE: Email Notifications
         eap_registration_id = updated_instance.id
-        assert updated_instance.get_eap_type_enum is not None, "EAP type must not be None"
-
         if updated_instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP:
             eap_count = SimplifiedEAP.objects.filter(eap_registration=updated_instance).count()
         else:
@@ -1021,10 +1020,10 @@ class EAPStatusSerializer(BaseEAPSerializer):
         ):
             transaction.on_commit(lambda: send_new_eap_submission_email.delay(eap_registration_id))
 
-        elif (old_status, new_status) == (
-            EAPRegistration.Status.UNDER_REVIEW,
-            EAPRegistration.Status.NS_ADDRESSING_COMMENTS,
-        ):
+        elif (old_status, new_status) in [
+            (EAPRegistration.Status.UNDER_REVIEW, EAPRegistration.Status.NS_ADDRESSING_COMMENTS),
+            (EAPRegistration.Status.TECHNICALLY_VALIDATED, EAPRegistration.Status.NS_ADDRESSING_COMMENTS),
+        ]:
             """
             NOTE:
                 At the transition (UNDER_REVIEW -> NS_ADDRESSING_COMMENTS), the EAP snapshot
@@ -1044,6 +1043,7 @@ class EAPStatusSerializer(BaseEAPSerializer):
                 Therefore:
                 - version == 2 always corresponds to the first IFRC feedback cycle
                 - Any later versions (>= 3) correspond to resubmitted cycles
+                - Also when the IFRC resubmits after technical validation, it will be version >= 3
 
                Deadline update rules:
                 - First IFRC feedback cycle: deadline is set to 90 days from the current date.
@@ -1073,17 +1073,6 @@ class EAPStatusSerializer(BaseEAPSerializer):
             EAPRegistration.Status.UNDER_REVIEW,
         ):
             transaction.on_commit(lambda: send_eap_resubmission_email.delay(eap_registration_id))
-        elif (old_status, new_status) == (
-            EAPRegistration.Status.TECHNICALLY_VALIDATED,
-            EAPRegistration.Status.NS_ADDRESSING_COMMENTS,
-        ):
-            updated_instance.deadline = timezone.now().date() + timedelta(days=30)
-            updated_instance.save(
-                update_fields=[
-                    "deadline",
-                ]
-            )
-            transaction.on_commit(lambda: send_feedback_email_for_resubmitted_eap.delay(eap_registration_id))
 
         elif (old_status, new_status) == (
             EAPRegistration.Status.UNDER_REVIEW,
