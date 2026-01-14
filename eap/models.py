@@ -1210,6 +1210,8 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
 
     worked_with_government_description = models.TextField(
         verbose_name=_("Government and actors engagement description"),
+        null=True,
+        blank=True,
     )
 
     key_actors = models.ManyToManyField(
@@ -1232,6 +1234,8 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
     )
     technical_working_groups_in_place_description = models.TextField(
         verbose_name=_("Technical working groups description"),
+        null=True,
+        blank=True,
     )
 
     # RISK ANALYSIS #
