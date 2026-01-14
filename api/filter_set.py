@@ -1,6 +1,7 @@
 import django_filters as filters
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models import Q
 
 from api.event_sources import SOURCES
 from api.models import (
@@ -14,6 +15,7 @@ from api.models import (
     CountryKeyFigure,
     CountrySnippet,
     CountrySupportingPartner,
+    DimAgreementLine,
     District,
     Event,
     EventSeverityLevelHistory,
@@ -390,3 +392,73 @@ class CountrySupportingPartnerFilter(filters.FilterSet):
     class Meta:
         model = CountrySupportingPartner
         fields = ()
+
+class FabricDimAgreementLineFilter(filters.FilterSet):
+    # Exact filters
+    agreement_id = filters.CharFilter(field_name="agreement_id", lookup_expr="exact")
+    agreement_line_id = filters.CharFilter(field_name="agreement_line_id", lookup_expr="exact")
+    line_number = filters.NumberFilter(field_name="line_number", lookup_expr="exact")
+
+    # Partial-match filters
+    product = filters.CharFilter(field_name="product", lookup_expr="icontains")
+    product_category = filters.CharFilter(field_name="product_category", lookup_expr="icontains")
+    commitment_type = filters.CharFilter(field_name="commitment_type", lookup_expr="icontains")
+    delivery_term = filters.CharFilter(field_name="delivery_term", lookup_expr="icontains")
+    unit_of_measure = filters.CharFilter(field_name="unit_of_measure", lookup_expr="icontains")
+
+    # Date range filters
+    effective_date_after = filters.DateTimeFilter(field_name="effective_date", lookup_expr="gte")
+    effective_date_before = filters.DateTimeFilter(field_name="effective_date", lookup_expr="lte")
+    expiration_date_after = filters.DateTimeFilter(field_name="expiration_date", lookup_expr="gte")
+    expiration_date_before = filters.DateTimeFilter(field_name="expiration_date", lookup_expr="lte")
+
+    # Global search across multiple fields: ?q=term
+    q = filters.CharFilter(method="filter_q")
+
+    def filter_q(self, queryset, name, value):
+        if not value:
+            return queryset
+        return queryset.filter(
+            Q(agreement_line_id__icontains=value)
+            | Q(agreement_id__icontains=value)
+            | Q(product__icontains=value)
+            | Q(product_category__icontains=value)
+            | Q(commitment_type__icontains=value)
+            | Q(delivery_term__icontains=value)
+            | Q(unit_of_measure__icontains=value)
+        )
+
+    # Sorting: ?sort=field or ?sort=-field
+    sort = filters.OrderingFilter(
+        fields=(
+            ("id", "id"),
+            ("agreement_line_id", "agreement_line_id"),
+            ("agreement_id", "agreement_id"),
+            ("line_number", "line_number"),
+            ("effective_date", "effective_date"),
+            ("expiration_date", "expiration_date"),
+            ("committed_quantity", "committed_quantity"),
+            ("committed_amount", "committed_amount"),
+            ("price_per_unit", "price_per_unit"),
+            ("line_discount_percent", "line_discount_percent"),
+        )
+    )
+
+    class Meta:
+        model = DimAgreementLine
+        fields = [
+            "agreement_line_id",
+            "agreement_id",
+            "line_number",
+            "product",
+            "product_category",
+            "commitment_type",
+            "delivery_term",
+            "unit_of_measure",
+            "effective_date_after",
+            "effective_date_before",
+            "expiration_date_after",
+            "expiration_date_before",
+            "q",
+            "sort",
+        ]
