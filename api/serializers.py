@@ -47,6 +47,7 @@ from .models import (
     CountrySupportingPartner,
     DisasterType,
     District,
+    DimAgreementLine,
     Event,
     EventContact,
     EventFeaturedDocument,
@@ -2600,3 +2601,25 @@ class CountrySupportingPartnerSerializer(serializers.ModelSerializer):
     class Meta:
         model = CountrySupportingPartner
         fields = "__all__"
+
+class FabricDimAgreementLineSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DimAgreementLine
+        fields = (
+            "id",
+            "agreement_line_id",
+            "agreement_id",
+            "line_number",
+            "product",
+            "product_category",
+            "effective_date",
+            "expiration_date",
+            "commitment_type",
+            "committed_quantity",
+            "committed_amount",
+            "delivery_term",
+            "unit_of_measure",
+            "price_per_unit",
+            "line_discount_percent",
+        )
+        read_only_fields = fields
