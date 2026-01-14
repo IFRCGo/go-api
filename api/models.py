@@ -2685,15 +2685,15 @@ class DimAgreementLine(models.Model):
     commitment_type = models.CharField(verbose_name=_("Commitment Type"), max_length=255, blank=True, null=True)
     committed_quantity = models.DecimalField(
         verbose_name=_("Committed Quantity"),
-        max_digits=20,
-        decimal_places=10,
+        max_digits=30,
+        decimal_places=14,
         blank=True,
         null=True,
     )
     committed_amount = models.DecimalField(
         verbose_name=_("Committed Amount"),
-        max_digits=20,
-        decimal_places=10,
+        max_digits=30,
+        decimal_places=14,
         blank=True,
         null=True,
     )
@@ -2701,15 +2701,15 @@ class DimAgreementLine(models.Model):
     unit_of_measure = models.CharField(verbose_name=_("Unit of Measure"), max_length=100, blank=True, null=True)
     price_per_unit = models.DecimalField(
         verbose_name=_("Price Per Unit"),
-        max_digits=20,
-        decimal_places=10,
+        max_digits=30,
+        decimal_places=14,
         blank=True,
         null=True,
     )
     line_discount_percent = models.DecimalField(
         verbose_name=_("Line Discount Percent"),
-        max_digits=20,
-        decimal_places=10,
+        max_digits=30,
+        decimal_places=14,
         blank=True,
         null=True,
     )
@@ -2723,26 +2723,17 @@ class DimAgreementLine(models.Model):
 
 
 class DimAppeal(models.Model):
-    # Existing Fabric/business identifier (currently the DB PK)
-    id = models.CharField(
-        max_length=100,
-        primary_key=True,
-        verbose_name=_("Appeal ID"),
-    )
+    id = models.BigAutoField(primary_key=True)
 
-    appeal_name = models.CharField(
-        verbose_name=_("Appeal Name"),
-        max_length=255,
-    )
+    fabric_id = models.CharField(max_length=100, db_index=True)
+    appeal_name = models.CharField(max_length=255)
 
     class Meta:
         db_table = "api_dimappeal"
-        managed = False   # 🔑 critical
-        verbose_name = _("Appeal")
-        verbose_name_plural = _("Appeals")
-
-    def __str__(self):
-        return f"{self.id} - {self.appeal_name}"
+        managed = False
+        constraints = [
+            models.UniqueConstraint(fields=["fabric_id"], name="uniq_dimappeal_fabric_id")
+        ]
 
 
 
