@@ -42,6 +42,38 @@ from api.filter_set import (
     DistrictFilter,
     DistrictRMDFilter,
     FabricDimAgreementLineFilter,
+    FabricDimAppealFilter,
+    FabricDimBuyerGroupFilter,
+    FabricDimConsignmentFilter,
+    FabricDimDeliveryModeFilter,
+    FabricDimDonorFilter,
+    FabricDimInventoryItemFilter,
+    FabricDimInventoryItemStatusFilter,
+    FabricDimInventoryModuleFilter,
+    FabricDimInventoryOwnerFilter,
+    FabricDimInventoryTransactionFilter,
+    FabricDimInventoryTransactionLineFilter,
+    FabricDimInventoryTransactionOriginFilter,
+    FabricDimItemBatchFilter,
+    FabricDimLocationFilter,
+    FabricDimLogisticsLocationFilter,
+    FabricDimPackingSlipLineFilter,
+    FabricDimProductFilter,
+    FabricDimProductCategoryFilter,
+    FabricDimProductReceiptLineFilter,
+    FabricDimProjectFilter,
+    FabricDimSalesOrderLineFilter,
+    FabricDimSiteFilter,
+    FabricDimVendorFilter,
+    FabricDimVendorContactFilter,
+    FabricDimVendorContactEmailFilter,
+    FabricDimVendorPhysicalAddressFilter,
+    FabricDimWarehouseFilter,
+    FabricFctAgreementFilter,
+    FabricFctProductReceiptFilter,
+    FabricFctPurchaseOrderFilter,
+    FabricFctSalesOrderFilter,
+    FabricProductCategoryHierarchyFlattenedFilter,
     EventFilter,
     EventSeverityLevelHistoryFilter,
     EventSnippetFilter,
@@ -83,16 +115,48 @@ from .models import (
     CountryOfFieldReportToReview,
     CountrySnippet,
     CountrySupportingPartner,
-    DisasterType,
     District,
+    DisasterType,
     DimAgreementLine,
+    DimAppeal,
+    DimBuyerGroup,
+    DimConsignment,
+    DimDeliveryMode,
+    DimDonor,
+    DimInventoryItem,
+    DimInventoryItemStatus,
+    DimInventoryModule,
+    DimInventoryOwner,
+    DimInventoryTransaction,
+    DimInventoryTransactionLine,
+    DimInventoryTransactionOrigin,
+    DimItemBatch,
+    DimLocation,
+    DimLogisticsLocation,
+    DimPackingSlipLine,
+    DimProduct,
+    DimProductCategory,
+    DimProductReceiptLine,
+    DimProject,
+    DimSalesOrderLine,
+    DimSite,
+    DimVendor,
+    DimVendorContact,
+    DimVendorContactEmail,
+    DimVendorPhysicalAddress,
+    DimWarehouse,
     Event,
     EventFeaturedDocument,
     EventSeverityLevelHistory,
     Export,
     ExternalPartner,
+    FctAgreement,
+    FctProductReceipt,
+    FctPurchaseOrder,
+    FctSalesOrder,
     FieldReport,
     MainContact,
+    ProductCategoryHierarchyFlattened,
     Profile,
     Region,
     RegionKeyFigure,
@@ -133,6 +197,38 @@ from .serializers import (  # AppealSerializer,; Tableau Serializers; AppealTabl
     ExportSerializer,
     ExternalPartnerSerializer,
     FabricDimAgreementLineSerializer,
+    FabricDimAppealSerializer,
+    FabricDimBuyerGroupSerializer,
+    FabricDimConsignmentSerializer,
+    FabricDimDeliveryModeSerializer,
+    FabricDimDonorSerializer,
+    FabricDimInventoryItemSerializer,
+    FabricDimInventoryItemStatusSerializer,
+    FabricDimInventoryModuleSerializer,
+    FabricDimInventoryOwnerSerializer,
+    FabricDimInventoryTransactionSerializer,
+    FabricDimInventoryTransactionLineSerializer,
+    FabricDimInventoryTransactionOriginSerializer,
+    FabricDimItemBatchSerializer,
+    FabricDimLocationSerializer,
+    FabricDimLogisticsLocationSerializer,
+    FabricDimPackingSlipLineSerializer,
+    FabricDimProductSerializer,
+    FabricDimProductCategorySerializer,
+    FabricDimProductReceiptLineSerializer,
+    FabricDimProjectSerializer,
+    FabricDimSalesOrderLineSerializer,
+    FabricDimSiteSerializer,
+    FabricDimVendorSerializer,
+    FabricDimVendorContactSerializer,
+    FabricDimVendorContactEmailSerializer,
+    FabricDimVendorPhysicalAddressSerializer,
+    FabricDimWarehouseSerializer,
+    FabricFctAgreementSerializer,
+    FabricFctProductReceiptSerializer,
+    FabricFctPurchaseOrderSerializer,
+    FabricFctSalesOrderSerializer,
+    FabricProductCategoryHierarchyFlattenedSerializer,
     FieldReportGeneratedTitleSerializer,
     FieldReportGenerateTitleSerializer,
     FieldReportSerializer,
@@ -1552,259 +1648,291 @@ class FabricDimAgreementLineViewSet(viewsets.ReadOnlyModelViewSet):
         return DimAgreementLine.objects.all()
 
 
-# class FabricDimAppealViewSet(viewsets.ReadOnlyModelViewSet):
-#     serializer_class = FabricDimAppealSerializer
-#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+class FabricDimAppealViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FabricDimAppealSerializer
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+    filterset_class = FabricDimAppealFilter
 
-#     def get_queryset(self):
-#         pass
+    def get_queryset(self):
+        return DimAppeal.objects.all()
 
 
-# class FabricDimBuyerGroupViewSet(viewsets.ReadOnlyModelViewSet):
-#     serializer_class = FabricDimBuyerGroupSerializer
-#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+class FabricDimBuyerGroupViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FabricDimBuyerGroupSerializer
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+    filterset_class = FabricDimBuyerGroupFilter
 
-#     def get_queryset(self):
-#         pass
+    def get_queryset(self):
+        return DimBuyerGroup.objects.all()
 
 
-# class FabricDimConsignmentViewSet(viewsets.ReadOnlyModelViewSet):
-#     serializer_class = FabricDimConsignmentSerializer
-#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+class FabricDimConsignmentViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FabricDimConsignmentSerializer
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+    filterset_class = FabricDimConsignmentFilter
 
-#     def get_queryset(self):
-#         pass
+    def get_queryset(self):
+        return DimConsignment.objects.all()
 
 
-# class FabricDimDeliveryModeViewSet(viewsets.ReadOnlyModelViewSet):
-#     serializer_class = FabricDimDeliveryModeSerializer
-#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+class FabricDimDeliveryModeViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FabricDimDeliveryModeSerializer
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+    filterset_class = FabricDimDeliveryModeFilter
 
-#     def get_queryset(self):
-#         pass
+    def get_queryset(self):
+        return DimDeliveryMode.objects.all()
 
 
-# class FabricDimDonorViewSet(viewsets.ReadOnlyModelViewSet):
-#     serializer_class = FabricDimDonorSerializer
-#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+class FabricDimDonorViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FabricDimDonorSerializer
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+    filterset_class = FabricDimDonorFilter
 
-#     def get_queryset(self):
-#         pass
+    def get_queryset(self):
+        return DimDonor.objects.all()
 
 
-# class FabricDimInventoryItemViewSet(viewsets.ReadOnlyModelViewSet):
-#     serializer_class = FabricDimInventoryItemSerializer
-#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+class FabricDimInventoryItemViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FabricDimInventoryItemSerializer
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+    filterset_class = FabricDimInventoryItemFilter
 
-#     def get_queryset(self):
-#         pass
+    def get_queryset(self):
+        return DimInventoryItem.objects.all()
 
 
-# class FabricDimInventoryItemStatusViewSet(viewsets.ReadOnlyModelViewSet):
-#     serializer_class = FabricDimInventoryItemStatusSerializer
-#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+class FabricDimInventoryItemStatusViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FabricDimInventoryItemStatusSerializer
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+    filterset_class = FabricDimInventoryItemStatusFilter
 
-#     def get_queryset(self):
-#         pass
+    def get_queryset(self):
+        return DimInventoryItemStatus.objects.all()
 
 
-# class FabricDimInventoryModuleViewSet(viewsets.ReadOnlyModelViewSet):
-#     serializer_class = FabricDimInventoryModuleSerializer
-#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+class FabricDimInventoryModuleViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FabricDimInventoryModuleSerializer
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+    filterset_class = FabricDimInventoryModuleFilter
 
-#     def get_queryset(self):
-#         pass
+    def get_queryset(self):
+        return DimInventoryModule.objects.all()
 
 
-# class FabricDimInventoryOwnerViewSet(viewsets.ReadOnlyModelViewSet):
-#     serializer_class = FabricDimInventoryOwnerSerializer
-#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+class FabricDimInventoryOwnerViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FabricDimInventoryOwnerSerializer
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+    filterset_class = FabricDimInventoryOwnerFilter
 
-#     def get_queryset(self):
-#         pass
+    def get_queryset(self):
+        return DimInventoryOwner.objects.all()
 
 
-# class FabricDimInventoryTransactionViewSet(viewsets.ReadOnlyModelViewSet):
-#     serializer_class = FabricDimInventoryTransactionSerializer
-#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+class FabricDimInventoryTransactionViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FabricDimInventoryTransactionSerializer
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+    filterset_class = FabricDimInventoryTransactionFilter
 
-#     def get_queryset(self):
-#         pass
+    def get_queryset(self):
+        return DimInventoryTransaction.objects.all()
 
 
-# class FabricDimInventoryTransactionLineViewSet(viewsets.ReadOnlyModelViewSet):
-#     serializer_class = FabricDimInventoryTransactionLineSerializer
-#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+class FabricDimInventoryTransactionLineViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FabricDimInventoryTransactionLineSerializer
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+    filterset_class = FabricDimInventoryTransactionLineFilter
 
-#     def get_queryset(self):
-#         pass
+    def get_queryset(self):
+        return DimInventoryTransactionLine.objects.all()
 
 
-# class FabricDimInventoryTransactionOriginViewSet(viewsets.ReadOnlyModelViewSet):
-#     serializer_class = FabricDimInventoryTransactionOriginSerializer
-#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+class FabricDimInventoryTransactionOriginViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FabricDimInventoryTransactionOriginSerializer
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+    filterset_class = FabricDimInventoryTransactionOriginFilter
 
-#     def get_queryset(self):
-#         pass
+    def get_queryset(self):
+        return DimInventoryTransactionOrigin.objects.all()
 
 
-# class FabricDimItemBatchViewSet(viewsets.ReadOnlyModelViewSet):
-#     serializer_class = FabricDimItemBatchSerializer
-#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+class FabricDimItemBatchViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FabricDimItemBatchSerializer
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+    filterset_class = FabricDimItemBatchFilter
 
-#     def get_queryset(self):
-#         pass
+    def get_queryset(self):
+        return DimItemBatch.objects.all()
 
 
-# class FabricDimLocationViewSet(viewsets.ReadOnlyModelViewSet):
-#     serializer_class = FabricDimLocationSerializer
-#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+class FabricDimLocationViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FabricDimLocationSerializer
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+    filterset_class = FabricDimLocationFilter
 
-#     def get_queryset(self):
-#         pass
+    def get_queryset(self):
+        return DimLocation.objects.all()
 
 
-# class FabricDimLogisticsLocationViewSet(viewsets.ReadOnlyModelViewSet):
-#     serializer_class = FabricDimLogisticsLocationSerializer
-#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+class FabricDimLogisticsLocationViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FabricDimLogisticsLocationSerializer
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+    filterset_class = FabricDimLogisticsLocationFilter
 
-#     def get_queryset(self):
-#         pass
+    def get_queryset(self):
+        return DimLogisticsLocation.objects.all()
 
 
-# class FabricDimPackingSlipLineViewSet(viewsets.ReadOnlyModelViewSet):
-#     serializer_class = FabricDimPackingSlipLineSerializer
-#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+class FabricDimPackingSlipLineViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FabricDimPackingSlipLineSerializer
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+    filterset_class = FabricDimPackingSlipLineFilter
 
-#     def get_queryset(self):
-#         pass
+    def get_queryset(self):
+        return DimPackingSlipLine.objects.all()
 
 
-# class FabricDimProductViewSet(viewsets.ReadOnlyModelViewSet):
-#     serializer_class = FabricDimProductSerializer
-#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+class FabricDimProductViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FabricDimProductSerializer
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+    filterset_class = FabricDimProductFilter
 
-#     def get_queryset(self):
-#         pass
+    def get_queryset(self):
+        return DimProduct.objects.all()
 
 
-# class FabricDimProductCategoryViewSet(viewsets.ReadOnlyModelViewSet):
-#     serializer_class = FabricDimProductCategorySerializer
-#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+class FabricDimProductCategoryViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FabricDimProductCategorySerializer
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+    filterset_class = FabricDimProductCategoryFilter
 
-#     def get_queryset(self):
-#         pass
+    def get_queryset(self):
+        return DimProductCategory.objects.all()
 
 
-# class FabricDimProductReceiptLineViewSet(viewsets.ReadOnlyModelViewSet):
-#     serializer_class = FabricDimProductReceiptLineSerializer
-#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+class FabricDimProductReceiptLineViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FabricDimProductReceiptLineSerializer
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+    filterset_class = FabricDimProductReceiptLineFilter
 
-#     def get_queryset(self):
-#         pass
+    def get_queryset(self):
+        return DimProductReceiptLine.objects.all()
 
 
-# class FabricDimProjectViewSet(viewsets.ReadOnlyModelViewSet):
-#     serializer_class = FabricDimProjectSerializer
-#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+class FabricDimProjectViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FabricDimProjectSerializer
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+    filterset_class = FabricDimProjectFilter
 
-#     def get_queryset(self):
-#         pass
+    def get_queryset(self):
+        return DimProject.objects.all()
 
 
 
-# class FabricDimSalesOrderLineViewSet(viewsets.ReadOnlyModelViewSet):
-#     serializer_class = FabricDimSalesOrderLineSerializer
-#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+class FabricDimSalesOrderLineViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FabricDimSalesOrderLineSerializer
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+    filterset_class = FabricDimSalesOrderLineFilter
 
-#     def get_queryset(self):
-#         pass
+    def get_queryset(self):
+        return DimSalesOrderLine.objects.all()
 
 
-# class FabricDimSiteViewSet(viewsets.ReadOnlyModelViewSet):
-#     serializer_class = FabricDimSiteSerializer
-#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+class FabricDimSiteViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FabricDimSiteSerializer
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+    filterset_class = FabricDimSiteFilter
 
-#     def get_queryset(self):
-#         pass
+    def get_queryset(self):
+        return DimSite.objects.all()
 
 
-# class FabricDimVendorViewSet(viewsets.ReadOnlyModelViewSet):
-#     serializer_class = FabricDimVendorSerializer
-#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+class FabricDimVendorViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FabricDimVendorSerializer
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+    filterset_class = FabricDimVendorFilter
 
-#     def get_queryset(self):
-#         pass
+    def get_queryset(self):
+        return DimVendor.objects.all()
 
 
-# class FabricDimVendorContactViewSet(viewsets.ReadOnlyModelViewSet):
-#     serializer_class = FabricDimVendorContactSerializer
-#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+class FabricDimVendorContactViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FabricDimVendorContactSerializer
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+    filterset_class = FabricDimVendorContactFilter
 
-#     def get_queryset(self):
-#         pass
+    def get_queryset(self):
+        return DimVendorContact.objects.all()
 
 
-# class FabricDimVendorContactEmailViewSet(viewsets.ReadOnlyModelViewSet):
-#     serializer_class = FabricDimVendorContactEmailSerializer
-#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+class FabricDimVendorContactEmailViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FabricDimVendorContactEmailSerializer
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+    filterset_class = FabricDimVendorContactEmailFilter
 
-#     def get_queryset(self):
-#         pass
+    def get_queryset(self):
+        return DimVendorContactEmail.objects.all()
 
 
-# class FabricDimVendorPhysicalAddressViewSet(viewsets.ReadOnlyModelViewSet):
-#     serializer_class = FabricDimVendorPhysicalAddressSerializer
-#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+class FabricDimVendorPhysicalAddressViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FabricDimVendorPhysicalAddressSerializer
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+    filterset_class = FabricDimVendorPhysicalAddressFilter
 
-#     def get_queryset(self):
-#         pass
+    def get_queryset(self):
+        return DimVendorPhysicalAddress.objects.all()
 
 
-# class FabricDimWarehouseViewSet(viewsets.ReadOnlyModelViewSet):
-#     serializer_class = FabricDimWarehouseSerializer
-#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+class FabricDimWarehouseViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FabricDimWarehouseSerializer
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+    filterset_class = FabricDimWarehouseFilter
 
-#     def get_queryset(self):
-#         pass
+    def get_queryset(self):
+        return DimWarehouse.objects.all()
 
 
-# class FabricFctAgreementViewSet(viewsets.ReadOnlyModelViewSet):
-#     serializer_class = FabricFctAgreementSerializer
-#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+class FabricFctAgreementViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FabricFctAgreementSerializer
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+    filterset_class = FabricFctAgreementFilter
 
-#     def get_queryset(self):
-#         pass
+    def get_queryset(self):
+        return FctAgreement.objects.all()
 
 
-# class FabricFctProductReceiptViewSet(viewsets.ReadOnlyModelViewSet):
-#     serializer_class = FabricFctProductReceiptSerializer
-#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+class FabricFctProductReceiptViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FabricFctProductReceiptSerializer
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+    filterset_class = FabricFctProductReceiptFilter
 
-#     def get_queryset(self):
-#         pass
+    def get_queryset(self):
+        return FctProductReceipt.objects.all()
 
 
-# class FabricFctPurchaseOrderViewSet(viewsets.ReadOnlyModelViewSet):
-#     serializer_class = FabricFctPurchaseOrderSerializer
-#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+class FabricFctPurchaseOrderViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FabricFctPurchaseOrderSerializer
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+    filterset_class = FabricFctPurchaseOrderFilter
 
-#     def get_queryset(self):
-#         pass
+    def get_queryset(self):
+        return FctPurchaseOrder.objects.all()
 
 
-# class FabricFctSalesOrderViewSet(viewsets.ReadOnlyModelViewSet):
-#     serializer_class = FabricFctSalesOrderSerializer
-#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+class FabricFctSalesOrderViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FabricFctSalesOrderSerializer
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+    filterset_class = FabricFctSalesOrderFilter
 
-#     def get_queryset(self):
-#         pass
+    def get_queryset(self):
+        return FctSalesOrder.objects.all()
 
 
-# class FabricProductCategoryHierarchyFlattenedViewSet(viewsets.ReadOnlyModelViewSet):
-#     serializer_class = FabricProductCategoryHierarchyFlattenedSerializer
-#     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+class FabricProductCategoryHierarchyFlattenedViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FabricProductCategoryHierarchyFlattenedSerializer
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+    filterset_class = FabricProductCategoryHierarchyFlattenedFilter
 
-#     def get_queryset(self):
-#         pass
+    def get_queryset(self):
+        return ProductCategoryHierarchyFlattened.objects.all()
 

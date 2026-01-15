@@ -46,6 +46,33 @@ from .models import (
     CountrySnippet,
     CountrySupportingPartner,
     DisasterType,
+    DimAppeal,
+    DimBuyerGroup,
+    DimConsignment,
+    DimDeliveryMode,
+    DimDonor,
+    DimInventoryItem,
+    DimInventoryItemStatus,
+    DimInventoryModule,
+    DimInventoryOwner,
+    DimInventoryTransaction,
+    DimInventoryTransactionLine,
+    DimInventoryTransactionOrigin,
+    DimItemBatch,
+    DimLocation,
+    DimLogisticsLocation,
+    DimPackingSlipLine,
+    DimProduct,
+    DimProductCategory,
+    DimProductReceiptLine,
+    DimProject,
+    DimSalesOrderLine,
+    DimSite,
+    DimVendor,
+    DimVendorContact,
+    DimVendorContactEmail,
+    DimVendorPhysicalAddress,
+    DimWarehouse,
     District,
     DimAgreementLine,
     Event,
@@ -57,10 +84,15 @@ from .models import (
     ExternalPartner,
     FieldReport,
     FieldReportContact,
+    FctAgreement,
+    FctProductReceipt,
+    FctPurchaseOrder,
+    FctSalesOrder,
     KeyFigure,
     MainContact,
     NSDInitiatives,
     Profile,
+    ProductCategoryHierarchyFlattened,
     Region,
     RegionContact,
     RegionEmergencySnippet,
@@ -2622,4 +2654,228 @@ class FabricDimAgreementLineSerializer(serializers.ModelSerializer):
             "price_per_unit",
             "line_discount_percent",
         )
+        read_only_fields = fields #Can be made more efficient by following same method as below but ill leave as an examplefor now.
+        
+
+class FabricDimAppealSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DimAppeal
+        fields = "__all__"
+        read_only_fields = fields
+
+
+class FabricDimBuyerGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DimBuyerGroup
+        fields = "__all__"
+        read_only_fields = fields
+
+
+class FabricDimConsignmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DimConsignment
+        fields = "__all__"
+        read_only_fields = fields
+
+
+class FabricDimDeliveryModeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DimDeliveryMode
+        fields = "__all__"
+        read_only_fields = fields
+
+
+class FabricDimDonorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DimDonor
+        fields = "__all__"
+        read_only_fields = fields
+
+
+class FabricDimInventoryItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DimInventoryItem
+        fields = "__all__"
+        read_only_fields = fields
+
+
+class FabricDimInventoryItemStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DimInventoryItemStatus
+        fields = "__all__"
+        read_only_fields = fields
+
+
+class FabricDimInventoryModuleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DimInventoryModule
+        fields = "__all__"
+        read_only_fields = fields
+
+
+class FabricDimInventoryOwnerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DimInventoryOwner
+        fields = "__all__"
+        read_only_fields = fields
+
+
+class FabricDimInventoryTransactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DimInventoryTransaction
+        fields = "__all__"
+        read_only_fields = fields
+
+
+class FabricDimInventoryTransactionLineSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DimInventoryTransactionLine
+        fields = "__all__"
+        read_only_fields = fields
+
+
+class FabricDimInventoryTransactionOriginSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DimInventoryTransactionOrigin
+        fields = "__all__"
+        read_only_fields = fields
+
+
+class FabricDimItemBatchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DimItemBatch
+        fields = "__all__"
+        read_only_fields = fields
+
+
+class FabricDimLocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DimLocation
+        fields = "__all__"
+        read_only_fields = fields
+
+
+class FabricDimLogisticsLocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DimLogisticsLocation
+        fields = "__all__"
+        read_only_fields = fields
+
+
+class FabricDimPackingSlipLineSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DimPackingSlipLine
+        fields = "__all__"
+        read_only_fields = fields
+
+
+class FabricDimProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DimProduct
+        fields = "__all__"
+        read_only_fields = fields
+
+
+class FabricDimProductCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DimProductCategory
+        fields = "__all__"
+        read_only_fields = fields
+
+
+class FabricDimProductReceiptLineSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DimProductReceiptLine
+        fields = "__all__"
+        read_only_fields = fields
+
+
+class FabricDimProjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DimProject
+        fields = "__all__"
+        read_only_fields = fields
+
+
+class FabricDimSalesOrderLineSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DimSalesOrderLine
+        fields = "__all__"
+        read_only_fields = fields
+
+
+class FabricDimSiteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DimSite
+        fields = "__all__"
+        read_only_fields = fields
+
+
+class FabricDimVendorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DimVendor
+        fields = "__all__"
+        read_only_fields = fields
+
+
+class FabricDimVendorContactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DimVendorContact
+        fields = "__all__"
+        read_only_fields = fields
+
+
+class FabricDimVendorContactEmailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DimVendorContactEmail
+        fields = "__all__"
+        read_only_fields = fields
+
+
+class FabricDimVendorPhysicalAddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DimVendorPhysicalAddress
+        fields = "__all__"
+        read_only_fields = fields
+
+
+class FabricDimWarehouseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DimWarehouse
+        fields = "__all__"
+        read_only_fields = fields
+
+
+class FabricFctAgreementSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FctAgreement
+        fields = "__all__"
+        read_only_fields = fields
+
+
+class FabricFctProductReceiptSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FctProductReceipt
+        fields = "__all__"
+        read_only_fields = fields
+
+
+class FabricFctPurchaseOrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FctPurchaseOrder
+        fields = "__all__"
+        read_only_fields = fields
+
+
+class FabricFctSalesOrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FctSalesOrder
+        fields = "__all__"
+        read_only_fields = fields
+
+
+class FabricProductCategoryHierarchyFlattenedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductCategoryHierarchyFlattened
+        fields = "__all__"
         read_only_fields = fields
