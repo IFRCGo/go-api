@@ -15,22 +15,23 @@ EXPOSE 80
 EXPOSE 443
 
 # Microsoft repo for Debian 11 (bullseye) + ODBC Driver 18
-RUN apt-get update -y && apt-get install -y --no-install-recommends \
-      curl ca-certificates gnupg apt-transport-https && \
-    curl -sSL https://packages.microsoft.com/keys/microsoft.asc \
-      | gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg && \
-    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-prod.gpg] https://packages.microsoft.com/debian/11/prod bullseye main" \
-      > /etc/apt/sources.list.d/microsoft-prod.list
-
-
-RUN apt-get update -y && \
+RUN set -eux; \
+    apt-get update -y; \
+    apt-get install -y --no-install-recommends \
+      curl ca-certificates gnupg apt-transport-https; \
+    curl -fsSL https://packages.microsoft.com/keys/microsoft.asc \
+      | gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg; \
+    ARCH="$(dpkg --print-architecture)"; \
+    echo "deb [arch=${ARCH} signed-by=/usr/share/keyrings/microsoft-prod.gpg] https://packages.microsoft.com/debian/11/prod bullseye main" \
+      > /etc/apt/sources.list.d/microsoft-prod.list; \
+    apt-get update -y; \
     ACCEPT_EULA=Y apt-get install -y --no-install-recommends \
         nginx mdbtools vim tidy less gettext \
         cron \
         wait-for-it \
         binutils libproj-dev gdal-bin poppler-utils \
-        unixodbc unixodbc-dev msodbcsql18 && \
-    apt-get autoremove -y && \
+        unixodbc unixodbc-dev msodbcsql18; \
+    apt-get autoremove -y; \
     rm -rf /var/lib/apt/lists/*
 
 ENV HOME=/home/ifrc
