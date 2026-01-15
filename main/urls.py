@@ -192,6 +192,47 @@ router.register(r"bulk-upload-local-unit", local_units_views.LocalUnitBulkUpload
 # Databank
 router.register(r"country-income", data_bank_views.FDRSIncomeViewSet, basename="country_income")
 
+# Fabric endpoints (ViewSets)
+router.register(r"fabric/dim-agreement-line", api_views.FabricDimAgreementLineViewSet, basename="fabric_dim_agreement_line")
+router.register(r"fabric/dim-appeal", api_views.FabricDimAppealViewSet, basename="fabric_dim_appeal")
+router.register(r"fabric/dim-buyer-group", api_views.FabricDimBuyerGroupViewSet, basename="fabric_dim_buyer_group")
+router.register(r"fabric/dim-consignment", api_views.FabricDimConsignmentViewSet, basename="fabric_dim_consignment")
+router.register(r"fabric/dim-delivery-mode", api_views.FabricDimDeliveryModeViewSet, basename="fabric_dim_delivery_mode")
+router.register(r"fabric/dim-donor", api_views.FabricDimDonorViewSet, basename="fabric_dim_donor")
+router.register(r"fabric/dim-inventory-item", api_views.FabricDimInventoryItemViewSet, basename="fabric_dim_inventory_item")
+router.register(r"fabric/dim-inventory-item-status", api_views.FabricDimInventoryItemStatusViewSet, basename="fabric_dim_inventory_item_status")
+router.register(r"fabric/dim-inventory-module", api_views.FabricDimInventoryModuleViewSet, basename="fabric_dim_inventory_module")
+router.register(r"fabric/dim-inventory-owner", api_views.FabricDimInventoryOwnerViewSet, basename="fabric_dim_inventory_owner")
+router.register(r"fabric/dim-inventory-transaction", api_views.FabricDimInventoryTransactionViewSet, basename="fabric_dim_inventory_transaction")
+router.register(r"fabric/dim-inventory-transaction-line", api_views.FabricDimInventoryTransactionLineViewSet, basename="fabric_dim_inventory_transaction_line")
+router.register(r"fabric/dim-inventory-transaction-origin", api_views.FabricDimInventoryTransactionOriginViewSet, basename="fabric_dim_inventory_transaction_origin")
+router.register(r"fabric/dim-item-batch", api_views.FabricDimItemBatchViewSet, basename="fabric_dim_item_batch")
+router.register(r"fabric/dim-location", api_views.FabricDimLocationViewSet, basename="fabric_dim_location")
+router.register(r"fabric/dim-logistics-location", api_views.FabricDimLogisticsLocationViewSet, basename="fabric_dim_logistics_location")
+router.register(r"fabric/dim-packing-slip-line", api_views.FabricDimPackingSlipLineViewSet, basename="fabric_dim_packing_slip_line")
+router.register(r"fabric/dim-product", api_views.FabricDimProductViewSet, basename="fabric_dim_product")
+router.register(r"fabric/dim-product-category", api_views.FabricDimProductCategoryViewSet, basename="fabric_dim_product_category")
+router.register(r"fabric/dim-product-receipt-line", api_views.FabricDimProductReceiptLineViewSet, basename="fabric_dim_product_receipt_line")
+router.register(r"fabric/dim-project", api_views.FabricDimProjectViewSet, basename="fabric_dim_project")
+router.register(r"fabric/dim-sales-order-line", api_views.FabricDimSalesOrderLineViewSet, basename="fabric_dim_sales_order_line")
+router.register(r"fabric/dim-site", api_views.FabricDimSiteViewSet, basename="fabric_dim_site")
+router.register(r"fabric/dim-vendor", api_views.FabricDimVendorViewSet, basename="fabric_dim_vendor")
+router.register(r"fabric/dim-vendor-contact", api_views.FabricDimVendorContactViewSet, basename="fabric_dim_vendor_contact")
+router.register(r"fabric/dim-vendor-contact-email", api_views.FabricDimVendorContactEmailViewSet, basename="fabric_dim_vendor_contact_email")
+router.register(r"fabric/dim-vendor-physical-address", api_views.FabricDimVendorPhysicalAddressViewSet, basename="fabric_dim_vendor_physical_address")
+router.register(r"fabric/dim-warehouse", api_views.FabricDimWarehouseViewSet, basename="fabric_dim_warehouse")
+
+router.register(r"fabric/fct-agreement", api_views.FabricFctAgreementViewSet, basename="fabric_fct_agreement")
+router.register(r"fabric/fct-product-receipt", api_views.FabricFctProductReceiptViewSet, basename="fabric_fct_product_receipt")
+router.register(r"fabric/fct-purchase-order", api_views.FabricFctPurchaseOrderViewSet, basename="fabric_fct_purchase_order")
+router.register(r"fabric/fct-sales-order", api_views.FabricFctSalesOrderViewSet, basename="fabric_fct_sales_order")
+
+router.register(
+    r"fabric/product-category-hierarchy-flattened",
+    api_views.FabricProductCategoryHierarchyFlattenedViewSet,
+    basename="fabric_product_category_hierarchy_flattened",
+)
+
 admin.site.site_header = "IFRC Go administration"
 admin.site.site_title = "IFRC Go admin"
 
@@ -261,43 +302,6 @@ urlpatterns = [
     path("docs/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
     path("api-docs/", SpectacularAPIView.as_view(), name="schema"),
     path("api-docs/swagger-ui/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
-    # Pull Fabric Data # REMOVE REDUNDANT APIS AFTER PROCUREMENT CALL
-    url(r"^api/v2/fabric/dim-agreement-line/", api_views.FabricDimAgreementLine.as_view(), name="dim-agreement-line"),
-    url(r"^api/v2/fabric/dim-appeal/", api_views.FabricDimAppeal.as_view(), name="dim-appeal"),
-    url(r"^api/v2/fabric/dim-buyer-group/", api_views.FabricDimBuyerGroup.as_view(), name="dim-buyer-group"),
-    url(r"^api/v2/fabric/dim-consignment/", api_views.FabricDimConsignment.as_view(), name="dim-consignment"),
-    url(r"^api/v2/fabric/dim-delivery-mode/", api_views.FabricDimDeliveryMode.as_view(), name="dim-delivery-mode"),
-    url(r"^api/v2/fabric/dim-donor/", api_views.FabricDimDonor.as_view(), name="dim-donor"),
-    url(r"^api/v2/fabric/dim-inventory-item/", api_views.FabricDimInventoryItem.as_view(), name="dim-inventory-item"),
-    url(r"^api/v2/fabric/dim-inventory-item-status/", api_views.FabricDimInventoryItemStatus.as_view(), name="dim-inventory-item-status"),
-    url(r"^api/v2/fabric/dim-inventory-module/", api_views.FabricDimInventoryModule.as_view(), name="dim-inventory-module"),
-    url(r"^api/v2/fabric/dim-inventory-owner/", api_views.FabricDimInventoryOwner.as_view(), name="dim-inventory-owner"),
-    url(r"^api/v2/fabric/dim-inventory-transaction/", api_views.FabricDimInventoryTransaction.as_view(), name="dim-inventory-transaction"),
-    url(r"^api/v2/fabric/dim-inventory-transaction-line/", api_views.FabricDimInventoryTransactionLine.as_view(), name="dim-inventory-transaction-line"),
-    url(r"^api/v2/fabric/dim-inventory-transaction-origin/", api_views.FabricDimInventoryTransactionOrigin.as_view(), name="dim-inventory-transaction-origin"),
-    url(r"^api/v2/fabric/dim-item-batch/", api_views.FabricDimItemBatch.as_view(), name="dim-item-batch"),
-    url(r"^api/v2/fabric/dim-location/", api_views.FabricDimLocation.as_view(), name="dim-location"),
-    url(r"^api/v2/fabric/dim-logistics-location/", api_views.FabricDimLogisticsLocation.as_view(), name="dim-logistics-location"),
-    url(r"^api/v2/fabric/dim-packing-slip-line/", api_views.FabricDimPackingSlipLine.as_view(), name="dim-packing-slip-line"),
-    url(r"^api/v2/fabric/dim-product/", api_views.FabricDimProduct.as_view(), name="dim-product"),
-    url(r"^api/v2/fabric/dim-product-category/", api_views.FabricDimProductCategory.as_view(), name="dim-product-category"),
-    url(r"^api/v2/fabric/dim-product-receipt-line/", api_views.FabricDimProductReceiptLine.as_view(), name="dim-product-receipt-line"),
-    url(r"^api/v2/fabric/dim-project/", api_views.FabricDimProject.as_view(), name="dim-project"),
-    url(r"^api/v2/fabric/dim-sales-order-line/", api_views.FabricDimSalesOrderLine.as_view(), name="dim-sales-order-line"),
-    url(r"^api/v2/fabric/dim-site/", api_views.FabricDimSite.as_view(), name="dim-site"),
-    url(r"^api/v2/fabric/dim-vendor/", api_views.FabricDimVendor.as_view(), name="dim-vendor"),
-    url(r"^api/v2/fabric/dim-vendor-contact/", api_views.FabricDimVendorContact.as_view(), name="dim-vendor-contact"),
-    url(r"^api/v2/fabric/dim-vendor-contact-email/", api_views.FabricDimVendorContactEmail.as_view(), name="dim-vendor-contact-email"),
-    url(r"^api/v2/fabric/dim-vendor-physical-address/", api_views.FabricDimVendorPhysicalAddress.as_view(), name="dim-vendor-physical-address"),
-    url(r"^api/v2/fabric/dim-warehouse/", api_views.FabricDimWarehouse.as_view(), name="dim-warehouse"),
-
-    url(r"^api/v2/fabric/fct-agreement/", api_views.FabricFctAgreement.as_view(), name="fct-agreement"),
-    url(r"^api/v2/fabric/fct-product-receipt/", api_views.FabricFctProductReceipt.as_view(), name="fct-product-receipt"),
-    url(r"^api/v2/fabric/fct-purchase-order/", api_views.FabricFctPurchaseOrder.as_view(), name="fct-purchase-order"),
-    url(r"^api/v2/fabric/fct-sales-order/", api_views.FabricFctSalesOrder.as_view(), name="fct-sales-order"),
-
-    url(r"^api/v2/fabric/product-category-hierarchy-flattened/", api_views.FabricProductCategoryHierarchyFlattened.as_view(), name="product-category-hierarchy-flattened"),
-
     
 ]
 

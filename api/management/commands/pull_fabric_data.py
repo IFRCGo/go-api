@@ -65,31 +65,48 @@ class Command(BaseCommand):
         """
         Convert a Fabric row dict into kwargs for creating a Django model instance.
 
-        - Never populate Django's surrogate PK (`id`)
-        - Map Fabric's `id` column to `fabric_id` when present
-        - Drop any extra/helper columns (e.g. rn)
+        Rules:
+        - Never populate Django's surrogate PK (`id`) if it's an AutoField/BigAutoField
+        - If Fabric provides `id` and model has `fabric_id`, map Fabric `id` -> `fabric_id`
+        - Normalize blank strings to None
+        - Drop helper columns (rn)
         """
         kwargs = {}
 
         model_fields = {f.name: f for f in model_cls._meta.concrete_fields}
+        pk_name = model_cls._meta.pk.name
+        pk_field = model_fields.get(pk_name)
+
+        def norm(v):
+            # Treat empty/whitespace strings as None
+            if isinstance(v, str):
+                v = v.strip()
+                if v == "":
+                    return None
+            return v
 
         for col, value in row.items():
-            # Ignore helper columns
             if col == "rn":
                 continue
 
-            # Map Fabric `id` → Django `fabric_id`
+            value = norm(value)
+
+            # Fabric `id` -> Django `fabric_id` (if present)
             if col == "id" and "fabric_id" in model_fields:
                 kwargs["fabric_id"] = value
                 continue
 
-            if col == "id" and model_fields["id"].primary_key:
-                continue
-            
+            # Never write to surrogate PK if it's auto-created
+            if col == pk_name and pk_field is not None:
+                internal_auto_types = {"AutoField", "BigAutoField", "SmallAutoField"}
+                if pk_field.__class__.__name__ in internal_auto_types:
+                    continue
+
             if col in model_fields:
                 kwargs[col] = value
 
         return kwargs
+
 
 
     def handle(self, *args, **options):
@@ -160,7 +177,14 @@ class Command(BaseCommand):
                     for r in rows:
                         r.pop("rn", None)  # just in case
                         kwargs = self._row_to_model_kwargs(model_cls, r)
+
+                        # If model expects fabric_id, skip rows where it's missing/blank
+                        if "fabric_id" in {f.name for f in model_cls._meta.concrete_fields}:
+                            if not kwargs.get("fabric_id"):
+                                continue
+
                         objs.append(model_cls(**kwargs))
+
 
                     # Insert chunk
                     with transaction.atomic():
@@ -201,7 +225,14 @@ class Command(BaseCommand):
                     for r in rows:
                         r.pop("rn", None)  # remove helper column
                         kwargs = self._row_to_model_kwargs(model_cls, r)
+
+                        # If model expects fabric_id, skip rows where it's missing/blank
+                        if "fabric_id" in {f.name for f in model_cls._meta.concrete_fields}:
+                            if not kwargs.get("fabric_id"):
+                                continue
+
                         objs.append(model_cls(**kwargs))
+
 
                     with transaction.atomic():
                         model_cls.objects.bulk_create(objs, batch_size=chunk_size, ignore_conflicts=True) # <-- skips duplicates of the PK because in our case all duplicates are identical
