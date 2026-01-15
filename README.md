@@ -45,22 +45,18 @@ email-verification only, is to be found
 
      FABRIC_SQL_SERVER=""
      FABRIC_SQL_DATABASE="logistics_gold"
-     DJANGO_DB_NAME=fabric_staging
 
      Set FABRIC_SQL_SERVER to the SQL endpoint from Microsoft Fabric:
      Fabric → Logistics Gold → Settings → SQL endpoint
 
-### 2. Create staging database
-    $ docker compose exec -T db psql -U test -c "CREATE DATABASE fabric_staging;"
-
-### 3. Build
+### 2. Build
      Rebuild and run services so changes take effect
      $ docker compose build
-     $ docker compose up serve celery
      $ docker compose run --rm migrate
+     $ docker compose up serve celery
      $ docker compose exec serve az login (follow instr on screen)
 
-#### 4. Pull Data
+#### 3. Pull Data
      $ docker compose exec serve python manage.py pull_fabric_data
 
 
