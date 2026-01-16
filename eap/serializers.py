@@ -23,7 +23,7 @@ from eap.models import (
     EAPImpact,
     EAPRegistration,
     EAPType,
-    EnableApproach,
+    EnablingApproach,
     FullEAP,
     HoursTimeFrameChoices,
     Indicator,
@@ -239,8 +239,8 @@ class EAPRegistrationSerializer(
     disaster_type_details = DisasterTypeSerializer(source="disaster_type", read_only=True)
 
     # EAPs
-    simplified_eap_details = MiniSimplifiedEAPSerializer(source="simplified_eap", many=True, read_only=True)
-    full_eap_details = MiniFullEAPSerializer(source="full_eap", many=True, read_only=True)
+    simplified_eap_details = MiniSimplifiedEAPSerializer(source="simplified_eaps", many=True, read_only=True)
+    full_eap_details = MiniFullEAPSerializer(source="full_eaps", many=True, read_only=True)
 
     # Status
     status_display = serializers.CharField(source="get_status_display", read_only=True)
@@ -378,7 +378,7 @@ class PlannedOperationSerializer(
         fields = "__all__"
 
 
-class EnableApproachSerializer(
+class EnablingApproachSerializer(
     NestedUpdateMixin,
     NestedCreateMixin,
     serializers.ModelSerializer,
@@ -395,7 +395,7 @@ class EnableApproachSerializer(
     early_action_activities = OperationActivitySerializer(many=True, required=True)
 
     class Meta:
-        model = EnableApproach
+        model = EnablingApproach
         fields = "__all__"
 
 
@@ -452,19 +452,6 @@ class EAPContactSerializer(serializers.ModelSerializer):
 class CommonEAPFieldsSerializer(serializers.ModelSerializer):
     MAX_NUMBER_OF_IMAGES = 5
 
-    # Partner NS Contact
-    partner_contacts = EAPContactSerializer(many=True, required=False, allow_null=True)
-
-    planned_operations = PlannedOperationSerializer(many=True, required=True)
-    enable_approaches = EnableApproachSerializer(many=True, required=True)
-
-    # FILES
-    cover_image_file = EAPFileUpdateSerializer(source="cover_image", required=False, allow_null=True)
-    admin2_details = Admin2Serializer(source="admin2", many=True, read_only=True)
-    budget_file = serializers.PrimaryKeyRelatedField(queryset=EAPFile.objects.all(), required=True)
-    budget_file_details = EAPFileSerializer(source="budget_file", read_only=True)
-    updated_checklist_file_details = EAPFileSerializer(source="updated_checklist_file", read_only=True)
-
     def get_fields(self):
         fields = super().get_fields()
         fields["partner_contacts"] = EAPContactSerializer(many=True, required=False)
@@ -472,7 +459,7 @@ class CommonEAPFieldsSerializer(serializers.ModelSerializer):
         fields["admin2_details"] = Admin2Serializer(source="admin2", many=True, read_only=True)
         fields["cover_image_file"] = EAPFileUpdateSerializer(source="cover_image", required=False, allow_null=True)
         fields["planned_operations"] = PlannedOperationSerializer(many=True, required=True)
-        fields["enable_approaches"] = EnableApproachSerializer(many=True, required=True)
+        fields["enabling_approaches"] = EnablingApproachSerializer(many=True, required=True)
         fields["budget_file"] = serializers.PrimaryKeyRelatedField(queryset=EAPFile.objects.all(), required=True)
         fields["budget_file_details"] = EAPFileSerializer(source="budget_file", read_only=True)
         fields["updated_checklist_file_details"] = EAPFileSerializer(source="updated_checklist_file", read_only=True)
@@ -833,6 +820,25 @@ class EAPStatusSerializer(BaseEAPSerializer):
                 % (EAPRegistration.Status(current_status).label, EAPRegistration.Status(new_status).label)
             )
 
+        if (current_status, new_status) == (
+            EAPRegistration.Status.UNDER_DEVELOPMENT,
+            EAPRegistration.Status.UNDER_REVIEW,
+        ):
+            if self.instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP:
+                transaction.on_commit(
+                    lambda: generate_export_eap_pdf.delay(
+                        eap_registration_id=self.instance.id,
+                        version=self.instance.latest_simplified_eap.version,
+                    )
+                )
+            else:
+                transaction.on_commit(
+                    lambda: generate_export_eap_pdf.delay(
+                        eap_registration_id=self.instance.id,
+                        version=self.instance.latest_full_eap.version,
+                    )
+                )
+
         # NOTE: IFRC Admins should be able to transition from TECHNICALLY_VALIDATED
         # to NS_ADDRESSING_COMMENTS to allow NS users to update their EAP changes after validated budget has been set.
         if (current_status, new_status) in [
@@ -864,6 +870,14 @@ class EAPStatusSerializer(BaseEAPSerializer):
                 snapshot_instance.review_checklist_file = review_checklist_file
                 snapshot_instance.save(update_fields=["review_checklist_file"])
                 self.instance.save(update_fields=["latest_full_eap"])
+
+            # NOTE: Clearing validated budget file, if changes to NS Addressing Comments.
+            if (current_status, new_status) == (
+                EAPRegistration.Status.TECHNICALLY_VALIDATED,
+                EAPRegistration.Status.NS_ADDRESSING_COMMENTS,
+            ):
+                self.instance.validated_budget_file = None
+                self.instance.save(update_fields=["validated_budget_file"])
 
         elif (current_status, new_status) == (
             EAPRegistration.Status.UNDER_REVIEW,
