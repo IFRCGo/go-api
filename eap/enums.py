@@ -9,5 +9,5 @@ enum_register = {
     "months_timeframe_value": models.MonthsTimeFrameChoices,
     "days_timeframe_value": models.DaysTimeFrameChoices,
     "hours_timeframe_value": models.HoursTimeFrameChoices,
-    "approach": models.EnableApproach.Approach,
+    "approach": models.EnablingApproach.Approach,
 }
