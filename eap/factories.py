@@ -10,7 +10,7 @@ from eap.models import (
     EAPRegistration,
     EAPStatus,
     EAPType,
-    EnableApproach,
+    EnablingApproach,
     FullEAP,
     KeyActor,
     OperationActivity,
@@ -96,13 +96,13 @@ class SimplifiedEAPFactory(factory.django.DjangoModelFactory):
     ifrc_head_of_delegation_email = factory.LazyAttribute(lambda obj: f"{obj.ifrc_head_of_delegation_name.lower()}@example.com")
 
     @factory.post_generation
-    def enable_approaches(self, create, extracted, **kwargs):
+    def enabling_approaches(self, create, extracted, **kwargs):
         if not create:
             return
 
         if extracted:
             for approach in extracted:
-                self.enable_approaches.add(approach)
+                self.enabling_approaches.add(approach)
 
     @factory.post_generation
     def planned_operations(self, create, extracted, **kwargs):
@@ -122,11 +122,11 @@ class OperationActivityFactory(factory.django.DjangoModelFactory):
     timeframe = fuzzy.FuzzyChoice(TimeFrame)
 
 
-class EnableApproachFactory(factory.django.DjangoModelFactory):
+class EnablingApproachFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = EnableApproach
+        model = EnablingApproach
 
-    approach = fuzzy.FuzzyChoice(EnableApproach.Approach)
+    approach = fuzzy.FuzzyChoice(EnablingApproach.Approach)
     budget_per_approach = fuzzy.FuzzyInteger(1000, 1000000)
     ap_code = fuzzy.FuzzyInteger(100, 999)
 
