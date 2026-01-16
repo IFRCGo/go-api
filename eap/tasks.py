@@ -164,7 +164,6 @@ def generate_export_eap_pdf(eap_registration_id, version):
 
 @shared_task
 def send_new_eap_registration_email(eap_registration_id: int):
-
     instance = EAPRegistration.objects.filter(id=eap_registration_id).first()
     if not instance:
         return None
@@ -199,8 +198,7 @@ def send_new_eap_registration_email(eap_registration_id: int):
         mailtype=email_type,
         cc_recipients=cc_recipients,
     )
-
-    return email_context
+    return True
 
 
 @shared_task
@@ -251,13 +249,11 @@ def send_new_eap_submission_email(eap_registration_id: int):
         mailtype=email_type,
         cc_recipients=cc_recipients,
     )
-
-    return email_context
+    return True
 
 
 @shared_task
 def send_feedback_email(eap_registration_id: int):
-
     instance = EAPRegistration.objects.filter(id=eap_registration_id).first()
     if not instance:
         return None
@@ -304,7 +300,7 @@ def send_feedback_email(eap_registration_id: int):
         cc_recipients=cc_recipients,
     )
 
-    return email_context
+    return True
 
 
 @shared_task
@@ -361,7 +357,7 @@ def send_eap_resubmission_email(eap_registration_id: int):
         cc_recipients=cc_recipients,
     )
 
-    return email_context
+    return True
 
 
 @shared_task
@@ -425,7 +421,7 @@ def send_feedback_email_for_resubmitted_eap(eap_registration_id: int):
         cc_recipients=cc_recipients,
     )
 
-    return email_context
+    return True
 
 
 @shared_task
@@ -470,7 +466,7 @@ def send_technical_validation_email(eap_registration_id: int):
         mailtype=email_type,
         cc_recipients=cc_recipients,
     )
-    return email_context
+    return True
 
 
 @shared_task
@@ -520,7 +516,7 @@ def send_pending_pfa_email(eap_registration_id: int):
         mailtype=email_type,
         cc_recipients=cc_recipients,
     )
-    return email_context
+    return True
 
 
 @shared_task
@@ -564,7 +560,7 @@ def send_approved_email(eap_registration_id: int):
         mailtype=email_type,
         cc_recipients=cc_recipients,
     )
-    return email_context
+    return True
 
 
 @shared_task
@@ -612,4 +608,4 @@ def send_deadline_reminder_email(eap_registration_id: int):
     instance.deadline_remainder_sent_at = timezone.now()
     instance.save(update_fields=["deadline_remainder_sent_at"])
 
-    return email_context
+    return True

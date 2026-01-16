@@ -16,7 +16,7 @@ from eap.models import (
     EAPRegistration,
     EAPStatus,
     EAPType,
-    EnableApproach,
+    EnablingApproach,
     FullEAP,
     KeyActor,
     PlannedOperation,
@@ -105,7 +105,7 @@ class EAPRegistrationViewSet(EAPModelViewSet):
             .prefetch_related(
                 "partners",
                 Prefetch(
-                    "simplified_eap",
+                    "simplified_eaps",
                     queryset=SimplifiedEAP.objects.select_related(
                         "budget_file__created_by",
                         "budget_file__modified_by",
@@ -114,7 +114,7 @@ class EAPRegistrationViewSet(EAPModelViewSet):
                     ),
                 ),
                 Prefetch(
-                    "full_eap",
+                    "full_eaps",
                     queryset=FullEAP.objects.select_related(
                         "budget_file__created_by",
                         "budget_file__modified_by",
@@ -209,8 +209,8 @@ class SimplifiedEAPViewSet(EAPModelViewSet):
                     ),
                 ),
                 Prefetch(
-                    "enable_approaches",
-                    queryset=EnableApproach.objects.prefetch_related(
+                    "enabling_approaches",
+                    queryset=EnablingApproach.objects.prefetch_related(
                         "indicators",
                         "readiness_activities",
                         "prepositioning_activities",
@@ -296,8 +296,8 @@ class FullEAPViewSet(EAPModelViewSet):
                     ),
                 ),
                 Prefetch(
-                    "enable_approaches",
-                    queryset=EnableApproach.objects.prefetch_related(
+                    "enabling_approaches",
+                    queryset=EnablingApproach.objects.prefetch_related(
                         "indicators",
                         "readiness_activities",
                         "prepositioning_activities",
