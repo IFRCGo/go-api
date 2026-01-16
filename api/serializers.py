@@ -372,12 +372,14 @@ class Admin2Serializer(GeoSerializerMixin, ModelSerializer):
     bbox = serializers.SerializerMethodField()
     centroid = serializers.SerializerMethodField()
     district_id = serializers.IntegerField(source="admin1.id", read_only=True)
+    district_name = serializers.CharField(source="admin1.name", read_only=True)
 
     class Meta:
         model = Admin2
         fields = (
             "id",
             "district_id",
+            "district_name",
             "name",
             "code",
             "bbox",
@@ -388,10 +390,11 @@ class Admin2Serializer(GeoSerializerMixin, ModelSerializer):
 
 class MiniAdmin2Serializer(ModelSerializer):
     district_id = serializers.IntegerField(source="admin1.id", read_only=True)
+    district_name = serializers.CharField(source="admin1.name", read_only=True)
 
     class Meta:
         model = Admin2
-        fields = ("id", "name", "code", "district_id")
+        fields = ("id", "name", "code", "district_id", "district_name")
 
 
 class MiniDistrictSerializer(ModelSerializer):
