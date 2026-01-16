@@ -434,7 +434,7 @@ class PlannedOperation(models.Model):
         return f"Planned Operation - {self.get_sector_display()}"
 
 
-class EnableApproach(models.Model):
+class EnablingApproach(models.Model):
     class Approach(models.IntegerChoices):
         SECRETARIAT_SERVICES = 10, _("Secretariat Services")
         NATIONAL_SOCIETY_STRENGTHENING = 20, _("National Society Strengthening")
@@ -447,37 +447,37 @@ class EnableApproach(models.Model):
 
     indicators = models.ManyToManyField(
         Indicator,
-        verbose_name=_("Enable Approach Indicators"),
+        verbose_name=_("Enabling Approach Indicators"),
         blank=True,
-        related_name="enable_approach_indicators",
+        related_name="enabling_approach_indicators",
     )
 
     # Activities
     readiness_activities = models.ManyToManyField(
         OperationActivity,
         verbose_name=_("Readiness Activities"),
-        related_name="enable_approach_readiness_activities",
+        related_name="enabling_approach_readiness_activities",
         blank=True,
     )
     prepositioning_activities = models.ManyToManyField(
         OperationActivity,
         verbose_name=_("Pre-positioning Activities"),
-        related_name="enable_approach_prepositioning_activities",
+        related_name="enabling_approach_prepositioning_activities",
         blank=True,
     )
     early_action_activities = models.ManyToManyField(
         OperationActivity,
         verbose_name=_("Early Action Activities"),
-        related_name="enable_approach_early_action_activities",
+        related_name="enabling_approach_early_action_activities",
         blank=True,
     )
 
     class Meta:
-        verbose_name = _("Enable Approach")
-        verbose_name_plural = _("Enable Approaches")
+        verbose_name = _("Enabling Approach")
+        verbose_name_plural = _("Enabling Approaches")
 
     def __str__(self):
-        return f"Enable Approach - {self.get_approach_display()}"
+        return f"Enabling Approach - {self.get_approach_display()}"
 
 
 class SourceInformation(models.Model):
@@ -742,8 +742,8 @@ class EAPRegistration(EAPBaseModel):
     national_society_id: int
     country_id: int
     disaster_type_id: int
-    simplified_eap: models.Manager["SimplifiedEAP"]
-    full_eap: models.Manager["FullEAP"]
+    simplified_eaps: models.Manager["SimplifiedEAP"]
+    full_eaps: models.Manager["FullEAP"]
 
     class Meta:
         verbose_name = _("Development Registration EAP")
@@ -757,7 +757,7 @@ class EAPRegistration(EAPBaseModel):
     @property
     def has_eap_application(self) -> bool:
         """Check if the EAP Registration has an associated EAP application."""
-        return self.simplified_eap.exists() or self.full_eap.exists()
+        return self.simplified_eaps.exists() or self.full_eaps.exists()
 
     @property
     def get_status_enum(self) -> EAPStatus:
@@ -982,7 +982,7 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
         EAPRegistration,
         on_delete=models.CASCADE,
         verbose_name=_("EAP Development Registration"),
-        related_name="simplified_eap",
+        related_name="simplified_eaps",
     )
 
     seap_timeframe = models.IntegerField(
@@ -1086,11 +1086,11 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
         blank=True,
     )
 
-    # ENABLE APPROACHES #
-    enable_approaches = models.ManyToManyField(
-        EnableApproach,
+    # ENABLING APPROACHES #
+    enabling_approaches = models.ManyToManyField(
+        EnablingApproach,
         verbose_name=_("Enabling Approaches"),
-        related_name="simplified_eap_enable_approaches",
+        related_name="simplified_eap_enabling_approaches",
         blank=True,
     )
 
@@ -1166,6 +1166,7 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
                     "review_checklist_file": None,
                     "updated_checklist_file": None,
                     "diff_file": None,
+                    "export_file": None,
                 },
                 exclude_clone_m2m_fields={
                     "admin2",
@@ -1189,7 +1190,7 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         EAPRegistration,
         on_delete=models.CASCADE,
         verbose_name=_("EAP Development Registration"),
-        related_name="full_eap",
+        related_name="full_eaps",
     )
 
     expected_submission_time = models.DateField(
@@ -1422,10 +1423,10 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         related_name="full_eap_planned_operation",
         blank=True,
     )
-    enable_approaches = models.ManyToManyField(
-        EnableApproach,
+    enabling_approaches = models.ManyToManyField(
+        EnablingApproach,
         verbose_name=_("Enabling approaches"),
-        related_name="full_eap_enable_approaches",
+        related_name="full_eap_enabling_approaches",
         blank=True,
     )
 
@@ -1595,6 +1596,7 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
                     "review_checklist_file": None,
                     "updated_checklist_file": None,
                     "diff_file": None,
+                    "export_file": None,
                 },
                 exclude_clone_m2m_fields={
                     "admin2",
