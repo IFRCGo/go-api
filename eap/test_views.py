@@ -14,7 +14,7 @@ from deployments.factories.user import UserFactory
 from eap.factories import (
     EAPFileFactory,
     EAPRegistrationFactory,
-    EnableApproachFactory,
+    EnablingApproachFactory,
     FullEAPFactory,
     KeyActorFactory,
     OperationActivityFactory,
@@ -26,7 +26,7 @@ from eap.models import (
     EAPFile,
     EAPStatus,
     EAPType,
-    EnableApproach,
+    EnablingApproach,
     MonthsTimeFrameChoices,
     PlannedOperation,
     SimplifiedEAP,
@@ -573,10 +573,10 @@ class EAPSimplifiedTestCase(APITestCase):
                     ],
                 }
             ],
-            "enable_approaches": [
+            "enabling_approaches": [
                 {
                     "ap_code": 11,
-                    "approach": EnableApproach.Approach.SECRETARIAT_SERVICES,
+                    "approach": EnablingApproach.Approach.SECRETARIAT_SERVICES,
                     "budget_per_approach": 10000,
                     "indicators": [
                         {
@@ -654,17 +654,17 @@ class EAPSimplifiedTestCase(APITestCase):
             created_by=self.country_admin,
             modified_by=self.country_admin,
         )
-        enable_approach_readiness_operation_activity_1 = OperationActivityFactory.create(
+        enabling_approach_readiness_operation_activity_1 = OperationActivityFactory.create(
             activity="Readiness Activity 1",
             timeframe=TimeFrame.MONTHS,
             time_value=[MonthsTimeFrameChoices.ONE_MONTH, MonthsTimeFrameChoices.TWO_MONTHS],
         )
-        enable_approach_readiness_operation_activity_2 = OperationActivityFactory.create(
+        enabling_approach_readiness_operation_activity_2 = OperationActivityFactory.create(
             activity="Readiness Activity 2",
             timeframe=TimeFrame.YEARS,
             time_value=[YearsTimeFrameChoices.ONE_YEAR, YearsTimeFrameChoices.FIVE_YEARS],
         )
-        enable_approach_prepositioning_operation_activity_1 = OperationActivityFactory.create(
+        enabling_approach_prepositioning_operation_activity_1 = OperationActivityFactory.create(
             activity="Prepositioning Activity 1",
             timeframe=TimeFrame.MONTHS,
             time_value=[
@@ -672,7 +672,7 @@ class EAPSimplifiedTestCase(APITestCase):
                 MonthsTimeFrameChoices.FOUR_MONTHS,
             ],
         )
-        enable_approach_prepositioning_operation_activity_2 = OperationActivityFactory.create(
+        enabling_approach_prepositioning_operation_activity_2 = OperationActivityFactory.create(
             activity="Prepositioning Activity 2",
             timeframe=TimeFrame.MONTHS,
             time_value=[
@@ -680,12 +680,12 @@ class EAPSimplifiedTestCase(APITestCase):
                 MonthsTimeFrameChoices.SIX_MONTHS,
             ],
         )
-        enable_approach_early_action_operation_activity_1 = OperationActivityFactory.create(
+        enabling_approach_early_action_operation_activity_1 = OperationActivityFactory.create(
             activity="Early Action Activity 1",
             timeframe=TimeFrame.DAYS,
             time_value=[DaysTimeFrameChoices.FIVE_DAYS, DaysTimeFrameChoices.TEN_DAYS],
         )
-        enable_approach_early_action_operation_activity_2 = OperationActivityFactory.create(
+        enabling_approach_early_action_operation_activity_2 = OperationActivityFactory.create(
             activity="Early Action Activity 2",
             timeframe=TimeFrame.MONTHS,
             time_value=[
@@ -695,21 +695,21 @@ class EAPSimplifiedTestCase(APITestCase):
         )
 
         # ENABLE APPROACH with activities
-        enable_approach = EnableApproachFactory.create(
-            approach=EnableApproach.Approach.SECRETARIAT_SERVICES,
+        enabling_approach = EnablingApproachFactory.create(
+            approach=EnablingApproach.Approach.SECRETARIAT_SERVICES,
             budget_per_approach=5000,
             ap_code=123,
             readiness_activities=[
-                enable_approach_readiness_operation_activity_1.id,
-                enable_approach_readiness_operation_activity_2.id,
+                enabling_approach_readiness_operation_activity_1.id,
+                enabling_approach_readiness_operation_activity_2.id,
             ],
             prepositioning_activities=[
-                enable_approach_prepositioning_operation_activity_1.id,
-                enable_approach_prepositioning_operation_activity_2.id,
+                enabling_approach_prepositioning_operation_activity_1.id,
+                enabling_approach_prepositioning_operation_activity_2.id,
             ],
             early_action_activities=[
-                enable_approach_early_action_operation_activity_1.id,
-                enable_approach_early_action_operation_activity_2.id,
+                enabling_approach_early_action_operation_activity_1.id,
+                enabling_approach_early_action_operation_activity_2.id,
             ],
         )
         planned_operation_readiness_operation_activity_1 = OperationActivityFactory.create(
@@ -784,7 +784,7 @@ class EAPSimplifiedTestCase(APITestCase):
                 created_by=self.country_admin,
                 modified_by=self.country_admin,
             ),
-            enable_approaches=[enable_approach.id],
+            enabling_approaches=[enabling_approach.id],
             planned_operations=[planned_operation.id],
         )
         url = f"/api/v2/simplified-eap/{simplified_eap.id}/"
@@ -795,45 +795,45 @@ class EAPSimplifiedTestCase(APITestCase):
             "readiness_budget": 8000,
             "pre_positioning_budget": 7000,
             "early_action_budget": 5000,
-            "enable_approaches": [
+            "enabling_approaches": [
                 {
-                    "id": enable_approach.id,
-                    "approach": EnableApproach.Approach.NATIONAL_SOCIETY_STRENGTHENING,
+                    "id": enabling_approach.id,
+                    "approach": EnablingApproach.Approach.NATIONAL_SOCIETY_STRENGTHENING,
                     "budget_per_approach": 8000,
                     "ap_code": 123,
                     "readiness_activities": [
                         {
-                            "id": enable_approach_readiness_operation_activity_1.id,
-                            "activity": "Updated Enable Approach Readiness Activity 1",
+                            "id": enabling_approach_readiness_operation_activity_1.id,
+                            "activity": "Updated Enabling Approach Readiness Activity 1",
                             "timeframe": TimeFrame.MONTHS,
                             "time_value": [MonthsTimeFrameChoices.TWO_MONTHS],
                         }
                     ],
                     "prepositioning_activities": [
                         {
-                            "id": enable_approach_prepositioning_operation_activity_1.id,
-                            "activity": "Updated Enable Approach Prepositioning Activity 1",
+                            "id": enabling_approach_prepositioning_operation_activity_1.id,
+                            "activity": "Updated Enabling Approach Prepositioning Activity 1",
                             "timeframe": TimeFrame.MONTHS,
                             "time_value": [MonthsTimeFrameChoices.FOUR_MONTHS],
                         }
                     ],
                     "early_action_activities": [
                         {
-                            "id": enable_approach_early_action_operation_activity_1.id,
-                            "activity": "Updated Enable Approach Early Action Activity 1",
+                            "id": enabling_approach_early_action_operation_activity_1.id,
+                            "activity": "Updated Enabling Approach Early Action Activity 1",
                             "timeframe": TimeFrame.DAYS,
                             "time_value": [DaysTimeFrameChoices.TEN_DAYS],
                         }
                     ],
                 },
-                # CREATE NEW Enable Approach
+                # CREATE NEW Enabling Approach
                 {
-                    "approach": EnableApproach.Approach.PARTNERSHIP_AND_COORDINATION,
+                    "approach": EnablingApproach.Approach.PARTNERSHIP_AND_COORDINATION,
                     "budget_per_approach": 9000,
                     "ap_code": 124,
                     "readiness_activities": [
                         {
-                            "activity": "New Enable Approach Readiness Activity",
+                            "activity": "New Enabling Approach Readiness Activity",
                             "timeframe": TimeFrame.MONTHS,
                             "time_value": [
                                 MonthsTimeFrameChoices.THREE_MONTHS,
@@ -843,7 +843,7 @@ class EAPSimplifiedTestCase(APITestCase):
                     ],
                     "prepositioning_activities": [
                         {
-                            "activity": "New Enable Approach Prepositioning Activity",
+                            "activity": "New Enabling Approach Prepositioning Activity",
                             "timeframe": TimeFrame.MONTHS,
                             "time_value": [
                                 MonthsTimeFrameChoices.SIX_MONTHS,
@@ -853,7 +853,7 @@ class EAPSimplifiedTestCase(APITestCase):
                     ],
                     "early_action_activities": [
                         {
-                            "activity": "New Enable Approach Early Action Activity",
+                            "activity": "New Enabling Approach Early Action Activity",
                             "timeframe": TimeFrame.DAYS,
                             "time_value": [
                                 DaysTimeFrameChoices.EIGHT_DAYS,
@@ -971,75 +971,75 @@ class EAPSimplifiedTestCase(APITestCase):
         )
 
         # CHECK ENABLE APPROACH UPDATED
-        self.assertEqual(len(response.data["enable_approaches"]), 2)
+        self.assertEqual(len(response.data["enabling_approaches"]), 2)
         self.assertEqual(
             {
-                response.data["enable_approaches"][0]["id"],
-                response.data["enable_approaches"][0]["approach"],
-                response.data["enable_approaches"][0]["budget_per_approach"],
-                response.data["enable_approaches"][0]["ap_code"],
+                response.data["enabling_approaches"][0]["id"],
+                response.data["enabling_approaches"][0]["approach"],
+                response.data["enabling_approaches"][0]["budget_per_approach"],
+                response.data["enabling_approaches"][0]["ap_code"],
                 # NEW DATA
-                response.data["enable_approaches"][1]["approach"],
-                response.data["enable_approaches"][1]["budget_per_approach"],
-                response.data["enable_approaches"][1]["ap_code"],
+                response.data["enabling_approaches"][1]["approach"],
+                response.data["enabling_approaches"][1]["budget_per_approach"],
+                response.data["enabling_approaches"][1]["ap_code"],
             },
             {
-                enable_approach.id,
-                data["enable_approaches"][0]["approach"],
-                data["enable_approaches"][0]["budget_per_approach"],
-                data["enable_approaches"][0]["ap_code"],
+                enabling_approach.id,
+                data["enabling_approaches"][0]["approach"],
+                data["enabling_approaches"][0]["budget_per_approach"],
+                data["enabling_approaches"][0]["ap_code"],
                 # NEW DATA
-                data["enable_approaches"][1]["approach"],
-                data["enable_approaches"][1]["budget_per_approach"],
-                data["enable_approaches"][1]["ap_code"],
+                data["enabling_approaches"][1]["approach"],
+                data["enabling_approaches"][1]["budget_per_approach"],
+                data["enabling_approaches"][1]["ap_code"],
             },
         )
         self.assertEqual(
             {
                 # READINESS ACTIVITY
-                response.data["enable_approaches"][0]["readiness_activities"][0]["id"],
-                response.data["enable_approaches"][0]["readiness_activities"][0]["activity"],
-                response.data["enable_approaches"][0]["readiness_activities"][0]["timeframe"],
+                response.data["enabling_approaches"][0]["readiness_activities"][0]["id"],
+                response.data["enabling_approaches"][0]["readiness_activities"][0]["activity"],
+                response.data["enabling_approaches"][0]["readiness_activities"][0]["timeframe"],
                 # NEW READINESS ACTIVITY
-                response.data["enable_approaches"][1]["readiness_activities"][0]["activity"],
-                response.data["enable_approaches"][1]["readiness_activities"][0]["timeframe"],
+                response.data["enabling_approaches"][1]["readiness_activities"][0]["activity"],
+                response.data["enabling_approaches"][1]["readiness_activities"][0]["timeframe"],
                 # PREPOSITIONING ACTIVITY
-                response.data["enable_approaches"][0]["prepositioning_activities"][0]["id"],
-                response.data["enable_approaches"][0]["prepositioning_activities"][0]["activity"],
-                response.data["enable_approaches"][0]["prepositioning_activities"][0]["timeframe"],
+                response.data["enabling_approaches"][0]["prepositioning_activities"][0]["id"],
+                response.data["enabling_approaches"][0]["prepositioning_activities"][0]["activity"],
+                response.data["enabling_approaches"][0]["prepositioning_activities"][0]["timeframe"],
                 # NEW PREPOSITIONING ACTIVITY
-                response.data["enable_approaches"][1]["prepositioning_activities"][0]["activity"],
-                response.data["enable_approaches"][1]["prepositioning_activities"][0]["timeframe"],
+                response.data["enabling_approaches"][1]["prepositioning_activities"][0]["activity"],
+                response.data["enabling_approaches"][1]["prepositioning_activities"][0]["timeframe"],
                 # EARLY ACTION ACTIVITY
-                response.data["enable_approaches"][0]["early_action_activities"][0]["id"],
-                response.data["enable_approaches"][0]["early_action_activities"][0]["activity"],
-                response.data["enable_approaches"][0]["early_action_activities"][0]["timeframe"],
+                response.data["enabling_approaches"][0]["early_action_activities"][0]["id"],
+                response.data["enabling_approaches"][0]["early_action_activities"][0]["activity"],
+                response.data["enabling_approaches"][0]["early_action_activities"][0]["timeframe"],
                 # NEW EARLY ACTION ACTIVITY
-                response.data["enable_approaches"][1]["early_action_activities"][0]["activity"],
-                response.data["enable_approaches"][1]["early_action_activities"][0]["timeframe"],
+                response.data["enabling_approaches"][1]["early_action_activities"][0]["activity"],
+                response.data["enabling_approaches"][1]["early_action_activities"][0]["timeframe"],
             },
             {
                 # READINESS ACTIVITY
-                enable_approach_readiness_operation_activity_1.id,
-                data["enable_approaches"][0]["readiness_activities"][0]["activity"],
-                data["enable_approaches"][0]["readiness_activities"][0]["timeframe"],
+                enabling_approach_readiness_operation_activity_1.id,
+                data["enabling_approaches"][0]["readiness_activities"][0]["activity"],
+                data["enabling_approaches"][0]["readiness_activities"][0]["timeframe"],
                 # NEW READINESS ACTIVITY
-                data["enable_approaches"][1]["readiness_activities"][0]["activity"],
-                data["enable_approaches"][1]["readiness_activities"][0]["timeframe"],
+                data["enabling_approaches"][1]["readiness_activities"][0]["activity"],
+                data["enabling_approaches"][1]["readiness_activities"][0]["timeframe"],
                 # PREPOSITIONING ACTIVITY
-                enable_approach_prepositioning_operation_activity_1.id,
-                data["enable_approaches"][0]["prepositioning_activities"][0]["activity"],
-                data["enable_approaches"][0]["prepositioning_activities"][0]["timeframe"],
+                enabling_approach_prepositioning_operation_activity_1.id,
+                data["enabling_approaches"][0]["prepositioning_activities"][0]["activity"],
+                data["enabling_approaches"][0]["prepositioning_activities"][0]["timeframe"],
                 # NEW PREPOSITIONING Activity
-                data["enable_approaches"][1]["prepositioning_activities"][0]["activity"],
-                data["enable_approaches"][1]["prepositioning_activities"][0]["timeframe"],
+                data["enabling_approaches"][1]["prepositioning_activities"][0]["activity"],
+                data["enabling_approaches"][1]["prepositioning_activities"][0]["timeframe"],
                 # EARLY ACTION ACTIVITY
-                enable_approach_early_action_operation_activity_1.id,
-                data["enable_approaches"][0]["early_action_activities"][0]["activity"],
-                data["enable_approaches"][0]["early_action_activities"][0]["timeframe"],
+                enabling_approach_early_action_operation_activity_1.id,
+                data["enabling_approaches"][0]["early_action_activities"][0]["activity"],
+                data["enabling_approaches"][0]["early_action_activities"][0]["timeframe"],
                 # NEW EARLY ACTION ACTIVITY
-                data["enable_approaches"][1]["early_action_activities"][0]["activity"],
-                data["enable_approaches"][1]["early_action_activities"][0]["timeframe"],
+                data["enabling_approaches"][1]["early_action_activities"][0]["activity"],
+                data["enabling_approaches"][1]["early_action_activities"][0]["timeframe"],
             },
         )
 
@@ -1655,6 +1655,8 @@ class EAPStatusTransitionTestCase(APITestCase):
         response = self.client.patch(url, update_data, format="json")
         self.assertEqual(response.status_code, 400)
 
+    @mock.patch("eap.serializers.generate_export_eap_pdf")
+    @mock.patch("eap.serializers.group")
     @mock.patch("eap.serializers.send_new_eap_submission_email")
     @mock.patch("eap.serializers.send_feedback_email")
     @mock.patch("eap.serializers.send_eap_resubmission_email")
@@ -1671,6 +1673,8 @@ class EAPStatusTransitionTestCase(APITestCase):
         send_eap_resubmission_email,
         send_feedback_email,
         send_new_eap_submission_email,
+        mock_group,
+        generate_export_eap_pdf,
     ):
 
         # Create permissions
@@ -1697,8 +1701,8 @@ class EAPStatusTransitionTestCase(APITestCase):
             eap_type=EAPType.SIMPLIFIED_EAP,
             status=EAPStatus.UNDER_DEVELOPMENT,
             partners=[self.partner1.id, self.partner2.id],
-            created_by=self.user,
-            modified_by=self.user,
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
         )
         simplified_eap = SimplifiedEAPFactory.create(
             eap_registration=eap_registration,
@@ -1722,6 +1726,9 @@ class EAPStatusTransitionTestCase(APITestCase):
         self.assert_200(response)
         eap_registration.refresh_from_db()
         self.assertEqual(response.data["status"], EAPStatus.UNDER_REVIEW)
+        generate_export_eap_pdf.delay.assert_called_once_with(
+            eap_registration_id=eap_registration.id, version=simplified_eap.version
+        )
         send_new_eap_submission_email.delay.assert_called_once_with(eap_registration.id)
         send_new_eap_submission_email.delay.reset_mock()
 
@@ -1776,11 +1783,17 @@ class EAPStatusTransitionTestCase(APITestCase):
 
         data = {"status": EAPStatus.UNDER_REVIEW}
         self.authenticate(self.country_admin)
+
         with self.capture_on_commit_callbacks(execute=True):
             response = self.client.post(url, data, format="json")
         self.assert_200(response)
         eap_registration.refresh_from_db()
         self.assertEqual(response.data["status"], EAPStatus.UNDER_REVIEW)
+
+        # NOTE: Check that two signatures are created
+        mock_group.assert_called_once()
+        self.assertEqual(len(mock_group.call_args.args), 2)
+
         send_eap_resubmission_email.delay.assert_called_once_with(eap_registration.id)
         send_eap_resubmission_email.delay.reset_mock()
 
@@ -1838,6 +1851,7 @@ class EAPStatusTransitionTestCase(APITestCase):
         self.assert_200(response)
         eap_registration.refresh_from_db()
         self.assertEqual(response.data["status"], EAPStatus.UNDER_REVIEW)
+        self.assertTrue(mock_group.called)
         send_eap_resubmission_email.delay.assert_called_once_with(eap_registration.id)
         send_eap_resubmission_email.delay.reset_mock()
 
@@ -1907,6 +1921,7 @@ class EAPStatusTransitionTestCase(APITestCase):
         self.assert_200(response)
         eap_registration.refresh_from_db()
         self.assertEqual(response.data["status"], EAPStatus.UNDER_REVIEW)
+        self.assertTrue(mock_group.called)
         send_eap_resubmission_email.delay.assert_called_once_with(eap_registration.id)
         send_eap_resubmission_email.delay.reset_mock()
 
@@ -2011,7 +2026,7 @@ class EAPPDFExportTestCase(APITestCase):
         self.assert_201(response)
         self.assertIsNotNone(response.data["id"], response.data)
 
-        expected_url = f"{settings.GO_WEB_INTERNAL_URL}/eap/{eap_registration.id}/export/"
+        expected_url = f"{settings.GO_WEB_INTERNAL_URL}/eap/{eap_registration.id}/export/simplified/"
         self.assertEqual(response.data["url"], expected_url)
         self.assertEqual(response.data["status"], Export.ExportStatus.PENDING)
 
@@ -2040,7 +2055,7 @@ class EAPPDFExportTestCase(APITestCase):
         self.assert_201(response)
         self.assertIsNotNone(response.data["id"], response.data)
 
-        expected_url = f"{settings.GO_WEB_INTERNAL_URL}/eap/{eap_registration.id}/export/?version=2"
+        expected_url = f"{settings.GO_WEB_INTERNAL_URL}/eap/{eap_registration.id}/export/simplified/?version=2"
         self.assertEqual(response.data["url"], expected_url)
 
     @mock.patch("api.serializers.generate_export_pdf.delay")
@@ -2079,7 +2094,7 @@ class EAPPDFExportTestCase(APITestCase):
             response = self.client.post(self.url, data, format="json")
         self.assert_201(response)
         self.assertIsNotNone(response.data["id"], response.data)
-        expected_url = f"{settings.GO_WEB_INTERNAL_URL}/eap/{eap_registration.id}/export/"
+        expected_url = f"{settings.GO_WEB_INTERNAL_URL}/eap/{eap_registration.id}/export/full/"
         self.assertEqual(response.data["url"], expected_url)
         self.assertEqual(response.data["status"], Export.ExportStatus.PENDING)
 
@@ -2122,14 +2137,12 @@ class EAPPDFExportTestCase(APITestCase):
             "diff": True,
         }
 
-        self.authenticate(self.user)
-
         with self.capture_on_commit_callbacks(execute=True):
             response = self.client.post(self.url, data, format="json")
         self.assert_201(response)
         self.assertIsNotNone(response.data["id"], response.data)
 
-        expected_url = f"{settings.GO_WEB_INTERNAL_URL}/eap/{eap_registration.id}/export/?diff=true"
+        expected_url = f"{settings.GO_WEB_INTERNAL_URL}/eap/{eap_registration.id}/export/simplified/?diff=true"
         self.assertEqual(response.data["url"], expected_url)
 
         self.assertEqual(mock_generate_url.called, True)
@@ -2391,10 +2404,10 @@ class EAPFullTestCase(APITestCase):
                     ],
                 }
             ],
-            "enable_approaches": [
+            "enabling_approaches": [
                 {
                     "ap_code": 11,
-                    "approach": EnableApproach.Approach.SECRETARIAT_SERVICES,
+                    "approach": EnablingApproach.Approach.SECRETARIAT_SERVICES,
                     "budget_per_approach": 10000,
                     "indicators": [
                         {
@@ -2539,8 +2552,8 @@ class TestSnapshotEAP(APITestCase):
 
     def test_snapshot_full_eap(self):
         # Create M2M objects
-        enable_approach = EnableApproachFactory.create(
-            approach=EnableApproach.Approach.SECRETARIAT_SERVICES,
+        enabling_approach = EnablingApproachFactory.create(
+            approach=EnablingApproach.Approach.SECRETARIAT_SERVICES,
             budget_per_approach=5000,
             ap_code=123,
         )
@@ -2595,7 +2608,7 @@ class TestSnapshotEAP(APITestCase):
             modified_by=self.user,
         )
         original.key_actors.add(key_actor_1, key_actor_2)
-        original.enable_approaches.add(enable_approach)
+        original.enabling_approaches.add(enabling_approach)
         original.planned_operations.add(planned_operation)
         original.hazard_selection_images.add(hazard_selection_image_1, hazard_selection_image_2)
 
@@ -2627,8 +2640,8 @@ class TestSnapshotEAP(APITestCase):
         )
 
         # M2M deeply cloned on approach
-        orig_approaches = list(original.enable_approaches.all())
-        snapshot_approaches = list(snapshot.enable_approaches.all())
+        orig_approaches = list(original.enabling_approaches.all())
+        snapshot_approaches = list(snapshot.enabling_approaches.all())
         self.assertEqual(len(orig_approaches), len(snapshot_approaches))
 
         self.assertNotEqual(orig_approaches[0].pk, snapshot)
@@ -2684,7 +2697,7 @@ class TestSnapshotEAP(APITestCase):
         for orig, snap in zip(original.key_actors.all(), snapshot.key_actors.all()):
             self.assertEqual(snap.previous_id, orig.pk)
 
-        for orig, snap in zip(original.enable_approaches.all(), snapshot.enable_approaches.all()):
+        for orig, snap in zip(original.enabling_approaches.all(), snapshot.enabling_approaches.all()):
             self.assertEqual(snap.previous_id, orig.pk)
 
         for orig_op, snap_op in zip(original.planned_operations.all(), snapshot.planned_operations.all()):
