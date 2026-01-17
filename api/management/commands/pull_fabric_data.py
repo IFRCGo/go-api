@@ -1,6 +1,10 @@
+from cProfile import label
 import time
 from typing import Any
 
+from datetime import datetime, date
+
+from django.utils import timezone
 from django.apps import apps
 from django.core.management.base import BaseCommand
 from django.db import connection, transaction
@@ -103,6 +107,19 @@ class Command(BaseCommand):
                     continue
 
             if col in model_fields:
+                field = model_fields[col]
+                internal = field.get_internal_type()
+
+                # DateField: Fabric returns datetime at midnight -> store date only
+                # If the model field is a DateField but Fabric gave incorrectly us a datetime, drop the time part
+                # Specifically affects DimLineAgreement, DimTransactionLine, DimItemBatch, DimPackingSlipLine, DimSalesOrderLine, DimVendorPhysicalAddress, FctProductReceipt
+                if internal == "DateField" and isinstance(value, datetime):
+                    value = value.date()
+
+                # DateTimeField: Fabric returns naive datetime -> store as UTC-aware
+                elif internal == "DateTimeField" and isinstance(value, datetime) and timezone.is_naive(value):
+                    value = timezone.make_aware(value, timezone=timezone.utc)
+
                 kwargs[col] = value
 
         return kwargs
