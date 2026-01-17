@@ -2680,8 +2680,8 @@ class DimAgreementLine(models.Model):
     line_number = models.IntegerField(verbose_name=_("Line Number"))
     product = models.CharField(verbose_name=_("Product"), max_length=255, blank=True, null=True)
     product_category = models.CharField(verbose_name=_("Product Category"), max_length=255, blank=True, null=True)
-    effective_date = models.DateTimeField(verbose_name=_("Effective Date"), blank=True, null=True)
-    expiration_date = models.DateTimeField(verbose_name=_("Expiration Date"), blank=True, null=True)
+    effective_date = models.DateField(verbose_name=_("Effective Date"), blank=True, null=True)
+    expiration_date = models.DateField(verbose_name=_("Expiration Date"), blank=True, null=True)
     commitment_type = models.CharField(verbose_name=_("Commitment Type"), max_length=255, blank=True, null=True)
     committed_quantity = models.DecimalField(
         verbose_name=_("Committed Quantity"),
@@ -2863,10 +2863,10 @@ class DimInventoryTransactionLine(models.Model):
     inventory_transaction = models.CharField(verbose_name=_("Inventory Transaction ID"), max_length=100, null=True, blank=True)
     project_category = models.CharField(verbose_name=_("Project Category"), max_length=200, null=True, blank=True)
     activity = models.CharField(verbose_name=_("Activity"), max_length=200, null=True, blank=True)
-    physical_date = models.DateTimeField(verbose_name=_("Physical Date"), null=True, blank=True)
-    financial_date = models.DateTimeField(verbose_name=_("Financial Date"), null=True, blank=True)
-    status_date = models.DateTimeField(verbose_name=_("Status Date"), null=True, blank=True)
-    expected_date = models.DateTimeField(verbose_name=_("Expected Date"), null=True, blank=True)
+    physical_date = models.DateField(verbose_name=_("Physical Date"), null=True, blank=True)
+    financial_date = models.DateField(verbose_name=_("Financial Date"), null=True, blank=True)
+    status_date = models.DateField(verbose_name=_("Status Date"), null=True, blank=True)
+    expected_date = models.DateField(verbose_name=_("Expected Date"), null=True, blank=True)
     quantity = models.DecimalField(verbose_name=_("Quantity"), max_digits=20, decimal_places=6, null=True)
     cost_amount_posted = models.DecimalField(verbose_name=_("Cost Amount Posted"), max_digits=20, decimal_places=6, null=True)
     cost_amount_adjustment = models.DecimalField(verbose_name=_("Cost Amount Adjustment"), max_digits=20, decimal_places=6, null=True)
@@ -2909,8 +2909,8 @@ class DimItemBatch(models.Model):
     vendor = models.CharField(verbose_name=_("Vendor"), max_length=100, null=True, blank=True)
     unit_volume = models.DecimalField(verbose_name=_("Unit Volume"), max_digits=20, decimal_places=6, null=True)
     unit_weight = models.DecimalField(verbose_name=_("Unit Weight"), max_digits=20, decimal_places=12, null=True)
-    expiration_date = models.DateTimeField(verbose_name=_("Expiration Date"), null=True, blank=True)
-    vendor_expiration_date = models.DateTimeField(verbose_name=_("Vendor Expiration Date"), null=True, blank=True)
+    expiration_date = models.DateField(verbose_name=_("Expiration Date"), null=True, blank=True)
+    vendor_expiration_date = models.DateField(verbose_name=_("Vendor Expiration Date"), null=True, blank=True)
     price = models.DecimalField(verbose_name=_("Price"), max_digits=20, decimal_places=6, null=True)
     currency = models.CharField(verbose_name=_("Currency"), max_length=10, null=True, blank=True)
 
@@ -2963,7 +2963,7 @@ class DimLogisticsLocation(models.Model):
 class DimPackingSlipLine(models.Model):
     id = models.CharField(verbose_name=_("Packing Slip Line ID"), max_length=100, primary_key=True)
     sales_order_line = models.CharField(verbose_name=_("Sales Order Line"), max_length=100, null=True, blank=True)
-    delivery_date = models.DateTimeField(verbose_name=_("Delivery Date"), null=True, blank=True)
+    delivery_date = models.DateField(verbose_name=_("Delivery Date"), null=True, blank=True)
     quantity_delivered = models.DecimalField(verbose_name=_("Quantity Delivered"), max_digits=20, decimal_places=6, null=True)
 
     class Meta:
@@ -3063,8 +3063,8 @@ class DimPurchaseOrderLine(models.Model):
     financial_dimension_project = models.CharField(verbose_name=_("Financial Dimension Project"), max_length=100, null=True, blank=True)
     financial_dimension_appeal = models.CharField(verbose_name=_("Financial Dimension Appeal"), max_length=100, null=True, blank=True)
     financial_dimension_funding_arrangement = models.CharField(verbose_name=_("Financial Dimension Funding Arrangement"), max_length=100, null=True, blank=True)
-    requested_delivery_date = models.DateTimeField(verbose_name=_("Requested Delivery Date"), null=True, blank=True)
-    confirmed_delivery_date = models.DateTimeField(verbose_name=_("Confirmed Delivery Date"), null=True, blank=True)
+    requested_delivery_date = models.DateField(verbose_name=_("Requested Delivery Date"), null=True, blank=True)
+    confirmed_delivery_date = models.DateField(verbose_name=_("Confirmed Delivery Date"), null=True, blank=True)
     delivery_mode = models.CharField(verbose_name=_("Delivery Mode"), max_length=100, null=True, blank=True)
     delivery_name = models.CharField(verbose_name=_("Delivery Name"), max_length=255, null=True, blank=True)
     delivery_address_description = models.CharField(verbose_name=_("Delivery Address Description"), max_length=255, null=True, blank=True)
@@ -3103,8 +3103,8 @@ class DimSalesOrderLine(models.Model):
     donated_amount_accounting_currency = models.DecimalField(verbose_name=_("Donated Amount (Accounting Currency)"), max_digits=20, decimal_places=6, null=True, blank=True)
     exchange_rate_factor = models.DecimalField(verbose_name=_("Exchange Rate Factor"), max_digits=20, decimal_places=6, null=True, blank=True)
     delivery_type = models.CharField(verbose_name=_("Delivery Type"), max_length=100, null=True, blank=True)
-    requested_shipping_date = models.DateTimeField(verbose_name=_("Requested Shipping Date"), null=True, blank=True)
-    requested_receipt_date = models.DateTimeField(verbose_name=_("Requested Receipt Date"), null=True, blank=True)
+    requested_shipping_date = models.DateField(verbose_name=_("Requested Shipping Date"), null=True, blank=True)
+    requested_receipt_date = models.DateField(verbose_name=_("Requested Receipt Date"), null=True, blank=True)
     delivery_mode = models.CharField(verbose_name=_("Delivery Mode"), max_length=100, null=True, blank=True)
     delivery_postal_address = models.CharField(verbose_name=_("Delivery Postal Address"), max_length=255, null=True, blank=True)
     delivery_postal_address_country = models.CharField(verbose_name=_("Delivery Postal Address Country"), max_length=100, null=True, blank=True)
@@ -3177,8 +3177,8 @@ class DimVendorContactEmail(models.Model):
 
 class DimVendorPhysicalAddress(models.Model):
     id = models.CharField(verbose_name=_("Address ID"), max_length=100, primary_key=True)
-    valid_from = models.DateTimeField(verbose_name=_("Valid From"), null=True, blank=True)
-    valid_to = models.DateTimeField(verbose_name=_("Valid To"), null=True, blank=True)
+    valid_from = models.DateField(verbose_name=_("Valid From"), null=True, blank=True)
+    valid_to = models.DateField(verbose_name=_("Valid To"), null=True, blank=True)
     country = models.CharField(verbose_name=_("Country"), max_length=100, null=True, blank=True)
     city = models.CharField(verbose_name=_("City"), max_length=100, null=True, blank=True)
     street = models.CharField(verbose_name=_("Street"), max_length=255, null=True, blank=True)
