@@ -1,11 +1,14 @@
 # NOTE: Used Only for local development
 
 x-server: &base_server_setup
+  # All app services use the same image tag
   image: ifrcgo/go-api:local
-  build:
-    context: .
+
+  # To attach to container with stdin `docker attach <container_name>`
+  # Used for python debugging.
   stdin_open: true
   tty: true
+
   environment:
     # Overwrite this using .env (for additional configuration, look at main/settings.py:env
     # Database (from db.environment)
@@ -54,11 +57,13 @@ x-server: &base_server_setup
     POWERBI_DATASET_IDS: ${POWERBI_DATASET_IDS:-}
 
   extra_hosts:
-      - "host.docker.internal:host-gateway"
+    - "host.docker.internal:host-gateway"
   env_file:
     - .env
+
   volumes:
-    - '.:/home/ifrc/go-api'
+    - ".:/home/ifrc/go-api"
+
   depends_on:
     - db
     - redis
@@ -73,7 +78,7 @@ services:
       POSTGRES_USER: test
       POSTGRES_DB: test
     volumes:
-      - './.db/pg-15:/var/lib/postgresql/data'
+      - "./.db/pg-15:/var/lib/postgresql/data"
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
@@ -115,19 +120,22 @@ services:
       - 9200:9200
 
   kibana:
-    image: 'docker.elastic.co/kibana/kibana:7.0.0'
+    image: docker.elastic.co/kibana/kibana:7.0.0
     container_name: kibana
     environment:
       SERVER_NAME: kibana.local
       ELASTICSEARCH_URL: http://elasticsearch:9200
     ports:
-      - '5601:5601'
+      - "5601:5601"
     depends_on:
       - elasticsearch
     profiles: [elasticsearch]
 
+  # IMPORTANT: only ONE service should build the image tag
   serve:
     <<: *base_server_setup
+    build:
+      context: .
     ports:
       - 8000:8000
     command: python manage.py runserver 0.0.0.0:8000
@@ -253,7 +261,6 @@ services:
     <<: *base_server_setup
     command: python manage.py triggers_to_db
     profiles: [cli]
-
 
 volumes:
   redis-data:
