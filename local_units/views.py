@@ -487,7 +487,7 @@ class LocalUnitBulkUploadViewSet(
             file_url = request.build_absolute_uri(static("files/local_units/Health-Care-Bulk-Import-Template-Local-Units.xlsm"))
         else:
             file_url = request.build_absolute_uri(
-                static("files/local_units/Administrative Bulk Import Template - Local Units.xlsx")
+                static("files/local_units/Administrative-Bulk-Import-Template-Local-Units.xlsx")
             )
         template = {"template_url": file_url}
         return response.Response(LocalUnitTemplateFilesSerializer(template).data)

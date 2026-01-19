@@ -1552,12 +1552,12 @@ class BulkUploadTests(TestCase):
         """
 
         file_path = os.path.join(
-            settings.STATICFILES_DIRS[0], "files", "local_units", "Administrative Bulk Import Template - Local Units.xlsx"
+            settings.STATICFILES_DIRS[0], "files", "local_units", "Administrative-Bulk-Import-Template-Local-Units.xlsx"
         )
         with open(file_path, "rb") as f:
             file_content = f.read()
         empty_file = SimpleUploadedFile(
-            name="Administrative Bulk Import Template - Local Units.xlsx", content=file_content, content_type="text/xlsx"
+            name="Administrative-Bulk-Import-Template-Local-Units.xlsx", content=file_content, content_type="text/xlsx"
         )
         LocalUnitFactory.create_batch(
             5,

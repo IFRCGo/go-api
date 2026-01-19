@@ -72,6 +72,7 @@ HEALTH_HEADER_MAP = {
         "Number of Isolation Beds": "number_of_isolation_rooms",
         "Warehousing": "is_warehousing",
         "Cold Chain": "is_cold_chain",
+        "Other Medical Heal": "other_medical_heal",
         "Maximum Bed Capacity": "maximum_capacity",
         "General Medical Services": "general_medical_services",
         "Specialized Medical Services (beyond primary level)": "specialized_medical_beyond_primary_level",
@@ -313,7 +314,7 @@ class BaseBulkUpload(Generic[ContextType]):
         self.bulk_upload.status = LocalUnitBulkUpload.Status.FAILED
         self.bulk_upload.save(update_fields=["success_count", "failed_count", "status", "error_file"])
 
-        logger.info(f"[BulkUpload:{self.bulk_upload.pk}] FAILED: " f"{self.success_count} succeeded, {self.failed_count} failed.")
+        logger.info(f"[BulkUpload:{self.bulk_upload.pk}] SUMMARY: " f"{self.success_count} SUCCESS, {self.failed_count} FAILED.")
 
 
 @dataclass(frozen=True)

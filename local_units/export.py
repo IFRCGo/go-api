@@ -29,6 +29,7 @@ HEALTH_EXPORT_HANDLERS: dict[str, Callable[[HealthData], Any]] = {
     "blood_services": lambda h: ", ".join(m.name for m in h.blood_services.all()),
     "professional_training_facilities": lambda h: ", ".join(m.name for m in h.professional_training_facilities.all()),
     "other_profiles": lambda h: ", ".join(p.position for p in h.other_profiles.all()),
+    "other_medical_heal": lambda h: "Yes" if h.other_medical_heal else "No",
     "is_in_patient_capacity": lambda h: "Yes" if h.is_in_patient_capacity else "No",
     "is_teaching_hospital": lambda h: "Yes" if h.is_teaching_hospital else "No",
     "is_isolation_rooms_wards": lambda h: "Yes" if h.is_isolation_rooms_wards else "No",
@@ -42,11 +43,11 @@ def _resolve_value(unit: LocalUnit, field: str, is_health: bool):
         return LOCAL_UNIT_EXPORT_HANDLERS[field](unit)
 
     # First check if there's a specific handler for health fields and fall back to direct attribute access
-    health = getattr(unit, "health", None)
-    if is_health and health:
-        if field in HEALTH_EXPORT_HANDLERS:
-            return HEALTH_EXPORT_HANDLERS[field](health)
-        return getattr(health, field, "") or ""
+    if is_health and unit.health and field in HEALTH_EXPORT_HANDLERS:
+        return HEALTH_EXPORT_HANDLERS[field](unit.health)
+
+    if is_health and unit.health and hasattr(unit.health, field):
+        return getattr(unit.health, field) or ""
 
     return getattr(unit, field, "") or ""
 
@@ -66,7 +67,7 @@ def export_local_units_to_excel(
     if is_health:
         template = "Health-Care-Bulk-Import-Template-Local-Units.xlsm"
     else:
-        template = "Administrative Bulk Import Template - Local Units.xlsx"
+        template = "Administrative-Bulk-Import-Template-Local-Units.xlsx"
 
     template_path = Path(settings.BASE_DIR) / "go-static/files/local_units" / template
 
@@ -84,7 +85,7 @@ def export_local_units_to_excel(
 
     for row_idx, unit in enumerate(queryset, start=start_row):
         for col_idx, header in enumerate(headers, start=1):
-            field = header_map.get(header)
+            field = header_map.get(str(header).strip())
             if not field:
                 continue
             ws.cell(
