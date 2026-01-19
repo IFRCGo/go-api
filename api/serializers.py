@@ -2879,3 +2879,18 @@ class FabricProductCategoryHierarchyFlattenedSerializer(serializers.ModelSeriali
         model = ProductCategoryHierarchyFlattened
         fields = "__all__"
         read_only_fields = fields
+
+class RegulationItemSerializer(serializers.Serializer):
+    question = serializers.CharField()
+    answer = serializers.CharField()
+    notes = serializers.CharField(allow_blank=True)
+
+
+class RegulationSectionSerializer(serializers.Serializer):
+    section = serializers.CharField()
+    items = RegulationItemSerializer(many=True)
+
+
+class CountryRegulationSerializer(serializers.Serializer):
+    country = serializers.CharField()
+    sections = RegulationSectionSerializer(many=True)
