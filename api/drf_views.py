@@ -182,6 +182,7 @@ from .serializers import (  # AppealSerializer,; Tableau Serializers; AppealTabl
     CountryKeyFigureInputSerializer,
     CountryKeyFigureSerializer,
     CountryOfFieldReportToReviewSerializer,
+    CountryRegulationSerializer,
     CountryRelationSerializer,
     CountrySerializerRMD,
     CountrySnippetSerializer,
@@ -260,6 +261,7 @@ from .serializers import (  # AppealSerializer,; Tableau Serializers; AppealTabl
     UserSerializer,
 )
 from .utils import generate_field_report_title, is_user_ifrc
+from .customs_data_loader import load_customs_regulations
 
 
 class DeploymentsByEventViewset(viewsets.ReadOnlyModelViewSet):
@@ -1936,3 +1938,36 @@ class FabricProductCategoryHierarchyFlattenedViewSet(viewsets.ReadOnlyModelViewS
     def get_queryset(self):
         return ProductCategoryHierarchyFlattened.objects.all()
 
+class CustomsRegulationsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            data = load_customs_regulations()
+            return Response(data, status=status.HTTP_200_OK)
+        except Exception:
+            return Response(
+                {"detail": "Failed to load customs regulations"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+class CustomsRegulationCountryView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, country):
+        try:
+            data = load_customs_regulations()
+
+            for c in data.get("countries", []):
+                if c.get("country", "").lower() == country.lower():
+                    serializer = CountryRegulationSerializer(c)
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+
+            return Response({"detail": "Country not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        except Exception:
+            return Response(
+                {"detail": "Failed to load country regulations"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
