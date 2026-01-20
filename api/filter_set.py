@@ -162,6 +162,7 @@ class Admin2Filter(filters.FilterSet):
         model = Admin2
         fields = {
             "id": ("exact", "in"),
+            "code": ("exact", "in"),
             "admin1": ("exact", "in"),
             "admin1__country": ("exact", "in"),
             "admin1__country__iso3": ("exact", "in"),
