@@ -17,7 +17,6 @@ class Command(BaseCommand):
         parser.add_argument("--create-and-update-admin2", help="Create and update admin2 tileset for this country ISO")
         parser.add_argument("--update-admin2", help="Update admin2 tileset for this country ISO")
         parser.add_argument("--update-all", action="store_true", help="Update tileset for countries and districts")
-        parser.add_argument("--production", action="store_true", help="Update production tilesets. Default is staging")
 
     db = settings.DATABASES["default"]
     DB_HOST = db["HOST"]
@@ -32,9 +31,7 @@ class Command(BaseCommand):
             if os.getenv("MAPBOX_ACCESS_TOKEN") is None:
                 raise Exception("MAPBOX_ACCESS_TOKEN must be set")
 
-            staging = True
-            if options["production"]:
-                staging = False
+            staging = settings.GO_ENVIRONMENT != "production"
 
             if options["update_countries"] or options["update_all"]:
                 self.update_countries(staging)
@@ -131,7 +128,7 @@ class Command(BaseCommand):
                     "upload-source",
                     "--replace",
                     "go-ifrc",
-                    "go-country-centroids",
+                    tileset_source_name,
                     "/tmp/country-centroids.geojson",
                 ]
             )
@@ -245,13 +242,14 @@ class Command(BaseCommand):
         if status:
             update_status = self.update_admin2(iso, staging)
             if update_status:
-                polygon_tileset_name = f"go-ifrc.go-admin2-{iso}-staging"
-                polygon_recipe_name = f"mapbox/admin2/{iso}-staging.json"
-                centroids_tileset_name = f"go-ifrc.go-admin2-{iso}-centroids"
-                centroids_recipe_name = f"mapbox/admin2/{iso}-centroids.json"
-                if not staging:
-                    polygon_tileset_name = f"go-ifrc.go-admin2-{iso}"
-                    polygon_recipe_name = f"mapbox/admin2/{iso}.json"
+                polygon_tileset_name = f"go-ifrc.go-admin2-{iso}-staging" if staging else f"go-ifrc.go-admin2-{iso}"
+                polygon_recipe_name = f"mapbox/admin2/{iso}-staging.json" if staging else f"mapbox/admin2/{iso}.json"
+                centroids_tileset_name = (
+                    f"go-ifrc.go-admin2-{iso}-centroids-staging" if staging else f"go-ifrc.go-admin2-{iso}-centroids"
+                )
+                centroids_recipe_name = (
+                    f"mapbox/admin2/{iso}-centroids-staging.json" if staging else f"mapbox/admin2/{iso}-centroids.json"
+                )
 
                 create_status = subprocess.run(
                     [
@@ -285,10 +283,8 @@ class Command(BaseCommand):
     def update_admin2(self, iso, staging=True):
         # update tileset source
         # update tileset and publish
-        polygon_tileset_source__name = f"go-admin2-{iso}-src-staging"
-        centroids_tileset_source_name = f"go-admin2-{iso}-centroids-src"
-        if not staging:
-            polygon_tileset_source__name = f"go-admin2-{iso}-src"
+        polygon_tileset_source__name = f"go-admin2-{iso}-src-staging" if staging else f"go-admin2-{iso}-src"
+        centroids_tileset_source_name = f"go-admin2-{iso}-centroids-src-staging" if staging else f"go-admin2-{iso}-centroids-src"
 
         print("Tileset source", polygon_tileset_source__name)
         print("Tileset source centroids", centroids_tileset_source_name)
@@ -319,10 +315,10 @@ class Command(BaseCommand):
             update_status = True
 
         if update_status:
-            polygon_tileset_name = f"go-ifrc.go-admin2-{iso}-staging"
-            centroids_tileset_name = f"go-ifrc.go-admin2-{iso}-centroids"
-            if not staging:
-                polygon_tileset_name = f"go-ifrc.go-admin2-{iso}"
+            polygon_tileset_name = f"go-ifrc.go-admin2-{iso}-staging" if staging else f"go-ifrc.go-admin2-{iso}"
+            centroids_tileset_name = (
+                f"go-ifrc.go-admin2-{iso}-centroids-staging" if staging else f"go-ifrc.go-admin2-{iso}-centroids"
+            )
 
             publish_status = subprocess.run(["tilesets", "publish", polygon_tileset_name])
             publish_status = subprocess.run(["tilesets", "publish", centroids_tileset_name])

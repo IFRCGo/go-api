@@ -273,7 +273,6 @@ Run ` python manage.py update-sovereign-and-disputed new_fields.csv` to update t
 To update GO countries and districts Mapbox tilesets, run the management command `python manage.py update-mapbox-tilesets`. This will export all country and district geometries to a GeoJSON file, and then upload them to Mapbox. The tilesets will take a while to process. The updated status can be viewed on the Mapbox Studio under tilesets. To run this management command, MAPBOX_ACCESS_TOKEN should be set in the environment. The referred files are in ./mapbox/..., so you should **not** run this command from an arbitrary point of the vm's filesystem (e.g. from the location of shapefiles), but from Django root.
 
 ### Options available for the command
-* `--production` — update production tilesets. If this flag is not set, by default the script will only update staging tiles
 * `--update-countries` — update tileset for countries, including labels
 * `--update-districts` — update tileset for districts, including labels
 * `--update-all` — update all countries and districts tilesets
