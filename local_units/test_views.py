@@ -1142,6 +1142,8 @@ class TestExternallyManagedLocalUnit(APITestCase):
     def test_update_externally_managed_local_unit(self):
         url = f"/api/v2/externally-managed-local-unit/{self.externally_managed_local_unit.id}/"
         data = {
+            "country": self.country1.id,
+            "local_unit_type": self.local_unit_type.id,
             "enabled": True,
         }
         # Without authentication

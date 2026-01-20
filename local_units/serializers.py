@@ -664,24 +664,36 @@ class ExternallyManagedLocalUnitSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 gettext("An externally managed local unit with this country and type already exists.")
             )
+
+        if validated_data.get("enabled", False):
+            # NOTE: Check for existing local units which are not validated
+            unvalidated_local_units_qs = LocalUnit.objects.filter(
+                country=validated_data["country"],
+                type=validated_data["local_unit_type"],
+            ).exclude(
+                status__in=[
+                    LocalUnit.Status.VALIDATED,
+                    LocalUnit.Status.EXTERNALLY_MANAGED,
+                ]
+            )
+            if unvalidated_local_units_qs.exists():
+                raise serializers.ValidationError(
+                    gettext(
+                        "Cannot create externally managed local unit for this country and type "
+                        "as there are existing local units which are not validated."
+                    )
+                )
         return validated_data
 
     def create(self, validated_data):
         validated_data["created_by"] = self.context["request"].user
 
-        # NOTE: Check for existing local units which are not validated
-        unvalidated_local_units_qs = LocalUnit.objects.filter(
-            country=validated_data["country"],
-            type=validated_data["local_unit_type"],
-        ).exclude(status=LocalUnit.Status.VALIDATED)
-
-        if unvalidated_local_units_qs.exists():
-            raise serializers.ValidationError(
-                gettext(
-                    "Cannot create externally managed local unit for this country and type "
-                    "as there are existing local units which are not validated."
-                )
-            )
+        # NOTE: If enabling externally managed, set all related local units to EXTERNALLY_MANAGED
+        if validated_data.get("enabled", False):
+            LocalUnit.objects.filter(
+                country=validated_data["country"],
+                type=validated_data["local_unit_type"],
+            ).update(status=LocalUnit.Status.EXTERNALLY_MANAGED)
 
         return super().create(validated_data)
 
@@ -689,13 +701,17 @@ class ExternallyManagedLocalUnitSerializer(serializers.ModelSerializer):
         validated_data["updated_by"] = self.context["request"].user
         instance = super().update(instance, validated_data)
 
-        # NOTE: If disabling externally managed, set all related local units to VALIDATED
-        if not instance.enabled:
-            LocalUnit.objects.filter(
-                country=instance.country,
-                type=instance.local_unit_type,
-                status=LocalUnit.Status.EXTERNALLY_MANAGED,
-            ).update(status=LocalUnit.Status.VALIDATED)
+        local_unit_qs = LocalUnit.objects.filter(
+            country=instance.country,
+            type=instance.local_unit_type,
+        )
+
+        if validated_data.get("enabled", False):
+            # NOTE: If enabling externally managed, set all related local units to EXTERNALLY_MANAGED.
+            local_unit_qs.update(status=LocalUnit.Status.EXTERNALLY_MANAGED)
+        else:
+            # NOTE: If disabling externally managed, set all related local units to VALIDATED.
+            local_unit_qs.update(status=LocalUnit.Status.VALIDATED)
         return instance
 
 

@@ -67,6 +67,7 @@ from local_units.tasks import (
 )
 from local_units.utils import get_user_validator_level
 from main.permissions import DenyGuestUserPermission
+from main.utils import SpreadSheetContentNegotiation
 
 
 class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
@@ -494,6 +495,7 @@ class LocalUnitBulkUploadViewSet(
 
 
 class ExportLocalUnitView(views.APIView):
+    content_negotiation_class = SpreadSheetContentNegotiation
     permission_classes = [
         permissions.IsAuthenticated,
         DenyGuestUserPermission,
@@ -552,10 +554,10 @@ class ExportLocalUnitView(views.APIView):
             return export_local_units_to_excel(
                 queryset=local_unit_qs,
                 is_health=True,
-                file_name=f"health_local_units_{country.iso3}.xlsx",
+                file_name=f"health_local_units_{country.iso3}_{timezone.now()}.xlsx",
             )
         else:
             return export_local_units_to_excel(
                 queryset=local_unit_qs,
-                file_name=f"local_units_export_{country.iso3}_{local_unit_type.name}.xlsx",
+                file_name=f"local_units_export_{country.iso3}_{local_unit_type.name}_{timezone.now()}.xlsx",
             )
