@@ -1,24 +1,4 @@
-from django.utils import timezone
-
-from alert_system.models import Connector
-
-
-def set_connector_status(connector, status):
-    connector.status = status
-    if status == Connector.Status.SUCCESS:
-        connector.last_success_run = timezone.now()
-    connector.save(update_fields=["status", "last_success_run"] if status == Connector.Status.SUCCESS else ["status"])
-
-
-def get_connector_processor(connector_id: int):
-    """
-    Returns (processor_instance, connector) for a given connector ID
-    """
-    from .mappings import CONNECTOR_REGISTRY
-
-    connector = Connector.objects.get(id=connector_id)
-    processor = CONNECTOR_REGISTRY[connector.type].extractor(connector)
-    return processor, connector
+# Helper functions to build search params.
 
 
 def build_search_params(
