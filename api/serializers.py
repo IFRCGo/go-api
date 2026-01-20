@@ -1701,12 +1701,14 @@ class AppealDocumentSerializer(ModelSerializer):
 
 
 class ProfileSerializer(ModelSerializer):
-    country = MiniCountrySerializer()
+    country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all())
+    country_details = MiniCountrySerializer(source="country", read_only=True)
 
     class Meta:
         model = Profile
         fields = (
             "country",
+            "country_details",
             "org",
             "org_type",
             "city",

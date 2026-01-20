@@ -28,7 +28,7 @@ class SurgeAlertAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdm
 
 
 class SubscriptionAdmin(CompareVersionAdmin):
-    search_fields = ("user__username", "rtype")
+    search_fields = ("user__email", "user__username", "rtype")
     list_filter = (("rtype", ChoiceDropdownFilter),)
 
     def get_queryset(self, request):
