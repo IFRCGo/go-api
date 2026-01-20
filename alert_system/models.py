@@ -1,5 +1,7 @@
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
+from django.utils import timezone
+from django.utils.module_loading import import_string
 from django.utils.translation import gettext_lazy as _
 
 from api.models import DisasterType, Event
@@ -27,6 +29,11 @@ class Connector(models.Model):
         GDACS_FLOOD = 100, _("GDACS Flood")
         GDACS_CYCLONE = 200, _("GDACS Cyclone")
         USGS_EARTHQUAKE = 300, _("USGS Earthquake")
+
+    PROCESSOR_REGISTRY = {
+        ConnectorType.GDACS_FLOOD: "alert_system.etl.gdacs_flood.extraction.GdacsFloodExtraction",
+        ConnectorType.USGS_EARTHQUAKE: "alert_system.etl.usgs_earthquake.extraction.USGSEarthquakeExtraction",
+    }  # Add all the extraction classes here
 
     class Status(models.IntegerChoices):
         INITIALIZED = 10, _("Initialized")
@@ -70,7 +77,32 @@ class Connector(models.Model):
     class Meta:
         verbose_name = _("Connector")
         verbose_name_plural = _("Connectors")
-        ordering = ["type"]
+        ordering = ["id", "type"]
+
+    def set_connector_status(self, status):
+        self.status = status
+        update_fields = ["status"]
+
+        if status == Connector.Status.SUCCESS:
+            self.last_success_run = timezone.now()
+            update_fields.append("last_success_run")
+
+        self.save(update_fields=update_fields)
+
+    def get_extraction_class(self):
+        """
+        Resolve and instantiate the extraction class for this connector.
+        """
+        path = self.PROCESSOR_REGISTRY.get(self.type)
+        if not path:
+            raise RuntimeError(f"No extraction class registered for connector type '{self.type}'")
+
+        try:
+            processor_cls = import_string(path)
+        except ImportError as exc:
+            raise RuntimeError(f"Failed to import extraction class '{path}' for connector type '{self.type}'") from exc
+
+        return processor_cls(self)
 
 
 class BaseItem(models.Model):
