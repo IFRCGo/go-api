@@ -100,6 +100,51 @@ from .serializers import (
     UserPerCountrySerializer,
 )
 
+# Helpers for transformed "-2" endpoints
+AREA_NAMES = {
+    1: "Policy Strategy and Standards",
+    2: "Analysis and planning",
+    3: "Operational capacity",
+    4: "Coordination",
+    5: "Operations support",
+}
+
+AFFIRMATIVE_WORDS = {"yes", "si", "sí", "oui", "da", "ja", "sim", "aye", "yep", "igen", "hai", "evet", "是", "はい", "예", "نعم"}
+
+
+def _contains_affirmative(text: str) -> bool:
+    if not text or not isinstance(text, str):
+        return False
+    try:
+        import unicodedata
+
+        normalized = unicodedata.normalize("NFD", text.lower())
+        normalized = "".join(ch for ch in normalized if unicodedata.category(ch) != "Mn")
+    except Exception:
+        normalized = text.lower()
+    return any(word in normalized for word in AFFIRMATIVE_WORDS)
+
+
+def _phase_display_from_int(phase: int | None, existing_display: str | None = None) -> str | None:
+    """Return normalized phase display using Overview.Phase IntegerChoices.
+
+    Uses the IntegerChoices label, then normalizes:
+    - "WorkPlan" -> "Workplan"
+    - "Action And Accountability" -> "Action & accountability"
+    """
+    label = None
+    try:
+        if isinstance(phase, int):
+            label = Overview.Phase(phase).label  # from IntegerChoices
+    except Exception:
+        label = None
+    disp = label or existing_display
+    if disp == "Action And Accountability":
+        return "Action & accountability"
+    if disp == "WorkPlan":
+        return "Workplan"
+    return disp
+
 
 class PERDocsFilter(filters.FilterSet):
     id = filters.NumberFilter(field_name="id", lookup_expr="exact")
@@ -118,6 +163,7 @@ class PERDocsViewset(viewsets.ReadOnlyModelViewSet):
     queryset = NiceDocument.objects.all()
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
+
     get_request_user_regions = RegionRestrictedAdmin.get_request_user_regions
     get_filtered_queryset = RegionRestrictedAdmin.get_filtered_queryset
     filterset_class = PERDocsFilter
@@ -126,6 +172,7 @@ class PERDocsViewset(viewsets.ReadOnlyModelViewSet):
         queryset = NiceDocument.objects.all()
         cond1 = Q()
         cond2 = Q()
+
         cond3 = Q()
         if "new" in self.request.query_params.keys():
             last_duedate = settings.PER_LAST_DUEDATE
@@ -611,6 +658,361 @@ class PublicFormAssessmentViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return PerAssessment.objects.select_related("overview")
+
+
+# Consolidated public endpoints (map-data, assessments-processed, dashboard-data)
+class PerMapDataView(views.APIView):
+    """Public consolidated PER map data.
+
+    Joins latest Overview per country with minimal country info and normalized phase display.
+    """
+
+    def get(self, request):
+        latest_overviews = (
+            Overview.objects.order_by("country_id", "-assessment_number", "-date_of_assessment")
+            .distinct("country_id")
+            .select_related("country", "type_of_assessment", "country__region")
+        )
+        items = []
+        for ov in latest_overviews:
+            # Compute normalized phase display from int value or existing string
+            normalized_phase_display = _phase_display_from_int(getattr(ov, "phase", None), getattr(ov, "phase_display", None))
+
+            # Attach components from latest assessment tied to the overview
+            components = []
+            epi_considerations = False
+            climate_considerations = False
+            urban_considerations = False
+            migration_considerations = False
+            latest_assessment = (
+                PerAssessment.objects.filter(overview_id=getattr(ov, "id", None))
+                .prefetch_related(
+                    Prefetch(
+                        "area_responses",
+                        queryset=AreaResponse.objects.prefetch_related(
+                            Prefetch(
+                                "component_response",
+                                queryset=FormComponentResponse.objects.select_related("component", "component__area", "rating"),
+                            )
+                        ),
+                    )
+                )
+                .first()
+            )
+            if latest_assessment:
+                for ar in latest_assessment.area_responses.all():
+                    for cr in ar.component_response.all():
+                        # Flags
+                        epi = _contains_affirmative(getattr(cr, "epi_considerations", ""))
+                        urb = _contains_affirmative(getattr(cr, "urban_considerations", ""))
+                        clim = _contains_affirmative(getattr(cr, "climate_environmental_considerations", ""))
+                        mig = _contains_affirmative(getattr(cr, "migration_considerations", ""))
+                        epi_considerations = epi_considerations or epi
+                        urban_considerations = urban_considerations or urb
+                        climate_considerations = climate_considerations or clim
+                        migration_considerations = migration_considerations or mig
+
+                        comp = getattr(cr, "component", None)
+                        area = getattr(comp, "area", None) if comp else None
+                        rating = getattr(cr, "rating", None)
+                        # Resolve area name via AREA_NAMES when area_num is an int
+                        area_num_val = getattr(area, "area_num", None)
+                        components.append(
+                            {
+                                "component_id": getattr(comp, "id", None) or getattr(cr, "component_id", None),
+                                "component_name": getattr(comp, "title", None)
+                                or getattr(comp, "description_en", None)
+                                or getattr(comp, "description", None),
+                                "component_num": getattr(comp, "component_num", None),
+                                "area_id": getattr(area, "id", None),
+                                "area_name": (
+                                    AREA_NAMES.get(area_num_val) if isinstance(area_num_val, int) else getattr(area, "name", None)
+                                ),
+                                "rating_value": getattr(rating, "value", None),
+                                "rating_title": getattr(rating, "title", None),
+                            }
+                        )
+
+            # Prioritized components (workplan/prioritization)
+            prioritized_components = []
+            fp = FormPrioritization.objects.filter(overview_id=getattr(ov, "id", None)).first()
+            if fp:
+                for pac in fp.prioritized_action_responses.exclude(component_id=14).select_related(
+                    "component", "component__area"
+                ):
+                    pc_comp = pac.component
+                    pc_area = pc_comp.area if pc_comp else None
+                    area_num_val2 = getattr(pc_area, "area_num", None)
+                    prioritized_components.append(
+                        {
+                            "componentId": getattr(pc_comp, "id", None),
+                            "componentTitle": getattr(pc_comp, "title", None)
+                            or getattr(pc_comp, "description_en", None)
+                            or getattr(pc_comp, "description", None),
+                            "areaTitle": (
+                                AREA_NAMES.get(area_num_val2)
+                                if isinstance(area_num_val2, int)
+                                else getattr(pc_area, "name", None)
+                            ),
+                            "description": getattr(pc_comp, "description", None) or getattr(pc_comp, "description_en", None),
+                        }
+                    )
+
+            items.append(
+                {
+                    "id": getattr(ov, "id", None),
+                    "assessment_number": ov.assessment_number,
+                    "date_of_assessment": ov.date_of_assessment,
+                    "country_id": getattr(ov, "country_id", None),
+                    "country_name": ov.country.name if ov.country else None,
+                    "phase": getattr(ov, "phase", None),
+                    "phase_display": normalized_phase_display,
+                    "type_of_assessment": getattr(ov.type_of_assessment, "id", None),
+                    "type_of_assessment_name": getattr(ov.type_of_assessment, "name", None),
+                    "country_iso3": getattr(ov.country, "iso3", None),
+                    "region_id": getattr(getattr(ov.country, "region", None), "id", None),
+                    "region_name": getattr(getattr(ov.country, "region", None), "label", None),
+                    "latitude": (
+                        round(ov.country.centroid.y, 5)
+                        if getattr(ov.country, "centroid", None)
+                        else (
+                            round(getattr(ov.country, "latitude", None), 5)
+                            if getattr(ov.country, "latitude", None) is not None
+                            else None
+                        )
+                    ),
+                    "longitude": (
+                        round(ov.country.centroid.x, 5)
+                        if getattr(ov.country, "centroid", None)
+                        else (
+                            round(getattr(ov.country, "longitude", None), 5)
+                            if getattr(ov.country, "longitude", None) is not None
+                            else None
+                        )
+                    ),
+                    "updated_at": getattr(ov, "updated_at", None),
+                    "prioritized_components": prioritized_components,
+                    "epi_considerations": epi_considerations,
+                    "climate_environmental_considerations": climate_considerations,
+                    "urban_considerations": urban_considerations,
+                    "components": components,
+                }
+            )
+        return Response({"results": items})
+
+
+class PerAssessmentsProcessedView(views.APIView):
+    """Public consolidated PER assessments processed data.
+
+    Flattens component considerations flags and rating info per assessment for downstream use.
+    """
+
+    def get(self, request):
+        assessments = PerAssessment.objects.select_related("overview", "overview__country").prefetch_related(
+            Prefetch(
+                "area_responses",
+                queryset=AreaResponse.objects.prefetch_related(
+                    Prefetch(
+                        "component_response",
+                        queryset=FormComponentResponse.objects.prefetch_related("question_responses").select_related(
+                            "component",
+                            "component__area",
+                            "rating",
+                        ),
+                    )
+                ),
+            )
+        )
+        results = []
+        for a in assessments:
+            # Collect area entries with sort keys
+            area_entries = []
+            for ar in a.area_responses.all():
+                component_entries = []
+                for cr in ar.component_response.all():
+                    comp = getattr(cr, "component", None)
+                    area = getattr(comp, "area", None) if comp else None
+                    rating = getattr(cr, "rating", None)
+
+                    rating_details = (
+                        {
+                            "id": getattr(rating, "id", None),
+                            "value": getattr(rating, "value", None),
+                            "title": getattr(rating, "title", None),
+                        }
+                        if rating is not None
+                        else None
+                    )
+
+                    component_details = (
+                        {
+                            "id": getattr(comp, "id", None),
+                            "component_num": getattr(comp, "component_num", None),
+                            "area": getattr(area, "id", None),
+                            "title": getattr(comp, "title", None)
+                            or getattr(comp, "description_en", None)
+                            or getattr(comp, "description", None),
+                            "description": getattr(comp, "description", None) or getattr(comp, "description_en", None),
+                        }
+                        if comp is not None
+                        else None
+                    )
+
+                    component_entries.append(
+                        {
+                            "id": getattr(cr, "id", None),
+                            "component": getattr(comp, "id", None),
+                            "rating": getattr(rating, "id", None),
+                            "rating_details": rating_details,
+                            "component_details": component_details,
+                            "urban_considerations": getattr(cr, "urban_considerations", None),
+                            "epi_considerations": getattr(cr, "epi_considerations", None),
+                            "climate_environmental_considerations": getattr(cr, "climate_environmental_considerations", None),
+                            "migration_considerations": getattr(cr, "migration_considerations", None),
+                            "urban_considerations_simplified": _contains_affirmative(getattr(cr, "urban_considerations", "")),
+                            "epi_considerations_simplified": _contains_affirmative(getattr(cr, "epi_considerations", "")),
+                            "climate_environmental_considerations_simplified": _contains_affirmative(
+                                getattr(cr, "climate_environmental_considerations", "")
+                            ),
+                            "migration_considerations_simplified": _contains_affirmative(
+                                getattr(cr, "migration_considerations", "")
+                            ),
+                            "notes": getattr(cr, "notes", None),
+                            "_component_num": getattr(comp, "component_num", 0),
+                        }
+                    )
+                # Sort components by component_num
+                component_entries.sort(key=lambda x: x.get("_component_num") or 0)
+                # Remove sort helper keys
+                for ce in component_entries:
+                    ce.pop("_component_num", None)
+
+                area_entries.append(
+                    {
+                        "id": getattr(ar, "id", None),
+                        "component_responses": component_entries,
+                        "_area_num": getattr(getattr(comp, "area", None), "area_num", 0) if comp else 0,
+                    }
+                )
+            # Sort areas by area_num
+            area_entries.sort(key=lambda x: x.get("_area_num") or 0)
+            for ae in area_entries:
+                ae.pop("_area_num", None)
+
+            results.append(
+                {
+                    "id": getattr(a, "id", None),
+                    "area_responses": area_entries,
+                }
+            )
+
+        return Response({"results": results})
+
+
+class PerDashboardDataView(views.APIView):
+    """Public consolidated PER dashboard data.
+
+    Aggregates by PER components (not countries) and attaches assessments.
+    """
+
+    def get(self, request):
+        # Build aggregation by component across all assessments
+        component_map = {}
+        country_assessments: dict[str, list] = {}
+        # Prefetch for performance
+        assessments = PerAssessment.objects.select_related("overview", "overview__country").prefetch_related(
+            Prefetch(
+                "area_responses",
+                queryset=AreaResponse.objects.prefetch_related(
+                    Prefetch(
+                        "component_response",
+                        queryset=FormComponentResponse.objects.select_related("component", "component__area", "rating"),
+                    )
+                ),
+            )
+        )
+
+        for a in assessments:
+            assessment_entry = {
+                "assessment_id": getattr(a, "id", None),
+                "assessment_number": getattr(a.overview, "assessment_number", None),
+                "date_of_assessment": getattr(a.overview, "date_of_assessment", None),
+                "country_id": getattr(a.overview, "country_id", None),
+                "country_name": getattr(getattr(a.overview, "country", None), "name", None),
+                "country_iso3": getattr(getattr(a.overview, "country", None), "iso3", None),
+            }
+            # Also prepare detailed assessment for countryAssessments with ratings
+            ca_components = []
+
+            for ar in a.area_responses.all():
+                for cr in ar.component_response.all():
+                    comp = getattr(cr, "component", None)
+                    if comp is None:
+                        continue
+                    area = getattr(comp, "area", None)
+                    comp_id = getattr(comp, "id", None)
+                    if comp_id is None:
+                        continue
+                    # Component key aggregation
+                    if comp_id not in component_map:
+                        component_map[comp_id] = {
+                            "component_id": comp_id,
+                            "component_num": getattr(comp, "component_num", None),
+                            "component_name": getattr(comp, "title", None)
+                            or getattr(comp, "description_en", None)
+                            or getattr(comp, "description", None),
+                            "area_id": getattr(area, "id", None),
+                            "area_name": (
+                                AREA_NAMES.get(int(getattr(area, "area_num", 0)))
+                                if isinstance(getattr(area, "area_num", None), int)
+                                else getattr(area, "name", None)
+                            ),
+                            "assessments": [],
+                        }
+
+                    component_map[comp_id]["assessments"].append(assessment_entry)
+
+                    # Build component entry with rating for countryAssessments
+                    rating = getattr(cr, "rating", None)
+                    ca_components.append(
+                        {
+                            "component_id": comp_id,
+                            "component_name": getattr(comp, "title", None)
+                            or getattr(comp, "description_en", None)
+                            or getattr(comp, "description", None),
+                            "component_num": getattr(comp, "component_num", None),
+                            "area_id": getattr(area, "id", None),
+                            "area_name": (
+                                AREA_NAMES.get(int(getattr(area, "area_num", 0)))
+                                if isinstance(getattr(area, "area_num", None), int)
+                                else getattr(area, "name", None)
+                            ),
+                            "rating_value": getattr(rating, "value", None),
+                            "rating_title": getattr(rating, "title", None) or "",
+                        }
+                    )
+
+            # Append to countryAssessments mapping
+            country_name = assessment_entry["country_name"]
+            if country_name:
+                phase_display = _phase_display_from_int(
+                    getattr(a.overview, "phase", None), getattr(a.overview, "phase_display", None)
+                )
+                country_assessments.setdefault(country_name, []).append(
+                    {
+                        "assessment_number": assessment_entry["assessment_number"],
+                        "date": assessment_entry["date_of_assessment"],
+                        "components": ca_components,
+                        "phase": getattr(a.overview, "phase", None),
+                        "phase_display": phase_display,
+                    }
+                )
+
+        # Convert to list
+        items = list(component_map.values())
+        # Optional: sort by area then component_num for stable output
+        items.sort(key=lambda x: ((x["area_id"] or 0), (x["component_num"] or 0)))
+        return Response({"assessments": items, "countryAssessments": country_assessments})
 
 
 class PerFileViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):

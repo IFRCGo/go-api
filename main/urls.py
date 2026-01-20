@@ -217,6 +217,10 @@ urlpatterns = [
     url(r"^api/v2/secondarysector", ProjectSecondarySectors.as_view()),
     url(r"^api/v2/projectstatus", ProjectStatuses.as_view()),
     url(r"^api/v2/learningtype", LearningTypes.as_view()),
+    # Consolidated PER endpoints
+    url(r"^api/v2/per-map-data", per_views.PerMapDataView.as_view()),
+    url(r"^api/v2/per-assessments-processed", per_views.PerAssessmentsProcessedView.as_view()),
+    url(r"^api/v2/per-dashboard-data", per_views.PerDashboardDataView.as_view()),
     # url(r"^api/v2/create_field_report/", api_views.CreateFieldReport.as_view()),
     # url(r"^api/v2/update_field_report/(?P<pk>\d+)/", api_views.UpdateFieldReport.as_view()),
     url(r"^get_auth_token", GetAuthToken.as_view()),
