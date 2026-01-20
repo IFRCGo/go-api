@@ -10,7 +10,6 @@ from django.db.models import Max
 from alert_system.etl.base.extraction import PastEventExtractionClass
 from api.models import Event
 
-from .helpers import get_connector_processor, set_connector_status
 from .models import Connector, LoadItem
 
 logger = logging.getLogger(__name__)
@@ -22,27 +21,30 @@ def polling_task(self, connector_id):
     Celery task to run ETL for one connector.
     """
     extraction_run_id = str(uuid.uuid4())
-    processor, connector = get_connector_processor(connector_id)
+    connector = Connector.objects.get(id=connector_id)
 
     try:
-        set_connector_status(connector, Connector.Status.RUNNING)
+        extractor = connector.get_extraction_class()
+        connector.set_connector_status(Connector.Status.RUNNING)
         logger.info(f"[ETL] Starting connector: {connector}")
 
-        processor.run(extraction_run_id=extraction_run_id)
+        with transaction.atomic():
+            extractor.run(extraction_run_id=extraction_run_id)
+            connector.set_connector_status(Connector.Status.SUCCESS)
 
-        set_connector_status(connector, Connector.Status.SUCCESS)
         logger.info(f"[ETL] Completed connector: {connector}")
         return extraction_run_id
 
     except Exception as exc:
         logger.warning(f"[ETL] Connector {connector} failed", exc_info=True)
-        set_connector_status(connector, Connector.Status.FAILED)
 
-        try:
+        # Check if we've exhausted retries
+        if self.request.retries >= self.max_retries:
+            logger.error(f"[ETL] Max retries exceeded for connector {connector}", exc_info=True)
+            connector.set_connector_status(Connector.Status.FAILED)
+            raise MaxRetriesExceededError(f"Task {self.request.id} exceeded max retries")
+        else:
             raise self.retry(exc=exc)
-        except MaxRetriesExceededError:
-            logger.error(f"[ETL] Max retries exceeded for connector {connector.type.label}", exc_info=True)
-            raise
 
 
 @shared_task(bind=True, max_retries=3, retry_backoff=True)
@@ -73,8 +75,9 @@ def fetch_past_events_from_monty(self, extraction_run_id):
 
         connector_id = first_item.connector.id
 
-        processor, _ = get_connector_processor(connector_id)
-        past_event_extraction_service = PastEventExtractionClass(processor)
+        connector = Connector.objects.get(id=connector_id)
+        extractor = connector.get_extraction_class()
+        past_event_extraction_service = PastEventExtractionClass(extractor)
 
         # Process each eligible item
         processed = 0
@@ -96,16 +99,16 @@ def fetch_past_events_from_monty(self, extraction_run_id):
     except Exception as exc:
         logger.warning(f"[Past Events] Task failed for run {extraction_run_id}")
 
-        try:
-            raise self.retry(exc=exc)
-        except MaxRetriesExceededError:
+        if self.request.retries >= self.max_retries:
             logger.warning(f"[Past Events] Max retries exceeded for run {extraction_run_id}", exc_info=True)
-            raise
+            raise MaxRetriesExceededError(f"Task {self.request.id} exceeded max retries")
+        else:
+            raise self.retry(exc=exc)
 
 
 @shared_task(bind=True, max_retries=3, retry_backoff=True)
 def fetch_past_events_from_go(self, extraction_run_id, connector_id):
-    _, connector = get_connector_processor(connector_id=connector_id)
+    connector = Connector.objects.get(id=connector_id)
     items = list(
         LoadItem.objects.filter(
             extraction_run_id=extraction_run_id,

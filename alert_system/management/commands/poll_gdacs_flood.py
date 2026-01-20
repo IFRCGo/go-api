@@ -14,11 +14,12 @@ class Command(BaseCommand):
     SOURCE_TYPE = Connector.ConnectorType.GDACS_FLOOD
 
     def handle(self, *args, **options):
-        self.stdout.write("Starting extraction task...")
         connector = Connector.objects.filter(type=self.SOURCE_TYPE).first()
         if not connector:
             logger.warning("No connectors found.")
             return
+
+        self.stdout.write(f"Starting extraction task for {connector}")
 
         process_connector_task.delay(connector.id)
 
