@@ -2751,7 +2751,7 @@ class DimBuyerGroup(models.Model):
 
 class DimConsignment(models.Model):
     id = models.CharField(verbose_name=_("Consignment ID"), max_length=100, primary_key=True)
-    delivery_mode = models.CharField(verbose_name=_("Delivery Mode"), max_length=100)
+    delivery_mode = models.CharField(verbose_name=_("Delivery Mode"), max_length=100, null = True)
 
     class Meta:
         verbose_name = _("Consignment")
