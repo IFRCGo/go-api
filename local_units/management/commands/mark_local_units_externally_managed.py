@@ -1,10 +1,12 @@
 from django.core.management.base import BaseCommand
+from django.db import transaction
 
-from local_units.models import LocalUnit
+from api.models import Country, CountryType
+from local_units.models import ExternallyManagedLocalUnit, LocalUnit, LocalUnitType
 
 
 class Command(BaseCommand):
-    help = "Mark existing local units as externally managed"
+    help = "Create Externally Managed status for all local units type and mark all local units as externally managed."
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -13,6 +15,7 @@ class Command(BaseCommand):
             help="Show how many local units would be updated without making changes.",
         )
 
+    @transaction.atomic
     def handle(self, *args, **options):
         local_unit_qs = LocalUnit.objects.all()
 
@@ -22,6 +25,27 @@ class Command(BaseCommand):
             )
             return
 
+        # Create Country level Externally Managed
+        local_unit_types = LocalUnitType.objects.all()
+        self.stdout.write(self.style.NOTICE("\n Creating/Updating Externally Managed local units"))
+        countries = Country.objects.filter(
+            is_deprecated=False,
+            independent=True,
+            iso3__isnull=False,
+            record_type=CountryType.COUNTRY,
+        )
+        for country in countries.iterator():
+            self.stdout.write(self.style.NOTICE(f"--> Country: {country.name}"))
+            for local_unit_type in local_unit_types.iterator():
+                instance, _ = ExternallyManagedLocalUnit.objects.get_or_create(
+                    country=country,
+                    local_unit_type=local_unit_type,
+                )
+                instance.enabled = True
+                instance.save(update_fields=["enabled"])
+                self.stdout.write(self.style.SUCCESS(f"\t--> Created externally managed for {local_unit_type.name}"))
+
+        # Update all local units to Externally managed
         updated_count = local_unit_qs.update(
             status=LocalUnit.Status.EXTERNALLY_MANAGED,
         )
