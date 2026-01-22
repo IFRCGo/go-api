@@ -338,7 +338,6 @@ class PrivateLocalUnitDetailSerializer(NestedCreateMixin, NestedUpdateMixin):
         return version_id
 
     def validate(self, data):
-
         # Externally managed check
         country = data.get("country")
         type = data.get("type")
@@ -670,6 +669,7 @@ class ExternallyManagedLocalUnitSerializer(serializers.ModelSerializer):
             unvalidated_local_units_qs = LocalUnit.objects.filter(
                 country=validated_data["country"],
                 type=validated_data["local_unit_type"],
+                is_deprecated=False,
             ).exclude(
                 status__in=[
                     LocalUnit.Status.VALIDATED,
@@ -693,6 +693,7 @@ class ExternallyManagedLocalUnitSerializer(serializers.ModelSerializer):
             LocalUnit.objects.filter(
                 country=validated_data["country"],
                 type=validated_data["local_unit_type"],
+                is_deprecated=False,
             ).update(status=LocalUnit.Status.EXTERNALLY_MANAGED)
 
         return super().create(validated_data)
@@ -704,6 +705,7 @@ class ExternallyManagedLocalUnitSerializer(serializers.ModelSerializer):
         local_unit_qs = LocalUnit.objects.filter(
             country=instance.country,
             type=instance.local_unit_type,
+            is_deprecated=False,
         )
 
         if validated_data.get("enabled", False):
