@@ -129,6 +129,9 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         if not update_reason:
             raise ValidationError({"update_reason_overview": "Update reason is required."})
 
+        serializer = self.get_serializer(local_unit, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+
         # NOTE: Locking the local unit after the change request is created
         previous_data = PrivateLocalUnitDetailSerializer(local_unit, context={"request": request}).data
         local_unit.status = LocalUnit.Status.PENDING_EDIT_VALIDATION
@@ -139,9 +142,6 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
                 "update_reason_overview",
             ]
         )
-        serializer = self.get_serializer(local_unit, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
         # Creating a new change request for the local unit
         LocalUnitChangeRequest.objects.create(
             local_unit=local_unit,
@@ -149,6 +149,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
             status=LocalUnitChangeRequest.Status.PENDING,
             triggered_by=request.user,
         )
+        self.perform_update(serializer)
         transaction.on_commit(lambda: send_local_unit_email.delay(local_unit.id, new=False))
         return response.Response(serializer.data)
 
