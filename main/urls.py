@@ -23,6 +23,7 @@ from rest_framework import routers
 
 from api import drf_views as api_views
 from api.admin_reports import UsersPerPermissionViewSet
+from api.pro_bono_views import ProBonoServicesView
 from api.views import (
     AddCronJobLog,
     AddSubscription,
@@ -239,6 +240,7 @@ admin.site.site_title = "IFRC Go admin"
 urlpatterns = [
     # url(r"^api/v1/es_search/", EsPageSearch.as_view()),
     url(r"^api/v1/search/", HayStackSearch.as_view()),
+    url(r"^api/v1/pro-bono-services/", ProBonoServicesView.as_view()),
     url(r"^api/v1/es_health/", EsPageHealth.as_view()),
     # If we want to use the next one, some permission overthink is needed:
     # url(r"^api/v1/graphql/", GraphQLView.as_view(graphiql=True)),

@@ -38,6 +38,10 @@ email-verification only, is to be found
 
      $ docker-compose run --rm migrate
 
+### Scrape Item Catalogue URLs
+
+     $ docker compose run --rm serve python manage.py scrape_items
+
 ## Pulling Fabric Data
 
 ### 1. Environment setup (`.env`)
@@ -56,7 +60,7 @@ email-verification only, is to be found
      $ docker compose up serve celery
      $ docker compose exec serve az login (follow instr on screen)
 
-#### 3. Pull Data
+### 3. Pull Data
      $ docker compose exec serve python manage.py pull_fabric_data
 
 
