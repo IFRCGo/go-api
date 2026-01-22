@@ -239,6 +239,8 @@ urlpatterns = [
     url(r"^show_username", ShowUsername.as_view()),
     url(r"^resend_validation", ResendValidation.as_view()),
     url(r"^api/v2/", include(router.urls)),
+    # Local Unit export
+    url(r"^api/v2/export-local-unit/", local_units_views.ExportLocalUnitView.as_view()),
     # PER options
     url(r"^api/v2/per-options/", per_views.PerOptionsView.as_view()),
     url(r"^api/v2/export-per/(?P<pk>\d+)/", per_views.ExportPerView.as_view()),

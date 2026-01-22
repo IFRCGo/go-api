@@ -1096,7 +1096,11 @@ class TestExternallyManagedLocalUnit(APITestCase):
 
     def test_create_externally_managed_local_unit(self):
         url = "/api/v2/externally-managed-local-unit/"
-        data = {"country": self.country2.id, "local_unit_type": self.local_unit_type.id, "enabled": True}
+        data = {
+            "country": self.country2.id,
+            "local_unit_type": self.local_unit_type.id,
+            "enabled": True,
+        }
         # Without authentication
         response = self.client.patch(url, data=data, format="json")
         self.assert_401(response)
@@ -1116,9 +1120,30 @@ class TestExternallyManagedLocalUnit(APITestCase):
         response = self.client.post(url, data=data, format="json")
         self.assertEqual(response.status_code, 400)
 
+        LocalUnitFactory.create(
+            status=LocalUnit.Status.PENDING_EDIT_VALIDATION,
+            country=self.country1,
+            type=self.local_unit_type,
+            created_by=self.user,
+            level=LocalUnitLevel.objects.create(level=1, name="Level 1"),
+        )
+
+        data = {
+            "country": self.country1.id,
+            "local_unit_type": self.local_unit_type.id,
+            "enabled": True,
+        }
+
+        # FAILS as there is a local unit with PENDING_EDIT_VALIDATION for the same country and type
+        self.client.force_authenticate(user=self.root_user)
+        response = self.client.post(url, data=data)
+        self.assertEqual(response.status_code, 400, response.data)
+
     def test_update_externally_managed_local_unit(self):
         url = f"/api/v2/externally-managed-local-unit/{self.externally_managed_local_unit.id}/"
         data = {
+            "country": self.country1.id,
+            "local_unit_type": self.local_unit_type.id,
             "enabled": True,
         }
         # Without authentication
@@ -1137,6 +1162,28 @@ class TestExternallyManagedLocalUnit(APITestCase):
 
         self.externally_managed_local_unit.refresh_from_db()
         self.assertTrue(self.externally_managed_local_unit.enabled)
+
+        local_unit = LocalUnitFactory.create(
+            status=LocalUnit.Status.EXTERNALLY_MANAGED,
+            country=self.country1,
+            type=self.local_unit_type,
+            created_by=self.user,
+            level=LocalUnitLevel.objects.create(level=1, name="Level 1"),
+        )
+
+        # Check disabling the externally managed local unit
+        data = {
+            "enabled": False,
+        }
+        self.client.force_authenticate(user=self.root_user)
+        response = self.client.patch(url, data=data, format="json")
+        self.assert_200(response)
+
+        self.externally_managed_local_unit.refresh_from_db()
+        self.assertFalse(self.externally_managed_local_unit.enabled)
+
+        local_unit.refresh_from_db()
+        self.assertEqual(LocalUnit.Status(local_unit.status), LocalUnit.Status.VALIDATED)
 
     def test_get_externally_managed_local_unit(self):
         url = "/api/v2/externally-managed-local-unit/"
@@ -1507,12 +1554,12 @@ class BulkUploadTests(TestCase):
         """
 
         file_path = os.path.join(
-            settings.STATICFILES_DIRS[0], "files", "local_units", "Administrative Bulk Import Template - Local Units.xlsx"
+            settings.STATICFILES_DIRS[0], "files", "local_units", "Administrative-Bulk-Import-Template-Local-Units.xlsx"
         )
         with open(file_path, "rb") as f:
             file_content = f.read()
         empty_file = SimpleUploadedFile(
-            name="Administrative Bulk Import Template - Local Units.xlsx", content=file_content, content_type="text/xlsx"
+            name="Administrative-Bulk-Import-Template-Local-Units.xlsx", content=file_content, content_type="text/xlsx"
         )
         LocalUnitFactory.create_batch(
             5,
@@ -1899,3 +1946,33 @@ class TestHealthLocalUnitsPublicList(APITestCase):
         self.assertEqual(resp.data["results"][0]["subtype"].lower(), "mobile clinic".lower())
 
         # End of relevant assertions for this test.
+
+
+class TestMarkLocalUnitExternallyManage(APITestCase):
+    def setUp(self):
+        super().setUp()
+        self.user = UserFactory.create(is_superuser=True)
+        self.region = RegionFactory.create(name=2, label="Asia Pacific Test")
+        self.country = CountryFactory.create(name="Test", iso3="TST", region=self.region)
+        self.local_unit_type = LocalUnitType.objects.create(code=1, name="Test Administrative")
+        self.level = LocalUnitLevel.objects.create(level=0, name="Test National")
+
+        LocalUnitFactory.create_batch(
+            5,
+            country=self.country,
+            type=self.local_unit_type,
+            created_by=self.user,
+            level=self.level,
+        )
+
+    def test_mark_local_unit_externally_manage_command(self):
+        management.call_command("mark_local_units_externally_managed")
+
+        self.assertEqual(
+            LocalUnit.objects.filter(
+                country=self.country,
+                type=self.local_unit_type,
+                status=LocalUnit.Status.EXTERNALLY_MANAGED,
+            ).count(),
+            5,
+        )

@@ -20,6 +20,82 @@ logger = logging.getLogger(__name__)
 
 ContextType = TypeVar("ContextType")
 
+START_ROW = 4
+
+
+# NOTE(IMPORTANT): These mappings should align with templates and serializer fields.
+# Also make sure to update export.py if there are changes here in the headers.
+
+
+BASE_HEADER_MAP = {
+    "Date of Update": "date_of_data",
+    "Local Unit Name (En)": "english_branch_name",
+    "Local Unit Name (Local)": "local_branch_name",
+    "Visibility": "visibility",
+    "Coverage": "level",
+    "Sub-type": "subtype",
+    "Focal Person (En)": "focal_person_en",
+    "Source (En)": "source_en",
+    "Source (Local)": "source_loc",
+    "Focal Person (Local)": "focal_person_loc",
+    "Address (Local)": "address_loc",
+    "Address (En)": "address_en",
+    "Locality (Local)": "city_loc",
+    "Locality (En)": "city_en",
+    "Local Unit Post Code": "postcode",
+    "Local Unit Email": "email",
+    "Local Unit Phone Number": "phone",
+    "Local Unit Website": "link",
+    "Latitude": "latitude",
+    "Longitude": "longitude",
+}
+
+HEALTH_HEADER_MAP = {
+    **BASE_HEADER_MAP,
+    **{
+        "Focal Person Name (En)": "focal_person_en",
+        "Focal Person Name (Local)": "focal_person_loc",
+        "Focal Person Email": "focal_point_email",
+        "Focal Person Phone Number": "focal_point_phone_number",
+        "Focal Person Position": "focal_point_position",
+        "Health Facility Type": "health_facility_type",
+        "Other Facility Type": "other_facility_type",
+        "Affiliation": "affiliation",
+        "Other Affiliation": "other_affiliation",
+        "Functionality": "functionality",
+        "Primary Health Care Center": "primary_health_care_center",
+        "Specialities": "speciality",
+        "Hospital Type": "hospital_type",
+        "Teaching Hospital": "is_teaching_hospital",
+        "In-patient Capacity": "is_in_patient_capacity",
+        "Isolation Rooms": "is_isolation_rooms_wards",
+        "Number of Isolation Beds": "number_of_isolation_rooms",
+        "Warehousing": "is_warehousing",
+        "Cold Chain": "is_cold_chain",
+        "Other Medical Heal": "other_medical_heal",
+        "Maximum Bed Capacity": "maximum_capacity",
+        "General Medical Services": "general_medical_services",
+        "Specialized Medical Services (beyond primary level)": "specialized_medical_beyond_primary_level",
+        "Blood Services": "blood_services",
+        "Other Services": "other_services",
+        "Total Number of Human Resources": "total_number_of_human_resource",
+        "General Practitioners": "general_practitioner",
+        "Resident Doctors": "residents_doctor",
+        "Specialists": "specialist",
+        "Nurses": "nurse",
+        "Nursing Aids": "nursing_aid",
+        "Dentists": "dentist",
+        "Midwife": "midwife",
+        "Pharmacists": "pharmacists",
+        "Other Profiles": "other_profiles",
+        "Other Training Facility": "other_training_facilities",
+        "Professional Training Facilities": "professional_training_facilities",
+        "Ambulance Type A": "ambulance_type_a",
+        "Ambulance Type B": "ambulance_type_b",
+        "Ambulance Type C": "ambulance_type_c",
+    },
+}
+
 
 class BulkUploadError(Exception):
     """Custom exception for bulk upload errors."""
@@ -137,7 +213,7 @@ class BaseBulkUpload(Generic[ContextType]):
     def _validate_type(self, fieldnames) -> None:
         pass
 
-    def is_excel_data_empty(self, sheet, data_start_row=4):
+    def is_excel_data_empty(self, sheet, data_start_row=START_ROW):
         """Check if file is empty or not"""
         for row in sheet.iter_rows(values_only=True, min_row=data_start_row):
             if any(cell is not None for cell in row):
@@ -238,7 +314,7 @@ class BaseBulkUpload(Generic[ContextType]):
         self.bulk_upload.status = LocalUnitBulkUpload.Status.FAILED
         self.bulk_upload.save(update_fields=["success_count", "failed_count", "status", "error_file"])
 
-        logger.info(f"[BulkUpload:{self.bulk_upload.pk}] FAILED: " f"{self.success_count} succeeded, {self.failed_count} failed.")
+        logger.info(f"[BulkUpload:{self.bulk_upload.pk}] SUMMARY: " f"{self.success_count} SUCCESS, {self.failed_count} FAILED.")
 
 
 @dataclass(frozen=True)
@@ -250,28 +326,7 @@ class LocalUnitUploadContext:
 
 
 class BaseBulkUploadLocalUnit(BaseBulkUpload[LocalUnitUploadContext]):
-    HEADER_MAP = {
-        "Date of Update": "date_of_data",
-        "Local Unit Name (En)": "english_branch_name",
-        "Local Unit Name (Local)": "local_branch_name",
-        "Visibility": "visibility",
-        "Coverage": "level",
-        "Sub-type": "subtype",
-        "Focal Person (En)": "focal_person_en",
-        "Source (En)": "source_en",
-        "Source (Local)": "source_loc",
-        "Focal Person (Local)": "focal_person_loc",
-        "Address (Local)": "address_loc",
-        "Address (En)": "address_en",
-        "Locality (Local)": "city_loc",
-        "Locality (En)": "city_en",
-        "Local Unit Post Code": "postcode",
-        "Local Unit Email": "email",
-        "Local Unit Phone Number": "phone",
-        "Local Unit Website": "link",
-        "Latitude": "latitude",
-        "Longitude": "longitude",
-    }
+    HEADER_MAP = BASE_HEADER_MAP
 
     def __init__(self, bulk_upload: LocalUnitBulkUpload):
         from local_units.serializers import LocalUnitBulkUploadDetailSerializer
@@ -315,48 +370,8 @@ class BaseBulkUploadLocalUnit(BaseBulkUpload[LocalUnitUploadContext]):
 
 class BulkUploadHealthData(BaseBulkUpload[LocalUnitUploadContext]):
     # Local Unit headers + Health Data headers
-    HEADER_MAP = {
-        **BaseBulkUploadLocalUnit.HEADER_MAP,
-        **{
-            "Focal Person Email": "focal_point_email",
-            "Focal Person Phone Number": "focal_point_phone_number",
-            "Focal Person Position": "focal_point_position",
-            "Health Facility Type": "health_facility_type",
-            "Other Facility Type": "other_facility_type",
-            "Affiliation": "affiliation",
-            "Other Affiliation": "other_affiliation",
-            "Functionality": "functionality",
-            "Primary Health Care Center": "primary_health_care_center",
-            "Specialities": "speciality",
-            "Hospital Type": "hospital_type",
-            "Teaching Hospital": "is_teaching_hospital",
-            "In-patient Capacity": "is_in_patient_capacity",
-            "Isolation Rooms": "is_isolation_rooms_wards",
-            "Number of Isolation Beds": "number_of_isolation_rooms",
-            "Warehousing": "is_warehousing",
-            "Cold Chain": "is_cold_chain",
-            "Maximum Bed Capacity": "maximum_capacity",
-            "General Medical Services": "general_medical_services",
-            "Specialized Medical Services (beyond primary level)": "specialized_medical_beyond_primary_level",
-            "Blood Services": "blood_services",
-            "Other Services": "other_services",
-            "Total Number of Human Resources": "total_number_of_human_resource",
-            "General Practitioners": "general_practitioner",
-            "Resident Doctors": "residents_doctor",
-            "Specialists": "specialist",
-            "Nurses": "nurse",
-            "Nursing Aids": "nursing_aid",
-            "Dentists": "dentist",
-            "Midwife": "midwife",
-            "Pharmacists": "pharmacists",
-            "Other Profiles": "other_profiles",
-            "Other Training Facility": "other_training_facilities",
-            "Professional Training Facilities": "professional_training_facilities",
-            "Ambulance Type A": "ambulance_type_a",
-            "Ambulance Type B": "ambulance_type_b",
-            "Ambulance Type C": "ambulance_type_c",
-        },
-    }
+
+    HEADER_MAP = HEALTH_HEADER_MAP
 
     def __init__(self, bulk_upload: LocalUnitBulkUpload):
         from local_units.serializers import LocalUnitBulkUploadDetailSerializer
