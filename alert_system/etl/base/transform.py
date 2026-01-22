@@ -1,0 +1,69 @@
+import logging
+from abc import ABC, abstractmethod
+from datetime import datetime
+from typing import List, Optional, TypedDict
+
+from alert_system.models import ExtractionItem
+
+logger = logging.getLogger(__name__)
+
+
+class BaseTransformerClass(ABC):
+
+    class ImpactType(TypedDict):
+        people_exposed: int | None
+        buildings_exposed: int | None
+        impact_metadata: list
+
+    class HazardType(TypedDict):
+        severity_unit: str
+        severity_label: Optional[str]
+        severity_value: int | None
+
+    class EventType(TypedDict):
+        title: str
+        description: str
+        country: str
+        start_datetime: datetime
+        end_datetime: datetime
+
+    def __init__(
+        self, event_obj: ExtractionItem, hazard_obj: Optional[ExtractionItem] = None, impact_obj: List[ExtractionItem] = []
+    ):
+        self.event_obj = event_obj
+        self.hazard_obj = hazard_obj
+        self.impact_obj = impact_obj
+        self.correlation_id = event_obj.correlation_id
+
+    @abstractmethod
+    def process_hazard(self, hazard_item: ExtractionItem | None) -> HazardType:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def process_impact(self, impact_items: List[ExtractionItem]) -> ImpactType:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def process_event(self, event_item: ExtractionItem) -> EventType:
+        raise NotImplementedError()
+
+    def transform_stac_item(self):
+        """
+        Transform STAC items for a given extraction object.
+
+        Fetches event, hazard and impact items separately, processes them,
+        and returns processed data if available.
+        """
+        logger.info(f"Starting transformer for correlation_id={self.correlation_id}")
+        # Process event, hazard and impact.
+
+        event_result = self.process_event(self.event_obj)
+        hazard_result = self.process_hazard(self.hazard_obj)
+        impact_result = self.process_impact(self.impact_obj)
+
+        return {
+            "correlation_id": self.correlation_id,
+            **event_result,
+            **hazard_result,
+            **impact_result,
+        }
