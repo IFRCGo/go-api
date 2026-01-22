@@ -530,6 +530,11 @@ class ExportLocalUnitView(views.APIView):
             LocalUnit.objects.filter(
                 country=country,
                 type=local_unit_type,
+                is_deprecated=False,
+                status__in=[
+                    LocalUnit.Status.VALIDATED,
+                    LocalUnit.Status.EXTERNALLY_MANAGED,
+                ],
             )
             .select_related(
                 "health__affiliation",

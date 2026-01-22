@@ -664,6 +664,7 @@ class ExternallyManagedLocalUnitSerializer(serializers.ModelSerializer):
                 gettext("An externally managed local unit with this country and type already exists.")
             )
 
+        # FIXME: handle this for the `patch` request!
         if validated_data.get("enabled", False):
             # NOTE: Check for existing local units which are not validated
             unvalidated_local_units_qs = LocalUnit.objects.filter(

@@ -442,6 +442,7 @@ class LocalUnit(models.Model):
     email = models.EmailField(max_length=255, blank=True, null=True, verbose_name=_("Email"))
     link = models.URLField(max_length=255, blank=True, null=True, verbose_name=_("Social link"))
     location = models.PointField(srid=4326, help_text="Local Unit Location")
+    # FIXME: Migrate this to the status instead of boolen!
     is_deprecated = models.BooleanField(default=False, verbose_name=_("Is deprecated?"))
     deprecated_reason = models.IntegerField(
         choices=DeprecateReason.choices, verbose_name=_("deprecated reason"), blank=True, null=True
