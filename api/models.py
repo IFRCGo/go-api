@@ -3319,4 +3319,19 @@ class ProductCategoryHierarchyFlattened(models.Model):
 
     def __str__(self):
         return f"{self.product_category} - {self.level_1_product_category if self.level_1_product_category else 'Category'}"
+
+
+class ItemCodeMapping(models.Model):
+    code = models.CharField(verbose_name=_("Item Code"), max_length=100, unique=True, db_index=True)
+    url = models.URLField(verbose_name=_("Item URL"), max_length=500)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _("Item Code Mapping")
+        verbose_name_plural = _("Item Code Mappings")
+        ordering = ("code",)
+
+    def __str__(self):
+        return f"{self.code} -> {self.url}"
     

@@ -30,7 +30,8 @@ RUN set -eux; \
         cron \
         wait-for-it \
         binutils libproj-dev gdal-bin poppler-utils \
-        unixodbc unixodbc-dev msodbcsql18; \
+        unixodbc unixodbc-dev msodbcsql18 \
+        libnss3 libnspr4 libdbus-1-3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libpango-1.0-0 libpangocairo-1.0-0 libcairo2 libxcb-dri3-0 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxinerama1 libxrandr2 libxrender1 libxss1 libxtst6 libgbm1 libasound2 libxslt1.1; \
     apt-get autoremove -y; \
     rm -rf /var/lib/apt/lists/*
 
@@ -42,6 +43,8 @@ RUN --mount=type=cache,target=$UV_CACHE_DIR \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     uv sync --frozen --no-install-project --all-groups
+
+RUN python -m playwright install --with-deps
 
 # To avoid some SyntaxWarnings ("is" with a literal), still needed on 20241024:
 ENV AZUREROOT=/usr/local/lib/python3.11/site-packages/azure/storage/
