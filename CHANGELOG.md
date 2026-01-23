@@ -5,6 +5,33 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+ - Fix emergency severity level histories
+ - Add validation checks and export feature to Local Units
+ - Add script to migrate Local Units to EXTERNALLY MANAGED
+ - Notification recipients as a distinct list
+ - ProfileSerializer to accept Country id
+ - Fix maptiling strings
+ - Upgrade urllib3
+ - Update test assertion logic on deployment
+ - Add DREF static string translation
+ - Update schema and gitmodules URL
+ - Register DREF fields for translation
+ - Project/local unit updates and permisson
+ - Local units – disable notifications for superusers
+ - Limit access to guest when organization type is Other/OTHR
+ - Add schema validation in CI
+ - Add submodule for assets
+ - Surge Alert CSV fix – same columns across paginated requests
+ - Set default language to en on PDF export
+ - Upgrade Django version to 4.2.26
+ - Return the first no-None element in FR num lists
+ - Migrate BASECAMP ERUTypes to OSH
+ - Update key on lang/test bulk action
+ - update DREF approve permission
+ - Register additional fields for DREF translation
+ - Add language support on PDF export
+ - DREF3 enhancements – added fields, filters and tests
+ - Changes on DREF translation related models
 
 ## 1.1.508
 

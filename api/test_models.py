@@ -168,7 +168,7 @@ class EventSeverityLevelHistoryTest(TestCase):
 
         history = models.EventSeverityLevelHistory.objects.filter(event=self.event)
         self.assertEqual(history.count(), 1)
-        self.assertEqual(history[0].ifrc_severity_level, models.AlertLevel.RED)
+        self.assertEqual(history[0].ifrc_severity_level, models.AlertLevel.YELLOW)  # previous level
         self.assertEqual(history[0].created_by, self.user)
 
     def test_no_history_created_if_severity_level_not_changed(self):
