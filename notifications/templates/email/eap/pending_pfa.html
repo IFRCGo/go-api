@@ -1,0 +1,48 @@
+
+{% include "design/head3.html" %}
+
+<table width="80%" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff">
+    <tr>
+        <td>
+            <!-- Greeting -->
+            <p>
+                Dear <span style="text-transform: uppercase; font-weight: bold;">{{ national_society }}</span> colleagues,
+            </p>
+
+            <!-- Intro paragraph -->
+            <p>
+                We are glad to inform you that the {{country_name}} {{disaster_type}} EAP has been <strong>approved by the DREF Appeal Manager</strong>. Congratulations!
+            </p>
+
+            <p>
+                The IFRC Project should start the PFA process right away and upload the PFA in GO within the next 14 days.
+            </p>
+
+            <p>
+                If you have any questions on the process or the next steps, please don’t hesitate to reach out to 
+                <a href="mailto:DREF.anticipatorypillar@ifrc.org">DREF.anticipatorypillar@ifrc.org</a>.
+            </p>
+            <p><strong>Attached documents:</strong></p>
+               <ul>
+                {% if validated_budget_file %}
+                    <li>
+                        <a href="{{ validated_budget_file }}">
+                            Validated Budget File
+                        </a>
+                    </li>
+                {% endif %}
+                <li>
+                    <a href="{{ summary_file }}">
+                       Auto-generated Summary PDF
+                    </a>
+                </li>
+            </ul>
+            <p style="margin-top:16px;">
+                Congratulations again and warm wishes,<br>
+                IFRC-DREF AA Team<br>
+            </p>
+        </td>
+    </tr>
+</table>
+
+{% include "design/foot1.html" %}

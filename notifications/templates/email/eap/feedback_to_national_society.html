@@ -1,0 +1,51 @@
+
+{% include "design/head3.html" %}
+
+<table width="80%" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff" style="font-family: Arial, sans-serif; line-height: 1.6;">
+    <tr>
+        <td>
+            <!-- Greeting -->
+            <p>
+                Dear <span style="text-transform: uppercase; font-weight: bold;">{{ national_society }}</span> colleagues,
+            </p>
+
+            <!-- Intro paragraph -->
+            <p>
+                Thanks again for the submission of this protocol. We acknowledge the work the NS has done to submit it. 
+                The Validation Committee, the Delegation, and the Regional colleagues have completed the review. 
+                We are hereby sharing with you the compiled review checklist.
+            </p>
+
+            <!-- Action steps -->
+            <p>As next steps, the NS should:</p>
+            <ul>
+                <li>Answer all the comments in the “National Society response” cells (Columns H and I) and upload it in GO</li>
+                <li>Adjust the EAP narrative in GO as needed</li>
+                <li>Adjust the EAP budget as needed and upload it in GO</li>
+            </ul>
+
+            <!-- Deadline paragraph -->
+            <p>
+                The NS has 3 months to address these comments, which means that we expect to receive the new version 
+                of the EAP no later than <span style="font-weight: bold;">{{ deadline }}</span> (3 months). 
+                In case the NS has any questions about the feedback provided, we are available to organize a feedback call. 
+                Do not hesitate to contact us should you have any further questions at <a href="mailto:DREF.anticipatorypillar@ifrc.org">DREF.anticipatorypillar@ifrc.org</a>.
+            </p><br>
+            <p>You can access your GO account and check the progress of your EAP <a href="{{ frontend_url }}/eap-registration/{{ registration_id }}/">here.</a></p>
+            <!-- Attachments -->
+                <p><strong>Attachments:</strong></p>
+                {% if review_checklist_file %}
+                <ul>
+                    <li><a href="{{ review_checklist_file }}">Review checklist uploaded by IFRC</a></li>
+                </ul>
+            {% endif %}
+            <!-- Signature -->
+            <p style="margin-top:16px;">
+                Kind regards,<br>
+                IFRC-DREF AA Team<br>
+            </p>
+        </td>
+    </tr>
+</table>
+
+{% include "design/foot1.html" %}
