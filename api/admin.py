@@ -1,4 +1,5 @@
 import csv
+import json
 import time
 
 from django.conf import settings
@@ -11,6 +12,7 @@ from django.db.models import Value
 from django.db.models.functions import Concat
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
+from django.utils.formats import date_format
 from django.utils.html import format_html, format_html_join
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
@@ -199,6 +201,11 @@ class EventLinkInline(admin.TabularInline, TranslationInlineModelAdmin):
 
 
 class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
+
+    @admin.display(ordering="ifrc_severity_level_update_date")
+    def level_updated_at(self, obj):
+        return obj.ifrc_severity_level_update_date
+
     country_in = "countries__pk__in"
     region_in = "regions__pk__in"
 
@@ -213,6 +220,7 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     list_display = (
         "name",
         "ifrc_severity_level",
+        "level_updated_at",
         "glide",
         "auto_generated",
         "auto_generated_source",
@@ -241,7 +249,7 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     # To add the 'Notify subscribers now' button
     # WikiJS links added
     change_form_template = "admin/emergency_change_form.html"
-    change_list_template = "admin/emergency_change_list.html"
+    change_list_template = "admin/emergency_change_list_with_history.html"
 
     # Overwriting readonly fields for Edit mode
     def changeform_view(self, request, *args, **kwargs):
@@ -313,6 +321,53 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
         return mark_safe('<span class="errors">No related field reports</span>')
 
     field_reports.short_description = "Field Reports"
+
+    def changelist_view(self, request, extra_context=None):
+        response = super().changelist_view(request, extra_context)
+
+        # Check if we have a result list to process
+        if hasattr(response, "context_data") and "cl" in response.context_data:
+            cl = response.context_data["cl"]
+            result_list = list(cl.result_list)
+            expanded_results = []
+
+            for event in result_list:
+                # Add the main event row
+                expanded_results.append(
+                    {
+                        "object": event,
+                        "is_history": False,
+                        "history_record": None,
+                    }
+                )
+
+                # Add history rows if they exist
+                history_records = models.EventSeverityLevelHistory.objects.filter(event=event).order_by(
+                    "-ifrc_severity_level_update_date"
+                )
+
+                for history in history_records:
+                    expanded_results.append(
+                        {
+                            "object": event,
+                            "is_history": True,
+                            "history_record": {
+                                "date": (
+                                    date_format(history.ifrc_severity_level_update_date, "N j, Y, g:i a")
+                                    if history.ifrc_severity_level_update_date
+                                    else ""
+                                ),
+                                "severity": history.get_ifrc_severity_level_display(),
+                                "severity_value": history.ifrc_severity_level,
+                            },
+                        }
+                    )
+
+            # Convert to JSON for JavaScript
+
+            response.context_data["expanded_results"] = json.dumps(expanded_results, default=str)
+
+        return response
 
 
 class GdacsAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):

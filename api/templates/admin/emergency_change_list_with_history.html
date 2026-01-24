@@ -1,0 +1,150 @@
+{% extends "admin/emergency_change_list.html" %}
+{% load i18n static %}
+
+{% block extrahead %}
+  {{ block.super }}
+
+  <script type="text/javascript">
+  (function() {
+    // Wait for DOM to be ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', insertHistoryRows);
+    } else {
+      insertHistoryRows();
+    }
+
+    function insertHistoryRows() {
+      try {
+        var expandedResultsJson = '{{ expanded_results|escapejs }}';
+        if (!expandedResultsJson || expandedResultsJson === '[]') {
+          return;
+        }
+
+        var expandedResults = JSON.parse(expandedResultsJson);
+        var resultTable = document.querySelector('#result_list tbody');
+        if (!resultTable) {
+          console.log('Result table not found');
+          return;
+        }
+
+        // Detect dark mode
+        var isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        // Define colors based on mode
+        var colors = isDarkMode ? {
+          lighter: '#4a2a3a',  // Darker pink for dark mode (lighter shade)
+          darker: '#3a1a2a'    // Darker pink for dark mode (darker shade)
+        } : {
+          lighter: '#ffe4f0', // It's not the lighter one, but due to the tint function it will appear lighter
+          darker: '#fff0f8'
+        };
+
+        // Helper function to add pink tint to background color
+        function addPinkTint(element) {
+          var bgColor = window.getComputedStyle(element).backgroundColor;
+
+          // Parse RGB values
+          var rgb = bgColor.match(/\d+/g);
+          if (rgb && rgb.length >= 3) {
+            var r = parseInt(rgb[0]);
+            var g = parseInt(rgb[1]);
+            var b = parseInt(rgb[2]);
+
+            // Add pink tint (more red, slightly less green/blue)
+            r = Math.min(255, r + 40);
+            g = Math.max(0, g - 5);
+            b = Math.min(255, b + 15);
+
+            return 'rgb(' + r + ', ' + g + ', ' + b + ')';
+          }
+
+          // Fallback to light pink if we can't parse
+          return '#ffe4f0';
+        }
+
+        var originalRows = Array.from(resultTable.querySelectorAll('tr'));
+        var eventRowIndex = 0;
+        var historyCounter = 1;
+
+        // Process results in reverse order to maintain correct insertion positions
+        for (var i = 0; i < expandedResults.length; i++) {
+          var item = expandedResults[i];
+
+          if (!item.is_history) {
+            eventRowIndex++;
+            historyCounter++;
+          } else if (item.history_record) {
+            // Find the corresponding event row
+            var eventRow = originalRows[eventRowIndex - 1];
+            if (!eventRow) continue;
+
+            // Create a new history row by cloning the event row
+            var historyRow = eventRow.cloneNode(true);
+            historyRow.classList.add('event-history-row');
+
+            // Apply pink background with alternating shades for parity
+            if (historyCounter % 2 === 0) {
+              historyRow.style.backgroundColor = colors.lighter;
+            } else {
+              historyRow.style.backgroundColor = colors.darker;
+            }
+            historyCounter++;
+
+            // Disable the checkbox
+            var checkbox = historyRow.querySelector('.action-checkbox input[type="checkbox"]');
+            if (checkbox) {
+              checkbox.disabled = true;
+              checkbox.style.visibility = 'hidden';
+            }
+
+            // Update the cells
+            var cells = Array.from(historyRow.querySelectorAll('td'));
+
+            // Find the name field (usually second cell after checkbox)
+            var nameCell = cells[1];
+            if (nameCell) {
+              var dateStr = item.history_record.date || '';
+              var severityStr = item.history_record.severity || '';
+
+              // Remove any links from the name cell
+              var links = nameCell.querySelectorAll('a');
+              links.forEach(function(link) { link.remove(); });
+
+              nameCell.innerHTML = '<span style="margin-left: 20px; color: #666;">📅 ' +
+                                   dateStr + ' - Severity: ' + severityStr + '</span>';
+            }
+
+            // Update severity level and date cells
+            cells.forEach(function(cell) {
+              if (cell.classList.contains('field-ifrc_severity_level')) {
+                cell.textContent = item.history_record.severity || '';
+              } else if (cell.classList.contains('field-level_updated_at')) {
+                cell.innerHTML = '<em>' + (item.history_record.date || '-') + '</em>';
+              } else if (!cell.classList.contains('action-checkbox') &&
+                         cell !== nameCell) {
+                // Clear other cells except checkbox and name
+                cell.textContent = '';
+              }
+            });
+
+            // Insert the history row after the last history row or the event row
+            var lastRow = eventRow;
+            var nextSibling = eventRow.nextSibling;
+            while (nextSibling && nextSibling.classList &&
+                   nextSibling.classList.contains('event-history-row')) {
+              lastRow = nextSibling;
+              nextSibling = nextSibling.nextSibling;
+            }
+
+            lastRow.parentNode.insertBefore(historyRow, lastRow.nextSibling);
+          }
+        }
+      } catch (e) {
+        console.error('Error inserting history rows:', e);
+      }
+    }
+  })();
+  </script>
+{% endblock %}
+
+
