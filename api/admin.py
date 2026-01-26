@@ -1050,8 +1050,13 @@ class CountryOfFieldReportToReviewAdmin(admin.ModelAdmin):
 
 @admin.register(models.EventSeverityLevelHistory)
 class EventSeverityLevelHistoryAdmin(admin.ModelAdmin):
+
+    @admin.display(description="Updated at", ordering="ifrc_severity_level_update_date")
+    def updated_at(self, obj):
+        return obj.ifrc_severity_level_update_date
+
     list_select_related = True
-    list_display = ["event", "ifrc_severity_level", "created_by", "created_at"]
+    list_display = ["event", "ifrc_severity_level", "created_by", "updated_at", "created_at"]
     autocomplete_fields = (
         "event",
         "created_by",
