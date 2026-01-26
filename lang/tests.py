@@ -107,7 +107,7 @@ class LangTest(APITestCase):
         first_string = j_resp["new_strings"][0]
         second_string = j_resp["new_strings"][1]
         third_string = j_resp["new_strings"][2]
-        first_string.pop("id")
+        first_string_id = first_string.pop("id")
         second_string.pop("id")
         third_string.pop("id")
         third_string.pop("page_name")
@@ -125,11 +125,11 @@ class LangTest(APITestCase):
         resp = self.client.post(f"/api/v2/language/{language}/bulk-action/", data, format="json")
         j_resp = resp.json()
 
-        first_string_key = j_resp["deleted_strings_keys"][0]
+        first_string_key = j_resp["deleted_string_ids"][0]
         second_string = j_resp["updated_strings"][0]
         second_string.pop("id")
         self.assertEqual(second_string, {**string_2, "language": language})
-        self.assertEqual(first_string_key, string_1["key"])
+        self.assertEqual(first_string_key, first_string_id)
 
     def test_user_me(self):
         user = UserFactory.create(

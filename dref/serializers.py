@@ -6,7 +6,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models, transaction
 from django.utils import timezone
-from django.utils.translation import gettext
+from django.utils.translation import get_language, gettext
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
@@ -38,7 +38,7 @@ from lang.serializers import ModelSerializer
 from main.writable_nested_serializers import NestedCreateMixin, NestedUpdateMixin
 from utils.file_check import validate_file_type
 
-from .tasks import send_dref_email
+from .tasks import _translate_related_objects, send_dref_email
 
 
 class RiskSecuritySerializer(ModelSerializer):
@@ -150,7 +150,6 @@ class MiniOperationalUpdateActiveSerializer(serializers.ModelSerializer):
             "country_details",
             "application_type",
             "application_type_display",
-            "is_published",
             "status",
             "status_display",
             "date_of_approval",
@@ -176,7 +175,6 @@ class MiniDrefFinalReportActiveSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "title",
-            "is_published",
             "national_society",
             "disaster_type",
             "type_of_dref",
@@ -213,13 +211,13 @@ class MiniDrefSerializer(serializers.ModelSerializer):
     unpublished_final_report_count = serializers.SerializerMethodField()
     operational_update_details = serializers.SerializerMethodField()
     final_report_details = serializers.SerializerMethodField()
+    starting_language = serializers.CharField(read_only=True)
 
     class Meta:
         model = Dref
         fields = [
             "id",
             "title",
-            "is_published",
             "is_dref_imminent_v2",
             "national_society",
             "disaster_type",
@@ -244,6 +242,7 @@ class MiniDrefSerializer(serializers.ModelSerializer):
             "status",
             "status_display",
             "date_of_approval",
+            "starting_language",
         ]
 
     @extend_schema_field(MiniOperationalUpdateActiveSerializer(many=True))
@@ -274,10 +273,10 @@ class MiniDrefSerializer(serializers.ModelSerializer):
         return "DREF application"
 
     def get_unpublished_op_update_count(self, obj) -> int:
-        return DrefOperationalUpdate.objects.filter(dref_id=obj.id, is_published=False).count()
+        return DrefOperationalUpdate.objects.filter(dref_id=obj.id).exclude(status=Dref.Status.APPROVED).count()
 
     def get_unpublished_final_report_count(self, obj) -> int:
-        return DrefFinalReport.objects.filter(dref_id=obj.id, is_published=False).count()
+        return DrefFinalReport.objects.filter(dref_id=obj.id).exclude(status=Dref.Status.APPROVED).count()
 
 
 class PlannedInterventionSerializer(
@@ -350,23 +349,29 @@ class IdentifiedNeedSerializer(ModelSerializer):
 
 
 class MiniOperationalUpdateSerializer(ModelSerializer):
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+
     class Meta:
         model = DrefOperationalUpdate
         fields = [
             "id",
             "title",
-            "is_published",
             "operational_update_number",
+            "status",
+            "status_display",
         ]
 
 
 class MiniDrefFinalReportSerializer(ModelSerializer):
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+
     class Meta:
         model = DrefFinalReport
         fields = [
             "id",
             "title",
-            "is_published",
+            "status",
+            "status_display",
         ]
 
 
@@ -429,6 +434,7 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
             "created_by",
             "budget_file_preview",
             "is_dref_imminent_v2",
+            "starting_language",
         )
         exclude = (
             "cover_image",
@@ -465,6 +471,8 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
     def validate(self, data):
         event_date = data.get("event_date")
         operation_timeframe = data.get("operation_timeframe")
+        if self.instance and self.instance.status == Dref.Status.FINALIZING:
+            raise serializers.ValidationError(gettext("Cannot be updated while the translation is in progress"))
         is_assessment_report = data.get("is_assessment_report")
         if event_date and data["type_of_onset"] not in [Dref.OnsetType.SLOW, Dref.OnsetType.SUDDEN]:
             raise serializers.ValidationError(
@@ -475,10 +483,10 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
                     )
                 }
             )
-        if self.instance and self.instance.is_published:
-            raise serializers.ValidationError("Published Dref can't be changed. Please contact Admin")
-        if self.instance and DrefFinalReport.objects.filter(dref=self.instance, is_published=True).exists():
-            raise serializers.ValidationError(gettext("Can't Update %s dref for publish Field Report" % self.instance.id))
+        if self.instance and self.instance.status == Dref.Status.APPROVED:
+            raise serializers.ValidationError("Approved Dref can't be changed. Please contact Admin")
+        if self.instance and DrefFinalReport.objects.filter(dref=self.instance, status=Dref.Status.APPROVED).exists():
+            raise serializers.ValidationError(gettext("Can't Update dref for approved Final Report"))
         if operation_timeframe and is_assessment_report and operation_timeframe > 30:
             raise serializers.ValidationError(
                 gettext("Operation timeframe can't be greater than %s for assessment_report" % self.MAX_OPERATION_TIMEFRAME)
@@ -606,6 +614,8 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
         return budget_file_preview
 
     def create(self, validated_data):
+        current_language = get_language()
+        validated_data["starting_language"] = current_language
         validated_data["created_by"] = self.context["request"].user
         validated_data["is_active"] = True
         type_of_dref = validated_data.get("type_of_dref")
@@ -737,19 +747,21 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
 
     def validate(self, data):
         dref = data.get("dref")
+        if self.instance and self.instance.status == Dref.Status.FINALIZING:
+            raise serializers.ValidationError(gettext("Cannot be updated while the translation is in progress"))
         if not self.instance and dref:
-            if not dref.is_published:
-                raise serializers.ValidationError(gettext("Can't create Operational Update for not published %s dref." % dref.id))
+            if dref.status != Dref.Status.APPROVED:
+                raise serializers.ValidationError(gettext("Can't create Operational Update for not approved dref."))
             # get the latest dref_operation_update and
             # check whether it is published or not, exclude no operational object created so far
             dref_operational_update = (
                 DrefOperationalUpdate.objects.filter(dref=dref).order_by("-operational_update_number").first()
             )
-            if dref_operational_update and not dref_operational_update.is_published:
+            if dref_operational_update and dref_operational_update.status != Dref.Status.APPROVED:
                 raise serializers.ValidationError(
                     gettext(
                         "Can't create Operational Update for not \
-                        published Operational Update %s id and Operational Update Number %i."
+                        approved Operational Update %s id and Operational Update Number %i."
                         % (dref_operational_update.id, dref_operational_update.operational_update_number)
                     )
                 )
@@ -779,6 +791,15 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
 
     def create(self, validated_data):
         dref = validated_data["dref"]
+        current_language = get_language()
+        starting_langauge = validated_data.get("starting_language")
+        valid_languages = [dref.starting_language, dref.translation_module_original_language]
+        if current_language != starting_langauge:
+            raise serializers.ValidationError(gettext("Starting language does not match the expected language."))
+        if starting_langauge not in valid_languages:
+            raise serializers.ValidationError(
+                gettext(f"Invalid starting language. Supported options are '{valid_languages[0]}' and '{valid_languages[1]}'.")
+            )
         dref_operational_update = DrefOperationalUpdate.objects.filter(dref=dref).order_by("-operational_update_number").first()
         validated_data["created_by"] = self.context["request"].user
         if not dref_operational_update:
@@ -902,7 +923,6 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["is_man_made_event"] = dref.is_man_made_event
             validated_data["event_text"] = dref.event_text
             validated_data["did_national_society"] = dref.did_national_society
-
             operational_update = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
             nested_serialized_file_fields = [
@@ -1067,6 +1087,14 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             operational_update.users.add(*dref_operational_update.users.all())
             operational_update.risk_security.add(*dref_operational_update.risk_security.all())
             operational_update.source_information.add(*dref_operational_update.source_information.all())
+
+        # NOTE: Sync related models with the starting language
+        if starting_langauge != "en":
+            _translate_related_objects(
+                instance=operational_update,
+                auto_translate=False,
+                language=starting_langauge,
+            )
         return operational_update
 
     def update(self, instance, validated_data):
@@ -1126,24 +1154,25 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
 
     def validate(self, data):
         dref = data.get("dref")
+        if self.instance and self.instance.status == Dref.Status.FINALIZING:
+            raise serializers.ValidationError(gettext("Cannot be updated while the translation is in progress"))
         # Check if dref is published and operational_update associated with it is also published
         if not self.instance and dref:
-            if not dref.is_published:
-                raise serializers.ValidationError(gettext("Can't create Final Report for not published dref %s." % dref.id))
-            dref_operational_update = DrefOperationalUpdate.objects.filter(
-                dref=dref,
-                is_published=False,
-            ).values_list("id", flat=True)
+            if dref.status != Dref.Status.APPROVED:
+                raise serializers.ValidationError(gettext("Can't create Final Report for not approved dref."))
+            dref_operational_update = (
+                DrefOperationalUpdate.objects.filter(dref=dref).exclude(status=Dref.Status.APPROVED).values_list("id", flat=True)
+            )
             if dref_operational_update:
                 raise serializers.ValidationError(
                     gettext(
-                        "Can't create Final Report for not published Operational Update %s ids "
+                        "Can't create Final Report for not approved Operational Update %s ids "
                         % ",".join(map(str, dref_operational_update))
                     )
                 )
 
-        if self.instance and self.instance.is_published:
-            raise serializers.ValidationError(gettext("Can't update published final report %s." % self.instance.id))
+        if self.instance and self.instance.status == Dref.Status.APPROVED:
+            raise serializers.ValidationError(gettext("Can't update approved final report."))
 
         # NOTE: Validation for type DREF Imminent
         if self.instance and self.instance.is_dref_imminent_v2 and data.get("type_of_dref") == Dref.DrefType.IMMINENT:
@@ -1227,8 +1256,19 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
         # if yes copy from the latest operational update
         # else copy from dref
         dref = validated_data["dref"]
+        current_language = get_language()
+        starting_langauge = validated_data.get("starting_language")
+        valid_languages = [dref.starting_language, dref.translation_module_original_language]
+        if current_language != starting_langauge:
+            raise serializers.ValidationError(gettext("Starting language does not match the expected language."))
+        if starting_langauge not in valid_languages:
+            raise serializers.ValidationError(
+                gettext(f"Invalid starting language. Supported options are '{valid_languages[0]}' and '{valid_languages[1]}'.")
+            )
         dref_operational_update = (
-            DrefOperationalUpdate.objects.filter(dref=dref, is_published=True).order_by("-operational_update_number").first()
+            DrefOperationalUpdate.objects.filter(dref=dref, status=Dref.Status.APPROVED)
+            .order_by("-operational_update_number")
+            .first()
         )
         validated_data["created_by"] = self.context["request"].user
         # NOTE: Checks and common fields for the new dref final reports of new dref imminents
@@ -1509,6 +1549,14 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             # also update is_final_report_created for dref
             dref.is_final_report_created = True
             dref.save(update_fields=["is_final_report_created"])
+
+        # NOTE: Sync related models with the starting language
+        if starting_langauge != "en":
+            _translate_related_objects(
+                instance=dref_final_report,
+                auto_translate=False,
+                language=starting_langauge,
+            )
         return dref_final_report
 
     def update(self, instance, validated_data):
@@ -1528,6 +1576,7 @@ class CompletedDrefOperationsSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(source="get_status_display", read_only=True)
     application_type = serializers.SerializerMethodField()
     application_type_display = serializers.SerializerMethodField()
+    starting_language = serializers.CharField(read_only=True)
 
     class Meta:
         model = DrefFinalReport
@@ -1545,6 +1594,7 @@ class CompletedDrefOperationsSerializer(serializers.ModelSerializer):
             "dref",
             "status",
             "status_display",
+            "starting_language",
         )
 
     def get_application_type(self, obj) -> str:
@@ -1606,6 +1656,8 @@ class DrefGlobalFilesSerializer(serializers.Serializer):
 
 
 class BaseDref3Serializer(serializers.ModelSerializer):
+    # Ephemeral numeric id (assigned per request in list view)
+    id = serializers.IntegerField(read_only=True)
     appeal_id = serializers.CharField(source="appeal_code", read_only=True)
     stage = serializers.SerializerMethodField()
     allocation = serializers.SerializerMethodField()
@@ -1627,56 +1679,73 @@ class BaseDref3Serializer(serializers.ModelSerializer):
     date_of_appeal_request_from_ns = serializers.SerializerMethodField()
     date_of_approval = serializers.SerializerMethodField()
     date_of_summary_publication = serializers.SerializerMethodField()
+    start_date_of_operation = serializers.SerializerMethodField()
     end_date_of_operation = serializers.SerializerMethodField()
+    operation_status = serializers.SerializerMethodField()
     operation_timeframe = serializers.SerializerMethodField()
-    affected_people = serializers.SerializerMethodField()
-    targeted_people = serializers.SerializerMethodField()
-    beneficiaries_assisted = serializers.SerializerMethodField()
-    shelter_and_basic_household_items = serializers.SerializerMethodField()
-    shelter_and_basic_household_items_budget = serializers.SerializerMethodField()
-    shelter_and_basic_household_items_people_targeted = serializers.SerializerMethodField()
-    livelihoods = serializers.SerializerMethodField()
-    livelihoods_budget = serializers.SerializerMethodField()
-    livelihoods_people_targeted = serializers.SerializerMethodField()
-    multi_purpose_cash_grants = serializers.SerializerMethodField()
-    multi_purpose_cash_grants_budget = serializers.SerializerMethodField()
-    multi_purpose_cash_grants_people_targeted = serializers.SerializerMethodField()
-    health = serializers.SerializerMethodField()
-    health_budget = serializers.SerializerMethodField()
-    health_people_targeted = serializers.SerializerMethodField()
-    water_sanitation_and_hygiene = serializers.SerializerMethodField()
-    water_sanitation_and_hygiene_budget = serializers.SerializerMethodField()
-    water_sanitation_and_hygiene_people_targeted = serializers.SerializerMethodField()
-    protection_gender_and_inclusion = serializers.SerializerMethodField()
-    protection_gender_and_inclusion_budget = serializers.SerializerMethodField()
-    protection_gender_and_inclusion_people_targeted = serializers.SerializerMethodField()
-    education = serializers.SerializerMethodField()
-    education_budget = serializers.SerializerMethodField()
-    education_people_targeted = serializers.SerializerMethodField()
-    migration_and_displacement = serializers.SerializerMethodField()
-    migration_and_displacement_budget = serializers.SerializerMethodField()
-    migration_and_displacement_people_targeted = serializers.SerializerMethodField()
-    risk_reduction_climate_adaptation_and_recovery = serializers.SerializerMethodField()
-    risk_reduction_climate_adaptation_and_recovery_budget = serializers.SerializerMethodField()
-    risk_reduction_climate_adaptation_and_recovery_people_targeted = serializers.SerializerMethodField()
-    community_engagement_and_accountability = serializers.SerializerMethodField()
-    community_engagement_and_accountability_budget = serializers.SerializerMethodField()
-    community_engagement_and_accountability_people_targeted = serializers.SerializerMethodField()
-    enviromental_sustainability = serializers.SerializerMethodField()
-    enviromental_sustainability_budget = serializers.SerializerMethodField()
-    enviromental_sustainability_people_targeted = serializers.SerializerMethodField()
-    coordination_and_partnerships = serializers.SerializerMethodField()
-    coordination_and_partnerships_budget = serializers.SerializerMethodField()
-    coordination_and_partnerships_people_targeted = serializers.SerializerMethodField()
-    secretariat_services = serializers.SerializerMethodField()
-    secretariat_services_budget = serializers.SerializerMethodField()
-    secretariat_services_people_targeted = serializers.SerializerMethodField()
-    national_society_strengthening = serializers.SerializerMethodField()
-    national_society_strengthening_budget = serializers.SerializerMethodField()
-    national_society_strengthening_people_targeted = serializers.SerializerMethodField()
+    modified_at = serializers.CharField(read_only=True)
+    data_origin = serializers.SerializerMethodField()
+    people_affected = serializers.SerializerMethodField()
+    people_targeted = serializers.SerializerMethodField()
+    people_assisted = serializers.SerializerMethodField()
+    population_disaggregation = serializers.SerializerMethodField()
+    sector_shelter_and_basic_household_items = serializers.SerializerMethodField()
+    sector_shelter_and_basic_household_items_budget = serializers.SerializerMethodField()
+    sector_shelter_and_basic_household_items_people_targeted = serializers.SerializerMethodField()
+    sector_livelihoods = serializers.SerializerMethodField()
+    sector_livelihoods_budget = serializers.SerializerMethodField()
+    sector_livelihoods_people_targeted = serializers.SerializerMethodField()
+    sector_multi_purpose_cash_grants = serializers.SerializerMethodField()
+    sector_multi_purpose_cash_grants_budget = serializers.SerializerMethodField()
+    sector_multi_purpose_cash_grants_people_targeted = serializers.SerializerMethodField()
+    sector_health = serializers.SerializerMethodField()
+    sector_health_budget = serializers.SerializerMethodField()
+    sector_health_people_targeted = serializers.SerializerMethodField()
+    sector_water_sanitation_and_hygiene = serializers.SerializerMethodField()
+    sector_water_sanitation_and_hygiene_budget = serializers.SerializerMethodField()
+    sector_water_sanitation_and_hygiene_people_targeted = serializers.SerializerMethodField()
+    sector_protection_gender_and_inclusion = serializers.SerializerMethodField()
+    sector_protection_gender_and_inclusion_budget = serializers.SerializerMethodField()
+    sector_protection_gender_and_inclusion_people_targeted = serializers.SerializerMethodField()
+    sector_education = serializers.SerializerMethodField()
+    sector_education_budget = serializers.SerializerMethodField()
+    sector_education_people_targeted = serializers.SerializerMethodField()
+    sector_migration_and_displacement = serializers.SerializerMethodField()
+    sector_migration_and_displacement_budget = serializers.SerializerMethodField()
+    sector_migration_and_displacement_people_targeted = serializers.SerializerMethodField()
+    sector_risk_reduction_climate_adaptation_and_recovery = serializers.SerializerMethodField()
+    sector_risk_reduction_climate_adaptation_and_recovery_budget = serializers.SerializerMethodField()
+    sector_risk_reduction_climate_adaptation_and_recovery_people_targeted = serializers.SerializerMethodField()
+    sector_community_engagement_and_accountability = serializers.SerializerMethodField()
+    sector_community_engagement_and_accountability_budget = serializers.SerializerMethodField()
+    sector_community_engagement_and_accountability_people_targeted = serializers.SerializerMethodField()
+    sector_environmental_sustainability = serializers.SerializerMethodField()
+    sector_environmental_sustainability_budget = serializers.SerializerMethodField()
+    sector_environmental_sustainability_people_targeted = serializers.SerializerMethodField()
+    sector_coordination_and_partnerships = serializers.SerializerMethodField()
+    sector_coordination_and_partnerships_budget = serializers.SerializerMethodField()
+    sector_coordination_and_partnerships_people_targeted = serializers.SerializerMethodField()
+    sector_secretariat_services = serializers.SerializerMethodField()
+    sector_secretariat_services_budget = serializers.SerializerMethodField()
+    sector_secretariat_services_people_targeted = serializers.SerializerMethodField()
+    sector_national_society_strengthening = serializers.SerializerMethodField()
+    sector_national_society_strengthening_budget = serializers.SerializerMethodField()
+    sector_national_society_strengthening_people_targeted = serializers.SerializerMethodField()
+    public = serializers.SerializerMethodField(read_only=True)
+    is_latest_stage = serializers.SerializerMethodField(read_only=True)
+    status = serializers.IntegerField(read_only=True)
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
     approved = serializers.SerializerMethodField()
-    indicators_nested_table = serializers.SerializerMethodField()
+    indicators_id = serializers.SerializerMethodField()
     link_to_emergency_page = serializers.SerializerMethodField()
+
+    # get_id removed: numeric ids are injected post-serialization
+
+    def get_public(self, obj):
+        return self.context.get("public")
+
+    def get_is_latest_stage(self, obj):
+        return self.context.get("is_latest_stage")
 
     def get_stage(self, obj):
         return self.context.get("stage")
@@ -1731,12 +1800,17 @@ class BaseDref3Serializer(serializers.ModelSerializer):
             return obj.ns_request_date
 
     def get_date_of_approval(self, obj):
-        if type(obj).__name__ == "Dref" and hasattr(obj, "date_of_approval"):
+        # if type(obj).__name__ == "Dref" and hasattr(obj, "date_of_approval"): – instead of this, just return for all types
+        if hasattr(obj, "date_of_approval"):
             return obj.date_of_approval
 
     def get_date_of_summary_publication(self, obj):
         if type(obj).__name__ == "Dref" and hasattr(obj, "publishing_date"):
             return obj.publishing_date
+
+    def get_start_date_of_operation(self, obj):
+        if hasattr(obj, "event_date"):
+            return obj.event_date
 
     def get_end_date_of_operation(self, obj):
         t = type(obj).__name__
@@ -1747,6 +1821,25 @@ class BaseDref3Serializer(serializers.ModelSerializer):
         if t == "DrefFinalReport" and hasattr(obj, "operation_end_date"):
             return obj.operation_end_date
 
+    def get_operation_status(self, obj):
+        """Return 'active' if current date is between start and end date (inclusive), else 'closed'.
+        Returns None if either boundary date is missing.
+        """
+        start = self.get_start_date_of_operation(obj)
+        end = self.get_end_date_of_operation(obj)
+        if not start or not end:
+            return None
+        try:
+            today = timezone.now().date()
+            # Ensure we are comparing date objects (convert datetimes if present)
+            if hasattr(start, "date") and callable(getattr(start, "date")):
+                start = start.date()
+            if hasattr(end, "date") and callable(getattr(end, "date")):
+                end = end.date()
+            return "active" if start <= today <= end else "closed"
+        except Exception:
+            return None
+
     def get_operation_timeframe(self, obj):
         t = type(obj).__name__
         if t == "Dref" and hasattr(obj, "operation_timeframe"):
@@ -1754,236 +1847,291 @@ class BaseDref3Serializer(serializers.ModelSerializer):
         if t != "Dref" and hasattr(obj, "total_operation_timeframe"):  # OU + FR:
             return obj.total_operation_timeframe
 
-    def get_affected_people(self, obj):
+    def get_data_origin(self, obj):
+        return "DREF process in GO"  # Hardcoded for now, later can be also "DREF published report"
+
+    def get_people_affected(self, obj):
         t = type(obj).__name__
         if t == "Dref" and hasattr(obj, "num_affected"):
             return obj.num_affected
         if t != "Dref" and hasattr(obj, "number_of_people_affected"):  # OU + FR:
             return obj.number_of_people_affected
 
-    def get_targeted_people(self, obj):
+    def get_people_targeted(self, obj):
         t = type(obj).__name__
         if t != "DrefOperationalUpdate" and hasattr(obj, "total_targeted_population"):  # A + FR:
             return obj.total_targeted_population
         if t == "DrefOperationalUpdate" and hasattr(obj, "number_of_people_targeted"):
             return obj.number_of_people_targeted
 
-    def get_beneficiaries_assisted(self, obj):
+    def get_people_assisted(self, obj):
         if type(obj).__name__ == "DrefFinalReport":
             return obj.num_assisted
 
-    def get_shelter_and_basic_household_items(self, obj):
+    def get_population_disaggregation(self, obj):
+        """Return population disaggregation dict.
+
+        Structure:
+        {
+            "Women": women,
+            "Girls (under 18)": girls,
+            "Men": men,
+            "Boys (under 18)": boys,
+            "Rural": "people_per_local%",
+            "Urban": "people_per_urban%"
+        }
+        Only include keys that have a non-None underlying value.
+        Percentages are suffixed with % if numeric.
+        """
+        women = getattr(obj, "women", None)
+        girls = getattr(obj, "girls", None)
+        men = getattr(obj, "men", None)
+        boys = getattr(obj, "boys", None)
+        urban = getattr(obj, "people_per_urban", None)
+        rural = getattr(obj, "people_per_local", None)
+
+        def pct(val):
+            if val is None:
+                return None
+            try:
+                # Keep as int if float-ish, then append %
+                return f"{int(val)}%"
+            except (ValueError, TypeError):
+                return None
+
+        data = {}
+        if women is not None:
+            data["Women"] = women
+        if girls is not None:
+            data["Girls (under 18)"] = girls
+        if men is not None:
+            data["Men"] = men
+        if boys is not None:
+            data["Boys (under 18)"] = boys
+        if rural is not None:
+            rural_pct = pct(rural)
+            if rural_pct is not None:
+                data["Rural"] = rural_pct
+        if urban is not None:
+            urban_pct = pct(urban)
+            if urban_pct is not None:
+                data["Urban"] = urban_pct
+
+        return data or None
+
+    def get_sector_shelter_and_basic_household_items(self, obj):
         topic = PlannedIntervention.Title.SHELTER_HOUSING_AND_SETTLEMENTS
-        return "Yes" if any(p.title == topic for p in obj.planned_interventions.all()) else "No"
+        return True if any(p.title == topic for p in obj.planned_interventions.all()) else False
 
-    def get_shelter_and_basic_household_items_budget(self, obj):
+    def get_sector_shelter_and_basic_household_items_budget(self, obj):
         topic = PlannedIntervention.Title.SHELTER_HOUSING_AND_SETTLEMENTS
         if obj.planned_interventions.count():
             return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
-    def get_shelter_and_basic_household_items_people_targeted(self, obj):
+    def get_sector_shelter_and_basic_household_items_people_targeted(self, obj):
         topic = PlannedIntervention.Title.SHELTER_HOUSING_AND_SETTLEMENTS
         if obj.planned_interventions.count():
             return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
-    def get_livelihoods(self, obj):
+    def get_sector_livelihoods(self, obj):
         topic = PlannedIntervention.Title.LIVELIHOODS_AND_BASIC_NEEDS
-        return "Yes" if any(p.title == topic for p in obj.planned_interventions.all()) else "No"
+        return True if any(p.title == topic for p in obj.planned_interventions.all()) else False
 
-    def get_livelihoods_budget(self, obj):
-        topic = PlannedIntervention.Title.LIVELIHOODS_AND_BASIC_NEEDS
-        if obj.planned_interventions.count():
-            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
-
-    def get_livelihoods_people_targeted(self, obj):
+    def get_sector_livelihoods_budget(self, obj):
         topic = PlannedIntervention.Title.LIVELIHOODS_AND_BASIC_NEEDS
         if obj.planned_interventions.count():
+            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
+
+    def get_sector_livelihoods_people_targeted(self, obj):
+        topic = PlannedIntervention.Title.LIVELIHOODS_AND_BASIC_NEEDS
+        if obj.planned_interventions.count():
             return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
-    def get_multi_purpose_cash_grants(self, obj):
+    def get_sector_multi_purpose_cash_grants(self, obj):
         topic = PlannedIntervention.Title.MULTI_PURPOSE_CASH
-        return "Yes" if any(p.title == topic for p in obj.planned_interventions.all()) else "No"
+        return True if any(p.title == topic for p in obj.planned_interventions.all()) else False
 
-    def get_multi_purpose_cash_grants_budget(self, obj):
+    def get_sector_multi_purpose_cash_grants_budget(self, obj):
         topic = PlannedIntervention.Title.MULTI_PURPOSE_CASH
         if obj.planned_interventions.count():
             return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
-    def get_multi_purpose_cash_grants_people_targeted(self, obj):
+    def get_sector_multi_purpose_cash_grants_people_targeted(self, obj):
         topic = PlannedIntervention.Title.MULTI_PURPOSE_CASH
         if obj.planned_interventions.count():
             return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
-    def get_health(self, obj):
+    def get_sector_health(self, obj):
         topic = PlannedIntervention.Title.HEALTH
-        return "Yes" if any(p.title == topic for p in obj.planned_interventions.all()) else "No"
+        return True if any(p.title == topic for p in obj.planned_interventions.all()) else False
 
-    def get_health_budget(self, obj):
-        topic = PlannedIntervention.Title.HEALTH
-        if obj.planned_interventions.count():
-            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
-
-    def get_health_people_targeted(self, obj):
+    def get_sector_health_budget(self, obj):
         topic = PlannedIntervention.Title.HEALTH
         if obj.planned_interventions.count():
+            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
+
+    def get_sector_health_people_targeted(self, obj):
+        topic = PlannedIntervention.Title.HEALTH
+        if obj.planned_interventions.count():
             return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
-    def get_water_sanitation_and_hygiene(self, obj):
+    def get_sector_water_sanitation_and_hygiene(self, obj):
         topic = PlannedIntervention.Title.WATER_SANITATION_AND_HYGIENE
-        return "Yes" if any(p.title == topic for p in obj.planned_interventions.all()) else "No"
+        return True if any(p.title == topic for p in obj.planned_interventions.all()) else False
 
-    def get_water_sanitation_and_hygiene_budget(self, obj):
+    def get_sector_water_sanitation_and_hygiene_budget(self, obj):
         topic = PlannedIntervention.Title.WATER_SANITATION_AND_HYGIENE
         if obj.planned_interventions.count():
             return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
-    def get_water_sanitation_and_hygiene_people_targeted(self, obj):
+    def get_sector_water_sanitation_and_hygiene_people_targeted(self, obj):
         topic = PlannedIntervention.Title.WATER_SANITATION_AND_HYGIENE
         if obj.planned_interventions.count():
             return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
-    def get_protection_gender_and_inclusion(self, obj):
+    def get_sector_protection_gender_and_inclusion(self, obj):
         topic = PlannedIntervention.Title.PROTECTION_GENDER_AND_INCLUSION
-        return "Yes" if any(p.title == topic for p in obj.planned_interventions.all()) else "No"
+        return True if any(p.title == topic for p in obj.planned_interventions.all()) else False
 
-    def get_protection_gender_and_inclusion_budget(self, obj):
-        topic = PlannedIntervention.Title.PROTECTION_GENDER_AND_INCLUSION
-        if obj.planned_interventions.count():
-            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
-
-    def get_protection_gender_and_inclusion_people_targeted(self, obj):
+    def get_sector_protection_gender_and_inclusion_budget(self, obj):
         topic = PlannedIntervention.Title.PROTECTION_GENDER_AND_INCLUSION
         if obj.planned_interventions.count():
+            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
+
+    def get_sector_protection_gender_and_inclusion_people_targeted(self, obj):
+        topic = PlannedIntervention.Title.PROTECTION_GENDER_AND_INCLUSION
+        if obj.planned_interventions.count():
             return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
-    def get_education(self, obj):
+    def get_sector_education(self, obj):
         topic = PlannedIntervention.Title.EDUCATION
-        return "Yes" if any(p.title == topic for p in obj.planned_interventions.all()) else "No"
+        return True if any(p.title == topic for p in obj.planned_interventions.all()) else False
 
-    def get_education_budget(self, obj):
+    def get_sector_education_budget(self, obj):
         topic = PlannedIntervention.Title.EDUCATION
         if obj.planned_interventions.count():
             return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
-    def get_education_people_targeted(self, obj):
+    def get_sector_education_people_targeted(self, obj):
         topic = PlannedIntervention.Title.EDUCATION
         if obj.planned_interventions.count():
             return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
-    def get_migration_and_displacement(self, obj):
+    def get_sector_migration_and_displacement(self, obj):
         topic = PlannedIntervention.Title.MIGRATION_AND_DISPLACEMENT
-        return "Yes" if any(p.title == topic for p in obj.planned_interventions.all()) else "No"
+        return True if any(p.title == topic for p in obj.planned_interventions.all()) else False
 
-    def get_migration_and_displacement_budget(self, obj):
-        topic = PlannedIntervention.Title.MIGRATION_AND_DISPLACEMENT
-        if obj.planned_interventions.count():
-            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
-
-    def get_migration_and_displacement_people_targeted(self, obj):
+    def get_sector_migration_and_displacement_budget(self, obj):
         topic = PlannedIntervention.Title.MIGRATION_AND_DISPLACEMENT
         if obj.planned_interventions.count():
+            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
+
+    def get_sector_migration_and_displacement_people_targeted(self, obj):
+        topic = PlannedIntervention.Title.MIGRATION_AND_DISPLACEMENT
+        if obj.planned_interventions.count():
             return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
-    def get_risk_reduction_climate_adaptation_and_recovery(self, obj):
+    def get_sector_risk_reduction_climate_adaptation_and_recovery(self, obj):
         topic = PlannedIntervention.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY
-        return "Yes" if any(p.title == topic for p in obj.planned_interventions.all()) else "No"
+        return True if any(p.title == topic for p in obj.planned_interventions.all()) else False
 
-    def get_risk_reduction_climate_adaptation_and_recovery_budget(self, obj):
+    def get_sector_risk_reduction_climate_adaptation_and_recovery_budget(self, obj):
         topic = PlannedIntervention.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY
         if obj.planned_interventions.count():
             return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
-    def get_risk_reduction_climate_adaptation_and_recovery_people_targeted(self, obj):
+    def get_sector_risk_reduction_climate_adaptation_and_recovery_people_targeted(self, obj):
         topic = PlannedIntervention.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY
         if obj.planned_interventions.count():
             return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
-    def get_community_engagement_and_accountability(self, obj):
+    def get_sector_community_engagement_and_accountability(self, obj):
         topic = PlannedIntervention.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY
-        return "Yes" if any(p.title == topic for p in obj.planned_interventions.all()) else "No"
+        return True if any(p.title == topic for p in obj.planned_interventions.all()) else False
 
-    def get_community_engagement_and_accountability_budget(self, obj):
-        topic = PlannedIntervention.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY
-        if obj.planned_interventions.count():
-            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
-
-    def get_community_engagement_and_accountability_people_targeted(self, obj):
+    def get_sector_community_engagement_and_accountability_budget(self, obj):
         topic = PlannedIntervention.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY
         if obj.planned_interventions.count():
+            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
+
+    def get_sector_community_engagement_and_accountability_people_targeted(self, obj):
+        topic = PlannedIntervention.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY
+        if obj.planned_interventions.count():
             return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
-    def get_enviromental_sustainability(self, obj):
+    def get_sector_environmental_sustainability(self, obj):
         topic = PlannedIntervention.Title.ENVIRONMENTAL_SUSTAINABILITY
-        return "Yes" if any(p.title == topic for p in obj.planned_interventions.all()) else "No"
+        return True if any(p.title == topic for p in obj.planned_interventions.all()) else False
 
-    def get_enviromental_sustainability_budget(self, obj):
+    def get_sector_environmental_sustainability_budget(self, obj):
         topic = PlannedIntervention.Title.ENVIRONMENTAL_SUSTAINABILITY
         if obj.planned_interventions.count():
             return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
-    def get_enviromental_sustainability_people_targeted(self, obj):
+    def get_sector_environmental_sustainability_people_targeted(self, obj):
         topic = PlannedIntervention.Title.ENVIRONMENTAL_SUSTAINABILITY
         if obj.planned_interventions.count():
             return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
-    def get_coordination_and_partnerships(self, obj):
+    def get_sector_coordination_and_partnerships(self, obj):
         topic = PlannedIntervention.Title.COORDINATION_AND_PARTNERSHIPS
-        return "Yes" if any(p.title == topic for p in obj.planned_interventions.all()) else "No"
+        return True if any(p.title == topic for p in obj.planned_interventions.all()) else False
 
-    def get_coordination_and_partnerships_budget(self, obj):
+    def get_sector_coordination_and_partnerships_budget(self, obj):
         topic = PlannedIntervention.Title.COORDINATION_AND_PARTNERSHIPS
         if obj.planned_interventions.count():
             return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
-    def get_coordination_and_partnerships_people_targeted(self, obj):
+    def get_sector_coordination_and_partnerships_people_targeted(self, obj):
         topic = PlannedIntervention.Title.COORDINATION_AND_PARTNERSHIPS
         if obj.planned_interventions.count():
             return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
-    def get_secretariat_services(self, obj):
+    def get_sector_secretariat_services(self, obj):
         topic = PlannedIntervention.Title.SECRETARIAT_SERVICES
-        return "Yes" if any(p.title == topic for p in obj.planned_interventions.all()) else "No"
+        return True if any(p.title == topic for p in obj.planned_interventions.all()) else False
 
-    def get_secretariat_services_budget(self, obj):
+    def get_sector_secretariat_services_budget(self, obj):
         topic = PlannedIntervention.Title.SECRETARIAT_SERVICES
         if obj.planned_interventions.count():
             return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
-    def get_secretariat_services_people_targeted(self, obj):
+    def get_sector_secretariat_services_people_targeted(self, obj):
         topic = PlannedIntervention.Title.SECRETARIAT_SERVICES
         if obj.planned_interventions.count():
             return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
-    def get_national_society_strengthening(self, obj):
+    def get_sector_national_society_strengthening(self, obj):
         topic = PlannedIntervention.Title.NATIONAL_SOCIETY_STRENGTHENING
-        return "Yes" if any(p.title == topic for p in obj.planned_interventions.all()) else "No"
+        return True if any(p.title == topic for p in obj.planned_interventions.all()) else False
 
-    def get_national_society_strengthening_budget(self, obj):
+    def get_sector_national_society_strengthening_budget(self, obj):
         topic = PlannedIntervention.Title.NATIONAL_SOCIETY_STRENGTHENING
         if obj.planned_interventions.count():
             return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
-    def get_national_society_strengthening_people_targeted(self, obj):
+    def get_sector_national_society_strengthening_people_targeted(self, obj):
         topic = PlannedIntervention.Title.NATIONAL_SOCIETY_STRENGTHENING
         if obj.planned_interventions.count():
             return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
 
     def get_approved(self, obj):
-        return "Yes" if obj.is_published else "No"
+        return True if obj.status == Dref.Status.APPROVED else False
 
-    def get_indicators_nested_table(self, obj):
-        return "???"
+    def get_indicators_id(self, obj):
+        return None  # Placeholder for future implementation
 
     def get_link_to_emergency_page(self, obj):
         try:
             appeal = Appeal.objects.get(code=obj.appeal_code)
         except Appeal.DoesNotExist:
-            return f"No Appeal (and no Event) found with code: {obj.appeal_code}"
+            return None  # f"No Appeal (and no Event) found with code: {obj.appeal_code}"
         return f"https://go.ifrc.org/emergencies/{appeal.event_id}/details"
 
     class Meta:
         abstract = True
         fields = [
+            "id",
             "appeal_id",
             "stage",
             "allocation",
@@ -2005,55 +2153,64 @@ class BaseDref3Serializer(serializers.ModelSerializer):
             "date_of_appeal_request_from_ns",
             "date_of_approval",
             "date_of_summary_publication",
+            "start_date_of_operation",
             "end_date_of_operation",
+            "operation_status",
             "operation_timeframe",
-            "affected_people",
-            "targeted_people",
-            "beneficiaries_assisted",
-            "shelter_and_basic_household_items",
-            "shelter_and_basic_household_items_budget",
-            "shelter_and_basic_household_items_people_targeted",
-            "livelihoods",
-            "livelihoods_budget",
-            "livelihoods_people_targeted",
-            "multi_purpose_cash_grants",
-            "multi_purpose_cash_grants_budget",
-            "multi_purpose_cash_grants_people_targeted",
-            "health",
-            "health_budget",
-            "health_people_targeted",
-            "water_sanitation_and_hygiene",
-            "water_sanitation_and_hygiene_budget",
-            "water_sanitation_and_hygiene_people_targeted",
-            "protection_gender_and_inclusion",
-            "protection_gender_and_inclusion_budget",
-            "protection_gender_and_inclusion_people_targeted",
-            "education",
-            "education_budget",
-            "education_people_targeted",
-            "migration_and_displacement",
-            "migration_and_displacement_budget",
-            "migration_and_displacement_people_targeted",
-            "risk_reduction_climate_adaptation_and_recovery",
-            "risk_reduction_climate_adaptation_and_recovery_budget",
-            "risk_reduction_climate_adaptation_and_recovery_people_targeted",
-            "community_engagement_and_accountability",
-            "community_engagement_and_accountability_budget",
-            "community_engagement_and_accountability_people_targeted",
-            "enviromental_sustainability",
-            "enviromental_sustainability_budget",
-            "enviromental_sustainability_people_targeted",
-            "coordination_and_partnerships",
-            "coordination_and_partnerships_budget",
-            "coordination_and_partnerships_people_targeted",
-            "secretariat_services",
-            "secretariat_services_budget",
-            "secretariat_services_people_targeted",
-            "national_society_strengthening",
-            "national_society_strengthening_budget",
-            "national_society_strengthening_people_targeted",
+            "modified_at",
+            "data_origin",
+            "people_affected",
+            "people_targeted",
+            "people_assisted",
+            "population_disaggregation",
+            "sector_shelter_and_basic_household_items",
+            "sector_shelter_and_basic_household_items_budget",
+            "sector_shelter_and_basic_household_items_people_targeted",
+            "sector_livelihoods",
+            "sector_livelihoods_budget",
+            "sector_livelihoods_people_targeted",
+            "sector_multi_purpose_cash_grants",
+            "sector_multi_purpose_cash_grants_budget",
+            "sector_multi_purpose_cash_grants_people_targeted",
+            "sector_health",
+            "sector_health_budget",
+            "sector_health_people_targeted",
+            "sector_water_sanitation_and_hygiene",
+            "sector_water_sanitation_and_hygiene_budget",
+            "sector_water_sanitation_and_hygiene_people_targeted",
+            "sector_protection_gender_and_inclusion",
+            "sector_protection_gender_and_inclusion_budget",
+            "sector_protection_gender_and_inclusion_people_targeted",
+            "sector_education",
+            "sector_education_budget",
+            "sector_education_people_targeted",
+            "sector_migration_and_displacement",
+            "sector_migration_and_displacement_budget",
+            "sector_migration_and_displacement_people_targeted",
+            "sector_risk_reduction_climate_adaptation_and_recovery",
+            "sector_risk_reduction_climate_adaptation_and_recovery_budget",
+            "sector_risk_reduction_climate_adaptation_and_recovery_people_targeted",
+            "sector_community_engagement_and_accountability",
+            "sector_community_engagement_and_accountability_budget",
+            "sector_community_engagement_and_accountability_people_targeted",
+            "sector_environmental_sustainability",
+            "sector_environmental_sustainability_budget",
+            "sector_environmental_sustainability_people_targeted",
+            "sector_coordination_and_partnerships",
+            "sector_coordination_and_partnerships_budget",
+            "sector_coordination_and_partnerships_people_targeted",
+            "sector_secretariat_services",
+            "sector_secretariat_services_budget",
+            "sector_secretariat_services_people_targeted",
+            "sector_national_society_strengthening",
+            "sector_national_society_strengthening_budget",
+            "sector_national_society_strengthening_people_targeted",
+            "public",
+            "is_latest_stage",
+            "status",
+            "status_display",
             "approved",
-            "indicators_nested_table",
+            "indicators_id",
             "link_to_emergency_page",
         ]
 

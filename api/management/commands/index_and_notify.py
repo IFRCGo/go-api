@@ -810,7 +810,13 @@ class Command(BaseCommand):
                         & Q(is_active=True)
                         & (~Q(groups__name="IFRC Admins") & ~Q(is_superuser=True))
                     )
-                    non_ifrc_recipients = list(User.objects.filter(non_ifrc_filters).values_list("email", flat=True))
+                    non_ifrc_recipients = list(
+                        User.objects.filter(non_ifrc_filters)
+                        .exclude(email__isnull=True)
+                        .exclude(email="")
+                        .values_list("email", flat=True)
+                        .distinct()
+                    )
 
                     # FIXME: Code duplication but this whole thing would need a huge refactor
                     # (almost the same as above and in the 'else' part)
@@ -839,8 +845,13 @@ class Command(BaseCommand):
                     & Q(is_active=True)
                     & (Q(groups__name="IFRC Admins") | Q(is_superuser=True))
                 )
-                ifrc_emails = list(User.objects.filter(ifrc_filters).values_list("email", flat=True))
-                ifrc_recipients = ifrc_emails
+                ifrc_recipients = list(
+                    User.objects.filter(ifrc_filters)
+                    .exclude(email__isnull=True)
+                    .exclude(email="")
+                    .values_list("email", flat=True)
+                    .distinct()
+                )
 
                 # FIXME: Code duplication but this whole thing would need a huge refactor
                 # (almost the same as above and in the 'else' part)

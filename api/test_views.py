@@ -170,11 +170,11 @@ class GuestUserPermissionTest(APITestCase):
         go_post_apis = [
             "/api/v2/dref/",
             "/api/v2/dref-final-report/",
-            f"/api/v2/dref-final-report/{id}/publish/",
+            f"/api/v2/dref-final-report/{id}/approve/",
             "/api/v2/dref-op-update/",
-            f"/api/v2/dref-op-update/{id}/publish/",
+            f"/api/v2/dref-op-update/{id}/approve/",
             "/api/v2/dref-share/",
-            f"/api/v2/dref/{id}/publish/",
+            f"/api/v2/dref/{id}/approve/",
             "/api/v2/flash-update/",
             "/api/v2/flash-update-file/multiple/",
             "/api/v2/local-units/",
@@ -934,7 +934,7 @@ class AppealTest(APITestCase):
         self.assert_200(response)
         self.assertIsNotNone(response.json())
         self.assertEqual(response.data["active_drefs"], 1)
-        self.assertEqual(response.data["active_appeals"], 3)
+        self.assertEqual(response.data["active_appeals"], 2)
 
 
 class RegionSnippetVisibilityTest(APITestCase):

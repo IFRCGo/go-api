@@ -8,6 +8,7 @@ from .models import (
     PersonnelDeployment,
     Project,
     RegionalProject,
+    Sector,
 )
 
 
@@ -49,3 +50,8 @@ class ProjectTO(TranslationOptions):
         "name",
         "description",
     )
+
+
+@register(Sector)
+class SectorTO(TranslationOptions):
+    fields = ("title",)

@@ -13,6 +13,7 @@ from main.permissions import DenyGuestUserPermission
 from .models import Subscription, SurgeAlert
 from .serializers import (  # UnauthenticatedSurgeAlertSerializer,
     SubscriptionSerializer,
+    SurgeAlertCsvSerializer,
     SurgeAlertSerializer,
 )
 
@@ -80,6 +81,9 @@ class SurgeAlertViewset(viewsets.ReadOnlyModelViewSet):
     )  # for /docs
 
     def get_serializer_class(self):
+        # Use CSV-friendly serializer for CSV format to ensure consistent column count across pages
+        if self.request.query_params.get("format") == "csv":
+            return SurgeAlertCsvSerializer
         # if self.request.user.is_authenticated:
         #     return SurgeAlertSerializer
         # return UnauthenticatedSurgeAlertSerializer

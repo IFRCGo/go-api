@@ -9,6 +9,7 @@ from dref.models import (
     NationalSocietyAction,
     PlannedIntervention,
     PlannedInterventionIndicators,
+    ProposedActionActivities,
     RiskSecurity,
 )
 
@@ -44,15 +45,15 @@ class DrefTO(TranslationOptions):
         "pmer",
         "communication",
         "risk_security_concern",
+        "addressed_humanitarian_impacts",
+        "hazard_date_and_location",
+        "hazard_vulnerabilities_and_risks",
     )
 
 
 @register(DrefFile)
 class DrefFileTO(TranslationOptions):
     fields = ("caption",)
-    # NOTE: Adding skip_fields temporarily to avoid removing previously translated data
-    # TODO(sudip): Remove skip_fields after dref translation feature is implemented
-    skip_fields = ("caption",)
 
 
 @register(DrefFinalReport)
@@ -76,6 +77,8 @@ class DrefFinalReportTO(TranslationOptions):
         "event_text",
         "national_society_conducted_description",
         "financial_report_description",
+        "main_donors",
+        "people_assisted",
     )
 
 
@@ -105,6 +108,8 @@ class DrefOperationalUpdateTO(TranslationOptions):
         "logistic_capacity_of_ns",
         "pmer",
         "communication",
+        "identified_gaps",
+        "summary_of_change",
     )
 
 
@@ -119,9 +124,6 @@ class IdentifiedNeedTO(TranslationOptions):
 @register(NationalSocietyAction)
 class NationalSocietyActionTO(TranslationOptions):
     fields = ("description",)
-    # NOTE: Adding skip_fields temporarily to avoid removing previously translated data
-    # TODO(sudip): Remove skip_fields after dref translation feature is implemented
-    skip_fields = ("description",)
 
 
 @register(PlannedIntervention)
@@ -147,3 +149,8 @@ class RiskSecurityTO(TranslationOptions):
         "risk",
         "mitigation",
     )
+
+
+@register(ProposedActionActivities)
+class ProposedActionActivitiesTO(TranslationOptions):
+    fields = ("activity",)

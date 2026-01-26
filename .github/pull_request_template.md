@@ -1,4 +1,10 @@
-Addresses xxxxxx
+## Addresses
+- https://github.com/IFRCGo/go-api/issues/XXXX
+- ...
+
+## Related PRs
+- https://github.com/IFRCGo/go-api-artifacts/pull/XXXX
+- ...
 
 ## Changes
 

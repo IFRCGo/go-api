@@ -1,0 +1,11 @@
+{
+    "version": 1,
+    "layers": {
+      "go-admin2-GAB-centroids-staging": {
+        "source": "mapbox://tileset-source/go-ifrc/go-admin2-GAB-centroids-src-staging",
+        "minzoom": 5,
+        "maxzoom": 10
+      }
+    }
+  }
+  

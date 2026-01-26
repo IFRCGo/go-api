@@ -284,14 +284,22 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
             update_date_changed = original.ifrc_severity_level_update_date != obj.ifrc_severity_level_update_date
 
             if severity_changed and not update_date_changed:
-                messages.error(request, "You must update the 'IFRC Severity Level Update Date' when changing the severity level.")
-                raise ValidationError("Cannot change severity level without updating the update date.")
+                messages.error(
+                    request, "You must update the 'IFRC Severity Level Update Date/Time' when changing the severity level."
+                )
+                raise ValidationError("Cannot change severity level without updating the update date/time.")
 
             if severity_changed and update_date_changed:
+                if (
+                    original.ifrc_severity_level_update_date is not None
+                    and original.ifrc_severity_level_update_date > obj.ifrc_severity_level_update_date
+                ):
+                    messages.error(request, "A severity level update date can not be earlier than the previous one.")
+                    raise ValidationError("A severity level update date can not be earlier than the previous one.")
                 models.EventSeverityLevelHistory.objects.create(
                     event=obj,
-                    ifrc_severity_level=obj.ifrc_severity_level,
-                    ifrc_severity_level_update_date=obj.ifrc_severity_level_update_date,
+                    ifrc_severity_level=original.ifrc_severity_level,
+                    ifrc_severity_level_update_date=original.ifrc_severity_level_update_date,
                     created_by=request.user,
                 )
 
@@ -1042,8 +1050,13 @@ class CountryOfFieldReportToReviewAdmin(admin.ModelAdmin):
 
 @admin.register(models.EventSeverityLevelHistory)
 class EventSeverityLevelHistoryAdmin(admin.ModelAdmin):
+
+    @admin.display(description="Updated at", ordering="ifrc_severity_level_update_date")
+    def updated_at(self, obj):
+        return obj.ifrc_severity_level_update_date
+
     list_select_related = True
-    list_display = ["event", "ifrc_severity_level", "created_by", "created_at"]
+    list_display = ["event", "ifrc_severity_level", "created_by", "updated_at", "created_at"]
     autocomplete_fields = (
         "event",
         "created_by",

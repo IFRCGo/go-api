@@ -129,6 +129,10 @@ class RegistrationSerializer(serializers.Serializer):
             user.profile.department = department
             user.profile.position = position
             user.profile.phone_number = phone_number
+            # Limit access to guest when organization type is Other/OTHR
+            org_type_norm = (organization_type or "").strip().lower()
+            if org_type_norm in {"other", "othr"}:
+                user.profile.limit_access_to_guest = True
             user.profile.save()
         except Exception:
             raise serializers.ValidationError("Could not create user profile.")

@@ -9,7 +9,9 @@ from rest_framework import mixins, permissions, response, status, views, viewset
 from rest_framework.decorators import action
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 
+from api.models import Country
 from api.utils import bad_request
+from local_units.export import export_local_units_to_excel
 from local_units.filterset import (
     DelegationOfficeFilters,
     ExternallyManagedLocalUnitFilters,
@@ -65,6 +67,7 @@ from local_units.tasks import (
 )
 from local_units.utils import get_user_validator_level
 from main.permissions import DenyGuestUserPermission
+from main.utils import SpreadSheetContentNegotiation
 
 
 class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
@@ -126,6 +129,9 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
         if not update_reason:
             raise ValidationError({"update_reason_overview": "Update reason is required."})
 
+        serializer = self.get_serializer(local_unit, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+
         # NOTE: Locking the local unit after the change request is created
         previous_data = PrivateLocalUnitDetailSerializer(local_unit, context={"request": request}).data
         local_unit.status = LocalUnit.Status.PENDING_EDIT_VALIDATION
@@ -136,9 +142,6 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
                 "update_reason_overview",
             ]
         )
-        serializer = self.get_serializer(local_unit, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
         # Creating a new change request for the local unit
         LocalUnitChangeRequest.objects.create(
             local_unit=local_unit,
@@ -146,6 +149,7 @@ class PrivateLocalUnitViewSet(viewsets.ModelViewSet):
             status=LocalUnitChangeRequest.Status.PENDING,
             triggered_by=request.user,
         )
+        self.perform_update(serializer)
         transaction.on_commit(lambda: send_local_unit_email.delay(local_unit.id, new=False))
         return response.Response(serializer.data)
 
@@ -436,9 +440,15 @@ class DelegationOfficeDetailAPIView(RetrieveAPIView):
 
 
 class ExternallyManagedLocalUnitViewSet(
-    mixins.CreateModelMixin, mixins.UpdateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
 ):
-    queryset = ExternallyManagedLocalUnit.objects.select_related("country", "local_unit_type")
+    queryset = ExternallyManagedLocalUnit.objects.select_related(
+        "country",
+        "local_unit_type",
+    )
     serializer_class = ExternallyManagedLocalUnitSerializer
     filterset_class = ExternallyManagedLocalUnitFilters
     permission_classes = [permissions.IsAuthenticated, ExternallyManagedLocalUnitPermission]
@@ -476,8 +486,84 @@ class LocalUnitBulkUploadViewSet(
     def get_bulk_upload_template(self, request):
         template_type = request.query_params.get("bulk_upload_template", "local_unit")
         if template_type == "health_care":
-            file_url = request.build_absolute_uri(static("files/local_units/local-unit-health-bulk-upload-template.csv"))
+            file_url = request.build_absolute_uri(static("files/local_units/Health-Care-Bulk-Import-Template-Local-Units.xlsm"))
         else:
-            file_url = request.build_absolute_uri(static("files/local_units/local-unit-bulk-upload-template.csv"))
+            file_url = request.build_absolute_uri(
+                static("files/local_units/Administrative-Bulk-Import-Template-Local-Units.xlsx")
+            )
         template = {"template_url": file_url}
         return response.Response(LocalUnitTemplateFilesSerializer(template).data)
+
+
+class ExportLocalUnitView(views.APIView):
+    content_negotiation_class = SpreadSheetContentNegotiation
+    permission_classes = [
+        permissions.IsAuthenticated,
+        DenyGuestUserPermission,
+        BulkUploadValidatorPermission,
+    ]
+
+    @extend_schema(
+        responses=None,
+        parameters=[
+            OpenApiParameter(
+                name="country",
+                description="Country ID for which local units need to be exported",
+                required=True,
+                type=int,
+            ),
+            OpenApiParameter(
+                name="local_unit_type",
+                description="Local Unit Type ID for which local units need to be exported",
+                required=True,
+                type=int,
+            ),
+        ],
+    )
+    def get(self, request, version=None):
+        country_id = request.GET.get("country")
+        local_unit_type_id = request.GET.get("local_unit_type")
+
+        country = get_object_or_404(Country, pk=country_id)
+        local_unit_type = get_object_or_404(LocalUnitType, pk=local_unit_type_id)
+
+        local_unit_qs = (
+            LocalUnit.objects.filter(
+                country=country,
+                type=local_unit_type,
+                is_deprecated=False,
+                status__in=[
+                    LocalUnit.Status.VALIDATED,
+                    LocalUnit.Status.EXTERNALLY_MANAGED,
+                ],
+            )
+            .select_related(
+                "health__affiliation",
+                "health__functionality",
+                "health__health_facility_type",
+                "health__hospital_type",
+                "health__primary_health_care_center",
+                "country",
+                "type",
+                "level",
+            )
+            .prefetch_related(
+                "health__general_medical_services",
+                "health__specialized_medical_beyond_primary_level",
+                "health__blood_services",
+                "health__professional_training_facilities",
+                "health__other_profiles",
+            )
+        )
+
+        if local_unit_type.name.lower() == "health care":
+            return export_local_units_to_excel(
+                queryset=local_unit_qs,
+                is_health=True,
+                file_name=f"health_local_units_{country.iso3}_{timezone.now()}.xlsx",
+            )
+        else:
+            return export_local_units_to_excel(
+                queryset=local_unit_qs,
+                file_name=f"local_units_export_{country.iso3}_{local_unit_type.name}_{timezone.now()}.xlsx",
+            )

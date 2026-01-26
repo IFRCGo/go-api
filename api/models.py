@@ -931,6 +931,10 @@ class EventSeverityLevelHistory(models.Model):
         related_name="created_by_ifrc_severity_level",
     )
 
+    class Meta:
+        verbose_name = _("emergency severity level history")
+        verbose_name_plural = _("emergency severity level histories")
+
 
 @reversion.register()
 class EventFeaturedDocument(models.Model):

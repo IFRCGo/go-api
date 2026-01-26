@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-08 17:57+0000\n"
+"POT-Creation-Date: 2025-10-17 10:36+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,191 +18,191 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: eap/models.py:17
+#: eap/models.py:10
 msgid "Indicator 1"
 msgstr ""
 
-#: eap/models.py:18
+#: eap/models.py:11
 msgid "Indicator 2"
 msgstr ""
 
-#: eap/models.py:27
+#: eap/models.py:19
 msgid "Early Action Indicator"
 msgstr ""
 
-#: eap/models.py:28
+#: eap/models.py:20
 msgid "Early Actions Indicators"
 msgstr ""
 
-#: eap/models.py:36
+#: eap/models.py:28
 msgid "Shelter, Housing And Settlements"
 msgstr ""
 
-#: eap/models.py:37
+#: eap/models.py:29
 msgid "Livelihoods"
 msgstr ""
 
-#: eap/models.py:38
+#: eap/models.py:30
 msgid "Multi-purpose Cash"
 msgstr ""
 
-#: eap/models.py:39
+#: eap/models.py:31
 msgid "Health And Care"
 msgstr ""
 
-#: eap/models.py:40
+#: eap/models.py:32
 msgid "Water, Sanitation And Hygiene"
 msgstr ""
 
-#: eap/models.py:41
+#: eap/models.py:33
 msgid "Protection, Gender And Inclusion"
 msgstr ""
 
-#: eap/models.py:42
+#: eap/models.py:34
 msgid "Education"
 msgstr ""
 
-#: eap/models.py:43
+#: eap/models.py:35
 msgid "Migration"
 msgstr ""
 
-#: eap/models.py:45
+#: eap/models.py:36
 msgid "Risk Reduction, Climate Adaptation And Recovery"
 msgstr ""
 
-#: eap/models.py:47
+#: eap/models.py:37
 msgid "Community Engagement And Accountability"
 msgstr ""
 
-#: eap/models.py:48
+#: eap/models.py:38
 msgid "Environment Sustainability"
 msgstr ""
 
-#: eap/models.py:49
+#: eap/models.py:39
 msgid "Shelter Cluster Coordination"
 msgstr ""
 
-#: eap/models.py:51
+#: eap/models.py:41
 msgid "sector"
 msgstr ""
 
-#: eap/models.py:52
+#: eap/models.py:42
 msgid "Budget per sector (CHF)"
 msgstr ""
 
-#: eap/models.py:53
+#: eap/models.py:43
 msgid "Indicators"
 msgstr ""
 
-#: eap/models.py:55
+#: eap/models.py:45
 msgid "Prioritized risk"
 msgstr ""
 
-#: eap/models.py:56
+#: eap/models.py:47
 msgid "Targeted people"
 msgstr ""
 
-#: eap/models.py:58
+#: eap/models.py:52
 msgid "Readiness Activities"
 msgstr ""
 
-#: eap/models.py:59
+#: eap/models.py:53
 msgid "Pre-positioning Activities"
 msgstr ""
 
-#: eap/models.py:62
+#: eap/models.py:56
 msgid "Early Action"
 msgstr ""
 
-#: eap/models.py:63 eap/models.py:174 eap/models.py:176
+#: eap/models.py:57 eap/models.py:167 eap/models.py:169
 msgid "Early Actions"
 msgstr ""
 
-#: eap/models.py:71
+#: eap/models.py:65
 msgid "Approved"
 msgstr ""
 
-#: eap/models.py:72
+#: eap/models.py:66
 msgid "In Process"
 msgstr ""
 
-#: eap/models.py:75
+#: eap/models.py:70
 msgid "Created by"
 msgstr ""
 
-#: eap/models.py:79
+#: eap/models.py:78
 msgid "Modified by"
 msgstr ""
 
-#: eap/models.py:82
+#: eap/models.py:84
 msgid "created at"
 msgstr ""
 
-#: eap/models.py:83
+#: eap/models.py:85
 msgid "updated at"
 msgstr ""
 
-#: eap/models.py:86
+#: eap/models.py:88
 msgid "Country"
 msgstr ""
 
-#: eap/models.py:90
+#: eap/models.py:93
 msgid "Provience/Region"
 msgstr ""
 
-#: eap/models.py:94
+#: eap/models.py:99
 msgid "Disaster Type"
 msgstr ""
 
-#: eap/models.py:97
+#: eap/models.py:101
 msgid "EAP Number"
 msgstr ""
 
-#: eap/models.py:98
+#: eap/models.py:102
 msgid "Date of EAP Approval"
 msgstr ""
 
-#: eap/models.py:101
+#: eap/models.py:103
 msgid "EAP Status"
 msgstr ""
 
-#: eap/models.py:103
+#: eap/models.py:104
 msgid "Operational Timeframe (Months)"
 msgstr ""
 
-#: eap/models.py:104
+#: eap/models.py:105
 msgid "Lead Time"
 msgstr ""
 
-#: eap/models.py:105
+#: eap/models.py:106
 msgid "EAP Timeframe (Years)"
 msgstr ""
 
-#: eap/models.py:106
+#: eap/models.py:107
 msgid "Number of People Targeted"
 msgstr ""
 
-#: eap/models.py:107
+#: eap/models.py:108
 msgid "Total Budget (CHF)"
 msgstr ""
 
-#: eap/models.py:108
+#: eap/models.py:109
 msgid "Readiness Budget (CHF)"
 msgstr ""
 
-#: eap/models.py:109
+#: eap/models.py:110
 msgid "Pre-positioning Budget (CHF)"
 msgstr ""
 
-#: eap/models.py:110
+#: eap/models.py:111
 msgid "Early Actions Budget (CHF)"
 msgstr ""
 
-#: eap/models.py:111
+#: eap/models.py:112
 msgid "Trigger Statement (Threshold for Activation)"
 msgstr ""
 
-#: eap/models.py:112
+#: eap/models.py:113
 msgid "EAP Overview"
 msgstr ""
 
@@ -210,98 +210,98 @@ msgstr ""
 msgid "EAP Documents"
 msgstr ""
 
-#: eap/models.py:119
+#: eap/models.py:115
 msgid "Early actions"
 msgstr ""
 
-#: eap/models.py:122
+#: eap/models.py:116
 msgid "Originator Name"
 msgstr ""
 
-#: eap/models.py:123
+#: eap/models.py:117
 msgid "Originator Title"
 msgstr ""
 
-#: eap/models.py:124
+#: eap/models.py:118
 msgid "Originator Email"
 msgstr ""
 
-#: eap/models.py:125
+#: eap/models.py:119
 msgid "Origingator Phone"
 msgstr ""
 
-#: eap/models.py:127
+#: eap/models.py:121
 msgid "National Society Contact Name"
 msgstr ""
 
-#: eap/models.py:128
+#: eap/models.py:122
 msgid "National Society Contact Title"
 msgstr ""
 
-#: eap/models.py:129
+#: eap/models.py:123
 msgid "National Society Contact Email"
 msgstr ""
 
-#: eap/models.py:130
+#: eap/models.py:124
 msgid "National Society Contact Phone"
 msgstr ""
 
-#: eap/models.py:132
+#: eap/models.py:126
 msgid "Ifrc Focal Point Name"
 msgstr ""
 
-#: eap/models.py:133
+#: eap/models.py:127
 msgid "Ifrc Focal Point Title"
 msgstr ""
 
-#: eap/models.py:134
+#: eap/models.py:128
 msgid "Ifrc Focal Point Email"
 msgstr ""
 
-#: eap/models.py:135
+#: eap/models.py:129
 msgid "Ifrc Focal Point Phone"
 msgstr ""
 
-#: eap/models.py:138
+#: eap/models.py:132
 msgid "Early Action Protocol"
 msgstr ""
 
-#: eap/models.py:139
+#: eap/models.py:133
 msgid "Early Actions Protocols"
 msgstr ""
 
-#: eap/models.py:146 eap/models.py:159
+#: eap/models.py:140 eap/models.py:153
 msgid "EAP"
 msgstr ""
 
-#: eap/models.py:147 eap/models.py:160
+#: eap/models.py:141 eap/models.py:154
 msgid "Name"
 msgstr ""
 
-#: eap/models.py:148 eap/models.py:161
+#: eap/models.py:142 eap/models.py:155
 msgid "URL"
 msgstr ""
 
-#: eap/models.py:151
+#: eap/models.py:145
 msgid "EAP Partner"
 msgstr ""
 
-#: eap/models.py:152
+#: eap/models.py:146
 msgid "EAP Partners"
 msgstr ""
 
-#: eap/models.py:164
+#: eap/models.py:158
 msgid "EAP Reference"
 msgstr ""
 
-#: eap/models.py:165
+#: eap/models.py:159
 msgid "EAP References"
 msgstr ""
 
-#: eap/models.py:179
+#: eap/models.py:172
 msgid "Action"
 msgstr ""
 
-#: eap/models.py:180
+#: eap/models.py:173
 msgid "Actions"
 msgstr ""
