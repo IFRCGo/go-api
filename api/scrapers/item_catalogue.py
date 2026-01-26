@@ -21,7 +21,12 @@ class RedCrossItemScraper:
         self.session = requests.Session()
         self.session.headers.update(
             {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+                "User-Agent": (
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/91.0.4472.124 "
+                    "Safari/537.36"
+                )
             }
         )
 
@@ -107,7 +112,7 @@ class RedCrossItemScraper:
             print("  DEBUG: 'container products' div not found in aspnetForm")
             return urls
 
-        print(f"  DEBUG: Found products container")
+        print("  DEBUG: Found products container")
 
         product_divs = products_div.find_all("div", class_=lambda x: x and "product" in x and "grid-group-item" in x)
         print(f"  DEBUG: Found {len(product_divs)} product grid items")
@@ -157,7 +162,7 @@ class RedCrossItemScraper:
                 products_by_category[category_title] = urls
                 all_urls.extend(urls)
             else:
-                print(f"No URLs found")
+                print("No URLs found")
 
             time.sleep(1)
 
@@ -223,7 +228,7 @@ class RedCrossItemScraper:
 
             soup = self.fetch_page(url)
             if not soup:
-                print(f"Failed to fetch page")
+                print("Failed to fetch page")
                 missing_codes.append(url)
                 continue
 
@@ -233,7 +238,7 @@ class RedCrossItemScraper:
                 for code in codes:
                     code_to_url[code] = url
             else:
-                print(f"No codes found")
+                print("No codes found")
                 missing_codes.append(url)
 
             time.sleep(0.5)

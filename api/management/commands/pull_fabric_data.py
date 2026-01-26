@@ -1,7 +1,5 @@
 import time
-from cProfile import label
-from datetime import date, datetime
-from typing import Any
+from datetime import datetime
 
 from django.apps import apps
 from django.core.management.base import BaseCommand
@@ -110,7 +108,8 @@ class Command(BaseCommand):
 
                 # DateField: Fabric returns datetime at midnight -> store date only
                 # If the model field is a DateField but Fabric gave incorrectly us a datetime, drop the time part
-                # Specifically affects DimLineAgreement, DimTransactionLine, DimItemBatch, DimPackingSlipLine, DimSalesOrderLine, DimVendorPhysicalAddress, FctProductReceipt
+                # Specifically affects DimLineAgreement, DimTransactionLine, DimItemBatch,
+                # DimPackingSlipLine, DimSalesOrderLine, DimVendorPhysicalAddress, FctProductReceipt
                 if internal == "DateField" and isinstance(value, datetime):
                     value = value.date()
 

@@ -22,7 +22,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django_filters import rest_framework as rest_filters
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import filters, mixins, serializers, status, viewsets
+from rest_framework import filters, mixins, serializers, viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -100,7 +100,6 @@ from per.models import Overview
 from per.serializers import CountryLatestOverviewSerializer
 
 from .exceptions import BadRequest
-from .fabric_sql import fetch_all
 from .models import (
     Action,
     Admin2,
