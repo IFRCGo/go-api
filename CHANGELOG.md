@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+
+## 1.1.509
+
+### Added
  - Fix emergency severity level histories
  - Add validation checks and export feature to Local Units
  - Add script to migrate Local Units to EXTERNALLY MANAGED
@@ -2784,7 +2788,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.508...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.509...HEAD
+[1.1.509]: https://github.com/IFRCGo/go-api/compare/1.1.508...1.1.509
 [1.1.508]: https://github.com/IFRCGo/go-api/compare/1.1.507...1.1.508
 [1.1.507]: https://github.com/IFRCGo/go-api/compare/1.1.506...1.1.507
 [1.1.506]: https://github.com/IFRCGo/go-api/compare/1.1.505...1.1.506
