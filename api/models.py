@@ -2587,12 +2587,13 @@ class Export(models.Model):
     def __str__(self):
         return f"{self.url} - {self.token}"
 
-#SPARK
-#Database normalisation into 3 tables
+
+# SPARK
+# Database normalisation into 3 tables
 class FrameworkAgreement(models.Model):
     """Main Framework Agreement details"""
 
-    #enums - restrict the fields to specific values    
+    # enums - restrict the fields to specific values
     class PAType(models.TextChoices):
         GLOBAL_SERVICES = "Global Services", _("Global Services")
         LOCAL_SERVICES = "Local Services", _("Local Services")
@@ -2616,9 +2617,7 @@ class FrameworkAgreement(models.Model):
     pa_bu_country_name = models.CharField(verbose_name=_("PA BU Country Name"), max_length=100)
     pa_effective_date = models.DateTimeField(verbose_name=_("PA Effective Date (FA Start Date)"))
     pa_expiration_date = models.DateTimeField(verbose_name=_("PA Expiration Date (FA End Date)"))
-    pa_workflow_status = models.CharField(
-        verbose_name=_("PA Workflow Status"), max_length=50, choices=WorkflowStatus.choices
-    )
+    pa_workflow_status = models.CharField(verbose_name=_("PA Workflow Status"), max_length=50, choices=WorkflowStatus.choices)
     pa_status = models.CharField(verbose_name=_("PA Status"), max_length=50, choices=PAStatus.choices)
     pa_buyer_group_code = models.CharField(verbose_name=_("PA Buyer Group Code"), max_length=50, blank=True)
     fa_owner_name = models.CharField(verbose_name=_("FA Owner Name"), max_length=100)
@@ -2633,7 +2632,7 @@ class FrameworkAgreement(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    #django table level configurations
+    # django table level configurations
     class Meta:
         verbose_name = _("Framework Agreement")
         verbose_name_plural = _("Framework Agreements")
@@ -2645,9 +2644,7 @@ class FrameworkAgreement(models.Model):
 class FrameworkAgreementCountry(models.Model):
     """Countries covered by Framework Agreements"""
 
-    framework_agreement = models.ForeignKey(
-        FrameworkAgreement, on_delete=models.CASCADE, related_name="covered_countries"
-    )
+    framework_agreement = models.ForeignKey(FrameworkAgreement, on_delete=models.CASCADE, related_name="covered_countries")
     # Link to existing Country model using ISO code
     country = models.ForeignKey("Country", to_field="iso", on_delete=models.CASCADE, verbose_name=_("Country"))
 
@@ -2731,10 +2728,7 @@ class DimAppeal(models.Model):
     class Meta:
         db_table = "api_dimappeal"
         managed = False
-        constraints = [
-            models.UniqueConstraint(fields=["fabric_id"], name="uniq_dimappeal_fabric_id")
-        ]
-
+        constraints = [models.UniqueConstraint(fields=["fabric_id"], name="uniq_dimappeal_fabric_id")]
 
 
 class DimBuyerGroup(models.Model):
@@ -2751,7 +2745,7 @@ class DimBuyerGroup(models.Model):
 
 class DimConsignment(models.Model):
     id = models.CharField(verbose_name=_("Consignment ID"), max_length=100, primary_key=True)
-    delivery_mode = models.CharField(verbose_name=_("Delivery Mode"), max_length=100, null = True)
+    delivery_mode = models.CharField(verbose_name=_("Delivery Mode"), max_length=100, null=True)
 
     class Meta:
         verbose_name = _("Consignment")
@@ -2834,6 +2828,7 @@ class DimInventoryOwner(models.Model):
     def __str__(self):
         return f"{self.id} - {self.name}"
 
+
 class DimInventoryTransaction(models.Model):
     id = models.CharField(verbose_name=_("Inventory Transaction ID"), max_length=100, primary_key=True)
     reference_category = models.CharField(verbose_name=_("Reference Category"), max_length=100, null=True, blank=True)
@@ -2848,7 +2843,7 @@ class DimInventoryTransaction(models.Model):
         if self.reference_number:
             return f"{self.id} - {self.reference_category} - {self.reference_number}"
         return f"{self.id} - {self.reference_category}"
-    
+
 
 class DimInventoryTransactionLine(models.Model):
     id = models.CharField(verbose_name=_("Inventory Transaction Line ID"), max_length=50, primary_key=True)
@@ -2869,7 +2864,9 @@ class DimInventoryTransactionLine(models.Model):
     expected_date = models.DateField(verbose_name=_("Expected Date"), null=True, blank=True)
     quantity = models.DecimalField(verbose_name=_("Quantity"), max_digits=20, decimal_places=6, null=True)
     cost_amount_posted = models.DecimalField(verbose_name=_("Cost Amount Posted"), max_digits=20, decimal_places=6, null=True)
-    cost_amount_adjustment = models.DecimalField(verbose_name=_("Cost Amount Adjustment"), max_digits=20, decimal_places=6, null=True)
+    cost_amount_adjustment = models.DecimalField(
+        verbose_name=_("Cost Amount Adjustment"), max_digits=20, decimal_places=6, null=True
+    )
     status = models.CharField(verbose_name=_("Status"), max_length=50, null=True, blank=True)
     packing_slip = models.CharField(verbose_name=_("Packing Slip"), max_length=200, null=True, blank=True)
     packing_slip_returned = models.BooleanField(verbose_name=_("Packing Slip Returned"), null=True)
@@ -2891,7 +2888,9 @@ class DimInventoryTransactionOrigin(models.Model):
     id = models.CharField(verbose_name=_("Inventory Transaction Origin ID"), max_length=100, primary_key=True)
     reference_category = models.CharField(verbose_name=_("Reference Category"), max_length=100, null=True, blank=True)
     reference_number = models.CharField(verbose_name=_("Reference Number"), max_length=100, null=True, blank=True)
-    excluded_from_inventory_value = models.CharField(verbose_name=_("Excluded From Inventory Value"), max_length=10, null=True, blank=True)
+    excluded_from_inventory_value = models.CharField(
+        verbose_name=_("Excluded From Inventory Value"), max_length=10, null=True, blank=True
+    )
 
     class Meta:
         verbose_name = _("Inventory Transaction Origin")
@@ -2989,6 +2988,7 @@ class DimProduct(models.Model):
     def __str__(self):
         return f"{self.id} - {self.name}"
 
+
 class DimProductCategory(models.Model):
     category_code = models.CharField(verbose_name=_("Category Code"), max_length=100, primary_key=True)
     name = models.CharField(verbose_name=_("Category Name"), max_length=255)
@@ -3007,9 +3007,13 @@ class DimProductReceiptLine(models.Model):
     id = models.CharField(verbose_name=_("Receipt Line ID"), max_length=100, primary_key=True)
     product_receipt = models.CharField(verbose_name=_("Product Receipt"), max_length=100, null=True, blank=True)
     purchase_order_line = models.CharField(verbose_name=_("Purchase Order Line"), max_length=100, null=True, blank=True)
-    received_quantity = models.DecimalField(verbose_name=_("Received Quantity"), max_digits=20, decimal_places=6, null=True, blank=True)
+    received_quantity = models.DecimalField(
+        verbose_name=_("Received Quantity"), max_digits=20, decimal_places=6, null=True, blank=True
+    )
     unit = models.CharField(verbose_name=_("Unit"), max_length=50, null=True, blank=True)
-    value_accounting_currency = models.DecimalField(verbose_name=_("Value in Accounting Currency"), max_digits=20, decimal_places=6, null=True, blank=True)
+    value_accounting_currency = models.DecimalField(
+        verbose_name=_("Value in Accounting Currency"), max_digits=20, decimal_places=6, null=True, blank=True
+    )
 
     class Meta:
         verbose_name = _("Product Receipt Line")
@@ -3043,33 +3047,59 @@ class DimPurchaseOrderLine(models.Model):
     agreement = models.CharField(verbose_name=_("Agreement"), max_length=100, null=True, blank=True)
     unit_of_measure = models.CharField(verbose_name=_("Unit of Measure"), max_length=50, null=True, blank=True)
     currency_code = models.CharField(verbose_name=_("Currency Code"), max_length=10, null=True, blank=True)
-    humanitarian_procurement_center_transaction = models.BooleanField(verbose_name=_("Humanitarian Procurement Center Transaction"), null=True, blank=True)
-    ordered_quantity_inventory_unit = models.DecimalField(verbose_name=_("Ordered Quantity (Inventory Unit)"), max_digits=20, decimal_places=6, null=True, blank=True)
-    ordered_quantity_purchasing_unit = models.DecimalField(verbose_name=_("Ordered Quantity (Purchasing Unit)"), max_digits=20, decimal_places=6, null=True, blank=True)
+    humanitarian_procurement_center_transaction = models.BooleanField(
+        verbose_name=_("Humanitarian Procurement Center Transaction"), null=True, blank=True
+    )
+    ordered_quantity_inventory_unit = models.DecimalField(
+        verbose_name=_("Ordered Quantity (Inventory Unit)"), max_digits=20, decimal_places=6, null=True, blank=True
+    )
+    ordered_quantity_purchasing_unit = models.DecimalField(
+        verbose_name=_("Ordered Quantity (Purchasing Unit)"), max_digits=20, decimal_places=6, null=True, blank=True
+    )
     price_per_unit = models.DecimalField(verbose_name=_("Price Per Unit"), max_digits=20, decimal_places=6, null=True, blank=True)
-    price_per_unit_accounting_currency = models.DecimalField(verbose_name=_("Price Per Unit (Accounting Currency)"), max_digits=20, decimal_places=6, null=True, blank=True)
-    donated_price_per_unit = models.DecimalField(verbose_name=_("Donated Price Per Unit"), max_digits=20, decimal_places=6, null=True, blank=True)
-    donated_price_per_unit_accounting_currency = models.DecimalField(verbose_name=_("Donated Price Per Unit (Accounting Currency)"), max_digits=20, decimal_places=6, null=True, blank=True)
+    price_per_unit_accounting_currency = models.DecimalField(
+        verbose_name=_("Price Per Unit (Accounting Currency)"), max_digits=20, decimal_places=6, null=True, blank=True
+    )
+    donated_price_per_unit = models.DecimalField(
+        verbose_name=_("Donated Price Per Unit"), max_digits=20, decimal_places=6, null=True, blank=True
+    )
+    donated_price_per_unit_accounting_currency = models.DecimalField(
+        verbose_name=_("Donated Price Per Unit (Accounting Currency)"), max_digits=20, decimal_places=6, null=True, blank=True
+    )
     amount = models.DecimalField(verbose_name=_("Amount"), max_digits=20, decimal_places=6, null=True, blank=True)
-    amount_accounting_currency = models.DecimalField(verbose_name=_("Amount (Accounting Currency)"), max_digits=20, decimal_places=6, null=True, blank=True)
+    amount_accounting_currency = models.DecimalField(
+        verbose_name=_("Amount (Accounting Currency)"), max_digits=20, decimal_places=6, null=True, blank=True
+    )
     donated_amount = models.DecimalField(verbose_name=_("Donated Amount"), max_digits=20, decimal_places=6, null=True, blank=True)
-    donated_amount_accounting_currency = models.DecimalField(verbose_name=_("Donated Amount (Accounting Currency)"), max_digits=20, decimal_places=6, null=True, blank=True)
+    donated_amount_accounting_currency = models.DecimalField(
+        verbose_name=_("Donated Amount (Accounting Currency)"), max_digits=20, decimal_places=6, null=True, blank=True
+    )
     actual_weight = models.DecimalField(verbose_name=_("Actual Weight"), max_digits=20, decimal_places=6, null=True, blank=True)
     actual_volume = models.DecimalField(verbose_name=_("Actual Volume"), max_digits=20, decimal_places=6, null=True, blank=True)
     warehouse = models.CharField(verbose_name=_("Warehouse"), max_length=100, null=True, blank=True)
     owner = models.CharField(verbose_name=_("Owner"), max_length=100, null=True, blank=True)
     item_batch = models.CharField(verbose_name=_("Item Batch"), max_length=100, null=True, blank=True)
     consignment = models.CharField(verbose_name=_("Consignment"), max_length=100, null=True, blank=True)
-    financial_dimension_project = models.CharField(verbose_name=_("Financial Dimension Project"), max_length=100, null=True, blank=True)
-    financial_dimension_appeal = models.CharField(verbose_name=_("Financial Dimension Appeal"), max_length=100, null=True, blank=True)
-    financial_dimension_funding_arrangement = models.CharField(verbose_name=_("Financial Dimension Funding Arrangement"), max_length=100, null=True, blank=True)
+    financial_dimension_project = models.CharField(
+        verbose_name=_("Financial Dimension Project"), max_length=100, null=True, blank=True
+    )
+    financial_dimension_appeal = models.CharField(
+        verbose_name=_("Financial Dimension Appeal"), max_length=100, null=True, blank=True
+    )
+    financial_dimension_funding_arrangement = models.CharField(
+        verbose_name=_("Financial Dimension Funding Arrangement"), max_length=100, null=True, blank=True
+    )
     requested_delivery_date = models.DateField(verbose_name=_("Requested Delivery Date"), null=True, blank=True)
     confirmed_delivery_date = models.DateField(verbose_name=_("Confirmed Delivery Date"), null=True, blank=True)
     delivery_mode = models.CharField(verbose_name=_("Delivery Mode"), max_length=100, null=True, blank=True)
     delivery_name = models.CharField(verbose_name=_("Delivery Name"), max_length=255, null=True, blank=True)
-    delivery_address_description = models.CharField(verbose_name=_("Delivery Address Description"), max_length=255, null=True, blank=True)
+    delivery_address_description = models.CharField(
+        verbose_name=_("Delivery Address Description"), max_length=255, null=True, blank=True
+    )
     delivery_postal_address = models.CharField(verbose_name=_("Delivery Postal Address"), max_length=255, null=True, blank=True)
-    delivery_postal_address_country = models.CharField(verbose_name=_("Delivery Postal Address Country"), max_length=100, null=True, blank=True)
+    delivery_postal_address_country = models.CharField(
+        verbose_name=_("Delivery Postal Address Country"), max_length=100, null=True, blank=True
+    )
     created_by = models.CharField(verbose_name=_("Created By"), max_length=100, null=True, blank=True)
     created_datetime = models.DateTimeField(verbose_name=_("Created DateTime"), null=True, blank=True)
     modified_by = models.CharField(verbose_name=_("Modified By"), max_length=100, null=True, blank=True)
@@ -3091,29 +3121,51 @@ class DimSalesOrderLine(models.Model):
     product_category = models.CharField(verbose_name=_("Product Category"), max_length=100, null=True, blank=True)
     description = models.TextField(verbose_name=_("Description"), null=True, blank=True)
     unit_of_measure = models.CharField(verbose_name=_("Unit of Measure"), max_length=50, null=True, blank=True)
-    ordered_quantity_sales_unit = models.DecimalField(verbose_name=_("Ordered Quantity (Sales Unit)"), max_digits=20, decimal_places=6, null=True, blank=True)
+    ordered_quantity_sales_unit = models.DecimalField(
+        verbose_name=_("Ordered Quantity (Sales Unit)"), max_digits=20, decimal_places=6, null=True, blank=True
+    )
     currency_code = models.CharField(verbose_name=_("Currency Code"), max_length=10, null=True, blank=True)
     amount = models.DecimalField(verbose_name=_("Amount"), max_digits=20, decimal_places=6, null=True, blank=True)
-    amount_accounting_currency = models.DecimalField(verbose_name=_("Amount (Accounting Currency)"), max_digits=20, decimal_places=6, null=True, blank=True)
+    amount_accounting_currency = models.DecimalField(
+        verbose_name=_("Amount (Accounting Currency)"), max_digits=20, decimal_places=6, null=True, blank=True
+    )
     price_per_unit = models.DecimalField(verbose_name=_("Price Per Unit"), max_digits=20, decimal_places=6, null=True, blank=True)
-    price_per_unit_accounting_currency = models.DecimalField(verbose_name=_("Price Per Unit (Accounting Currency)"), max_digits=20, decimal_places=6, null=True, blank=True)
-    donated_price_per_unit = models.DecimalField(verbose_name=_("Donated Price Per Unit"), max_digits=20, decimal_places=6, null=True, blank=True)
-    donated_price_per_unit_accounting_currency = models.DecimalField(verbose_name=_("Donated Price Per Unit (Accounting Currency)"), max_digits=20, decimal_places=6, null=True, blank=True)
+    price_per_unit_accounting_currency = models.DecimalField(
+        verbose_name=_("Price Per Unit (Accounting Currency)"), max_digits=20, decimal_places=6, null=True, blank=True
+    )
+    donated_price_per_unit = models.DecimalField(
+        verbose_name=_("Donated Price Per Unit"), max_digits=20, decimal_places=6, null=True, blank=True
+    )
+    donated_price_per_unit_accounting_currency = models.DecimalField(
+        verbose_name=_("Donated Price Per Unit (Accounting Currency)"), max_digits=20, decimal_places=6, null=True, blank=True
+    )
     donated_amount = models.DecimalField(verbose_name=_("Donated Amount"), max_digits=20, decimal_places=6, null=True, blank=True)
-    donated_amount_accounting_currency = models.DecimalField(verbose_name=_("Donated Amount (Accounting Currency)"), max_digits=20, decimal_places=6, null=True, blank=True)
-    exchange_rate_factor = models.DecimalField(verbose_name=_("Exchange Rate Factor"), max_digits=20, decimal_places=6, null=True, blank=True)
+    donated_amount_accounting_currency = models.DecimalField(
+        verbose_name=_("Donated Amount (Accounting Currency)"), max_digits=20, decimal_places=6, null=True, blank=True
+    )
+    exchange_rate_factor = models.DecimalField(
+        verbose_name=_("Exchange Rate Factor"), max_digits=20, decimal_places=6, null=True, blank=True
+    )
     delivery_type = models.CharField(verbose_name=_("Delivery Type"), max_length=100, null=True, blank=True)
     requested_shipping_date = models.DateField(verbose_name=_("Requested Shipping Date"), null=True, blank=True)
     requested_receipt_date = models.DateField(verbose_name=_("Requested Receipt Date"), null=True, blank=True)
     delivery_mode = models.CharField(verbose_name=_("Delivery Mode"), max_length=100, null=True, blank=True)
     delivery_postal_address = models.CharField(verbose_name=_("Delivery Postal Address"), max_length=255, null=True, blank=True)
-    delivery_postal_address_country = models.CharField(verbose_name=_("Delivery Postal Address Country"), max_length=100, null=True, blank=True)
+    delivery_postal_address_country = models.CharField(
+        verbose_name=_("Delivery Postal Address Country"), max_length=100, null=True, blank=True
+    )
     warehouse = models.CharField(verbose_name=_("Warehouse"), max_length=100, null=True, blank=True)
     item_batch = models.CharField(verbose_name=_("Item Batch"), max_length=200, null=True, blank=True)
     inventory_owner = models.CharField(verbose_name=_("Inventory Owner"), max_length=100, null=True, blank=True)
-    financial_dimension_project = models.CharField(verbose_name=_("Financial Dimension Project"), max_length=100, null=True, blank=True)
-    financial_dimension_appeal = models.CharField(verbose_name=_("Financial Dimension Appeal"), max_length=100, null=True, blank=True)
-    financial_dimension_funding_arrangement = models.CharField(verbose_name=_("Financial Dimension Funding Arrangement"), max_length=100, null=True, blank=True)
+    financial_dimension_project = models.CharField(
+        verbose_name=_("Financial Dimension Project"), max_length=100, null=True, blank=True
+    )
+    financial_dimension_appeal = models.CharField(
+        verbose_name=_("Financial Dimension Appeal"), max_length=100, null=True, blank=True
+    )
+    financial_dimension_funding_arrangement = models.CharField(
+        verbose_name=_("Financial Dimension Funding Arrangement"), max_length=100, null=True, blank=True
+    )
 
     class Meta:
         verbose_name = _("Sales Order Line")
@@ -3212,8 +3264,12 @@ class FctAgreement(models.Model):
     buyer_group = models.CharField(verbose_name=_("Buyer Group"), max_length=100, null=True, blank=True)
     vendor = models.CharField(verbose_name=_("Vendor"), max_length=100, null=True, blank=True)
     parent_agreement = models.CharField(verbose_name=_("Parent Agreement"), max_length=100, null=True, blank=True)
-    managing_business_unit_organizational_unit = models.CharField(verbose_name=_("Managing Business Unit Organizational Unit"), max_length=100, null=True, blank=True)
-    requesting_department_organizational_unit = models.CharField(verbose_name=_("Requesting Department Organizational Unit"), max_length=100, null=True, blank=True)
+    managing_business_unit_organizational_unit = models.CharField(
+        verbose_name=_("Managing Business Unit Organizational Unit"), max_length=100, null=True, blank=True
+    )
+    requesting_department_organizational_unit = models.CharField(
+        verbose_name=_("Requesting Department Organizational Unit"), max_length=100, null=True, blank=True
+    )
     preparer_worker = models.CharField(verbose_name=_("Preparer Worker"), max_length=100, null=True, blank=True)
     classification = models.CharField(verbose_name=_("Classification"), max_length=100, null=True, blank=True)
     status = models.CharField(verbose_name=_("Status"), max_length=100, null=True, blank=True)
@@ -3222,11 +3278,17 @@ class FctAgreement(models.Model):
     default_payment_term = models.CharField(verbose_name=_("Default Payment Term"), max_length=255, null=True, blank=True)
     document_title = models.CharField(verbose_name=_("Document Title"), max_length=255, null=True, blank=True)
     purpose = models.CharField(verbose_name=_("Purpose"), max_length=255, null=True, blank=True)
-    document_external_reference = models.CharField(verbose_name=_("Document External Reference"), max_length=255, null=True, blank=True)
+    document_external_reference = models.CharField(
+        verbose_name=_("Document External Reference"), max_length=255, null=True, blank=True
+    )
     code = models.CharField(verbose_name=_("Code"), max_length=100, null=True, blank=True)
     workflow_status = models.CharField(verbose_name=_("Workflow Status"), max_length=100, null=True, blank=True)
-    default_agreement_line_effective_date = models.DateField(verbose_name=_("Default Agreement Line Effective Date"), null=True, blank=True)
-    default_agreement_line_expiration_date = models.DateField(verbose_name=_("Default Agreement Line Expiration Date"), null=True, blank=True)
+    default_agreement_line_effective_date = models.DateField(
+        verbose_name=_("Default Agreement Line Effective Date"), null=True, blank=True
+    )
+    default_agreement_line_expiration_date = models.DateField(
+        verbose_name=_("Default Agreement Line Expiration Date"), null=True, blank=True
+    )
     created_by = models.CharField(verbose_name=_("Created By"), max_length=100, null=True, blank=True)
     created_datetime = models.DateTimeField(verbose_name=_("Created DateTime"), null=True, blank=True)
     modified_by = models.CharField(verbose_name=_("Modified By"), max_length=100, null=True, blank=True)
@@ -3259,9 +3321,13 @@ class FctPurchaseOrder(models.Model):
     vendor = models.CharField(verbose_name=_("Vendor"), max_length=100, null=True, blank=True)
     agreement = models.CharField(verbose_name=_("Agreement"), max_length=100, null=True, blank=True)
     project = models.CharField(verbose_name=_("Project"), max_length=100, null=True, blank=True)
-    financial_dimension_funding_arrangement = models.CharField(verbose_name=_("Financial Dimension Funding Arrangement"), max_length=100, null=True, blank=True)
+    financial_dimension_funding_arrangement = models.CharField(
+        verbose_name=_("Financial Dimension Funding Arrangement"), max_length=100, null=True, blank=True
+    )
     created_by_business_unit = models.CharField(verbose_name=_("Created By Business Unit"), max_length=100, null=True, blank=True)
-    requested_by_organizational_unit = models.CharField(verbose_name=_("Requested By Organizational Unit"), max_length=100, null=True, blank=True)
+    requested_by_organizational_unit = models.CharField(
+        verbose_name=_("Requested By Organizational Unit"), max_length=100, null=True, blank=True
+    )
     sales_order = models.CharField(verbose_name=_("Sales Order"), max_length=100, null=True, blank=True)
     in_kind_donation_pledge = models.CharField(verbose_name=_("In-Kind Donation Pledge"), max_length=100, null=True, blank=True)
     type = models.CharField(verbose_name=_("Type"), max_length=100, null=True, blank=True)
@@ -3293,7 +3359,9 @@ class FctSalesOrder(models.Model):
     id = models.CharField(verbose_name=_("Sales Order ID"), max_length=100, primary_key=True)
     created_by_business_unit = models.CharField(verbose_name=_("Created By Business Unit"), max_length=100, null=True, blank=True)
     customer = models.CharField(verbose_name=_("Customer"), max_length=100, null=True, blank=True)
-    humanitarian_procurement_center_transaction = models.BooleanField(verbose_name=_("Humanitarian Procurement Center Transaction"), null=True, blank=True)
+    humanitarian_procurement_center_transaction = models.BooleanField(
+        verbose_name=_("Humanitarian Procurement Center Transaction"), null=True, blank=True
+    )
     customer_reference = models.CharField(verbose_name=_("Customer Reference"), max_length=255, null=True, blank=True)
     customer_requisition = models.CharField(verbose_name=_("Customer Requisition"), max_length=255, null=True, blank=True)
     created_datetime = models.DateTimeField(verbose_name=_("Created DateTime"), null=True, blank=True)
@@ -3334,4 +3402,3 @@ class ItemCodeMapping(models.Model):
 
     def __str__(self):
         return f"{self.code} -> {self.url}"
-    

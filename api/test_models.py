@@ -11,8 +11,8 @@ from api.admin import EventAdmin
 from api.factories import country as countryFactory
 from api.factories import event as eventFactory
 from api.factories import field_report as fieldReportFactory
-from api.factories.region import RegionFactory
 from api.factories import spark as sparkFactory
+from api.factories.region import RegionFactory
 from main.mock import erp_request_side_effect_mock
 
 
@@ -255,7 +255,9 @@ class SparkModelStrTests(TestCase):
         self.assertEqual(str(status), "STATUS-TEST001 - Available")
 
     def test_dim_inventory_module_str(self):
-        module = sparkFactory.DimInventoryModuleFactory.create(id="MODULE-TEST001", unit_of_measure="KG", item_id="ITEM-TEST001", type="Type")
+        module = sparkFactory.DimInventoryModuleFactory.create(
+            id="MODULE-TEST001", unit_of_measure="KG", item_id="ITEM-TEST001", type="Type"
+        )
         self.assertEqual(str(module), "MODULE-TEST001 - ITEM-TEST001")
 
     def test_dim_inventory_owner_str(self):
@@ -281,7 +283,9 @@ class SparkModelStrTests(TestCase):
         self.assertEqual(str(transaction), "TRANSACTION-TEST002 - Cat")
 
     def test_dim_inventory_transaction_line_str_with_product_and_inventory(self):
-        line = sparkFactory.DimInventoryTransactionLineFactory.create(id="TL-TEST001", product="Prod", inventory_transaction="INV-TEST001")
+        line = sparkFactory.DimInventoryTransactionLineFactory.create(
+            id="TL-TEST001", product="Prod", inventory_transaction="INV-TEST001"
+        )
         self.assertEqual(str(line), "TL-TEST001 - Prod - INV-TEST001")
 
     def test_dim_inventory_transaction_line_str_with_product_only(self):

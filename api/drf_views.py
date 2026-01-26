@@ -22,7 +22,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django_filters import rest_framework as rest_filters
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import filters, mixins, serializers, viewsets, status
+from rest_framework import filters, mixins, serializers, status, viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -41,6 +41,9 @@ from api.filter_set import (
     CountrySupportingPartnerFilter,
     DistrictFilter,
     DistrictRMDFilter,
+    EventFilter,
+    EventSeverityLevelHistoryFilter,
+    EventSnippetFilter,
     FabricDimAgreementLineFilter,
     FabricDimAppealFilter,
     FabricDimBuyerGroupFilter,
@@ -58,15 +61,15 @@ from api.filter_set import (
     FabricDimLocationFilter,
     FabricDimLogisticsLocationFilter,
     FabricDimPackingSlipLineFilter,
-    FabricDimProductFilter,
     FabricDimProductCategoryFilter,
+    FabricDimProductFilter,
     FabricDimProductReceiptLineFilter,
     FabricDimProjectFilter,
     FabricDimSalesOrderLineFilter,
     FabricDimSiteFilter,
-    FabricDimVendorFilter,
-    FabricDimVendorContactFilter,
     FabricDimVendorContactEmailFilter,
+    FabricDimVendorContactFilter,
+    FabricDimVendorFilter,
     FabricDimVendorPhysicalAddressFilter,
     FabricDimWarehouseFilter,
     FabricFctAgreementFilter,
@@ -74,9 +77,6 @@ from api.filter_set import (
     FabricFctPurchaseOrderFilter,
     FabricFctSalesOrderFilter,
     FabricProductCategoryHierarchyFlattenedFilter,
-    EventFilter,
-    EventSeverityLevelHistoryFilter,
-    EventSnippetFilter,
     FieldReportFilter,
     GoHistoricalFilter,
     RegionKeyFigureFilter,
@@ -99,9 +99,8 @@ from main.utils import is_tableau
 from per.models import Overview
 from per.serializers import CountryLatestOverviewSerializer
 
-from .fabric_sql import fetch_all
-
 from .exceptions import BadRequest
+from .fabric_sql import fetch_all
 from .models import (
     Action,
     Admin2,
@@ -115,8 +114,6 @@ from .models import (
     CountryOfFieldReportToReview,
     CountrySnippet,
     CountrySupportingPartner,
-    District,
-    DisasterType,
     DimAgreementLine,
     DimAppeal,
     DimBuyerGroup,
@@ -145,6 +142,8 @@ from .models import (
     DimVendorContactEmail,
     DimVendorPhysicalAddress,
     DimWarehouse,
+    DisasterType,
+    District,
     Event,
     EventFeaturedDocument,
     EventSeverityLevelHistory,
@@ -206,23 +205,23 @@ from .serializers import (  # AppealSerializer,; Tableau Serializers; AppealTabl
     FabricDimInventoryItemStatusSerializer,
     FabricDimInventoryModuleSerializer,
     FabricDimInventoryOwnerSerializer,
-    FabricDimInventoryTransactionSerializer,
     FabricDimInventoryTransactionLineSerializer,
     FabricDimInventoryTransactionOriginSerializer,
+    FabricDimInventoryTransactionSerializer,
     FabricDimItemBatchSerializer,
     FabricDimLocationSerializer,
     FabricDimLogisticsLocationSerializer,
     FabricDimPackingSlipLineSerializer,
-    FabricDimProductSerializer,
     FabricDimProductCategorySerializer,
     FabricDimProductReceiptLineSerializer,
+    FabricDimProductSerializer,
     FabricDimProjectSerializer,
     FabricDimSalesOrderLineSerializer,
     FabricDimSiteSerializer,
-    FabricDimVendorSerializer,
-    FabricDimVendorContactSerializer,
     FabricDimVendorContactEmailSerializer,
+    FabricDimVendorContactSerializer,
     FabricDimVendorPhysicalAddressSerializer,
+    FabricDimVendorSerializer,
     FabricDimWarehouseSerializer,
     FabricFctAgreementSerializer,
     FabricFctProductReceiptSerializer,
@@ -1828,7 +1827,6 @@ class FabricDimProjectViewSet(viewsets.ReadOnlyModelViewSet):
         return DimProject.objects.all()
 
 
-
 class FabricDimSalesOrderLineViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = FabricDimSalesOrderLineSerializer
     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
@@ -1935,4 +1933,3 @@ class FabricProductCategoryHierarchyFlattenedViewSet(viewsets.ReadOnlyModelViewS
 
     def get_queryset(self):
         return ProductCategoryHierarchyFlattened.objects.all()
-
