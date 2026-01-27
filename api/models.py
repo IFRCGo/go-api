@@ -2730,6 +2730,9 @@ class DimAppeal(models.Model):
         managed = False
         constraints = [models.UniqueConstraint(fields=["fabric_id"], name="uniq_dimappeal_fabric_id")]
 
+    def __str__(self):
+        return f"{self.fabric_id} - {self.appeal_name}"
+
 
 class DimBuyerGroup(models.Model):
     code = models.CharField(verbose_name=_("Buyer Group Code"), max_length=100, primary_key=True)

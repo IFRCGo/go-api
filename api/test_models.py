@@ -227,7 +227,7 @@ class SparkModelStrTests(TestCase):
         self.assertEqual(str(line), "FA-TEST001")
 
     def test_dim_appeal_str(self):
-        appeal = sparkFactory.DimAppealFactory.create(id="AP-TEST001", appeal_name="Appeal")
+        appeal = sparkFactory.DimAppealFactory.create(fabric_id="AP-TEST001", appeal_name="Appeal")
         self.assertEqual(str(appeal), "AP-TEST001 - Appeal")
 
     def test_dim_buyer_group_str(self):

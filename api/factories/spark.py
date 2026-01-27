@@ -32,7 +32,7 @@ class DimAppealFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.DimAppeal
 
-    id = factory.Sequence(lambda n: f"TESTAPPEAL{n:04d}")
+    fabric_id = factory.Sequence(lambda n: f"TESTAPPEAL{n:04d}")
     appeal_name = fuzzy.FuzzyText(length=20)
 
 
