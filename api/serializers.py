@@ -45,7 +45,7 @@ from .models import (
     CountryOrganizationalCapacity,
     CountrySnippet,
     CountrySupportingPartner,
-    DisasterType,
+    DimAgreementLine,
     DimAppeal,
     DimBuyerGroup,
     DimConsignment,
@@ -73,8 +73,8 @@ from .models import (
     DimVendorContactEmail,
     DimVendorPhysicalAddress,
     DimWarehouse,
+    DisasterType,
     District,
-    DimAgreementLine,
     Event,
     EventContact,
     EventFeaturedDocument,
@@ -82,17 +82,17 @@ from .models import (
     EventSeverityLevelHistory,
     Export,
     ExternalPartner,
-    FieldReport,
-    FieldReportContact,
     FctAgreement,
     FctProductReceipt,
     FctPurchaseOrder,
     FctSalesOrder,
+    FieldReport,
+    FieldReportContact,
     KeyFigure,
     MainContact,
     NSDInitiatives,
-    Profile,
     ProductCategoryHierarchyFlattened,
+    Profile,
     Region,
     RegionContact,
     RegionEmergencySnippet,
@@ -2634,6 +2634,7 @@ class CountrySupportingPartnerSerializer(serializers.ModelSerializer):
         model = CountrySupportingPartner
         fields = "__all__"
 
+
 class FabricDimAgreementLineSerializer(serializers.ModelSerializer):
     class Meta:
         model = DimAgreementLine
@@ -2654,8 +2655,10 @@ class FabricDimAgreementLineSerializer(serializers.ModelSerializer):
             "price_per_unit",
             "line_discount_percent",
         )
-        read_only_fields = fields #Can be made more efficient by following same method as below but ill leave as an examplefor now.
-        
+        read_only_fields = (
+            fields  # Can be made more efficient by following same method as below but ill leave as an examplefor now.
+        )
+
 
 class FabricDimAppealSerializer(serializers.ModelSerializer):
     class Meta:
@@ -2879,6 +2882,7 @@ class FabricProductCategoryHierarchyFlattenedSerializer(serializers.ModelSeriali
         model = ProductCategoryHierarchyFlattened
         fields = "__all__"
         read_only_fields = fields
+
 
 class RegulationItemSerializer(serializers.Serializer):
     question = serializers.CharField()

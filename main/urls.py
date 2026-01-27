@@ -24,7 +24,6 @@ from rest_framework import routers
 from api import drf_views as api_views
 from api.admin_reports import UsersPerPermissionViewSet
 from api.pro_bono_views import ProBonoServicesView
-from api.warehouse_stocks_views import WarehouseStocksView
 from api.views import (
     AddCronJobLog,
     AddSubscription,
@@ -53,6 +52,7 @@ from api.views import (
     UpdateSubscriptionPreferences,
     logout_user,
 )
+from api.warehouse_stocks_views import WarehouseStocksView
 from country_plan import drf_views as country_plan_views
 from databank import views as data_bank_views
 from databank.views import CountryOverviewViewSet
@@ -202,26 +202,54 @@ router.register(r"fabric/dim-consignment", api_views.FabricDimConsignmentViewSet
 router.register(r"fabric/dim-delivery-mode", api_views.FabricDimDeliveryModeViewSet, basename="fabric_dim_delivery_mode")
 router.register(r"fabric/dim-donor", api_views.FabricDimDonorViewSet, basename="fabric_dim_donor")
 router.register(r"fabric/dim-inventory-item", api_views.FabricDimInventoryItemViewSet, basename="fabric_dim_inventory_item")
-router.register(r"fabric/dim-inventory-item-status", api_views.FabricDimInventoryItemStatusViewSet, basename="fabric_dim_inventory_item_status")
+router.register(
+    r"fabric/dim-inventory-item-status",
+    api_views.FabricDimInventoryItemStatusViewSet,
+    basename="fabric_dim_inventory_item_status",
+)
 router.register(r"fabric/dim-inventory-module", api_views.FabricDimInventoryModuleViewSet, basename="fabric_dim_inventory_module")
 router.register(r"fabric/dim-inventory-owner", api_views.FabricDimInventoryOwnerViewSet, basename="fabric_dim_inventory_owner")
-router.register(r"fabric/dim-inventory-transaction", api_views.FabricDimInventoryTransactionViewSet, basename="fabric_dim_inventory_transaction")
-router.register(r"fabric/dim-inventory-transaction-line", api_views.FabricDimInventoryTransactionLineViewSet, basename="fabric_dim_inventory_transaction_line")
-router.register(r"fabric/dim-inventory-transaction-origin", api_views.FabricDimInventoryTransactionOriginViewSet, basename="fabric_dim_inventory_transaction_origin")
+router.register(
+    r"fabric/dim-inventory-transaction",
+    api_views.FabricDimInventoryTransactionViewSet,
+    basename="fabric_dim_inventory_transaction",
+)
+router.register(
+    r"fabric/dim-inventory-transaction-line",
+    api_views.FabricDimInventoryTransactionLineViewSet,
+    basename="fabric_dim_inventory_transaction_line",
+)
+router.register(
+    r"fabric/dim-inventory-transaction-origin",
+    api_views.FabricDimInventoryTransactionOriginViewSet,
+    basename="fabric_dim_inventory_transaction_origin",
+)
 router.register(r"fabric/dim-item-batch", api_views.FabricDimItemBatchViewSet, basename="fabric_dim_item_batch")
 router.register(r"fabric/dim-location", api_views.FabricDimLocationViewSet, basename="fabric_dim_location")
-router.register(r"fabric/dim-logistics-location", api_views.FabricDimLogisticsLocationViewSet, basename="fabric_dim_logistics_location")
-router.register(r"fabric/dim-packing-slip-line", api_views.FabricDimPackingSlipLineViewSet, basename="fabric_dim_packing_slip_line")
+router.register(
+    r"fabric/dim-logistics-location", api_views.FabricDimLogisticsLocationViewSet, basename="fabric_dim_logistics_location"
+)
+router.register(
+    r"fabric/dim-packing-slip-line", api_views.FabricDimPackingSlipLineViewSet, basename="fabric_dim_packing_slip_line"
+)
 router.register(r"fabric/dim-product", api_views.FabricDimProductViewSet, basename="fabric_dim_product")
 router.register(r"fabric/dim-product-category", api_views.FabricDimProductCategoryViewSet, basename="fabric_dim_product_category")
-router.register(r"fabric/dim-product-receipt-line", api_views.FabricDimProductReceiptLineViewSet, basename="fabric_dim_product_receipt_line")
+router.register(
+    r"fabric/dim-product-receipt-line", api_views.FabricDimProductReceiptLineViewSet, basename="fabric_dim_product_receipt_line"
+)
 router.register(r"fabric/dim-project", api_views.FabricDimProjectViewSet, basename="fabric_dim_project")
 router.register(r"fabric/dim-sales-order-line", api_views.FabricDimSalesOrderLineViewSet, basename="fabric_dim_sales_order_line")
 router.register(r"fabric/dim-site", api_views.FabricDimSiteViewSet, basename="fabric_dim_site")
 router.register(r"fabric/dim-vendor", api_views.FabricDimVendorViewSet, basename="fabric_dim_vendor")
 router.register(r"fabric/dim-vendor-contact", api_views.FabricDimVendorContactViewSet, basename="fabric_dim_vendor_contact")
-router.register(r"fabric/dim-vendor-contact-email", api_views.FabricDimVendorContactEmailViewSet, basename="fabric_dim_vendor_contact_email")
-router.register(r"fabric/dim-vendor-physical-address", api_views.FabricDimVendorPhysicalAddressViewSet, basename="fabric_dim_vendor_physical_address")
+router.register(
+    r"fabric/dim-vendor-contact-email", api_views.FabricDimVendorContactEmailViewSet, basename="fabric_dim_vendor_contact_email"
+)
+router.register(
+    r"fabric/dim-vendor-physical-address",
+    api_views.FabricDimVendorPhysicalAddressViewSet,
+    basename="fabric_dim_vendor_physical_address",
+)
 router.register(r"fabric/dim-warehouse", api_views.FabricDimWarehouseViewSet, basename="fabric_dim_warehouse")
 
 router.register(r"fabric/fct-agreement", api_views.FabricFctAgreementViewSet, basename="fabric_fct_agreement")
@@ -280,9 +308,13 @@ urlpatterns = [
     url(r"^show_username", ShowUsername.as_view()),
     url(r"^resend_validation", ResendValidation.as_view()),
     # Customs Regulations - SPARK
-     # Country regulations - Spark
+    # Country regulations - Spark
     path("api/v2/country-regulations/", api_views.CustomsRegulationsView.as_view(), name="country_regulations"),
-    path("api/v2/country-regulations/<str:country>/", api_views.CustomsRegulationCountryView.as_view(), name="country_regulations_detail"),
+    path(
+        "api/v2/country-regulations/<str:country>/",
+        api_views.CustomsRegulationCountryView.as_view(),
+        name="country_regulations_detail",
+    ),
     url(r"^api/v2/", include(router.urls)),
     # PER options
     url(r"^api/v2/per-options/", per_views.PerOptionsView.as_view()),

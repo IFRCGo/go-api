@@ -7,6 +7,7 @@ from factory import fuzzy
 
 from .. import models
 
+
 class DimAgreementLineFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.DimAgreementLine
@@ -31,7 +32,7 @@ class DimAppealFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.DimAppeal
 
-    id = factory.Sequence(lambda n: f"TESTAPPEAL{n:04d}")
+    fabric_id = factory.Sequence(lambda n: f"TESTAPPEAL{n:04d}")
     appeal_name = fuzzy.FuzzyText(length=20)
 
 
@@ -117,7 +118,7 @@ class DimInventoryTransactionLineFactory(factory.django.DjangoModelFactory):
 
     id = factory.Sequence(lambda n: f"{n:010d}")
     item_status = factory.Iterator(["OK", "NULL", "CHECK"])
-    item_status_name = factory.Iterator(["Available", "NULL","To be checked"])
+    item_status_name = factory.Iterator(["Available", "NULL", "To be checked"])
     product = factory.Sequence(lambda n: f"TESTPRODUCT{n:05d}")
     voucher_physical = factory.Sequence(lambda n: f"ifrc#{n:05d}")
     project = factory.Sequence(lambda n: f"ifrc#{n:05d}")
@@ -294,7 +295,7 @@ class DimSalesOrderLineFactory(factory.django.DjangoModelFactory):
     unit_of_measure = fuzzy.FuzzyChoice(["ea", "kg", "g", "m2"])
     currency_code = fuzzy.FuzzyChoice(["USD", "CHF", "EUR", "JPY", "AED"])
     status = fuzzy.FuzzyChoice(["Open", "Closed", "Pending"])
-    type = fuzzy.FuzzyChoice(["OrderLine", "ReturnLine"]) 
+    type = fuzzy.FuzzyChoice(["OrderLine", "ReturnLine"])
     ordered_quantity_sales_unit = fuzzy.FuzzyDecimal(0, 100000)
     amount = fuzzy.FuzzyDecimal(-100000000, 1000000000)
     amount_accounting_currency = fuzzy.FuzzyDecimal(-100000000, 1000000000)
@@ -398,7 +399,7 @@ class FctAgreementFactory(factory.django.DjangoModelFactory):
     purpose = fuzzy.FuzzyText(length=20)
     document_external_reference = fuzzy.FuzzyText(length=20)
     code = factory.Sequence(lambda n: f"CLMX{n:06d}")
-    workflow_status = fuzzy.FuzzyChoice(["Draft", "Active", "Closed"]) 
+    workflow_status = fuzzy.FuzzyChoice(["Draft", "Active", "Closed"])
     default_agreement_line_effective_date = fuzzy.FuzzyDate(datetime.date(2008, 1, 1))
     default_agreement_line_expiration_date = fuzzy.FuzzyDate(datetime.date(2008, 1, 1))
     created_by = fuzzy.FuzzyText(length=12)
@@ -433,11 +434,11 @@ class FctPurchaseOrderFactory(factory.django.DjangoModelFactory):
     requested_by_organizational_unit = fuzzy.FuzzyText(length=12)
     sales_order = "NULL"
     in_kind_donation_pledge = factory.Sequence(lambda n: f"ifrc#{n:05d}")
-    type = fuzzy.FuzzyChoice(["Purchase", "Return"]) 
+    type = fuzzy.FuzzyChoice(["Purchase", "Return"])
     coordination_type = fuzzy.FuzzyText(length=12)
     apply_procurement_fees = fuzzy.FuzzyChoice([True, False])
     origin = fuzzy.FuzzyText(length=12)
-    approval_status = fuzzy.FuzzyChoice(["Pending", "Approved", "Rejected"]) 
+    approval_status = fuzzy.FuzzyChoice(["Pending", "Approved", "Rejected"])
     customer_reference = fuzzy.FuzzyText(length=20)
     in_kind_donor_reference = fuzzy.FuzzyText(length=20)
     intercompany_origin = fuzzy.FuzzyText(length=12)

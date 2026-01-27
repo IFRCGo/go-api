@@ -1,19 +1,15 @@
-from cProfile import label
 import time
-from typing import Any
+from datetime import datetime
 
-from datetime import datetime, date
-
-from django.utils import timezone
 from django.apps import apps
 from django.core.management.base import BaseCommand
 from django.db import connection, transaction
+from django.utils import timezone
 
-from api.fabric_import_map import FABRIC_IMPORT_STAGES, FABRIC_DB, FABRIC_SCHEMA
+from api.fabric_import_map import FABRIC_DB, FABRIC_IMPORT_STAGES, FABRIC_SCHEMA
 from api.fabric_sql import fetch_all
 
-
-DEFAULT_APP_LABEL = "api" 
+DEFAULT_APP_LABEL = "api"
 
 
 class Command(BaseCommand):
@@ -112,7 +108,8 @@ class Command(BaseCommand):
 
                 # DateField: Fabric returns datetime at midnight -> store date only
                 # If the model field is a DateField but Fabric gave incorrectly us a datetime, drop the time part
-                # Specifically affects DimLineAgreement, DimTransactionLine, DimItemBatch, DimPackingSlipLine, DimSalesOrderLine, DimVendorPhysicalAddress, FctProductReceipt
+                # Specifically affects DimLineAgreement, DimTransactionLine, DimItemBatch,
+                # DimPackingSlipLine, DimSalesOrderLine, DimVendorPhysicalAddress, FctProductReceipt
                 if internal == "DateField" and isinstance(value, datetime):
                     value = value.date()
 
@@ -123,8 +120,6 @@ class Command(BaseCommand):
                 kwargs[col] = value
 
         return kwargs
-
-
 
     def handle(self, *args, **options):
         only = set(options["only"] or [])
@@ -156,7 +151,7 @@ class Command(BaseCommand):
             _ = fetch_all(test_sql, limit=1)
             self.stdout.write(self.style.SUCCESS(f"  [TEST] Fabric reachable ({time.time() - t0:.2f}s)"))
 
-            # Truncate local table once per stage 
+            # Truncate local table once per stage
             if not no_truncate:
                 self.stdout.write("  Truncating local table...")
                 with transaction.atomic():
@@ -202,18 +197,21 @@ class Command(BaseCommand):
 
                         objs.append(model_cls(**kwargs))
 
-
                     # Insert chunk
                     with transaction.atomic():
-                        model_cls.objects.bulk_create(objs, batch_size=chunk_size, ignore_conflicts=True) # <-- skips duplicates of the PK because in our case all duplicates are identical
+                        model_cls.objects.bulk_create(
+                            objs, batch_size=chunk_size, ignore_conflicts=True
+                        )  # <-- skips duplicates of the PK because in our case all duplicates are identical
 
                     batch_num += 1
                     total_inserted += len(objs)
                     last_val = rows[-1][page_key]
 
-                    self.stdout.write(self.style.SUCCESS(
-                        f"  [BATCH {batch_num}] inserted {len(objs)} (total={total_inserted}) last_{page_key}={last_val}"
-                    ))
+                    self.stdout.write(
+                        self.style.SUCCESS(
+                            f"  [BATCH {batch_num}] inserted {len(objs)} (total={total_inserted}) last_{page_key}={last_val}"
+                        )
+                    )
 
             elif pagination == "row_number":
                 last_rn = 0
@@ -250,25 +248,28 @@ class Command(BaseCommand):
 
                         objs.append(model_cls(**kwargs))
 
-
                     with transaction.atomic():
-                        model_cls.objects.bulk_create(objs, batch_size=chunk_size, ignore_conflicts=True) # <-- skips duplicates of the PK because in our case all duplicates are identical
+                        model_cls.objects.bulk_create(
+                            objs, batch_size=chunk_size, ignore_conflicts=True
+                        )  # <-- skips duplicates of the PK because in our case all duplicates are identical
 
                     batch_num += 1
                     total_inserted += len(objs)
                     last_rn = end_rn
 
-                    self.stdout.write(self.style.SUCCESS(
-                        f"  [BATCH {batch_num}] inserted {len(objs)} (total={total_inserted}) rn={start_rn}..{end_rn}"
-                    ))
+                    self.stdout.write(
+                        self.style.SUCCESS(
+                            f"  [BATCH {batch_num}] inserted {len(objs)} (total={total_inserted}) rn={start_rn}..{end_rn}"
+                        )
+                    )
 
                     if len(rows) < chunk_size:
                         break
             else:
                 raise RuntimeError(f"Unknown pagination mode '{pagination}' for stage '{slug}'")
 
-            self.stdout.write(self.style.SUCCESS(
-                f"  Stage complete: {slug} inserted={total_inserted} time={time.time() - stage_start:.2f}s"
-            ))
+            self.stdout.write(
+                self.style.SUCCESS(f"  Stage complete: {slug} inserted={total_inserted} time={time.time() - stage_start:.2f}s")
+            )
 
         self.stdout.write(self.style.SUCCESS("\nDone."))

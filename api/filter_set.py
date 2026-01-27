@@ -425,6 +425,7 @@ class CountrySupportingPartnerFilter(filters.FilterSet):
         model = CountrySupportingPartner
         fields = ()
 
+
 class FabricDimAgreementLineFilter(filters.FilterSet):
     # Exact filters
     agreement_id = filters.CharFilter(field_name="agreement_id", lookup_expr="exact")
@@ -503,9 +504,7 @@ class FabricDimAppealFilter(filters.FilterSet):
     def filter_q(self, queryset, name, value):
         if not value:
             return queryset
-        return queryset.filter(
-            Q(fabric_id__icontains=value) | Q(appeal_name__icontains=value)
-        )
+        return queryset.filter(Q(fabric_id__icontains=value) | Q(appeal_name__icontains=value))
 
     # Sorting: ?sort=field or ?sort=-field
     sort = filters.OrderingFilter(
@@ -515,8 +514,9 @@ class FabricDimAppealFilter(filters.FilterSet):
             ("appeal_name", "appeal_name"),
         )
     )
-    #Add other fields to Meta.fields only when the frontend (or a report) 
-    #needs to filter on a specific column in a precise way.
+
+    # Add other fields to Meta.fields only when the frontend (or a report)
+    # needs to filter on a specific column in a precise way.
     class Meta:
         model = DimAppeal
         fields = ["q", "sort"]
@@ -528,9 +528,7 @@ class FabricDimBuyerGroupFilter(filters.FilterSet):
     def filter_q(self, queryset, name, value):
         if not value:
             return queryset
-        return queryset.filter(
-            Q(code__icontains=value) | Q(name__icontains=value)
-        )
+        return queryset.filter(Q(code__icontains=value) | Q(name__icontains=value))
 
     sort = filters.OrderingFilter(
         fields=(
@@ -550,9 +548,7 @@ class FabricDimConsignmentFilter(filters.FilterSet):
     def filter_q(self, queryset, name, value):
         if not value:
             return queryset
-        return queryset.filter(
-            Q(id__icontains=value) | Q(delivery_mode__icontains=value)
-        )
+        return queryset.filter(Q(id__icontains=value) | Q(delivery_mode__icontains=value))
 
     sort = filters.OrderingFilter(
         fields=(
@@ -572,9 +568,7 @@ class FabricDimDeliveryModeFilter(filters.FilterSet):
     def filter_q(self, queryset, name, value):
         if not value:
             return queryset
-        return queryset.filter(
-            Q(id__icontains=value) | Q(description__icontains=value)
-        )
+        return queryset.filter(Q(id__icontains=value) | Q(description__icontains=value))
 
     sort = filters.OrderingFilter(
         fields=(
@@ -594,9 +588,7 @@ class FabricDimDonorFilter(filters.FilterSet):
     def filter_q(self, queryset, name, value):
         if not value:
             return queryset
-        return queryset.filter(
-            Q(donor_code__icontains=value) | Q(donor_name__icontains=value)
-        )
+        return queryset.filter(Q(donor_code__icontains=value) | Q(donor_name__icontains=value))
 
     sort = filters.OrderingFilter(
         fields=(
@@ -616,9 +608,7 @@ class FabricDimInventoryItemFilter(filters.FilterSet):
     def filter_q(self, queryset, name, value):
         if not value:
             return queryset
-        return queryset.filter(
-            Q(id__icontains=value) | Q(unit_of_measure__icontains=value)
-        )
+        return queryset.filter(Q(id__icontains=value) | Q(unit_of_measure__icontains=value))
 
     sort = filters.OrderingFilter(
         fields=(
@@ -638,9 +628,7 @@ class FabricDimInventoryItemStatusFilter(filters.FilterSet):
     def filter_q(self, queryset, name, value):
         if not value:
             return queryset
-        return queryset.filter(
-            Q(id__icontains=value) | Q(name__icontains=value)
-        )
+        return queryset.filter(Q(id__icontains=value) | Q(name__icontains=value))
 
     sort = filters.OrderingFilter(
         fields=(
@@ -660,9 +648,7 @@ class FabricDimInventoryModuleFilter(filters.FilterSet):
     def filter_q(self, queryset, name, value):
         if not value:
             return queryset
-        return queryset.filter(
-            Q(id__icontains=value) | Q(item_id__icontains=value) | Q(type__icontains=value)
-        )
+        return queryset.filter(Q(id__icontains=value) | Q(item_id__icontains=value) | Q(type__icontains=value))
 
     sort = filters.OrderingFilter(
         fields=(
@@ -683,9 +669,7 @@ class FabricDimInventoryOwnerFilter(filters.FilterSet):
     def filter_q(self, queryset, name, value):
         if not value:
             return queryset
-        return queryset.filter(
-            Q(id__icontains=value) | Q(name__icontains=value)
-        )
+        return queryset.filter(Q(id__icontains=value) | Q(name__icontains=value))
 
     sort = filters.OrderingFilter(
         fields=(
@@ -728,9 +712,7 @@ class FabricDimInventoryTransactionLineFilter(filters.FilterSet):
     def filter_q(self, queryset, name, value):
         if not value:
             return queryset
-        return queryset.filter(
-            Q(id__icontains=value) | Q(product__icontains=value) | Q(inventory_transaction__icontains=value)
-        )
+        return queryset.filter(Q(id__icontains=value) | Q(product__icontains=value) | Q(inventory_transaction__icontains=value))
 
     sort = filters.OrderingFilter(
         fields=(
@@ -774,9 +756,7 @@ class FabricDimItemBatchFilter(filters.FilterSet):
     def filter_q(self, queryset, name, value):
         if not value:
             return queryset
-        return queryset.filter(
-            Q(id__icontains=value) | Q(vendor__icontains=value) | Q(customer__icontains=value)
-        )
+        return queryset.filter(Q(id__icontains=value) | Q(vendor__icontains=value) | Q(customer__icontains=value))
 
     sort = filters.OrderingFilter(
         fields=(
@@ -797,9 +777,7 @@ class FabricDimLocationFilter(filters.FilterSet):
     def filter_q(self, queryset, name, value):
         if not value:
             return queryset
-        return queryset.filter(
-            Q(id__icontains=value) | Q(location__icontains=value)
-        )
+        return queryset.filter(Q(id__icontains=value) | Q(location__icontains=value))
 
     sort = filters.OrderingFilter(
         fields=(
@@ -819,9 +797,7 @@ class FabricDimLogisticsLocationFilter(filters.FilterSet):
     def filter_q(self, queryset, name, value):
         if not value:
             return queryset
-        return queryset.filter(
-            Q(id__icontains=value) | Q(city__icontains=value) | Q(country__icontains=value)
-        )
+        return queryset.filter(Q(id__icontains=value) | Q(city__icontains=value) | Q(country__icontains=value))
 
     sort = filters.OrderingFilter(
         fields=(
@@ -842,9 +818,7 @@ class FabricDimPackingSlipLineFilter(filters.FilterSet):
     def filter_q(self, queryset, name, value):
         if not value:
             return queryset
-        return queryset.filter(
-            Q(id__icontains=value) | Q(sales_order_line__icontains=value)
-        )
+        return queryset.filter(Q(id__icontains=value) | Q(sales_order_line__icontains=value))
 
     sort = filters.OrderingFilter(
         fields=(
@@ -864,9 +838,7 @@ class FabricDimProductFilter(filters.FilterSet):
     def filter_q(self, queryset, name, value):
         if not value:
             return queryset
-        return queryset.filter(
-            Q(id__icontains=value) | Q(name__icontains=value) | Q(type__icontains=value)
-        )
+        return queryset.filter(Q(id__icontains=value) | Q(name__icontains=value) | Q(type__icontains=value))
 
     sort = filters.OrderingFilter(
         fields=(
@@ -887,9 +859,7 @@ class FabricDimProductCategoryFilter(filters.FilterSet):
     def filter_q(self, queryset, name, value):
         if not value:
             return queryset
-        return queryset.filter(
-            Q(category_code__icontains=value) | Q(name__icontains=value)
-        )
+        return queryset.filter(Q(category_code__icontains=value) | Q(name__icontains=value))
 
     sort = filters.OrderingFilter(
         fields=(
@@ -933,9 +903,7 @@ class FabricDimProjectFilter(filters.FilterSet):
     def filter_q(self, queryset, name, value):
         if not value:
             return queryset
-        return queryset.filter(
-            Q(id__icontains=value) | Q(project_name__icontains=value)
-        )
+        return queryset.filter(Q(id__icontains=value) | Q(project_name__icontains=value))
 
     sort = filters.OrderingFilter(
         fields=(
@@ -955,9 +923,7 @@ class FabricDimSalesOrderLineFilter(filters.FilterSet):
     def filter_q(self, queryset, name, value):
         if not value:
             return queryset
-        return queryset.filter(
-            Q(id__icontains=value) | Q(product__icontains=value) | Q(description__icontains=value)
-        )
+        return queryset.filter(Q(id__icontains=value) | Q(product__icontains=value) | Q(description__icontains=value))
 
     sort = filters.OrderingFilter(
         fields=(
@@ -978,9 +944,7 @@ class FabricDimSiteFilter(filters.FilterSet):
     def filter_q(self, queryset, name, value):
         if not value:
             return queryset
-        return queryset.filter(
-            Q(id__icontains=value) | Q(name__icontains=value)
-        )
+        return queryset.filter(Q(id__icontains=value) | Q(name__icontains=value))
 
     sort = filters.OrderingFilter(
         fields=(
@@ -1000,9 +964,7 @@ class FabricDimVendorFilter(filters.FilterSet):
     def filter_q(self, queryset, name, value):
         if not value:
             return queryset
-        return queryset.filter(
-            Q(code__icontains=value) | Q(name__icontains=value)
-        )
+        return queryset.filter(Q(code__icontains=value) | Q(name__icontains=value))
 
     sort = filters.OrderingFilter(
         fields=(
@@ -1046,9 +1008,7 @@ class FabricDimVendorContactEmailFilter(filters.FilterSet):
     def filter_q(self, queryset, name, value):
         if not value:
             return queryset
-        return queryset.filter(
-            Q(id__icontains=value) | Q(email_address__icontains=value)
-        )
+        return queryset.filter(Q(id__icontains=value) | Q(email_address__icontains=value))
 
     sort = filters.OrderingFilter(
         fields=(
@@ -1068,9 +1028,7 @@ class FabricDimVendorPhysicalAddressFilter(filters.FilterSet):
     def filter_q(self, queryset, name, value):
         if not value:
             return queryset
-        return queryset.filter(
-            Q(id__icontains=value) | Q(city__icontains=value) | Q(country__icontains=value)
-        )
+        return queryset.filter(Q(id__icontains=value) | Q(city__icontains=value) | Q(country__icontains=value))
 
     sort = filters.OrderingFilter(
         fields=(
@@ -1091,9 +1049,7 @@ class FabricDimWarehouseFilter(filters.FilterSet):
     def filter_q(self, queryset, name, value):
         if not value:
             return queryset
-        return queryset.filter(
-            Q(id__icontains=value) | Q(name__icontains=value) | Q(site__icontains=value)
-        )
+        return queryset.filter(Q(id__icontains=value) | Q(name__icontains=value) | Q(site__icontains=value))
 
     sort = filters.OrderingFilter(
         fields=(
@@ -1114,9 +1070,7 @@ class FabricFctAgreementFilter(filters.FilterSet):
     def filter_q(self, queryset, name, value):
         if not value:
             return queryset
-        return queryset.filter(
-            Q(agreement_id__icontains=value) | Q(vendor__icontains=value) | Q(status__icontains=value)
-        )
+        return queryset.filter(Q(agreement_id__icontains=value) | Q(vendor__icontains=value) | Q(status__icontains=value))
 
     sort = filters.OrderingFilter(
         fields=(
@@ -1137,9 +1091,7 @@ class FabricFctProductReceiptFilter(filters.FilterSet):
     def filter_q(self, queryset, name, value):
         if not value:
             return queryset
-        return queryset.filter(
-            Q(id__icontains=value) | Q(purchase_order__icontains=value)
-        )
+        return queryset.filter(Q(id__icontains=value) | Q(purchase_order__icontains=value))
 
     sort = filters.OrderingFilter(
         fields=(
@@ -1160,9 +1112,7 @@ class FabricFctPurchaseOrderFilter(filters.FilterSet):
     def filter_q(self, queryset, name, value):
         if not value:
             return queryset
-        return queryset.filter(
-            Q(id__icontains=value) | Q(vendor__icontains=value) | Q(status__icontains=value)
-        )
+        return queryset.filter(Q(id__icontains=value) | Q(vendor__icontains=value) | Q(status__icontains=value))
 
     sort = filters.OrderingFilter(
         fields=(
@@ -1183,9 +1133,7 @@ class FabricFctSalesOrderFilter(filters.FilterSet):
     def filter_q(self, queryset, name, value):
         if not value:
             return queryset
-        return queryset.filter(
-            Q(id__icontains=value) | Q(customer__icontains=value)
-        )
+        return queryset.filter(Q(id__icontains=value) | Q(customer__icontains=value))
 
     sort = filters.OrderingFilter(
         fields=(
@@ -1206,9 +1154,7 @@ class FabricProductCategoryHierarchyFlattenedFilter(filters.FilterSet):
     def filter_q(self, queryset, name, value):
         if not value:
             return queryset
-        return queryset.filter(
-            Q(product_category__icontains=value) | Q(level_1_product_category__icontains=value)
-        )
+        return queryset.filter(Q(product_category__icontains=value) | Q(level_1_product_category__icontains=value))
 
     sort = filters.OrderingFilter(
         fields=(

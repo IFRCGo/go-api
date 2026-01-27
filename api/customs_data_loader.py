@@ -46,9 +46,7 @@ def _add_item(countries: Dict, country: str, section: str, question: str, answer
     _ensure_country(countries, country)
     if section not in countries[country]["sections"]:
         countries[country]["sections"][section] = []
-    countries[country]["sections"][section].append(
-        {"question": question, "answer": answer, "notes": notes}
-    )
+    countries[country]["sections"][section].append({"question": question, "answer": answer, "notes": notes})
 
 
 def _parse_db_master(ws, countries: Dict):
@@ -172,10 +170,7 @@ def load_customs_regulations() -> Dict:
         "countries": [
             {
                 "country": c["country"],
-                "sections": [
-                    {"section": section, "items": items}
-                    for section, items in c["sections"].items()
-                ],
+                "sections": [{"section": section, "items": items} for section, items in c["sections"].items()],
             }
             for c in countries.values()
         ],
@@ -185,5 +180,5 @@ def load_customs_regulations() -> Dict:
     return result
 
 
-
-#This code is highly unefficient and needs to be re-written later to store data in a DB. It is kept as is for now due to small amounts of data
+# This code is highly unefficient and needs to be re-written later to store data in a DB.
+# It is kept as is for now due to small amounts of data
