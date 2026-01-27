@@ -279,6 +279,10 @@ urlpatterns = [
     url(r"^recover_password", RecoverPassword.as_view()),
     url(r"^show_username", ShowUsername.as_view()),
     url(r"^resend_validation", ResendValidation.as_view()),
+    # Customs Regulations - SPARK
+     # Country regulations - Spark
+    path("api/v2/country-regulations/", api_views.CustomsRegulationsView.as_view(), name="country_regulations"),
+    path("api/v2/country-regulations/<str:country>/", api_views.CustomsRegulationCountryView.as_view(), name="country_regulations_detail"),
     url(r"^api/v2/", include(router.urls)),
     # PER options
     url(r"^api/v2/per-options/", per_views.PerOptionsView.as_view()),
@@ -306,7 +310,6 @@ urlpatterns = [
     path("docs/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
     path("api-docs/", SpectacularAPIView.as_view(), name="schema"),
     path("api-docs/swagger-ui/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
-    
 ]
 
 if settings.OIDC_ENABLE:
