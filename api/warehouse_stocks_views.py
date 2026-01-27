@@ -1,6 +1,6 @@
-import requests
 from decimal import Decimal
 
+import requests
 from django.conf import settings
 from django.db.models import Sum
 from rest_framework import views
@@ -8,15 +8,17 @@ from rest_framework.response import Response
 
 from api.models import (
     DimInventoryTransactionLine,
-    DimWarehouse,
     DimProduct,
     DimProductCategory,
+    DimWarehouse,
 )
 
 GOADMIN_COUNTRY_URL_DEFAULT = "https://goadmin.ifrc.org/api/v2/country/?limit=300"
 
+
 def _safe_str(v):
     return "" if v is None else str(v)
+
 
 def _fetch_goadmin_maps():
     """
@@ -67,6 +69,7 @@ def _fetch_goadmin_maps():
                 iso3_to_region_name[str(iso3).upper()] = str(region_full).replace(" Region", "")
 
     return iso2_to_iso3, iso3_to_country_name, iso3_to_region_name
+
 
 class WarehouseStocksView(views.APIView):
     permission_classes = []
@@ -145,17 +148,19 @@ class WarehouseStocksView(views.APIView):
             else:
                 qty_out = str(qty)
 
-            results.append({
-                "id": f"{warehouse_id}__{product_id}",
-                "region": region_name,              # e.g. "Americas"
-                "country": country_name,            # e.g. "Panama"  
-                "country_iso3": country_iso3,       # e.g. "PAN"
-                "warehouse_name": wh["warehouse_name"],
-                "item_group": item_group,
-                "item_name": prod.get("item_name", ""),
-                "item_number": prod.get("item_number", ""),
-                "unit": prod.get("unit", ""),
-                "quantity": qty_out,
-            })
+            results.append(
+                {
+                    "id": f"{warehouse_id}__{product_id}",
+                    "region": region_name,  # e.g. "Americas"
+                    "country": country_name,  # e.g. "Panama"
+                    "country_iso3": country_iso3,  # e.g. "PAN"
+                    "warehouse_name": wh["warehouse_name"],
+                    "item_group": item_group,
+                    "item_name": prod.get("item_name", ""),
+                    "item_number": prod.get("item_number", ""),
+                    "unit": prod.get("unit", ""),
+                    "quantity": qty_out,
+                }
+            )
 
         return Response({"results": results})

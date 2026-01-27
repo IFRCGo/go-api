@@ -22,7 +22,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django_filters import rest_framework as rest_filters
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import filters, mixins, serializers, viewsets
+from rest_framework import filters, mixins, serializers, status, viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -99,6 +99,7 @@ from main.utils import is_tableau
 from per.models import Overview
 from per.serializers import CountryLatestOverviewSerializer
 
+from .customs_data_loader import load_customs_regulations
 from .exceptions import BadRequest
 from .models import (
     Action,
@@ -259,7 +260,6 @@ from .serializers import (  # AppealSerializer,; Tableau Serializers; AppealTabl
     UserSerializer,
 )
 from .utils import generate_field_report_title, is_user_ifrc
-from .customs_data_loader import load_customs_regulations
 
 
 class DeploymentsByEventViewset(viewsets.ReadOnlyModelViewSet):
@@ -1934,6 +1934,7 @@ class FabricProductCategoryHierarchyFlattenedViewSet(viewsets.ReadOnlyModelViewS
 
     def get_queryset(self):
         return ProductCategoryHierarchyFlattened.objects.all()
+
 
 class CustomsRegulationsView(APIView):
     permission_classes = [IsAuthenticated]

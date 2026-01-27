@@ -24,7 +24,6 @@ from rest_framework import routers
 from api import drf_views as api_views
 from api.admin_reports import UsersPerPermissionViewSet
 from api.pro_bono_views import ProBonoServicesView
-from api.warehouse_stocks_views import WarehouseStocksView
 from api.views import (
     AddCronJobLog,
     AddSubscription,
@@ -53,6 +52,7 @@ from api.views import (
     UpdateSubscriptionPreferences,
     logout_user,
 )
+from api.warehouse_stocks_views import WarehouseStocksView
 from country_plan import drf_views as country_plan_views
 from databank import views as data_bank_views
 from databank.views import CountryOverviewViewSet
@@ -308,9 +308,13 @@ urlpatterns = [
     url(r"^show_username", ShowUsername.as_view()),
     url(r"^resend_validation", ResendValidation.as_view()),
     # Customs Regulations - SPARK
-     # Country regulations - Spark
+    # Country regulations - Spark
     path("api/v2/country-regulations/", api_views.CustomsRegulationsView.as_view(), name="country_regulations"),
-    path("api/v2/country-regulations/<str:country>/", api_views.CustomsRegulationCountryView.as_view(), name="country_regulations_detail"),
+    path(
+        "api/v2/country-regulations/<str:country>/",
+        api_views.CustomsRegulationCountryView.as_view(),
+        name="country_regulations_detail",
+    ),
     url(r"^api/v2/", include(router.urls)),
     # PER options
     url(r"^api/v2/per-options/", per_views.PerOptionsView.as_view()),

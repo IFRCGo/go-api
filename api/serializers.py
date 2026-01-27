@@ -2883,6 +2883,7 @@ class FabricProductCategoryHierarchyFlattenedSerializer(serializers.ModelSeriali
         fields = "__all__"
         read_only_fields = fields
 
+
 class RegulationItemSerializer(serializers.Serializer):
     question = serializers.CharField()
     answer = serializers.CharField()
