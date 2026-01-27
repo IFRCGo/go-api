@@ -24,6 +24,7 @@ from rest_framework import routers
 from api import drf_views as api_views
 from api.admin_reports import UsersPerPermissionViewSet
 from api.pro_bono_views import ProBonoServicesView
+from api.warehouse_stocks_views import WarehouseStocksView
 from api.views import (
     AddCronJobLog,
     AddSubscription,
@@ -268,6 +269,7 @@ admin.site.site_title = "IFRC Go admin"
 urlpatterns = [
     # url(r"^api/v1/es_search/", EsPageSearch.as_view()),
     url(r"^api/v1/search/", HayStackSearch.as_view()),
+    url(r"^api/v1/warehouse-stocks/", WarehouseStocksView.as_view()),
     url(r"^api/v1/pro-bono-services/", ProBonoServicesView.as_view()),
     url(r"^api/v1/es_health/", EsPageHealth.as_view()),
     # If we want to use the next one, some permission overthink is needed:
@@ -305,6 +307,10 @@ urlpatterns = [
     url(r"^recover_password", RecoverPassword.as_view()),
     url(r"^show_username", ShowUsername.as_view()),
     url(r"^resend_validation", ResendValidation.as_view()),
+    # Customs Regulations - SPARK
+     # Country regulations - Spark
+    path("api/v2/country-regulations/", api_views.CustomsRegulationsView.as_view(), name="country_regulations"),
+    path("api/v2/country-regulations/<str:country>/", api_views.CustomsRegulationCountryView.as_view(), name="country_regulations_detail"),
     url(r"^api/v2/", include(router.urls)),
     # PER options
     url(r"^api/v2/per-options/", per_views.PerOptionsView.as_view()),
