@@ -16,6 +16,9 @@ class ImpactDetailsEnum:
         HIGHEST_RISK = "highest_risk", _("Highest Risk")
         AFFECTED_TOTAL = "affected_total", _("Affected Total")
         AFFECTED_DIRECT = "affected_direct", _("Affected Direct")
+        DEATH = "death", _("Death")
+        LOSS_COST = "cost", _("Cost")
+        DAMAGED = "damaged", _("Damaged")
 
     class Category(models.TextChoices):
         PEOPLE = "people", _("People")

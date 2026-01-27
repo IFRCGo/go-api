@@ -16,7 +16,10 @@ class USGSTransformer(BaseTransformerClass):
     # NOTE: This logic might change in future
     def compute_people_exposed(self, metadata_list) -> Optional[int]:
         for data in metadata_list:
-            if data["category"] == ImpactDetailsEnum.Category.PEOPLE and data["type"] == ImpactDetailsEnum.Type.AFFECTED_TOTAL:
+            if data["category"] == ImpactDetailsEnum.Category.PEOPLE and data["type"] in [
+                ImpactDetailsEnum.Type.DEATH,
+                ImpactDetailsEnum.Type.POTENTIALLY_AFFECTED,
+            ]:
                 return data["value"]
         return None
 
@@ -26,7 +29,7 @@ class USGSTransformer(BaseTransformerClass):
         Compute the 'buildings_exposed' field.
         """
         for data in metadata_list:
-            if data["category"] == "buildings" and data["type"] == "damaged":
+            if data["category"] == ImpactDetailsEnum.Category.BUILDINGS and data["type"] == ImpactDetailsEnum.Type.LOSS_COST:
                 return data["value"]
         return None
 
