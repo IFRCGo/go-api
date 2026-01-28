@@ -42,6 +42,7 @@ from eap.tasks import (
     generate_export_eap_pdf,
     send_approved_email,
     send_eap_resubmission_email,
+    send_eap_share_email,
     send_feedback_email,
     send_feedback_email_for_resubmitted_eap,
     send_new_eap_registration_email,
@@ -93,6 +94,39 @@ class BaseEAPSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data: dict[str, typing.Any]):
         self._set_user_fields(validated_data, ["modified_by"])
         return super().update(instance, validated_data)
+
+
+class EAPShareUserSerializer(serializers.ModelSerializer):
+    users = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(),
+        many=True,
+        required=True,
+    )
+
+    users_details = UserNameSerializer(source="users", many=True, read_only=True)
+
+    class Meta:
+        model = EAPRegistration
+        fields = (
+            "users",
+            "users_details",
+        )
+        read_only_fields = ("id",)
+
+    def update(self, instance: EAPRegistration, validated_data: dict[str, typing.Any]) -> EAPRegistration:
+        existing_user_ids = set(instance.users.values_list("id", flat=True))
+        new_users = [user for user in validated_data["users"] if user.id not in existing_user_ids]
+        instance = super().update(instance, validated_data)
+
+        if new_users:
+            transaction.on_commit(
+                lambda: send_eap_share_email.delay(
+                    eap_registration_id=instance.id,
+                    recipient_emails=[user.email for user in new_users],
+                )
+            )
+
+        return instance
 
 
 class EAPFileInputSerializer(serializers.Serializer):
