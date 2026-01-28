@@ -388,6 +388,11 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):  # type: ignore[misc]
     # Previous: [permissions.IsAuthenticated, DenyGuestUserPermission, UseBySuperAdminOnly]
     lookup_field = "appeal_code"
 
+    def _excluded_codes(self):
+        if not hasattr(self, "_excluded_codes_cache"):
+            self._excluded_codes_cache = self.get_nonsuperusers_excluded_codes()
+        return self._excluded_codes_cache
+
     def get_queryset(self):  # type: ignore[override]
         # just to give something to rest_framework/generics.py:63 – not used in retrieve
         return Dref.objects.none()
@@ -573,7 +578,7 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):  # type: ignore[misc]
 
         # Exclude codes for non-superusers
         if not getattr(self.request.user, "is_superuser", False):
-            excluded_codes = self.get_nonsuperusers_excluded_codes()
+            excluded_codes = self._excluded_codes()
             if excluded_codes:
                 codes = [c for c in codes if c and c.upper() not in excluded_codes]
 
@@ -609,7 +614,7 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):  # type: ignore[misc]
         self.kwargs = old_kwargs  # Restore old kwargs
 
         # Assign ephemeral numeric ids (1-based sequence) per request and silent_operation flag
-        silents = self.get_nonsuperusers_excluded_codes()
+        silents = self._excluded_codes()
         for idx, row in enumerate(data, start=1):
             row["id"] = idx
             row["public"] = row["appeal_id"] not in silents
@@ -668,7 +673,7 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):  # type: ignore[misc]
 
         if not getattr(user, "is_superuser", False):
             # If code is in the excluded list, return no results for anonymous users
-            excluded_codes = self.get_nonsuperusers_excluded_codes()
+            excluded_codes = self._excluded_codes()
             if appeal_code and appeal_code.upper() in excluded_codes:
                 return []
             # Light users: only published records are visible
@@ -742,7 +747,7 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):  # type: ignore[misc]
         serialized_data = []
         ops_update_count = 0
         allocation_count = 1  # Dref Application is always the first allocation
-        public = code not in self.get_nonsuperusers_excluded_codes()
+        public = code not in self._excluded_codes()
         a = ["First", "Second", "Third", "Fourth", "Fifth", "Sixth", "Seventh", "Eighth", "Ninth", "Tenth"]
 
         # is_latest_stage: the last APPROVED-status instance and next instance either absent or not APPROVED
