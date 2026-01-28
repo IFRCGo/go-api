@@ -628,6 +628,14 @@ class EAPRegistration(EAPBaseModel):
         blank=True,
     )
 
+    # Users involved in the EAP
+    users = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        verbose_name=_("users"),
+        related_name="user_eap",
+    )
+
     # Validated Budget file
     validated_budget_file = SecureFileField(
         upload_to="eap/files/validated_budgets/",
