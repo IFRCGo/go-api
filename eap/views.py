@@ -8,6 +8,7 @@ from rest_framework.decorators import action
 
 from eap.filter_set import (
     EAPRegistrationFilterSet,
+    EAPShareUserFilterSet,
     FullEAPFilterSet,
     SimplifiedEAPFilterSet,
 )
@@ -32,6 +33,7 @@ from eap.serializers import (
     EAPFileSerializer,
     EAPGlobalFilesSerializer,
     EAPRegistrationSerializer,
+    EAPShareUserSerializer,
     EAPStatusSerializer,
     EAPValidatedBudgetFileSerializer,
     FullEAPSerializer,
@@ -168,6 +170,45 @@ class EAPRegistrationViewSet(EAPModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return response.Response(serializer.data)
+
+    @extend_schema(
+        request=EAPShareUserSerializer,
+        responses={200: None},
+    )
+    @action(
+        detail=True,
+        url_path="share",
+        methods=["post"],
+        serializer_class=EAPShareUserSerializer,
+        permission_classes=[permissions.IsAuthenticated, DenyGuestUserPermission],
+    )
+    def share(
+        self,
+        request,
+        id: int,
+    ):
+        eap_registration: EAPRegistration = self.get_object()
+        serializer = EAPShareUserSerializer(
+            eap_registration,
+            data=request.data,
+            context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return response.Response(status=status.HTTP_200_OK)
+
+
+class EAPShareUserViewSet(
+    viewsets.ReadOnlyModelViewSet,
+):
+    queryset = EAPRegistration.objects.all()
+    lookup_field = "id"
+    serializer_class = EAPShareUserSerializer
+    permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
+    filterset_class = EAPShareUserFilterSet
+
+    def get_queryset(self) -> QuerySet[EAPRegistration]:
+        return super().get_queryset().prefetch_related("users").order_by("-created_at").distinct()
 
 
 class SimplifiedEAPViewSet(EAPModelViewSet):

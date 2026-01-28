@@ -98,3 +98,11 @@ class FullEAPFilterSet(BaseEAPFilterSet):
     class Meta:
         model = FullEAP
         fields = ("eap_registration",)
+
+
+class EAPShareUserFilterSet(filters.FilterSet):
+    id = filters.NumberFilter(field_name="id", lookup_expr="exact")
+
+    class Meta:
+        model = EAPRegistration
+        fields = ("id",)
