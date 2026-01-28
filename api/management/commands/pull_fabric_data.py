@@ -22,6 +22,11 @@ class Command(BaseCommand):
             help="Optional list of stage slugs to run (e.g. dim-appeal dim-product).",
         )
         parser.add_argument(
+            "--exclude",
+            nargs="*",
+            help="Optional list of stage slugs to skip (e.g. dim-appeal).",
+        )
+        parser.add_argument(
             "--chunk-size",
             type=int,
             default=10000,
@@ -123,10 +128,11 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         only = set(options["only"] or [])
+        exclude = set(options["exclude"] or [])
         chunk_size = int(options["chunk_size"])
         no_truncate = bool(options["no_truncate"])
 
-        stages = [s for s in FABRIC_IMPORT_STAGES if not only or s["slug"] in only]
+        stages = [s for s in FABRIC_IMPORT_STAGES if (not only or s["slug"] in only) and s["slug"] not in exclude]
         self.stdout.write(self.style.SUCCESS(f"Starting pull_fabric_data: {len(stages)} stages"))
 
         for idx, stage in enumerate(stages, start=1):
