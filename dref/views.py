@@ -679,48 +679,39 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):  # type: ignore[misc]
             # Light users: only published records are visible
             drefs = (
                 Dref.objects.filter(appeal_code=appeal_code, status=Dref.Status.APPROVED)
-                .prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
+                .prefetch_related("planned_interventions")
                 .order_by("created_at")
-                .distinct()
             )
             if drefs.exists():
                 results.extend(drefs)
 
             operational_updates = (
                 DrefOperationalUpdate.objects.filter(appeal_code=appeal_code, status=Dref.Status.APPROVED)
-                .prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
+                .prefetch_related("planned_interventions")
                 .order_by("created_at")
-                .distinct()
             )
             if operational_updates.exists():
                 results.extend(operational_updates)
 
             final_reports = (
                 DrefFinalReport.objects.filter(appeal_code=appeal_code, status=Dref.Status.APPROVED)
-                .prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
+                .prefetch_related("planned_interventions")
                 .order_by("created_at")
-                .distinct()
             )
             if final_reports.exists():
                 results.extend(final_reports)
             return results
 
         # Strong users: allow more access
-        drefs = (
-            Dref.objects.filter(appeal_code=appeal_code)
-            .prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
-            .order_by("created_at")
-            .distinct()
-        )
+        drefs = Dref.objects.filter(appeal_code=appeal_code).prefetch_related("planned_interventions").order_by("created_at")
         drefs = filter_dref_queryset_by_user_access(user, drefs)
         if drefs.exists():
             results.extend(drefs)
 
         operational_updates = (
             DrefOperationalUpdate.objects.filter(appeal_code=appeal_code)
-            .prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
+            .prefetch_related("planned_interventions")
             .order_by("created_at")
-            .distinct()
         )
         operational_updates = filter_dref_queryset_by_user_access(user, operational_updates)
         if operational_updates.exists():
@@ -728,9 +719,8 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):  # type: ignore[misc]
 
         final_reports = (
             DrefFinalReport.objects.filter(appeal_code=appeal_code)
-            .prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
+            .prefetch_related("planned_interventions")
             .order_by("created_at")
-            .distinct()
         )
         final_reports = filter_dref_queryset_by_user_access(user, final_reports)
         if final_reports.exists():
