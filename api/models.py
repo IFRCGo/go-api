@@ -2588,87 +2588,46 @@ class Export(models.Model):
         return f"{self.url} - {self.token}"
 
 
-# SPARK
-# Database normalisation into 3 tables
-class FrameworkAgreement(models.Model):
-    """Main Framework Agreement details"""
+# Models for SPARK
 
-    # enums - restrict the fields to specific values
-    class PAType(models.TextChoices):
-        GLOBAL_SERVICES = "Global Services", _("Global Services")
-        LOCAL_SERVICES = "Local Services", _("Local Services")
-
-    class GeographicalCoverage(models.TextChoices):
-        GLOBAL = "Global", _("Global")
-        LOCAL = "Local", _("Local")
-
-    class WorkflowStatus(models.TextChoices):
-        NOT_SUBMITTED = "NotSubmitted", _("Not Submitted")
-        APPROVED = "Approved", _("Approved")
-
-    class PAStatus(models.TextChoices):
-        ON_HOLD = "On hold", _("On Hold")
-        EFFECTIVE = "Effective", _("Effective")
-
-    fa_number = models.CharField(verbose_name=_("FA Number"), max_length=50, unique=True, primary_key=True)
-    supplier_name = models.CharField(verbose_name=_("Supplier Name"), max_length=255)
-    pa_type = models.CharField(verbose_name=_("PA Type"), max_length=50, choices=PAType.choices)
-    pa_bu_region_name = models.CharField(verbose_name=_("PA BU Region Name"), max_length=100)
-    pa_bu_country_name = models.CharField(verbose_name=_("PA BU Country Name"), max_length=100)
-    pa_effective_date = models.DateTimeField(verbose_name=_("PA Effective Date (FA Start Date)"))
-    pa_expiration_date = models.DateTimeField(verbose_name=_("PA Expiration Date (FA End Date)"))
-    pa_workflow_status = models.CharField(verbose_name=_("PA Workflow Status"), max_length=50, choices=WorkflowStatus.choices)
-    pa_status = models.CharField(verbose_name=_("PA Status"), max_length=50, choices=PAStatus.choices)
-    pa_buyer_group_code = models.CharField(verbose_name=_("PA Buyer Group Code"), max_length=50, blank=True)
-    fa_owner_name = models.CharField(verbose_name=_("FA Owner Name"), max_length=100)
-    fa_geographical_coverage = models.CharField(
-        verbose_name=_("FA Geographical Coverage"), max_length=50, choices=GeographicalCoverage.choices
+class CleanedFrameworkAgreement(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    agreement_id = models.CharField(verbose_name=_("Agreement ID"), max_length=100, db_index=True)
+    classification = models.CharField(verbose_name=_("Classification"), max_length=128, null=True, blank=True)
+    default_agreement_line_effective_date = models.DateField(
+        verbose_name=_("Default Agreement Line Effective Date"), null=True, blank=True
     )
-    region_countries_covered = models.CharField(verbose_name=_("Region / Countries Covered"), max_length=100)
-    item_type = models.CharField(verbose_name=_("Item Type"), max_length=100)
-    item_category = models.CharField(verbose_name=_("Item Category"), max_length=100)
-    item_service_description = models.CharField(verbose_name=_("Item / Service Short Description"), max_length=255)
+    default_agreement_line_expiration_date = models.DateField(
+        verbose_name=_("Default Agreement Line Expiration Date"), null=True, blank=True
+    )
+    workflow_status = models.CharField(verbose_name=_("Workflow Status"), max_length=64, null=True, blank=True)
+    status = models.CharField(verbose_name=_("Status"), max_length=64, null=True, blank=True)
+    price_per_unit = models.DecimalField(
+        verbose_name=_("Price Per Unit"), max_digits=30, decimal_places=6, null=True, blank=True
+    )
+    pa_line_procurement_category = models.CharField(
+        verbose_name=_("PA Line Procurement Category"), max_length=128, null=True, blank=True
+    )
+    vendor_name = models.CharField(verbose_name=_("Vendor Name"), max_length=255, null=True, blank=True)
+    vendor_country = models.CharField(verbose_name=_("Vendor Country"), max_length=8, null=True, blank=True)
+    region_countries_covered = models.CharField(
+        verbose_name=_("Region / Countries Covered"), max_length=255, null=True, blank=True
+    )
+    item_type = models.CharField(verbose_name=_("Item Type"), max_length=128, null=True, blank=True)
+    item_category = models.CharField(verbose_name=_("Item Category"), max_length=128, null=True, blank=True)
+    item_service_short_description = models.TextField(
+        verbose_name=_("Item / Service Short Description"), null=True, blank=True
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    # django table level configurations
     class Meta:
-        verbose_name = _("Framework Agreement")
-        verbose_name_plural = _("Framework Agreements")
+        verbose_name = _("Cleaned Framework Agreement")
+        verbose_name_plural = _("Cleaned Framework Agreements")
 
     def __str__(self):
-        return f"{self.fa_number} - {self.supplier_name}"
-
-
-class FrameworkAgreementCountry(models.Model):
-    """Countries covered by Framework Agreements"""
-
-    framework_agreement = models.ForeignKey(FrameworkAgreement, on_delete=models.CASCADE, related_name="covered_countries")
-    # Link to existing Country model using ISO code
-    country = models.ForeignKey("Country", to_field="iso", on_delete=models.CASCADE, verbose_name=_("Country"))
-
-    class Meta:
-        verbose_name = _("Framework Agreement Country")
-        verbose_name_plural = _("Framework Agreement Countries")
-        unique_together = ("framework_agreement", "country")
-
-    def __str__(self):
-        return f"{self.framework_agreement.fa_number} - {self.country.name}"
-
-
-class FrameworkAgreementLineItem(models.Model):
-    """Line items for Framework Agreements (optional, for future use)"""
-
-    framework_agreement = models.ForeignKey(FrameworkAgreement, on_delete=models.CASCADE, related_name="line_items")
-    line_item_code = models.CharField(verbose_name=_("PA Line Item Code"), max_length=100, blank=True)
-    product_type = models.CharField(verbose_name=_("PA Line Product Type"), max_length=100, blank=True)
-    procurement_category = models.CharField(verbose_name=_("PA Line Procurement Category"), max_length=100, blank=True)
-    line_item_name = models.CharField(verbose_name=_("PA Line Item Name"), max_length=255, blank=True)
-
-    class Meta:
-        verbose_name = _("Framework Agreement Line Item")
-        verbose_name_plural = _("Framework Agreement Line Items")
+        return f"{self.agreement_id} - {self.vendor_name or ''}" 
 
 
 class DimAgreementLine(models.Model):
