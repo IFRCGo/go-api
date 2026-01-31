@@ -51,6 +51,7 @@ from api.views import (
     ShowUsername,
     UpdateSubscriptionPreferences,
     logout_user,
+    FabricImportAPIView,
 )
 from api.warehouse_stocks_views import WarehouseStocksView, AggregatedWarehouseStocksView
 from country_plan import drf_views as country_plan_views
@@ -294,6 +295,7 @@ urlpatterns = [
     # url(r"^api/v2/create_field_report/", api_views.CreateFieldReport.as_view()),
     # url(r"^api/v2/update_field_report/(?P<pk>\d+)/", api_views.UpdateFieldReport.as_view()),
     url(r"^get_auth_token", GetAuthToken.as_view()),
+    url(r"^api/v2/import/fabric-stage/", FabricImportAPIView.as_view()),
     url(r"^api/v2/update_subscriptions/", UpdateSubscriptionPreferences.as_view()),
     url(r"^api/v2/add_subscription/", AddSubscription.as_view()),
     url(r"^api/v2/del_subscription/", DelSubscription.as_view()),
