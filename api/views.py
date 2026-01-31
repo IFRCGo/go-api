@@ -33,6 +33,13 @@ from rest_framework import authentication, permissions
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework import status
+
+import logging
+from decimal import Decimal
+from datetime import datetime
+
+logger = logging.getLogger(__name__)
 
 from api.forms import LoginForm
 from api.models import Country, District, Region
@@ -896,7 +903,7 @@ class RecoverPassword(APIView):
         email = request.data.get("email", None)
         if email is None:
             return bad_request("Must include an `email` property")
-
+        
         user = User.objects.filter(email__iexact=email).first()
         if user is None:
             return bad_request("That email is not associated with a user")
@@ -913,6 +920,114 @@ class RecoverPassword(APIView):
         )
 
         return JsonResponse({"status": "ok"})
+
+
+class FabricImportAPIView(APIView):
+    authentication_classes = (authentication.TokenAuthentication,)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request):
+        stage = request.data.get("stage")
+        if not stage:
+            return Response({"error": "Missing `stage`"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if stage != "dim-agreement-line":
+            return Response({"error": "Unsupported stage"}, status=status.HTTP_400_BAD_REQUEST)
+
+        from api.models import CleanedFrameworkAgreement
+
+        def parse_row(r):
+            kw = {}
+            kw["agreement_id"] = r.get("agreement_id") or r.get("agreementId")
+            kw["classification"] = r.get("classification")
+
+            def parse_date(v):
+                if not v:
+                    return None
+                if isinstance(v, str):
+                    try:
+                        return datetime.strptime(v.split("T")[0], "%Y-%m-%d").date()
+                    except Exception:
+                        return None
+                return v
+
+            kw["default_agreement_line_effective_date"] = parse_date(r.get("default_agreement_line_effective_date"))
+            kw["default_agreement_line_expiration_date"] = parse_date(r.get("default_agreement_line_expiration_date"))
+            kw["workflow_status"] = r.get("workflow_status")
+            kw["status"] = r.get("status")
+
+            price = r.get("price_per_unit")
+            try:
+                kw["price_per_unit"] = Decimal(price) if price not in (None, "") else None
+            except Exception:
+                kw["price_per_unit"] = None
+
+            kw["pa_line_procurement_category"] = r.get("pa_line_procurement_category")
+            kw["vendor_name"] = r.get("vendor_name")
+            kw["vendor_country"] = r.get("vendor_country")
+            kw["region_countries_covered"] = r.get("region_countries_covered")
+            kw["item_type"] = r.get("item_type")
+            kw["item_category"] = r.get("item_category")
+            kw["item_service_short_description"] = r.get("item_service_short_description") or r.get("item_service_short_description")
+            return kw
+
+        if "data" in request.data and request.data.get("data") is not None:
+            rows = request.data.get("data")
+        elif "url" in request.data and request.data.get("url"):
+            import requests, json
+            url = request.data.get("url")
+            try:
+                resp = requests.get(url, stream=True, timeout=60)
+                resp.raise_for_status()
+            except Exception as e:
+                logger.exception("Failed to fetch URL")
+                return Response({"error": f"Failed to fetch URL: {e}"}, status=status.HTTP_400_BAD_REQUEST)
+
+            rows = []
+            try:
+                for line in resp.iter_lines(decode_unicode=True):
+                    if not line:
+                        continue
+                    try:
+                        rows.append(json.loads(line))
+                    except Exception:
+                        rows = resp.json()
+                        break
+            except Exception:
+                try:
+                    rows = resp.json()
+                except Exception as e:
+                    return Response({"error": "Could not parse remote content as JSON/NDJSON"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"error": "Provide `data` or `url`"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not isinstance(rows, list):
+            return Response({"error": "`data` must be an array of objects"}, status=status.HTTP_400_BAD_REQUEST)
+
+        objs = []
+        created = 0
+        batch_size = 500
+        from django.db import transaction
+
+        try:
+            for r in rows:
+                kw = parse_row(r)
+                objs.append(CleanedFrameworkAgreement(**kw))
+                if len(objs) >= batch_size:
+                    with transaction.atomic():
+                        CleanedFrameworkAgreement.objects.bulk_create(objs, batch_size=batch_size)
+                    created += len(objs)
+                    objs = []
+
+            if objs:
+                with transaction.atomic():
+                    CleanedFrameworkAgreement.objects.bulk_create(objs, batch_size=batch_size)
+                created += len(objs)
+        except Exception as e:
+            logger.exception("Import failed")
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response({"imported": created}, status=status.HTTP_201_CREATED)
 
 
 class ShowUsername(APIView):
