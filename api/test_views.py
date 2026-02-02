@@ -887,8 +887,8 @@ class AppealTest(APITestCase):
             amount_requested=10000,
             amount_funded=1899999,
             code=12,
-            start_date="2024-1-1",
-            end_date="2024-1-1",
+            start_date="2025-1-1",
+            end_date="2025-1-1",
             atype=AppealType.APPEAL,
             country=country1,
         )
@@ -899,8 +899,8 @@ class AppealTest(APITestCase):
             amount_requested=100440,
             amount_funded=12299999,
             code=123,
-            start_date="2024-2-2",
-            end_date="2024-2-2",
+            start_date="2025-2-2",
+            end_date="2025-2-2",
             atype=AppealType.DREF,
             country=country1,
         )
@@ -911,8 +911,8 @@ class AppealTest(APITestCase):
             amount_requested=10000888,
             amount_funded=678888,
             code=1234,
-            start_date="2024-3-3",
-            end_date="2024-3-3",
+            start_date="2025-3-3",
+            end_date="2025-3-3",
             atype=AppealType.APPEAL,
             country=country1,
         )
@@ -923,8 +923,8 @@ class AppealTest(APITestCase):
             amount_requested=10000888,
             amount_funded=678888,
             code=12345,
-            start_date="2024-4-4",
-            end_date="2024-4-4",
+            start_date="2025-4-4",
+            end_date="2025-4-4",
             atype=AppealType.APPEAL,
             country=country1,
         )
@@ -934,8 +934,8 @@ class AppealTest(APITestCase):
         self.assert_200(response)
         self.assertIsNotNone(response.json())
         self.assertEqual(response.data["active_drefs"], 1)
-        self.assertEqual(response.data["active_appeals"], 2)
-        # Line 938 originally it was 3, changed to 2 to enable tests to pass
+        self.assertEqual(response.data["active_appeals"], 3)
+        # 3 APPEAL type appeals created: code=12, code=1234, code=12345
 
 
 class RegionSnippetVisibilityTest(APITestCase):

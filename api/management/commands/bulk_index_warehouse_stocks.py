@@ -5,7 +5,7 @@ from django.db.models import Sum
 from elasticsearch.helpers import bulk
 
 from api.esconnection import ES_CLIENT
-from api.indexes import WAREHOUSE_INDEX_NAME, WAREHOUSE_SETTINGS, WAREHOUSE_MAPPING
+from api.indexes import WAREHOUSE_INDEX_NAME
 from api.logger import logger
 from api.models import (
     DimInventoryTransactionLine,
@@ -30,9 +30,7 @@ class Command(BaseCommand):
             default=1,
             help="Whether to only include lines with item_status_name 'Available' (default: 1)",
         )
-        parser.add_argument(
-            "--batch-size", type=int, default=500, help="Bulk helper chunk size (default: 500)"
-        )
+        parser.add_argument("--batch-size", type=int, default=500, help="Bulk helper chunk size (default: 500)")
 
     def handle(self, *args, **options):
         if ES_CLIENT is None:
