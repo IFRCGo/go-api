@@ -6,29 +6,14 @@ from django.db.models import Sum
 from rest_framework import views
 from rest_framework.response import Response
 
-from api.models import (
-    DimInventoryTransactionLine,
-    DimProduct,
-    DimProductCategory,
-    DimWarehouse,
-)
-from api.esconnection import ES_CLIENT
-from decimal import Decimal
-
-import requests
-from django.conf import settings
-from django.db.models import Sum
-from rest_framework import views
-from rest_framework.response import Response
-
-from api.models import (
-    DimInventoryTransactionLine,
-    DimProduct,
-    DimProductCategory,
-    DimWarehouse,
-)
 from api.esconnection import ES_CLIENT
 from api.indexes import WAREHOUSE_INDEX_NAME
+from api.models import (
+    DimInventoryTransactionLine,
+    DimProduct,
+    DimProductCategory,
+    DimWarehouse,
+)
 
 GOADMIN_COUNTRY_URL_DEFAULT = "https://goadmin.ifrc.org/api/v2/country/?limit=300"
 
@@ -157,12 +142,14 @@ class WarehouseStocksView(views.APIView):
                     countries = [b["key"] for b in aggregations.get("countries", {}).get("buckets", [])]
                     item_groups = [b["key"] for b in aggregations.get("item_groups", {}).get("buckets", [])]
                     item_names = [b["key"] for b in aggregations.get("item_names", {}).get("buckets", [])]
-                    return Response({
-                        "regions": regions,
-                        "countries": countries,
-                        "item_groups": item_groups,
-                        "item_names": item_names,
-                    })
+                    return Response(
+                        {
+                            "regions": regions,
+                            "countries": countries,
+                            "item_groups": item_groups,
+                            "item_names": item_names,
+                        }
+                    )
                 except Exception:
                     pass
 
@@ -206,18 +193,20 @@ class WarehouseStocksView(views.APIView):
                         except Exception:
                             qty_out = None
 
-                    results.append({
-                        "id": src.get("id") or f"{src.get('warehouse_id','')}__{src.get('product_id','')}",
-                        "region": region_name,
-                        "country": country_name,
-                        "country_iso3": country_iso3_src,
-                        "warehouse_name": src.get("warehouse_name", ""),
-                        "item_group": src.get("item_group", ""),
-                        "item_name": src.get("item_name", ""),
-                        "item_number": src.get("item_number", ""),
-                        "unit": src.get("unit", ""),
-                        "quantity": qty_out,
-                    })
+                    results.append(
+                        {
+                            "id": src.get("id") or f"{src.get('warehouse_id','')}__{src.get('product_id','')}",
+                            "region": region_name,
+                            "country": country_name,
+                            "country_iso3": country_iso3_src,
+                            "warehouse_name": src.get("warehouse_name", ""),
+                            "item_group": src.get("item_group", ""),
+                            "item_name": src.get("item_name", ""),
+                            "item_number": src.get("item_number", ""),
+                            "unit": src.get("unit", ""),
+                            "quantity": qty_out,
+                        }
+                    )
             except Exception:
                 results = []
 

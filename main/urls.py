@@ -52,7 +52,10 @@ from api.views import (
     UpdateSubscriptionPreferences,
     logout_user,
 )
-from api.warehouse_stocks_views import WarehouseStocksView, AggregatedWarehouseStocksView
+from api.warehouse_stocks_views import (
+    AggregatedWarehouseStocksView,
+    WarehouseStocksView,
+)
 from country_plan import drf_views as country_plan_views
 from databank import views as data_bank_views
 from databank.views import CountryOverviewViewSet
