@@ -40,6 +40,7 @@ class BaseExtractionClass(ABC):
     filter_event: Optional[Dict] = None
     filter_hazard: Optional[Dict] = None
     filter_impact: Optional[Dict] = None
+    forecasted_data: bool | None = False
 
     config: ExtractionConfig
 
@@ -86,13 +87,16 @@ class BaseExtractionClass(ABC):
             current_payload = None  # Only use params on first request
 
     def _get_correlation_id(self, feature: Dict) -> str:
-        """Extract correlation ID from feature properties."""
         return feature.get("properties", {}).get("monty:corr_id")
+
+    def _get_guid(self, feature: Dict) -> str:
+        return feature.get("properties", {}).get("monty:guid")
 
     def _build_base_defaults(self, feature: Dict, run_id: str, collection_type: ExtractionItem.CollectionType) -> Dict:
         """Build common default fields for all STAC items."""
         return {
-            "correlation_id": self._get_correlation_id(feature),
+            "guid": self._get_guid(feature=feature),
+            "correlation_id": self._get_correlation_id(feature=feature),
             "resp_data": feature,
             "connector": self.connector,
             "extraction_run_id": run_id,
@@ -138,7 +142,8 @@ class BaseExtractionClass(ABC):
                 self.base_url,
                 build_stac_search(
                     collections=self.impact_collection_type,
-                    correlation_id=stac_obj.correlation_id,
+                    guid=stac_obj.guid,
+                    forecasted_data=self.forecasted_data,
                 ),
             )
         except Exception as e:
@@ -168,7 +173,7 @@ class BaseExtractionClass(ABC):
                 self.base_url,
                 build_stac_search(
                     collections=self.hazard_collection_type,
-                    correlation_id=stac_obj.correlation_id,
+                    guid=stac_obj.guid,
                 ),
             )
         except Exception as e:
@@ -189,7 +194,7 @@ class BaseExtractionClass(ABC):
         hazard_obj = self._save_stac_item(hazard_id, defaults)
         return hazard_obj
 
-    def process_event_items(self, extraction_run_id: str, correlation_id: str | None = None, is_past_event: bool = False) -> None:
+    def process_event_items(self, extraction_run_id: str, guid: str | None = None, is_past_event: bool = False) -> None:
         """Process all event items from the connector source."""
         filters = []
         if self.filter_event:
@@ -205,7 +210,7 @@ class BaseExtractionClass(ABC):
                 build_stac_search(
                     collections=self.event_collection_type,
                     additional_filters=filters,
-                    correlation_id=correlation_id,
+                    guid=guid,
                     datetime_range=None if is_past_event else self.get_datetime_filter(),
                 ),
             )
@@ -246,10 +251,10 @@ class BaseExtractionClass(ABC):
                 logger.warning(f"Failed to process event {event_id}: {e}", exc_info=True)
                 raise
 
-    def run(self, extraction_run_id: str, correlation_id: str | None = None, is_past_event: bool = False) -> None:
+    def run(self, extraction_run_id: str, guid: str | None = None, is_past_event: bool = False) -> None:
         """Main entry point for running the connector."""
         try:
-            self.process_event_items(extraction_run_id, correlation_id, is_past_event)
+            self.process_event_items(extraction_run_id, guid, is_past_event)
         except Exception as e:
             logger.warning(f"Connector run failed: {e}", exc_info=True)
             raise
@@ -280,24 +285,19 @@ class PastEventExtractionClass:
             filters.append(f"({country_cql})")
         return filters
 
-    def _hazard_filter(self, unit: str | None, value: int | None) -> Optional[str]:
-        if not unit or value is None:
-            return None
-        return f"monty:hazard_detail.severity_unit = '{unit}' AND " f"monty:hazard_detail.severity_value >= {value}"
-
-    def _collect_corr_ids(self, features, exclude: str) -> set[str]:
-        corr_ids = set()
+    def _collect_guids(self, features, exclude: str) -> set[str]:
+        guids = set()
         for feature in features or []:
-            corr_id = self.extractor._get_correlation_id(feature)
-            if corr_id and corr_id != exclude:
-                corr_ids.add(corr_id)
-        return corr_ids
+            guid = self.extractor._get_guid(feature)
+            if guid and guid != exclude:
+                guids.add(guid)
+        return guids
 
-    def find_related_corr_ids(self, load_obj: LoadItem) -> set[str]:
+    def find_related_guids(self, load_obj: LoadItem) -> set[str]:
         start = timezone.now() - timedelta(weeks=self.extractor.connector.lookback_weeks)
         end = timezone.now()
 
-        corr_ids = set()
+        guids = set()
 
         if self.extractor.impact_collection_type:
             impact_filter = self._impact_filter(load_obj.impact_metadata)
@@ -316,50 +316,34 @@ class PastEventExtractionClass:
                     collections=self.extractor.impact_collection_type,
                     additional_filters=additional_filters,
                     datetime_range=f"{start.isoformat()}/{end.isoformat()}",
+                    forecasted_data=self.extractor.forecasted_data,
                 ),
             )
 
-            corr_ids |= self._collect_corr_ids(features, load_obj.correlation_id)
-
-        # NOTE: Returns too many correlation_ids.
-        # if self.extractor.hazard_collection_type:
-        #     hazard_filter = self._hazard_filter(
-        #         load_obj.severity_unit,
-        #         load_obj.severity_value,
-        #     )
-        #     features = self.extractor.fetch_stac_data(
-        #         self.base_url,
-        #         build_stac_search(
-        #             collections=self.extractor.hazard_collection_type,
-        #             additional_filters=[hazard_filter],
-        #             datetime_range=f"{start.isoformat()}/{end.isoformat()}",
-        #         ),
-        #     )
-        #     corr_ids |= self._collect_corr_ids(features, load_obj.correlation_id)
-
-        return corr_ids
+            guids |= self._collect_guids(features, load_obj.guid)
+        return guids
 
     def extract_past_events(self, load_obj: LoadItem) -> None:
-        corr_ids = self.find_related_corr_ids(load_obj)
+        guids = self.find_related_guids(load_obj)
 
-        if not corr_ids:
+        if not guids:
             return
 
-        existing_items = LoadItem.objects.filter(correlation_id__in=corr_ids)
-        existing_map = {i.correlation_id: i for i in existing_items}
+        existing_items = LoadItem.objects.filter(guid__in=guids)
+        existing_map = {i.guid: i for i in existing_items}
 
         related_ids = []
 
-        for corr_id in corr_ids:
-            item = existing_map.get(corr_id)
+        for guid in guids:
+            item = existing_map.get(guid)
 
             if not item:
                 self.extractor.run(
                     extraction_run_id=load_obj.extraction_run_id,
-                    correlation_id=corr_id,
+                    guid=guid,
                     is_past_event=True,
                 )
-                item = LoadItem.objects.filter(correlation_id=corr_id).first()
+                item = LoadItem.objects.filter(guid=guid).first()
 
             if item:
                 related_ids.append(item.id)
