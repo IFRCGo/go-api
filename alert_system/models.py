@@ -135,6 +135,11 @@ class BaseItem(models.Model):
         help_text=_("Correlation identifier linking all models"),
     )
 
+    guid = models.CharField(
+        verbose_name=_("GUID"),
+        help_text=_("Globally unique ID for events"),
+    )
+
     id: int
 
     class Meta:
@@ -178,6 +183,11 @@ class LoadItem(BaseItem):
     """
     Model for Load items.
     """
+
+    parent_guid = models.CharField(
+        verbose_name=_("Parent GUID"),
+        help_text=_("GUID without the episode number."),
+    )
 
     # TODO:  New id to be used in the future.
     event_title = models.CharField(
@@ -254,6 +264,9 @@ class LoadItem(BaseItem):
     class Meta:
         verbose_name = _("Eligible Item")
         verbose_name_plural = _("Eligible Items")
+        constraints = [
+            models.UniqueConstraint(fields=["guid"], name="unique_guid")
+        ]  # NOTE: GUID should be unique in the load table.
 
 
 class AlertEmailThread(models.Model):
