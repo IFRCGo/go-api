@@ -11,3 +11,4 @@ class ExtractionConfig(TypedDict):
     filter_impact: Dict | None
 
     people_exposed_threshold: int
+    forecasted_data: bool
