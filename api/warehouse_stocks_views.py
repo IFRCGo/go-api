@@ -195,7 +195,7 @@ class WarehouseStocksView(views.APIView):
 
                     results.append(
                         {
-                            "id": src.get("id") or f"{src.get('warehouse_id','')}__{src.get('product_id','')}",
+                            "id": src.get("id") or f"{src.get('warehouse_id', '')}__{src.get('product_id', '')}",
                             "region": region_name,
                             "country": country_name,
                             "country_iso3": country_iso3_src,
