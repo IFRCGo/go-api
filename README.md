@@ -63,6 +63,52 @@ email-verification only, is to be found
 ### 3. Pull Data
      $ docker compose exec serve python manage.py pull_fabric_data
 
+## Backend CI Checks (Run Locally)
+
+Before pushing backend changes, run the following checks to avoid CI failures.
+
+---
+
+### 1. Pre-commit checks
+
+Run before every push:
+
+```bash
+pre-commit run --all-files
+```
+
+Prerequisites:
+- Install `uv`
+- Install `pre-commit`:
+  ```bash
+  uv tool install pre-commit
+  ```
+
+If there are conflicts or errors, resolve them and run the command again until it passes.
+
+---
+
+### 2. Django / Python tests
+
+CI will fail if backend tests do not pass.
+
+If you modified Django models:
+```bash
+docker compose run --rm serve ./manage.py test --keepdb -v 2 --pattern="test_fake.py"
+```
+
+If you added or modified tests:
+```bash
+docker compose run --rm serve pytest --reuse-db --durations=10
+```
+
+---
+
+### 3. Helm validation
+
+This check never fails.
+
+---
 
 ### Accessing python shell
 
