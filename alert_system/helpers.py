@@ -25,24 +25,28 @@ def build_search_params(
     return params
 
 
-def build_correlation_filter(correlation_id: str | None) -> str | None:
-    if correlation_id:
-        return f"monty:corr_id = '{correlation_id}'"
-    return None
+def build_guid_filter(guid: str) -> str:
+    return f"monty:guid = '{guid}'"
+
+
+def build_forecasted_filter(forecasted: bool):
+    return f"forecasted = {forecasted}"
 
 
 def build_stac_search(
     collections: str,
-    correlation_id: str | None = None,
+    guid: str | None = None,
     additional_filters: list[str] | None = None,
     datetime_range: str | None = None,
     extra_params: dict | None = None,
+    forecasted_data: bool | None = False,
 ) -> dict:
     filters = additional_filters.copy() if additional_filters else []
 
-    corr_filter = build_correlation_filter(correlation_id)
-    if corr_filter:
-        filters.append(corr_filter)
+    if forecasted_data:
+        filters.append(build_forecasted_filter(forecasted_data))
+    if guid:
+        filters.append(build_guid_filter(guid))
 
     return build_search_params(
         collections=collections,

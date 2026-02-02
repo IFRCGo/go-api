@@ -15,7 +15,7 @@ class EventAdmin(admin.ModelAdmin):
         "stac_id",
         "created_at",
         "collection",
-        "correlation_id",
+        "guid",
     )
     list_filter = ("connector", "collection")
     readonly_fields = ("connector",)
@@ -31,7 +31,7 @@ class LoadItemAdmin(admin.ModelAdmin):
         "id",
         "event_title",
         "created_at",
-        "correlation_id",
+        "guid",
         "item_eligible",
         "is_past_event",
     )
