@@ -3,6 +3,7 @@ import json
 import os
 import secrets
 from datetime import datetime, timedelta
+from decimal import Decimal
 from urllib.parse import urlparse
 
 import requests
@@ -29,7 +30,7 @@ from drf_spectacular.utils import (
     extend_schema_view,
 )
 from haystack.query import SQ, SearchQuerySet
-from rest_framework import authentication, permissions
+from rest_framework import authentication, permissions, status
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -913,6 +914,143 @@ class RecoverPassword(APIView):
         )
 
         return JsonResponse({"status": "ok"})
+
+
+class FabricImportAPIView(APIView):
+    authentication_classes = (authentication.TokenAuthentication,)
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request):
+        stage = request.data.get("stage")
+        if not stage:
+            return Response({"error": "Missing `stage`"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if stage != "dim-agreement-line":
+            return Response({"error": "Unsupported stage"}, status=status.HTTP_400_BAD_REQUEST)
+
+        from api.models import CleanedFrameworkAgreement
+
+        def parse_row(r):
+            kw = {}
+            kw["agreement_id"] = r.get("agreement_id") or r.get("agreementId")
+            kw["classification"] = r.get("classification")
+
+            def parse_date(v):
+                if not v:
+                    return None
+                if isinstance(v, str):
+                    try:
+                        return datetime.strptime(v.split("T")[0], "%Y-%m-%d").date()
+                    except Exception:
+                        return None
+                return v
+
+            def parse_timestamp(v):
+                if not v:
+                    return None
+                if isinstance(v, str):
+                    try:
+                        return datetime.fromisoformat(v)
+                    except Exception:
+                        try:
+                            return datetime.strptime(v, "%Y-%m-%dT%H:%M:%S")
+                        except Exception:
+                            return None
+                return v
+
+            kw["default_agreement_line_effective_date"] = parse_date(r.get("default_agreement_line_effective_date"))
+            kw["default_agreement_line_expiration_date"] = parse_date(r.get("default_agreement_line_expiration_date"))
+            kw["workflow_status"] = r.get("workflow_status")
+            kw["status"] = r.get("status")
+
+            price = r.get("price_per_unit")
+            try:
+                kw["price_per_unit"] = Decimal(price) if price not in (None, "") else None
+            except Exception:
+                kw["price_per_unit"] = None
+
+            kw["pa_line_procurement_category"] = r.get("pa_line_procurement_category")
+            kw["vendor_name"] = r.get("vendor_name")
+            kw["vendor_country"] = r.get("vendor_country")
+            kw["region_countries_covered"] = r.get("region_countries_covered")
+            kw["item_type"] = r.get("item_type")
+            kw["item_category"] = r.get("item_category")
+            kw["item_service_short_description"] = r.get("item_service_short_description") or r.get(
+                "item_service_short_description"
+            )
+            kw["vendor_valid_from"] = parse_timestamp(r.get("vendor_valid_from") or r.get("vendorValidFrom"))
+            kw["vendor_valid_to"] = parse_timestamp(r.get("vendor_valid_to") or r.get("vendorValidTo"))
+            kw["owner"] = r.get("owner") or r.get("Owner") or ""
+            return kw
+
+        if "data" in request.data and request.data.get("data") is not None:
+            rows = request.data.get("data")
+        elif "url" in request.data and request.data.get("url"):
+            import json
+
+            import requests
+
+            url = request.data.get("url")
+            try:
+                resp = requests.get(url, stream=True, timeout=60)
+                resp.raise_for_status()
+            except Exception as e:
+                return Response({"error": f"Failed to fetch URL: {e}"}, status=status.HTTP_400_BAD_REQUEST)
+
+            rows = []
+            try:
+                for line in resp.iter_lines(decode_unicode=True):
+                    if not line:
+                        continue
+                    try:
+                        rows.append(json.loads(line))
+                    except Exception:
+                        rows = resp.json()
+                        break
+            except Exception:
+                try:
+                    rows = resp.json()
+                except Exception:
+                    return Response(
+                        {"error": "Could not parse remote content as JSON/NDJSON"}, status=status.HTTP_400_BAD_REQUEST
+                    )
+        else:
+            return Response({"error": "Provide `data` or `url`"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not isinstance(rows, list):
+            return Response({"error": "`data` must be an array of objects"}, status=status.HTTP_400_BAD_REQUEST)
+
+        objs = []
+        created = 0
+        batch_size = 500
+        from django.db import transaction
+
+        try:
+            # Optionally truncate/delete existing cleaned framework agreements for a clean import.
+            # Client should send {"truncate": true} on the first batch to perform truncation.
+            truncate = bool(request.data.get("truncate", False))
+            if truncate:
+                with transaction.atomic():
+                    CleanedFrameworkAgreement.objects.all().delete()
+
+            for r in rows:
+                kw = parse_row(r)
+                objs.append(CleanedFrameworkAgreement(**kw))
+                if len(objs) >= batch_size:
+                    with transaction.atomic():
+                        CleanedFrameworkAgreement.objects.bulk_create(objs, batch_size=batch_size)
+                    created += len(objs)
+                    objs = []
+
+            if objs:
+                with transaction.atomic():
+                    CleanedFrameworkAgreement.objects.bulk_create(objs, batch_size=batch_size)
+                created += len(objs)
+        except Exception as e:
+            logger.exception("Import failed")
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response({"imported": created}, status=status.HTTP_201_CREATED)
 
 
 class ShowUsername(APIView):
