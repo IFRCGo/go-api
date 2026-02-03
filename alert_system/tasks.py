@@ -5,14 +5,12 @@ from collections import defaultdict
 from celery import chain, group, shared_task
 from celery.exceptions import MaxRetriesExceededError
 from django.db import transaction
-from django.db.models import Count, Max
-from django.utils import timezone
+from django.db.models import Max
 
 from alert_system.etl.base.extraction import PastEventExtractionClass
-from alert_system.utils import get_alert_subscriptions, send_alert_email_notification
 from api.models import Event
 
-from .models import AlertEmailLog, AlertEmailThread, Connector, LoadItem
+from .models import Connector, LoadItem
 
 logger = logging.getLogger(__name__)
 
@@ -175,76 +173,3 @@ def process_connector_task(connector_id):
     return chain(
         polling_task.s(connector_id), group(fetch_past_events_from_go.s(connector_id), fetch_past_events_from_monty.s())
     ).apply_async()
-
-
-# NOTE: Left on the default Celery queue for now; may need a dedicated queue in future.
-@shared_task()
-def process_email_alert(load_item_id: int) -> None:
-    load_item = LoadItem.objects.select_related("connector", "connector__dtype").filter(id=load_item_id).first()
-
-    if not load_item:
-        logger.warning(f"LoadItem with ID [{load_item_id}] not found")
-        return
-
-    subscriptions = list(get_alert_subscriptions(load_item))
-    if not subscriptions:
-        logger.info(f"No alert subscriptions matched for LoadItem ID [{load_item_id}]")
-        return
-
-    today = timezone.now().date()
-    user_ids = [sub.user_id for sub in subscriptions]
-    subscription_ids = [sub.id for sub in subscriptions]
-
-    # Daily email counts per user
-    daily_counts = (
-        AlertEmailLog.objects.filter(
-            user_id__in=user_ids,
-            subscription_id__in=subscription_ids,
-            status=AlertEmailLog.Status.SENT,
-            email_sent_at__date=today,
-        )
-        .values("user_id", "subscription_id")
-        .annotate(sent_count=Count("id"))
-    )
-    daily_count_map = {(item["user_id"], item["subscription_id"]): item["sent_count"] for item in daily_counts}
-
-    # Emails already sent for this item (per user)
-    already_sent = set(
-        AlertEmailLog.objects.filter(
-            user_id__in=user_ids,
-            subscription_id__in=subscription_ids,
-            item_id=load_item_id,
-            status=AlertEmailLog.Status.SENT,
-        ).values_list("user_id", "subscription_id")
-    )
-
-    # Existing threads for this correlation_id
-    existing_threads = {
-        thread.user_id: thread
-        for thread in AlertEmailThread.objects.filter(
-            correlation_id=load_item.correlation_id,
-            user_id__in=user_ids,
-        )
-    }
-
-    for subscription in subscriptions:
-        user = subscription.user
-        user_id: int = user.id
-        subscription_id: int = subscription.id
-
-        # Reply if this specific user has an existing thread
-        thread = existing_threads.get(user_id)
-        is_reply: bool = thread is not None
-
-        # Skip if daily alert limit reached
-        sent_today: int = daily_count_map.get((user_id, subscription_id), 0)
-        if subscription.alert_per_day and sent_today >= subscription.alert_per_day:
-            logger.info(f"Daily alert limit reached for user [{user.get_full_name()}]")
-            continue
-
-        # Skip duplicate emails for same item
-        if (user_id, subscription_id) in already_sent:
-            logger.info(f"Duplicate alert skipped for user [{user.get_full_name()}] " f"with LoadItem ID [{subscription_id}]")
-            continue
-
-        send_alert_email_notification(load_item=load_item, user=user, subscription=subscription, thread=thread, is_reply=is_reply)
