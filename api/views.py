@@ -951,6 +951,19 @@ class FabricImportAPIView(APIView):
                         return None
                 return v
 
+            def parse_timestamp(v):
+                if not v:
+                    return None
+                if isinstance(v, str):
+                    try:
+                        return datetime.fromisoformat(v)
+                    except Exception:
+                        try:
+                            return datetime.strptime(v, "%Y-%m-%dT%H:%M:%S")
+                        except Exception:
+                            return None
+                return v
+
             kw["default_agreement_line_effective_date"] = parse_date(r.get("default_agreement_line_effective_date"))
             kw["default_agreement_line_expiration_date"] = parse_date(r.get("default_agreement_line_expiration_date"))
             kw["workflow_status"] = r.get("workflow_status")
@@ -969,6 +982,9 @@ class FabricImportAPIView(APIView):
             kw["item_type"] = r.get("item_type")
             kw["item_category"] = r.get("item_category")
             kw["item_service_short_description"] = r.get("item_service_short_description") or r.get("item_service_short_description")
+            kw["vendor_valid_from"] = parse_timestamp(r.get("vendor_valid_from") or r.get("vendorValidFrom"))
+            kw["vendor_valid_to"] = parse_timestamp(r.get("vendor_valid_to") or r.get("vendorValidTo"))
+            kw["owner"] = r.get("owner") or r.get("Owner") or ""
             return kw
 
         if "data" in request.data and request.data.get("data") is not None:
@@ -1010,6 +1026,13 @@ class FabricImportAPIView(APIView):
         from django.db import transaction
 
         try:
+            # Optionally truncate/delete existing cleaned framework agreements for a clean import.
+            # Client should send {"truncate": true} on the first batch to perform truncation.
+            truncate = bool(request.data.get("truncate", False))
+            if truncate:
+                with transaction.atomic():
+                    CleanedFrameworkAgreement.objects.all().delete()
+
             for r in rows:
                 kw = parse_row(r)
                 objs.append(CleanedFrameworkAgreement(**kw))
