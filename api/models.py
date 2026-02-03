@@ -2590,6 +2590,7 @@ class Export(models.Model):
 
 # Models for SPARK
 
+
 class CleanedFrameworkAgreement(models.Model):
     id = models.BigAutoField(primary_key=True)
     agreement_id = models.CharField(verbose_name=_("Agreement ID"), max_length=100, db_index=True)
@@ -2602,9 +2603,7 @@ class CleanedFrameworkAgreement(models.Model):
     )
     workflow_status = models.CharField(verbose_name=_("Workflow Status"), max_length=64, null=True, blank=True)
     status = models.CharField(verbose_name=_("Status"), max_length=64, null=True, blank=True)
-    price_per_unit = models.DecimalField(
-        verbose_name=_("Price Per Unit"), max_digits=35, decimal_places=2, null=True, blank=True
-    )
+    price_per_unit = models.DecimalField(verbose_name=_("Price Per Unit"), max_digits=35, decimal_places=2, null=True, blank=True)
     pa_line_procurement_category = models.CharField(
         verbose_name=_("PA Line Procurement Category"), max_length=128, null=True, blank=True
     )
@@ -2617,9 +2616,7 @@ class CleanedFrameworkAgreement(models.Model):
     )
     item_type = models.CharField(verbose_name=_("Item Type"), max_length=128, null=True, blank=True)
     item_category = models.CharField(verbose_name=_("Item Category"), max_length=128, null=True, blank=True)
-    item_service_short_description = models.TextField(
-        verbose_name=_("Item / Service Short Description"), null=True, blank=True
-    )
+    item_service_short_description = models.TextField(verbose_name=_("Item / Service Short Description"), null=True, blank=True)
     owner = models.CharField(verbose_name=_("Owner"), max_length=255, null=False, blank=False, default="")
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -2630,7 +2627,7 @@ class CleanedFrameworkAgreement(models.Model):
         verbose_name_plural = _("Cleaned Framework Agreements")
 
     def __str__(self):
-        return f"{self.agreement_id} - {self.vendor_name or ''}" 
+        return f"{self.agreement_id} - {self.vendor_name or ''}"
 
 
 class DimAgreementLine(models.Model):

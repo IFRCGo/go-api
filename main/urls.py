@@ -38,6 +38,7 @@ from api.views import (
     DummyHttpStatusError,
     ERUTypes,
     EsPageHealth,
+    FabricImportAPIView,
     FieldReportStatuses,
     GetAuthToken,
     HayStackSearch,
@@ -51,7 +52,6 @@ from api.views import (
     ShowUsername,
     UpdateSubscriptionPreferences,
     logout_user,
-    FabricImportAPIView,
 )
 from api.warehouse_stocks_views import (
     AggregatedWarehouseStocksView,

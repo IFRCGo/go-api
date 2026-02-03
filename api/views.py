@@ -3,6 +3,7 @@ import json
 import os
 import secrets
 from datetime import datetime, timedelta
+from decimal import Decimal
 from urllib.parse import urlparse
 
 import requests
@@ -29,17 +30,10 @@ from drf_spectacular.utils import (
     extend_schema_view,
 )
 from haystack.query import SQ, SearchQuerySet
-from rest_framework import authentication, permissions
+from rest_framework import authentication, permissions, status
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import status
-
-import logging
-from decimal import Decimal
-from datetime import datetime
-
-logger = logging.getLogger(__name__)
 
 from api.forms import LoginForm
 from api.models import Country, District, Region
@@ -903,7 +897,7 @@ class RecoverPassword(APIView):
         email = request.data.get("email", None)
         if email is None:
             return bad_request("Must include an `email` property")
-        
+
         user = User.objects.filter(email__iexact=email).first()
         if user is None:
             return bad_request("That email is not associated with a user")
@@ -981,7 +975,9 @@ class FabricImportAPIView(APIView):
             kw["region_countries_covered"] = r.get("region_countries_covered")
             kw["item_type"] = r.get("item_type")
             kw["item_category"] = r.get("item_category")
-            kw["item_service_short_description"] = r.get("item_service_short_description") or r.get("item_service_short_description")
+            kw["item_service_short_description"] = r.get("item_service_short_description") or r.get(
+                "item_service_short_description"
+            )
             kw["vendor_valid_from"] = parse_timestamp(r.get("vendor_valid_from") or r.get("vendorValidFrom"))
             kw["vendor_valid_to"] = parse_timestamp(r.get("vendor_valid_to") or r.get("vendorValidTo"))
             kw["owner"] = r.get("owner") or r.get("Owner") or ""
@@ -990,13 +986,15 @@ class FabricImportAPIView(APIView):
         if "data" in request.data and request.data.get("data") is not None:
             rows = request.data.get("data")
         elif "url" in request.data and request.data.get("url"):
-            import requests, json
+            import json
+
+            import requests
+
             url = request.data.get("url")
             try:
                 resp = requests.get(url, stream=True, timeout=60)
                 resp.raise_for_status()
             except Exception as e:
-                logger.exception("Failed to fetch URL")
                 return Response({"error": f"Failed to fetch URL: {e}"}, status=status.HTTP_400_BAD_REQUEST)
 
             rows = []
@@ -1012,8 +1010,10 @@ class FabricImportAPIView(APIView):
             except Exception:
                 try:
                     rows = resp.json()
-                except Exception as e:
-                    return Response({"error": "Could not parse remote content as JSON/NDJSON"}, status=status.HTTP_400_BAD_REQUEST)
+                except Exception:
+                    return Response(
+                        {"error": "Could not parse remote content as JSON/NDJSON"}, status=status.HTTP_400_BAD_REQUEST
+                    )
         else:
             return Response({"error": "Provide `data` or `url`"}, status=status.HTTP_400_BAD_REQUEST)
 
