@@ -2603,12 +2603,14 @@ class CleanedFrameworkAgreement(models.Model):
     workflow_status = models.CharField(verbose_name=_("Workflow Status"), max_length=64, null=True, blank=True)
     status = models.CharField(verbose_name=_("Status"), max_length=64, null=True, blank=True)
     price_per_unit = models.DecimalField(
-        verbose_name=_("Price Per Unit"), max_digits=30, decimal_places=6, null=True, blank=True
+        verbose_name=_("Price Per Unit"), max_digits=35, decimal_places=2, null=True, blank=True
     )
     pa_line_procurement_category = models.CharField(
         verbose_name=_("PA Line Procurement Category"), max_length=128, null=True, blank=True
     )
     vendor_name = models.CharField(verbose_name=_("Vendor Name"), max_length=255, null=True, blank=True)
+    vendor_valid_from = models.DateTimeField(verbose_name=_("Vendor Valid From"), null=True, blank=True)
+    vendor_valid_to = models.DateTimeField(verbose_name=_("Vendor Valid To"), null=True, blank=True)
     vendor_country = models.CharField(verbose_name=_("Vendor Country"), max_length=8, null=True, blank=True)
     region_countries_covered = models.CharField(
         verbose_name=_("Region / Countries Covered"), max_length=255, null=True, blank=True
@@ -2618,6 +2620,7 @@ class CleanedFrameworkAgreement(models.Model):
     item_service_short_description = models.TextField(
         verbose_name=_("Item / Service Short Description"), null=True, blank=True
     )
+    owner = models.CharField(verbose_name=_("Owner"), max_length=255, null=False, blank=False, default="")
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
