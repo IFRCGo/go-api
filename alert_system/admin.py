@@ -56,11 +56,11 @@ class LoadItemAdmin(admin.ModelAdmin):
 class AlertEmailThreadAdmin(admin.ModelAdmin):
     list_display = (
         "user",
-        "correlation_id",
+        "parent_guid",
         "root_email_message_id",
     )
     search_fields = (
-        "correlation_id",
+        "parent_guid",
         "root_email_message_id",
         "user__username",
     )
