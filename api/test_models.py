@@ -185,38 +185,8 @@ class SparkModelStrTests(TestCase):
     def setUp(self):
         self.now = timezone.now()
 
-    def _framework_agreement(self):
-        return models.FrameworkAgreement.objects.create(
-            fa_number="FA-TEST001",
-            supplier_name="Test Supplier",
-            pa_type=models.FrameworkAgreement.PAType.GLOBAL_SERVICES,
-            pa_bu_region_name="Test Region",
-            pa_bu_country_name="Test Country",
-            pa_effective_date=self.now,
-            pa_expiration_date=self.now,
-            pa_workflow_status=models.FrameworkAgreement.WorkflowStatus.NOT_SUBMITTED,
-            pa_status=models.FrameworkAgreement.PAStatus.ON_HOLD,
-            pa_buyer_group_code="Test Buyer 1",
-            fa_owner_name="Owner",
-            fa_geographical_coverage=models.FrameworkAgreement.GeographicalCoverage.GLOBAL,
-            region_countries_covered="Test Region",
-            item_type="Item",
-            item_category="Category",
-            item_service_description="Test Description",
-        )
-
     def _country(self):
         return models.Country.objects.create(name="Test Country", iso="TL", record_type=models.CountryType.COUNTRY)
-
-    def test_framework_agreement_str(self):
-        agreement = self._framework_agreement()
-        self.assertEqual(str(agreement), "FA-TEST001 - Test Supplier")
-
-    def test_framework_agreement_country_str(self):
-        agreement = self._framework_agreement()
-        country = self._country()
-        fac = models.FrameworkAgreementCountry.objects.create(framework_agreement=agreement, country=country)
-        self.assertEqual(str(fac), "FA-TEST001 - Test Country")
 
     def test_dim_agreement_line_str(self):
         line = sparkFactory.DimAgreementLineFactory.create(
