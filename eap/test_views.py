@@ -1,5 +1,6 @@
 import os
 import tempfile
+from datetime import datetime
 from unittest import mock
 
 from django.conf import settings
@@ -864,6 +865,7 @@ class EAPSimplifiedTestCase(APITestCase):
         url = f"/api/v2/simplified-eap/{simplified_eap.id}/"
 
         data = {
+            "modified_at": datetime.now(),
             "eap_registration": eap_registration.id,
             "total_budget": 20000,
             "readiness_budget": 8000,
@@ -1259,6 +1261,19 @@ class EAPStatusTransitionTestCase(APITestCase):
         response = self.client.post(self.url, data, format="json")
         self.assertEqual(response.status_code, 400)
 
+        enabling_approach = EnablingApproachFactory.create(
+            approach=EnablingApproach.Approach.SECRETARIAT_SERVICES,
+            budget_per_approach=5000,
+            ap_code=123,
+        )
+
+        planned_operation = PlannedOperationFactory.create(
+            sector=PlannedOperation.Sector.SHELTER,
+            ap_code=456,
+            people_targeted=5000,
+            budget_per_sector=50000,
+        )
+
         simplified_eap = SimplifiedEAPFactory.create(
             eap_registration=self.eap_registration,
             created_by=self.country_admin,
@@ -1267,6 +1282,8 @@ class EAPStatusTransitionTestCase(APITestCase):
                 created_by=self.country_admin,
                 modified_by=self.country_admin,
             ),
+            planned_operations=[planned_operation.id],
+            enabling_approaches=[enabling_approach.id],
         )
         self.eap_registration.latest_simplified_eap = simplified_eap
         self.eap_registration.save()
@@ -1384,6 +1401,7 @@ class EAPStatusTransitionTestCase(APITestCase):
             modified_by=self.country_admin,
         )
         file_data = {
+            "modified_at": datetime.now(),
             "prioritized_hazard_and_impact": "Floods with potential heavy impact.",
             "eap_registration": second_snapshot.eap_registration_id,
             "updated_checklist_file": checklist_file_instance.id,
@@ -1472,6 +1490,7 @@ class EAPStatusTransitionTestCase(APITestCase):
         # UPDATES on the second snapshot
         url = f"/api/v2/simplified-eap/{third_snapshot.id}/"
         file_data = {
+            "modified_at": datetime.now(),
             "prioritized_hazard_and_impact": "Floods with potential heavy impact.",
             "risks_selected_protocols": "Protocol A and Protocol B.",
             "selected_early_actions": "The early actions selected.",
@@ -1585,6 +1604,7 @@ class EAPStatusTransitionTestCase(APITestCase):
         # UPDATES on the second snapshot
         url = f"/api/v2/simplified-eap/{fourth_snapshot.id}/"
         file_data = {
+            "modified_at": datetime.now(),
             "prioritized_hazard_and_impact": "Floods with potential heavy impact.",
             "risks_selected_protocols": "Protocol A and Protocol B.",
             "selected_early_actions": "The early actions selected.",
@@ -1778,6 +1798,19 @@ class EAPStatusTransitionTestCase(APITestCase):
             created_by=self.country_admin,
             modified_by=self.country_admin,
         )
+
+        enabling_approach = EnablingApproachFactory.create(
+            approach=EnablingApproach.Approach.SECRETARIAT_SERVICES,
+            budget_per_approach=5000,
+            ap_code=123,
+        )
+
+        planned_operation = PlannedOperationFactory.create(
+            sector=PlannedOperation.Sector.SHELTER,
+            ap_code=456,
+            people_targeted=5000,
+            budget_per_sector=50000,
+        )
         simplified_eap = SimplifiedEAPFactory.create(
             eap_registration=eap_registration,
             created_by=self.country_admin,
@@ -1786,6 +1819,8 @@ class EAPStatusTransitionTestCase(APITestCase):
                 created_by=self.country_admin,
                 modified_by=self.country_admin,
             ),
+            planned_operations=[planned_operation.id],
+            enabling_approaches=[enabling_approach.id],
         )
         eap_registration.latest_simplified_eap = simplified_eap
         eap_registration.save()
@@ -1847,6 +1882,7 @@ class EAPStatusTransitionTestCase(APITestCase):
             modified_by=self.country_admin,
         )
         file_data = {
+            "modified_at": datetime.now(),
             "prioritized_hazard_and_impact": "Floods with potential heavy impact.",
             "eap_registration": snapshot.eap_registration_id,
             "updated_checklist_file": checklist_file_instance.id,
@@ -1910,6 +1946,7 @@ class EAPStatusTransitionTestCase(APITestCase):
             modified_by=self.country_admin,
         )
         file_data = {
+            "modified_at": datetime.now(),
             "prioritized_hazard_and_impact": "Floods with potential heavy impact.",
             "eap_registration": snapshot.eap_registration_id,
             "updated_checklist_file": checklist_file_instance.id,
@@ -1980,6 +2017,7 @@ class EAPStatusTransitionTestCase(APITestCase):
             modified_by=self.country_admin,
         )
         file_data = {
+            "modified_at": datetime.now(),
             "prioritized_hazard_and_impact": "Floods with potential heavy impact.",
             "eap_registration": snapshot.eap_registration_id,
             "updated_checklist_file": checklist_file_instance.id,
@@ -2284,6 +2322,7 @@ class EAPFullTestCase(APITestCase):
         # Create EAP Registration
         eap_registration = EAPRegistrationFactory.create(
             eap_type=EAPType.FULL_EAP,
+            status=EAPStatus.UNDER_DEVELOPMENT,
             country=self.country,
             national_society=self.national_society,
             disaster_type=self.disaster_type,
@@ -2576,8 +2615,8 @@ class EAPFullTestCase(APITestCase):
 
         url = f"/api/v2/full-eap/{full_eap.id}/"
         data = {
+            "modified_at": datetime.now(),
             "total_budget": 20000,
-            "seap_timeframe": 5,
             "key_actors": [
                 {
                     "national_society": self.national_society.id,

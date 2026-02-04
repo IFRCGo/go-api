@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models, transaction
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from api.models import Admin2, Country, DisasterType, District
@@ -839,31 +840,81 @@ class CommonEAPFields(models.Model):
     )
 
     # Delegations
-    ifrc_delegation_focal_point_name = models.CharField(verbose_name=_("IFRC delegation focal point name"), max_length=255)
-    ifrc_delegation_focal_point_email = models.CharField(verbose_name=_("IFRC delegation focal point email"), max_length=255)
+    ifrc_delegation_focal_point_name = models.CharField(
+        verbose_name=_("IFRC delegation focal point name"),
+        max_length=255,
+        null=True,
+        blank=True,
+    )
+    ifrc_delegation_focal_point_email = models.CharField(
+        verbose_name=_("IFRC delegation focal point email"),
+        max_length=255,
+        null=True,
+        blank=True,
+    )
     ifrc_delegation_focal_point_title = models.CharField(
-        verbose_name=_("IFRC delegation focal point title"), max_length=255, null=True, blank=True
+        verbose_name=_("IFRC delegation focal point title"),
+        max_length=255,
+        null=True,
+        blank=True,
     )
     ifrc_delegation_focal_point_phone_number = models.CharField(
-        verbose_name=_("IFRC delegation focal point phone number"), max_length=100, null=True, blank=True
+        verbose_name=_("IFRC delegation focal point phone number"),
+        max_length=100,
+        null=True,
+        blank=True,
     )
 
-    ifrc_head_of_delegation_name = models.CharField(verbose_name=_("IFRC head of delegation name"), max_length=255)
-    ifrc_head_of_delegation_email = models.CharField(verbose_name=_("IFRC head of delegation email"), max_length=255)
+    ifrc_head_of_delegation_name = models.CharField(
+        verbose_name=_("IFRC head of delegation name"),
+        max_length=255,
+        null=True,
+        blank=True,
+    )
+    ifrc_head_of_delegation_email = models.CharField(
+        verbose_name=_("IFRC head of delegation email"),
+        max_length=255,
+        null=True,
+        blank=True,
+    )
     ifrc_head_of_delegation_title = models.CharField(
-        verbose_name=_("IFRC head of delegation title"), max_length=255, null=True, blank=True
+        verbose_name=_("IFRC head of delegation title"),
+        max_length=255,
+        null=True,
+        blank=True,
     )
     ifrc_head_of_delegation_phone_number = models.CharField(
-        verbose_name=_("IFRC head of delegation phone number"), max_length=100, null=True, blank=True
+        verbose_name=_("IFRC head of delegation phone number"),
+        max_length=100,
+        null=True,
+        blank=True,
     )
 
     # Regional and Global
     # DREF Focal Point
-    dref_focal_point_name = models.CharField(verbose_name=_("dref focal point name"), max_length=255, null=True, blank=True)
-    dref_focal_point_email = models.CharField(verbose_name=_("Dref focal point email"), max_length=255, null=True, blank=True)
-    dref_focal_point_title = models.CharField(verbose_name=_("Dref focal point title"), max_length=255, null=True, blank=True)
+    dref_focal_point_name = models.CharField(
+        verbose_name=_("dref focal point name"),
+        max_length=255,
+        null=True,
+        blank=True,
+    )
+    dref_focal_point_email = models.CharField(
+        verbose_name=_("Dref focal point email"),
+        max_length=255,
+        null=True,
+        blank=True,
+    )
+    dref_focal_point_title = models.CharField(
+        verbose_name=_("Dref focal point title"),
+        max_length=255,
+        null=True,
+        blank=True,
+    )
     dref_focal_point_phone_number = models.CharField(
-        verbose_name=_("Dref focal point phone number"), max_length=100, null=True, blank=True
+        verbose_name=_("Dref focal point phone number"),
+        max_length=100,
+        null=True,
+        blank=True,
     )
 
     # Regional
@@ -961,19 +1012,29 @@ class CommonEAPFields(models.Model):
         on_delete=models.CASCADE,
         verbose_name=_("Budget File"),
         related_name="+",
+        null=True,
+        blank=True,
     )
 
     total_budget = models.IntegerField(
         verbose_name=_("Total Budget (CHF)"),
+        null=True,
+        blank=True,
     )
     readiness_budget = models.IntegerField(
         verbose_name=_("Readiness Budget (CHF)"),
+        null=True,
+        blank=True,
     )
     pre_positioning_budget = models.IntegerField(
         verbose_name=_("Pre-positioning Budget (CHF)"),
+        null=True,
+        blank=True,
     )
     early_action_budget = models.IntegerField(
         verbose_name=_("Early Actions Budget (CHF)"),
+        null=True,
+        blank=True,
     )
 
     # TYPING
@@ -985,6 +1046,11 @@ class CommonEAPFields(models.Model):
 
 class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
     """Model representing a Simplified EAP."""
+
+    modified_at = models.DateTimeField(
+        verbose_name=_("modified at"),
+        default=timezone.now,
+    )
 
     eap_registration = models.ForeignKey[EAPRegistration, EAPRegistration](
         EAPRegistration,
@@ -1003,6 +1069,8 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
     # RISK ANALYSIS #
     prioritized_hazard_and_impact = models.TextField(
         verbose_name=_("Prioritized Hazard and its  historical impact."),
+        null=True,
+        blank=True,
     )
     hazard_impact_images = models.ManyToManyField(
         EAPFile,
@@ -1013,6 +1081,8 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
 
     risks_selected_protocols = models.TextField(
         verbose_name=_("Risk selected for the protocols."),
+        null=True,
+        blank=True,
     )
 
     risk_selected_protocols_images = models.ManyToManyField(
@@ -1025,6 +1095,8 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
     # EARLY ACTION SELECTION #
     selected_early_actions = models.TextField(
         verbose_name=_("Selected Early Actions"),
+        null=True,
+        blank=True,
     )
     selected_early_actions_images = models.ManyToManyField(
         EAPFile,
@@ -1037,14 +1109,20 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
     overall_objective_intervention = models.TextField(
         verbose_name=_("Overall objective of the intervention"),
         help_text=_("Provide an objective statement that describe the main of the intervention."),
+        null=True,
+        blank=True,
     )
 
     potential_geographical_high_risk_areas = models.TextField(
         verbose_name=_("Potential geographical high-risk areas"),
+        null=True,
+        blank=True,
     )
 
     assisted_through_operation = models.TextField(
         verbose_name=_("Assisted through the operation"),
+        null=True,
+        blank=True,
     )
     selection_criteria = models.TextField(
         verbose_name=_("Selection Criteria."),
@@ -1063,9 +1141,13 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
     seap_lead_timeframe_unit = models.IntegerField(
         choices=TimeFrame.choices,
         verbose_name=_("sEAP Lead Timeframe Unit"),
+        null=True,
+        blank=True,
     )
     seap_lead_time = models.IntegerField(
         verbose_name=_("sEAP Lead Time"),
+        null=True,
+        blank=True,
     )
 
     # NOTE: operational_timeframe_unit and operational_time are atomic
@@ -1074,17 +1156,25 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
         choices=TimeFrame.choices,
         default=TimeFrame.MONTHS,
         verbose_name=_("Operational Timeframe Unit"),
+        null=True,
+        blank=True,
     )
     operational_timeframe = models.IntegerField(
         verbose_name=_("Operational Time"),
+        null=True,
+        blank=True,
     )
 
     trigger_threshold_justification = models.TextField(
         verbose_name=_("Trigger Threshold Justification"),
         help_text=_("Explain how the trigger were set and provide information"),
+        null=True,
+        blank=True,
     )
     next_step_towards_full_eap = models.TextField(
         verbose_name=_("Next Steps towards Full EAP"),
+        null=True,
+        blank=True,
     )
 
     # PLANNED OPEATIONS #
@@ -1109,10 +1199,14 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
     early_action_capability = models.TextField(
         verbose_name=_("Experience or Capacity to implement Early Action."),
         help_text=_("Assumptions or minimum conditions needed to deliver the early actions."),
+        null=True,
+        blank=True,
     )
     rcrc_movement_involvement = models.TextField(
         verbose_name=_("RCRC Movement Involvement."),
         help_text=_("RCRC Movement partners, Governmental/other agencies consulted/involved."),
+        null=True,
+        blank=True,
     )
 
     # NOTE: Snapshot fields
@@ -1190,9 +1284,43 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
             self.save(update_fields=["is_locked"])
         return instance
 
+    # NOTE: Add fields that are required for submission check validation
+    SUBMISSION_REQUIRED_FIELDS = [
+        "planned_operations",
+        "enabling_approaches",
+        "total_budget",
+        "readiness_budget",
+        "pre_positioning_budget",
+        "early_action_budget",
+        "ifrc_delegation_focal_point_name",
+        "ifrc_delegation_focal_point_email",
+        "ifrc_head_of_delegation_name",
+        "ifrc_head_of_delegation_email",
+        "budget_file",
+        "prioritized_hazard_and_impact",
+        "risks_selected_protocols",
+        "selected_early_actions",
+        "overall_objective_intervention",
+        "potential_geographical_high_risk_areas",
+        "assisted_through_operation",
+        "seap_lead_timeframe_unit",
+        "seap_lead_time",
+        "operational_timeframe_unit",
+        "operational_timeframe",
+        "trigger_threshold_justification",
+        "next_step_towards_full_eap",
+        "early_action_capability",
+        "rcrc_movement_involvement",
+    ]
+
 
 class FullEAP(EAPBaseModel, CommonEAPFields):
     """Model representing a Full EAP."""
+
+    modified_at = models.DateTimeField(
+        verbose_name=_("modified at"),
+        default=timezone.now,
+    )
 
     eap_registration = models.ForeignKey[EAPRegistration, EAPRegistration](
         EAPRegistration,
@@ -1226,7 +1354,7 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
     key_actors = models.ManyToManyField(
         KeyActor,
         verbose_name=_("Key Actors"),
-        related_name="full_eap_key_actor",
+        related_name="full_eap_key_actors",
     )
 
     # TECHNICALLY WORKING GROUPS
@@ -1251,6 +1379,8 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
     hazard_selection = models.TextField(
         verbose_name=_("Hazard selection"),
         help_text=_("Provide a brief rationale for selecting this hazard for the FbF system."),
+        null=True,
+        blank=True,
     )
 
     hazard_selection_images = models.ManyToManyField(
@@ -1263,6 +1393,8 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
     exposed_element_and_vulnerability_factor = models.TextField(
         verbose_name=_("Exposed elements and vulnerability factors"),
         help_text=_("Explain which people are most likely to experience the impacts of this hazard."),
+        null=True,
+        blank=True,
     )
 
     exposed_element_and_vulnerability_factor_images = models.ManyToManyField(
@@ -1275,6 +1407,8 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
     prioritized_impact = models.TextField(
         verbose_name=_("Prioritized impact"),
         help_text=_("Describe the impacts that have been prioritized and who is most likely to be affected."),
+        null=True,
+        blank=True,
     )
 
     prioritized_impacts = models.ManyToManyField(
@@ -1308,10 +1442,16 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
     trigger_statement = models.TextField(
         verbose_name=_("Trigger Statement"),
         help_text=_("Explain in one sentence what exactly the trigger of your EAP will be."),
+        null=True,
+        blank=True,
     )
 
     # NOTE: In days
-    lead_time = models.IntegerField(verbose_name=_("Lead Time"))
+    lead_time = models.IntegerField(
+        verbose_name=_("Lead Time"),
+        null=True,
+        blank=True,
+    )
 
     trigger_statement_source_of_information = models.ManyToManyField(
         SourceInformation,
@@ -1323,6 +1463,8 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
     forecast_selection = models.TextField(
         verbose_name=_("Forecast Selection"),
         help_text=_("Explain which forecast's and observations will be used and why they are chosen"),
+        null=True,
+        blank=True,
     )
 
     forecast_table_file = models.ForeignKey(
@@ -1343,6 +1485,8 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
 
     definition_and_justification_impact_level = models.TextField(
         verbose_name=_("Definition and Justification of Impact Level"),
+        null=True,
+        blank=True,
     )
 
     definition_and_justification_impact_level_images = models.ManyToManyField(
@@ -1354,6 +1498,8 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
 
     identification_of_the_intervention_area = models.TextField(
         verbose_name=_("Identification of Intervention Area"),
+        null=True,
+        blank=True,
     )
 
     identification_of_the_intervention_area_images = models.ManyToManyField(
@@ -1387,6 +1533,8 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
 
     early_action_selection_process = models.TextField(
         verbose_name=_("Early action selection process"),
+        null=True,
+        blank=True,
     )
 
     early_action_selection_process_images = models.ManyToManyField(
@@ -1395,7 +1543,6 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         verbose_name=_("Early action selection process images"),
         related_name="early_action_selection_process_images",
     )
-    # TODO(susilnem): Multiple files?
     theory_of_change_table_file = models.ForeignKey[EAPFile | None, EAPFile | None](
         EAPFile,
         on_delete=models.SET_NULL,
@@ -1408,6 +1555,8 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
     evidence_base = models.TextField(
         verbose_name=_("Evidence base"),
         help_text="Explain how the selected actions will reduce the expected disaster impacts.",
+        null=True,
+        blank=True,
     )
 
     evidence_base_relevant_files = models.ManyToManyField(
@@ -1441,11 +1590,15 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
     usefulness_of_actions = models.TextField(
         verbose_name=_("Usefulness of actions in case the event does not occur"),
         help_text=_("Describe how actions will still benefit the population if the expected event does not occur."),
+        null=True,
+        blank=True,
     )
 
     feasibility = models.TextField(
         verbose_name=_("Feasibility of selected actions"),
         help_text=_("Explain how feasible it is to implement the proposed early actions in the planned timeframe."),
+        null=True,
+        blank=True,
     )
 
     # EAP ACTIVATION PROCESS
@@ -1453,6 +1606,8 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
     early_action_implementation_process = models.TextField(
         verbose_name=_("Early Action Implementation Process"),
         help_text=_("Describe the process for implementing early actions."),
+        null=True,
+        blank=True,
     )
 
     early_action_implementation_images = models.ManyToManyField(
@@ -1465,6 +1620,8 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
     trigger_activation_system = models.TextField(
         verbose_name=_("Trigger Activation System"),
         help_text=_("Describe the automatic system used to monitor the forecasts."),
+        null=True,
+        blank=True,
     )
 
     trigger_activation_system_images = models.ManyToManyField(
@@ -1477,6 +1634,8 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
     selection_of_target_population = models.TextField(
         verbose_name=_("Selection of Target Population"),
         help_text=_("Describe the process used to select the target population for early actions."),
+        null=True,
+        blank=True,
     )
 
     stop_mechanism = models.TextField(
@@ -1484,6 +1643,8 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         help_text=_(
             "Explain how it would be communicated to communities and stakeholders that the activities are being stopped."
         ),
+        null=True,
+        blank=True,
     )
 
     activation_process_relevant_files = models.ManyToManyField(
@@ -1504,6 +1665,8 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
 
     meal = models.TextField(
         verbose_name=_("MEAL Plan Description"),
+        null=True,
+        blank=True,
     )
     meal_relevant_files = models.ManyToManyField(
         EAPFile,
@@ -1516,14 +1679,20 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
     operational_administrative_capacity = models.TextField(
         verbose_name=_("National Society Operational, thematic and administrative capacity"),
         help_text=_("Describe how the NS has operative and administrative capacity to implement the EAPs."),
+        null=True,
+        blank=True,
     )
     strategies_and_plans = models.TextField(
         verbose_name=_("National Society Strategies and plans"),
         help_text=_("Describe how the EAP aligned with disaster risk management strategy of NS."),
+        null=True,
+        blank=True,
     )
     advance_financial_capacity = models.TextField(
         verbose_name=_("National Society Financial capacity to advance funds"),
         help_text=_("Indicate whether the NS has capacity to advance funds to start early actions."),
+        null=True,
+        blank=True,
     )
     capacity_relevant_files = models.ManyToManyField(
         EAPFile,
@@ -1534,16 +1703,34 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
 
     # FINANCE AND LOGISTICS
 
-    budget_description = models.TextField(verbose_name=_("Full EAP Budget Description"))
-    readiness_cost_description = models.TextField(verbose_name=_("Readiness Cost Description"))
-    prepositioning_cost_description = models.TextField(verbose_name=_("Prepositioning Cost Description"))
-    early_action_cost_description = models.TextField(verbose_name=_("Early Action Cost Description"))
+    budget_description = models.TextField(
+        verbose_name=_("Full EAP Budget Description"),
+        null=True,
+        blank=True,
+    )
+    readiness_cost_description = models.TextField(
+        verbose_name=_("Readiness Cost Description"),
+        null=True,
+        blank=True,
+    )
+    prepositioning_cost_description = models.TextField(
+        verbose_name=_("Prepositioning Cost Description"),
+        null=True,
+        blank=True,
+    )
+    early_action_cost_description = models.TextField(
+        verbose_name=_("Early Action Cost Description"),
+        null=True,
+        blank=True,
+    )
 
     # EAP ENDORSEMENT / APPROVAL
 
     eap_endorsement = models.TextField(
         verbose_name=_("EAP Endorsement Description"),
         help_text=("Describe by whom,how and when the EAP was agreed and endorsed."),
+        null=True,
+        blank=True,
     )
 
     # NOTE: Snapshot fields
@@ -1633,3 +1820,48 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
             self.is_locked = True
             self.save(update_fields=["is_locked"])
         return instance
+
+    # NOTE: Add fields that are required for submission check validation
+    SUBMISSION_REQUIRED_FIELDS = [
+        "planned_operations",
+        "enabling_approaches",
+        "total_budget",
+        "readiness_budget",
+        "pre_positioning_budget",
+        "early_action_budget",
+        "ifrc_delegation_focal_point_name",
+        "ifrc_delegation_focal_point_email",
+        "ifrc_head_of_delegation_name",
+        "ifrc_head_of_delegation_email",
+        "budget_file",
+        "key_actors",
+        "hazard_selection",
+        "exposed_element_and_vulnerability_factor",
+        "prioritized_impact",
+        "prioritized_impacts",
+        "trigger_statement",
+        "lead_time",
+        "forecast_selection",
+        "forecast_table_file",
+        "definition_and_justification_impact_level",
+        "identification_of_the_intervention_area",
+        "early_actions",
+        "early_action_selection_process",
+        "theory_of_change_table_file",
+        "evidence_base",
+        "usefulness_of_actions",
+        "feasibility",
+        "early_action_implementation_process",
+        "trigger_activation_system",
+        "selection_of_target_population",
+        "stop_mechanism",
+        "meal",
+        "operational_administrative_capacity",
+        "strategies_and_plans",
+        "advance_financial_capacity",
+        "budget_description",
+        "readiness_cost_description",
+        "prepositioning_cost_description",
+        "early_action_cost_description",
+        "eap_endorsement",
+    ]

@@ -94,6 +94,16 @@ class SimplifiedEAPFactory(factory.django.DjangoModelFactory):
     )
     ifrc_head_of_delegation_name = fuzzy.FuzzyText(length=10, prefix="ifrc-head-")
     ifrc_head_of_delegation_email = factory.LazyAttribute(lambda obj: f"{obj.ifrc_head_of_delegation_name.lower()}@example.com")
+    prioritized_hazard_and_impact = fuzzy.FuzzyText(length=50, prefix="prioritized-hazard")
+    risks_selected_protocols = fuzzy.FuzzyText(length=50, prefix="risks-selected-")
+    selected_early_actions = fuzzy.FuzzyText(length=50, prefix="selected-early-")
+    overall_objective_intervention = fuzzy.FuzzyText(length=20, prefix="overall-objective-")
+    potential_geographical_high_risk_areas = fuzzy.FuzzyText(length=20, prefix="potential-geographical-")
+    assisted_through_operation = fuzzy.FuzzyText(length=20, prefix="assisted-through-")
+    trigger_threshold_justification = fuzzy.FuzzyText(length=50, prefix="trigger-threshold-")
+    next_step_towards_full_eap = fuzzy.FuzzyText(length=50, prefix="next-step-")
+    early_action_capability = fuzzy.FuzzyText(length=50, prefix="early-action-")
+    rcrc_movement_involvement = fuzzy.FuzzyText(length=50, prefix="rcrc-movement-")
 
     @factory.post_generation
     def enabling_approaches(self, create, extracted, **kwargs):

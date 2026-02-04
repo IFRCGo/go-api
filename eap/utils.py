@@ -5,6 +5,9 @@ from django.conf import settings
 from django.contrib.auth.models import Permission, User
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models.fields.related import ManyToManyField
+from django.utils.translation import gettext_lazy as _
+from rest_framework import serializers
 
 from api.models import Region, RegionName
 from eap.models import EAPType, FullEAP, SimplifiedEAP
@@ -265,3 +268,27 @@ def copy_model_instance(
         getattr(clone, name).set(cloned_related)
 
     return clone
+
+
+def validate_for_under_review(instance: models.Model, required_fields: list[str]) -> None:
+    """
+    Validates that all required fields are filled before submission.
+    Raises a ValidationError if any required field is missing.
+    """
+
+    errors = {}
+
+    for field_name in required_fields:
+        field = instance._meta.get_field(field_name)
+        value = getattr(instance, field_name)
+
+        if isinstance(field, ManyToManyField):
+            if not value.exists():
+                errors[field_name] = _("This field is required before submission.")
+
+        else:
+            if value in (None, "", []):
+                errors[field_name] = _("This field is required before submission.")
+
+    if errors:
+        raise serializers.ValidationError(errors)
