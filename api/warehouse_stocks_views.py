@@ -73,7 +73,7 @@ class WarehouseStocksView(views.APIView):
         only_available = request.query_params.get("only_available", "0") == "1"
         q = request.query_params.get("q", "").strip()
         region_q = request.query_params.get("region", "").strip()
-        country_iso3_raw = (request.query_params.get("country_iso3") or "")
+        country_iso3_raw = request.query_params.get("country_iso3") or ""
         country_iso3_list = [c.strip().upper() for c in country_iso3_raw.split(",") if c.strip()]
         warehouse_name_q = request.query_params.get("warehouse_name", "").strip()
         item_group_q = request.query_params.get("item_group", "").strip()
@@ -301,7 +301,11 @@ class WarehouseStocksView(views.APIView):
                 if item_group_q and item_group and item_group.lower() != item_group_q.lower():
                     continue
 
-                if warehouse_name_q and wh.get("warehouse_name") and warehouse_name_q.lower() not in wh.get("warehouse_name").lower():
+                if (
+                    warehouse_name_q
+                    and wh.get("warehouse_name")
+                    and warehouse_name_q.lower() not in wh.get("warehouse_name").lower()
+                ):
                     continue
 
                 item_name = prod.get("item_name", "")
@@ -360,7 +364,7 @@ class AggregatedWarehouseStocksView(views.APIView):
         only_available = request.query_params.get("only_available", "0") == "1"
         q = request.query_params.get("q", "").strip()
         region_q = request.query_params.get("region", "").strip()
-        country_iso3_raw = (request.query_params.get("country_iso3") or "")
+        country_iso3_raw = request.query_params.get("country_iso3") or ""
         country_iso3_list = [c.strip().upper() for c in country_iso3_raw.split(",") if c.strip()]
         warehouse_name_q = request.query_params.get("warehouse_name", "").strip()
         item_group_q = request.query_params.get("item_group", "").strip()
