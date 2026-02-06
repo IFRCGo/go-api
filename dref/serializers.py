@@ -1923,6 +1923,20 @@ class BaseDref3Serializer(serializers.ModelSerializer):
             return obj.num_assisted
 
     def get_population_disaggregation(self, obj):
+        """Return population disaggregation dict.
+
+        Structure:
+        {
+            "Women": women,
+            "Girls (under 18)": girls,
+            "Men": men,
+            "Boys (under 18)": boys,
+            "Rural": "people_per_local%",
+            "Urban": "people_per_urban%"
+        }
+        Only include keys that have a non-None underlying value.
+        Percentages are suffixed with % if numeric.
+        """
         women = getattr(obj, "women", None)
         girls = getattr(obj, "girls", None)
         men = getattr(obj, "men", None)
