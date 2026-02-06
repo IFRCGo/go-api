@@ -1784,10 +1784,10 @@ class BaseDref3Serializer(serializers.ModelSerializer):
         return self._sector_index(obj).get(topic, {}).get("any", False)
 
     def _sector_budget(self, obj, topic):
-        return self._sector_index(obj).get(topic, {}).get("budget", 0)
+        return self._sector_index(obj).get(topic, {}).get("budget", None)
 
     def _sector_people(self, obj, topic):
-        return self._sector_index(obj).get(topic, {}).get("people", 0)
+        return self._sector_index(obj).get(topic, {}).get("people", None)
 
     def _appeal_cache(self):
         if not hasattr(self, "_appeal_by_code"):
