@@ -1,9 +1,13 @@
+from uuid import uuid4
+
 import factory
 
 from alert_system.models import AlertEmailLog, AlertEmailThread, Connector, LoadItem
 
 
 class LoadItemFactory(factory.django.DjangoModelFactory):
+    guid = factory.LazyFunction(lambda: str(uuid4()))
+
     class Meta:
         model = LoadItem
 

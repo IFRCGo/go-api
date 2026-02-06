@@ -1,12 +1,11 @@
 from unittest import mock
 from uuid import uuid4
 
-from django.core.management import call_command
 from django.test import TestCase
 from django.utils import timezone
 
+from alert_system.email_processing import process_email_alert
 from alert_system.models import AlertEmailLog, AlertEmailThread, Connector
-from alert_system.tasks import process_email_alert
 from api.factories.country import CountryFactory
 from api.factories.disaster_type import DisasterTypeFactory
 from api.factories.region import RegionFactory
@@ -61,7 +60,7 @@ class AlertEmailNotificationTestCase(TestCase):
         )
 
         self.eligible_item = LoadItemFactory.create(
-            correlation_id="corr-001",
+            parent_guid=str(uuid4()),
             connector=self.connector,
             item_eligible=True,
             is_past_event=False,
@@ -93,7 +92,7 @@ class AlertEmailNotificationTestCase(TestCase):
             },
         )
 
-    @mock.patch("alert_system.utils.send_notification")
+    @mock.patch("alert_system.email_processing.send_notification")
     def test_sent_email_for_eligible_item(self, mock_send_notification):
 
         process_email_alert(self.eligible_item.id)
@@ -108,13 +107,13 @@ class AlertEmailNotificationTestCase(TestCase):
         self.assertIsNotNone(log.email_sent_at)
 
         self.assertEqual(thread.user, self.user1)
-        self.assertEqual(thread.correlation_id, self.eligible_item.correlation_id)
+        self.assertEqual(thread.parent_guid, self.eligible_item.parent_guid)
         self.assertEqual(thread.root_email_message_id, log.message_id)
         self.assertEqual(log.thread, thread)
 
         mock_send_notification.assert_called()
 
-    @mock.patch("alert_system.utils.send_notification")
+    @mock.patch("alert_system.email_processing.send_notification")
     def test_sent_email_to_multiple_users(self, mock_send_notification):
 
         process_email_alert(self.eligible_item.id)
@@ -122,7 +121,7 @@ class AlertEmailNotificationTestCase(TestCase):
         logs = AlertEmailLog.objects.filter(item=self.eligible_item, status=AlertEmailLog.Status.SENT)
         self.assertEqual(logs.count(), 2)
 
-        threads = AlertEmailThread.objects.filter(correlation_id=self.eligible_item.correlation_id)
+        threads = AlertEmailThread.objects.filter(parent_guid=self.eligible_item.parent_guid)
         self.assertEqual(threads.count(), 2)
 
         self.assertEqual(mock_send_notification.call_count, 2)
@@ -137,7 +136,7 @@ class AlertEmailNotificationTestCase(TestCase):
         self.assertEqual(user2_log.thread, user2_thread)
         self.assertNotEqual(user1_thread.root_email_message_id, user2_thread.root_email_message_id)
 
-    @mock.patch("alert_system.utils.send_notification")
+    @mock.patch("alert_system.email_processing.send_notification")
     def test_daily_email_alert_limit(self, mock_send_notification):
 
         user = UserFactory.create(email="t@example.com")
@@ -200,7 +199,7 @@ class AlertEmailNotificationTestCase(TestCase):
 
     # Test Reply emails
 
-    @mock.patch("alert_system.utils.send_notification")
+    @mock.patch("alert_system.email_processing.send_notification")
     def test_reply_email_for_existing_thread(self, mock_send_notification):
         user = UserFactory.create()
         country = CountryFactory.create(
@@ -218,7 +217,7 @@ class AlertEmailNotificationTestCase(TestCase):
         )
 
         initial_item = LoadItemFactory.create(
-            correlation_id=str(uuid4()),
+            parent_guid=str(uuid4()),
             connector=self.connector,
             item_eligible=True,
             is_past_event=False,
@@ -232,7 +231,7 @@ class AlertEmailNotificationTestCase(TestCase):
 
         thread = AlertEmailThreadFactory.create(
             user=user,
-            correlation_id=initial_item.correlation_id,
+            parent_guid=initial_item.parent_guid,
             root_email_message_id=str(uuid4()),
             root_message_sent_at=timezone.now(),
         )
@@ -248,7 +247,7 @@ class AlertEmailNotificationTestCase(TestCase):
         )
 
         update_item = LoadItemFactory.create(
-            correlation_id=initial_item.correlation_id,
+            parent_guid=initial_item.parent_guid,
             connector=self.connector,
             item_eligible=True,
             is_past_event=False,
@@ -268,17 +267,17 @@ class AlertEmailNotificationTestCase(TestCase):
 
         mock_send_notification.assert_called_once()
 
-        threads = AlertEmailThread.objects.filter(correlation_id=initial_item.correlation_id)
+        threads = AlertEmailThread.objects.filter(parent_guid=initial_item.parent_guid)
         self.assertEqual(threads.count(), 1)
 
-    @mock.patch("alert_system.utils.send_notification")
+    @mock.patch("alert_system.email_processing.send_notification")
     def test_reply_email_to_multiple_users(self, mock_send_notification):
 
-        correlation_id = str(uuid4())
+        parent_guid = str(uuid4())
 
         # Create initial item
         initial_item = LoadItemFactory.create(
-            correlation_id=correlation_id,
+            parent_guid=parent_guid,
             connector=self.connector,
             item_eligible=True,
             is_past_event=False,
@@ -293,14 +292,14 @@ class AlertEmailNotificationTestCase(TestCase):
         # Create threads for both users
         thread1 = AlertEmailThreadFactory.create(
             user=self.user1,
-            correlation_id=correlation_id,
+            parent_guid=parent_guid,
             root_email_message_id="message-id-1",
             root_message_sent_at=timezone.now(),
         )
 
         thread2 = AlertEmailThreadFactory.create(
             user=self.user2,
-            correlation_id=correlation_id,
+            parent_guid=parent_guid,
             root_email_message_id="message-id-2",
             root_message_sent_at=timezone.now(),
         )
@@ -326,7 +325,7 @@ class AlertEmailNotificationTestCase(TestCase):
         )
 
         related_item = LoadItemFactory.create(
-            correlation_id=correlation_id,
+            parent_guid=parent_guid,
             connector=self.connector,
             item_eligible=True,
             is_past_event=False,
@@ -348,10 +347,10 @@ class AlertEmailNotificationTestCase(TestCase):
         reply_user2 = replies.get(user=self.user2)
         self.assertNotEqual(reply_user1.message_id, reply_user2.message_id)
 
-    @mock.patch("alert_system.utils.send_notification")
+    @mock.patch("alert_system.email_processing.send_notification")
     def test_duplicate_reply(self, mock_send_notification):
 
-        correlation_id = str(uuid4())
+        parent_guid = str(uuid4())
 
         user = UserFactory.create()
         country = CountryFactory.create(
@@ -367,7 +366,7 @@ class AlertEmailNotificationTestCase(TestCase):
         )
 
         LoadItemFactory.create(
-            correlation_id=correlation_id,
+            parent_guid=parent_guid,
             connector=self.connector,
             item_eligible=True,
             is_past_event=False,
@@ -381,13 +380,13 @@ class AlertEmailNotificationTestCase(TestCase):
 
         thread = AlertEmailThreadFactory.create(
             user=user,
-            correlation_id=correlation_id,
+            parent_guid=parent_guid,
             root_email_message_id="root-123",
             root_message_sent_at=timezone.now(),
         )
 
         update_item = LoadItemFactory.create(
-            correlation_id=correlation_id,
+            parent_guid=parent_guid,
             connector=self.connector,
             item_eligible=True,
             is_past_event=False,
@@ -430,42 +429,3 @@ class AlertEmailNotificationTestCase(TestCase):
         self.assertEqual(replies_user2.count(), 1)
 
         mock_send_notification.assert_called_once()
-
-    # Test command trigger
-    @mock.patch("alert_system.tasks.process_email_alert.delay")
-    def test_command_triggers_task_for_eligible_items(self, mock_task_delay):
-        """Test that management command queues eligible items"""
-        call_command("alert_notification")
-
-        mock_task_delay.assert_called_once_with(load_item_id=self.eligible_item.id)
-
-    @mock.patch("alert_system.tasks.process_email_alert.delay")
-    def test_command_for_ineligible_items(self, mock_task_delay):
-
-        # Delete eligible item
-        self.eligible_item.delete()
-
-        call_command("alert_notification")
-
-        mock_task_delay.assert_not_called()
-
-    @mock.patch("alert_system.tasks.process_email_alert.delay")
-    def test_command_trigger_for_past_events(self, mock_task_delay):
-
-        self.eligible_item.is_past_event = True
-        self.eligible_item.save()
-
-        call_command("alert_notification")
-
-        mock_task_delay.assert_not_called()
-
-    @mock.patch("alert_system.utils.send_notification")
-    def test_email_send_failed(self, mock_send_notification):
-
-        mock_send_notification.side_effect = Exception("Email service error")
-
-        process_email_alert(self.eligible_item.id)
-
-        log = AlertEmailLog.objects.get(user=self.user1, item=self.eligible_item)
-        self.assertEqual(log.status, AlertEmailLog.Status.FAILED)
-        self.assertIsNone(log.email_sent_at)

@@ -135,6 +135,11 @@ class BaseItem(models.Model):
         help_text=_("Correlation identifier linking all models"),
     )
 
+    guid = models.CharField(
+        verbose_name=_("GUID"),
+        help_text=_("Globally unique ID for events"),
+    )
+
     id: int
 
     class Meta:
@@ -178,6 +183,11 @@ class LoadItem(BaseItem):
     """
     Model for Load items.
     """
+
+    parent_guid = models.CharField(
+        verbose_name=_("Parent GUID"),
+        help_text=_("GUID without the episode number."),
+    )
 
     # TODO:  New id to be used in the future.
     event_title = models.CharField(
@@ -254,6 +264,9 @@ class LoadItem(BaseItem):
     class Meta:
         verbose_name = _("Eligible Item")
         verbose_name_plural = _("Eligible Items")
+        constraints = [
+            models.UniqueConstraint(fields=["guid"], name="unique_guid")
+        ]  # NOTE: GUID should be unique in the load table.
 
 
 class AlertEmailThread(models.Model):
@@ -267,8 +280,7 @@ class AlertEmailThread(models.Model):
         related_name="alert_email_threads",
     )
 
-    correlation_id = models.CharField(
-        max_length=255,
+    parent_guid = models.CharField(
         help_text=_("Identifier linking related LoadItems into the same email thread."),
     )
 
@@ -291,12 +303,13 @@ class AlertEmailThread(models.Model):
         verbose_name = _("Email Thread")
         verbose_name_plural = _("Email Threads")
         ordering = ["-id"]
+        constraints = [models.UniqueConstraint(fields=["parent_guid", "user"], name="unique_user_guid")]
         indexes = [
-            models.Index(fields=["correlation_id", "user"]),
+            models.Index(fields=["parent_guid", "user"]),
         ]
 
     def __str__(self):
-        return f"Thread: {self.user.get_full_name()}-{self.correlation_id}"
+        return f"Thread: {self.user.get_full_name()}-{self.parent_guid}"
 
 
 class AlertEmailLog(models.Model):
