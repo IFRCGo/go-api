@@ -13,6 +13,7 @@ from api.models import (
     DimProduct,
     DimProductCategory,
     DimWarehouse,
+    ItemCodeMapping,
 )
 
 GOADMIN_COUNTRY_URL_DEFAULT = "https://goadmin.ifrc.org/api/v2/country/?limit=300"
@@ -69,7 +70,7 @@ class WarehouseStocksView(views.APIView):
     permission_classes = []
 
     def get(self, request):
-        only_available = request.query_params.get("only_available", "1") == "1"
+        only_available = request.query_params.get("only_available", "0") == "1"
         q = request.query_params.get("q", "").strip()
         region_q = request.query_params.get("region", "").strip()
         country_iso3_raw = (request.query_params.get("country_iso3") or "")
@@ -174,6 +175,17 @@ class WarehouseStocksView(views.APIView):
             try:
                 resp = ES_CLIENT.search(index=WAREHOUSE_INDEX_NAME, body=body)
                 hits = resp.get("hits", {}).get("hits", []) or []
+                item_numbers = []
+                for h in hits:
+                    src = h.get("_source", {})
+                    code = src.get("item_number")
+                    if code:
+                        item_numbers.append(str(code))
+                if item_numbers:
+                    mappings = ItemCodeMapping.objects.filter(code__in=item_numbers).values("code", "url")
+                    item_code_to_url = {m["code"]: m["url"] for m in mappings}
+                else:
+                    item_code_to_url = {}
                 total = resp.get("hits", {}).get("total") or {}
                 if isinstance(total, dict):
                     total_hits = total.get("value", 0)
@@ -208,7 +220,9 @@ class WarehouseStocksView(views.APIView):
                             "item_group": src.get("item_group", ""),
                             "item_name": src.get("item_name", ""),
                             "item_number": src.get("item_number", ""),
+                            "item_url": item_code_to_url.get(str(src.get("item_number") or "")),
                             "unit": src.get("unit", ""),
+                            "item_status_name": src.get("item_status_name", ""),
                             "quantity": qty_out,
                         }
                     )
@@ -241,6 +255,13 @@ class WarehouseStocksView(views.APIView):
                 for p in products
             }
 
+            product_item_numbers = [p.get("item_number") for p in prod_by_id.values() if p.get("item_number")]
+            if product_item_numbers:
+                mappings = ItemCodeMapping.objects.filter(code__in=product_item_numbers).values("code", "url")
+                item_code_to_url = {m["code"]: m["url"] for m in mappings}
+            else:
+                item_code_to_url = {}
+
             categories = DimProductCategory.objects.all().values("category_code", "name")
             cat_by_code = {str(c["category_code"]): _safe_str(c.get("name")) for c in categories}
 
@@ -248,7 +269,7 @@ class WarehouseStocksView(views.APIView):
             if only_available:
                 qset = qset.filter(item_status_name="Available")
 
-            agg = qset.values("warehouse", "product").annotate(quantity=Sum("quantity"))
+            agg = qset.values("warehouse", "product", "item_status_name").annotate(quantity=Sum("quantity"))
 
             for row in agg.iterator():
                 warehouse_id = _safe_str(row.get("warehouse"))
@@ -295,6 +316,8 @@ class WarehouseStocksView(views.APIView):
                 else:
                     qty_out = str(qty)
 
+                item_status_name = _safe_str(row.get("item_status_name"))
+
                 results.append(
                     {
                         "id": f"{warehouse_id}__{product_id}",
@@ -305,7 +328,9 @@ class WarehouseStocksView(views.APIView):
                         "item_group": item_group,
                         "item_name": item_name,
                         "item_number": prod.get("item_number", ""),
+                        "item_url": item_code_to_url.get(prod.get("item_number", "")),
                         "unit": prod.get("unit", ""),
+                        "item_status_name": item_status_name,
                         "quantity": qty_out,
                     }
                 )
@@ -332,7 +357,7 @@ class AggregatedWarehouseStocksView(views.APIView):
     permission_classes = []
 
     def get(self, request):
-        only_available = request.query_params.get("only_available", "1") == "1"
+        only_available = request.query_params.get("only_available", "0") == "1"
         q = request.query_params.get("q", "").strip()
         region_q = request.query_params.get("region", "").strip()
         country_iso3_raw = (request.query_params.get("country_iso3") or "")
