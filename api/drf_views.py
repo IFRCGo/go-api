@@ -83,6 +83,7 @@ from .models import (
     DisasterType,
     District,
     Event,
+    EventContact,
     EventFeaturedDocument,
     EventSeverityLevelHistory,
     Export,
@@ -762,6 +763,7 @@ class EventViewset(ReadOnlyVisibilityViewset):
                 Prefetch("appeals", queryset=Appeal.objects.select_related("dtype", "event", "country", "region")),
                 Prefetch("countries", queryset=Country.objects.select_related("region")),
                 Prefetch("districts", queryset=District.objects.select_related("country")),
+                Prefetch("contacts", queryset=EventContact.objects.order_by("id")),
                 Prefetch(
                     "field_reports",
                     queryset=FieldReport.objects.select_related("user", "dtype", "event").prefetch_related(
@@ -806,6 +808,7 @@ class EventViewset(ReadOnlyVisibilityViewset):
                     Prefetch("appeals", queryset=Appeal.objects.select_related("dtype", "event", "country", "region")),
                     Prefetch("countries", queryset=Country.objects.select_related("region")),
                     Prefetch("districts", queryset=District.objects.select_related("country")),
+                    Prefetch("contacts", queryset=EventContact.objects.order_by("id")),
                     Prefetch("field_reports", queryset=FieldReport.objects.prefetch_related("countries", "contacts")),
                     Prefetch("featured_documents", queryset=EventFeaturedDocument.objects.order_by("-id")),
                 ]
