@@ -1,11 +1,13 @@
 import re
 import uuid
+from datetime import timedelta
 from unittest.mock import patch
 
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
 from django.urls import reverse
+from django.utils import timezone
 
 import api.models as models
 from api.factories.event import (
@@ -868,6 +870,13 @@ class AppealTest(APITestCase):
     fixtures = ["DisasterTypes"]
 
     def test_appeal_key_figure(self):
+        # Calculate dynamic dates relative to today
+        today = timezone.now().date()
+        four_months_ago = today - timedelta(days=120)
+        three_months_ago = today - timedelta(days=90)
+        two_months_ago = today - timedelta(days=60)
+        one_month_ago = today - timedelta(days=30)
+
         region1 = models.Region.objects.create(name=1)
         region2 = models.Region.objects.create(name=2)
         country1 = models.Country.objects.create(name="Nepal", iso3="NPL", region=region1)
@@ -887,8 +896,8 @@ class AppealTest(APITestCase):
             amount_requested=10000,
             amount_funded=1899999,
             code=12,
-            start_date="2024-1-1",
-            end_date="2024-1-1",
+            start_date=four_months_ago,
+            end_date=four_months_ago,
             atype=AppealType.APPEAL,
             country=country1,
         )
@@ -899,8 +908,8 @@ class AppealTest(APITestCase):
             amount_requested=100440,
             amount_funded=12299999,
             code=123,
-            start_date="2024-2-2",
-            end_date="2024-2-2",
+            start_date=three_months_ago,
+            end_date=three_months_ago,
             atype=AppealType.DREF,
             country=country1,
         )
@@ -911,8 +920,8 @@ class AppealTest(APITestCase):
             amount_requested=10000888,
             amount_funded=678888,
             code=1234,
-            start_date="2024-3-3",
-            end_date="2024-3-3",
+            start_date=two_months_ago,
+            end_date=two_months_ago,
             atype=AppealType.APPEAL,
             country=country1,
         )
@@ -923,8 +932,8 @@ class AppealTest(APITestCase):
             amount_requested=10000888,
             amount_funded=678888,
             code=12345,
-            start_date="2024-4-4",
-            end_date="2024-4-4",
+            start_date=one_month_ago,
+            end_date=one_month_ago,
             atype=AppealType.APPEAL,
             country=country1,
         )
@@ -934,7 +943,7 @@ class AppealTest(APITestCase):
         self.assert_200(response)
         self.assertIsNotNone(response.json())
         self.assertEqual(response.data["active_drefs"], 1)
-        self.assertEqual(response.data["active_appeals"], 2)
+        self.assertEqual(response.data["active_appeals"], 3)
 
 
 class RegionSnippetVisibilityTest(APITestCase):
