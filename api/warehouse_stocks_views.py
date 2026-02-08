@@ -436,12 +436,22 @@ class AggregatedWarehouseStocksView(views.APIView):
             else:
                 query = {"bool": {"filter": filters}} if filters else {"match_all": {}}
 
+            # Use terms aggregation on `country_iso3` (keyword field) with
+            # pipeline `bucket_sort` to ensure buckets are ordered by the
+            # computed `total_quantity` on the ES side and capped to a reasonable
+            # size. This reduces application-side sorting and memory usage.
             aggs = {
                 "by_country": {
                     "terms": {"field": "country_iso3", "size": 10000},
                     "aggs": {
                         "total_quantity": {"sum": {"field": "quantity"}},
                         "warehouse_count": {"cardinality": {"field": "warehouse_id"}},
+                        "sort_by_total": {
+                            "bucket_sort": {
+                                "sort": [{"total_quantity": {"order": "desc"}}],
+                                "size": 10000
+                            }
+                        },
                     },
                 }
             }
