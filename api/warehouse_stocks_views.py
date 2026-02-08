@@ -1,7 +1,9 @@
 from decimal import Decimal
 
+import hashlib
 import requests
 from django.conf import settings
+from django.core.cache import cache
 from django.db.models import Sum
 from rest_framework import views
 from rest_framework.response import Response
@@ -370,6 +372,28 @@ class AggregatedWarehouseStocksView(views.APIView):
         item_group_q = request.query_params.get("item_group", "").strip()
 
         try:
+            disable_cache = bool(getattr(settings, "DISABLE_API_CACHE", False))
+            cache_ttl = int(getattr(settings, "CACHE_MIDDLEWARE_SECONDS", 60) or 60)
+        except Exception:
+            disable_cache = False
+            cache_ttl = 60
+
+        cache_key_raw = "|".join([
+            str(only_available),
+            q or "",
+            region_q or "",
+            ",".join(country_iso3_list) if country_iso3_list else "",
+            warehouse_name_q or "",
+            item_group_q or "",
+        ])
+        cache_key = "agg_wh_" + hashlib.sha1(cache_key_raw.encode("utf-8")).hexdigest()
+
+        if (not disable_cache) and cache_key:
+            cached = cache.get(cache_key)
+            if cached is not None:
+                return Response({"results": cached})
+
+        try:
             iso2_to_iso3, iso3_to_country_name, iso3_to_region_name = _fetch_goadmin_maps()
         except Exception:
             iso2_to_iso3, iso3_to_country_name, iso3_to_region_name = {}, {}, {}
@@ -516,5 +540,13 @@ class AggregatedWarehouseStocksView(views.APIView):
                         "warehouse_count": counts_by_country.get(iso3, 0),
                     }
                 )
+
+        # Cache the results for subsequent identical requests
+        try:
+            if (not disable_cache) and cache_key and results is not None:
+                cache.set(cache_key, results, cache_ttl)
+        except Exception:
+            # Ignore cache failures — we still return the results
+            pass
 
         return Response({"results": results})
