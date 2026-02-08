@@ -1,6 +1,6 @@
+import hashlib
 from decimal import Decimal
 
-import hashlib
 import requests
 from django.conf import settings
 from django.core.cache import cache
@@ -107,19 +107,21 @@ class WarehouseStocksView(views.APIView):
             disable_cache = False
             cache_ttl = 60
 
-        cache_key_raw = "|".join([
-            str(only_available),
-            q or "",
-            region_q or "",
-            ",".join(country_iso3_list) if country_iso3_list else "",
-            warehouse_name_q or "",
-            item_group_q or "",
-            item_name_q or "",
-            sort_field or "",
-            sort_order or "",
-            str(page),
-            str(page_size),
-        ])
+        cache_key_raw = "|".join(
+            [
+                str(only_available),
+                q or "",
+                region_q or "",
+                ",".join(country_iso3_list) if country_iso3_list else "",
+                warehouse_name_q or "",
+                item_group_q or "",
+                item_name_q or "",
+                sort_field or "",
+                sort_order or "",
+                str(page),
+                str(page_size),
+            ]
+        )
         cache_key = "wh_pg_" + hashlib.sha1(cache_key_raw.encode("utf-8")).hexdigest()
 
         # Try cache first
@@ -449,14 +451,16 @@ class AggregatedWarehouseStocksView(views.APIView):
             disable_cache = False
             cache_ttl = 60
 
-        cache_key_raw = "|".join([
-            str(only_available),
-            q or "",
-            region_q or "",
-            ",".join(country_iso3_list) if country_iso3_list else "",
-            warehouse_name_q or "",
-            item_group_q or "",
-        ])
+        cache_key_raw = "|".join(
+            [
+                str(only_available),
+                q or "",
+                region_q or "",
+                ",".join(country_iso3_list) if country_iso3_list else "",
+                warehouse_name_q or "",
+                item_group_q or "",
+            ]
+        )
         cache_key = "agg_wh_" + hashlib.sha1(cache_key_raw.encode("utf-8")).hexdigest()
 
         if (not disable_cache) and cache_key:
@@ -513,12 +517,7 @@ class AggregatedWarehouseStocksView(views.APIView):
                     "aggs": {
                         "total_quantity": {"sum": {"field": "quantity"}},
                         "warehouse_count": {"cardinality": {"field": "warehouse_id"}},
-                        "sort_by_total": {
-                            "bucket_sort": {
-                                "sort": [{"total_quantity": {"order": "desc"}}],
-                                "size": 10000
-                            }
-                        },
+                        "sort_by_total": {"bucket_sort": {"sort": [{"total_quantity": {"order": "desc"}}], "size": 10000}},
                     },
                 }
             }
@@ -651,6 +650,7 @@ class WarehouseStocksSummaryView(views.APIView):
         country_iso3_list = [c.strip().upper() for c in country_iso3_raw.split(",") if c.strip()]
         warehouse_name_q = request.query_params.get("warehouse_name", "").strip()
         item_group_q = request.query_params.get("item_group", "").strip()
+        item_name_q = request.query_params.get("item_name", "").strip()
         try:
             low_stock_threshold = int(request.query_params.get("low_stock_threshold", 5))
         except Exception:
@@ -697,7 +697,10 @@ class WarehouseStocksSummaryView(views.APIView):
             aggs = {
                 "by_item_group": {
                     "terms": {"field": "item_group", "size": 1000},
-                    "aggs": {"total_quantity": {"sum": {"field": "quantity"}}, "product_count": {"cardinality": {"field": "product_id"}}},
+                    "aggs": {
+                        "total_quantity": {"sum": {"field": "quantity"}},
+                        "product_count": {"cardinality": {"field": "product_id"}},
+                    },
                 },
                 "low_stock": {"filter": {"range": {"quantity": {"lte": low_stock_threshold}}}},
             }
@@ -725,7 +728,9 @@ class WarehouseStocksSummaryView(views.APIView):
                             tq_out = str(tq)
 
                     pc = b.get("product_count", {}).get("value")
-                    results["by_item_group"].append({"item_group": ig, "total_quantity": tq_out, "product_count": int(pc) if pc is not None else 0})
+                    results["by_item_group"].append(
+                        {"item_group": ig, "total_quantity": tq_out, "product_count": int(pc) if pc is not None else 0}
+                    )
 
                 # low stock count - use doc_count of filter bucket if present, otherwise fallback to hits total
                 low_stock_bucket = aggregations.get("low_stock", {})
