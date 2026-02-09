@@ -31,11 +31,20 @@
                         </a>
                     </li>
                 {% endif %}
+                {% if summary_file %}
                 <li>
                     <a href="{{ summary_file }}">
                        Auto-generated Summary PDF
                     </a>
                 </li>
+                 {% endif %}
+                {% if diff_file %}
+                <li>
+                    <a href="{{ diff_file }}">
+                      Auto-generated PDF extract
+                    </a>
+                </li>
+                {% endif %}
             </ul>
             <p style="margin-top:16px;">
                 Congratulations again and warm wishes,<br>

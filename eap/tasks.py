@@ -476,15 +476,20 @@ def send_pending_pfa_email(eap_registration_id: int):
     if not instance:
         return None
 
-    if instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP:
-        latest_eap = instance.latest_simplified_eap
-    else:
-        latest_eap = instance.latest_full_eap
+    is_full_eap = instance.get_eap_type_enum == EAPType.FULL_EAP
 
-        if not latest_eap.summary_file:
-            generate_eap_summary_pdf(
-                eap_registration_id=instance.id,
-            )
+    latest_eap = instance.latest_full_eap if is_full_eap else instance.latest_simplified_eap
+
+    if not latest_eap.diff_file:
+        generate_export_diff_pdf(
+            eap_registration_id=instance.id,
+            version=latest_eap.version,
+        )
+
+    if is_full_eap and not instance.summary_file:
+        generate_eap_summary_pdf(
+            eap_registration_id=instance.id,
+        )
 
     partner_contacts = latest_eap.partner_contacts
     partner_ns_emails = list(partner_contacts.values_list("email", flat=True))
