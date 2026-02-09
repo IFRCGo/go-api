@@ -35,6 +35,7 @@ class Connector(models.Model):
     PROCESSOR_REGISTRY = {
         ConnectorType.GDACS_FLOOD: "alert_system.etl.gdacs_flood.extraction.GdacsFloodExtraction",
         ConnectorType.USGS_EARTHQUAKE: "alert_system.etl.usgs_earthquake.extraction.USGSEarthquakeExtraction",
+        ConnectorType.GDACS_CYCLONE: "alert_system.etl.gdacs_cyclone.extraction.GdacsCycloneExtraction",
     }  # Add all the extraction classes here
 
     class Status(models.IntegerChoices):
