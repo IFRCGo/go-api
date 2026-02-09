@@ -252,6 +252,7 @@ class AlertSubscriptionTestCase(APITestCase):
         self.hazard_type2 = DisasterTypeFactory.create(name="Earthquake")
 
         self.alert_subscription = AlertSubscriptionFactory.create(
+            title="Test title",
             user=self.user1,
             countries=self.countries,
             regions=[self.region],
@@ -280,6 +281,7 @@ class AlertSubscriptionTestCase(APITestCase):
     def test_create_subscription(self):
 
         data = {
+            "title": "title-1-test",
             "user": self.user1.id,
             "countries": [self.country.id, self.country_1.id],
             "regions": [self.region.id],

@@ -276,6 +276,7 @@ class AlertSubscriptionSerialize(ModelSerializer):
             "id",
             "user",
             "countries",
+            "title",
             "regions",
             "hazard_types",
             "alert_per_day",
