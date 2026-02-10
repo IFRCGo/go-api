@@ -21,6 +21,7 @@ from oauth2_provider import urls as oauth2_urls
 # DRF routes
 from rest_framework import routers
 
+from alert_system.dev_views import AlertEmailPreview
 from api import drf_views as api_views
 from api.admin_reports import UsersPerPermissionViewSet
 from api.views import (
@@ -153,6 +154,7 @@ router.register(r"situation_report", api_views.SituationReportViewset, basename=
 router.register(r"situation_report_type", api_views.SituationReportTypeViewset, basename="situation_report_type")
 router.register(r"subscription", notification_views.SubscriptionViewset, basename="subscription")
 router.register(r"surge_alert", notification_views.SurgeAlertViewset, basename="surge_alert")
+router.register(r"alert-subscription", notification_views.AlertSubscriptionViewSet, basename="alert_subscription")
 router.register(r"user", api_views.UserViewset, basename="user")
 router.register(r"flash-update", flash_views.FlashUpdateViewSet, basename="flash_update")
 router.register(r"flash-update-file", flash_views.FlashUpdateFileViewSet, basename="flash_update_file")
@@ -285,6 +287,7 @@ if settings.DEBUG:
             # For django versions before 2.0:
             # url(r'^__debug__/', include(debug_toolbar.urls)),
             url(r"^dev/email-preview/local-units/", LocalUnitsEmailPreview.as_view()),
+            url(r"^dev/email-preview/alert-system/", AlertEmailPreview.as_view()),
         ]
         + urlpatterns
         + static.static(
