@@ -260,6 +260,11 @@ router.register(r"fabric/fct-agreement", api_views.FabricFctAgreementViewSet, ba
 router.register(r"fabric/fct-product-receipt", api_views.FabricFctProductReceiptViewSet, basename="fabric_fct_product_receipt")
 router.register(r"fabric/fct-purchase-order", api_views.FabricFctPurchaseOrderViewSet, basename="fabric_fct_purchase_order")
 router.register(r"fabric/fct-sales-order", api_views.FabricFctSalesOrderViewSet, basename="fabric_fct_sales_order")
+router.register(
+    r"fabric/cleaned-framework-agreements",
+    api_views.CleanedFrameworkAgreementViewSet,
+    basename="fabric_cleaned_framework_agreements",
+)
 
 router.register(
     r"fabric/product-category-hierarchy-flattened",
