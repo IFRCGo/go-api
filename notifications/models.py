@@ -342,6 +342,10 @@ class AlertSubscription(models.Model):
         FIFTY = 50, _("Fifty")
         """Receive up to 50 alerts per day."""
 
+    title = models.CharField(
+        verbose_name=_("Title of the Subscription"),
+        max_length=255,
+    )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         verbose_name=_("User"),
