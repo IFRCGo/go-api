@@ -202,6 +202,7 @@ from .serializers import (  # AppealSerializer,; Tableau Serializers; AppealTabl
     EventSeverityLevelHistorySerializer,
     ExportSerializer,
     ExternalPartnerSerializer,
+    FabricCleanedFrameworkAgreementSerializer,    
     FabricDimAgreementLineSerializer,
     FabricDimAppealSerializer,
     FabricDimBuyerGroupSerializer,
