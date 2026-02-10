@@ -3364,3 +3364,114 @@ class ItemCodeMapping(models.Model):
 
     def __str__(self):
         return f"{self.code} -> {self.url}"
+
+class CountryCustomsSnapshot(models.Model):
+    """
+    Stores generated customs update summaries per country.
+    Only one current snapshot per country (is_current = true).
+    """
+
+    STATUS_CHOICES = [
+        ("success", "Success"),
+        ("partial", "Partial"),
+        ("failed", "Failed"),
+    ]
+
+    CONFIDENCE_CHOICES = [
+        ("High", "High"),
+        ("Medium", "Medium"),
+        ("Low", "Low"),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    country_name = models.CharField(max_length=255, db_index=True)
+    is_current = models.BooleanField(default=True)
+    generated_at = models.DateTimeField(auto_now_add=True)
+    model_name = models.CharField(max_length=100, default="gpt-4")
+    confidence = models.CharField(max_length=20, choices=CONFIDENCE_CHOICES, default="Medium")
+    summary_text = models.TextField()
+    current_situation_bullets = models.JSONField(default=list, help_text="Array of bullet point strings")
+    evidence_hash = models.CharField(max_length=64, blank=True, help_text="Hash of all source hashes")
+    search_query = models.TextField(blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="success")
+    error_message = models.TextField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = _("Country Customs Snapshot")
+        verbose_name_plural = _("Country Customs Snapshots")
+        indexes = [
+            models.Index(fields=["country_name", "-generated_at"], name="customs_country_date_idx"),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["country_name"],
+                condition=models.Q(is_current=True),
+                name="unique_current_country_snapshot",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.country_name} - {self.generated_at.strftime('%Y-%m-%d')}"
+
+
+class CountryCustomsSource(models.Model):
+    """
+    Stores source metadata and credibility scores for a snapshot.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    snapshot = models.ForeignKey(
+        CountryCustomsSnapshot,
+        on_delete=models.CASCADE,
+        related_name="sources",
+    )
+    rank = models.PositiveSmallIntegerField(help_text="Ranking by total score (1-3)")
+    url = models.URLField(max_length=2048)
+    title = models.CharField(max_length=500)
+    publisher = models.CharField(max_length=255, blank=True)
+    published_at = models.DateTimeField(null=True, blank=True)
+    retrieved_at = models.DateTimeField(auto_now_add=True)
+    authority_score = models.SmallIntegerField(default=0)
+    freshness_score = models.SmallIntegerField(default=0)
+    relevance_score = models.SmallIntegerField(default=0)
+    specificity_score = models.SmallIntegerField(default=0)
+    total_score = models.SmallIntegerField(default=0)
+    content_hash = models.CharField(max_length=64, blank=True, help_text="Hash of source's evidence snippets")
+
+    class Meta:
+        verbose_name = _("Country Customs Source")
+        verbose_name_plural = _("Country Customs Sources")
+        indexes = [
+            models.Index(fields=["snapshot", "rank"], name="customs_source_rank_idx"),
+        ]
+        ordering = ["snapshot", "rank"]
+
+    def __str__(self):
+        return f"{self.title} (Rank {self.rank})"
+
+
+class CountryCustomsEvidenceSnippet(models.Model):
+    """
+    Stores individual evidence snippets extracted from a source.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    source = models.ForeignKey(
+        CountryCustomsSource,
+        on_delete=models.CASCADE,
+        related_name="snippets",
+    )
+    snippet_order = models.PositiveSmallIntegerField()
+    snippet_text = models.TextField()
+    claim_tags = models.JSONField(default=list, blank=True, help_text="Optional: array of tags")
+
+    class Meta:
+        verbose_name = _("Country Customs Evidence Snippet")
+        verbose_name_plural = _("Country Customs Evidence Snippets")
+        indexes = [
+            models.Index(fields=["source", "snippet_order"], name="customs_snippet_order_idx"),
+        ]
+        ordering = ["source", "snippet_order"]
+
+    def __str__(self):
+        return f"Snippet {self.snippet_order} - {self.snippet_text[:50]}..."
