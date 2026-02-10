@@ -34,6 +34,7 @@ from .models import (
     Appeal,
     AppealDocument,
     AppealHistory,
+    CleanedFrameworkAgreement,
     Country,
     CountryCapacityStrengthening,
     CountryContact,
@@ -2636,6 +2637,82 @@ class CountrySupportingPartnerSerializer(serializers.ModelSerializer):
     class Meta:
         model = CountrySupportingPartner
         fields = "__all__"
+
+
+class FabricCleanedFrameworkAgreementSerializer(serializers.ModelSerializer):
+    """Serializer for CleanedFrameworkAgreement using camelCase field names.
+
+    All model fields are exposed 1:1, but multi-word names
+    are converted to camelCase for the API.
+    """
+
+    agreementId = serializers.CharField(source="agreement_id")
+    defaultAgreementLineEffectiveDate = serializers.DateField(
+        source="default_agreement_line_effective_date",
+        allow_null=True,
+        required=False,
+    )
+    defaultAgreementLineExpirationDate = serializers.DateField(
+        source="default_agreement_line_expiration_date",
+        allow_null=True,
+        required=False,
+    )
+    workflowStatus = serializers.CharField(source="workflow_status", allow_null=True, required=False)
+    pricePerUnit = serializers.DecimalField(
+        source="price_per_unit",
+        max_digits=35,
+        decimal_places=2,
+        allow_null=True,
+        required=False,
+    )
+    paLineProcurementCategory = serializers.CharField(
+        source="pa_line_procurement_category",
+        allow_null=True,
+        required=False,
+    )
+    vendorName = serializers.CharField(source="vendor_name", allow_null=True, required=False)
+    vendorValidFrom = serializers.DateTimeField(source="vendor_valid_from", allow_null=True, required=False)
+    vendorValidTo = serializers.DateTimeField(source="vendor_valid_to", allow_null=True, required=False)
+    vendorCountry = serializers.CharField(source="vendor_country", allow_null=True, required=False)
+    regionCountriesCovered = serializers.CharField(
+        source="region_countries_covered",
+        allow_null=True,
+        required=False,
+    )
+    itemType = serializers.CharField(source="item_type", allow_null=True, required=False)
+    itemCategory = serializers.CharField(source="item_category", allow_null=True, required=False)
+    itemServiceShortDescription = serializers.CharField(
+        source="item_service_short_description",
+        allow_null=True,
+        required=False,
+    )
+    createdAt = serializers.DateTimeField(source="created_at", read_only=True)
+    updatedAt = serializers.DateTimeField(source="updated_at", read_only=True)
+
+    class Meta:
+        model = CleanedFrameworkAgreement
+        fields = (
+            "id",
+            "agreementId",
+            "classification",
+            "defaultAgreementLineEffectiveDate",
+            "defaultAgreementLineExpirationDate",
+            "workflowStatus",
+            "status",
+            "pricePerUnit",
+            "paLineProcurementCategory",
+            "vendorName",
+            "vendorValidFrom",
+            "vendorValidTo",
+            "vendorCountry",
+            "regionCountriesCovered",
+            "itemType",
+            "itemCategory",
+            "itemServiceShortDescription",
+            "owner",
+            "createdAt",
+            "updatedAt",
+        )
 
 
 class FabricDimAgreementLineSerializer(serializers.ModelSerializer):
