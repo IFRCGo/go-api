@@ -55,6 +55,7 @@ from api.views import (
 )
 from api.warehouse_stocks_views import (
     AggregatedWarehouseStocksView,
+    WarehouseStocksSummaryView,
     WarehouseStocksView,
 )
 from country_plan import drf_views as country_plan_views
@@ -274,6 +275,7 @@ urlpatterns = [
     # url(r"^api/v1/es_search/", EsPageSearch.as_view()),
     url(r"^api/v1/search/", HayStackSearch.as_view()),
     url(r"^api/v1/warehouse-stocks/aggregated/", AggregatedWarehouseStocksView.as_view()),
+    url(r"^api/v1/warehouse-stocks/summary/", WarehouseStocksSummaryView.as_view()),
     url(r"^api/v1/warehouse-stocks/", WarehouseStocksView.as_view()),
     url(r"^api/v1/pro-bono-services/", ProBonoServicesView.as_view()),
     url(r"^api/v1/es_health/", EsPageHealth.as_view()),

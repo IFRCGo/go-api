@@ -1,7 +1,9 @@
+import hashlib
 from decimal import Decimal
 
 import requests
 from django.conf import settings
+from django.core.cache import cache
 from django.db.models import Sum
 from rest_framework import views
 from rest_framework.response import Response
@@ -78,6 +80,8 @@ class WarehouseStocksView(views.APIView):
         warehouse_name_q = request.query_params.get("warehouse_name", "").strip()
         item_group_q = request.query_params.get("item_group", "").strip()
         item_name_q = request.query_params.get("item_name", "").strip()
+        item_name_q = request.query_params.get("item_name", "").strip()
+        item_name_q = request.query_params.get("item_name", "").strip()
         sort_field = request.query_params.get("sort", "")
         sort_order = request.query_params.get("order", "desc")
         try:
@@ -94,6 +98,37 @@ class WarehouseStocksView(views.APIView):
             iso2_to_iso3, iso3_to_country_name, iso3_to_region_name = _fetch_goadmin_maps()
         except Exception:
             iso2_to_iso3, iso3_to_country_name, iso3_to_region_name = {}, {}, {}
+
+        # cache settings per-request
+        try:
+            disable_cache = bool(getattr(settings, "DISABLE_API_CACHE", False))
+            cache_ttl = int(getattr(settings, "CACHE_MIDDLEWARE_SECONDS", 60) or 60)
+        except Exception:
+            disable_cache = False
+            cache_ttl = 60
+
+        cache_key_raw = "|".join(
+            [
+                str(only_available),
+                q or "",
+                region_q or "",
+                ",".join(country_iso3_list) if country_iso3_list else "",
+                warehouse_name_q or "",
+                item_group_q or "",
+                item_name_q or "",
+                sort_field or "",
+                sort_order or "",
+                str(page),
+                str(page_size),
+            ]
+        )
+        cache_key = "wh_pg_" + hashlib.sha1(cache_key_raw.encode("utf-8")).hexdigest()
+
+        # Try cache first
+        if (not disable_cache) and cache_key:
+            cached_resp = cache.get(cache_key)
+            if cached_resp is not None:
+                return Response(cached_resp)
 
         results = []
         total_hits = None
@@ -129,6 +164,15 @@ class WarehouseStocksView(views.APIView):
             if item_group_q:
                 filters.append({"term": {"item_group": item_group_q}})
 
+            if item_name_q:
+                filters.append({"match_phrase": {"item_name": item_name_q}})
+
+            if item_name_q:
+                filters.append({"match_phrase": {"item_name": item_name_q}})
+
+            if item_name_q:
+                filters.append({"match_phrase": {"item_name": item_name_q}})
+
             if must:
                 query = {"bool": {"must": must, "filter": filters}} if filters else {"bool": {"must": must}}
             else:
@@ -159,7 +203,22 @@ class WarehouseStocksView(views.APIView):
                 except Exception:
                     pass
 
-            body = {"from": (page - 1) * page_size, "size": page_size, "query": query}
+            # Only request necessary fields to reduce payload and parsing time
+            _src_fields = [
+                "id",
+                "warehouse_id",
+                "product_id",
+                "item_name",
+                "item_number",
+                "quantity",
+                "warehouse_name",
+                "item_group",
+                "unit",
+                "item_status_name",
+                "country_iso3",
+                "region",
+            ]
+            body = {"from": (page - 1) * page_size, "size": page_size, "_source": _src_fields, "query": query}
 
             if sort_field:
                 allowed_sorts = {
@@ -269,6 +328,14 @@ class WarehouseStocksView(views.APIView):
             if only_available:
                 qset = qset.filter(item_status_name="Available")
 
+            if item_name_q:
+                # Filter by related product name for DB fallback
+                try:
+                    qset = qset.filter(product__name__icontains=item_name_q)
+                except Exception:
+                    # If the relation/field isn't available, skip the filter
+                    pass
+
             agg = qset.values("warehouse", "product", "item_status_name").annotate(quantity=Sum("quantity"))
 
             for row in agg.iterator():
@@ -343,6 +410,14 @@ class WarehouseStocksView(views.APIView):
         if total_hits is not None:
             resp_payload.update({"total": total_hits, "page": page, "page_size": page_size})
 
+        # Cache the per-page response for subsequent identical requests
+        try:
+            if (not disable_cache) and cache_key and resp_payload is not None:
+                cache.set(cache_key, resp_payload, cache_ttl)
+        except Exception:
+            # Ignore cache failures — we still return the results
+            pass
+
         return Response(resp_payload)
 
 
@@ -368,6 +443,30 @@ class AggregatedWarehouseStocksView(views.APIView):
         country_iso3_list = [c.strip().upper() for c in country_iso3_raw.split(",") if c.strip()]
         warehouse_name_q = request.query_params.get("warehouse_name", "").strip()
         item_group_q = request.query_params.get("item_group", "").strip()
+
+        try:
+            disable_cache = bool(getattr(settings, "DISABLE_API_CACHE", False))
+            cache_ttl = int(getattr(settings, "CACHE_MIDDLEWARE_SECONDS", 60) or 60)
+        except Exception:
+            disable_cache = False
+            cache_ttl = 60
+
+        cache_key_raw = "|".join(
+            [
+                str(only_available),
+                q or "",
+                region_q or "",
+                ",".join(country_iso3_list) if country_iso3_list else "",
+                warehouse_name_q or "",
+                item_group_q or "",
+            ]
+        )
+        cache_key = "agg_wh_" + hashlib.sha1(cache_key_raw.encode("utf-8")).hexdigest()
+
+        if (not disable_cache) and cache_key:
+            cached = cache.get(cache_key)
+            if cached is not None:
+                return Response({"results": cached})
 
         try:
             iso2_to_iso3, iso3_to_country_name, iso3_to_region_name = _fetch_goadmin_maps()
@@ -418,6 +517,7 @@ class AggregatedWarehouseStocksView(views.APIView):
                     "aggs": {
                         "total_quantity": {"sum": {"field": "quantity"}},
                         "warehouse_count": {"cardinality": {"field": "warehouse_id"}},
+                        "sort_by_total": {"bucket_sort": {"sort": [{"total_quantity": {"order": "desc"}}], "size": 10000}},
                     },
                 }
             }
@@ -432,7 +532,6 @@ class AggregatedWarehouseStocksView(views.APIView):
                     tq = b.get("total_quantity", {}).get("value")
                     if tq is not None:
                         try:
-                            # convert to string to keep consistency with other endpoints
                             total_val = str(Decimal(tq))
                         except Exception:
                             try:
@@ -517,4 +616,188 @@ class AggregatedWarehouseStocksView(views.APIView):
                     }
                 )
 
+        # Cache the results for subsequent identical requests
+        try:
+            if (not disable_cache) and cache_key and results is not None:
+                cache.set(cache_key, results, cache_ttl)
+        except Exception:
+            # Ignore cache failures — we still return the results
+            pass
+
         return Response({"results": results})
+
+
+class WarehouseStocksSummaryView(views.APIView):
+    """Return lightweight summary data for the warehouse stocks table.
+
+    Response format:
+    {
+      "total": 1234,
+      "by_item_group": [
+         {"item_group": "Health", "total_quantity": "1234.00", "product_count": 10},
+      ],
+      "low_stock": {"threshold": 5, "count": 12}
+    }
+    """
+
+    permission_classes = []
+
+    def get(self, request):
+        only_available = request.query_params.get("only_available", "0") == "1"
+        q = request.query_params.get("q", "").strip()
+        region_q = request.query_params.get("region", "").strip()
+        country_iso3_raw = request.query_params.get("country_iso3") or ""
+        country_iso3_list = [c.strip().upper() for c in country_iso3_raw.split(",") if c.strip()]
+        warehouse_name_q = request.query_params.get("warehouse_name", "").strip()
+        item_group_q = request.query_params.get("item_group", "").strip()
+        item_name_q = request.query_params.get("item_name", "").strip()
+        try:
+            low_stock_threshold = int(request.query_params.get("low_stock_threshold", 5))
+        except Exception:
+            low_stock_threshold = 5
+
+        results = {"total": 0, "by_item_group": [], "low_stock": {"threshold": low_stock_threshold, "count": 0}}
+
+        if ES_CLIENT is not None:
+            must = []
+            filters = []
+
+            if q:
+                must.append(
+                    {
+                        "multi_match": {
+                            "query": q,
+                            "fields": ["item_name^3", "item_number", "item_group", "warehouse_name"],
+                            "type": "best_fields",
+                            "operator": "and",
+                        }
+                    }
+                )
+
+            if country_iso3_list:
+                if len(country_iso3_list) == 1:
+                    filters.append({"term": {"country_iso3": country_iso3_list[0]}})
+                else:
+                    filters.append({"terms": {"country_iso3": country_iso3_list}})
+
+            if region_q:
+                filters.append({"term": {"region": region_q}})
+
+            if warehouse_name_q:
+                filters.append({"match_phrase": {"warehouse_name": warehouse_name_q}})
+
+            if item_group_q:
+                filters.append({"term": {"item_group": item_group_q}})
+
+            if must:
+                query = {"bool": {"must": must, "filter": filters}} if filters else {"bool": {"must": must}}
+            else:
+                query = {"bool": {"filter": filters}} if filters else {"match_all": {}}
+
+            aggs = {
+                "by_item_group": {
+                    "terms": {"field": "item_group", "size": 1000},
+                    "aggs": {
+                        "total_quantity": {"sum": {"field": "quantity"}},
+                        "product_count": {"cardinality": {"field": "product_id"}},
+                    },
+                },
+                "low_stock": {"filter": {"range": {"quantity": {"lte": low_stock_threshold}}}},
+            }
+
+            try:
+                resp = ES_CLIENT.search(index=WAREHOUSE_INDEX_NAME, body={"size": 0, "query": query, "aggs": aggs})
+                # total hits
+                total = resp.get("hits", {}).get("total") or {}
+                if isinstance(total, dict):
+                    results["total"] = total.get("value", 0)
+                elif isinstance(total, int):
+                    results["total"] = total
+
+                aggregations = resp.get("aggregations", {}) or {}
+                buckets = aggregations.get("by_item_group", {}).get("buckets", [])
+                for b in buckets:
+                    ig = b.get("key") or ""
+                    tq = b.get("total_quantity", {}).get("value")
+                    if tq is None:
+                        tq_out = None
+                    else:
+                        try:
+                            tq_out = str(Decimal(tq))
+                        except Exception:
+                            tq_out = str(tq)
+
+                    pc = b.get("product_count", {}).get("value")
+                    results["by_item_group"].append(
+                        {"item_group": ig, "total_quantity": tq_out, "product_count": int(pc) if pc is not None else 0}
+                    )
+
+                # low stock count - use doc_count of filter bucket if present, otherwise fallback to hits total
+                low_stock_bucket = aggregations.get("low_stock", {})
+                low_count = low_stock_bucket.get("doc_count") if low_stock_bucket else None
+                if low_count is None:
+                    results["low_stock"]["count"] = 0
+                else:
+                    results["low_stock"]["count"] = int(low_count)
+            except Exception:
+                # fallthrough to DB fallback
+                pass
+
+        # DB fallback (accurate but slower)
+        if not results["by_item_group"]:
+            # build product category lookup
+            products = DimProduct.objects.all().values("id", "product_category")
+            prod_cat = {str(p["id"]): _safe_str(p.get("product_category")) for p in products}
+
+            qset = DimInventoryTransactionLine.objects.all()
+            if only_available:
+                qset = qset.filter(item_status_name="Available")
+
+            if item_name_q:
+                try:
+                    qset = qset.filter(product__name__icontains=item_name_q)
+                except Exception:
+                    pass
+
+            if country_iso3_list:
+                # join via warehouses
+                qset = qset.filter(warehouse__country__in=country_iso3_list)
+
+            if warehouse_name_q:
+                qset = qset.filter(warehouse__name__icontains=warehouse_name_q)
+
+            # aggregate by product category
+            agg = qset.values("product").annotate(quantity=Sum("quantity"))
+
+            totals_by_group = {}
+            product_seen = set()
+
+            for row in agg.iterator():
+                prod_id = _safe_str(row.get("product"))
+                qty = row.get("quantity")
+                if qty is None:
+                    continue
+                try:
+                    qty_val = Decimal(qty)
+                except Exception:
+                    try:
+                        qty_val = Decimal(str(qty))
+                    except Exception:
+                        continue
+
+                group = prod_cat.get(prod_id, "")
+                totals_by_group[group] = totals_by_group.get(group, Decimal(0)) + qty_val
+                product_seen.add(prod_id)
+
+            results["total"] = len(product_seen)
+            for group, total in totals_by_group.items():
+                results["by_item_group"].append({"item_group": group, "total_quantity": format(total, "f"), "product_count": 0})
+
+            # low stock count via DB simple pass: count rows with quantity <= threshold
+            low_qs = qset.filter(quantity__lte=low_stock_threshold)
+            try:
+                results["low_stock"]["count"] = int(low_qs.count())
+            except Exception:
+                results["low_stock"]["count"] = 0
+
+        return Response(results)
