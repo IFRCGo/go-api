@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime, timedelta
+from decimal import ROUND_HALF_UP, Decimal
 
 import pytz
 import reversion
@@ -13,7 +14,13 @@ from django.contrib.auth.signals import (
 # from django.db import models
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import ArrayField
-from django.core.validators import FileExtensionValidator, RegexValidator, validate_slug
+from django.core.validators import (
+    FileExtensionValidator,
+    MaxValueValidator,
+    MinValueValidator,
+    RegexValidator,
+    validate_slug,
+)
 from django.db.models import Q
 
 # from django.db.models import Prefetch
@@ -22,6 +29,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.utils.translation import override as translation_override
 from modeltranslation.utils import build_localized_fieldname
+from smart_selects.db_fields import ChainedForeignKey
 from tinymce.models import HTMLField
 
 from lang.translation import AVAILABLE_LANGUAGES
@@ -934,6 +942,767 @@ class EventSeverityLevelHistory(models.Model):
     class Meta:
         verbose_name = _("emergency severity level history")
         verbose_name_plural = _("emergency severity level histories")
+
+
+class CrisisCategorisationStatus(models.IntegerChoices):
+    IN_PROGRESS = 0, _("In progress")
+    DRAFT = 1, _("Draft")
+    PENDING = 2, _("Pending validation")
+    VALIDATED = 3, _("Validated")
+    PUBLISHED = 4, _("Published")
+    MERGED = 5, _("Merged")
+
+
+@reversion.register()
+class CrisisCategorisationByCountry(models.Model):
+    """Crisis categorisation for a specific country within an event"""
+
+    event = models.ForeignKey(
+        Event,
+        verbose_name=_("event"),
+        on_delete=models.CASCADE,
+        related_name="crisis_categorisations",
+    )
+    country = ChainedForeignKey(
+        "Country",
+        chained_field="event",  # The field on THIS model (CrisisCategorisationByCountry)
+        chained_model_field="event",  # The field on the TARGET model (Country) that refers to Event
+        show_all=False,  # Only show filtered results
+        auto_choose=True,  # If only one option exists, select it automatically. GREAT!
+        sort=True,
+    )
+    #    country = models.ForeignKey(
+    #        Country,
+    #        verbose_name=_("country"),
+    #        on_delete=models.CASCADE,
+    #        related_name="crisis_categorisations",
+    #    )
+    crisis_categorisation = models.IntegerField(
+        choices=AlertLevel.choices,
+        verbose_name=_("crisis categorisation"),
+        null=True,
+        blank=True,
+    )
+    crisis_score = models.DecimalField(
+        verbose_name=_("crisis score"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+    )
+
+    # Pre-Crisis Vulnerability section
+    pre_crisis_vulnerability = models.DecimalField(
+        verbose_name=_("pre-crisis vulnerability"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+    )
+    pre_crisis_vulnerability_hazard_exposure = models.DecimalField(
+        verbose_name=_("hazard exposure"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+    )
+    pre_crisis_vulnerability_hazard_exposure_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+    pre_crisis_vulnerability_hazard_exposure_intermediate = models.DecimalField(
+        verbose_name=_("hazard exposure (intermediate score)"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+        # help_text=_("Not counted for the score, just FYI"),
+    )
+    pre_crisis_vulnerability_hazard_exposure_intermediate_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+    pre_crisis_vulnerability_vulnerability = models.DecimalField(
+        verbose_name=_("vulnerability"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+    )
+    pre_crisis_vulnerability_vulnerability_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+    pre_crisis_vulnerability_vulnerability_intermediate = models.DecimalField(
+        verbose_name=_("vulnerability (intermediate score)"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+        # # help_text=_("Not counted for the score, just FYI"),
+    )
+    pre_crisis_vulnerability_vulnerability_intermediate_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+    pre_crisis_vulnerability_coping_mechanism = models.DecimalField(
+        verbose_name=_("coping mechanism"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+    )
+    pre_crisis_vulnerability_coping_mechanism_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+    pre_crisis_vulnerability_coping_mechanism_intermediate = models.DecimalField(
+        verbose_name=_("coping mechanism (intermediate score)"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+        # # help_text=_("Not counted for the score, just FYI"),
+    )
+    pre_crisis_vulnerability_coping_mechanism_intermediate_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+
+    # Crisis Complexity section
+    crisis_complexity = models.DecimalField(
+        verbose_name=_("crisis complexity"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+    )
+    crisis_complexity_humanitarian_access_score = models.DecimalField(
+        verbose_name=_("humanitarian access score"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+    )
+    crisis_complexity_humanitarian_access_score_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+    crisis_complexity_humanitarian_access_acaps = models.DecimalField(
+        verbose_name=_("Humanitarian access ACAPS (complex crisis)"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+        # # help_text=_("Not counted for the score, just FYI"),
+    )
+    crisis_complexity_humanitarian_access_acaps_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+    crisis_complexity_government_response = models.DecimalField(
+        verbose_name=_("government response"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+    )
+    crisis_complexity_government_response_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+    crisis_complexity_media_attention = models.DecimalField(
+        verbose_name=_("media attention"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+    )
+    crisis_complexity_media_attention_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+    crisis_complexity_ifrc_security_phase = models.DecimalField(
+        verbose_name=_("IFRC security phase"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+    )
+    crisis_complexity_ifrc_security_phase_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+
+    # Scope & Scale section
+    scope_and_scale = models.DecimalField(
+        verbose_name=_("scope & scale"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+    )
+    scope_and_scale_number_of_affected_population_score = models.DecimalField(
+        verbose_name=_("# Affected population score"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+    )
+    scope_and_scale_number_of_affected_population_score_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+    scope_and_scale_number_of_affected_population = models.IntegerField(
+        verbose_name=_("# Affected population"),
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(1000000000)],
+        # # help_text=_("Not counted for the score, just FYI"),
+    )
+    scope_and_scale_number_of_affected_population_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+    scope_and_scale_percentage_affected_population_score = models.DecimalField(
+        verbose_name=_("% Affected population score"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+    )
+    scope_and_scale_percentage_affected_population_score_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+    scope_and_scale_total_population_of_the_affected_area = models.DecimalField(
+        verbose_name=_("total population of the affected area *"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+        # # help_text=_("Not counted for the score, just FYI"),
+    )
+    scope_and_scale_total_population_of_the_affected_area_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+    scope_and_scale_percentage_affected_population = models.DecimalField(
+        verbose_name=_("% of Affected population"),
+        max_digits=3,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        # # help_text=_("Not counted for the score, just FYI"),
+    )
+    scope_and_scale_percentage_affected_population_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+    scope_and_scale_impact_index_score = models.DecimalField(
+        verbose_name=_("impact index score"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+    )
+    scope_and_scale_impact_index_score_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+    scope_and_scale_impact_index_inform = models.DecimalField(
+        verbose_name=_("impact index INFORM"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+        # # help_text=_("Not counted for the score, just FYI"),
+    )
+    scope_and_scale_impact_index_inform_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+
+    # Humanitarian Conditions section
+    humanitarian_conditions = models.DecimalField(
+        verbose_name=_("humanitarian conditions"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+    )
+    humanitarian_conditions_casualties_score = models.DecimalField(
+        verbose_name=_("casualties score"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+    )
+    humanitarian_conditions_casualties_score_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+    humanitarian_conditions_casualties_injrd_deaths_missing = models.DecimalField(
+        verbose_name=_("casualties injured + deaths + missing"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+        # # help_text=_("Not counted for the score, just FYI"),
+    )
+    humanitarian_conditions_casualties_injrd_deaths_missing_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+    humanitarian_conditions_severity_score = models.DecimalField(
+        verbose_name=_("severity score *"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+    )
+    humanitarian_conditions_severity_score_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+    humanitarian_conditions_severity = models.DecimalField(
+        verbose_name=_("severity"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+        # # help_text=_("Not counted for the score, just FYI"),
+    )
+    humanitarian_conditions_severity_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+    humanitarian_conditions_people_in_need_score = models.DecimalField(
+        verbose_name=_("# People in need score *"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+    )
+    humanitarian_conditions_people_in_need_score_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+    humanitarian_conditions_people_in_need = models.DecimalField(
+        verbose_name=_("# People in need"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+        # # help_text=_("Not counted for the score, just FYI"),
+    )
+    humanitarian_conditions_people_in_need_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+
+    # Capacity & Response section
+    capacity_and_response = models.DecimalField(
+        verbose_name=_("capacity & response"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+    )
+    capacity_and_response_ifrc_capacity_score = models.DecimalField(
+        verbose_name=_("IFRC capacity score"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+    )
+    capacity_and_response_ifrc_capacity_score_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+    capacity_and_response_ifrc_international_staff = models.DecimalField(
+        verbose_name=_("IFRC International staff"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+        # # help_text=_("Not counted for the score, just FYI"),
+    )
+    capacity_and_response_ifrc_international_staff_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+    capacity_and_response_ifrc_national_staff = models.DecimalField(
+        verbose_name=_("IFRC National staff"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+        # # help_text=_("Not counted for the score, just FYI"),
+    )
+    capacity_and_response_ifrc_national_staff_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+    capacity_and_response_ifrc_total_staff = models.DecimalField(
+        verbose_name=_("IFRC Total staff"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+        # # help_text=_("Not counted for the score, just FYI"),
+    )
+    capacity_and_response_ifrc_total_staff_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+    capacity_and_response_regional_office = models.DecimalField(
+        verbose_name=_("Regional Office"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+        # # help_text=_("Not counted for the score, just FYI"),
+    )
+    capacity_and_response_regional_office_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+    capacity_and_response_ops_capacity_score = models.DecimalField(
+        verbose_name=_("OPS Capacity score"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+    )
+    capacity_and_response_ops_capacity_score_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+    capacity_and_response_ops_capacity_ranking = models.DecimalField(
+        verbose_name=_("Ops capacity Ranking (IFRC Global Risk - 2021)"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+        # # help_text=_("Not counted for the score, just FYI"),
+    )
+    capacity_and_response_ops_capacity_ranking_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+    capacity_and_response_ns_staff_score = models.DecimalField(
+        verbose_name=_("NS staff score"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+    )
+    capacity_and_response_ns_staff_score_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+    capacity_and_response_number_of_ns_staff = models.DecimalField(
+        verbose_name=_("Number of NS staff (FDRS) 2025"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+        # # help_text=_("Not counted for the score, just FYI"),
+    )
+    capacity_and_response_number_of_ns_staff_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+    capacity_and_response_ratio_staff_to_volunteer_score = models.DecimalField(
+        verbose_name=_("Ratio staff to volunteer score"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+    )
+    capacity_and_response_ratio_staff_to_volunteer_score_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+    capacity_and_response_ratio_staff_volunteer = models.DecimalField(
+        verbose_name=_("Ratio staff volunteer"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+        # # help_text=_("Not counted for the score, just FYI"),
+    )
+    capacity_and_response_ratio_staff_volunteer_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+    capacity_and_response_number_of_ns_volunteer = models.DecimalField(
+        verbose_name=_("Number of NS volunteer (FDRS)"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+        # # help_text=_("Not counted for the score, just FYI"),
+    )
+    capacity_and_response_number_of_ns_volunteer_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+    capacity_and_response_number_of_dref_score = models.DecimalField(
+        verbose_name=_("# DREF Score"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+    )
+    capacity_and_response_number_of_dref_score_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+    capacity_and_response_number_of_dref_ea_last_3_years = models.DecimalField(
+        verbose_name=_("# DREF and EA in the last 3 years"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+        # # help_text=_("Not counted for the score, just FYI"),
+    )
+    capacity_and_response_number_of_dref_ea_last_3_years_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+    capacity_and_response_presence_support_pns_in_country = models.DecimalField(
+        verbose_name=_("Expert Judgement: on active presence and support of PNS in country"),
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(9)],
+    )
+    capacity_and_response_presence_support_pns_in_country_comment = models.CharField(
+        max_length=999,
+        verbose_name="",
+        null=True,
+        blank=True,
+    )
+
+    # Commentary
+    commentary = models.TextField(
+        verbose_name=_("Add commentary"),
+        null=True,
+        blank=True,
+    )
+
+    # Attachment
+    general_document = models.ForeignKey(
+        "GeneralDocument",
+        verbose_name=_("File attachment"),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="crisis_categorisations",
+    )
+
+    status = models.IntegerField(choices=CrisisCategorisationStatus.choices, verbose_name=_("status"), default=0)
+    created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
+    updated_at = models.DateTimeField(verbose_name=_("updated at"), auto_now=True)
+
+    class Meta:
+        unique_together = ("event", "country")
+        verbose_name = _("crisis categorisation by country")
+        verbose_name_plural = _("crisis categorisations by country")
+        ordering = ("event", "country")
+
+    def __str__(self):
+        return f"{self.event.name} - {self.country.name}"
+
+    def clean(self):
+        """Validate that the country is associated with the event"""
+        from django.core.exceptions import ValidationError
+
+        if self.event and self.country:
+            if not self.event.countries.filter(pk=self.country.pk).exists():
+                raise ValidationError(
+                    {"country": _("The selected country must be one of the countries associated with this event.")}
+                )
+
+    def _average_fields(self, field_names):
+        values = []
+        for field_name in field_names:
+            value = getattr(self, field_name)
+            if value is None:
+                continue
+            values.append(Decimal(str(value)))
+
+        if not values:
+            return None
+
+        avg = sum(values) / Decimal(len(values))
+        return avg.quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
+
+    def save(self, *args, **kwargs):
+        """Override save to always validate before saving"""
+        self.pre_crisis_vulnerability = self._average_fields(
+            [
+                "pre_crisis_vulnerability_hazard_exposure",
+                "pre_crisis_vulnerability_vulnerability",
+                "pre_crisis_vulnerability_coping_mechanism",
+            ]
+        )
+        self.crisis_complexity = self._average_fields(
+            [
+                "crisis_complexity_humanitarian_access_score",
+                "crisis_complexity_government_response",
+                "crisis_complexity_media_attention",
+                "crisis_complexity_ifrc_security_phase",
+            ]
+        )
+        self.scope_and_scale = self._average_fields(
+            [
+                "scope_and_scale_number_of_affected_population_score",
+                "scope_and_scale_percentage_affected_population_score",
+                "scope_and_scale_impact_index_score",
+            ]
+        )
+        self.humanitarian_conditions = self._average_fields(
+            [
+                "humanitarian_conditions_casualties_score",
+                "humanitarian_conditions_severity_score",
+                "humanitarian_conditions_people_in_need_score",
+            ]
+        )
+        self.capacity_and_response = self._average_fields(
+            [
+                "capacity_and_response_ifrc_capacity_score",
+                "capacity_and_response_ops_capacity_score",
+                "capacity_and_response_ns_staff_score",
+                "capacity_and_response_ratio_staff_to_volunteer_score",
+                "capacity_and_response_number_of_dref_score",
+                "capacity_and_response_presence_support_pns_in_country",
+            ]
+        )
+        self.full_clean()
+        return super().save(*args, **kwargs)
 
 
 @reversion.register()

@@ -267,6 +267,7 @@ urlpatterns = [
     path("docs/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
     path("api-docs/", SpectacularAPIView.as_view(), name="schema"),
     path("api-docs/swagger-ui/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+    path("chaining/", include("smart_selects.urls")),
 ]
 
 if settings.OIDC_ENABLE:

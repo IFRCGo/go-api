@@ -641,15 +641,15 @@ sdist = { url = "https://files.pythonhosted.org/packages/83/19/9d53c3a330b121d04
 
 [[package]]
 name = "django-debug-toolbar"
-version = "4.1.0"
+version = "6.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django" },
     { name = "sqlparse" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/9b/e0/9a439dd58ac27ceaecce015fe57916bbd84dbbaf7ca3208c122b46c7d3ff/django_debug_toolbar-4.1.0.tar.gz", hash = "sha256:f57882e335593cb8e74c2bda9f1116bbb9ca8fc0d81b50a75ace0f83de5173c7", size = 116377, upload-time = "2023-05-16T06:46:00.074Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f1/4d/6acf660500d3d581bfc19460d9605cdf14c275640f35825da1329eaafafa/django_debug_toolbar-6.2.0.tar.gz", hash = "sha256:dc1c174d8fb0ea01435e02d9ceef735cf62daf37c1a6a5692d33b4127327679b", size = 313779, upload-time = "2026-01-20T12:38:25.268Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/5b/11/22ae178ae870945970250bdad22530583384b3438be87e08c075016f3b07/django_debug_toolbar-4.1.0-py3-none-any.whl", hash = "sha256:a0b532ef5d52544fd745d1dcfc0557fa75f6f0d1962a8298bd568427ef2fa436", size = 222480, upload-time = "2023-05-16T06:46:23.879Z" },
+    { url = "https://files.pythonhosted.org/packages/88/04/e24611299a5ee0d4edfacf935b09cfb7d5d9cb653bd7b7883c3b43a6f90d/django_debug_toolbar-6.2.0-py3-none-any.whl", hash = "sha256:1575461954e6befa720e999dec13fe4f1cc8baf40b6c3ac2aec5f340c0f9c85f", size = 271354, upload-time = "2026-01-20T12:38:23.608Z" },
 ]
 
 [[package]]
@@ -811,6 +811,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/2e/4c/59e1a7653f8d2f0df45592ad4f426df1fee39bd0278cc1e09af5aacb4955/django-reversion-compare-0.16.2.tar.gz", hash = "sha256:9d7d096534f5d0e49d7419a8a29b4517580e6a7855529e594d10bfb373f980ab", size = 167098, upload-time = "2023-05-08T14:03:53.331Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/04/b9/40963fd61f766d6570415a5e82a544824bc62f865ecbc935b41e986bb149/django_reversion_compare-0.16.2-py3-none-any.whl", hash = "sha256:5629f226fc73bd7b95de47b2e21e2eba2fa39f004ba0fee6d460e96676c0dc9b", size = 97508, upload-time = "2023-05-08T14:03:51.018Z" },
+]
+
+[[package]]
+name = "django-smart-selects"
+version = "1.7.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/4a/33/3b512f6b38e0581be812f470424e9b819688edba03b581931534d5fcfc11/django_smart_selects-1.7.2.tar.gz", hash = "sha256:c8116718ecf2d0d0fd4cd1e52c26d2dcc586e25319aa65af7af2d51a1012df3a", size = 27931, upload-time = "2024-11-17T19:06:57.09Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7a/83/4ae33d1518409ac65891cc5f739cface4d8f27117fbf1eda3a515e90e86c/django_smart_selects-1.7.2-py3-none-any.whl", hash = "sha256:08c774d96285e6d169043cd548860d74d085be8d349c42437232c42bc43cd79a", size = 31651, upload-time = "2024-11-17T19:06:55.279Z" },
 ]
 
 [[package]]
@@ -1043,6 +1055,7 @@ dependencies = [
     { name = "django-redis" },
     { name = "django-reversion" },
     { name = "django-reversion-compare" },
+    { name = "django-smart-selects" },
     { name = "django-storages", extra = ["azure", "s3"] },
     { name = "django-tinymce" },
     { name = "djangorestframework" },
@@ -1136,6 +1149,7 @@ requires-dist = [
     { name = "django-redis", specifier = "==5.0.0" },
     { name = "django-reversion", specifier = "==5.0.12" },
     { name = "django-reversion-compare", specifier = "==0.16.2" },
+    { name = "django-smart-selects", specifier = ">=1.7.2" },
     { name = "django-storages", extras = ["s3", "azure"], specifier = "==1.14.5" },
     { name = "django-tinymce", specifier = "==4.1.0" },
     { name = "djangorestframework", specifier = "==3.15.2" },
@@ -1188,7 +1202,7 @@ requires-dist = [
 [package.metadata.requires-dev]
 celery = [{ name = "playwright", specifier = "==1.50.0" }]
 dev = [
-    { name = "django-debug-toolbar", specifier = "==4.1.0" },
+    { name = "django-debug-toolbar", specifier = "==6.2.0" },
     { name = "django-stubs" },
     { name = "pytest" },
     { name = "pytest-django" },
