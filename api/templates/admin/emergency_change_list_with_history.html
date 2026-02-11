@@ -32,15 +32,15 @@
 
         // Define colors based on mode
         var colors = isDarkMode ? {
-          lighter: '#4a2a3a',  // Darker pink for dark mode (lighter shade)
-          darker: '#3a1a2a'    // Darker pink for dark mode (darker shade)
+          lighter: '#424242',  // Darker gray for dark mode (lighter shade)
+          darker: '#3a3a3a'    // Darker gray for dark mode (darker shade)
         } : {
-          lighter: '#ffe4f0', // It's not the lighter one, but due to the tint function it will appear lighter
-          darker: '#fff0f8'
+          lighter: '#e4e4e4', // It's not the lighter one, but due to the tint function it will appear lighter
+          darker: '#eaeaea'
         };
 
-        // Helper function to add pink tint to background color
-        function addPinkTint(element) {
+        // Helper function to add gray tint to background color
+        function addGrayTint(element) {
           var bgColor = window.getComputedStyle(element).backgroundColor;
 
           // Parse RGB values
@@ -50,7 +50,7 @@
             var g = parseInt(rgb[1]);
             var b = parseInt(rgb[2]);
 
-            // Add pink tint (more red, slightly less green/blue)
+            // Add gray tint (more red, slightly less green/blue)
             r = Math.min(255, r + 40);
             g = Math.max(0, g - 5);
             b = Math.min(255, b + 15);
@@ -58,8 +58,8 @@
             return 'rgb(' + r + ', ' + g + ', ' + b + ')';
           }
 
-          // Fallback to light pink if we can't parse
-          return '#ffe4f0';
+          // Fallback to light gray if we can't parse
+          return '#e4e4e4';
         }
 
         var originalRows = Array.from(resultTable.querySelectorAll('tr'));
@@ -110,8 +110,9 @@
               var links = nameCell.querySelectorAll('a');
               links.forEach(function(link) { link.remove(); });
 
-              nameCell.innerHTML = '<span style="margin-left: 20px; color: #666;">📅 ' +
-                                   dateStr + ' - Severity: ' + severityStr + '</span>';
+              // nameCell.innerHTML = '<span style="margin-left: 20px; color: #666;">📅 ' +
+              //                      dateStr + ' - Severity: ' + severityStr + '</span>';
+              nameCell.innerHTML = '<em>' + (severityStr || '-') + '</em>';
             }
 
             // Update severity level and date cells
