@@ -47,6 +47,29 @@ def get_file_url(file_obj):
         return file_obj.file.url
 
 
+def get_share_eap_email_context(instance):
+    from eap.serializers import EAPRegistrationSerializer
+
+    eap_registration_data = EAPRegistrationSerializer(instance).data
+
+    # NOTE: Matching the FRONTEND URLs with the email reference links
+    if instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP:
+        eap_type = "simplified"
+    elif instance.get_eap_type_enum == EAPType.FULL_EAP:
+        eap_type = "full"
+    else:
+        eap_type = None
+
+    return {
+        "registration_id": eap_registration_data["id"],
+        "country_name": eap_registration_data["country_details"]["name"],
+        "disaster_type": eap_registration_data["disaster_type_details"]["name"],
+        "eap_type": eap_type,
+        "eap_type_display": eap_registration_data.get("eap_type_display"),
+        "frontend_url": settings.GO_WEB_URL,
+    }
+
+
 def get_eap_registration_email_context(instance):
     from eap.serializers import EAPRegistrationSerializer
 

@@ -20,6 +20,7 @@ class EAPEmailPreview(APIView):
             "pending_pfa": "email/eap/pending_pfa.html",
             "approved_eap": "email/eap/approved.html",
             "reminder": "email/eap/reminder.html",
+            "share_eap": "email/eap/share_eap.html",
         }
 
         if type_param not in template_map:
@@ -109,6 +110,13 @@ class EAPEmailPreview(APIView):
             },
             "reminder": {
                 "eap_type_display": "FULL EAP",
+                "country_name": "Test Country",
+                "national_society": "Test National Society",
+                "disaster_type": "Flood",
+            },
+            "share_eap": {
+                "registration_id": 1,
+                "eap_type": "simplified",
                 "country_name": "Test Country",
                 "national_society": "Test National Society",
                 "disaster_type": "Flood",
