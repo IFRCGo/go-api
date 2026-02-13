@@ -505,7 +505,7 @@ class DistrictGeoms(models.Model):
     """Admin1 geometries"""
 
     geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
-    district = models.OneToOneField(District, verbose_name=_("district"), on_delete=models.DO_NOTHING, primary_key=True)
+    district = models.OneToOneField(District, verbose_name=_("district"), on_delete=models.CASCADE, primary_key=True)
 
 
 class Admin2Geoms(models.Model):
