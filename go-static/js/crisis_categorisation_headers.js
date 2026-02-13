@@ -239,6 +239,8 @@ document.addEventListener('DOMContentLoaded', function() {
     );
 
     const informMapExplorerUrl = 'https://drmkc.jrc.ec.europa.eu/inform-index/INFORM-Risk/Map-Explorer';
+    const ACAPSExplorerUrl = 'https://www.acaps.org/en/thematics/all-topics';
+    const FDRSExplorerUrl = 'https://data-api.ifrc.org/';
 
     function addExternalLinkIcon(fieldSelector, url) {
         const field = document.querySelector(fieldSelector);
@@ -361,13 +363,13 @@ document.addEventListener('DOMContentLoaded', function() {
     addExternalLinkIcon('.field-pre_crisis_vulnerability_hazard_exposure', informMapExplorerUrl);
     addExternalLinkIcon('.field-pre_crisis_vulnerability_vulnerability', informMapExplorerUrl);
     addExternalLinkIcon('.field-pre_crisis_vulnerability_coping_mechanism', informMapExplorerUrl);
-    addExternalLinkIcon('.field-crisis_complexity_humanitarian_access_score', informMapExplorerUrl);
-    addExternalLinkIcon('.field-crisis_complexity_humanitarian_access_acaps', informMapExplorerUrl);
-    addExternalLinkIcon('.field-scope_and_scale_impact_index_score', informMapExplorerUrl);
-    addExternalLinkIcon('.field-humanitarian_conditions_severity_score', informMapExplorerUrl);
-    addExternalLinkIcon('.field-capacity_and_response_ifrc_capacity_score', informMapExplorerUrl);
-    addExternalLinkIcon('.field-capacity_and_response_ops_capacity_score', informMapExplorerUrl);
-    addExternalLinkIcon('.field-capacity_and_response_ns_staff_score', informMapExplorerUrl);
-    addExternalLinkIcon('.field-capacity_and_response_ratio_staff_to_volunteer_score', informMapExplorerUrl);
-    addExternalLinkIcon('.field-capacity_and_response_number_of_dref_score', informMapExplorerUrl);
+    addExternalLinkIcon('.field-crisis_complexity_humanitarian_access_score', ACAPSExplorerUrl);
+    addExternalLinkIcon('.field-crisis_complexity_humanitarian_access_acaps', ACAPSExplorerUrl);
+    addExternalLinkIcon('.field-scope_and_scale_impact_index_score', ACAPSExplorerUrl);
+    addExternalLinkIcon('.field-humanitarian_conditions_severity_score', ACAPSExplorerUrl);
+    addExternalLinkIcon('.field-capacity_and_response_ifrc_capacity_score', FDRSExplorerUrl);
+    addExternalLinkIcon('.field-capacity_and_response_ops_capacity_score', FDRSExplorerUrl);
+    addExternalLinkIcon('.field-capacity_and_response_ns_staff_score', FDRSExplorerUrl);
+    addExternalLinkIcon('.field-capacity_and_response_ratio_staff_to_volunteer_score', FDRSExplorerUrl);
+    addExternalLinkIcon('.field-capacity_and_response_number_of_dref_score', FDRSExplorerUrl);
 });
