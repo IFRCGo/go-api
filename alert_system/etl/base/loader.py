@@ -17,7 +17,7 @@ class BaseLoaderClass(ABC):
     def extract_parent_guid(self, guid: str) -> str:
         parts = guid.split("-")
 
-        BASE_PART_COUNT = 8
+        BASE_PART_COUNT = 7
 
         if len(parts) > BASE_PART_COUNT:
             return "-".join(parts[:BASE_PART_COUNT])
