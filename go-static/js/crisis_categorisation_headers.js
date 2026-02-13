@@ -67,6 +67,44 @@ document.addEventListener('DOMContentLoaded', function() {
         '5. Capacity & Response'
     ];
 
+    function submitSaveAndContinue(fromNode) {
+        const form =
+            (fromNode && fromNode.closest && fromNode.closest('form')) ||
+            document.getElementById('change-form') ||
+            document.querySelector('form.change-form') ||
+            document.querySelector('form[method="post"]');
+
+        if (!form) {
+            return;
+        }
+
+        const continueSubmit = form.querySelector(
+            'input[type="submit"][name="_continue"], button[type="submit"][name="_continue"]'
+        );
+
+        // Prefer the actual admin submit control so any JS hooks / expected behavior is preserved.
+        if (continueSubmit) {
+            if (typeof form.requestSubmit === 'function') {
+                form.requestSubmit(continueSubmit);
+            } else {
+                continueSubmit.click();
+            }
+            return;
+        }
+
+        // Fallback: add a hidden _continue flag and submit.
+        let continueFlag = form.querySelector('input[type="hidden"][name="_continue"]');
+        if (!continueFlag) {
+            continueFlag = document.createElement('input');
+            continueFlag.type = 'hidden';
+            continueFlag.name = '_continue';
+            continueFlag.value = '1';
+            form.appendChild(continueFlag);
+        }
+
+        form.submit();
+    }
+
     fieldsets.forEach(function(fieldset) {
         const h2 = fieldset.querySelector('h2');
         const firstFormRow = fieldset.querySelector('.form-row:first-of-type');
@@ -85,7 +123,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 headerRow.innerHTML = `
                     <div class="header-indicator">Indicator</div>
                     <div class="header-comment">Comment / source</div>
+                    <div class="header-actions">
+                        <button type="button" class="cc-calc-button" title="Save and continue editing" aria-label="Save and continue editing">Calculate</button>
+                    </div>
                 `;
+
+                const calcButton = headerRow.querySelector('.cc-calc-button');
+                if (calcButton) {
+                    calcButton.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        submitSaveAndContinue(calcButton);
+                    });
+                }
 
                 // Insert after the first form-row (which contains the header field)
                 firstFormRow.parentNode.insertBefore(headerRow, firstFormRow.nextSibling);
@@ -190,6 +239,8 @@ document.addEventListener('DOMContentLoaded', function() {
     );
 
     const informMapExplorerUrl = 'https://drmkc.jrc.ec.europa.eu/inform-index/INFORM-Risk/Map-Explorer';
+    const ACAPSExplorerUrl = 'https://www.acaps.org/en/thematics/all-topics';
+    const FDRSExplorerUrl = 'https://data-api.ifrc.org/';
 
     function addExternalLinkIcon(fieldSelector, url) {
         const field = document.querySelector(fieldSelector);
@@ -312,13 +363,13 @@ document.addEventListener('DOMContentLoaded', function() {
     addExternalLinkIcon('.field-pre_crisis_vulnerability_hazard_exposure', informMapExplorerUrl);
     addExternalLinkIcon('.field-pre_crisis_vulnerability_vulnerability', informMapExplorerUrl);
     addExternalLinkIcon('.field-pre_crisis_vulnerability_coping_mechanism', informMapExplorerUrl);
-    addExternalLinkIcon('.field-crisis_complexity_humanitarian_access_score', informMapExplorerUrl);
-    addExternalLinkIcon('.field-crisis_complexity_humanitarian_access_acaps', informMapExplorerUrl);
-    addExternalLinkIcon('.field-scope_and_scale_impact_index_score', informMapExplorerUrl);
-    addExternalLinkIcon('.field-humanitarian_conditions_severity_score', informMapExplorerUrl);
-    addExternalLinkIcon('.field-capacity_and_response_ifrc_capacity_score', informMapExplorerUrl);
-    addExternalLinkIcon('.field-capacity_and_response_ops_capacity_score', informMapExplorerUrl);
-    addExternalLinkIcon('.field-capacity_and_response_ns_staff_score', informMapExplorerUrl);
-    addExternalLinkIcon('.field-capacity_and_response_ratio_staff_to_volunteer_score', informMapExplorerUrl);
-    addExternalLinkIcon('.field-capacity_and_response_number_of_dref_score', informMapExplorerUrl);
+    addExternalLinkIcon('.field-crisis_complexity_humanitarian_access_score', ACAPSExplorerUrl);
+    addExternalLinkIcon('.field-crisis_complexity_humanitarian_access_acaps', ACAPSExplorerUrl);
+    addExternalLinkIcon('.field-scope_and_scale_impact_index_score', ACAPSExplorerUrl);
+    addExternalLinkIcon('.field-humanitarian_conditions_severity_score', ACAPSExplorerUrl);
+    addExternalLinkIcon('.field-capacity_and_response_ifrc_capacity_score', FDRSExplorerUrl);
+    addExternalLinkIcon('.field-capacity_and_response_ops_capacity_score', FDRSExplorerUrl);
+    addExternalLinkIcon('.field-capacity_and_response_ns_staff_score', FDRSExplorerUrl);
+    addExternalLinkIcon('.field-capacity_and_response_ratio_staff_to_volunteer_score', FDRSExplorerUrl);
+    addExternalLinkIcon('.field-capacity_and_response_number_of_dref_score', FDRSExplorerUrl);
 });

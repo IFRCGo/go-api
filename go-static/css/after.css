@@ -29,7 +29,7 @@ p.deletelink-box {
 
 /* Second field in a row (comment fields) - 68% width */
 .change-form .form-row > div:last-child:not(:only-child) {
-    flex: 0 0 68%;
+    flex: 1 1 auto;
     min-width: 300px;
 }
 
@@ -88,14 +88,37 @@ p.deletelink-box {
     color: #666;
 }
 
+.change-form .fieldset-table-header .header-actions {
+    flex: 0 0 auto;
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+}
+
+.cc-calc-button {
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 1.2;
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid currentColor;
+    color: inherit;
+    opacity: 0.9;
+    white-space: nowrap;
+}
+
+.cc-calc-button:hover {
+    opacity: 1;
+}
+
 .change-form .fieldset-table-header .header-indicator {
     flex: 0 0 30%;
     min-width: 200px;
 }
 
 .change-form .fieldset-table-header .header-comment {
-    flex: 0 0 68%;
-    min-width: 300px;
+    flex: 1 1 auto;
+    min-width: 0;
 }
 
 /* Dark theme support for subheaders */
@@ -104,6 +127,18 @@ p.deletelink-box {
         background: #2b2b2b;
         border-bottom-color: #444;
         color: #b0b0b0;
+    }
+
+    .change-form .fieldset-table-header .cc-calc-button {
+        color: #fff;
+        border-color: rgba(255, 255, 255, 0.75);
+        background: #3a3a3a;
+        opacity: 1;
+    }
+
+    .change-form .fieldset-table-header .cc-calc-button:hover {
+        border-color: #fff;
+        background: #444;
     }
 }
 

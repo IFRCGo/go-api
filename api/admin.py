@@ -2,6 +2,7 @@ import csv
 import json
 import time
 
+from django import forms
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
@@ -239,23 +240,43 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
         "parent_event",
     )
 
+    def _crisis_categorisation_link_data(self, obj):
+        # If there are event countries missing a CC-by-country record, prefer sending the user
+        # to the "add" form prefilled with the first missing country.
+        event_country_ids = list(obj.countries.values_list("pk", flat=True))
+        if event_country_ids:
+            existing_country_ids = set(
+                models.CrisisCategorisationByCountry.objects.filter(event=obj, country_id__in=event_country_ids).values_list(
+                    "country_id", flat=True
+                )
+            )
+            missing_country_id = next((cid for cid in event_country_ids if cid not in existing_country_ids), None)
+            if missing_country_id is not None:
+                return (
+                    reverse("admin:api_crisiscategorisationbycountry_add")
+                    + f"?event={obj.pk}"
+                    + f"&country={missing_country_id}"
+                    + f"&crisis_categorisation={obj.ifrc_severity_level}",
+                    "Add crisis categorisation",
+                )
+
+        first_crisis_cat = models.CrisisCategorisationByCountry.objects.filter(event=obj).first()
+        if first_crisis_cat:
+            return (
+                reverse("admin:api_crisiscategorisationbycountry_change", args=[first_crisis_cat.pk]),
+                "Edit crisis categorisation",
+            )
+
+        return (
+            reverse("admin:api_crisiscategorisationbycountry_add")
+            + f"?event={obj.pk}"
+            + f"&crisis_categorisation={obj.ifrc_severity_level}",
+            "Add crisis categorisation",
+        )
+
     def severity_level_link(self, obj):
         """Display severity level as a link to Crisis Categorisation"""
-        # Check if there's an existing crisis categorisation for this event
-        first_crisis_cat = models.CrisisCategorisationByCountry.objects.filter(event=obj).first()
-
-        if first_crisis_cat:
-            # Link to existing record
-            url = reverse("admin:api_crisiscategorisationbycountry_change", args=[first_crisis_cat.pk])
-            title = "Edit crisis categorisation"
-        else:
-            # Link to add new record with event pre-filled
-            url = (
-                reverse("admin:api_crisiscategorisationbycountry_add")
-                + f"?event={obj.pk}"
-                + f"&crisis_categorisation={obj.ifrc_severity_level}"
-            )
-            title = "Edit crisis categorisation"
+        url, title = self._crisis_categorisation_link_data(obj)
 
         severity_display = obj.get_ifrc_severity_level_display()
         severity_emoji_map = {
@@ -267,6 +288,19 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
         if severity_display and severity_emoji:
             severity_display = f"{severity_emoji} {severity_display}"
         return format_html('<a href="{}" title="{}">{}</a>', url, title, severity_display)
+
+    def get_form(self, request, obj=None, change=False, **kwargs):
+        form = super().get_form(request, obj, change=change, **kwargs)
+        if obj is None:
+            return form
+
+        field = form.base_fields.get("ifrc_severity_level")
+        if not field:
+            return form
+
+        url, title = self._crisis_categorisation_link_data(obj)
+        field.label = mark_safe(f'<a href="{url}" title="{title}">IFRC Severity level</a>')
+        return form
 
     severity_level_link.short_description = "Crisis Categorisation"
     severity_level_link.admin_order_field = "ifrc_severity_level"
@@ -1189,8 +1223,55 @@ class EventSeverityLevelHistoryAdmin(admin.ModelAdmin):
     )
 
 
+class CrisisCategorisationByCountryAdminForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop("request", None)
+        super().__init__(*args, **kwargs)
+
+    def clean_status(self):
+        new_status = self.cleaned_data.get("status")
+        if new_status is None:
+            return new_status
+
+        validated_status = int(models.CrisisCategorisationStatus.VALIDATED)
+        original_status = getattr(self.instance, "status", None)
+
+        # Only restrict transitions *to* VALIDATED (3) or above.
+        is_transition_to_validated_or_above = new_status >= validated_status and new_status != original_status
+        if not is_transition_to_validated_or_above:
+            return new_status
+
+        request = getattr(self, "request", None)
+        if request is None:
+            return new_status
+
+        user = request.user
+        allowed_group_names = [f"{i} Regional Admins" for i in range(5)]
+        is_allowed = bool(getattr(user, "is_superuser", False) or user.groups.filter(name__in=allowed_group_names).exists())
+        if not is_allowed:
+            raise forms.ValidationError(_("Only superusers or Regional Admins (0-4) can set status to Validated or above."))
+
+        return new_status
+
+    class Meta:
+        model = models.CrisisCategorisationByCountry
+        fields = "__all__"
+
+
 @admin.register(models.CrisisCategorisationByCountry)
 class CrisisCategorisationByCountryAdmin(admin.ModelAdmin):
+    form = CrisisCategorisationByCountryAdminForm
+
+    def get_form(self, request, obj=None, change=False, **kwargs):
+        base_form_class = super().get_form(request, obj, change=change, **kwargs)
+
+        class FormWithRequest(base_form_class):
+            def __init__(self, *args, **kwargs):
+                kwargs["request"] = request
+                super().__init__(*args, **kwargs)
+
+        return FormWithRequest
+
     list_display = [
         "event",
         "country",
@@ -1351,6 +1432,8 @@ class CrisisCategorisationByCountryAdmin(admin.ModelAdmin):
             <tbody>
         """
 
+        total_count = categorisations.count()
+
         for cat in categorisations:
             cc_display = cat.get_crisis_categorisation_display() if cat.crisis_categorisation is not None else "-"
             cc_emoji_map = {
@@ -1361,6 +1444,15 @@ class CrisisCategorisationByCountryAdmin(admin.ModelAdmin):
             cc_emoji = cc_emoji_map.get(cat.crisis_categorisation)
             if cc_display != "-" and cc_emoji:
                 cc_display = f"{cc_emoji} {cc_display}"
+
+            if total_count == 1 and obj.status and obj.status > 2 and cat.crisis_categorisation in [0, 1, 2]:
+                event_url_base = f"../../../event/{obj.event.pk}/change/"
+                finalise_url = f"{event_url_base}?set_ifrc_severity_level={cat.crisis_categorisation}"
+                cc_display = (
+                    f'{cc_display} (<a target="_blank" href="{finalise_url}" style="text-decoration: none;">'
+                    "Approve as final"
+                    "</a>)"
+                )
 
             # Highlight current country
             row_class = "current-country" if cat.country == obj.country else ""
@@ -1380,7 +1472,7 @@ class CrisisCategorisationByCountryAdmin(admin.ModelAdmin):
             """
 
         # Add final row with averages if there are multiple countries
-        if categorisations.count() > 1:
+        if total_count > 1:
             # Calculate averages
             def calc_avg(field_name):
                 values = [getattr(cat, field_name) for cat in categorisations if getattr(cat, field_name) is not None]
@@ -1408,9 +1500,9 @@ class CrisisCategorisationByCountryAdmin(admin.ModelAdmin):
             )
 
             if obj.status > 2:
-                finalize = f"Categorise emergency as {y_link} / {o_link} / {r_link}"
+                finalize = f"Approve as {y_link} / {o_link} / {r_link}"
             else:
-                finalize = "Get this categorisation approved."
+                finalize = "Get this categorisation validated."
 
             html += f"""
                 <tr style="font-weight: 600; background: #f0f0f0 !important;">
