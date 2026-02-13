@@ -59,7 +59,7 @@ class VerifyEmail(APIView):
             pending_user.user.is_active = True
             pending_user.user.save()
             pending_user.delete()
-            email_context = {"frontend_url": settings.FRONTEND_URL}
+            email_context = {"frontend_url": settings.GO_WEB_URL}
             return HttpResponse(render_to_string("registration/success.html", email_context))
         else:
 
@@ -134,7 +134,7 @@ class ValidateUser(APIView):
         if pending_user.admin_1_validated:  # and pending_user.admin_2_validated:
             pending_user.user.is_active = True
             pending_user.user.save()
-            email_context = {"frontend_url": settings.FRONTEND_URL}
+            email_context = {"frontend_url": settings.GO_WEB_URL}
             send_notification(
                 "Your account has been approved",
                 [pending_user.user.email],
