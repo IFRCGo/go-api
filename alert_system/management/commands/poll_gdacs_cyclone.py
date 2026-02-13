@@ -1,9 +1,11 @@
 import logging
 
 from django.core.management.base import BaseCommand
+from sentry_sdk import monitor
 
 from alert_system.models import Connector
 from alert_system.tasks import process_connector_task
+from main.sentry import SentryMonitor
 
 logger = logging.getLogger(__name__)
 
@@ -13,6 +15,7 @@ class Command(BaseCommand):
 
     SOURCE_TYPE = Connector.ConnectorType.GDACS_CYCLONE
 
+    @monitor(monitor_slug=SentryMonitor.POLL_GDACS_CYCLONE)
     def handle(self, *args, **options):
         self.stdout.write("Starting extraction task...")
         connector = Connector.objects.filter(type=self.SOURCE_TYPE).first()
