@@ -387,6 +387,80 @@ class EAPRegistrationTestCase(APITestCase):
             },
         )
 
+    @mock.patch("eap.serializers.send_eap_share_email.delay")
+    def test_share_eap(self, send_eap_share_email):
+        eap_registration = EAPRegistrationFactory.create(
+            country=self.country,
+            eap_type=EAPType.SIMPLIFIED_EAP,
+            national_society=self.national_society,
+            disaster_type=self.disaster_type,
+            partners=[self.partner1.id, self.partner2.id],
+            created_by=self.country_admin,
+            modified_by=self.country_admin,
+            status=EAPStatus.UNDER_REVIEW,
+        )
+        user1, user2, user3 = UserFactory.create_batch(3)
+
+        url = f"/api/v2/eap-registration/{eap_registration.id}/share/"
+        data = {
+            "users": [
+                user1.id,
+                user3.id,
+            ],
+        }
+        self.authenticate()
+
+        with self.capture_on_commit_callbacks(execute=True):
+            response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, 200)
+
+        # Check if notification email sent
+        send_eap_share_email.assert_called_with(
+            eap_registration_id=eap_registration.id,
+            recipient_emails=[user1.email, user3.email],
+        )
+
+        # Check if the users has been added
+        eap_registration.refresh_from_db()
+        self.assertEqual(eap_registration.users.count(), 2)
+
+        # Test removing a user
+        data = {
+            "users": [
+                user1.id,
+                user2.id,
+            ],
+        }
+
+        with self.capture_on_commit_callbacks(execute=True):
+            response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, 200)
+        eap_registration.refresh_from_db()
+        self.assertEqual(eap_registration.users.count(), 2, response.data)
+
+        # Check notification email sent again with only updated user
+        send_eap_share_email.assert_called_with(
+            eap_registration_id=eap_registration.id,
+            recipient_emails=[user2.email],
+        )
+
+        # NOTE: test list of EAP Share Users
+        url = "/api/v2/eap-share-users/"
+        self.authenticate()
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["count"], 1, response.data)
+        returned_user_ids = [user["id"] for user in response.data["results"][0]["users_details"]]
+        # count should be 2
+        self.assertEqual(len(returned_user_ids), 2)
+
+        # NOTE: test with filter by EAP Registration Id
+        url = f"/api/v2/eap-share-users/?id={eap_registration.id}"
+        self.authenticate()
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["count"], 1, response.data)
+
 
 class EAPSimplifiedTestCase(APITestCase):
     def setUp(self):

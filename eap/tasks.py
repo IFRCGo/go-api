@@ -614,3 +614,23 @@ def send_deadline_reminder_email(eap_registration_id: int):
     instance.save(update_fields=["deadline_remainder_sent_at"])
 
     return True
+
+
+@shared_task
+def send_eap_share_email(eap_registration_id: int, recipient_emails: list[str]):
+    instance = EAPRegistration.objects.filter(id=eap_registration_id).first()
+    if not instance or not recipient_emails:
+        return None
+
+    email_context = get_eap_registration_email_context(instance)
+    email_subject = f"EAP shared: {instance.country} {instance.disaster_type}"
+    email_body = render_to_string("email/eap/share_eap.html", email_context)
+    email_type = "Shared EAP"
+
+    send_notification(
+        subject=email_subject,
+        recipients=recipient_emails,
+        html=email_body,
+        mailtype=email_type,
+    )
+    return True
