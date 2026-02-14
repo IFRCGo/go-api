@@ -338,6 +338,11 @@ urlpatterns = [
         api_views.CleanedFrameworkAgreementSummaryView.as_view(),
         name="fabric_cleaned_framework_agreement_summary",
     ),
+    path(
+        "api/v2/fabric/cleaned-framework-agreements/map-stats/",
+        api_views.CleanedFrameworkAgreementMapStatsView.as_view(),
+        name="fabric_cleaned_framework_agreement_map_stats",
+    ),
     # Customs Updates - AI Generated Updates
     path("api/v2/customs-ai-updates/", api_views.CustomsUpdatesView.as_view(), name="customs_updates_list"),
     path(
