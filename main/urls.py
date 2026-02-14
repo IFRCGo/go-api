@@ -336,6 +336,11 @@ urlpatterns = [
         api_views.CleanedFrameworkAgreementSummaryView.as_view(),
         name="fabric_cleaned_framework_agreement_summary",
     ),
+    path(
+        "api/v2/fabric/cleaned-framework-agreements/map-stats/",
+        api_views.CleanedFrameworkAgreementMapStatsView.as_view(),
+        name="fabric_cleaned_framework_agreement_map_stats",
+    ),
     url(r"^api/v2/", include(router.urls)),
     # PER options
     url(r"^api/v2/per-options/", per_views.PerOptionsView.as_view()),

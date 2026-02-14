@@ -2009,6 +2009,176 @@ class CleanedFrameworkAgreementSummaryView(APIView):
         })
 
 
+class CleanedFrameworkAgreementMapStatsView(APIView):
+    """Per-country stats for Spark framework agreements used in the map."""
+
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+
+    @staticmethod
+    def _normalize_country_name(value):
+        if not value:
+            return None
+        return value.strip().lower() or None
+
+    def _build_country_maps(self):
+        country_qs = Country.objects.filter(is_deprecated=False, independent=True)
+        name_to_iso3 = {name.lower(): iso3 for name, iso3 in country_qs.values_list("name", "iso3") if iso3}
+        iso3_to_name = {iso3: name for name, iso3 in country_qs.values_list("name", "iso3") if iso3}
+        return name_to_iso3, iso3_to_name
+
+    def _es_map_stats(self):
+        if ES_CLIENT is None:
+            return None
+
+        body = {
+            "size": 0,
+            "aggs": {
+                "by_country": {
+                    "terms": {
+                        "field": "region_countries_covered",
+                        "size": 10000,
+                    },
+                    "aggs": {
+                        "agreement_count": {"cardinality": {"field": "agreement_id"}},
+                        "ifrc": {
+                            "filter": {"term": {"owner": "IFRC"}},
+                            "aggs": {
+                                "agreement_count": {"cardinality": {"field": "agreement_id"}},
+                            },
+                        },
+                        "other": {
+                            "filter": {"bool": {"must_not": [{"term": {"owner": "IFRC"}}]}},
+                            "aggs": {
+                                "agreement_count": {"cardinality": {"field": "agreement_id"}},
+                            },
+                        },
+                    },
+                },
+                "vendor_country": {
+                    "terms": {
+                        "field": "vendor_country",
+                        "size": 10000,
+                    },
+                    "aggs": {
+                        "agreement_count": {"cardinality": {"field": "agreement_id"}},
+                    },
+                },
+            },
+        }
+
+        try:
+            resp = ES_CLIENT.search(index=CLEANED_FRAMEWORK_AGREEMENTS_INDEX_NAME, body=body)
+        except Exception as exc:
+            logger.warning("ES map stats failed for cleaned framework agreements: %s", str(exc)[:256])
+            return None
+
+        return resp.get("aggregations") or {}
+
+    def get(self, _request):
+        name_to_iso3, iso3_to_name = self._build_country_maps()
+
+        results = {}
+
+        es_aggs = self._es_map_stats()
+        if es_aggs is not None:
+            country_buckets = es_aggs.get("by_country", {}).get("buckets") or []
+            for bucket in country_buckets:
+                raw_name = bucket.get("key")
+                normalized = self._normalize_country_name(raw_name)
+                if not normalized or normalized == "global":
+                    continue
+                if "," in normalized or ";" in normalized:
+                    continue
+                iso3 = name_to_iso3.get(normalized)
+                if not iso3:
+                    continue
+                results[iso3] = {
+                    "iso3": iso3,
+                    "countryName": iso3_to_name.get(iso3),
+                    "exclusiveFrameworkAgreements": bucket.get("agreement_count", {}).get("value", 0) or 0,
+                    "exclusiveIfrcAgreements": bucket.get("ifrc", {}).get("agreement_count", {}).get("value", 0) or 0,
+                    "exclusiveOtherAgreements": bucket.get("other", {}).get("agreement_count", {}).get("value", 0) or 0,
+                    "vendorCountryAgreements": 0,
+                }
+
+            vendor_buckets = es_aggs.get("vendor_country", {}).get("buckets") or []
+            for bucket in vendor_buckets:
+                iso3 = bucket.get("key")
+                if not iso3:
+                    continue
+                entry = results.get(iso3)
+                if entry is None:
+                    entry = {
+                        "iso3": iso3,
+                        "countryName": iso3_to_name.get(iso3),
+                        "exclusiveFrameworkAgreements": 0,
+                        "exclusiveIfrcAgreements": 0,
+                        "exclusiveOtherAgreements": 0,
+                        "vendorCountryAgreements": 0,
+                    }
+                    results[iso3] = entry
+                entry["vendorCountryAgreements"] = bucket.get("agreement_count", {}).get("value", 0) or 0
+
+            return Response({"results": list(results.values())})
+
+        base_qs = CleanedFrameworkAgreement.objects.all()
+
+        country_stats = (
+            base_qs.exclude(region_countries_covered__isnull=True)
+            .exclude(region_countries_covered__exact="")
+            .exclude(region_countries_covered__iexact="global")
+            .values("region_countries_covered")
+            .annotate(
+                agreement_count=models.Count("agreement_id", distinct=True),
+                ifrc_count=models.Count("agreement_id", distinct=True, filter=Q(owner__iexact="IFRC")),
+                other_count=models.Count("agreement_id", distinct=True, filter=~Q(owner__iexact="IFRC")),
+            )
+        )
+
+        for row in country_stats:
+            normalized = self._normalize_country_name(row.get("region_countries_covered"))
+            if not normalized or "," in normalized or ";" in normalized:
+                continue
+            iso3 = name_to_iso3.get(normalized)
+            if not iso3:
+                continue
+            results[iso3] = {
+                "iso3": iso3,
+                "countryName": iso3_to_name.get(iso3),
+                "exclusiveFrameworkAgreements": row.get("agreement_count", 0),
+                "exclusiveIfrcAgreements": row.get("ifrc_count", 0),
+                "exclusiveOtherAgreements": row.get("other_count", 0),
+                "vendorCountryAgreements": 0,
+            }
+
+        vendor_stats = (
+            base_qs.exclude(vendor_country__isnull=True)
+            .exclude(vendor_country__exact="")
+            .values("vendor_country")
+            .annotate(agreement_count=models.Count("agreement_id", distinct=True))
+        )
+
+        for row in vendor_stats:
+            iso3 = row.get("vendor_country")
+            if not iso3:
+                continue
+            entry = results.get(iso3)
+            if entry is None:
+                entry = {
+                    "iso3": iso3,
+                    "countryName": iso3_to_name.get(iso3),
+                    "exclusiveFrameworkAgreements": 0,
+                    "exclusiveIfrcAgreements": 0,
+                    "exclusiveOtherAgreements": 0,
+                    "vendorCountryAgreements": 0,
+                }
+                results[iso3] = entry
+            entry["vendorCountryAgreements"] = row.get("agreement_count", 0)
+
+        return Response({"results": list(results.values())})
+
+
 class FabricDimAgreementLineViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = FabricDimAgreementLineSerializer
     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
