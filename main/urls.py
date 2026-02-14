@@ -328,6 +328,11 @@ urlpatterns = [
         api_views.CustomsRegulationCountryView.as_view(),
         name="country_regulations_detail",
     ),
+    path(
+        "api/v2/fabric/cleaned-framework-agreements/item-categories/",
+        api_views.CleanedFrameworkAgreementItemCategoryOptionsView.as_view(),
+        name="fabric_cleaned_framework_agreement_item_categories",
+    ),
     # Customs Updates - AI Generated Updates
     path("api/v2/customs-ai-updates/", api_views.CustomsUpdatesView.as_view(), name="customs_updates_list"),
     path(
