@@ -333,6 +333,11 @@ urlpatterns = [
         api_views.CleanedFrameworkAgreementItemCategoryOptionsView.as_view(),
         name="fabric_cleaned_framework_agreement_item_categories",
     ),
+    path(
+        "api/v2/fabric/cleaned-framework-agreements/summary/",
+        api_views.CleanedFrameworkAgreementSummaryView.as_view(),
+        name="fabric_cleaned_framework_agreement_summary",
+    ),
     # Customs Updates - AI Generated Updates
     path("api/v2/customs-ai-updates/", api_views.CustomsUpdatesView.as_view(), name="customs_updates_list"),
     path(
