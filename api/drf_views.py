@@ -16,7 +16,7 @@ from django.db.models import (
     When,
 )
 from django.db.models.fields import IntegerField
-from django.db.models.functions import Coalesce, TruncMonth
+from django.db.models.functions import Coalesce, Lower, TruncMonth, Trim
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -1823,6 +1823,190 @@ class CleanedFrameworkAgreementItemCategoryOptionsView(APIView):
             .order_by("item_category")
         )
         return Response({"results": list(categories)})
+
+
+class CleanedFrameworkAgreementSummaryView(APIView):
+    """Summary statistics for Spark framework agreements."""
+
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+
+    @staticmethod
+    def _split_covered_countries(values):
+        country_names = set()
+        for value in values:
+            for raw in value.replace(";", ",").split(","):
+                normalized = raw.strip().lower()
+                if normalized:
+                    country_names.add(normalized)
+        return country_names
+
+    def _es_summary(self):
+        if ES_CLIENT is None:
+            return None
+
+        body = {
+            "size": 0,
+            "aggs": {
+                "agreement_count": {"cardinality": {"field": "agreement_id"}},
+                "supplier_count": {"cardinality": {"field": "vendor_name.raw"}},
+                "non_ifrc": {
+                    "filter": {
+                        "bool": {
+                            "must_not": [
+                                {"terms": {"owner": ["IFRC", "ifrc"]}},
+                            ]
+                        }
+                    },
+                    "aggs": {
+                        "agreement_count": {"cardinality": {"field": "agreement_id"}},
+                        "supplier_count": {"cardinality": {"field": "vendor_name.raw"}},
+                    },
+                },
+                "item_categories": {
+                    "terms": {
+                        "field": "item_category",
+                        "size": 10000,
+                    }
+                },
+                "covered_countries": {
+                    "terms": {
+                        "field": "region_countries_covered",
+                        "size": 10000,
+                    }
+                },
+            },
+        }
+
+        try:
+            resp = ES_CLIENT.search(index=CLEANED_FRAMEWORK_AGREEMENTS_INDEX_NAME, body=body)
+        except Exception as exc:
+            logger.warning("ES summary failed for cleaned framework agreements: %s", str(exc)[:256])
+            return None
+
+        aggs = resp.get("aggregations") or {}
+
+        agreement_count = aggs.get("agreement_count", {}).get("value") or 0
+        supplier_count = aggs.get("supplier_count", {}).get("value") or 0
+
+        non_ifrc = aggs.get("non_ifrc", {})
+        other_agreements = non_ifrc.get("agreement_count", {}).get("value") or 0
+        other_suppliers = non_ifrc.get("supplier_count", {}).get("value") or 0
+
+        item_category_buckets = aggs.get("item_categories", {}).get("buckets") or []
+        normalized_categories = {
+            str(bucket.get("key", "")).strip().lower()
+            for bucket in item_category_buckets
+            if str(bucket.get("key", "")).strip()
+        }
+
+        covered_buckets = aggs.get("covered_countries", {}).get("buckets") or []
+        covered_values = [str(bucket.get("key", "")) for bucket in covered_buckets if bucket.get("key")]
+        covered_names = self._split_covered_countries(covered_values)
+
+        if any(name == "global" for name in covered_names):
+            countries_covered = Country.objects.filter(is_deprecated=False, independent=True).count()
+        else:
+            country_name_map = {
+                name.lower(): cid
+                for cid, name in Country.objects.filter(is_deprecated=False, independent=True)
+                .values_list("id", "name")
+            }
+            covered_country_ids = {
+                country_name_map[name]
+                for name in covered_names
+                if name in country_name_map
+            }
+            countries_covered = len(covered_country_ids)
+
+        return {
+            "ifrcFrameworkAgreements": agreement_count,
+            "suppliers": supplier_count,
+            "otherFrameworkAgreements": other_agreements,
+            "otherSuppliers": other_suppliers,
+            "countriesCovered": countries_covered,
+            "itemCategoriesCovered": len(normalized_categories),
+        }
+
+    def get(self, _request):
+        es_summary = self._es_summary()
+        if es_summary is not None:
+            return Response(es_summary)
+
+        base_qs = CleanedFrameworkAgreement.objects.all()
+
+        total_framework_agreements = (
+            base_qs.exclude(agreement_id__isnull=True)
+            .exclude(agreement_id__exact="")
+            .values_list("agreement_id", flat=True)
+            .distinct()
+            .count()
+        )
+
+        total_suppliers = (
+            base_qs.exclude(vendor_name__isnull=True)
+            .exclude(vendor_name__exact="")
+            .values_list("vendor_name", flat=True)
+            .distinct()
+            .count()
+        )
+
+        non_ifrc_qs = base_qs.exclude(owner__iexact="IFRC")
+
+        other_framework_agreements = (
+            non_ifrc_qs.exclude(agreement_id__isnull=True)
+            .exclude(agreement_id__exact="")
+            .values_list("agreement_id", flat=True)
+            .distinct()
+            .count()
+        )
+
+        other_suppliers = (
+            non_ifrc_qs.exclude(vendor_name__isnull=True)
+            .exclude(vendor_name__exact="")
+            .values_list("vendor_name", flat=True)
+            .distinct()
+            .count()
+        )
+
+        item_categories_covered = (
+            base_qs.exclude(item_category__isnull=True)
+            .annotate(normalized=Lower(Trim("item_category")))
+            .exclude(normalized__exact="")
+            .values_list("normalized", flat=True)
+            .distinct()
+            .count()
+        )
+
+        if base_qs.filter(region_countries_covered__icontains="global").exists():
+            countries_covered = Country.objects.filter(is_deprecated=False, independent=True).count()
+        else:
+            country_name_map = {
+                name.lower(): cid
+                for cid, name in Country.objects.filter(is_deprecated=False, independent=True)
+                .values_list("id", "name")
+            }
+            covered_country_ids = set()
+            for value in base_qs.exclude(region_countries_covered__isnull=True).exclude(
+                region_countries_covered__exact=""
+            ).values_list("region_countries_covered", flat=True):
+                for raw in value.replace(";", ",").split(","):
+                    normalized = raw.strip().lower()
+                    if not normalized or normalized == "global":
+                        continue
+                    match_id = country_name_map.get(normalized)
+                    if match_id:
+                        covered_country_ids.add(match_id)
+            countries_covered = len(covered_country_ids)
+
+        return Response({
+            "ifrcFrameworkAgreements": total_framework_agreements,
+            "suppliers": total_suppliers,
+            "otherFrameworkAgreements": other_framework_agreements,
+            "otherSuppliers": other_suppliers,
+            "countriesCovered": countries_covered,
+            "itemCategoriesCovered": item_categories_covered,
+        })
 
 
 class FabricDimAgreementLineViewSet(viewsets.ReadOnlyModelViewSet):
