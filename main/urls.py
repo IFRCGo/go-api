@@ -345,9 +345,9 @@ urlpatterns = [
     # Customs Updates - AI Generated Updates
     path("api/v2/customs-ai-updates/", api_views.CustomsUpdatesView.as_view(), name="customs_updates_list"),
     path(
-        "api/v2/customs-ai-updates/<str:country>/",
-        api_views.CustomsUpdatesCountryView.as_view(),
-        name="customs_updates_detail",
+        "api/v2/fabric/cleaned-framework-agreements/item-categories/",
+        api_views.CleanedFrameworkAgreementItemCategoryOptionsView.as_view(),
+        name="fabric_cleaned_framework_agreement_item_categories",
     ),
     url(r"^api/v2/", include(router.urls)),
     # PER options
