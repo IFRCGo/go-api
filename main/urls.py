@@ -326,6 +326,11 @@ urlpatterns = [
         api_views.CustomsRegulationCountryView.as_view(),
         name="country_regulations_detail",
     ),
+    path(
+        "api/v2/fabric/cleaned-framework-agreements/item-categories/",
+        api_views.CleanedFrameworkAgreementItemCategoryOptionsView.as_view(),
+        name="fabric_cleaned_framework_agreement_item_categories",
+    ),
     url(r"^api/v2/", include(router.urls)),
     # PER options
     url(r"^api/v2/per-options/", per_views.PerOptionsView.as_view()),

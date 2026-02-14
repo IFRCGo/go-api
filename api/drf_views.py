@@ -1808,6 +1808,23 @@ class CleanedFrameworkAgreementViewSet(viewsets.ReadOnlyModelViewSet):
         return CleanedFrameworkAgreement.objects.all()
 
 
+class CleanedFrameworkAgreementItemCategoryOptionsView(APIView):
+    """List distinct item categories for Spark framework agreements."""
+
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+
+    def get(self, _request):
+        categories = (
+            CleanedFrameworkAgreement.objects.exclude(item_category__isnull=True)
+            .exclude(item_category__exact="")
+            .values_list("item_category", flat=True)
+            .distinct()
+            .order_by("item_category")
+        )
+        return Response({"results": list(categories)})
+
+
 class FabricDimAgreementLineViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = FabricDimAgreementLineSerializer
     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
