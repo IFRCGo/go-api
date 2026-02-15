@@ -26,7 +26,7 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import filters, mixins, serializers, status, viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -111,9 +111,7 @@ from .models import (
     AppealHistory,
     AppealType,
     Country,
-    CountryCustomsEvidenceSnippet,
     CountryCustomsSnapshot,
-    CountryCustomsSource,
     CountryKeyDocument,
     CountryKeyFigure,
     CountryOfFieldReportToReview,
@@ -179,9 +177,7 @@ from .serializers import (  # AppealSerializer,; Tableau Serializers; AppealTabl
     AppealDocumentTableauSerializer,
     AppealHistorySerializer,
     AppealHistoryTableauSerializer,
-    CountryCustomsEvidenceSnippetSerializer,
     CountryCustomsSnapshotSerializer,
-    CountryCustomsSourceSerializer,
     CountryDisasterTypeCountSerializer,
     CountryDisasterTypeMonthlySerializer,
     CountryGeoSerializer,
@@ -196,7 +192,6 @@ from .serializers import (  # AppealSerializer,; Tableau Serializers; AppealTabl
     CountrySnippetTableauSerializer,
     CountrySupportingPartnerSerializer,
     CountryTableauSerializer,
-    CustomsUpdatesResponseSerializer,
     DeploymentsByEventSerializer,
     DetailEventSerializer,
     DisasterTypeSerializer,

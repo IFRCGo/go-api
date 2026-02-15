@@ -467,7 +467,7 @@ class CustomsAIService:
 
         evidence_text = "\n".join(all_snippets)
 
-        prompt = f"""Based ONLY on these evidence snippets about customs in {country_name}, 
+        prompt = f"""Based ONLY on these evidence snippets about customs in {country_name},
         generate a report focusing EXCLUSIVELY on IMPORT regulations and procedures.
         Do NOT include any information about exports.
 
@@ -475,7 +475,7 @@ class CustomsAIService:
         1. A 2-3 sentence summary specifically about imports (summary_text)
         2. 3-5 bullet points covering import-specific details (current_situation_bullets)
 
-        IMPORTANT: Only use information from the snippets below. If information is not in snippets, 
+        IMPORTANT: Only use information from the snippets below. If information is not in snippets,
         write "Not confirmed in sources".
 
         Evidence:
