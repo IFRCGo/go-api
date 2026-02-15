@@ -13,7 +13,6 @@ from typing import Any, Dict, List, Optional, Tuple
 import openai
 from django.conf import settings
 
-
 from api.models import (
     CountryCustomsEvidenceSnippet,
     CountryCustomsSnapshot,
@@ -232,9 +231,9 @@ class CustomsAIService:
         logger.info(f"Search results context (snippet): {results_text[:500]}...")
 
         prompt = f"""You are a customs data extraction assistant.
-   
+
         I have performed a web search for: "{query}"
-      
+
         Here are the raw search results:
         {results_text}
 
