@@ -107,11 +107,12 @@ class CustomsAIService:
             status="failed",
         )
 
-        search_query = f"{country_name} customs clearance humanitarian imports current situation"
+        current_year = datetime.now().year
+        query = f"{country_name} customs clearance humanitarian imports current situation {current_year}"
 
-        snapshot.search_query = search_query
+        snapshot.search_query = query
 
-        pages = CustomsAIService._search_and_extract_evidence(search_query)
+        pages = CustomsAIService._search_and_extract_evidence(query)
 
         if not pages:
             snapshot.error_message = "No relevant sources found."
@@ -181,52 +182,88 @@ class CustomsAIService:
     @staticmethod
     def _search_and_extract_evidence(query: str) -> List[Dict[str, Any]]:
         """
-        Use OpenAI to search for and extract customs information.
-        The model generates structured information based on a search request.
+        Use DuckDuckGo to search for customs information and OpenAI to structure it.
         """
         pages = []
+        
+        # 1. Perform Web Search
+        try:
+            from ddgs import DDGS
+            with DDGS() as ddgs:
+                # A. Perform standard web search
+                text_results = list(ddgs.text(query, max_results=8, timelimit="y"))
+                for r in text_results:
+                    r["source_type"] = "text"
+                    # text() results usually don't have a structured date field
+                
+                # B. Perform news search (better for recent dates)
+                try:
+                    news_results = list(ddgs.news(query, max_results=5, timelimit="y"))
+                    for r in news_results:
+                        r["source_type"] = "news"
+                        # news() results have a 'date' field
+                except Exception as e:
+                    logger.warning(f"DDGS News search failed: {str(e)}")
+                    news_results = []
+                
+                results = text_results + news_results
+        except ImportError:
+            logger.error("ddgs library not found.")
+            return []
+        except Exception as e:
+            logger.error(f"DuckDuckGo search failed: {str(e)}")
+            return []
 
-        prompt = f"""You are researching customs regulations for: {query}
+        if not results:
+            logger.warning(f"No search results found for query: {query}")
+            return []
 
-Please provide detailed information about:
-- Current customs clearance procedures and typical timelines
-- Required import documentation and permits
-- Restricted items and current sanctions
-- Port of entry procedures
-- Any known delays or constraints
-- Humanitarian exemptions if applicable
-- Recent regulatory changes
+        # 2. Extract and Structure with OpenAI
+        results_text = json.dumps(results, indent=2)
+        logger.info(f"Search results context (snippet): {results_text[:500]}...")
+        
+        prompt = f"""You are a customs data extraction assistant.
+        
+        I have performed a web search for: "{query}"
+        
+        Here are the raw search results:
+        {results_text}
 
-Structure your response as realistic sources with specific details.
-Generate 3-5 sources (they don't need real URLs, but should be realistic).
+        Please analyze these search results and extract relevant customs information ABOUT IMPORTS.
+        If a source discusses both imports and exports, extract ONLY the import-related portions.
+        Select the most relevant 3-5 sources that contain specific details about:
+        - Customs clearance procedures for imports
+        - Import documentation/permits
+        - Restricted items/sanctions on imports
+        - Port of entry details
+        - Import exemptions (especially humanitarian)
 
-Return ONLY valid JSON with this structure:
-{{
-    "pages": [
+        Structure the output as a valid JSON object matching this exact format:
         {{
-            "url": "https://example.gov.country/customs",
-            "title": "Customs Procedures and Requirements",
-            "publisher": "Ministry of Commerce or Customs Authority",
-            "published_at": "2025-12-01",
-            "snippets": [
-                "Detailed snippet about specific procedure or requirement (150-250 chars)",
-                "Another specific detail about customs process (150-250 chars)"
-            ]
-        }},
-        {{
-            "url": "https://example.gov.country/trade",
-            "title": "Trade and Import Regulations",
-            "publisher": "Trade Ministry",
-            "published_at": "2026-01-15",
-            "snippets": [
-                "Information about restricted items (150-250 chars)",
-                "Details about documentation requirements (150-250 chars)"
+            "pages": [
+                {{
+                    "url": "full url from search result",
+                    "title": "title from search result",
+                    "publisher": "inferred publisher/domain name",
+                    "published_at": "YYYY-MM-DD if available in snippet, else null",
+                    "snippets": [
+                        "Specific relevant sentence from the snippet (150-250 chars)",
+                        "Another specific detail (150-250 chars)"
+                    ]
+                }}
             ]
         }}
-    ]
-}}
 
-Ensure snippets are specific, detailed, and realistic. Use current year 2026."""
+        - Use ONLY the provided search results. Do not hallucinate new sources.
+        - Extract import-specific information even if the page also discusses exports.
+        - In your snippets, focus exclusively on import procedures and omit any export details.
+        - "published_at" source priority:
+            1. Use the "date" field from news results if present.
+            2. Extract from "body" or "title" (e.g., "Oct 17, 2018").
+            3. Use approx date for relative terms (e.g., "2 days ago" -> {datetime.now().strftime('%Y-%m-%d')}).
+            4. Default to null.
+        - Ensure JSON is valid.
+        """
 
         try:
             response = _get_openai_client().chat.completions.create(
@@ -234,23 +271,27 @@ Ensure snippets are specific, detailed, and realistic. Use current year 2026."""
                 max_tokens=3000,
                 messages=[
                     {
+                        "role": "system",
+                        "content": "You are a helpful assistant that structures web search data.",
+                    },
+                    {
                         "role": "user",
                         "content": prompt,
                     }
                 ],
+                response_format={"type": "json_object"},
             )
 
             text = response.choices[0].message.content
-            json_match = re.search(r"\{[\s\S]*\}", text)
-            if json_match:
-                data = json.loads(json_match.group())
-                pages = data.get("pages", [])
-                logger.info(f"Successfully generated {len(pages)} sources for {query}")
+            # The model is forced to return JSON object, but we parse carefully
+            data = json.loads(text)
+            pages = data.get("pages", [])
+            logger.info(f"Successfully extracted {len(pages)} sources for {query}")
 
             return pages[:CustomsAIService.MAX_PAGES_TO_OPEN]
 
         except Exception as e:
-            logger.error(f"Evidence extraction failed: {str(e)}")
+            logger.error(f"Evidence extraction/synthesis failed: {str(e)}")
             return []
 
     @staticmethod
@@ -275,15 +316,36 @@ Ensure snippets are specific, detailed, and realistic. Use current year 2026."""
             combined_text = " ".join(snippets).lower()
 
             scores["relevance"] = CustomsAIService._score_relevance(combined_text)
-
             scores["specificity"] = CustomsAIService._score_specificity(combined_text)
 
             scores["total"] = sum(scores.values())
-
             scored.append((page, scores))
 
-        scored.sort(key=lambda x: x[1]["total"], reverse=True)
-        return scored
+        # --- Adaptive Selection Strategy ---
+        # 1. Separate into "Fresh" (<= 90 days) and "Secondary" (> 90 days or unknown)
+        fresh_sources = [
+            (p, s) for p, s in scored 
+            if s.get("freshness", 0) >= 15  # 15+ means < 90 days in our scoring
+        ]
+        secondary_sources = [
+            (p, s) for p, s in scored 
+            if s.get("freshness", 0) < 15
+        ]
+
+        # 2. Sort both pools by their total quality score
+        fresh_sources.sort(key=lambda x: x[1]["total"], reverse=True)
+        secondary_sources.sort(key=lambda x: x[1]["total"], reverse=True)
+
+        # 3. Fill the quota (MAX_SOURCES_TO_STORE is 3-5)
+        # We prefer Fresh, but if we don't have enough, we dip into Secondary.
+        final_selection = fresh_sources[:CustomsAIService.MAX_SOURCES_TO_STORE]
+        
+        needed = CustomsAIService.MAX_SOURCES_TO_STORE - len(final_selection)
+        if needed > 0:
+            final_selection.extend(secondary_sources[:needed])
+
+        logger.info(f"Adaptive Selection: {len(fresh_sources)} fresh found. Using {len(final_selection)} sources total.")
+        return final_selection
 
     @staticmethod
     def _score_authority(publisher: str) -> int:
@@ -305,21 +367,35 @@ Ensure snippets are specific, detailed, and realistic. Use current year 2026."""
     def _score_freshness(published_at: Optional[str]) -> int:
         """Score freshness based on publication date."""
         if not published_at:
-            return 0
+            return 2
+        
+        logger.debug(f"Scoring freshness for: '{published_at}'")
 
         try:
+            # Handle YYYY-MM-DD or ISO formats
+            if "T" not in published_at and " " not in published_at:
+                published_at += "T00:00:00"
+            
             pub_date = datetime.fromisoformat(published_at.replace("Z", "+00:00"))
+            
+            # Ensure timezone awareness
+            if pub_date.tzinfo is None:
+                pub_date = pub_date.replace(tzinfo=timezone.utc)
+                
             now = datetime.now(timezone.utc)
             days_old = (now - pub_date).days
 
+            score = 5
             if days_old < 30:
-                return 30
+                score = 30
             elif days_old < 90:
-                return 15
-            else:
-                return 5
-        except Exception:
-            return 0
+                score = 15
+            
+            logger.debug(f"Freshness score: {score} (date: {published_at}, days old: {days_old})")
+            return score
+        except Exception as e:
+            logger.debug(f"Failed to parse published_at '{published_at}': {str(e)}")
+            return 2
 
     @staticmethod
     def _score_relevance(combined_text: str) -> int:
@@ -399,9 +475,12 @@ Ensure snippets are specific, detailed, and realistic. Use current year 2026."""
         evidence_text = "\n".join(all_snippets)
 
         prompt = f"""Based ONLY on these evidence snippets about customs in {country_name}, 
+        generate a report focusing EXCLUSIVELY on IMPORT regulations and procedures.
+        Do NOT include any information about exports.
+
         generate:
-        1. A 2-3 sentence summary (summary_text)
-        2. 3-5 bullet points (current_situation_bullets)
+        1. A 2-3 sentence summary specifically about imports (summary_text)
+        2. 3-5 bullet points covering import-specific details (current_situation_bullets)
 
         IMPORTANT: Only use information from the snippets below. If information is not in snippets, 
         write "Not confirmed in sources".
