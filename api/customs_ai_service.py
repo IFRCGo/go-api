@@ -7,12 +7,12 @@ import hashlib
 import json
 import logging
 import re
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
 import openai
 from django.conf import settings
-from django.utils import timezone as django_timezone
+
 
 from api.models import (
     CountryCustomsEvidenceSnippet,
@@ -49,7 +49,17 @@ EVIDENCE_KEYWORDS = {
 
 # Authority scoring thresholds
 HIGH_AUTHORITY_PUBLISHERS = {
-    "gov.", "government", "customs", ".go.", ".int", "ifrc", "icrc", "wfp", "ocha", "iom", "un",
+    "gov.",
+    "government",
+    "customs",
+    ".go.",
+    ".int",
+    "ifrc",
+    "icrc",
+    "wfp",
+    "ocha",
+    "iom",
+    "un",
 }
 MEDIUM_AUTHORITY_PUBLISHERS = {"ngo", "news", "org", "academic", "university", "institute"}
 
@@ -74,7 +84,7 @@ class CustomsAIService:
             return False, "Country name must be between 1 and 100 characters."
 
         prompt = f"""Is "{dirty_name}" a valid country or territory name?
-        
+
         Respond with ONLY "yes" or "no". If not a real country, respond with "no".
         Accept common country names, official names, and well-known territories.
         """
@@ -125,7 +135,7 @@ class CustomsAIService:
             snapshot.status = "partial"
             return snapshot
 
-        top_3_sources = scored_sources[:CustomsAIService.MAX_SOURCES_TO_STORE]
+        top_3_sources = scored_sources[: CustomsAIService.MAX_SOURCES_TO_STORE]
 
         confidence = CustomsAIService._determine_confidence(top_3_sources)
         snapshot.confidence = confidence
@@ -159,9 +169,7 @@ class CustomsAIService:
 
             snippet_texts = []
             for order, snippet in enumerate(snippets, start=1):
-                evidence = CountryCustomsEvidenceSnippet(
-                    source=source, snippet_order=order, snippet_text=snippet
-                )
+                evidence = CountryCustomsEvidenceSnippet(source=source, snippet_order=order, snippet_text=snippet)
                 evidence.save()
                 snippet_texts.append(snippet)
 
@@ -185,17 +193,18 @@ class CustomsAIService:
         Use DuckDuckGo to search for customs information and OpenAI to structure it.
         """
         pages = []
-        
+
         # 1. Perform Web Search
         try:
             from ddgs import DDGS
+
             with DDGS() as ddgs:
                 # A. Perform standard web search
                 text_results = list(ddgs.text(query, max_results=8, timelimit="y"))
                 for r in text_results:
                     r["source_type"] = "text"
                     # text() results usually don't have a structured date field
-                
+
                 # B. Perform news search (better for recent dates)
                 try:
                     news_results = list(ddgs.news(query, max_results=5, timelimit="y"))
@@ -205,7 +214,7 @@ class CustomsAIService:
                 except Exception as e:
                     logger.warning(f"DDGS News search failed: {str(e)}")
                     news_results = []
-                
+
                 results = text_results + news_results
         except ImportError:
             logger.error("ddgs library not found.")
@@ -221,11 +230,11 @@ class CustomsAIService:
         # 2. Extract and Structure with OpenAI
         results_text = json.dumps(results, indent=2)
         logger.info(f"Search results context (snippet): {results_text[:500]}...")
-        
+
         prompt = f"""You are a customs data extraction assistant.
-        
+   
         I have performed a web search for: "{query}"
-        
+      
         Here are the raw search results:
         {results_text}
 
@@ -277,7 +286,7 @@ class CustomsAIService:
                     {
                         "role": "user",
                         "content": prompt,
-                    }
+                    },
                 ],
                 response_format={"type": "json_object"},
             )
@@ -288,16 +297,14 @@ class CustomsAIService:
             pages = data.get("pages", [])
             logger.info(f"Successfully extracted {len(pages)} sources for {query}")
 
-            return pages[:CustomsAIService.MAX_PAGES_TO_OPEN]
+            return pages[: CustomsAIService.MAX_PAGES_TO_OPEN]
 
         except Exception as e:
             logger.error(f"Evidence extraction/synthesis failed: {str(e)}")
             return []
 
     @staticmethod
-    def _score_and_rank_sources(
-        pages: List[Dict[str, Any]], country_name: str
-    ) -> List[Tuple[Dict[str, Any], Dict[str, int]]]:
+    def _score_and_rank_sources(pages: List[Dict[str, Any]], country_name: str) -> List[Tuple[Dict[str, Any], Dict[str, int]]]:
         """
         Score each page by authority, freshness, relevance, and specificity.
         Returns list of (page_data, score_breakdown) sorted by total_score.
@@ -323,14 +330,8 @@ class CustomsAIService:
 
         # --- Adaptive Selection Strategy ---
         # 1. Separate into "Fresh" (<= 90 days) and "Secondary" (> 90 days or unknown)
-        fresh_sources = [
-            (p, s) for p, s in scored 
-            if s.get("freshness", 0) >= 15  # 15+ means < 90 days in our scoring
-        ]
-        secondary_sources = [
-            (p, s) for p, s in scored 
-            if s.get("freshness", 0) < 15
-        ]
+        fresh_sources = [(p, s) for p, s in scored if s.get("freshness", 0) >= 15]  # 15+ means < 90 days in our scoring
+        secondary_sources = [(p, s) for p, s in scored if s.get("freshness", 0) < 15]
 
         # 2. Sort both pools by their total quality score
         fresh_sources.sort(key=lambda x: x[1]["total"], reverse=True)
@@ -338,8 +339,8 @@ class CustomsAIService:
 
         # 3. Fill the quota (MAX_SOURCES_TO_STORE is 3-5)
         # We prefer Fresh, but if we don't have enough, we dip into Secondary.
-        final_selection = fresh_sources[:CustomsAIService.MAX_SOURCES_TO_STORE]
-        
+        final_selection = fresh_sources[: CustomsAIService.MAX_SOURCES_TO_STORE]
+
         needed = CustomsAIService.MAX_SOURCES_TO_STORE - len(final_selection)
         if needed > 0:
             final_selection.extend(secondary_sources[:needed])
@@ -368,20 +369,20 @@ class CustomsAIService:
         """Score freshness based on publication date."""
         if not published_at:
             return 2
-        
+
         logger.debug(f"Scoring freshness for: '{published_at}'")
 
         try:
             # Handle YYYY-MM-DD or ISO formats
             if "T" not in published_at and " " not in published_at:
                 published_at += "T00:00:00"
-            
+
             pub_date = datetime.fromisoformat(published_at.replace("Z", "+00:00"))
-            
+
             # Ensure timezone awareness
             if pub_date.tzinfo is None:
                 pub_date = pub_date.replace(tzinfo=timezone.utc)
-                
+
             now = datetime.now(timezone.utc)
             days_old = (now - pub_date).days
 
@@ -390,7 +391,7 @@ class CustomsAIService:
                 score = 30
             elif days_old < 90:
                 score = 15
-            
+
             logger.debug(f"Freshness score: {score} (date: {published_at}, days old: {days_old})")
             return score
         except Exception as e:
@@ -422,15 +423,10 @@ class CustomsAIService:
         if any(agency in combined_text for agency in ["agency", "authority", "procedure", "bureau"]):
             score += 10
 
-        if any(
-            route in combined_text
-            for route in ["port", "border", "crossing", "airport", "terminal", "entry point"]
-        ):
+        if any(route in combined_text for route in ["port", "border", "crossing", "airport", "terminal", "entry point"]):
             score += 5
 
-        if any(
-            delay in combined_text for delay in ["day", "week", "month", "delay", "hours", "process"]
-        ):
+        if any(delay in combined_text for delay in ["day", "week", "month", "delay", "hours", "process"]):
             score += 5
 
         return min(score, 30)
@@ -459,9 +455,7 @@ class CustomsAIService:
             return "Low"
 
     @staticmethod
-    def _generate_summary(
-        top_sources: List[Tuple[Dict[str, Any], Dict[str, int]]], country_name: str
-    ) -> Tuple[str, List[str]]:
+    def _generate_summary(top_sources: List[Tuple[Dict[str, Any], Dict[str, int]]], country_name: str) -> Tuple[str, List[str]]:
         """
         Generate a concise summary and bullet points using only provided evidence.
         """

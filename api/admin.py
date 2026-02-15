@@ -1125,6 +1125,7 @@ admin.site.register(models.UserRegion, UserRegionAdmin)
 admin.site.register(models.CountryOfFieldReportToReview, CountryOfFieldReportToReviewAdmin)
 # admin.site.register(Revision, RevisionAdmin)
 
+
 # Customs Updates Admin
 class CountryCustomsEvidenceSnippetInline(admin.TabularInline):
     model = models.CountryCustomsEvidenceSnippet

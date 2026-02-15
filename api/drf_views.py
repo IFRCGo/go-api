@@ -100,13 +100,10 @@ from main.utils import is_tableau
 from per.models import Overview
 from per.serializers import CountryLatestOverviewSerializer
 
-from .customs_data_loader import load_customs_regulations
 from .customs_ai_service import CustomsAIService
+from .customs_data_loader import load_customs_regulations
 from .exceptions import BadRequest
 from .models import (
-    CountryCustomsSnapshot,
-    CountryCustomsSource,
-    CountryCustomsEvidenceSnippet,
     Action,
     Admin2,
     Appeal,
@@ -114,6 +111,9 @@ from .models import (
     AppealHistory,
     AppealType,
     Country,
+    CountryCustomsEvidenceSnippet,
+    CountryCustomsSnapshot,
+    CountryCustomsSource,
     CountryKeyDocument,
     CountryKeyFigure,
     CountryOfFieldReportToReview,
@@ -179,6 +179,9 @@ from .serializers import (  # AppealSerializer,; Tableau Serializers; AppealTabl
     AppealDocumentTableauSerializer,
     AppealHistorySerializer,
     AppealHistoryTableauSerializer,
+    CountryCustomsEvidenceSnippetSerializer,
+    CountryCustomsSnapshotSerializer,
+    CountryCustomsSourceSerializer,
     CountryDisasterTypeCountSerializer,
     CountryDisasterTypeMonthlySerializer,
     CountryGeoSerializer,
@@ -187,16 +190,13 @@ from .serializers import (  # AppealSerializer,; Tableau Serializers; AppealTabl
     CountryKeyFigureSerializer,
     CountryOfFieldReportToReviewSerializer,
     CountryRegulationSerializer,
-    CountryCustomsSnapshotSerializer,
-    CountryCustomsSourceSerializer,
-    CountryCustomsEvidenceSnippetSerializer,
-    CustomsUpdatesResponseSerializer,
     CountryRelationSerializer,
     CountrySerializerRMD,
     CountrySnippetSerializer,
     CountrySnippetTableauSerializer,
     CountrySupportingPartnerSerializer,
     CountryTableauSerializer,
+    CustomsUpdatesResponseSerializer,
     DeploymentsByEventSerializer,
     DetailEventSerializer,
     DisasterTypeSerializer,

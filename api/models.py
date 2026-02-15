@@ -3365,6 +3365,7 @@ class ItemCodeMapping(models.Model):
     def __str__(self):
         return f"{self.code} -> {self.url}"
 
+
 class CountryCustomsSnapshot(models.Model):
     """
     Stores generated customs update summaries per country.
