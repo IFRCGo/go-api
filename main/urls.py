@@ -323,6 +323,13 @@ urlpatterns = [
         api_views.CustomsRegulationCountryView.as_view(),
         name="country_regulations_detail",
     ),
+    # Customs Updates - AI Generated Updates
+    path("api/v2/customs-ai-updates/", api_views.CustomsUpdatesView.as_view(), name="customs_updates_list"),
+    path(
+        "api/v2/customs-ai-updates/<str:country>/",
+        api_views.CustomsUpdatesCountryView.as_view(),
+        name="customs_updates_detail",
+    ),
     url(r"^api/v2/", include(router.urls)),
     # PER options
     url(r"^api/v2/per-options/", per_views.PerOptionsView.as_view()),
