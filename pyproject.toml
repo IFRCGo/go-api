@@ -9,7 +9,7 @@ readme = "README.md"
 dependencies = [
     "Django>=4.2,<5.0",
     "Markdown==3.3.4",
-    "Pillow==10.3.0",
+    "Pillow==12.1.1",
     "PyPDF2==1.27.9",
     "pdf2image==1.16.0",
     "beautifulsoup4==4.6.3",
@@ -71,7 +71,7 @@ dependencies = [
     "xmltodict==0.11.0",
     "xhtml2pdf==0.2.17",
     "reportlab",  # XXX: Used by xhtml2pdf reportlab==3.6.7 breaks for now
-    "celery[redis]==5.1.2",
+    "celery[redis]>=5.2.2",
     "django-redis==5.0.0",
     "sentry-sdk",
     "django-haystack[elasticsearch]",
