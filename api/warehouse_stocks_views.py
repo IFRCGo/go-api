@@ -75,6 +75,11 @@ class WarehouseStocksView(views.APIView):
         only_available = request.query_params.get("only_available", "0") == "1"
         q = request.query_params.get("q", "").strip()
         region_q = request.query_params.get("region", "").strip()
+        region_list = [r.strip() for r in region_q.split(",") if r.strip()]
+        region_list = [r.strip() for r in region_q.split(",") if r.strip()]
+        region_list = [r.strip() for r in region_q.split(",") if r.strip()]
+        region_list = [r.strip() for r in region_q.split(",") if r.strip()]
+        region_list = [r.strip() for r in region_q.split(",") if r.strip()]
         country_iso3_raw = request.query_params.get("country_iso3") or ""
         country_iso3_list = [c.strip().upper() for c in country_iso3_raw.split(",") if c.strip()]
         warehouse_name_q = request.query_params.get("warehouse_name", "").strip()
@@ -111,7 +116,7 @@ class WarehouseStocksView(views.APIView):
             [
                 str(only_available),
                 q or "",
-                region_q or "",
+                ",".join(region_list) if region_list else "",
                 ",".join(country_iso3_list) if country_iso3_list else "",
                 warehouse_name_q or "",
                 item_group_q or "",
@@ -129,6 +134,46 @@ class WarehouseStocksView(views.APIView):
             cached_resp = cache.get(cache_key)
             if cached_resp is not None:
                 return Response(cached_resp)
+
+        # If frontend requested distinct option lists and ES is not configured,
+        # provide a DB fallback so filters have options to show.
+        if request.query_params.get("distinct", "0") == "1" and ES_CLIENT is None:
+            try:
+                # item groups from product categories
+                categories = DimProductCategory.objects.all().values_list("name", flat=True)
+                item_groups = [c for c in categories if c]
+
+                # item names from products
+                item_names_qs = DimProduct.objects.all().values_list("name", flat=True)
+                item_names = [n for n in item_names_qs if n]
+
+                # regions and countries via warehouses and goadmin maps
+                warehouses = DimWarehouse.objects.all().values_list("country", flat=True)
+                regions_set = set()
+                countries_set = set()
+                for iso in warehouses:
+                    iso3 = (iso or "").upper()
+                    if not iso3:
+                        continue
+                    country_name = iso3_to_country_name.get(iso3) or ""
+                    region_name = iso3_to_region_name.get(iso3) or ""
+                    if country_name:
+                        countries_set.add(country_name)
+                    if region_name:
+                        regions_set.add(region_name)
+
+                regions = sorted(list(regions_set))
+                countries = sorted(list(countries_set))
+
+                return Response({
+                    "regions": regions,
+                    "countries": countries,
+                    "item_groups": sorted(item_groups),
+                    "item_names": sorted(item_names),
+                })
+            except Exception:
+                # On any error, fall through to normal processing
+                pass
 
         results = []
         total_hits = None
@@ -155,8 +200,11 @@ class WarehouseStocksView(views.APIView):
                 else:
                     filters.append({"terms": {"country_iso3": country_iso3_list}})
 
-            if region_q:
-                filters.append({"term": {"region": region_q}})
+            if region_list:
+                if len(region_list) == 1:
+                    filters.append({"term": {"region": region_list[0]}})
+                else:
+                    filters.append({"terms": {"region": region_list}})
 
             if warehouse_name_q:
                 filters.append({"match_phrase": {"warehouse_name": warehouse_name_q}})
@@ -360,7 +408,7 @@ class WarehouseStocksView(views.APIView):
                     continue
 
                 # apply region filter for DB fallback
-                if region_q and region_name and region_name.lower() != region_q.lower():
+                if region_list and region_name and region_name.lower() not in [r.lower() for r in region_list]:
                     continue
 
                 item_group = cat_by_code.get(prod.get("product_category_code", ""), "")
@@ -439,6 +487,7 @@ class AggregatedWarehouseStocksView(views.APIView):
         only_available = request.query_params.get("only_available", "0") == "1"
         q = request.query_params.get("q", "").strip()
         region_q = request.query_params.get("region", "").strip()
+        region_list = [r.strip() for r in region_q.split(",") if r.strip()]
         country_iso3_raw = request.query_params.get("country_iso3") or ""
         country_iso3_list = [c.strip().upper() for c in country_iso3_raw.split(",") if c.strip()]
         warehouse_name_q = request.query_params.get("warehouse_name", "").strip()
@@ -455,7 +504,7 @@ class AggregatedWarehouseStocksView(views.APIView):
             [
                 str(only_available),
                 q or "",
-                region_q or "",
+                ",".join(region_list) if region_list else "",
                 ",".join(country_iso3_list) if country_iso3_list else "",
                 warehouse_name_q or "",
                 item_group_q or "",
@@ -497,8 +546,11 @@ class AggregatedWarehouseStocksView(views.APIView):
                 else:
                     filters.append({"terms": {"country_iso3": country_iso3_list}})
 
-            if region_q:
-                filters.append({"term": {"region": region_q}})
+            if region_list:
+                if len(region_list) == 1:
+                    filters.append({"term": {"region": region_list[0]}})
+                else:
+                    filters.append({"terms": {"region": region_list}})
 
             if warehouse_name_q:
                 filters.append({"match_phrase": {"warehouse_name": warehouse_name_q}})
@@ -603,7 +655,7 @@ class AggregatedWarehouseStocksView(views.APIView):
             for iso3, total in totals_by_country.items():
                 region_name = iso3_to_region_name.get(iso3, "")
                 # apply region filter for DB fallback
-                if region_q and region_name and region_name.lower() != region_q.lower():
+                if region_list and region_name and region_name.lower() not in [r.lower() for r in region_list]:
                     continue
 
                 results.append(
@@ -680,8 +732,11 @@ class WarehouseStocksSummaryView(views.APIView):
                 else:
                     filters.append({"terms": {"country_iso3": country_iso3_list}})
 
-            if region_q:
-                filters.append({"term": {"region": region_q}})
+            if region_list:
+                if len(region_list) == 1:
+                    filters.append({"term": {"region": region_list[0]}})
+                else:
+                    filters.append({"terms": {"region": region_list}})
 
             if warehouse_name_q:
                 filters.append({"match_phrase": {"warehouse_name": warehouse_name_q}})
