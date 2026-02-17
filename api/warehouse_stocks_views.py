@@ -76,16 +76,10 @@ class WarehouseStocksView(views.APIView):
         q = request.query_params.get("q", "").strip()
         region_q = request.query_params.get("region", "").strip()
         region_list = [r.strip() for r in region_q.split(",") if r.strip()]
-        region_list = [r.strip() for r in region_q.split(",") if r.strip()]
-        region_list = [r.strip() for r in region_q.split(",") if r.strip()]
-        region_list = [r.strip() for r in region_q.split(",") if r.strip()]
-        region_list = [r.strip() for r in region_q.split(",") if r.strip()]
         country_iso3_raw = request.query_params.get("country_iso3") or ""
         country_iso3_list = [c.strip().upper() for c in country_iso3_raw.split(",") if c.strip()]
         warehouse_name_q = request.query_params.get("warehouse_name", "").strip()
         item_group_q = request.query_params.get("item_group", "").strip()
-        item_name_q = request.query_params.get("item_name", "").strip()
-        item_name_q = request.query_params.get("item_name", "").strip()
         item_name_q = request.query_params.get("item_name", "").strip()
         sort_field = request.query_params.get("sort", "")
         sort_order = request.query_params.get("order", "desc")
@@ -165,12 +159,14 @@ class WarehouseStocksView(views.APIView):
                 regions = sorted(list(regions_set))
                 countries = sorted(list(countries_set))
 
-                return Response({
-                    "regions": regions,
-                    "countries": countries,
-                    "item_groups": sorted(item_groups),
-                    "item_names": sorted(item_names),
-                })
+                return Response(
+                    {
+                        "regions": regions,
+                        "countries": countries,
+                        "item_groups": sorted(item_groups),
+                        "item_names": sorted(item_names),
+                    }
+                )
             except Exception:
                 # On any error, fall through to normal processing
                 pass
@@ -698,6 +694,7 @@ class WarehouseStocksSummaryView(views.APIView):
         only_available = request.query_params.get("only_available", "0") == "1"
         q = request.query_params.get("q", "").strip()
         region_q = request.query_params.get("region", "").strip()
+        region_list = [r.strip() for r in region_q.split(",") if r.strip()]
         country_iso3_raw = request.query_params.get("country_iso3") or ""
         country_iso3_list = [c.strip().upper() for c in country_iso3_raw.split(",") if c.strip()]
         warehouse_name_q = request.query_params.get("warehouse_name", "").strip()
