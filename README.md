@@ -269,6 +269,12 @@ For updating the cron monitored tasks
 docker-compose exec serve bash ./manage.py cron_job_monitor
 ```
 
+## Indexing Stock Inventory
+
+```(bash)
+docker compose run --rm serve python manage.py bulk_index_warehouse_stocks --only-available=0
+```
+
 ## See logs from Kubernetes
 There are a few different ways to see logs in the new Kubernetes based stack. Both of the options require `kubectl`, access to the cluster. Once the cluster is added to your local kubernetes context, follow the steps below:
 
