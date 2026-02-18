@@ -160,7 +160,7 @@ class MiniOperationalUpdateActiveSerializer(serializers.ModelSerializer):
 
     def get_application_type_display(self, obj) -> str:
         op_number = obj.operational_update_number
-        return f"Operational update #{op_number}"
+        return _("Operational update #{op_number}").format(op_number=op_number)
 
 
 class MiniDrefFinalReportActiveSerializer(serializers.ModelSerializer):
@@ -194,7 +194,7 @@ class MiniDrefFinalReportActiveSerializer(serializers.ModelSerializer):
         return "FINAL_REPORT"
 
     def get_application_type_display(self, obj) -> str:
-        return "Final report"
+        return gettext("Final report")
 
 
 class MiniDrefSerializer(serializers.ModelSerializer):
@@ -270,7 +270,7 @@ class MiniDrefSerializer(serializers.ModelSerializer):
         return "DREF"
 
     def get_application_type_display(self, obj) -> str:
-        return "DREF application"
+        return gettext("DREF application")
 
     def get_unpublished_op_update_count(self, obj) -> int:
         return DrefOperationalUpdate.objects.filter(dref_id=obj.id).exclude(status=Dref.Status.APPROVED).count()
@@ -1601,7 +1601,7 @@ class CompletedDrefOperationsSerializer(serializers.ModelSerializer):
         return "FINAL_REPORT"
 
     def get_application_type_display(self, obj) -> str:
-        return "Final report"
+        return gettext("Final report")
 
 
 class AddDrefUserSerializer(serializers.Serializer):
