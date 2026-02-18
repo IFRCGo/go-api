@@ -1,5 +1,7 @@
 from decimal import Decimal
+import requests
 
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db.models import Sum
 from elasticsearch.helpers import bulk
@@ -17,6 +19,52 @@ from api.models import (
 
 def _safe_str(v):
     return "" if v is None else str(v)
+
+
+def _fetch_goadmin_maps():
+    GOADMIN_COUNTRY_URL_DEFAULT = "https://goadmin.ifrc.org/api/v2/country/?limit=300"
+    url = getattr(settings, "GOADMIN_COUNTRY_URL", GOADMIN_COUNTRY_URL_DEFAULT)
+    try:
+        resp = requests.get(url, timeout=15)
+        resp.raise_for_status()
+        data = resp.json()
+        results = data.get("results", data) or []
+    except Exception:
+        return {}, {}, {}
+
+    region_code_to_name = {}
+    for r in results:
+        if r.get("record_type_display") == "Region":
+            code = r.get("region")
+            name = r.get("name")
+            if isinstance(code, int) and name:
+                region_code_to_name[code] = str(name)
+
+    iso2_to_iso3 = {}
+    iso3_to_country_name = {}
+    iso3_to_region_name = {}
+
+    for r in results:
+        if r.get("record_type_display") != "Country":
+            continue
+
+        iso2 = r.get("iso")
+        iso3 = r.get("iso3")
+        country_name = r.get("name")
+        region_code = r.get("region")
+
+        if iso2 and iso3:
+            iso2_to_iso3[str(iso2).upper()] = str(iso3).upper()
+
+        if iso3 and country_name:
+            iso3_to_country_name[str(iso3).upper()] = str(country_name)
+
+        if iso3 and isinstance(region_code, int):
+            region_full = region_code_to_name.get(region_code)
+            if region_full:
+                iso3_to_region_name[str(iso3).upper()] = str(region_full).replace(" Region", "")
+
+    return iso2_to_iso3, iso3_to_country_name, iso3_to_region_name
 
 
 class Command(BaseCommand):
@@ -70,6 +118,9 @@ class Command(BaseCommand):
         categories = DimProductCategory.objects.all().values("category_code", "name")
         cat_by_code = {str(c["category_code"]): _safe_str(c.get("name")) for c in categories}
 
+        # Fetch goadmin mappings so we can include country name and region in indexed docs
+        iso2_to_iso3, iso3_to_country_name, iso3_to_region_name = _fetch_goadmin_maps()
+
         logger.info("Querying transaction lines and aggregating by warehouse+product")
         q = DimInventoryTransactionLine.objects.all()
         if only_available:
@@ -113,6 +164,8 @@ class Command(BaseCommand):
                 "warehouse_id": warehouse_id,
                 "warehouse_name": wh.get("warehouse_name", ""),
                 "country_iso3": wh.get("country_iso3", ""),
+                "country_name": iso3_to_country_name.get((wh.get("country_iso3") or "").upper(), ""),
+                "region": iso3_to_region_name.get((wh.get("country_iso3") or "").upper(), ""),
                 "product_id": product_id,
                 "item_number": prod.get("item_number", ""),
                 "item_name": prod.get("item_name", ""),
