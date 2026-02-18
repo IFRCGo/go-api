@@ -795,6 +795,7 @@ class PerMapDataView(views.APIView):
                     "epi_considerations": epi_considerations,
                     "climate_environmental_considerations": climate_considerations,
                     "urban_considerations": urban_considerations,
+                    "migration_considerations": migration_considerations,
                     "components": components,
                 }
             )

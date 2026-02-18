@@ -9,7 +9,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import Permission, User
 from django.contrib.gis import admin as geoadmin
 from django.core.exceptions import ValidationError
-from django.db.models import Value
+from django.db.models import OuterRef, Subquery, Value
 from django.db.models.functions import Concat
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
@@ -305,12 +305,21 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     severity_level_link.short_description = "Crisis Categorisation"
     severity_level_link.admin_order_field = "ifrc_severity_level"
 
-    @admin.display(description="CC Status")
+    @admin.display(description="CC Status", ordering="_cc_status")
     def cc_status(self, obj):
         latest_cc = models.CrisisCategorisationByCountry.objects.filter(event=obj).order_by("-updated_at").first()
         if not latest_cc or latest_cc.status is None:
             return "-"
         return latest_cc.get_status_display()
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        latest_cc_status = (
+            models.CrisisCategorisationByCountry.objects.filter(event=OuterRef("pk")).order_by("-updated_at").values("status")[:1]
+        )
+        return qs.annotate(
+            _cc_status=Subquery(latest_cc_status),
+        )
 
     def appeals(self, instance):
         if getattr(instance, "appeals").exists():
