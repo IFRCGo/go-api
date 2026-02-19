@@ -34,6 +34,20 @@ from .forms import ActionForm
 
 # from reversion.models import Revision
 
+CC_COLOR_MAP = {
+    0: "#C8A600",
+    1: "#C56A00",
+    2: "#B00020",
+}
+CC_DOT_TEMPLATE = '<span style="color: {}; font-size: 1.4em;">●</span>'
+
+
+def format_cc_dot(level):
+    color = CC_COLOR_MAP.get(level)
+    if not color:
+        return ""
+    return format_html(CC_DOT_TEMPLATE, color)
+
 
 class ProfileInline(admin.StackedInline):
     model = models.Profile
@@ -279,14 +293,9 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
         url, title = self._crisis_categorisation_link_data(obj)
 
         severity_display = obj.get_ifrc_severity_level_display()
-        severity_emoji_map = {
-            0: "🟡",
-            1: "🟠",
-            2: "🔴",
-        }
-        severity_emoji = severity_emoji_map.get(obj.ifrc_severity_level)
-        if severity_display and severity_emoji:
-            severity_display = f"{severity_emoji} {severity_display}"
+        severity_dot = format_cc_dot(obj.ifrc_severity_level)
+        if severity_display and severity_dot:
+            severity_display = format_html("{} {}", severity_dot, severity_display)
         return format_html('<a href="{}" title="{}">{}</a>', url, title, severity_display)
 
     def get_form(self, request, obj=None, change=False, **kwargs):
@@ -1445,14 +1454,9 @@ class CrisisCategorisationByCountryAdmin(admin.ModelAdmin):
 
         for cat in categorisations:
             cc_display = cat.get_crisis_categorisation_display() if cat.crisis_categorisation is not None else "-"
-            cc_emoji_map = {
-                0: "🟡",
-                1: "🟠",
-                2: "🔴",
-            }
-            cc_emoji = cc_emoji_map.get(cat.crisis_categorisation)
-            if cc_display != "-" and cc_emoji:
-                cc_display = f"{cc_emoji} {cc_display}"
+            cc_dot = format_cc_dot(cat.crisis_categorisation)
+            if cc_display != "-" and cc_dot:
+                cc_display = f"{cc_dot} {cc_display}"
 
             if total_count == 1 and obj.status and obj.status > 2 and cat.crisis_categorisation in [0, 1, 2]:
                 event_url_base = f"../../../event/{obj.event.pk}/change/"
