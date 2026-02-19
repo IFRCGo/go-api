@@ -1689,6 +1689,8 @@ class BaseDref3Serializer(serializers.ModelSerializer):
     people_targeted = serializers.SerializerMethodField()
     people_assisted = serializers.SerializerMethodField()
     population_disaggregation = serializers.SerializerMethodField()
+
+    # Sector fields
     sector_shelter_and_basic_household_items = serializers.SerializerMethodField()
     sector_shelter_and_basic_household_items_budget = serializers.SerializerMethodField()
     sector_shelter_and_basic_household_items_people_targeted = serializers.SerializerMethodField()
@@ -1731,6 +1733,7 @@ class BaseDref3Serializer(serializers.ModelSerializer):
     sector_national_society_strengthening = serializers.SerializerMethodField()
     sector_national_society_strengthening_budget = serializers.SerializerMethodField()
     sector_national_society_strengthening_people_targeted = serializers.SerializerMethodField()
+
     public = serializers.SerializerMethodField(read_only=True)
     is_latest_stage = serializers.SerializerMethodField(read_only=True)
     status = serializers.IntegerField(read_only=True)
@@ -1739,8 +1742,61 @@ class BaseDref3Serializer(serializers.ModelSerializer):
     indicators_id = serializers.SerializerMethodField()
     link_to_emergency_page = serializers.SerializerMethodField()
 
-    # get_id removed: numeric ids are injected post-serialization
+    # -----------------------------
+    # Per-object caches
+    # -----------------------------
+    def _get_cached_list(self, obj, attr_name, qs_fn):
+        cache_attr = f"_{attr_name}_cache"
+        if hasattr(obj, cache_attr):
+            return getattr(obj, cache_attr)
+        data = list(qs_fn())
+        setattr(obj, cache_attr, data)
+        return data
 
+    def _planned_interventions(self, obj):
+        # If prefetched, this is memory-only. If not, this is 1 query per obj.
+        return self._get_cached_list(obj, "planned_interventions", lambda: obj.planned_interventions.all())
+
+    def _districts_list(self, obj):
+        return self._get_cached_list(obj, "districts", lambda: obj.district.all())
+
+    def _sector_index(self, obj):
+        """
+        One pass per object.
+        PlannedIntervention.title -> {"any": bool, "budget": number, "people": number}
+        """
+        cache_attr = "_sector_index_cache"
+        if hasattr(obj, cache_attr):
+            return getattr(obj, cache_attr)
+
+        idx = {}
+        for p in self._planned_interventions(obj):
+            t = p.title
+            rec = idx.setdefault(t, {"any": False, "budget": 0, "people": 0})
+            rec["any"] = True
+            rec["budget"] += p.budget or 0
+            rec["people"] += p.person_targeted or 0
+
+        setattr(obj, cache_attr, idx)
+        return idx
+
+    def _sector_any(self, obj, topic):
+        return self._sector_index(obj).get(topic, {}).get("any", False)
+
+    def _sector_budget(self, obj, topic):
+        return self._sector_index(obj).get(topic, {}).get("budget", None)
+
+    def _sector_people(self, obj, topic):
+        return self._sector_index(obj).get(topic, {}).get("people", None)
+
+    def _appeal_cache(self):
+        if not hasattr(self, "_appeal_by_code"):
+            self._appeal_by_code = {}
+        return self._appeal_by_code
+
+    # -----------------------------
+    # Context-driven fields
+    # -----------------------------
     def get_public(self, obj):
         return self.context.get("public")
 
@@ -1753,6 +1809,9 @@ class BaseDref3Serializer(serializers.ModelSerializer):
     def get_allocation(self, obj):
         return self.context.get("allocation")
 
+    # -----------------------------
+    # Simple computed fields
+    # -----------------------------
     def get_pillar(self, obj):
         return "Anticipatory" if obj.type_of_dref == Dref.DrefType.IMMINENT else "Response"
 
@@ -1767,13 +1826,13 @@ class BaseDref3Serializer(serializers.ModelSerializer):
         return "Loan" if obj.type_of_dref == Dref.DrefType.LOAN else "Grant"
 
     def get_districts(self, obj):
-        return ", ".join(d.name for d in obj.district.all())
+        return ", ".join(d.name for d in self._districts_list(obj))
 
     def get_district_codes(self, obj):
-        return ", ".join(d.code for d in obj.district.all())
+        return ", ".join(d.code for d in self._districts_list(obj))
 
     def get_type_of_onset(self, obj):
-        type_of_onset = obj.type_of_onset if obj.type_of_onset != 0 else 1  # Default to "Slow Onset" if not set
+        type_of_onset = obj.type_of_onset if obj.type_of_onset != 0 else 1
         return Dref.OnsetType(type_of_onset).label
 
     def get_crisis_categorization(self, obj):
@@ -1800,7 +1859,6 @@ class BaseDref3Serializer(serializers.ModelSerializer):
             return obj.ns_request_date
 
     def get_date_of_approval(self, obj):
-        # if type(obj).__name__ == "Dref" and hasattr(obj, "date_of_approval"): – instead of this, just return for all types
         if hasattr(obj, "date_of_approval"):
             return obj.date_of_approval
 
@@ -1822,16 +1880,12 @@ class BaseDref3Serializer(serializers.ModelSerializer):
             return obj.operation_end_date
 
     def get_operation_status(self, obj):
-        """Return 'active' if current date is between start and end date (inclusive), else 'closed'.
-        Returns None if either boundary date is missing.
-        """
         start = self.get_start_date_of_operation(obj)
         end = self.get_end_date_of_operation(obj)
         if not start or not end:
             return None
         try:
             today = timezone.now().date()
-            # Ensure we are comparing date objects (convert datetimes if present)
             if hasattr(start, "date") and callable(getattr(start, "date")):
                 start = start.date()
             if hasattr(end, "date") and callable(getattr(end, "date")):
@@ -1844,22 +1898,22 @@ class BaseDref3Serializer(serializers.ModelSerializer):
         t = type(obj).__name__
         if t == "Dref" and hasattr(obj, "operation_timeframe"):
             return obj.operation_timeframe
-        if t != "Dref" and hasattr(obj, "total_operation_timeframe"):  # OU + FR:
+        if t != "Dref" and hasattr(obj, "total_operation_timeframe"):
             return obj.total_operation_timeframe
 
     def get_data_origin(self, obj):
-        return "DREF process in GO"  # Hardcoded for now, later can be also "DREF published report"
+        return "DREF process in GO"
 
     def get_people_affected(self, obj):
         t = type(obj).__name__
         if t == "Dref" and hasattr(obj, "num_affected"):
             return obj.num_affected
-        if t != "Dref" and hasattr(obj, "number_of_people_affected"):  # OU + FR:
+        if t != "Dref" and hasattr(obj, "number_of_people_affected"):
             return obj.number_of_people_affected
 
     def get_people_targeted(self, obj):
         t = type(obj).__name__
-        if t != "DrefOperationalUpdate" and hasattr(obj, "total_targeted_population"):  # A + FR:
+        if t != "DrefOperationalUpdate" and hasattr(obj, "total_targeted_population"):
             return obj.total_targeted_population
         if t == "DrefOperationalUpdate" and hasattr(obj, "number_of_people_targeted"):
             return obj.number_of_people_targeted
@@ -1894,7 +1948,6 @@ class BaseDref3Serializer(serializers.ModelSerializer):
             if val is None:
                 return None
             try:
-                # Keep as int if float-ish, then append %
                 return f"{int(val)}%"
             except (ValueError, TypeError):
                 return None
@@ -1919,213 +1972,161 @@ class BaseDref3Serializer(serializers.ModelSerializer):
 
         return data or None
 
+    # -----------------------------
+    # Sector fields (O(1) lookups after one pass)
+    # -----------------------------
     def get_sector_shelter_and_basic_household_items(self, obj):
-        topic = PlannedIntervention.Title.SHELTER_HOUSING_AND_SETTLEMENTS
-        return True if any(p.title == topic for p in obj.planned_interventions.all()) else False
+        return self._sector_any(obj, PlannedIntervention.Title.SHELTER_HOUSING_AND_SETTLEMENTS)
 
     def get_sector_shelter_and_basic_household_items_budget(self, obj):
-        topic = PlannedIntervention.Title.SHELTER_HOUSING_AND_SETTLEMENTS
-        if obj.planned_interventions.count():
-            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
+        return self._sector_budget(obj, PlannedIntervention.Title.SHELTER_HOUSING_AND_SETTLEMENTS)
 
     def get_sector_shelter_and_basic_household_items_people_targeted(self, obj):
-        topic = PlannedIntervention.Title.SHELTER_HOUSING_AND_SETTLEMENTS
-        if obj.planned_interventions.count():
-            return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
+        return self._sector_people(obj, PlannedIntervention.Title.SHELTER_HOUSING_AND_SETTLEMENTS)
 
     def get_sector_livelihoods(self, obj):
-        topic = PlannedIntervention.Title.LIVELIHOODS_AND_BASIC_NEEDS
-        return True if any(p.title == topic for p in obj.planned_interventions.all()) else False
+        return self._sector_any(obj, PlannedIntervention.Title.LIVELIHOODS_AND_BASIC_NEEDS)
 
     def get_sector_livelihoods_budget(self, obj):
-        topic = PlannedIntervention.Title.LIVELIHOODS_AND_BASIC_NEEDS
-        if obj.planned_interventions.count():
-            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
+        return self._sector_budget(obj, PlannedIntervention.Title.LIVELIHOODS_AND_BASIC_NEEDS)
 
     def get_sector_livelihoods_people_targeted(self, obj):
-        topic = PlannedIntervention.Title.LIVELIHOODS_AND_BASIC_NEEDS
-        if obj.planned_interventions.count():
-            return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
+        return self._sector_people(obj, PlannedIntervention.Title.LIVELIHOODS_AND_BASIC_NEEDS)
 
     def get_sector_multi_purpose_cash_grants(self, obj):
-        topic = PlannedIntervention.Title.MULTI_PURPOSE_CASH
-        return True if any(p.title == topic for p in obj.planned_interventions.all()) else False
+        return self._sector_any(obj, PlannedIntervention.Title.MULTI_PURPOSE_CASH)
 
     def get_sector_multi_purpose_cash_grants_budget(self, obj):
-        topic = PlannedIntervention.Title.MULTI_PURPOSE_CASH
-        if obj.planned_interventions.count():
-            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
+        return self._sector_budget(obj, PlannedIntervention.Title.MULTI_PURPOSE_CASH)
 
     def get_sector_multi_purpose_cash_grants_people_targeted(self, obj):
-        topic = PlannedIntervention.Title.MULTI_PURPOSE_CASH
-        if obj.planned_interventions.count():
-            return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
+        return self._sector_people(obj, PlannedIntervention.Title.MULTI_PURPOSE_CASH)
 
     def get_sector_health(self, obj):
-        topic = PlannedIntervention.Title.HEALTH
-        return True if any(p.title == topic for p in obj.planned_interventions.all()) else False
+        return self._sector_any(obj, PlannedIntervention.Title.HEALTH)
 
     def get_sector_health_budget(self, obj):
-        topic = PlannedIntervention.Title.HEALTH
-        if obj.planned_interventions.count():
-            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
+        return self._sector_budget(obj, PlannedIntervention.Title.HEALTH)
 
     def get_sector_health_people_targeted(self, obj):
-        topic = PlannedIntervention.Title.HEALTH
-        if obj.planned_interventions.count():
-            return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
+        return self._sector_people(obj, PlannedIntervention.Title.HEALTH)
 
     def get_sector_water_sanitation_and_hygiene(self, obj):
-        topic = PlannedIntervention.Title.WATER_SANITATION_AND_HYGIENE
-        return True if any(p.title == topic for p in obj.planned_interventions.all()) else False
+        return self._sector_any(obj, PlannedIntervention.Title.WATER_SANITATION_AND_HYGIENE)
 
     def get_sector_water_sanitation_and_hygiene_budget(self, obj):
-        topic = PlannedIntervention.Title.WATER_SANITATION_AND_HYGIENE
-        if obj.planned_interventions.count():
-            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
+        return self._sector_budget(obj, PlannedIntervention.Title.WATER_SANITATION_AND_HYGIENE)
 
     def get_sector_water_sanitation_and_hygiene_people_targeted(self, obj):
-        topic = PlannedIntervention.Title.WATER_SANITATION_AND_HYGIENE
-        if obj.planned_interventions.count():
-            return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
+        return self._sector_people(obj, PlannedIntervention.Title.WATER_SANITATION_AND_HYGIENE)
 
     def get_sector_protection_gender_and_inclusion(self, obj):
-        topic = PlannedIntervention.Title.PROTECTION_GENDER_AND_INCLUSION
-        return True if any(p.title == topic for p in obj.planned_interventions.all()) else False
+        return self._sector_any(obj, PlannedIntervention.Title.PROTECTION_GENDER_AND_INCLUSION)
 
     def get_sector_protection_gender_and_inclusion_budget(self, obj):
-        topic = PlannedIntervention.Title.PROTECTION_GENDER_AND_INCLUSION
-        if obj.planned_interventions.count():
-            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
+        return self._sector_budget(obj, PlannedIntervention.Title.PROTECTION_GENDER_AND_INCLUSION)
 
     def get_sector_protection_gender_and_inclusion_people_targeted(self, obj):
-        topic = PlannedIntervention.Title.PROTECTION_GENDER_AND_INCLUSION
-        if obj.planned_interventions.count():
-            return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
+        return self._sector_people(obj, PlannedIntervention.Title.PROTECTION_GENDER_AND_INCLUSION)
 
     def get_sector_education(self, obj):
-        topic = PlannedIntervention.Title.EDUCATION
-        return True if any(p.title == topic for p in obj.planned_interventions.all()) else False
+        return self._sector_any(obj, PlannedIntervention.Title.EDUCATION)
 
     def get_sector_education_budget(self, obj):
-        topic = PlannedIntervention.Title.EDUCATION
-        if obj.planned_interventions.count():
-            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
+        return self._sector_budget(obj, PlannedIntervention.Title.EDUCATION)
 
     def get_sector_education_people_targeted(self, obj):
-        topic = PlannedIntervention.Title.EDUCATION
-        if obj.planned_interventions.count():
-            return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
+        return self._sector_people(obj, PlannedIntervention.Title.EDUCATION)
 
     def get_sector_migration_and_displacement(self, obj):
-        topic = PlannedIntervention.Title.MIGRATION_AND_DISPLACEMENT
-        return True if any(p.title == topic for p in obj.planned_interventions.all()) else False
+        return self._sector_any(obj, PlannedIntervention.Title.MIGRATION_AND_DISPLACEMENT)
 
     def get_sector_migration_and_displacement_budget(self, obj):
-        topic = PlannedIntervention.Title.MIGRATION_AND_DISPLACEMENT
-        if obj.planned_interventions.count():
-            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
+        return self._sector_budget(obj, PlannedIntervention.Title.MIGRATION_AND_DISPLACEMENT)
 
     def get_sector_migration_and_displacement_people_targeted(self, obj):
-        topic = PlannedIntervention.Title.MIGRATION_AND_DISPLACEMENT
-        if obj.planned_interventions.count():
-            return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
+        return self._sector_people(obj, PlannedIntervention.Title.MIGRATION_AND_DISPLACEMENT)
 
     def get_sector_risk_reduction_climate_adaptation_and_recovery(self, obj):
-        topic = PlannedIntervention.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY
-        return True if any(p.title == topic for p in obj.planned_interventions.all()) else False
+        return self._sector_any(obj, PlannedIntervention.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY)
 
     def get_sector_risk_reduction_climate_adaptation_and_recovery_budget(self, obj):
-        topic = PlannedIntervention.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY
-        if obj.planned_interventions.count():
-            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
+        return self._sector_budget(obj, PlannedIntervention.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY)
 
     def get_sector_risk_reduction_climate_adaptation_and_recovery_people_targeted(self, obj):
-        topic = PlannedIntervention.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY
-        if obj.planned_interventions.count():
-            return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
+        return self._sector_people(obj, PlannedIntervention.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY)
 
     def get_sector_community_engagement_and_accountability(self, obj):
-        topic = PlannedIntervention.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY
-        return True if any(p.title == topic for p in obj.planned_interventions.all()) else False
+        return self._sector_any(obj, PlannedIntervention.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY)
 
     def get_sector_community_engagement_and_accountability_budget(self, obj):
-        topic = PlannedIntervention.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY
-        if obj.planned_interventions.count():
-            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
+        return self._sector_budget(obj, PlannedIntervention.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY)
 
     def get_sector_community_engagement_and_accountability_people_targeted(self, obj):
-        topic = PlannedIntervention.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY
-        if obj.planned_interventions.count():
-            return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
+        return self._sector_people(obj, PlannedIntervention.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY)
 
     def get_sector_environmental_sustainability(self, obj):
-        topic = PlannedIntervention.Title.ENVIRONMENTAL_SUSTAINABILITY
-        return True if any(p.title == topic for p in obj.planned_interventions.all()) else False
+        return self._sector_any(obj, PlannedIntervention.Title.ENVIRONMENTAL_SUSTAINABILITY)
 
     def get_sector_environmental_sustainability_budget(self, obj):
-        topic = PlannedIntervention.Title.ENVIRONMENTAL_SUSTAINABILITY
-        if obj.planned_interventions.count():
-            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
+        return self._sector_budget(obj, PlannedIntervention.Title.ENVIRONMENTAL_SUSTAINABILITY)
 
     def get_sector_environmental_sustainability_people_targeted(self, obj):
-        topic = PlannedIntervention.Title.ENVIRONMENTAL_SUSTAINABILITY
-        if obj.planned_interventions.count():
-            return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
+        return self._sector_people(obj, PlannedIntervention.Title.ENVIRONMENTAL_SUSTAINABILITY)
 
     def get_sector_coordination_and_partnerships(self, obj):
-        topic = PlannedIntervention.Title.COORDINATION_AND_PARTNERSHIPS
-        return True if any(p.title == topic for p in obj.planned_interventions.all()) else False
+        return self._sector_any(obj, PlannedIntervention.Title.COORDINATION_AND_PARTNERSHIPS)
 
     def get_sector_coordination_and_partnerships_budget(self, obj):
-        topic = PlannedIntervention.Title.COORDINATION_AND_PARTNERSHIPS
-        if obj.planned_interventions.count():
-            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
+        return self._sector_budget(obj, PlannedIntervention.Title.COORDINATION_AND_PARTNERSHIPS)
 
     def get_sector_coordination_and_partnerships_people_targeted(self, obj):
-        topic = PlannedIntervention.Title.COORDINATION_AND_PARTNERSHIPS
-        if obj.planned_interventions.count():
-            return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
+        return self._sector_people(obj, PlannedIntervention.Title.COORDINATION_AND_PARTNERSHIPS)
 
     def get_sector_secretariat_services(self, obj):
-        topic = PlannedIntervention.Title.SECRETARIAT_SERVICES
-        return True if any(p.title == topic for p in obj.planned_interventions.all()) else False
+        return self._sector_any(obj, PlannedIntervention.Title.SECRETARIAT_SERVICES)
 
     def get_sector_secretariat_services_budget(self, obj):
-        topic = PlannedIntervention.Title.SECRETARIAT_SERVICES
-        if obj.planned_interventions.count():
-            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
+        return self._sector_budget(obj, PlannedIntervention.Title.SECRETARIAT_SERVICES)
 
     def get_sector_secretariat_services_people_targeted(self, obj):
-        topic = PlannedIntervention.Title.SECRETARIAT_SERVICES
-        if obj.planned_interventions.count():
-            return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
+        return self._sector_people(obj, PlannedIntervention.Title.SECRETARIAT_SERVICES)
 
     def get_sector_national_society_strengthening(self, obj):
-        topic = PlannedIntervention.Title.NATIONAL_SOCIETY_STRENGTHENING
-        return True if any(p.title == topic for p in obj.planned_interventions.all()) else False
+        return self._sector_any(obj, PlannedIntervention.Title.NATIONAL_SOCIETY_STRENGTHENING)
 
     def get_sector_national_society_strengthening_budget(self, obj):
-        topic = PlannedIntervention.Title.NATIONAL_SOCIETY_STRENGTHENING
-        if obj.planned_interventions.count():
-            return sum([(p.budget or 0) for p in obj.planned_interventions.all() if p.title == topic])
+        return self._sector_budget(obj, PlannedIntervention.Title.NATIONAL_SOCIETY_STRENGTHENING)
 
     def get_sector_national_society_strengthening_people_targeted(self, obj):
-        topic = PlannedIntervention.Title.NATIONAL_SOCIETY_STRENGTHENING
-        if obj.planned_interventions.count():
-            return sum([(p.person_targeted or 0) for p in obj.planned_interventions.all() if p.title == topic])
+        return self._sector_people(obj, PlannedIntervention.Title.NATIONAL_SOCIETY_STRENGTHENING)
 
+    # -----------------------------
+    # Other method fields
+    # -----------------------------
     def get_approved(self, obj):
         return True if obj.status == Dref.Status.APPROVED else False
 
     def get_indicators_id(self, obj):
-        return None  # Placeholder for future implementation
+        return None
 
     def get_link_to_emergency_page(self, obj):
-        try:
-            appeal = Appeal.objects.get(code=obj.appeal_code)
-        except Appeal.DoesNotExist:
-            return None  # f"No Appeal (and no Event) found with code: {obj.appeal_code}"
+        code = getattr(obj, "appeal_code", None)
+        if not code:
+            return None
+
+        cache = self._appeal_cache()
+        if code in cache:
+            appeal = cache[code]
+        else:
+            try:
+                appeal = Appeal.objects.only("event_id").get(code=code)
+            except Appeal.DoesNotExist:
+                appeal = None
+            cache[code] = appeal
+
+        if not appeal or not getattr(appeal, "event_id", None):
+            return None
         return f"https://go.ifrc.org/emergencies/{appeal.event_id}/details"
 
     class Meta:
