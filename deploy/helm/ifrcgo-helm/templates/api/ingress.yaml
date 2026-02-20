@@ -55,7 +55,7 @@ kind: Ingress
 metadata:
   name: {{ template "ifrcgo-helm.fullname" . }}-ingress-user-library
   annotations:
-    nginx.ingress.kubernetes.io/permanent-redirect: "https://www.chromatic.com/manage?appId=66557be6b68dacbf0a96db23&branch=develop"
+    nginx.ingress.kubernetes.io/permanent-redirect: "https://www.chromatic.com/library?appId=66557be6b68dacbf0a96db23&branch=develop"
     nginx.ingress.kubernetes.io/permanent-redirect-code: "301"
 spec:
   ingressClassName:

@@ -393,6 +393,13 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):  # type: ignore[misc]
             self._excluded_codes_cache = self.get_nonsuperusers_excluded_codes()
         return self._excluded_codes_cache
 
+    def _has_full_access(self, user):
+        if not user:
+            return False
+        if getattr(user, "is_superuser", False):
+            return True
+        return user.groups.filter(name="DREF3 Admins").exists()
+
     def get_queryset(self):  # type: ignore[override]
         # just to give something to rest_framework/generics.py:63 – not used in retrieve
         return Dref.objects.none()
@@ -577,7 +584,7 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):  # type: ignore[misc]
                 codes_qs_dref = codes_qs_dref.filter(**{f"{field}__lte": to_param})
 
         # Exclude codes for non-superusers
-        if not getattr(self.request.user, "is_superuser", False):
+        if not self._has_full_access(self.request.user):
             excluded_codes = self._excluded_codes()
             if excluded_codes:
                 codes = [c for c in codes if c and c.upper() not in excluded_codes]
@@ -671,7 +678,7 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):  # type: ignore[misc]
         results = []
         user = self.request.user
 
-        if not getattr(user, "is_superuser", False):
+        if not self._has_full_access(user):
             # If code is in the excluded list, return no results for anonymous users
             excluded_codes = self._excluded_codes()
             if appeal_code and appeal_code.upper() in excluded_codes:
