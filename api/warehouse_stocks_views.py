@@ -98,24 +98,6 @@ class WarehouseStocksView(views.APIView):
         except Exception:
             iso2_to_iso3, iso3_to_country_name, iso3_to_region_name = {}, {}, {}
 
-        if region_list:
-            region_lookup = {v.lower(): v for v in set(iso3_to_region_name.values()) if v}
-            normalized = []
-            for r in region_list:
-                nr = region_lookup.get(r.lower())
-                normalized.append(nr if nr is not None else r)
-            region_list = normalized
-
-            # Normalize region filter values to the exact region strings returned
-            # by goadmin (case-insensitive match) so ES term queries match the
-            # keyword-valued `region` field (which is case-sensitive).
-            if region_list:
-                region_lookup = {v.lower(): v for v in set(iso3_to_region_name.values()) if v}
-                normalized = []
-                for r in region_list:
-                    nr = region_lookup.get(r.lower())
-                    normalized.append(nr if nr is not None else r)
-                region_list = normalized
         # cache settings per-request
         try:
             disable_cache = bool(getattr(settings, "DISABLE_API_CACHE", False))
@@ -535,14 +517,6 @@ class AggregatedWarehouseStocksView(views.APIView):
             iso2_to_iso3, iso3_to_country_name, iso3_to_region_name = _fetch_goadmin_maps()
         except Exception:
             iso2_to_iso3, iso3_to_country_name, iso3_to_region_name = {}, {}, {}
-
-        if region_list:
-            region_lookup = {v.lower(): v for v in set(iso3_to_region_name.values()) if v}
-            normalized = []
-            for r in region_list:
-                nr = region_lookup.get(r.lower())
-                normalized.append(nr if nr is not None else r)
-            region_list = normalized
 
         results = []
 
