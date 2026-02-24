@@ -95,6 +95,18 @@ jobs:
           echo "tagged_image=${IMAGE_NAME}:${TAG}" >> $GITHUB_OUTPUT
           echo "::notice::Tagged docker image: ${IMAGE_NAME}:${TAG}"
 
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android || true
+          sudo apt-get clean
+          docker system df || true
+          docker builder prune -af || true
+          docker image prune -af || true
+          docker container prune -f || true
+          docker volume prune -f || true
+          df -h
+
+
       - name: 🐳 Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v3

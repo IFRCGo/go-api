@@ -70,7 +70,7 @@ dependencies = [
     "xmltodict==0.11.0",
     "xhtml2pdf==0.2.17",
     "reportlab",  # XXX: Used by xhtml2pdf reportlab==3.6.7 breaks for now
-    "celery[redis]==5.1.2",
+    "celery[redis]==5.2.7",
     "django-redis==5.0.0",
     "sentry-sdk",
     "django-haystack[elasticsearch]",
@@ -85,6 +85,7 @@ dependencies = [
     "openai",
     "azure-identity",
     "pyodbc==5.1.0",
+    "ddgs>=8.1.1",
 ]
 
 [dependency-groups]

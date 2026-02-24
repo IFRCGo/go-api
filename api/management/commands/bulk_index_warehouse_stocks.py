@@ -75,7 +75,8 @@ class Command(BaseCommand):
         if only_available:
             q = q.filter(item_status_name="Available")
 
-        agg = q.values("warehouse", "product").annotate(quantity=Sum("quantity"))
+        # Include item_status_name so documents in ES carry status information
+        agg = q.values("warehouse", "product", "item_status_name").annotate(quantity=Sum("quantity"))
 
         actions = []
         count = 0
@@ -103,7 +104,9 @@ class Command(BaseCommand):
                 except Exception:
                     qty_num = None
 
-            doc_id = f"{warehouse_id}__{product_id}"
+            status_val = _safe_str(row.get("item_status_name"))
+            # include status in doc id to avoid collisions when multiple statuses exist
+            doc_id = f"{warehouse_id}__{product_id}__{status_val}"
 
             doc = {
                 "id": doc_id,
@@ -115,6 +118,7 @@ class Command(BaseCommand):
                 "item_name": prod.get("item_name", ""),
                 "unit": prod.get("unit", ""),
                 "item_group": cat_by_code.get(prod.get("product_category_code", ""), ""),
+                "item_status_name": status_val,
                 "quantity": qty_num,
             }
 
