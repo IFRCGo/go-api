@@ -1996,10 +1996,7 @@ class CleanedFrameworkAgreementSummaryView(APIView):
             for value in base_qs.exclude(region_countries_covered__isnull=True).exclude(
                 region_countries_covered__exact=""
             ).values_list("region_countries_covered", flat=True):
-                for raw in value.replace(";", ",").split(","):
-                    normalized = raw.strip().lower()
-                    if not normalized or normalized == "global":
-                        continue
+                for normalized in self._split_covered_countries(value):
                     match_id = country_name_map.get(normalized)
                     if match_id:
                         covered_country_ids.add(match_id)
