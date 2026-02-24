@@ -201,10 +201,8 @@ ALLOWED_HOSTS = [
     "localhost",
     "0.0.0.0",
     "posological-whited-myrtle.ngrok-free.dev",
-    "vocably-avaricious-mirtha.ngrok-free.dev",
     urlparse(GO_API_URL).hostname,
     *env("DJANGO_ADDITIONAL_ALLOWED_HOSTS"),
-    "vocably-avaricious-mirtha.ngrok-free.dev"
 ]
 
 SECRET_KEY = env("DJANGO_SECRET_KEY")

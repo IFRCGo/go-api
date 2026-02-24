@@ -261,11 +261,6 @@ router.register(r"fabric/fct-agreement", api_views.FabricFctAgreementViewSet, ba
 router.register(r"fabric/fct-product-receipt", api_views.FabricFctProductReceiptViewSet, basename="fabric_fct_product_receipt")
 router.register(r"fabric/fct-purchase-order", api_views.FabricFctPurchaseOrderViewSet, basename="fabric_fct_purchase_order")
 router.register(r"fabric/fct-sales-order", api_views.FabricFctSalesOrderViewSet, basename="fabric_fct_sales_order")
-router.register(
-    r"fabric/cleaned-framework-agreements",
-    api_views.CleanedFrameworkAgreementViewSet,
-    basename="fabric_cleaned_framework_agreements",
-)
 
 router.register(
     r"fabric/product-category-hierarchy-flattened",
@@ -328,6 +323,8 @@ urlpatterns = [
         api_views.CustomsRegulationCountryView.as_view(),
         name="country_regulations_detail",
     ),
+    # Customs Updates - AI Generated Updates
+    path("api/v2/customs-ai-updates/", api_views.CustomsUpdatesView.as_view(), name="customs_updates_list"),
     path(
         "api/v2/fabric/cleaned-framework-agreements/item-categories/",
         api_views.CleanedFrameworkAgreementItemCategoryOptionsView.as_view(),
@@ -344,13 +341,7 @@ urlpatterns = [
         name="fabric_cleaned_framework_agreement_map_stats",
     )
     # Customs Updates - AI Generated Updates
-    path("api/v2/customs-ai-updates/", api_views.CustomsUpdatesView.as_view(), name="customs_updates_list"),
-    path(
-        "api/v2/fabric/cleaned-framework-agreements/item-categories/",
-        api_views.CleanedFrameworkAgreementItemCategoryOptionsView.as_view(),
-        name="fabric_cleaned_framework_agreement_item_categories",
-    ),
-    
+    path("api/v2/customs-ai-updates/", api_views.CustomsUpdatesView.as_view(), name="customs_updates_list"),   
     path(
         "api/v2/customs-ai-updates/<str:country>/",
         api_views.CustomsUpdatesCountryView.as_view(),
