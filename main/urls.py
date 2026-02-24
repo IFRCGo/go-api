@@ -326,28 +326,10 @@ urlpatterns = [
     # Customs Updates - AI Generated Updates
     path("api/v2/customs-ai-updates/", api_views.CustomsUpdatesView.as_view(), name="customs_updates_list"),
     path(
-        "api/v2/fabric/cleaned-framework-agreements/item-categories/",
-        api_views.CleanedFrameworkAgreementItemCategoryOptionsView.as_view(),
-        name="fabric_cleaned_framework_agreement_item_categories",
-    ),
-    path(
-        "api/v2/fabric/cleaned-framework-agreements/summary/",
-        api_views.CleanedFrameworkAgreementSummaryView.as_view(),
-        name="fabric_cleaned_framework_agreement_summary",
-    ),
-    path(
-        "api/v2/fabric/cleaned-framework-agreements/map-stats/",
-        api_views.CleanedFrameworkAgreementMapStatsView.as_view(),
-        name="fabric_cleaned_framework_agreement_map_stats",
-    )
-    # Customs Updates - AI Generated Updates
-    path("api/v2/customs-ai-updates/", api_views.CustomsUpdatesView.as_view(), name="customs_updates_list"),   
-    path(
         "api/v2/customs-ai-updates/<str:country>/",
         api_views.CustomsUpdatesCountryView.as_view(),
         name="customs_updates_detail",
     ),
-    
     url(r"^api/v2/", include(router.urls)),
     # PER options
     url(r"^api/v2/per-options/", per_views.PerOptionsView.as_view()),
