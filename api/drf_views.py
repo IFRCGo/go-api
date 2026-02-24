@@ -2028,9 +2028,17 @@ class CleanedFrameworkAgreementMapStatsView(APIView):
         return value.strip().lower() or None
 
     def _build_country_maps(self):
-        country_qs = Country.objects.filter(is_deprecated=False, independent=True)
-        name_to_iso3 = {name.lower(): iso3 for name, iso3 in country_qs.values_list("name", "iso3") if iso3}
-        iso3_to_name = {iso3: name for name, iso3 in country_qs.values_list("name", "iso3") if iso3}
+        country_values = Country.objects.filter(
+            is_deprecated=False,
+            independent=True,
+        ).values_list("name", "iso3")
+        name_to_iso3 = {}
+        iso3_to_name = {}
+        for name, iso3 in country_values:
+            if not iso3:
+                continue
+            name_to_iso3[name.lower()] = iso3
+            iso3_to_name[iso3] = name
         return name_to_iso3, iso3_to_name
 
     def _es_map_stats(self):
