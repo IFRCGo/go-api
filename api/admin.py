@@ -12,6 +12,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import OuterRef, Subquery, Value
 from django.db.models.functions import Concat
 from django.http import HttpResponse, HttpResponseRedirect
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.formats import date_format
@@ -29,6 +30,7 @@ from api.event_sources import SOURCES
 from api.management.commands.index_and_notify import Command as Notify
 from lang.admin import TranslationAdmin, TranslationInlineModelAdmin
 from notifications.models import RecordType, SubscriptionType
+from notifications.notification import send_notification
 
 from .forms import ActionForm
 
@@ -1268,6 +1270,40 @@ class CrisisCategorisationByCountryAdminForm(forms.ModelForm):
         is_allowed = bool(getattr(user, "is_superuser", False) or user.groups.filter(name__in=allowed_group_names).exists())
         if not is_allowed:
             raise forms.ValidationError(_("Only superusers or Regional Admins (0-4) can set status to Validated or above."))
+
+        notification_subject = "Crisis categorisation status updated"
+        cc_id = self.instance.pk if self.instance.pk is not None else "new"
+        notification_content = f"Crisis categorisation (id = {cc_id}) status was changed to {new_status}."
+        notification_html = render_to_string(
+            "design/generic_notification.html",
+            {
+                "count": 1,
+                "records": [
+                    {
+                        "title": notification_subject,
+                        "content": notification_content,
+                        "resource_uri": settings.GO_WEB_URL,
+                    }
+                ],
+                "subject": notification_subject,
+                "hide_preferences": True,
+                "frontend_url": settings.GO_WEB_URL,
+            },
+        )
+        recipients = list(
+            User.objects.filter(groups__name="Crisis Categorization Validator", is_active=True)
+            .exclude(email__isnull=True)
+            .exclude(email="")
+            .values_list("email", flat=True)
+            .distinct()
+        )
+        if recipients:
+            send_notification(
+                notification_subject,
+                recipients,
+                notification_html,
+                f"Crisis categorisation status update - {cc_id} to {new_status}",
+            )
 
         return new_status
 
