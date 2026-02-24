@@ -38,6 +38,9 @@ from .models import (
     Country,
     CountryCapacityStrengthening,
     CountryContact,
+    CountryCustomsEvidenceSnippet,
+    CountryCustomsSnapshot,
+    CountryCustomsSource,
     CountryDirectory,
     CountryICRCPresence,
     CountryKeyDocument,
@@ -2975,3 +2978,69 @@ class RegulationSectionSerializer(serializers.Serializer):
 class CountryRegulationSerializer(serializers.Serializer):
     country = serializers.CharField()
     sections = RegulationSectionSerializer(many=True)
+
+
+# Customs Updates Serializers
+class CountryCustomsEvidenceSnippetSerializer(ModelSerializer):
+    class Meta:
+        model = CountryCustomsEvidenceSnippet
+        fields = ["id", "snippet_order", "snippet_text", "claim_tags"]
+        read_only_fields = fields
+
+
+class CountryCustomsSourceSerializer(ModelSerializer):
+    snippets = CountryCustomsEvidenceSnippetSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = CountryCustomsSource
+        fields = [
+            "id",
+            "rank",
+            "url",
+            "title",
+            "publisher",
+            "published_at",
+            "retrieved_at",
+            "authority_score",
+            "freshness_score",
+            "relevance_score",
+            "specificity_score",
+            "total_score",
+            "content_hash",
+            "snippets",
+        ]
+        read_only_fields = fields
+
+
+class CountryCustomsSnapshotSerializer(ModelSerializer):
+    sources = CountryCustomsSourceSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = CountryCustomsSnapshot
+        fields = [
+            "id",
+            "country_name",
+            "is_current",
+            "generated_at",
+            "model_name",
+            "confidence",
+            "summary_text",
+            "current_situation_bullets",
+            "evidence_hash",
+            "search_query",
+            "status",
+            "error_message",
+            "sources",
+        ]
+        read_only_fields = fields
+
+
+class CustomsUpdatesResponseSerializer(serializers.Serializer):
+    """Response schema for customs updates endpoint"""
+
+    country = serializers.CharField()
+    generated_at = serializers.DateTimeField()
+    confidence = serializers.CharField()
+    summary_text = serializers.CharField()
+    current_situation_bullets = serializers.ListField(child=serializers.CharField())
+    sources = serializers.ListField(child=serializers.DictField())

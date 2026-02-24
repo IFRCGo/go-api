@@ -80,6 +80,7 @@ WAREHOUSE_MAPPING = {
         "unit": {"type": "keyword"},
         "quantity": {"type": "double"},
         "item_status": {"type": "keyword"},
+        "item_status_name": {"type": "keyword"},
         "last_updated": {"type": "date"},
     }
 }

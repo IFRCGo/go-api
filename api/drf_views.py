@@ -1,3 +1,4 @@
+import logging
 from datetime import timedelta
 
 from django.contrib.auth.models import Group, User
@@ -101,6 +102,7 @@ from main.utils import is_tableau
 from per.models import Overview
 from per.serializers import CountryLatestOverviewSerializer
 
+from .customs_ai_service import CustomsAIService
 from .customs_data_loader import load_customs_regulations
 from .exceptions import BadRequest
 from .esconnection import ES_CLIENT
@@ -115,6 +117,7 @@ from .models import (
     AppealType,
     CleanedFrameworkAgreement,
     Country,
+    CountryCustomsSnapshot,
     CountryKeyDocument,
     CountryKeyFigure,
     CountryOfFieldReportToReview,
@@ -180,6 +183,7 @@ from .serializers import (  # AppealSerializer,; Tableau Serializers; AppealTabl
     AppealDocumentTableauSerializer,
     AppealHistorySerializer,
     AppealHistoryTableauSerializer,
+    CountryCustomsSnapshotSerializer,
     CountryDisasterTypeCountSerializer,
     CountryDisasterTypeMonthlySerializer,
     CountryGeoSerializer,
@@ -202,7 +206,7 @@ from .serializers import (  # AppealSerializer,; Tableau Serializers; AppealTabl
     EventSeverityLevelHistorySerializer,
     ExportSerializer,
     ExternalPartnerSerializer,
-    FabricCleanedFrameworkAgreementSerializer,    
+    FabricCleanedFrameworkAgreementSerializer,
     FabricDimAgreementLineSerializer,
     FabricDimAppealSerializer,
     FabricDimBuyerGroupSerializer,
@@ -267,6 +271,8 @@ from .serializers import (  # AppealSerializer,; Tableau Serializers; AppealTabl
     UserSerializer,
 )
 from .utils import generate_field_report_title, is_user_ifrc
+
+logger = logging.getLogger(__name__)
 
 
 class CleanedFrameworkAgreementPagination(PageNumberPagination):
@@ -1807,7 +1813,6 @@ class CleanedFrameworkAgreementViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         return CleanedFrameworkAgreement.objects.all()
 
-
 class CleanedFrameworkAgreementItemCategoryOptionsView(APIView):
     """List distinct item categories for Spark framework agreements."""
 
@@ -2184,6 +2189,7 @@ class CleanedFrameworkAgreementMapStatsView(APIView):
         return Response({"results": list(results.values())})
 
 
+
 class FabricDimAgreementLineViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = FabricDimAgreementLineSerializer
     permission_classes = [IsAuthenticated, DenyGuestUserPermission]
@@ -2508,9 +2514,84 @@ class CustomsRegulationCountryView(APIView):
                     return Response(serializer.data, status=status.HTTP_200_OK)
 
             return Response({"detail": "Country not found"}, status=status.HTTP_404_NOT_FOUND)
-
         except Exception:
             return Response(
                 {"detail": "Failed to load country regulations"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+class CustomsUpdatesView(APIView):
+    """
+    List available AI-generated customs updates.
+    GET /api/v2/customs-ai-updates/ - List all countries with current snapshots
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            snapshots = CountryCustomsSnapshot.objects.filter(is_current=True).order_by("country_name")
+            serializer = CountryCustomsSnapshotSerializer(snapshots, many=True)
+            return Response({"results": serializer.data}, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"Failed to list customs updates: {str(e)}")
+            return Response(
+                {"detail": "Failed to load customs updates"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+class CustomsUpdatesCountryView(APIView):
+    """
+    Get or generate AI-powered customs update for a country.
+    GET /api/v2/customs-ai-updates/<country>/ - Get snapshot, or generate if doesn't exist
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, country):
+        try:
+            country_name = country.strip()
+
+            existing_snapshot = CountryCustomsSnapshot.objects.filter(
+                country_name__iexact=country_name,
+                is_current=True,
+            ).first()
+
+            if existing_snapshot:
+                logger.info(f"Returning existing snapshot for {country_name}")
+                serializer = CountryCustomsSnapshotSerializer(existing_snapshot)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+
+            logger.info(f"No snapshot found for {country_name}, validating and generating...")
+
+            is_valid, error_msg = CustomsAIService.validate_country_name(country_name)
+            if not is_valid:
+                logger.warning(f"Invalid country name: {country_name}")
+                return Response(
+                    {"detail": error_msg or f"'{country_name}' is not a recognized country."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            logger.info(f"Country '{country_name}' validation passed, generating snapshot...")
+            snapshot = CustomsAIService.generate_customs_snapshot(country_name)
+
+            if snapshot.status == "failed":
+                logger.error(f"Generation failed for {country_name}: {snapshot.error_message}")
+                return Response(
+                    {
+                        "detail": snapshot.error_message or "Failed to generate customs update",
+                        "country": country_name,
+                    },
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
+
+            serializer = CountryCustomsSnapshotSerializer(snapshot)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            logger.error(f"Exception in customs update endpoint for {country}: {str(e)}")
+            return Response(
+                {"detail": "An error occurred while processing customs update"},
             )
