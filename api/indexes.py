@@ -32,40 +32,6 @@ ES_PAGE_NAME = "page_all"
 # Warehouse stocks index
 WAREHOUSE_INDEX_NAME = "warehouse_stocks"
 
-# Cleaned Framework Agreements index
-CLEANED_FRAMEWORK_AGREEMENTS_INDEX_NAME = "cleaned_framework_agreements"
-
-CLEANED_FRAMEWORK_AGREEMENTS_MAPPING = {
-    "properties": {
-        "id": {"type": "long"},
-        "agreement_id": {"type": "keyword"},
-        "classification": {"type": "keyword"},
-        "default_agreement_line_effective_date": {"type": "date"},
-        "default_agreement_line_expiration_date": {"type": "date"},
-        "workflow_status": {"type": "keyword"},
-        "status": {"type": "keyword"},
-        "price_per_unit": {"type": "double"},
-        "pa_line_procurement_category": {"type": "keyword"},
-        "vendor_name": {"type": "text", "fields": {"raw": {"type": "keyword"}}},
-        "vendor_valid_from": {"type": "date"},
-        "vendor_valid_to": {"type": "date"},
-        "vendor_country": {"type": "keyword"},
-        "region_countries_covered": {"type": "keyword"},
-        "item_type": {"type": "keyword"},
-        "item_category": {"type": "keyword"},
-        "item_service_short_description": {"type": "text"},
-        "owner": {"type": "keyword"},
-        "created_at": {"type": "date"},
-        "updated_at": {"type": "date"},
-    }
-}
-
-CLEANED_FRAMEWORK_AGREEMENTS_SETTINGS = {
-    "settings": {
-        "number_of_shards": 1,
-    }
-}
-
 WAREHOUSE_MAPPING = {
     "properties": {
         "warehouse_id": {"type": "keyword"},

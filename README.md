@@ -63,15 +63,6 @@ email-verification only, is to be found
 ### 3. Pull Data
      $ docker compose exec serve python manage.py pull_fabric_data
 
-## Elasticsearch (Cleaned Framework Agreements)
-
-If you want the `/api/v2/fabric/cleaned-framework-agreements/` endpoint to use Elasticsearch locally, create the index and bulk index the data:
-
-
-     $ docker compose run --rm serve python manage.py create_cleaned_framework_agreements_index
-     
-     $ docker compose run --rm serve python manage.py bulk_index_cleaned_framework_agreements
-
 ## Backend CI Checks (Run Locally)
 
 Before pushing backend changes, run the following checks to avoid CI failures.
