@@ -17,7 +17,7 @@ from django.db.models import (
     When,
 )
 from django.db.models.fields import IntegerField
-from django.db.models.functions import Coalesce, TruncMonth
+from django.db.models.functions import Coalesce, Lower, TruncMonth, Trim
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -27,6 +27,7 @@ from rest_framework import filters, mixins, serializers, status, viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -40,6 +41,7 @@ from api.filter_set import (
     CountryKeyFigureFilter,
     CountrySnippetFilter,
     CountrySupportingPartnerFilter,
+    CleanedFrameworkAgreementFilter,
     DistrictFilter,
     DistrictRMDFilter,
     EventFilter,
@@ -103,6 +105,9 @@ from per.serializers import CountryLatestOverviewSerializer
 from .customs_ai_service import CustomsAIService
 from .customs_data_loader import load_customs_regulations
 from .exceptions import BadRequest
+from .esconnection import ES_CLIENT
+from .indexes import CLEANED_FRAMEWORK_AGREEMENTS_INDEX_NAME
+from .logger import logger
 from .models import (
     Action,
     Admin2,
@@ -110,6 +115,7 @@ from .models import (
     AppealDocument,
     AppealHistory,
     AppealType,
+    CleanedFrameworkAgreement,
     Country,
     CountryCustomsSnapshot,
     CountryKeyDocument,
@@ -200,6 +206,7 @@ from .serializers import (  # AppealSerializer,; Tableau Serializers; AppealTabl
     EventSeverityLevelHistorySerializer,
     ExportSerializer,
     ExternalPartnerSerializer,
+    FabricCleanedFrameworkAgreementSerializer,
     FabricDimAgreementLineSerializer,
     FabricDimAppealSerializer,
     FabricDimBuyerGroupSerializer,
@@ -266,6 +273,14 @@ from .serializers import (  # AppealSerializer,; Tableau Serializers; AppealTabl
 from .utils import generate_field_report_title, is_user_ifrc
 
 logger = logging.getLogger(__name__)
+
+
+class CleanedFrameworkAgreementPagination(PageNumberPagination):
+    """Page-number pagination for CleanedFrameworkAgreement listings."""
+
+    page_size = 100
+    page_size_query_param = "pageSize"
+    max_page_size = 500
 
 
 class DeploymentsByEventViewset(viewsets.ReadOnlyModelViewSet):
@@ -1643,6 +1658,160 @@ class CountrySupportingPartnerViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return CountrySupportingPartner.objects.select_related("country")
+
+
+class CleanedFrameworkAgreementViewSet(viewsets.ReadOnlyModelViewSet):
+    """Read-only, paginated API for CleanedFrameworkAgreement (Spark FA data).
+
+    Exposed at /api/v2/fabric/cleaned-framework-agreements/ via the DRF router.
+    Supports server-side filtering and ordering using camelCase query params.
+    """
+
+    serializer_class = FabricCleanedFrameworkAgreementSerializer
+    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
+    filterset_class = CleanedFrameworkAgreementFilter
+    pagination_class = CleanedFrameworkAgreementPagination
+    ordering_fields = (
+        "region_countries_covered",
+        "item_category",
+        "vendor_country",
+        "agreement_id",
+    )
+    ordering = ("region_countries_covered",)
+
+    @staticmethod
+    def _split_csv(value):
+        if not value:
+            return []
+        return [v.strip() for v in value.split(",") if v.strip()]
+
+    @staticmethod
+    def _map_es_doc(src):
+        return {
+            "id": src.get("id"),
+            "agreementId": src.get("agreement_id"),
+            "classification": src.get("classification"),
+            "defaultAgreementLineEffectiveDate": src.get("default_agreement_line_effective_date"),
+            "defaultAgreementLineExpirationDate": src.get("default_agreement_line_expiration_date"),
+            "workflowStatus": src.get("workflow_status"),
+            "status": src.get("status"),
+            "pricePerUnit": src.get("price_per_unit"),
+            "paLineProcurementCategory": src.get("pa_line_procurement_category"),
+            "vendorName": src.get("vendor_name"),
+            "vendorValidFrom": src.get("vendor_valid_from"),
+            "vendorValidTo": src.get("vendor_valid_to"),
+            "vendorCountry": src.get("vendor_country"),
+            "regionCountriesCovered": src.get("region_countries_covered"),
+            "itemType": src.get("item_type"),
+            "itemCategory": src.get("item_category"),
+            "itemServiceShortDescription": src.get("item_service_short_description"),
+            "owner": src.get("owner"),
+            "createdAt": src.get("created_at"),
+            "updatedAt": src.get("updated_at"),
+        }
+
+    @staticmethod
+    def _build_page_link(request, page_number):
+        params = request.query_params.copy()
+        params["page"] = page_number
+        base_url = request.build_absolute_uri(request.path)
+        query = params.urlencode()
+        return f"{base_url}?{query}" if query else base_url
+
+    def _es_list(self, request):
+        if ES_CLIENT is None:
+            return None
+
+        try:
+            page_size = self.pagination_class().get_page_size(request) or 100
+        except Exception:
+            page_size = 100
+
+        try:
+            page_number = int(request.query_params.get("page", 1))
+        except Exception:
+            page_number = 1
+        page_number = max(page_number, 1)
+
+        region_values = self._split_csv(request.query_params.get("regionCountriesCovered"))
+        item_category_values = self._split_csv(request.query_params.get("itemCategory"))
+        vendor_country_values = self._split_csv(request.query_params.get("vendorCountry"))
+
+        filters = []
+        if region_values:
+            filters.append({"terms": {"region_countries_covered": region_values}})
+        if item_category_values:
+            filters.append({"terms": {"item_category": item_category_values}})
+        if vendor_country_values:
+            filters.append({"terms": {"vendor_country": vendor_country_values}})
+
+        query = {"bool": {"filter": filters}} if filters else {"match_all": {}}
+
+        sort_param = (request.query_params.get("sort") or "").strip()
+        sort_map = {
+            "regionCountriesCovered": "region_countries_covered",
+            "itemCategory": "item_category",
+            "vendorCountry": "vendor_country",
+            "agreementId": "agreement_id",
+        }
+
+        sort_field = "region_countries_covered"
+        sort_order = "asc"
+        if sort_param:
+            sort_order = "desc" if sort_param.startswith("-") else "asc"
+            sort_key = sort_param[1:] if sort_param.startswith("-") else sort_param
+            sort_field = sort_map.get(sort_key, sort_field)
+
+        body = {
+            "from": (page_number - 1) * page_size,
+            "size": page_size,
+            "query": query,
+            "track_total_hits": True,
+            "sort": [{sort_field: {"order": sort_order, "missing": "_last"}}],
+        }
+
+        try:
+            resp = ES_CLIENT.search(index=CLEANED_FRAMEWORK_AGREEMENTS_INDEX_NAME, body=body)
+        except Exception as exc:
+            logger.warning("ES search failed for cleaned framework agreements: %s", str(exc)[:256])
+            return None
+
+        hits = resp.get("hits", {}).get("hits", []) or []
+        total = resp.get("hits", {}).get("total") or {}
+        if isinstance(total, dict):
+            total_count = total.get("value", 0)
+        elif isinstance(total, int):
+            total_count = total
+        else:
+            total_count = 0
+
+        results = [self._map_es_doc(h.get("_source", {}) or {}) for h in hits]
+
+        next_link = None
+        prev_link = None
+        if total_count:
+            if page_number * page_size < total_count:
+                next_link = self._build_page_link(request, page_number + 1)
+            if page_number > 1:
+                prev_link = self._build_page_link(request, page_number - 1)
+
+        return Response(
+            {
+                "count": total_count,
+                "next": next_link,
+                "previous": prev_link,
+                "results": results,
+            }
+        )
+
+    def list(self, request, *args, **kwargs):
+        es_response = self._es_list(request)
+        if es_response is not None:
+            return es_response
+        return super().list(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return CleanedFrameworkAgreement.objects.all()
 
 
 class FabricDimAgreementLineViewSet(viewsets.ReadOnlyModelViewSet):
