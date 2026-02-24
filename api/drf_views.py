@@ -1915,8 +1915,8 @@ class CleanedFrameworkAgreementSummaryView(APIView):
         else:
             country_name_map = {
                 name.lower(): cid
-                for cid, name in Country.objects.filter(is_deprecated=False, independent=True)
-                .values_list("id", "name")
+                for name, cid in Country.objects.filter(is_deprecated=False, independent=True)
+                .values_list("name", "id")
             }
             covered_country_ids = {
                 country_name_map[name]
@@ -1989,8 +1989,8 @@ class CleanedFrameworkAgreementSummaryView(APIView):
         else:
             country_name_map = {
                 name.lower(): cid
-                for cid, name in Country.objects.filter(is_deprecated=False, independent=True)
-                .values_list("id", "name")
+                for name, cid in Country.objects.filter(is_deprecated=False, independent=True)
+                .values_list("name", "id")
             }
             covered_country_ids = set()
             for value in base_qs.exclude(region_countries_covered__isnull=True).exclude(
