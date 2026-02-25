@@ -133,16 +133,25 @@ class WarehouseStocksView(views.APIView):
         # provide a DB fallback so filters have options to show.
         if request.query_params.get("distinct", "0") == "1" and ES_CLIENT is None:
             try:
-                # item groups from product categories
-                categories = DimProductCategory.objects.all().values_list("name", flat=True)
-                item_groups = [c for c in categories if c]
+                # Get products and warehouses that have Available stock
+                stock_lines = DimInventoryTransactionLine.objects.filter(item_status_name="Available")
+                products_with_stock = set(stock_lines.values_list("product", flat=True).distinct())
+                warehouses_with_stock = set(stock_lines.values_list("warehouse", flat=True).distinct())
 
-                # item names from products
-                item_names_qs = DimProduct.objects.all().values_list("name", flat=True)
-                item_names = [n for n in item_names_qs if n]
+                # item names from products that have stock
+                products_qs = DimProduct.objects.filter(id__in=products_with_stock).values("id", "name", "product_category")
+                item_names = sorted([p["name"] for p in products_qs if p.get("name")])
 
-                # regions and countries via warehouses and goadmin maps
-                warehouses = DimWarehouse.objects.all().values("id", "country")
+                # item groups from categories that have products with stock
+                category_codes_with_stock = set(p["product_category"] for p in products_qs if p.get("product_category"))
+                cat_code_to_name = {
+                    str(c["category_code"]): c["name"]
+                    for c in DimProductCategory.objects.filter(category_code__in=category_codes_with_stock).values("category_code", "name")
+                }
+                item_groups = sorted([name for name in cat_code_to_name.values() if name])
+
+                # regions and countries via warehouses that have stock
+                warehouses = DimWarehouse.objects.filter(id__in=warehouses_with_stock).values("id", "country")
                 regions_set = set()
                 countries_set = set()
                 for w in warehouses:
@@ -168,8 +177,8 @@ class WarehouseStocksView(views.APIView):
                     {
                         "regions": regions,
                         "countries": countries,
-                        "item_groups": sorted(item_groups),
-                        "item_names": sorted(item_names),
+                        "item_groups": item_groups,
+                        "item_names": item_names,
                     }
                 )
             except Exception:
@@ -211,13 +220,7 @@ class WarehouseStocksView(views.APIView):
                 filters.append({"match_phrase": {"warehouse_name": warehouse_name_q}})
 
             if item_group_q:
-                filters.append({"term": {"item_group": item_group_q}})
-
-            if item_name_q:
-                filters.append({"match_phrase": {"item_name": item_name_q}})
-
-            if item_name_q:
-                filters.append({"match_phrase": {"item_name": item_name_q}})
+                filters.append({"term": {"item_group.keyword": item_group_q}})
 
             if item_name_q:
                 filters.append({"match_phrase": {"item_name": item_name_q}})
@@ -230,9 +233,9 @@ class WarehouseStocksView(views.APIView):
             if request.query_params.get("distinct", "0") == "1":
                 aggs = {
                     "regions": {"terms": {"field": "region.keyword", "size": 1000}},
-                    "countries": {"terms": {"field": "country_name.raw", "size": 1000}},
-                    "item_groups": {"terms": {"field": "item_group", "size": 1000}},
-                    "item_names": {"terms": {"field": "item_name.raw", "size": 1000}},
+                    "countries": {"terms": {"field": "country_name.keyword", "size": 1000}},
+                    "item_groups": {"terms": {"field": "item_group.keyword", "size": 1000}},
+                    "item_names": {"terms": {"field": "item_name.keyword", "size": 1000}},
                 }
                 try:
                     resp = ES_CLIENT.search(index=WAREHOUSE_INDEX_NAME, body={"size": 0, "aggs": aggs})
@@ -252,13 +255,25 @@ class WarehouseStocksView(views.APIView):
                 except Exception:
                     # ES failed, fall back to DB for distinct
                     try:
-                        categories = DimProductCategory.objects.all().values_list("name", flat=True)
-                        item_groups = [c for c in categories if c]
+                        # Get products and warehouses that have Available stock
+                        stock_lines = DimInventoryTransactionLine.objects.filter(item_status_name="Available")
+                        products_with_stock = set(stock_lines.values_list("product", flat=True).distinct())
+                        warehouses_with_stock = set(stock_lines.values_list("warehouse", flat=True).distinct())
 
-                        item_names_qs = DimProduct.objects.all().values_list("name", flat=True)
-                        item_names = [n for n in item_names_qs if n]
+                        # item names from products that have stock
+                        products_qs = DimProduct.objects.filter(id__in=products_with_stock).values("id", "name", "product_category")
+                        item_names = sorted([p["name"] for p in products_qs if p.get("name")])
 
-                        warehouses = DimWarehouse.objects.all().values("id", "country")
+                        # item groups from categories that have products with stock
+                        category_codes_with_stock = set(p["product_category"] for p in products_qs if p.get("product_category"))
+                        cat_code_to_name = {
+                            str(c["category_code"]): c["name"]
+                            for c in DimProductCategory.objects.filter(category_code__in=category_codes_with_stock).values("category_code", "name")
+                        }
+                        item_groups = sorted([name for name in cat_code_to_name.values() if name])
+
+                        # regions and countries via warehouses that have stock
+                        warehouses = DimWarehouse.objects.filter(id__in=warehouses_with_stock).values("id", "country")
                         regions_set = set()
                         countries_set = set()
                         for w in warehouses:
@@ -281,8 +296,8 @@ class WarehouseStocksView(views.APIView):
                             {
                                 "regions": sorted(list(regions_set)),
                                 "countries": sorted(list(countries_set)),
-                                "item_groups": sorted(item_groups),
-                                "item_names": sorted(item_names),
+                                "item_groups": item_groups,
+                                "item_names": item_names,
                             }
                         )
                     except Exception as e:
@@ -833,10 +848,10 @@ class WarehouseStocksSummaryView(views.APIView):
 
             aggs = {
                 "by_item_group": {
-                    "terms": {"field": "item_group", "size": 1000},
+                    "terms": {"field": "item_group.keyword", "size": 1000},
                     "aggs": {
                         "total_quantity": {"sum": {"field": "quantity"}},
-                        "product_count": {"cardinality": {"field": "product_id"}},
+                        "product_count": {"cardinality": {"field": "product_id.keyword"}},
                     },
                 },
                 "low_stock": {"filter": {"range": {"quantity": {"lte": low_stock_threshold}}}},
@@ -882,9 +897,13 @@ class WarehouseStocksSummaryView(views.APIView):
 
         # DB fallback (accurate but slower)
         if not results["by_item_group"]:
-            # build product category lookup
+            # build product category lookup - map product ID to category code
             products = DimProduct.objects.all().values("id", "product_category")
             prod_cat = {str(p["id"]): _safe_str(p.get("product_category")) for p in products}
+
+            # build category code to name lookup
+            categories = DimProductCategory.objects.all().values("category_code", "name")
+            cat_code_to_name = {str(c["category_code"]): _safe_str(c.get("name")) for c in categories}
 
             qset = DimInventoryTransactionLine.objects.all()
             if only_available:
@@ -931,7 +950,9 @@ class WarehouseStocksSummaryView(views.APIView):
                     except Exception:
                         continue
 
-                group = prod_cat.get(prod_id, "")
+                # Get category code first, then convert to name
+                cat_code = prod_cat.get(prod_id, "")
+                group = cat_code_to_name.get(cat_code, cat_code)  # fallback to code if name not found
                 totals_by_group[group] = totals_by_group.get(group, Decimal(0)) + qty_val
                 product_seen.add(prod_id)
 
