@@ -198,9 +198,9 @@ class WarehouseStocksView(views.APIView):
 
             if region_list:
                 if len(region_list) == 1:
-                    filters.append({"term": {"region": region_list[0]}})
+                    filters.append({"term": {"region.keyword": region_list[0]}})
                 else:
-                    filters.append({"terms": {"region": region_list}})
+                    filters.append({"terms": {"region.keyword": region_list}})
 
             if warehouse_name_q:
                 filters.append({"match_phrase": {"warehouse_name": warehouse_name_q}})
@@ -544,9 +544,9 @@ class AggregatedWarehouseStocksView(views.APIView):
 
             if region_list:
                 if len(region_list) == 1:
-                    filters.append({"term": {"region": region_list[0]}})
+                    filters.append({"term": {"region.keyword": region_list[0]}})
                 else:
-                    filters.append({"terms": {"region": region_list}})
+                    filters.append({"terms": {"region.keyword": region_list}})
 
             if warehouse_name_q:
                 filters.append({"match_phrase": {"warehouse_name": warehouse_name_q}})
@@ -731,9 +731,9 @@ class WarehouseStocksSummaryView(views.APIView):
 
             if region_list:
                 if len(region_list) == 1:
-                    filters.append({"term": {"region": region_list[0]}})
+                    filters.append({"term": {"region.keyword": region_list[0]}})
                 else:
-                    filters.append({"terms": {"region": region_list}})
+                    filters.append({"terms": {"region.keyword": region_list}})
 
             if warehouse_name_q:
                 filters.append({"match_phrase": {"warehouse_name": warehouse_name_q}})
