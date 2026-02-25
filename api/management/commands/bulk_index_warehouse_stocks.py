@@ -91,10 +91,12 @@ class Command(BaseCommand):
         logger.info("Building lookup tables for products, warehouses and categories")
 
         warehouses = DimWarehouse.objects.all().values("id", "name", "country")
+        # Build warehouse lookup; store raw country field and warehouse id for later iso2->iso3 fallback
         wh_by_id = {
             str(w["id"]): {
                 "warehouse_name": _safe_str(w.get("name")),
-                "country_iso3": _safe_str(w.get("country")).upper(),
+                "country_iso3_raw": _safe_str(w.get("country")).upper(),  # may be empty
+                "warehouse_id_raw": _safe_str(w.get("id")),
             }
             for w in warehouses
         }
@@ -120,6 +122,7 @@ class Command(BaseCommand):
 
         # Fetch goadmin mappings so we can include country name and region in indexed docs
         iso2_to_iso3, iso3_to_country_name, iso3_to_region_name = _fetch_goadmin_maps()
+        logger.info(f"Goadmin maps: iso2_to_iso3 has {len(iso2_to_iso3)} entries, iso3_to_country_name has {len(iso3_to_country_name)}, iso3_to_region_name has {len(iso3_to_region_name)}")
 
         logger.info("Querying transaction lines and aggregating by warehouse+product")
         q = DimInventoryTransactionLine.objects.all()
@@ -159,13 +162,22 @@ class Command(BaseCommand):
             # include status in doc id to avoid collisions when multiple statuses exist
             doc_id = f"{warehouse_id}__{product_id}__{status_val}"
 
+            # Derive country_iso3: prefer stored value, else extract 2-letter prefix from warehouse ID and convert iso2->iso3
+            country_iso3_raw = wh.get("country_iso3_raw") or ""
+            if country_iso3_raw:
+                country_iso3 = country_iso3_raw
+            else:
+                wh_id_raw = wh.get("warehouse_id_raw") or ""
+                iso2_prefix = wh_id_raw[:2].upper() if len(wh_id_raw) >= 2 else ""
+                country_iso3 = iso2_to_iso3.get(iso2_prefix, "")
+
             doc = {
                 "id": doc_id,
                 "warehouse_id": warehouse_id,
                 "warehouse_name": wh.get("warehouse_name", ""),
-                "country_iso3": wh.get("country_iso3", ""),
-                "country_name": iso3_to_country_name.get((wh.get("country_iso3") or "").upper(), ""),
-                "region": iso3_to_region_name.get((wh.get("country_iso3") or "").upper(), ""),
+                "country_iso3": country_iso3,
+                "country_name": iso3_to_country_name.get(country_iso3.upper(), "") if country_iso3 else "",
+                "region": iso3_to_region_name.get(country_iso3.upper(), "") if country_iso3 else "",
                 "product_id": product_id,
                 "item_number": prod.get("item_number", ""),
                 "item_name": prod.get("item_name", ""),

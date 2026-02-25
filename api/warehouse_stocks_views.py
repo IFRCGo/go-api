@@ -142,11 +142,16 @@ class WarehouseStocksView(views.APIView):
                 item_names = [n for n in item_names_qs if n]
 
                 # regions and countries via warehouses and goadmin maps
-                warehouses = DimWarehouse.objects.all().values_list("country", flat=True)
+                warehouses = DimWarehouse.objects.all().values("id", "country")
                 regions_set = set()
                 countries_set = set()
-                for iso in warehouses:
-                    iso3 = (iso or "").upper()
+                for w in warehouses:
+                    iso3 = (w.get("country") or "").upper()
+                    wh_id = str(w.get("id") or "")
+                    # Derive iso3 from warehouse ID prefix if not set
+                    if not iso3 and len(wh_id) >= 2:
+                        iso2 = wh_id[:2].upper()
+                        iso3 = iso2_to_iso3.get(iso2, "")
                     if not iso3:
                         continue
                     country_name = iso3_to_country_name.get(iso3) or ""
@@ -245,7 +250,45 @@ class WarehouseStocksView(views.APIView):
                         }
                     )
                 except Exception:
-                    pass
+                    # ES failed, fall back to DB for distinct
+                    try:
+                        categories = DimProductCategory.objects.all().values_list("name", flat=True)
+                        item_groups = [c for c in categories if c]
+
+                        item_names_qs = DimProduct.objects.all().values_list("name", flat=True)
+                        item_names = [n for n in item_names_qs if n]
+
+                        warehouses = DimWarehouse.objects.all().values("id", "country")
+                        regions_set = set()
+                        countries_set = set()
+                        for w in warehouses:
+                            iso3 = (w.get("country") or "").upper()
+                            wh_id = str(w.get("id") or "")
+                            # Derive iso3 from warehouse ID prefix if not set
+                            if not iso3 and len(wh_id) >= 2:
+                                iso2 = wh_id[:2].upper()
+                                iso3 = iso2_to_iso3.get(iso2, "")
+                            if not iso3:
+                                continue
+                            country_name = iso3_to_country_name.get(iso3) or ""
+                            region_name = iso3_to_region_name.get(iso3) or ""
+                            if country_name:
+                                countries_set.add(country_name)
+                            if region_name:
+                                regions_set.add(region_name)
+
+                        return Response(
+                            {
+                                "regions": sorted(list(regions_set)),
+                                "countries": sorted(list(countries_set)),
+                                "item_groups": sorted(item_groups),
+                                "item_names": sorted(item_names),
+                            }
+                        )
+                    except Exception as e:
+                        import logging
+                        logging.getLogger(__name__).error(f"DB fallback for distinct failed: {e}")
+                        # Fall through to normal processing
 
             # Only request necessary fields to reduce payload and parsing time
             _src_fields = [
@@ -301,8 +344,14 @@ class WarehouseStocksView(views.APIView):
                     src = h.get("_source", {})
 
                     country_iso3_src = (src.get("country_iso3") or "").upper()
-                    country_name = iso3_to_country_name.get(country_iso3_src, "") if country_iso3_src else ""
-                    region_name = iso3_to_region_name.get(country_iso3_src, "") if country_iso3_src else ""
+                    # Read country_name and region directly from ES (already indexed)
+                    # Fall back to goadmin lookup if ES values are empty
+                    country_name = src.get("country_name") or ""
+                    if not country_name and country_iso3_src:
+                        country_name = iso3_to_country_name.get(country_iso3_src, "")
+                    region_name = src.get("region") or ""
+                    if not region_name and country_iso3_src:
+                        region_name = iso3_to_region_name.get(country_iso3_src, "")
 
                     qty = src.get("quantity")
                     if qty is None:
@@ -319,7 +368,9 @@ class WarehouseStocksView(views.APIView):
                             "region": region_name,
                             "country": country_name,
                             "country_iso3": country_iso3_src,
+                            "warehouse_id": src.get("warehouse_id", ""),
                             "warehouse_name": src.get("warehouse_name", ""),
+                            "product_id": src.get("product_id", ""),
                             "item_group": src.get("item_group", ""),
                             "item_name": src.get("item_name", ""),
                             "item_number": src.get("item_number", ""),
@@ -439,7 +490,9 @@ class WarehouseStocksView(views.APIView):
                         "region": region_name,
                         "country": country_name,
                         "country_iso3": country_iso3_value,
+                        "warehouse_id": warehouse_id,
                         "warehouse_name": wh["warehouse_name"],
+                        "product_id": product_id,
                         "item_group": item_group,
                         "item_name": item_name,
                         "item_number": prod.get("item_number", ""),
@@ -449,6 +502,38 @@ class WarehouseStocksView(views.APIView):
                         "quantity": qty_out,
                     }
                 )
+
+            # DB fallback: apply full-text search filter (q parameter)
+            if q and results:
+                q_lower = q.lower()
+                results = [
+                    r for r in results
+                    if q_lower in (r.get("item_name") or "").lower()
+                    or q_lower in (r.get("warehouse_name") or "").lower()
+                    or q_lower in (r.get("item_number") or "").lower()
+                    or q_lower in (r.get("item_group") or "").lower()
+                ]
+
+            # DB fallback: apply sorting
+            if sort_field and results:
+                sort_key_map = {
+                    "quantity": lambda x: float(x.get("quantity") or 0) if x.get("quantity") else 0,
+                    "item_name": lambda x: (x.get("item_name") or "").lower(),
+                    "warehouse_name": lambda x: (x.get("warehouse_name") or "").lower(),
+                }
+                sort_fn = sort_key_map.get(sort_field)
+                if sort_fn:
+                    reverse = sort_order.lower() != "asc"
+                    try:
+                        results = sorted(results, key=sort_fn, reverse=reverse)
+                    except Exception:
+                        pass
+
+            # DB fallback: set total_hits and apply pagination
+            total_hits = len(results)
+            start_idx = (page - 1) * page_size
+            end_idx = start_idx + page_size
+            results = results[start_idx:end_idx]
 
         resp_payload = {"results": results}
         if total_hits is not None:
