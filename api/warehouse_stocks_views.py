@@ -192,9 +192,9 @@ class WarehouseStocksView(views.APIView):
 
             if country_iso3_list:
                 if len(country_iso3_list) == 1:
-                    filters.append({"term": {"country_iso3": country_iso3_list[0]}})
+                    filters.append({"term": {"country_iso3.keyword": country_iso3_list[0]}})
                 else:
-                    filters.append({"terms": {"country_iso3": country_iso3_list}})
+                    filters.append({"terms": {"country_iso3.keyword": country_iso3_list}})
 
             if region_list:
                 if len(region_list) == 1:
@@ -224,7 +224,7 @@ class WarehouseStocksView(views.APIView):
 
             if request.query_params.get("distinct", "0") == "1":
                 aggs = {
-                    "regions": {"terms": {"field": "region", "size": 1000}},
+                    "regions": {"terms": {"field": "region.keyword", "size": 1000}},
                     "countries": {"terms": {"field": "country_name.raw", "size": 1000}},
                     "item_groups": {"terms": {"field": "item_group", "size": 1000}},
                     "item_names": {"terms": {"field": "item_name.raw", "size": 1000}},
@@ -538,9 +538,9 @@ class AggregatedWarehouseStocksView(views.APIView):
 
             if country_iso3_list:
                 if len(country_iso3_list) == 1:
-                    filters.append({"term": {"country_iso3": country_iso3_list[0]}})
+                    filters.append({"term": {"country_iso3.keyword": country_iso3_list[0]}})
                 else:
-                    filters.append({"terms": {"country_iso3": country_iso3_list}})
+                    filters.append({"terms": {"country_iso3.keyword": country_iso3_list}})
 
             if region_list:
                 if len(region_list) == 1:
@@ -561,7 +561,7 @@ class AggregatedWarehouseStocksView(views.APIView):
 
             aggs = {
                 "by_country": {
-                    "terms": {"field": "country_iso3", "size": 10000},
+                    "terms": {"field": "country_iso3.keyword", "size": 10000},
                     "aggs": {
                         "total_quantity": {"sum": {"field": "quantity"}},
                         "warehouse_count": {"cardinality": {"field": "warehouse_id"}},
@@ -725,9 +725,9 @@ class WarehouseStocksSummaryView(views.APIView):
 
             if country_iso3_list:
                 if len(country_iso3_list) == 1:
-                    filters.append({"term": {"country_iso3": country_iso3_list[0]}})
+                    filters.append({"term": {"country_iso3.keyword": country_iso3_list[0]}})
                 else:
-                    filters.append({"terms": {"country_iso3": country_iso3_list}})
+                    filters.append({"terms": {"country_iso3.keyword": country_iso3_list}})
 
             if region_list:
                 if len(region_list) == 1:
@@ -812,11 +812,20 @@ class WarehouseStocksSummaryView(views.APIView):
                     pass
 
             if country_iso3_list:
-                # join via warehouses
-                qset = qset.filter(warehouse__country__in=country_iso3_list)
+                # warehouse field is a CharField (ID), not a FK - must lookup IDs first
+                wh_ids = list(
+                    DimWarehouse.objects.filter(country__in=country_iso3_list).values_list("id", flat=True)
+                )
+                if wh_ids:
+                    qset = qset.filter(warehouse__in=[str(w) for w in wh_ids])
 
             if warehouse_name_q:
-                qset = qset.filter(warehouse__name__icontains=warehouse_name_q)
+                # warehouse field is a CharField (ID), not a FK - must lookup IDs first
+                wh_ids = list(
+                    DimWarehouse.objects.filter(name__icontains=warehouse_name_q).values_list("id", flat=True)
+                )
+                if wh_ids:
+                    qset = qset.filter(warehouse__in=[str(w) for w in wh_ids])
 
             # aggregate by product category
             agg = qset.values("product").annotate(quantity=Sum("quantity"))
