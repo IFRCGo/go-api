@@ -17,7 +17,7 @@ from django.db.models import (
     When,
 )
 from django.db.models.fields import IntegerField
-from django.db.models.functions import Coalesce, Lower, TruncMonth, Trim
+from django.db.models.functions import Coalesce, Lower, Trim, TruncMonth
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -26,8 +26,8 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import filters, mixins, serializers, status, viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -35,13 +35,13 @@ from api.filter_set import (
     Admin2Filter,
     AppealDocumentFilter,
     AppealHistoryFilter,
+    CleanedFrameworkAgreementFilter,
     CountryFilter,
     CountryFilterRMD,
     CountryKeyDocumentFilter,
     CountryKeyFigureFilter,
     CountrySnippetFilter,
     CountrySupportingPartnerFilter,
-    CleanedFrameworkAgreementFilter,
     DistrictFilter,
     DistrictRMDFilter,
     EventFilter,
@@ -104,10 +104,9 @@ from per.serializers import CountryLatestOverviewSerializer
 
 from .customs_ai_service import CustomsAIService
 from .customs_data_loader import load_customs_regulations
-from .exceptions import BadRequest
 from .esconnection import ES_CLIENT
+from .exceptions import BadRequest
 from .indexes import CLEANED_FRAMEWORK_AGREEMENTS_INDEX_NAME
-from .logger import logger
 from .models import (
     Action,
     Admin2,
@@ -206,7 +205,7 @@ from .serializers import (  # AppealSerializer,; Tableau Serializers; AppealTabl
     EventSeverityLevelHistorySerializer,
     ExportSerializer,
     ExternalPartnerSerializer,
-    FabricCleanedFrameworkAgreementSerializer,    
+    FabricCleanedFrameworkAgreementSerializer,
     FabricDimAgreementLineSerializer,
     FabricDimAppealSerializer,
     FabricDimBuyerGroupSerializer,
@@ -1901,9 +1900,7 @@ class CleanedFrameworkAgreementSummaryView(APIView):
 
         item_category_buckets = aggs.get("item_categories", {}).get("buckets") or []
         normalized_categories = {
-            str(bucket.get("key", "")).strip().lower()
-            for bucket in item_category_buckets
-            if str(bucket.get("key", "")).strip()
+            str(bucket.get("key", "")).strip().lower() for bucket in item_category_buckets if str(bucket.get("key", "")).strip()
         }
 
         covered_buckets = aggs.get("covered_countries", {}).get("buckets") or []
@@ -1915,14 +1912,9 @@ class CleanedFrameworkAgreementSummaryView(APIView):
         else:
             country_name_map = {
                 name.lower(): cid
-                for name, cid in Country.objects.filter(is_deprecated=False, independent=True)
-                .values_list("name", "id")
+                for name, cid in Country.objects.filter(is_deprecated=False, independent=True).values_list("name", "id")
             }
-            covered_country_ids = {
-                country_name_map[name]
-                for name in covered_names
-                if name in country_name_map
-            }
+            covered_country_ids = {country_name_map[name] for name in covered_names if name in country_name_map}
             countries_covered = len(covered_country_ids)
 
         return {
@@ -1989,27 +1981,30 @@ class CleanedFrameworkAgreementSummaryView(APIView):
         else:
             country_name_map = {
                 name.lower(): cid
-                for name, cid in Country.objects.filter(is_deprecated=False, independent=True)
-                .values_list("name", "id")
+                for name, cid in Country.objects.filter(is_deprecated=False, independent=True).values_list("name", "id")
             }
             covered_country_ids = set()
-            for value in base_qs.exclude(region_countries_covered__isnull=True).exclude(
-                region_countries_covered__exact=""
-            ).values_list("region_countries_covered", flat=True):
+            for value in (
+                base_qs.exclude(region_countries_covered__isnull=True)
+                .exclude(region_countries_covered__exact="")
+                .values_list("region_countries_covered", flat=True)
+            ):
                 for normalized in self._split_covered_countries(value):
                     match_id = country_name_map.get(normalized)
                     if match_id:
                         covered_country_ids.add(match_id)
             countries_covered = len(covered_country_ids)
 
-        return Response({
-            "ifrcFrameworkAgreements": total_framework_agreements,
-            "suppliers": total_suppliers,
-            "otherFrameworkAgreements": other_framework_agreements,
-            "otherSuppliers": other_suppliers,
-            "countriesCovered": countries_covered,
-            "itemCategoriesCovered": item_categories_covered,
-        })
+        return Response(
+            {
+                "ifrcFrameworkAgreements": total_framework_agreements,
+                "suppliers": total_suppliers,
+                "otherFrameworkAgreements": other_framework_agreements,
+                "otherSuppliers": other_suppliers,
+                "countriesCovered": countries_covered,
+                "itemCategoriesCovered": item_categories_covered,
+            }
+        )
 
 
 class CleanedFrameworkAgreementMapStatsView(APIView):
