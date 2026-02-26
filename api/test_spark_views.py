@@ -1,13 +1,13 @@
 """
 Integration tests for SPARK-related API endpoints (Stock inventory, Framework agreements, etc.).
 """
+
 from unittest.mock import patch
 
 from django.urls import reverse
 
 from api.models import CountryCustomsSnapshot
 from main.test_case import APITestCase
-
 
 # Fixed maps returned by mocked _fetch_goadmin_maps (no network calls in tests).
 GOADMIN_MAPS = (
@@ -168,8 +168,9 @@ class ProBonoServicesViewTest(APITestCase):
         self.assertEqual(data["results"], [])
 
     def test_pro_bono_when_read_fails_returns_500(self):
-        with patch("api.pro_bono_views.os.path.exists", return_value=True), patch(
-            "api.pro_bono_views.open", side_effect=IOError("No such file")
+        with (
+            patch("api.pro_bono_views.os.path.exists", return_value=True),
+            patch("api.pro_bono_views.open", side_effect=IOError("No such file")),
         ):
             resp = self.client.get("/api/v1/pro-bono-services/")
         self.assert_500(resp)
