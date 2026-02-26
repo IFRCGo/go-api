@@ -2,7 +2,7 @@ import logging
 from datetime import timedelta
 
 from django.contrib.auth.models import Group, User
-from django.db import models
+from django.db import IntegrityError, models
 from django.db.models import (
     Avg,
     Case,
@@ -2045,8 +2045,59 @@ class CustomsUpdatesCountryView(APIView):
             serializer = CountryCustomsSnapshotSerializer(snapshot)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+        except IntegrityError:
+            # Race condition: another request created the snapshot while we were generating
+            # Return the existing snapshot instead
+            logger.info(f"Race condition detected for {country}, returning existing snapshot")
+            existing_snapshot = CountryCustomsSnapshot.objects.filter(
+                country_name__iexact=country.strip(),
+                is_current=True,
+            ).first()
+            if existing_snapshot:
+                serializer = CountryCustomsSnapshotSerializer(existing_snapshot)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(
+                {"detail": "An error occurred while processing customs update"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
         except Exception as e:
             logger.error(f"Exception in customs update endpoint for {country}: {str(e)}")
             return Response(
                 {"detail": "An error occurred while processing customs update"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    def delete(self, request, country): #logic is a bit rudimentary bneeds to be updated to something like force uipdate so it generates new snapshot/ or perhaps delete only latest snapshot
+        """
+        Delete all customs snapshots for a country.
+        DELETE /api/v2/customs-ai-updates/<country>/ - Delete all snapshots for country
+        """
+        try:
+            country_name = country.strip()
+
+            # Find all snapshots for this country (case-insensitive)
+            snapshots = CountryCustomsSnapshot.objects.filter(country_name__iexact=country_name)
+            count = snapshots.count()
+
+            if count == 0:
+                return Response(
+                    {"detail": f"No customs data found for '{country_name}'"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
+            # Delete all snapshots (cascades to sources and evidence snippets)
+            snapshots.delete()
+
+            logger.info(f"Deleted {count} customs snapshot(s) for {country_name}")
+            return Response(
+                {"detail": f"Successfully deleted {count} customs snapshot(s) for '{country_name}'"},
+                status=status.HTTP_200_OK,
+            )
+
+        except Exception as e:
+            logger.error(f"Failed to delete customs data for {country}: {str(e)}")
+            return Response(
+                {"detail": "Failed to delete customs data"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
