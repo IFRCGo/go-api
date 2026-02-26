@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 from django.urls import reverse
 
+from api.models import CountryCustomsSnapshot
 from main.test_case import APITestCase
 
 
@@ -262,3 +263,85 @@ class CustomsRegulationsViewTest(APITestCase):
         data = resp.json()
         self.assertIn("detail", data)
         self.assertIn("Failed to load country regulations", data["detail"])
+
+
+class CustomsUpdatesViewTest(APITestCase):
+    """Integration tests for Customs AI updates endpoints."""
+
+    def test_list_unauthenticated_returns_401(self):
+        resp = self.client.get(reverse("customs_updates_list"))
+        self.assert_401(resp)
+
+    def test_list_authenticated_returns_200_and_results(self):
+        self.authenticate()
+        resp = self.client.get(reverse("customs_updates_list"))
+        self.assert_200(resp)
+        data = resp.json()
+        self.assertIn("results", data)
+        self.assertIsInstance(data["results"], list)
+
+    def test_list_authenticated_with_snapshot_returns_snapshot_in_results(self):
+        self.authenticate()
+        CountryCustomsSnapshot.objects.create(
+            country_name="Kenya",
+            is_current=True,
+            summary_text="Test summary",
+        )
+        resp = self.client.get(reverse("customs_updates_list"))
+        self.assert_200(resp)
+        data = resp.json()
+        self.assertEqual(len(data["results"]), 1)
+        self.assertEqual(data["results"][0]["country_name"], "Kenya")
+        self.assertIn("generated_at", data["results"][0])
+
+    def test_list_when_exception_returns_500(self):
+        self.authenticate()
+        with patch(
+            "api.drf_views.CountryCustomsSnapshot.objects.filter",
+            side_effect=RuntimeError("DB error"),
+        ):
+            resp = self.client.get(reverse("customs_updates_list"))
+        self.assert_500(resp)
+        data = resp.json()
+        self.assertIn("detail", data)
+        self.assertIn("Failed to load customs updates", data["detail"])
+
+    def test_country_detail_unauthenticated_returns_401(self):
+        resp = self.client.get(reverse("customs_updates_detail", kwargs={"country": "Kenya"}))
+        self.assert_401(resp)
+
+    def test_country_detail_authenticated_snapshot_exists_returns_200(self):
+        self.authenticate()
+        CountryCustomsSnapshot.objects.create(
+            country_name="Kenya",
+            is_current=True,
+            summary_text="Test summary",
+        )
+        resp = self.client.get(reverse("customs_updates_detail", kwargs={"country": "Kenya"}))
+        self.assert_200(resp)
+        data = resp.json()
+        self.assertEqual(data["country_name"], "Kenya")
+        self.assertIn("summary_text", data)
+        self.assertIn("generated_at", data)
+
+    def test_country_detail_authenticated_country_invalid_returns_400(self):
+        self.authenticate()
+        with patch(
+            "api.drf_views.CustomsAIService.validate_country_name",
+            return_value=(False, "Not a recognized country"),
+        ):
+            resp = self.client.get(reverse("customs_updates_detail", kwargs={"country": "InvalidCountry"}))
+        self.assert_400(resp)
+        data = resp.json()
+        self.assertIn("detail", data)
+
+    def test_country_detail_when_exception_returns_error_response(self):
+        self.authenticate()
+        with patch(
+            "api.drf_views.CountryCustomsSnapshot.objects.filter",
+            side_effect=RuntimeError("Unexpected error"),
+        ):
+            resp = self.client.get(reverse("customs_updates_detail", kwargs={"country": "Kenya"}))
+        data = resp.json()
+        self.assertIn("detail", data)
+        self.assertIn("An error occurred while processing customs update", data["detail"])
