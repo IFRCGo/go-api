@@ -176,3 +176,89 @@ class ProBonoServicesViewTest(APITestCase):
         self.assertIn("error", data)
         self.assertIn("results", data)
         self.assertEqual(data["results"], [])
+
+
+# Mock data for customs regulations (matches load_customs_regulations() response shape).
+CUSTOMS_REGULATIONS_MOCK_DATA = {
+    "metadata": {
+        "source": "IFRC Customs & Import Regulations",
+        "generated_at": "2025-01-01T00:00:00Z",
+    },
+    "countries": [
+        {
+            "country": "Kenya",
+            "sections": [
+                {
+                    "section": "Import",
+                    "items": [
+                        {"question": "Q1", "answer": "A1", "notes": ""},
+                    ],
+                },
+            ],
+        },
+        {
+            "country": "Uganda",
+            "sections": [],
+        },
+    ],
+}
+
+
+class CustomsRegulationsViewTest(APITestCase):
+    """Integration tests for Customs regulations (country regulations) endpoints."""
+
+    def test_list_unauthenticated_returns_401(self):
+        resp = self.client.get(reverse("country_regulations"))
+        self.assert_401(resp)
+
+    def test_list_authenticated_returns_200_with_mock_data(self):
+        self.authenticate()
+        with patch("api.drf_views.load_customs_regulations", return_value=CUSTOMS_REGULATIONS_MOCK_DATA):
+            resp = self.client.get(reverse("country_regulations"))
+        self.assert_200(resp)
+        data = resp.json()
+        self.assertIn("metadata", data)
+        self.assertIn("countries", data)
+        self.assertIsInstance(data["countries"], list)
+        self.assertEqual(len(data["countries"]), 2)
+
+    def test_list_when_loader_fails_returns_500(self):
+        self.authenticate()
+        with patch("api.drf_views.load_customs_regulations", side_effect=FileNotFoundError("No file")):
+            resp = self.client.get(reverse("country_regulations"))
+        self.assert_500(resp)
+        data = resp.json()
+        self.assertIn("detail", data)
+        self.assertIn("Failed to load customs regulations", data["detail"])
+
+    def test_country_detail_unauthenticated_returns_401(self):
+        resp = self.client.get(reverse("country_regulations_detail", kwargs={"country": "Kenya"}))
+        self.assert_401(resp)
+
+    def test_country_detail_authenticated_country_found_returns_200(self):
+        self.authenticate()
+        with patch("api.drf_views.load_customs_regulations", return_value=CUSTOMS_REGULATIONS_MOCK_DATA):
+            resp = self.client.get(reverse("country_regulations_detail", kwargs={"country": "Kenya"}))
+        self.assert_200(resp)
+        data = resp.json()
+        self.assertEqual(data["country"], "Kenya")
+        self.assertIn("sections", data)
+        self.assertIsInstance(data["sections"], list)
+
+    def test_country_detail_authenticated_country_not_found_returns_404(self):
+        self.authenticate()
+        with patch("api.drf_views.load_customs_regulations", return_value=CUSTOMS_REGULATIONS_MOCK_DATA):
+            resp = self.client.get(reverse("country_regulations_detail", kwargs={"country": "NonExistent"}))
+        self.assert_404(resp)
+        data = resp.json()
+        self.assertIn("detail", data)
+        self.assertIn("Country not found", data["detail"])
+
+    def test_country_detail_when_loader_fails_returns_500(self):
+        self.authenticate()
+        with patch("api.drf_views.load_customs_regulations", side_effect=RuntimeError("Loader error")):
+            resp = self.client.get(reverse("country_regulations_detail", kwargs={"country": "Kenya"}))
+        self.assert_500(resp)
+        data = resp.json()
+        self.assertIn("detail", data)
+        self.assertIn("Failed to load country regulations", data["detail"])
