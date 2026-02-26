@@ -147,3 +147,32 @@ class CleanedFrameworkAgreementViewTest(APITestCase):
         data = resp.json()
         self.assertIn("results", data)
         self.assertIsInstance(data["results"], list)
+
+
+class ProBonoServicesViewTest(APITestCase):
+    """Integration tests for Pro bono services endpoint."""
+
+    def test_pro_bono_returns_200_and_results(self):
+        resp = self.client.get("/api/v1/pro-bono-services/")
+        self.assert_200(resp)
+        data = resp.json()
+        self.assertIn("results", data)
+        self.assertIsInstance(data["results"], list)
+
+    def test_pro_bono_when_file_missing_returns_200_empty_results(self):
+        with patch("api.pro_bono_views.os.path.exists", return_value=False):
+            resp = self.client.get("/api/v1/pro-bono-services/")
+        self.assert_200(resp)
+        data = resp.json()
+        self.assertEqual(data["results"], [])
+
+    def test_pro_bono_when_read_fails_returns_500(self):
+        with patch("api.pro_bono_views.os.path.exists", return_value=True), patch(
+            "api.pro_bono_views.open", side_effect=IOError("No such file")
+        ):
+            resp = self.client.get("/api/v1/pro-bono-services/")
+        self.assert_500(resp)
+        data = resp.json()
+        self.assertIn("error", data)
+        self.assertIn("results", data)
+        self.assertEqual(data["results"], [])
