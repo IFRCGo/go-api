@@ -44,6 +44,21 @@ EVIDENCE_KEYWORDS = {
     "broker",
     "agent",
     "exemption",
+    "humanitarian",
+    "relief",
+    "duty-free",
+    "tax exempt",
+    "ngo",
+    "red cross",
+    "red crescent",
+    "ocha",
+    "consignment",
+    "donation",
+    "in-kind",
+    "medical supplies",
+    "temporary admission",
+    "transit",
+    "pre-clearance",
 }
 
 # Authority scoring thresholds
@@ -59,6 +74,11 @@ HIGH_AUTHORITY_PUBLISHERS = {
     "ocha",
     "iom",
     "un",
+    "reliefweb",
+    "logcluster",
+    "humanitarianresponse",
+    "who.int",
+    "unicef",
 }
 MEDIUM_AUTHORITY_PUBLISHERS = {"ngo", "news", "org", "academic", "university", "institute"}
 
@@ -117,7 +137,7 @@ class CustomsAIService:
         )
 
         current_year = datetime.now().year
-        query = f"{country_name} customs clearance humanitarian imports current situation {current_year}"
+        query = f"{country_name} humanitarian relief goods customs import clearance procedures exemptions {current_year}"
 
         snapshot.search_query = query
 
@@ -139,9 +159,9 @@ class CustomsAIService:
         confidence = CustomsAIService._determine_confidence(top_3_sources)
         snapshot.confidence = confidence
 
-        summary_text, bullets = CustomsAIService._generate_summary(top_3_sources, country_name)
+        summary_text = CustomsAIService._generate_summary(top_3_sources, country_name)
         snapshot.summary_text = summary_text
-        snapshot.current_situation_bullets = bullets
+        snapshot.current_situation_bullets = []
 
         all_hashes = []
         snapshot.save()
@@ -237,14 +257,16 @@ class CustomsAIService:
         Here are the raw search results:
         {results_text}
 
-        Please analyze these search results and extract relevant customs information ABOUT IMPORTS.
+        Please analyze these search results and extract relevant customs information about HUMANITARIAN IMPORTS.
         If a source discusses both imports and exports, extract ONLY the import-related portions.
         Select the most relevant 3-5 sources that contain specific details about:
-        - Customs clearance procedures for imports
-        - Import documentation/permits
-        - Restricted items/sanctions on imports
-        - Port of entry details
-        - Import exemptions (especially humanitarian)
+        - Customs clearance procedures specifically for humanitarian/relief imports
+        - Required documentation and permits for NGO or humanitarian shipments
+        - Duty or tax exemptions available for relief goods
+        - Restricted or prohibited items relevant to humanitarian operations (e.g., medical supplies, communications equipment)
+        - Port of entry or logistics corridor details for humanitarian cargo
+        - Typical clearance timelines and known bottlenecks
+        - Any recent regulatory changes affecting humanitarian imports
 
         Structure the output as a valid JSON object matching this exact format:
         {{
@@ -265,6 +287,8 @@ class CustomsAIService:
         - Use ONLY the provided search results. Do not hallucinate new sources.
         - Extract import-specific information even if the page also discusses exports.
         - In your snippets, focus exclusively on import procedures and omit any export details.
+        - Prioritise information that would help a humanitarian logistics officer clear relief goods.
+        - If a source mentions both commercial and humanitarian import procedures, extract ONLY the humanitarian-specific details.
         - "published_at" source priority:
             1. Use the "date" field from news results if present.
             2. Extract from "body" or "title" (e.g., "Oct 17, 2018").
@@ -327,7 +351,7 @@ class CustomsAIService:
             scores["total"] = sum(scores.values())
             scored.append((page, scores))
 
-        # --- Adaptive Selection Strategy ---
+        # --- Adaptive Selection Strategy --- # Redo logic using exponential decay based on whether country is under crisis or not
         # 1. Separate into "Fresh" (<= 90 days) and "Secondary" (> 90 days or unknown)
         fresh_sources = [(p, s) for p, s in scored if s.get("freshness", 0) >= 15]  # 15+ means < 90 days in our scoring
         secondary_sources = [(p, s) for p, s in scored if s.get("freshness", 0) < 15]
@@ -454,37 +478,42 @@ class CustomsAIService:
             return "Low"
 
     @staticmethod
-    def _generate_summary(top_sources: List[Tuple[Dict[str, Any], Dict[str, int]]], country_name: str) -> Tuple[str, List[str]]:
+    def _generate_summary(top_sources: List[Tuple[Dict[str, Any], Dict[str, int]]], country_name: str) -> str:
         """
-        Generate a concise summary and bullet points using only provided evidence.
+        Generate a concise summary paragraph using only provided evidence.
         """
         all_snippets = []
         for page_data, _ in top_sources:
             all_snippets.extend(page_data.get("snippets", []))
 
         if not all_snippets:
-            return "Not confirmed in sources", []
+            return "Not confirmed in sources"
 
         evidence_text = "\n".join(all_snippets)
 
         prompt = f"""Based ONLY on these evidence snippets about customs in {country_name},
-        generate a report focusing EXCLUSIVELY on IMPORT regulations and procedures.
+        generate a report focusing EXCLUSIVELY on IMPORTING HUMANITARIAN AND RELIEF GOODS.
         Do NOT include any information about exports.
 
-        generate:
-        1. A 2-3 sentence summary specifically about imports (summary_text)
-        2. 3-5 bullet points covering import-specific details (current_situation_bullets)
+        Write a single coherent paragraph of 4-5 sentences aimed at a humanitarian logistics
+        officer planning a relief shipment. The summary should cover whichever of the following
+        topics are supported by the evidence:
+        - Key documents/permits required for humanitarian imports
+        - Any duty/tax exemptions for relief goods
+        - Restricted items relevant to humanitarian operations
+        - Estimated clearance timeframes or known delays
+        - Recommended entry points or logistics corridors
 
-        IMPORTANT: Only use information from the snippets below. If information is not in snippets,
-        write "Not confirmed in sources".
+        IMPORTANT: Only use information from the snippets below. If a topic is not covered
+        in the snippets, omit it rather than guessing. Do not include export information.
+        Do NOT use bullet points. Write flowing prose only.
 
         Evidence:
         {evidence_text}
 
         Return ONLY valid JSON:
         {{
-            "summary_text": "...",
-            "current_situation_bullets": ["bullet1", "bullet2", ...]
+            "summary_text": "..."
         }}
         """
 
@@ -499,12 +528,9 @@ class CustomsAIService:
             json_match = re.search(r"\{[\s\S]*\}", text)
             if json_match:
                 data = json.loads(json_match.group())
-                return (
-                    data.get("summary_text", "Not confirmed in sources"),
-                    data.get("current_situation_bullets", []),
-                )
+                return data.get("summary_text", "Not confirmed in sources")
 
         except Exception as e:
             logger.error(f"Summary generation failed: {str(e)}")
 
-        return "Not confirmed in sources", []
+        return "Not confirmed in sources"
