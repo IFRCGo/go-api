@@ -1,6 +1,6 @@
 from decimal import Decimal
-import requests
 
+import requests
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db.models import Sum
@@ -120,16 +120,13 @@ class Command(BaseCommand):
         categories = DimProductCategory.objects.all().values("category_code", "name")
         cat_by_code = {str(c["category_code"]): _safe_str(c.get("name")) for c in categories}
 
-        # Fetch goadmin mappings so we can include country name and region in indexed docs
         iso2_to_iso3, iso3_to_country_name, iso3_to_region_name = _fetch_goadmin_maps()
-        logger.info(f"Goadmin maps: iso2_to_iso3 has {len(iso2_to_iso3)} entries, iso3_to_country_name has {len(iso3_to_country_name)}, iso3_to_region_name has {len(iso3_to_region_name)}")
 
         logger.info("Querying transaction lines and aggregating by warehouse+product")
         q = DimInventoryTransactionLine.objects.all()
         if only_available:
             q = q.filter(item_status_name="Available")
 
-        # Include item_status_name so documents in ES carry status information
         agg = q.values("warehouse", "product", "item_status_name").annotate(quantity=Sum("quantity"))
 
         actions = []

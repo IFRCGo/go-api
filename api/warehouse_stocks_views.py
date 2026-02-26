@@ -146,7 +146,9 @@ class WarehouseStocksView(views.APIView):
                 category_codes_with_stock = set(p["product_category"] for p in products_qs if p.get("product_category"))
                 cat_code_to_name = {
                     str(c["category_code"]): c["name"]
-                    for c in DimProductCategory.objects.filter(category_code__in=category_codes_with_stock).values("category_code", "name")
+                    for c in DimProductCategory.objects.filter(category_code__in=category_codes_with_stock).values(
+                        "category_code", "name"
+                    )
                 }
                 item_groups = sorted([name for name in cat_code_to_name.values() if name])
 
@@ -261,14 +263,18 @@ class WarehouseStocksView(views.APIView):
                         warehouses_with_stock = set(stock_lines.values_list("warehouse", flat=True).distinct())
 
                         # item names from products that have stock
-                        products_qs = DimProduct.objects.filter(id__in=products_with_stock).values("id", "name", "product_category")
+                        products_qs = DimProduct.objects.filter(id__in=products_with_stock).values(
+                            "id", "name", "product_category"
+                        )
                         item_names = sorted([p["name"] for p in products_qs if p.get("name")])
 
                         # item groups from categories that have products with stock
                         category_codes_with_stock = set(p["product_category"] for p in products_qs if p.get("product_category"))
                         cat_code_to_name = {
                             str(c["category_code"]): c["name"]
-                            for c in DimProductCategory.objects.filter(category_code__in=category_codes_with_stock).values("category_code", "name")
+                            for c in DimProductCategory.objects.filter(category_code__in=category_codes_with_stock).values(
+                                "category_code", "name"
+                            )
                         }
                         item_groups = sorted([name for name in cat_code_to_name.values() if name])
 
@@ -302,6 +308,7 @@ class WarehouseStocksView(views.APIView):
                         )
                     except Exception as e:
                         import logging
+
                         logging.getLogger(__name__).error(f"DB fallback for distinct failed: {e}")
                         # Fall through to normal processing
 
@@ -522,7 +529,8 @@ class WarehouseStocksView(views.APIView):
             if q and results:
                 q_lower = q.lower()
                 results = [
-                    r for r in results
+                    r
+                    for r in results
                     if q_lower in (r.get("item_name") or "").lower()
                     or q_lower in (r.get("warehouse_name") or "").lower()
                     or q_lower in (r.get("item_number") or "").lower()
@@ -917,17 +925,13 @@ class WarehouseStocksSummaryView(views.APIView):
 
             if country_iso3_list:
                 # warehouse field is a CharField (ID), not a FK - must lookup IDs first
-                wh_ids = list(
-                    DimWarehouse.objects.filter(country__in=country_iso3_list).values_list("id", flat=True)
-                )
+                wh_ids = list(DimWarehouse.objects.filter(country__in=country_iso3_list).values_list("id", flat=True))
                 if wh_ids:
                     qset = qset.filter(warehouse__in=[str(w) for w in wh_ids])
 
             if warehouse_name_q:
                 # warehouse field is a CharField (ID), not a FK - must lookup IDs first
-                wh_ids = list(
-                    DimWarehouse.objects.filter(name__icontains=warehouse_name_q).values_list("id", flat=True)
-                )
+                wh_ids = list(DimWarehouse.objects.filter(name__icontains=warehouse_name_q).values_list("id", flat=True))
                 if wh_ids:
                     qset = qset.filter(warehouse__in=[str(w) for w in wh_ids])
 
