@@ -1,7 +1,9 @@
 """
-Integration tests for SPARK-related API endpoints (Stock inventory, etc.).
+Integration tests for SPARK-related API endpoints (Stock inventory, Framework agreements, etc.).
 """
 from unittest.mock import patch
+
+from django.urls import reverse
 
 from main.test_case import APITestCase
 
@@ -83,3 +85,65 @@ class WarehouseStocksViewTest(APITestCase):
         self.assert_200(resp)
         data = resp.json()
         self.assertEqual(data["low_stock"]["threshold"], 10)
+
+
+class CleanedFrameworkAgreementViewTest(APITestCase):
+    """Integration tests for Framework agreements (Cleaned Framework Agreement) endpoints."""
+
+    def test_list_unauthenticated_returns_401(self):
+        resp = self.client.get("/api/v2/fabric/cleaned-framework-agreements/")
+        self.assert_401(resp)
+
+    def test_list_authenticated_returns_200_and_results(self):
+        self.authenticate()
+        resp = self.client.get("/api/v2/fabric/cleaned-framework-agreements/")
+        self.assert_200(resp)
+        data = resp.json()
+        self.assertIn("results", data)
+        self.assertIsInstance(data["results"], list)
+
+    def test_item_categories_unauthenticated_returns_401(self):
+        url = reverse("fabric_cleaned_framework_agreement_item_categories")
+        resp = self.client.get(url)
+        self.assert_401(resp)
+
+    def test_item_categories_authenticated_returns_200_and_results(self):
+        self.authenticate()
+        url = reverse("fabric_cleaned_framework_agreement_item_categories")
+        resp = self.client.get(url)
+        self.assert_200(resp)
+        data = resp.json()
+        self.assertIn("results", data)
+        self.assertIsInstance(data["results"], list)
+
+    def test_summary_unauthenticated_returns_401(self):
+        url = reverse("fabric_cleaned_framework_agreement_summary")
+        resp = self.client.get(url)
+        self.assert_401(resp)
+
+    def test_summary_authenticated_returns_200_and_shape(self):
+        self.authenticate()
+        url = reverse("fabric_cleaned_framework_agreement_summary")
+        resp = self.client.get(url)
+        self.assert_200(resp)
+        data = resp.json()
+        self.assertIn("ifrcFrameworkAgreements", data)
+        self.assertIn("suppliers", data)
+        self.assertIn("otherFrameworkAgreements", data)
+        self.assertIn("otherSuppliers", data)
+        self.assertIn("countriesCovered", data)
+        self.assertIn("itemCategoriesCovered", data)
+
+    def test_map_stats_unauthenticated_returns_401(self):
+        url = reverse("fabric_cleaned_framework_agreement_map_stats")
+        resp = self.client.get(url)
+        self.assert_401(resp)
+
+    def test_map_stats_authenticated_returns_200_and_results(self):
+        self.authenticate()
+        url = reverse("fabric_cleaned_framework_agreement_map_stats")
+        resp = self.client.get(url)
+        self.assert_200(resp)
+        data = resp.json()
+        self.assertIn("results", data)
+        self.assertIsInstance(data["results"], list)
