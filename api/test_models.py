@@ -287,3 +287,17 @@ class SparkModelStrTests(TestCase):
             excluded_from_inventory_value=False,
         )
         self.assertEqual(str(origin), "O-TEST002 - Cat")
+
+    def test_cleaned_framework_agreement_str_with_vendor(self):
+        agreement = models.CleanedFrameworkAgreement.objects.create(
+            agreement_id="FA-TEST001",
+            vendor_name="Test Vendor Inc",
+        )
+        self.assertEqual(str(agreement), "FA-TEST001 - Test Vendor Inc")
+
+    def test_cleaned_framework_agreement_str_without_vendor(self):
+        agreement = models.CleanedFrameworkAgreement.objects.create(
+            agreement_id="FA-TEST002",
+            vendor_name="",
+        )
+        self.assertEqual(str(agreement), "FA-TEST002 - ")
