@@ -118,10 +118,7 @@ class DrefOperationalUpdateTO(TranslationOptions):
 
 @register(IdentifiedNeed)
 class IdentifiedNeedTO(TranslationOptions):
-    fields = (
-        "title",
-        "description",
-    )
+    fields = ("description",)
 
 
 @register(NationalSocietyAction)
@@ -132,7 +129,6 @@ class NationalSocietyActionTO(TranslationOptions):
 @register(PlannedIntervention)
 class PlannedInterventionTO(TranslationOptions):
     fields = (
-        "title",
         "description",
         "progress_towards_outcome",
         "narrative_description_of_achievements",
