@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-19 09:42+0000\n"
+"POT-Creation-Date: 2026-02-17 06:11+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -107,8 +107,7 @@ msgstr "descripción"
 msgid "national society action"
 msgstr "acción de la sociedad nacional"
 
-#: dref/models.py:53 dref/models.py:399 dref/models.py:1041
-#: dref/models.py:1557
+#: dref/models.py:53 dref/models.py:399 dref/models.py:1041 dref/models.py:1557
 msgid "national society actions"
 msgstr "acciones de la sociedad nacional"
 
@@ -387,8 +386,7 @@ msgstr "categoría de desastre"
 
 #: dref/models.py:332
 msgid "If available please upload Disaster categorization Analysis"
-msgstr ""
-"Si está disponible, cargue el análisis de categorización de desastres."
+msgstr "Si está disponible, cargue el análisis de categorización de desastres."
 
 #: dref/models.py:340
 msgid ""
@@ -882,8 +880,8 @@ msgid ""
 "Does your volunteer team reflect the gender, age, and cultural diversity of "
 "the people you’re helping?"
 msgstr ""
-"¿Su equipo de voluntarios refleja la diversidad de género, edad y cultura de"
-" las personas a las que está ayudando?"
+"¿Su equipo de voluntarios refleja la diversidad de género, edad y cultura de "
+"las personas a las que está ayudando?"
 
 #: dref/models.py:597 dref/models.py:1185
 msgid "Is surge personnel deployed"
@@ -914,8 +912,8 @@ msgid ""
 "Are there any safety/security concerns which may impact the implementation "
 "of this operation?"
 msgstr ""
-"¿Existen preocupaciones de seguridad que puedan afectar la implementación de"
-" esta operación?"
+"¿Existen preocupaciones de seguridad que puedan afectar la implementación de "
+"esta operación?"
 
 #: dref/models.py:613 dref/models.py:1201
 msgid "pmer"
@@ -937,8 +935,8 @@ msgstr "¿Tiene el NS capacidad de comunicaciones?"
 msgid "event map"
 msgstr "mapa de eventos"
 
-#: dref/models.py:629 dref/models.py:907 dref/models.py:937
-#: dref/models.py:1424 dref/models.py:1515
+#: dref/models.py:629 dref/models.py:907 dref/models.py:937 dref/models.py:1424
+#: dref/models.py:1515
 msgid "images"
 msgstr "imágenes"
 
@@ -1368,6 +1366,21 @@ msgstr "Informes finales de Dref"
 msgid "Caption"
 msgstr "Subtítulo"
 
+#: dref/serializers.py:163
+#, python-brace-format
+#| msgid "Operational Update Number"
+msgid "Operational update #{op_number}"
+msgstr "actualización operativa #{op_number}"
+
+#: dref/serializers.py:197 dref/serializers.py:1604
+msgid "Final report"
+msgstr "informe final"
+
+#: dref/serializers.py:273
+#| msgid "Date of publication"
+msgid "DREF application"
+msgstr "Aplicación DREF"
+
 #: dref/serializers.py:475 dref/serializers.py:751 dref/serializers.py:1158
 msgid "Cannot be updated while the translation is in progress"
 msgstr "No se puede actualizar mientras la traducción esté en progreso"
@@ -1375,8 +1388,7 @@ msgstr "No se puede actualizar mientras la traducción esté en progreso"
 #: dref/serializers.py:481
 #, python-format
 msgid "Cannot add event_date if onset type not in %s or %s"
-msgstr ""
-"No se puede agregar event_date si el tipo de inicio no está en %s o %s"
+msgstr "No se puede agregar event_date si el tipo de inicio no está en %s o %s"
 
 #: dref/serializers.py:489
 msgid "Can't Update dref for approved Final Report"
@@ -1404,8 +1416,7 @@ msgstr "El subtotal debe ser igual a %s para DREF inminente"
 
 #: dref/serializers.py:516
 msgid "Surge Deployment is required for Imminent DREF"
-msgstr ""
-"Se requiere un aumento repentino del despliegue para el DREF inminente"
+msgstr "Se requiere un aumento repentino del despliegue para el DREF inminente"
 
 #: dref/serializers.py:519 dref/serializers.py:1203
 msgid "Indirect Cost is required for Imminent DREF"
@@ -1462,8 +1473,8 @@ msgstr ""
 msgid ""
 "Operation timeframe can't be greater than {self.MAX_OPERATION_TIMEFRAME}"
 msgstr ""
-"El período de tiempo de la operación no puede ser mayor que "
-"{self.MAX_OPERATION_TIMEFRAME}"
+"El período de tiempo de la operación no puede ser mayor que {self."
+"MAX_OPERATION_TIMEFRAME}"
 
 #: dref/serializers.py:754
 msgid "Can't create Operational Update for not approved dref."

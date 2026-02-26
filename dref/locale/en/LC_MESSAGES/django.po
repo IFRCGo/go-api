@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-19 09:42+0000\n"
+"POT-Creation-Date: 2026-02-17 06:11+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -107,8 +107,7 @@ msgstr "description"
 msgid "national society action"
 msgstr "national society action"
 
-#: dref/models.py:53 dref/models.py:399 dref/models.py:1041
-#: dref/models.py:1557
+#: dref/models.py:53 dref/models.py:399 dref/models.py:1041 dref/models.py:1557
 msgid "national society actions"
 msgstr "national society actions"
 
@@ -930,8 +929,8 @@ msgstr "Does the NS have Communications capacity?"
 msgid "event map"
 msgstr "event map"
 
-#: dref/models.py:629 dref/models.py:907 dref/models.py:937
-#: dref/models.py:1424 dref/models.py:1515
+#: dref/models.py:629 dref/models.py:907 dref/models.py:937 dref/models.py:1424
+#: dref/models.py:1515
 msgid "images"
 msgstr "images"
 
@@ -1358,6 +1357,19 @@ msgstr "Dref Final Reports"
 #: dref/serializers.py:116
 msgid "Caption"
 msgstr "Caption"
+
+#: dref/serializers.py:163
+#, python-brace-format
+msgid "Operational update #{op_number}"
+msgstr "Operational Update #{op_number}"
+
+#: dref/serializers.py:197 dref/serializers.py:1604
+msgid "Final report"
+msgstr "Final report"
+
+#: dref/serializers.py:273
+msgid "DREF application"
+msgstr "DREF application"
 
 #: dref/serializers.py:475 dref/serializers.py:751 dref/serializers.py:1158
 msgid "Cannot be updated while the translation is in progress"

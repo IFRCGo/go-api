@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-17 10:36+0000\n"
+"POT-Creation-Date: 2026-02-17 06:11+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,7 +22,7 @@ msgstr ""
 msgid "ERU owner country"
 msgstr ""
 
-#: deployments/admin.py:94 deployments/admin.py:233 deployments/models.py:745
+#: deployments/admin.py:94 deployments/admin.py:233 deployments/models.py:746
 msgid "Country"
 msgstr "País"
 
@@ -30,7 +30,7 @@ msgstr "País"
 msgid "EQP Units"
 msgstr ""
 
-#: deployments/admin.py:228 deployments/models.py:645
+#: deployments/admin.py:228 deployments/models.py:646
 msgid "National Society"
 msgstr "Sociedad nacional"
 
@@ -46,7 +46,7 @@ msgstr "Importados recientemente"
 msgid "Import Template"
 msgstr "Importar plantilla"
 
-#: deployments/admin.py:339 deployments/models.py:516
+#: deployments/admin.py:339 deployments/models.py:517
 msgid "Projects"
 msgstr "Proyectos"
 
@@ -54,7 +54,7 @@ msgstr "Proyectos"
 msgid "Deployments & 3W's (Who, What, Where)"
 msgstr "Despliegues y 3W (Quién, Qué y Dónde)"
 
-#: deployments/forms.py:46 deployments/models.py:631
+#: deployments/forms.py:46 deployments/models.py:632
 msgid "file"
 msgstr "archivo"
 
@@ -84,10 +84,6 @@ msgstr ""
 #: deployments/management/commands/update_project_status.py:54
 msgid "1 new 3W project notification"
 msgstr ""
-
-#: deployments/models.py:29
-msgid "Basecamp"
-msgstr "Campamento base"
 
 #: deployments/models.py:30
 msgid "IT & Telecom"
@@ -147,24 +143,6 @@ msgstr ""
 msgid "Community Based Surveillance"
 msgstr ""
 
-#: deployments/models.py:43
-#, fuzzy
-#| msgid "Basecamp"
-msgid "Base Camp – S"
-msgstr "Campamento base"
-
-#: deployments/models.py:44
-#, fuzzy
-#| msgid "Basecamp"
-msgid "Base Camp – M"
-msgstr "Campamento base"
-
-#: deployments/models.py:45
-#, fuzzy
-#| msgid "Basecamp"
-msgid "Base Camp – L"
-msgstr "Campamento base"
-
 #: deployments/models.py:46
 msgid "Outpatient Department (OPD) Module"
 msgstr ""
@@ -173,940 +151,944 @@ msgstr ""
 msgid "MHPSS"
 msgstr ""
 
-#: deployments/models.py:55
+#: deployments/models.py:48
+msgid "Operations Support HUB"
+msgstr ""
+
+#: deployments/models.py:56
 msgid "national society country"
 msgstr "país de la sociedad nacional"
 
-#: deployments/models.py:58 deployments/models.py:145 deployments/models.py:163
-#: deployments/models.py:374 deployments/models.py:625
-#: deployments/models.py:654
+#: deployments/models.py:59 deployments/models.py:146 deployments/models.py:164
+#: deployments/models.py:375 deployments/models.py:626
+#: deployments/models.py:655
 msgid "created at"
 msgstr "creado el"
 
-#: deployments/models.py:59 deployments/models.py:146 deployments/models.py:164
-#: deployments/models.py:962
+#: deployments/models.py:60 deployments/models.py:147 deployments/models.py:165
+#: deployments/models.py:963
 msgid "updated at"
 msgstr "actualizado el"
 
-#: deployments/models.py:62
+#: deployments/models.py:63
 msgid "ERUs from a National Society"
 msgstr "ERU de una sociedad nacional"
 
-#: deployments/models.py:63
+#: deployments/models.py:64
 msgid "ERUs"
 msgstr "ERU"
 
-#: deployments/models.py:77 deployments/models.py:233
+#: deployments/models.py:78 deployments/models.py:234
 msgid "type"
 msgstr "tipo"
 
-#: deployments/models.py:81
+#: deployments/models.py:82
 msgid "units"
 msgstr "unidades"
 
-#: deployments/models.py:82
+#: deployments/models.py:83
 msgid "equipment units"
 msgstr "unidades de equipamiento"
 
-#: deployments/models.py:84
+#: deployments/models.py:85
 msgid "number of people deployed"
 msgstr "número de personas desplegadas"
 
-#: deployments/models.py:84 deployments/models.py:97 deployments/models.py:106
-#: deployments/models.py:108 deployments/models.py:109
-#: deployments/models.py:111 deployments/models.py:134
-#: deployments/models.py:136 deployments/models.py:138
-#: deployments/models.py:141 deployments/models.py:143
-#: deployments/models.py:144
+#: deployments/models.py:85 deployments/models.py:98 deployments/models.py:107
+#: deployments/models.py:109 deployments/models.py:110
+#: deployments/models.py:112 deployments/models.py:135
+#: deployments/models.py:137 deployments/models.py:139
+#: deployments/models.py:142 deployments/models.py:144
+#: deployments/models.py:145
 msgid "still not used in frontend"
 msgstr "todavía no se usa en el frontend"
 
-#: deployments/models.py:88 deployments/models.py:123 deployments/models.py:307
+#: deployments/models.py:89 deployments/models.py:124 deployments/models.py:308
 msgid "country deployed to"
 msgstr "país desplegado en"
 
-#: deployments/models.py:90 deployments/models.py:448
+#: deployments/models.py:91 deployments/models.py:449
 msgid "event"
 msgstr "evento"
 
-#: deployments/models.py:93
+#: deployments/models.py:94
 msgid "appeal"
 msgstr "llamamiento"
 
-#: deployments/models.py:100
+#: deployments/models.py:101
 msgid "owner"
 msgstr "propietario"
 
-#: deployments/models.py:102
+#: deployments/models.py:103
 msgid "supporting societies"
 msgstr "sociedades de apoyo"
 
-#: deployments/models.py:108 deployments/models.py:143
-#: deployments/models.py:200 deployments/models.py:481
+#: deployments/models.py:109 deployments/models.py:144
+#: deployments/models.py:201 deployments/models.py:482
 msgid "start date"
 msgstr "fecha de inicio"
 
-#: deployments/models.py:109 deployments/models.py:144
-#: deployments/models.py:201 deployments/models.py:482
+#: deployments/models.py:110 deployments/models.py:145
+#: deployments/models.py:202 deployments/models.py:483
 msgid "end date"
 msgstr "fecha de finalización"
 
-#: deployments/models.py:110
+#: deployments/models.py:111
 msgid "available"
 msgstr "disponible"
 
-#: deployments/models.py:111 deployments/models.py:136
+#: deployments/models.py:112 deployments/models.py:137
 msgid "alert date"
 msgstr "fecha de alerta"
 
-#: deployments/models.py:114
+#: deployments/models.py:115
 msgid "Emergency Response Unit"
 msgstr "Unidad de respuestas de emergencia"
 
-#: deployments/models.py:115
+#: deployments/models.py:116
 msgid "Emergency Response Units"
 msgstr "Unidades de respuestas de emergencia"
 
-#: deployments/models.py:124
+#: deployments/models.py:125
 msgid "region deployed to"
 msgstr "región desplegada en"
 
-#: deployments/models.py:126
+#: deployments/models.py:127
 msgid "event deployed to"
 msgstr "evento desplegado en"
 
-#: deployments/models.py:130
+#: deployments/models.py:131
 msgid "appeal deployed to"
 msgstr "llamamiento desplegado en "
 
-#: deployments/models.py:138
+#: deployments/models.py:139
 msgid "expire start date"
 msgstr "fecha de inicio expirada"
 
-#: deployments/models.py:141
+#: deployments/models.py:142
 msgid "end duration"
 msgstr "duración final"
 
-#: deployments/models.py:147
+#: deployments/models.py:148
 msgid "previous update"
 msgstr "actualización anterior"
 
-#: deployments/models.py:148
+#: deployments/models.py:149
 msgid "comments"
 msgstr "comentarios"
 
-#: deployments/models.py:152
+#: deployments/models.py:153
 msgid "Personnel Deployment"
 msgstr "Despliegue de personal"
 
-#: deployments/models.py:153
+#: deployments/models.py:154
 msgid "Personnel Deployments"
 msgstr "Despliegues de personal"
 
-#: deployments/models.py:162 deployments/models.py:202
-#: deployments/models.py:373 deployments/models.py:454
+#: deployments/models.py:163 deployments/models.py:203
+#: deployments/models.py:374 deployments/models.py:455
 msgid "name"
 msgstr "nombre"
 
-#: deployments/models.py:165
+#: deployments/models.py:166
 msgid "Is this a deprecated group?"
 msgstr ""
 
-#: deployments/models.py:168
+#: deployments/models.py:169
 msgid "Molnix Tag Group"
 msgstr ""
 
-#: deployments/models.py:169
+#: deployments/models.py:170
 #, fuzzy
 #| msgid "status"
 msgid "Molnix Tag Groups"
 msgstr "estado"
 
-#: deployments/models.py:203
+#: deployments/models.py:204
 msgid "role"
 msgstr "función"
 
-#: deployments/models.py:206
+#: deployments/models.py:207
 msgid "Deployed Person"
 msgstr "Persona desplegada"
 
-#: deployments/models.py:207
+#: deployments/models.py:208
 msgid "Deployed Persons"
 msgstr "Personas desplegadas"
 
-#: deployments/models.py:220
+#: deployments/models.py:221
 msgid "FACT"
 msgstr ""
 
-#: deployments/models.py:221
+#: deployments/models.py:222
 msgid "HEOP"
 msgstr "HEOP"
 
-#: deployments/models.py:222
+#: deployments/models.py:223
 msgid "RDRT"
 msgstr "RIT"
 
-#: deployments/models.py:223
+#: deployments/models.py:224
 msgid "IFRC"
 msgstr "IFRC"
 
-#: deployments/models.py:224
+#: deployments/models.py:225
 msgid "ERU HR"
 msgstr "RR. HH. ERU"
 
-#: deployments/models.py:225
+#: deployments/models.py:226
 msgid "Rapid Response"
 msgstr "Respuesta rápida"
 
-#: deployments/models.py:228
+#: deployments/models.py:229
 msgid "ACTIVE"
 msgstr ""
 
-#: deployments/models.py:229
+#: deployments/models.py:230
 msgid "HIDDEN"
 msgstr ""
 
-#: deployments/models.py:230
+#: deployments/models.py:231
 msgid "DRAFT"
 msgstr ""
 
-#: deployments/models.py:231
+#: deployments/models.py:232
 msgid "DELETED"
 msgstr ""
 
-#: deployments/models.py:234
+#: deployments/models.py:235
 msgid "gender"
 msgstr ""
 
-#: deployments/models.py:235
+#: deployments/models.py:236
 msgid "appraisal received"
 msgstr ""
 
-#: deployments/models.py:236
+#: deployments/models.py:237
 #, fuzzy
 #| msgid "Migration"
 msgid "location"
 msgstr "Migración"
 
-#: deployments/models.py:238
+#: deployments/models.py:239
 msgid "country from"
 msgstr "país desde"
 
-#: deployments/models.py:243
+#: deployments/models.py:244
 msgid "deployment"
 msgstr "despliegue"
 
-#: deployments/models.py:247
+#: deployments/models.py:248
 #, fuzzy
 #| msgid "status"
 msgid "molnix status"
 msgstr "estado"
 
-#: deployments/models.py:252
+#: deployments/models.py:253
 msgid "surge alert"
 msgstr ""
 
-#: deployments/models.py:269
+#: deployments/models.py:270
 msgid "Personnel"
 msgstr "Personal"
 
-#: deployments/models.py:270
+#: deployments/models.py:271
 msgid "Personnels"
 msgstr "Personal"
 
-#: deployments/models.py:280 deployments/models.py:293
+#: deployments/models.py:281 deployments/models.py:294
 msgid "activity"
 msgstr "actividad"
 
-#: deployments/models.py:286
+#: deployments/models.py:287
 msgid "Partner society activity"
 msgstr "actividad de la sociedad asociada"
 
-#: deployments/models.py:287
+#: deployments/models.py:288
 msgid "Partner society activities"
 msgstr "actividades de la sociedad asociada"
 
-#: deployments/models.py:300
+#: deployments/models.py:301
 msgid "parent society"
 msgstr "sociedad matriz"
 
-#: deployments/models.py:312
+#: deployments/models.py:313
 msgid "district deployed to"
 msgstr "distrito desplegado a"
 
-#: deployments/models.py:315
+#: deployments/models.py:316
 msgid "Partner Society Deployment"
 msgstr "Despliegue de la sociedad asociada"
 
-#: deployments/models.py:316
+#: deployments/models.py:317
 msgid "Partner Society Deployments"
 msgstr "Despliegues de la sociedad asociada"
 
-#: deployments/models.py:323
+#: deployments/models.py:324
 msgid "Bilateral"
 msgstr "Bilateral"
 
-#: deployments/models.py:324
+#: deployments/models.py:325
 msgid "Multilateral"
 msgstr "Multilateral"
 
-#: deployments/models.py:325
+#: deployments/models.py:326
 msgid "Domestic"
 msgstr "Doméstico"
 
-#: deployments/models.py:330 deployments/models.py:345
-#: deployments/models.py:653 deployments/models.py:762
-#: deployments/models.py:776 deployments/models.py:794
+#: deployments/models.py:331 deployments/models.py:346
+#: deployments/models.py:654 deployments/models.py:763
+#: deployments/models.py:777 deployments/models.py:795
 msgid "title"
 msgstr ""
 
-#: deployments/models.py:331 deployments/models.py:346
+#: deployments/models.py:332 deployments/models.py:347
 msgid "color"
 msgstr ""
 
-#: deployments/models.py:332
+#: deployments/models.py:333
 msgid "Is this a deprecated sector?"
 msgstr ""
 
-#: deployments/models.py:336
+#: deployments/models.py:337
 #, fuzzy
 #| msgid "Project Import"
 msgid "Project Sector"
 msgstr "Proyecto importado"
 
-#: deployments/models.py:337
+#: deployments/models.py:338
 #, fuzzy
 #| msgid "Projects"
 msgid "Project Sectors"
 msgstr "Proyectos"
 
-#: deployments/models.py:347
+#: deployments/models.py:348
 msgid "Is this a deprecated sector tag?"
 msgstr ""
 
-#: deployments/models.py:351
+#: deployments/models.py:352
 #, fuzzy
 #| msgid "Project Import"
 msgid "Project Sector Tag"
 msgstr "Proyecto importado"
 
-#: deployments/models.py:352
+#: deployments/models.py:353
 #, fuzzy
 #| msgid "Project Import"
 msgid "Project Sector Tags"
 msgstr "Proyecto importado"
 
-#: deployments/models.py:361 deployments/models.py:651
+#: deployments/models.py:362 deployments/models.py:652
 msgid "Planned"
 msgstr "Planificado"
 
-#: deployments/models.py:362 deployments/models.py:649
+#: deployments/models.py:363 deployments/models.py:650
 msgid "Ongoing"
 msgstr "En marcha"
 
-#: deployments/models.py:363
+#: deployments/models.py:364
 msgid "Completed"
 msgstr "Completado"
 
-#: deployments/models.py:367
+#: deployments/models.py:368
 msgid "Programme"
 msgstr "Programa"
 
-#: deployments/models.py:368
+#: deployments/models.py:369
 msgid "Emergency Operation"
 msgstr "Operación de emergencia"
 
-#: deployments/models.py:375 deployments/models.py:388
-#: deployments/models.py:655
+#: deployments/models.py:376 deployments/models.py:389
+#: deployments/models.py:656
 msgid "modified at"
 msgstr "modificado el"
 
-#: deployments/models.py:378
+#: deployments/models.py:379
 msgid "Regional Project"
 msgstr "Proyecto regional"
 
-#: deployments/models.py:379
+#: deployments/models.py:380
 msgid "Regional Projects"
 msgstr "Proyectos regionales"
 
-#: deployments/models.py:391 deployments/models.py:666
+#: deployments/models.py:392 deployments/models.py:667
 #, fuzzy
 #| msgid "modified at"
 msgid "modified by"
 msgstr "modificado el"
 
-#: deployments/models.py:399
+#: deployments/models.py:400
 msgid "user"
 msgstr "usuario"
 
-#: deployments/models.py:407
+#: deployments/models.py:408
 msgid "reporting national society"
 msgstr "sociedad nacional que reporta"
 
-#: deployments/models.py:412
+#: deployments/models.py:413
 msgid "NS Contanct Information: Name"
 msgstr ""
 
-#: deployments/models.py:418
+#: deployments/models.py:419
 msgid "NS Contanct Information: Role"
 msgstr ""
 
-#: deployments/models.py:424
+#: deployments/models.py:425
 msgid "NS Contanct Information: Email"
 msgstr ""
 
-#: deployments/models.py:431
+#: deployments/models.py:432
 msgid "country"
 msgstr "país"
 
-#: deployments/models.py:438
+#: deployments/models.py:439
 msgid "districts"
 msgstr "distritos"
 
-#: deployments/models.py:443 deployments/models.py:683
+#: deployments/models.py:444 deployments/models.py:684
 msgid "admin2"
 msgstr ""
 
-#: deployments/models.py:453
+#: deployments/models.py:454
 msgid "disaster type"
 msgstr "tipo de desastre"
 
-#: deployments/models.py:455
+#: deployments/models.py:456
 #, fuzzy
 #| msgid "Education"
 msgid "description"
 msgstr "Educación"
 
-#: deployments/models.py:457
+#: deployments/models.py:458
 msgid "linked document"
 msgstr ""
 
-#: deployments/models.py:462
+#: deployments/models.py:463
 msgid "programme type"
 msgstr "tipo de programa"
 
-#: deployments/models.py:467 deployments/models.py:773
-#: deployments/models.py:820
+#: deployments/models.py:468 deployments/models.py:774
+#: deployments/models.py:821
 msgid "sector"
 msgstr "sector"
 
-#: deployments/models.py:478
+#: deployments/models.py:479
 msgid "operation type"
 msgstr "tipo de operación"
 
-#: deployments/models.py:483
+#: deployments/models.py:484
 msgid "budget amount"
 msgstr "cantidad de presupuesto"
 
-#: deployments/models.py:484
+#: deployments/models.py:485
 msgid "actual expenditure"
 msgstr ""
 
-#: deployments/models.py:488 deployments/models.py:629
+#: deployments/models.py:489 deployments/models.py:630
 msgid "status"
 msgstr "estado"
 
-#: deployments/models.py:493 deployments/models.py:585
+#: deployments/models.py:494 deployments/models.py:586
 msgid "target male"
 msgstr "objetivo hombres"
 
-#: deployments/models.py:494 deployments/models.py:586
+#: deployments/models.py:495 deployments/models.py:587
 msgid "target female"
 msgstr "objetivo mujeres"
 
-#: deployments/models.py:495 deployments/models.py:587
+#: deployments/models.py:496 deployments/models.py:588
 msgid "target other"
 msgstr "objetivo otro"
 
-#: deployments/models.py:496 deployments/models.py:588
+#: deployments/models.py:497 deployments/models.py:589
 msgid "target total"
 msgstr "objetivo total"
 
-#: deployments/models.py:499 deployments/models.py:589
+#: deployments/models.py:500 deployments/models.py:590
 msgid "reached male"
 msgstr "hombres alcanzados"
 
-#: deployments/models.py:500 deployments/models.py:590
+#: deployments/models.py:501 deployments/models.py:591
 msgid "reached female"
 msgstr "mujeres alcanzadas"
 
-#: deployments/models.py:501 deployments/models.py:591
+#: deployments/models.py:502 deployments/models.py:592
 msgid "reached other"
 msgstr "otros a los que ha alcanzado"
 
-#: deployments/models.py:502 deployments/models.py:592
+#: deployments/models.py:503 deployments/models.py:593
 msgid "reached total"
 msgstr "total a los que se ha alcanzado"
 
-#: deployments/models.py:505
+#: deployments/models.py:506
 msgid "regional project"
 msgstr "proyectos regionales"
 
-#: deployments/models.py:509 deployments/models.py:751
+#: deployments/models.py:510 deployments/models.py:752
 msgid "visibility"
 msgstr "visibilidad"
 
-#: deployments/models.py:515
+#: deployments/models.py:516
 msgid "Project"
 msgstr "Proyecto"
 
-#: deployments/models.py:582
+#: deployments/models.py:583
 #, fuzzy
 #| msgid "Project"
 msgid "project"
 msgstr "Proyecto"
 
-#: deployments/models.py:583
+#: deployments/models.py:584
 msgid "year"
 msgstr ""
 
-#: deployments/models.py:584
+#: deployments/models.py:585
 #, fuzzy
 #| msgid "budget amount"
 msgid "amount"
 msgstr "cantidad de presupuesto"
 
-#: deployments/models.py:595
+#: deployments/models.py:596
 msgid "Annual Split"
 msgstr ""
 
-#: deployments/models.py:596
+#: deployments/models.py:597
 msgid "Annual Splits"
 msgstr ""
 
-#: deployments/models.py:615
+#: deployments/models.py:616
 msgid "Pending"
 msgstr "Pendiente"
 
-#: deployments/models.py:616
+#: deployments/models.py:617
 msgid "Success"
 msgstr "Éxito"
 
-#: deployments/models.py:617
+#: deployments/models.py:618
 msgid "Failure"
 msgstr "Fracaso"
 
-#: deployments/models.py:621 deployments/models.py:658
+#: deployments/models.py:622 deployments/models.py:659
 msgid "created by"
 msgstr "creado por"
 
-#: deployments/models.py:626
+#: deployments/models.py:627
 msgid "projects created"
 msgstr "proyectos creados"
 
-#: deployments/models.py:627
+#: deployments/models.py:628
 msgid "message"
 msgstr "mensaje"
 
-#: deployments/models.py:634
+#: deployments/models.py:635
 msgid "Project Import"
 msgstr "Proyecto importado"
 
-#: deployments/models.py:635
+#: deployments/models.py:636
 msgid "Projects Import"
 msgstr "Proyectos importados"
 
-#: deployments/models.py:646 deployments/models.py:722
+#: deployments/models.py:647 deployments/models.py:723
 #, fuzzy
 #| msgid "Deployed Person"
 msgid "Deployed ERU"
 msgstr "Persona desplegada"
 
-#: deployments/models.py:650
+#: deployments/models.py:651
 #, fuzzy
 #| msgid "Completed"
 msgid "Complete"
 msgstr "Completado"
 
-#: deployments/models.py:673
+#: deployments/models.py:674
 #, fuzzy
 #| msgid "event"
 msgid "Event"
 msgstr "evento"
 
-#: deployments/models.py:677
+#: deployments/models.py:678
 #, fuzzy
 #| msgid "districts"
 msgid "Districts"
 msgstr "distritos"
 
-#: deployments/models.py:689
+#: deployments/models.py:690
 #, fuzzy
 #| msgid "activity"
 msgid "Activity lead"
 msgstr "actividad"
 
-#: deployments/models.py:695
+#: deployments/models.py:696
 #, fuzzy
 #| msgid "reporting national society"
 msgid "Reporting national society"
 msgstr "sociedad nacional que reporta"
 
-#: deployments/models.py:702
+#: deployments/models.py:703
 msgid "NS Contact Information: Name"
 msgstr ""
 
-#: deployments/models.py:708
+#: deployments/models.py:709
 msgid "NS Contact Information: Role"
 msgstr ""
 
-#: deployments/models.py:714
+#: deployments/models.py:715
 msgid "NS Contact Information: Email"
 msgstr ""
 
-#: deployments/models.py:729
+#: deployments/models.py:730
 #, fuzzy
 #| msgid "start date"
 msgid "Start Date"
 msgstr "fecha de inicio"
 
-#: deployments/models.py:734
+#: deployments/models.py:735
 msgid "End Date"
 msgstr ""
 
-#: deployments/models.py:778
+#: deployments/models.py:779
 msgid "Description"
 msgstr ""
 
-#: deployments/models.py:779
+#: deployments/models.py:780
 #, fuzzy
 #| msgid "disaster type"
 msgid "is_cash_type"
 msgstr "tipo de desastre"
 
-#: deployments/models.py:780
+#: deployments/models.py:781
 msgid "has location"
 msgstr ""
 
-#: deployments/models.py:790 deployments/models.py:825
+#: deployments/models.py:791 deployments/models.py:826
 #, fuzzy
 #| msgid "Migration"
 msgid "action"
 msgstr "Migración"
 
-#: deployments/models.py:804
+#: deployments/models.py:805
 msgid "latitude"
 msgstr ""
 
-#: deployments/models.py:805
+#: deployments/models.py:806
 msgid "longitude"
 msgstr ""
 
-#: deployments/models.py:806
+#: deployments/models.py:807
 msgid "location description"
 msgstr ""
 
-#: deployments/models.py:815 deployments/models.py:854
+#: deployments/models.py:816 deployments/models.py:855
 msgid "People"
 msgstr ""
 
-#: deployments/models.py:816
+#: deployments/models.py:817
 msgid "Households"
 msgstr ""
 
-#: deployments/models.py:832
+#: deployments/models.py:833
 #, fuzzy
 #| msgid "Emergency Operation"
 msgid "emergency project/3W"
 msgstr "Operación de emergencia"
 
-#: deployments/models.py:836
+#: deployments/models.py:837
 msgid "is_simplified_report"
 msgstr ""
 
-#: deployments/models.py:837
+#: deployments/models.py:838
 msgid "Is disaggregated for disabled"
 msgstr ""
 
-#: deployments/models.py:838
+#: deployments/models.py:839
 msgid "Has no data on people reached"
 msgstr ""
 
-#: deployments/models.py:845
+#: deployments/models.py:846
 msgid "People Households"
 msgstr ""
 
-#: deployments/models.py:847
+#: deployments/models.py:848
 msgid "Household"
 msgstr ""
 
-#: deployments/models.py:849
+#: deployments/models.py:850
 #, fuzzy
 #| msgid "Country"
 msgid "Amount"
 msgstr "País"
 
-#: deployments/models.py:850
+#: deployments/models.py:851
 msgid "Beneficiaries Count"
 msgstr ""
 
-#: deployments/models.py:852
+#: deployments/models.py:853
 msgid "Item"
 msgstr ""
 
-#: deployments/models.py:855
+#: deployments/models.py:856
 msgid "Men"
 msgstr ""
 
-#: deployments/models.py:856
+#: deployments/models.py:857
 msgid "Female"
 msgstr ""
 
-#: deployments/models.py:858
+#: deployments/models.py:859
 msgid "Male Unknown Age"
 msgstr ""
 
-#: deployments/models.py:859
+#: deployments/models.py:860
 msgid "Female Unknown Age"
 msgstr ""
 
-#: deployments/models.py:860
+#: deployments/models.py:861
 msgid "Other Unknown Age"
 msgstr ""
 
-#: deployments/models.py:862
+#: deployments/models.py:863
 msgid "Boys 0-1"
 msgstr ""
 
-#: deployments/models.py:863
+#: deployments/models.py:864
 msgid "Boys 2-5"
 msgstr ""
 
-#: deployments/models.py:864
+#: deployments/models.py:865
 msgid "Boys 6-12"
 msgstr ""
 
-#: deployments/models.py:865
+#: deployments/models.py:866
 msgid "Boys 13-17"
 msgstr ""
 
-#: deployments/models.py:866
+#: deployments/models.py:867
 msgid "Men 18-29"
 msgstr ""
 
-#: deployments/models.py:867
+#: deployments/models.py:868
 msgid "Older Men 60+"
 msgstr ""
 
-#: deployments/models.py:868
+#: deployments/models.py:869
 msgid "Girls 0-1"
 msgstr ""
 
-#: deployments/models.py:869
+#: deployments/models.py:870
 msgid "Girls 2-5"
 msgstr ""
 
-#: deployments/models.py:870
+#: deployments/models.py:871
 msgid "Girls 6-12"
 msgstr ""
 
-#: deployments/models.py:871
+#: deployments/models.py:872
 msgid "Girls 13-17"
 msgstr ""
 
-#: deployments/models.py:872
+#: deployments/models.py:873
 msgid "Women 18-29"
 msgstr ""
 
-#: deployments/models.py:873
+#: deployments/models.py:874
 msgid "Older Women 60+"
 msgstr ""
 
-#: deployments/models.py:874
+#: deployments/models.py:875
 msgid "Others/Unknown 0-1"
 msgstr ""
 
-#: deployments/models.py:875
+#: deployments/models.py:876
 msgid "Others/Unknown 2-5"
 msgstr ""
 
-#: deployments/models.py:876
+#: deployments/models.py:877
 msgid "Others/Unknown 6-12"
 msgstr ""
 
-#: deployments/models.py:877
+#: deployments/models.py:878
 msgid "Others/Unknown 13-17"
 msgstr ""
 
-#: deployments/models.py:878
+#: deployments/models.py:879
 msgid "Others/Unknown 18-29"
 msgstr ""
 
-#: deployments/models.py:879
+#: deployments/models.py:880
 msgid "Others/Unknown 60+"
 msgstr ""
 
-#: deployments/models.py:881
+#: deployments/models.py:882
 msgid "Disabled Boys 0-1"
 msgstr ""
 
-#: deployments/models.py:882
+#: deployments/models.py:883
 msgid "Disabled Boys 2-5"
 msgstr ""
 
-#: deployments/models.py:883
+#: deployments/models.py:884
 msgid "Disabled Boys 6-12"
 msgstr ""
 
-#: deployments/models.py:884
+#: deployments/models.py:885
 msgid "Disabled Boys 13-17"
 msgstr ""
 
-#: deployments/models.py:885
+#: deployments/models.py:886
 msgid "Disabled Men 18-29"
 msgstr ""
 
-#: deployments/models.py:886
+#: deployments/models.py:887
 msgid "Disabled Older Men 60+"
 msgstr ""
 
-#: deployments/models.py:887
+#: deployments/models.py:888
 msgid "Disabled Girls 0-1"
 msgstr ""
 
-#: deployments/models.py:888
+#: deployments/models.py:889
 msgid "Disabled Girls 2-5"
 msgstr ""
 
-#: deployments/models.py:889
+#: deployments/models.py:890
 msgid "Disabled Girls 6-12"
 msgstr ""
 
-#: deployments/models.py:890
+#: deployments/models.py:891
 msgid "Disabled Girls 13-17"
 msgstr ""
 
-#: deployments/models.py:891
+#: deployments/models.py:892
 msgid "Disabled Women 18-29"
 msgstr ""
 
-#: deployments/models.py:892
+#: deployments/models.py:893
 msgid "Disabled Older Women 60+"
 msgstr ""
 
-#: deployments/models.py:893
+#: deployments/models.py:894
 msgid "Disabled Others/Unknown 0-1"
 msgstr ""
 
-#: deployments/models.py:894
+#: deployments/models.py:895
 msgid "Disabled Others/Unknown 2-5"
 msgstr ""
 
-#: deployments/models.py:895
+#: deployments/models.py:896
 msgid "Disabled Others/Unknown 6-12"
 msgstr ""
 
-#: deployments/models.py:896
+#: deployments/models.py:897
 msgid "Disabled Others/Unknown 13-17"
 msgstr ""
 
-#: deployments/models.py:897
+#: deployments/models.py:898
 msgid "Disabled Others/Unknown 18-29"
 msgstr ""
 
-#: deployments/models.py:898
+#: deployments/models.py:899
 msgid "Disabled Others/Unknown 60+"
 msgstr ""
 
-#: deployments/models.py:899
+#: deployments/models.py:900
 msgid "Disabled Male Unknown Age"
 msgstr ""
 
-#: deployments/models.py:900
+#: deployments/models.py:901
 msgid "Disabled Female Unknown Age"
 msgstr ""
 
-#: deployments/models.py:901
+#: deployments/models.py:902
 msgid "Disabled Other Unknown Age"
 msgstr ""
 
-#: deployments/models.py:904
+#: deployments/models.py:905
 msgid "details"
 msgstr ""
 
-#: deployments/models.py:905
+#: deployments/models.py:906
 msgid "supplies"
 msgstr ""
 
-#: deployments/models.py:907
+#: deployments/models.py:908
 msgid "custom_action"
 msgstr ""
 
-#: deployments/models.py:908
+#: deployments/models.py:909
 msgid "custom supplies"
 msgstr ""
 
-#: deployments/models.py:911
+#: deployments/models.py:912
 msgid "Point Count"
 msgstr ""
 
-#: deployments/models.py:913
+#: deployments/models.py:914
 msgid "Points"
 msgstr ""
 
-#: deployments/models.py:925
+#: deployments/models.py:926
 msgid "Ready"
 msgstr ""
 
-#: deployments/models.py:926
+#: deployments/models.py:927
 msgid "Partial capacity"
 msgstr ""
 
-#: deployments/models.py:927
+#: deployments/models.py:928
 msgid "No capacity"
 msgstr ""
 
-#: deployments/models.py:929
+#: deployments/models.py:930
 msgid "ERU type"
 msgstr "tipo de ERU"
 
-#: deployments/models.py:932
+#: deployments/models.py:933
 #, fuzzy
 #| msgid "equipment units"
 msgid "equipment readiness"
 msgstr "unidades de equipamiento"
 
-#: deployments/models.py:936
+#: deployments/models.py:937
 #, fuzzy
 #| msgid "ERU Readiness"
 msgid "people readiness"
 msgstr "Preparación de ERU"
 
-#: deployments/models.py:940
+#: deployments/models.py:941
 #, fuzzy
 #| msgid "ERU Readiness"
 msgid "funding readiness"
 msgstr "Preparación de ERU"
 
-#: deployments/models.py:942
+#: deployments/models.py:943
 #, fuzzy
 #| msgid "comments"
 msgid "comment"
 msgstr "comentarios"
 
-#: deployments/models.py:945
+#: deployments/models.py:946
 #, fuzzy
 #| msgid "ERU Readiness"
 msgid "ERU Readiness Type"
 msgstr "Preparación de ERU"
 
-#: deployments/models.py:946
+#: deployments/models.py:947
 #, fuzzy
 #| msgid "ERU Readiness"
 msgid "ERU Readiness Types"
 msgstr "Preparación de ERU"
 
-#: deployments/models.py:956
+#: deployments/models.py:957
 msgid "national society"
 msgstr "sociedad nacional"
 
-#: deployments/models.py:959
+#: deployments/models.py:960
 #, fuzzy
 #| msgid "ERU Readiness"
 msgid "ERU types with readiness"
 msgstr "Preparación de ERU"
 
-#: deployments/models.py:969 deployments/models.py:970
+#: deployments/models.py:970 deployments/models.py:971
 msgid "ERU Readiness"
 msgstr "Preparación de ERU"
 
@@ -1150,6 +1132,24 @@ msgstr ""
 #: deployments/serializers.py:1101
 msgid "one or more eru readiness type is already used."
 msgstr ""
+
+#~ msgid "Basecamp"
+#~ msgstr "Campamento base"
+
+#, fuzzy
+#~| msgid "Basecamp"
+#~ msgid "Base Camp – S"
+#~ msgstr "Campamento base"
+
+#, fuzzy
+#~| msgid "Basecamp"
+#~ msgid "Base Camp – M"
+#~ msgstr "Campamento base"
+
+#, fuzzy
+#~| msgid "Basecamp"
+#~ msgid "Base Camp – L"
+#~ msgstr "Campamento base"
 
 #~ msgid "Wash M15"
 #~ msgstr "Wash M15"

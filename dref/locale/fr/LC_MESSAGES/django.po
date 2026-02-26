@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-19 09:42+0000\n"
+"POT-Creation-Date: 2026-02-17 06:11+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -108,8 +108,7 @@ msgstr "description"
 msgid "national society action"
 msgstr "action de la société nationale"
 
-#: dref/models.py:53 dref/models.py:399 dref/models.py:1041
-#: dref/models.py:1557
+#: dref/models.py:53 dref/models.py:399 dref/models.py:1041 dref/models.py:1557
 msgid "national society actions"
 msgstr "actions de la société nationale"
 
@@ -379,8 +378,8 @@ msgid ""
 "Is this DREF Imminent V2? If yes, it will be used for the new dref imminent "
 "type."
 msgstr ""
-"S'agit-il de DREF Imminent V2 ? Si oui, il sera utilisé pour le nouveau type"
-" de référence imminente."
+"S'agit-il de DREF Imminent V2 ? Si oui, il sera utilisé pour le nouveau type "
+"de référence imminente."
 
 #: dref/models.py:325 dref/models.py:871 dref/models.py:1310
 msgid "disaster category"
@@ -937,8 +936,8 @@ msgstr "La NS dispose-t-elle de capacités de communication ?"
 msgid "event map"
 msgstr "carte des événements"
 
-#: dref/models.py:629 dref/models.py:907 dref/models.py:937
-#: dref/models.py:1424 dref/models.py:1515
+#: dref/models.py:629 dref/models.py:907 dref/models.py:937 dref/models.py:1424
+#: dref/models.py:1515
 msgid "images"
 msgstr "images"
 
@@ -1369,6 +1368,19 @@ msgstr "Rapports finaux du Dref"
 msgid "Caption"
 msgstr "Légende"
 
+#: dref/serializers.py:163
+#, python-brace-format
+msgid "Operational update #{op_number}"
+msgstr "Mise à jour opérationnelle #{op_number}"
+
+#: dref/serializers.py:197 dref/serializers.py:1604
+msgid "Final report"
+msgstr "Rapport final"
+
+#: dref/serializers.py:273
+msgid "DREF application"
+msgstr "Demande DREF"
+
 #: dref/serializers.py:475 dref/serializers.py:751 dref/serializers.py:1158
 msgid "Cannot be updated while the translation is in progress"
 msgstr "Impossible de mettre à jour pendant la traduction."
@@ -1376,8 +1388,7 @@ msgstr "Impossible de mettre à jour pendant la traduction."
 #: dref/serializers.py:481
 #, python-format
 msgid "Cannot add event_date if onset type not in %s or %s"
-msgstr ""
-"Impossible d'ajouter event_date si le type de début n'est pas %s ou %s"
+msgstr "Impossible d'ajouter event_date si le type de début n'est pas %s ou %s"
 
 #: dref/serializers.py:489
 msgid "Can't Update dref for approved Final Report"
@@ -1462,8 +1473,8 @@ msgstr ""
 msgid ""
 "Operation timeframe can't be greater than {self.MAX_OPERATION_TIMEFRAME}"
 msgstr ""
-"La durée de l'opération ne peut pas être supérieure à "
-"{self.MAX_OPERATION_TIMEFRAME}"
+"La durée de l'opération ne peut pas être supérieure à {self."
+"MAX_OPERATION_TIMEFRAME}"
 
 #: dref/serializers.py:754
 msgid "Can't create Operational Update for not approved dref."
@@ -1496,8 +1507,7 @@ msgstr ""
 
 #: dref/serializers.py:1162
 msgid "Can't create Final Report for not approved dref."
-msgstr ""
-"Impossible de créer un rapport final pour une référence non approuvée."
+msgstr "Impossible de créer un rapport final pour une référence non approuvée."
 
 #: dref/serializers.py:1169
 #, python-format
