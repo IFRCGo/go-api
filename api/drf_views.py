@@ -1,3 +1,4 @@
+import logging
 from datetime import timedelta
 
 from django.contrib.auth.models import Group, User
@@ -106,7 +107,6 @@ from .customs_data_loader import load_customs_regulations
 from .esconnection import ES_CLIENT
 from .exceptions import BadRequest
 from .indexes import CLEANED_FRAMEWORK_AGREEMENTS_INDEX_NAME
-from .logger import logger
 from .models import (
     Action,
     Admin2,
@@ -270,6 +270,8 @@ from .serializers import (  # AppealSerializer,; Tableau Serializers; AppealTabl
     UserSerializer,
 )
 from .utils import generate_field_report_title, is_user_ifrc
+
+logger = logging.getLogger(__name__)
 
 
 class CleanedFrameworkAgreementPagination(PageNumberPagination):
