@@ -1332,6 +1332,21 @@ class CrisisCategorisationByCountryAdmin(admin.ModelAdmin):
     form = CrisisCategorisationByCountryAdminForm
 
     def get_form(self, request, obj=None, change=False, **kwargs):
+        label = str(_("Crisis Categorisation Overview"))
+        if obj and obj.event_id:
+            iso2_codes = list(
+                obj.event.countries.exclude(iso__isnull=True).exclude(iso="").values_list("iso", flat=True).order_by("iso")
+            )
+            if iso2_codes:
+                iso_list = ", ".join(iso2_codes)
+                cc_dot = format_cc_dot(obj.event.ifrc_severity_level)
+                if cc_dot:
+                    inner = format_html("{} {}", cc_dot, iso_list)
+                else:
+                    inner = iso_list
+                label = format_html("<strong>{}</strong> ({})", label, inner)
+        self.__class__.event_countries_overview.short_description = format_html("{}", label)
+
         base_form_class = super().get_form(request, obj, change=change, **kwargs)
 
         class FormWithRequest(base_form_class):
