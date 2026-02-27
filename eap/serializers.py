@@ -495,7 +495,9 @@ class CommonEAPFieldsSerializer(serializers.ModelSerializer):
         fields["cover_image_file"] = EAPFileUpdateSerializer(source="cover_image", required=False, allow_null=True)
         fields["planned_operations"] = PlannedOperationSerializer(many=True, required=False)
         fields["enabling_approaches"] = EnablingApproachSerializer(many=True, required=False)
-        fields["budget_file"] = serializers.PrimaryKeyRelatedField(queryset=EAPFile.objects.all(), required=False)
+        fields["budget_file"] = serializers.PrimaryKeyRelatedField(
+            queryset=EAPFile.objects.all(), required=False, allow_null=True
+        )
         fields["budget_file_details"] = EAPFileSerializer(source="budget_file", read_only=True)
         fields["updated_checklist_file_details"] = EAPFileSerializer(source="updated_checklist_file", read_only=True)
         return fields
@@ -556,6 +558,7 @@ class SimplifiedEAPSerializer(
     seap_lead_timeframe_unit_display = serializers.CharField(source="get_seap_lead_timeframe_unit_display", read_only=True)
     operational_timeframe_unit_display = serializers.CharField(source="get_operational_timeframe_unit_display", read_only=True)
 
+    people_targeted = serializers.IntegerField(min_value=2000, required=False, allow_null=True)
     # IMAGES
 
     # NOTE: When adding new image fields, include their names in IMAGE_FIELDS below
@@ -580,9 +583,11 @@ class SimplifiedEAPSerializer(
         seap_unit = data.get("seap_lead_timeframe_unit")
         seap_value = data.get("seap_lead_time")
 
-        if (seap_unit is None) != (seap_value is None):
+        if seap_value is not None and seap_unit is None:
             raise serializers.ValidationError(
-                {"seap_lead_timeframe_unit": gettext("seap lead timeframe and unit must both be provided.")}
+                {
+                    "seap_lead_timeframe_unit": gettext("seap lead timeframe and unit must both be provided."),
+                }
             )
 
         if seap_unit is not None and seap_value is not None:
@@ -604,10 +609,11 @@ class SimplifiedEAPSerializer(
         op_unit = data.get("operational_timeframe_unit")
         op_value = data.get("operational_timeframe")
 
-        # Require both if one is provided
-        if (op_unit is None) != (op_value is None):
+        if op_value is not None and op_unit is None:
             raise serializers.ValidationError(
-                {"operational_timeframe_unit": gettext("operational timeframe and unit must both be provided.")}
+                {
+                    "operational_timeframe_unit": gettext("operational timeframe and unit must both be provided."),
+                }
             )
 
         if op_unit is not None and op_value is not None:
@@ -679,12 +685,16 @@ class FullEAPSerializer(
     early_actions = EAPActionSerializer(many=True, required=True)
     prioritized_impacts = ImpactSerializer(many=True, required=True)
 
+    people_targeted = serializers.IntegerField(min_value=10000, required=False, allow_null=True)
+
     # SOURCE OF INFORMATIONS
     risk_analysis_source_of_information = EAPSourceInformationSerializer(many=True, required=False, allow_null=True)
     trigger_statement_source_of_information = EAPSourceInformationSerializer(many=True, required=False, allow_null=True)
     trigger_model_source_of_information = EAPSourceInformationSerializer(many=True, required=False, allow_null=True)
     evidence_base_source_of_information = EAPSourceInformationSerializer(many=True, required=False, allow_null=True)
     activation_process_source_of_information = EAPSourceInformationSerializer(many=True, required=False, allow_null=True)
+    meal_source_of_information = EAPSourceInformationSerializer(many=True, required=False, allow_null=True)
+    ns_capacity_source_of_information = EAPSourceInformationSerializer(many=True, required=False, allow_null=True)
 
     # IMAGES
     hazard_selection_images = EAPFileUpdateSerializer(
@@ -737,8 +747,8 @@ class FullEAPSerializer(
     forecast_table_file_details = EAPFileSerializer(source="forecast_table_file", read_only=True)
     forecast_table_file = serializers.PrimaryKeyRelatedField(
         queryset=EAPFile.objects.all(),
-        required=True,
-        allow_null=False,
+        required=False,
+        allow_null=True,
     )
 
     theory_of_change_table_file_details = EAPFileSerializer(source="theory_of_change_table_file", read_only=True)

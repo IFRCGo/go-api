@@ -379,25 +379,23 @@ class EAPImpact(models.Model):
 
 class PlannedOperation(models.Model):
     class Sector(models.IntegerChoices):
-        SHELTER = 101, _("Shelter")
-        SETTLEMENT_AND_HOUSING = 102, _("Settlement and Housing")
-        LIVELIHOODS = 103, _("Livelihoods")
-        PROTECTION_GENDER_AND_INCLUSION = 104, _("Protection, Gender and Inclusion")
-        HEALTH_AND_CARE = 105, _("Health and Care")
-        RISK_REDUCTION = 106, _("Risk Reduction")
-        CLIMATE_ADAPTATION_AND_RECOVERY = 107, _("Climate Adaptation and Recovery")
-        MULTIPURPOSE_CASH = 108, _("Multipurpose Cash")
-        WATER_SANITATION_AND_HYGIENE = 109, _("Water, Sanitation And Hygiene")
-        WASH = 110, _("WASH")
-        EDUCATION = 111, _("Education")
-        MIGRATION = 112, _("Migration")
-        ENVIRONMENT_SUSTAINABILITY = 113, _("Environment Sustainability")
-        COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY = 114, _("Community Engagement And Accountability")
+        SHELTER_SETTLEMENT_AND_HOUSING = 101, _("Shelter, Settlement and Housing")
+        LIVELIHOODS = 102, _("Livelihoods")
+        PROTECTION_GENDER_AND_INCLUSION = 103, _("Protection, Gender and Inclusion")
+        HEALTH_AND_CARE = 104, _("Health and Care")
+        RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY = 105, _("Risk Reduction, Climate Adaptation and Recovery")
+        MULTIPURPOSE_CASH = 106, _("Multipurpose Cash")
+        WATER_SANITATION_AND_HYGIENE = 107, _("Water, Sanitation And Hygiene")
+        WASH = 108, _("WASH")
+        EDUCATION = 109, _("Education")
+        MIGRATION = 110, _("Migration")
+        ENVIRONMENT_SUSTAINABILITY = 111, _("Environment Sustainability")
+        COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY = 112, _("Community Engagement And Accountability")
 
     sector = models.IntegerField(choices=Sector.choices, verbose_name=_("sector"))
     people_targeted = models.IntegerField(verbose_name=_("People Targeted"))
     budget_per_sector = models.IntegerField(verbose_name=_("Budget per sector (CHF)"))
-    ap_code = models.IntegerField(verbose_name=_("AP Code"), null=True, blank=True)
+    ap_code = models.IntegerField(verbose_name=_("AP Code"))
     previous_id = models.PositiveIntegerField(verbose_name=_("Previous ID"), null=True, blank=True)
 
     indicators = models.ManyToManyField(
@@ -812,6 +810,8 @@ class CommonEAPFields(models.Model):
 
     people_targeted = models.IntegerField(
         verbose_name=_("People Targeted."),
+        blank=True,
+        null=True,
     )
 
     # Contacts
@@ -1343,6 +1343,8 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
     is_worked_with_government = models.BooleanField(
         verbose_name=_("Has Worked with government or other relevant actors."),
         default=False,
+        null=True,
+        blank=True,
     )
 
     worked_with_government_description = models.TextField(
@@ -1447,6 +1449,7 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
     )
 
     # NOTE: In days
+    # TODO(susilnem): add unit for lead time
     lead_time = models.IntegerField(
         verbose_name=_("Lead Time"),
         null=True,
@@ -1675,6 +1678,13 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         related_name="full_eap_meal_files",
     )
 
+    meal_source_of_information = models.ManyToManyField(
+        SourceInformation,
+        verbose_name=_("meal source of information"),
+        related_name="meal_source_of_information",
+        blank=True,
+    )
+
     # NATIONAL SOCIETY CAPACITY
     operational_administrative_capacity = models.TextField(
         verbose_name=_("National Society Operational, thematic and administrative capacity"),
@@ -1699,6 +1709,13 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         blank=True,
         verbose_name=_("National society capacity relevant files"),
         related_name="ns_capacity_relevant_files",
+    )
+
+    ns_capacity_source_of_information = models.ManyToManyField(
+        SourceInformation,
+        verbose_name=_("ns_capacity source of information"),
+        related_name="ns_capacity_source_of_information",
+        blank=True,
     )
 
     # FINANCE AND LOGISTICS
