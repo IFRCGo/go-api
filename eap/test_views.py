@@ -605,7 +605,7 @@ class EAPSimplifiedTestCase(APITestCase):
             "next_step_towards_full_eap": "Plan to expand.",
             "planned_operations": [
                 {
-                    "sector": PlannedOperation.Sector.SETTLEMENT_AND_HOUSING,
+                    "sector": PlannedOperation.Sector.SHELTER_SETTLEMENT_AND_HOUSING,
                     "ap_code": 111,
                     "people_targeted": 10000,
                     "budget_per_sector": 100000,
@@ -829,7 +829,7 @@ class EAPSimplifiedTestCase(APITestCase):
 
         # PLANNED OPERATION with activities
         planned_operation = PlannedOperationFactory.create(
-            sector=PlannedOperation.Sector.SHELTER,
+            sector=PlannedOperation.Sector.SHELTER_SETTLEMENT_AND_HOUSING,
             ap_code=456,
             people_targeted=5000,
             budget_per_sector=50000,
@@ -942,7 +942,7 @@ class EAPSimplifiedTestCase(APITestCase):
             "planned_operations": [
                 {
                     "id": planned_operation.id,
-                    "sector": PlannedOperation.Sector.SHELTER,
+                    "sector": PlannedOperation.Sector.SHELTER_SETTLEMENT_AND_HOUSING,
                     "ap_code": 456,
                     "people_targeted": 8000,
                     "budget_per_sector": 80000,
@@ -1268,7 +1268,7 @@ class EAPStatusTransitionTestCase(APITestCase):
         )
 
         planned_operation = PlannedOperationFactory.create(
-            sector=PlannedOperation.Sector.SHELTER,
+            sector=PlannedOperation.Sector.SHELTER_SETTLEMENT_AND_HOUSING,
             ap_code=456,
             people_targeted=5000,
             budget_per_sector=50000,
@@ -1806,7 +1806,7 @@ class EAPStatusTransitionTestCase(APITestCase):
         )
 
         planned_operation = PlannedOperationFactory.create(
-            sector=PlannedOperation.Sector.SHELTER,
+            sector=PlannedOperation.Sector.SHELTER_SETTLEMENT_AND_HOUSING,
             ap_code=456,
             people_targeted=5000,
             budget_per_sector=50000,
@@ -2431,7 +2431,7 @@ class EAPFullTestCase(APITestCase):
             "readiness_budget": 3000,
             "pre_positioning_budget": 4000,
             "early_action_budget": 3000,
-            "people_targeted": 5000,
+            "people_targeted": 10000,
             "key_actors": [
                 {
                     "national_society": self.national_society.id,
@@ -2474,7 +2474,7 @@ class EAPFullTestCase(APITestCase):
             "eap_endorsement": "EAP endorsement text",
             "planned_operations": [
                 {
-                    "sector": PlannedOperation.Sector.SETTLEMENT_AND_HOUSING,
+                    "sector": PlannedOperation.Sector.SHELTER_SETTLEMENT_AND_HOUSING,
                     "ap_code": 111,
                     "people_targeted": 10000,
                     "budget_per_sector": 100000,
@@ -2689,7 +2689,7 @@ class TestSnapshotEAP(APITestCase):
         )
 
         planned_operation = PlannedOperationFactory.create(
-            sector=PlannedOperation.Sector.SHELTER,
+            sector=PlannedOperation.Sector.SHELTER_SETTLEMENT_AND_HOUSING,
             ap_code=456,
             people_targeted=5000,
             budget_per_sector=50000,
