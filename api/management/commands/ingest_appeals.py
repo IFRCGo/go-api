@@ -99,7 +99,7 @@ class Command(BaseCommand):
         else:
             # get latest BILATERALS
             logger.info("Querying appeals API for new appeals data (bilateral)")
-            url = "https://go-api-minimal.ifrc.org/api/appealbilaterals"
+            url = "https://go-api.ifrc.org/api/appealbilaterals"
             auth = (settings.APPEALS_USER, settings.APPEALS_PASS)
 
             adapter = HTTPAdapter(max_retries=settings.RETRY_STRATEGY)
@@ -128,7 +128,7 @@ class Command(BaseCommand):
 
             # get latest APPEALS
             logger.info("Querying appeals API for new appeals data")
-            url = "https://go-api-minimal.ifrc.org/api/appeals"  # DEBUG: can append filter ?app_code=MDRDJ003
+            url = "https://go-api.ifrc.org/api/appeals"  # DEBUG: can append filter ?app_code=MDRDJ003
             # try 3 times to reach the API
             try:
                 response = sess.get(url, auth=auth)
