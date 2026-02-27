@@ -17,10 +17,10 @@ from api.models import (
 from main.sentry import SentryMonitor
 
 CRON_NAME = "sync_appealdocs"
-PUBLIC_SOURCE = "https://go-api-minimal.ifrc.org/api/publicsiteappeals?Hidden=false&BaseAppealnumber="
-FEDNET_SOURCE = "https://go-api-minimal.ifrc.org/Api/FedNetAppeals?Hidden=false&BaseAppealnumber="
+PUBLIC_SOURCE = "https://go-api.ifrc.org/api/publicsiteappeals?Hidden=false&BaseAppealnumber="
+FEDNET_SOURCE = "https://go-api.ifrc.org/Api/FedNetAppeals?Hidden=false&BaseAppealnumber="
 # Recently not needed, due to all docs are in the above ^ ones:
-# DONOR_SOURCE = "https://go-api-minimal.ifrc.org/api/PublicSiteDonorResponses?AppealCode="
+# DONOR_SOURCE = "https://go-api.ifrc.org/api/PublicSiteDonorResponses?AppealCode="
 
 
 class Command(BaseCommand):
