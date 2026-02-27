@@ -233,6 +233,11 @@ p.deletelink-box {
     top: -0.3rem;
 }
 
+.ifrc-severity-help-icon {
+    background: transparent;
+    color: #0b6aa2;
+}
+
 /* Tooltip bubble */
 .precrisis-help-tooltip,
 .cc-help-tooltip {
@@ -252,6 +257,12 @@ p.deletelink-box {
     z-index: 1000;
     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
     margin-top: 0;
+}
+
+.ifrc-severity-help-tooltip {
+    top: calc(100% + 2px);
+    bottom: auto;
+    font-weight: normal;
 }
 
 .precrisis-help-tooltip img,
@@ -274,6 +285,13 @@ p.deletelink-box {
     border-top: 5px solid #ccc;
 }
 
+.ifrc-severity-help-tooltip::before {
+    top: -5px;
+    bottom: auto;
+    border-top: none;
+    border-bottom: 5px solid #ccc;
+}
+
 .precrisis-help-tooltip.visible,
 .cc-help-tooltip.visible {
     display: block;
@@ -291,5 +309,14 @@ p.deletelink-box {
     .precrisis-help-tooltip::before,
     .cc-help-tooltip::before {
         border-top-color: #1a1a1a;
+    }
+
+    .ifrc-severity-help-icon {
+        background: transparent;
+        color: #4ea3d8;
+    }
+
+    .ifrc-severity-help-tooltip::before {
+        border-bottom-color: #1a1a1a;
     }
 }

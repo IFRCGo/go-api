@@ -310,7 +310,19 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
             return form
 
         url, title = self._crisis_categorisation_link_data(obj)
-        field.label = mark_safe(f'<a href="{url}" title="{title}">IFRC Severity level</a>')
+        field.label = mark_safe(
+            f'<a href="{url}" title="{title}">IFRC Severity level</a>'
+            ' <span class="help-icon cc-help-icon ifrc-severity-help-icon" '
+            'title="Click for more information" '
+            'aria-label="IFRC Severity level help">ⓘ</span>'
+            ' <div class="help-tooltip cc-help-tooltip ifrc-severity-help-tooltip" role="tooltip">'
+            "Link to the crisis categorisation page belonging to this event.<br>"
+            "If this is a multi-country event, you may want to select the country yourself from the "
+            '<a target="_blank" href="/admin/api/crisiscategorisationbycountry/">list</a> or'
+            ' add a new record <a target="_blank" href="/admin/api/crisiscategorisationbycountry/add/'
+            f'?event={obj.pk}&crisis_categorisation={obj.ifrc_severity_level}">here</a>.<br>'
+            "</div>"
+        )
         return form
 
     severity_level_link.short_description = "Crisis Categorisation"
@@ -493,6 +505,9 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
             response.context_data["expanded_results"] = json.dumps(expanded_results, default=str)
 
         return response
+
+    class Media:
+        js = ("js/event_severity_help.js",)
 
 
 class GdacsAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
