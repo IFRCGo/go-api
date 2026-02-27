@@ -2,6 +2,7 @@ import typing
 from datetime import timedelta
 
 from celery import group
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.utils import timezone
@@ -54,6 +55,7 @@ from eap.utils import (
     has_country_permission,
     is_user_ifrc_admin,
     validate_file_extention,
+    validate_for_under_review,
 )
 from main.writable_nested_serializers import NestedCreateMixin, NestedUpdateMixin
 from utils.file_check import validate_file_type
@@ -285,7 +287,6 @@ class EAPRegistrationSerializer(
         read_only_fields = [
             "status",
             "validated_budget_file",
-            "modified_at",
             "created_by",
             "modified_by",
             "latest_simplified_eap",
@@ -492,9 +493,11 @@ class CommonEAPFieldsSerializer(serializers.ModelSerializer):
         # TODO(susilnem): Make admin2 required once we verify the data!
         fields["admin2_details"] = Admin2Serializer(source="admin2", many=True, read_only=True)
         fields["cover_image_file"] = EAPFileUpdateSerializer(source="cover_image", required=False, allow_null=True)
-        fields["planned_operations"] = PlannedOperationSerializer(many=True, required=True)
-        fields["enabling_approaches"] = EnablingApproachSerializer(many=True, required=True)
-        fields["budget_file"] = serializers.PrimaryKeyRelatedField(queryset=EAPFile.objects.all(), required=True)
+        fields["planned_operations"] = PlannedOperationSerializer(many=True, required=False)
+        fields["enabling_approaches"] = EnablingApproachSerializer(many=True, required=False)
+        fields["budget_file"] = serializers.PrimaryKeyRelatedField(
+            queryset=EAPFile.objects.all(), required=False, allow_null=True
+        )
         fields["budget_file_details"] = EAPFileSerializer(source="budget_file", read_only=True)
         fields["updated_checklist_file_details"] = EAPFileSerializer(source="updated_checklist_file", read_only=True)
         return fields
@@ -521,6 +524,23 @@ class CommonEAPFieldsSerializer(serializers.ModelSerializer):
             )
         return images
 
+    def update(self, instance, validated_data):
+        modified_at = validated_data.pop("modified_at", None)
+        if not modified_at:
+            raise serializers.ValidationError(
+                {
+                    "modified_at": gettext("modified_at is required for update operation."),
+                },
+            )
+
+        # NOTE: Optimistic locking check
+        if modified_at and instance.modified_at and modified_at < instance.modified_at:
+            raise serializers.ValidationError(
+                {"modified_at": settings.DREF_OP_UPDATE_FINAL_REPORT_UPDATE_ERROR_MESSAGE},
+            )
+        validated_data["modified_at"] = timezone.now()
+        return super().update(instance, validated_data)
+
 
 class SimplifiedEAPSerializer(
     NestedUpdateMixin,
@@ -538,6 +558,7 @@ class SimplifiedEAPSerializer(
     seap_lead_timeframe_unit_display = serializers.CharField(source="get_seap_lead_timeframe_unit_display", read_only=True)
     operational_timeframe_unit_display = serializers.CharField(source="get_operational_timeframe_unit_display", read_only=True)
 
+    people_targeted = serializers.IntegerField(min_value=2000, required=False, allow_null=True)
     # IMAGES
 
     # NOTE: When adding new image fields, include their names in IMAGE_FIELDS below
@@ -562,9 +583,11 @@ class SimplifiedEAPSerializer(
         seap_unit = data.get("seap_lead_timeframe_unit")
         seap_value = data.get("seap_lead_time")
 
-        if (seap_unit is None) != (seap_value is None):
+        if seap_value is not None and seap_unit is None:
             raise serializers.ValidationError(
-                {"seap_lead_timeframe_unit": gettext("seap lead timeframe and unit must both be provided.")}
+                {
+                    "seap_lead_timeframe_unit": gettext("seap lead timeframe and unit must both be provided."),
+                }
             )
 
         if seap_unit is not None and seap_value is not None:
@@ -586,10 +609,11 @@ class SimplifiedEAPSerializer(
         op_unit = data.get("operational_timeframe_unit")
         op_value = data.get("operational_timeframe")
 
-        # Require both if one is provided
-        if (op_unit is None) != (op_value is None):
+        if op_value is not None and op_unit is None:
             raise serializers.ValidationError(
-                {"operational_timeframe_unit": gettext("operational timeframe and unit must both be provided.")}
+                {
+                    "operational_timeframe_unit": gettext("operational timeframe and unit must both be provided."),
+                }
             )
 
         if op_unit is not None and op_value is not None:
@@ -661,12 +685,16 @@ class FullEAPSerializer(
     early_actions = EAPActionSerializer(many=True, required=True)
     prioritized_impacts = ImpactSerializer(many=True, required=True)
 
+    people_targeted = serializers.IntegerField(min_value=10000, required=False, allow_null=True)
+
     # SOURCE OF INFORMATIONS
     risk_analysis_source_of_information = EAPSourceInformationSerializer(many=True, required=False, allow_null=True)
     trigger_statement_source_of_information = EAPSourceInformationSerializer(many=True, required=False, allow_null=True)
     trigger_model_source_of_information = EAPSourceInformationSerializer(many=True, required=False, allow_null=True)
     evidence_base_source_of_information = EAPSourceInformationSerializer(many=True, required=False, allow_null=True)
     activation_process_source_of_information = EAPSourceInformationSerializer(many=True, required=False, allow_null=True)
+    meal_source_of_information = EAPSourceInformationSerializer(many=True, required=False, allow_null=True)
+    ns_capacity_source_of_information = EAPSourceInformationSerializer(many=True, required=False, allow_null=True)
 
     # IMAGES
     hazard_selection_images = EAPFileUpdateSerializer(
@@ -719,8 +747,8 @@ class FullEAPSerializer(
     forecast_table_file_details = EAPFileSerializer(source="forecast_table_file", read_only=True)
     forecast_table_file = serializers.PrimaryKeyRelatedField(
         queryset=EAPFile.objects.all(),
-        required=True,
-        allow_null=False,
+        required=False,
+        allow_null=True,
     )
 
     theory_of_change_table_file_details = EAPFileSerializer(source="theory_of_change_table_file", read_only=True)
@@ -854,11 +882,19 @@ class EAPStatusSerializer(BaseEAPSerializer):
                 % (EAPRegistration.Status(current_status).label, EAPRegistration.Status(new_status).label)
             )
 
+        # NOTE: Validating Simplified EAP before submission to under review
+        if new_status == EAPRegistration.Status.UNDER_REVIEW:
+            if self.instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP:
+                validate_for_under_review(self.instance.latest_simplified_eap, SimplifiedEAP.SUBMISSION_REQUIRED_FIELDS)
+            else:
+                validate_for_under_review(self.instance.latest_full_eap, FullEAP.SUBMISSION_REQUIRED_FIELDS)
+
         if (current_status, new_status) == (
             EAPRegistration.Status.UNDER_DEVELOPMENT,
             EAPRegistration.Status.UNDER_REVIEW,
         ):
             if self.instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP:
+                # NOTE: Generating PDF asynchronously
                 transaction.on_commit(
                     lambda: generate_export_eap_pdf.delay(
                         eap_registration_id=self.instance.id,
@@ -943,8 +979,12 @@ class EAPStatusSerializer(BaseEAPSerializer):
             if self.instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP:
                 if not (self.instance.latest_simplified_eap and self.instance.latest_simplified_eap.updated_checklist_file):
                     raise serializers.ValidationError(
-                        gettext("NS Addressing Comments file must be uploaded before changing status to %s.")
-                        % EAPRegistration.Status(new_status).label
+                        {
+                            "updated_checklist_file": gettext(
+                                "Update checklist file must be uploaded before changing status to %s."
+                            )
+                            % (EAPRegistration.Status(new_status).label)
+                        },
                     )
 
                 # Generating PDFs asynchronously
@@ -964,8 +1004,12 @@ class EAPStatusSerializer(BaseEAPSerializer):
             else:
                 if not (self.instance.latest_full_eap and self.instance.latest_full_eap.updated_checklist_file):
                     raise serializers.ValidationError(
-                        gettext("NS Addressing Comments file must be uploaded before changing status to %s.")
-                        % EAPRegistration.Status(new_status).label
+                        {
+                            "updated_checklist_file": gettext(
+                                "Update checklist file must be uploaded before changing status to %s."
+                            )
+                            % (EAPRegistration.Status(new_status).label)
+                        },
                     )
 
                 # Generating PDFs asynchronously
