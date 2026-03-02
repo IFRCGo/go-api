@@ -48,7 +48,7 @@ class Command(BaseCommand):
             print("Doing a full scan of all Appeals")
             qset = Appeal.objects.all()
         else:
-            # By default, only check appeals for the past 3 months where Appeal Documents is 0
+            # By default, only check appeals for the past 6 months where Appeal Documents is 0
             now = datetime.now().replace(tzinfo=timezone.utc)
             six_months_ago = now - relativedelta(months=6)
             # This was the original qset, but it wouldn't get newer docs for the same Appeals
@@ -59,7 +59,8 @@ class Command(BaseCommand):
         # First get all Appeal Codes
         appeal_codes = [a.code for a in qset]
         auth = (settings.APPEALS_USER, settings.APPEALS_PASS)
-        headers = {"Accept": "application/json"}
+        # IFRC App Gateway doesn't like python-requests/2... as User-Agent, so let's fix it via the first one:
+        headers = {"User-Agent": "go-requests/2.32.4", "Accept": "application/json"}
         existing = []
         created = []
 
