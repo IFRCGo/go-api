@@ -287,3 +287,215 @@ class SparkModelStrTests(TestCase):
             excluded_from_inventory_value=False,
         )
         self.assertEqual(str(origin), "O-TEST002 - Cat")
+
+
+class ExportRegulationModelTests(TestCase):
+    """Tests for the export regulation models (CountryExportSnapshot, CountryExportSource, CountryExportEvidenceSnippet)."""
+
+    def test_country_export_snapshot_str(self):
+        """Test CountryExportSnapshot __str__ method."""
+        snapshot = models.CountryExportSnapshot.objects.create(
+            country_name="Germany",
+            is_current=True,
+            confidence="High",
+            summary_text="Germany has straightforward export procedures for humanitarian goods.",
+            status="success",
+        )
+        expected_str = f"Germany Export - {snapshot.generated_at.strftime('%Y-%m-%d')}"
+        self.assertEqual(str(snapshot), expected_str)
+
+    def test_country_export_snapshot_unique_current_constraint(self):
+        """Test that only one current snapshot per country is allowed."""
+        models.CountryExportSnapshot.objects.create(
+            country_name="France",
+            is_current=True,
+            confidence="Medium",
+            status="success",
+        )
+        # Creating another current snapshot for the same country should fail
+        from django.db import IntegrityError
+
+        with self.assertRaises(IntegrityError):
+            models.CountryExportSnapshot.objects.create(
+                country_name="France",
+                is_current=True,
+                confidence="High",
+                status="success",
+            )
+
+    def test_country_export_snapshot_multiple_non_current_allowed(self):
+        """Test that multiple non-current snapshots for the same country are allowed."""
+        models.CountryExportSnapshot.objects.create(
+            country_name="Spain",
+            is_current=False,
+            confidence="Low",
+            status="success",
+        )
+        # Creating another non-current snapshot should work
+        snapshot2 = models.CountryExportSnapshot.objects.create(
+            country_name="Spain",
+            is_current=False,
+            confidence="Medium",
+            status="success",
+        )
+        self.assertIsNotNone(snapshot2.id)
+        self.assertEqual(models.CountryExportSnapshot.objects.filter(country_name="Spain").count(), 2)
+
+    def test_country_export_source_str(self):
+        """Test CountryExportSource __str__ method."""
+        snapshot = models.CountryExportSnapshot.objects.create(
+            country_name="Belgium",
+            is_current=True,
+            confidence="High",
+            status="success",
+        )
+        source = models.CountryExportSource.objects.create(
+            snapshot=snapshot,
+            rank=1,
+            url="https://example.com/export-info",
+            title="Belgian Export Procedures Guide",
+            publisher="Belgian Customs",
+            authority_score=90,
+            total_score=85,
+        )
+        self.assertEqual(str(source), "Belgian Export Procedures Guide (Rank 1)")
+
+    def test_country_export_source_ordering(self):
+        """Test that sources are ordered by snapshot and rank."""
+        snapshot = models.CountryExportSnapshot.objects.create(
+            country_name="Netherlands",
+            is_current=True,
+            confidence="Medium",
+            status="success",
+        )
+        source2 = models.CountryExportSource.objects.create(
+            snapshot=snapshot,
+            rank=2,
+            url="https://example.com/source2",
+            title="Source 2",
+        )
+        source1 = models.CountryExportSource.objects.create(
+            snapshot=snapshot,
+            rank=1,
+            url="https://example.com/source1",
+            title="Source 1",
+        )
+        source3 = models.CountryExportSource.objects.create(
+            snapshot=snapshot,
+            rank=3,
+            url="https://example.com/source3",
+            title="Source 3",
+        )
+        sources = list(models.CountryExportSource.objects.filter(snapshot=snapshot))
+        self.assertEqual(sources[0].rank, 1)
+        self.assertEqual(sources[1].rank, 2)
+        self.assertEqual(sources[2].rank, 3)
+
+    def test_country_export_evidence_snippet_str(self):
+        """Test CountryExportEvidenceSnippet __str__ method."""
+        snapshot = models.CountryExportSnapshot.objects.create(
+            country_name="Italy",
+            is_current=True,
+            confidence="Low",
+            status="partial",
+        )
+        source = models.CountryExportSource.objects.create(
+            snapshot=snapshot,
+            rank=1,
+            url="https://example.com/italy-export",
+            title="Italy Export Regulations",
+        )
+        snippet = models.CountryExportEvidenceSnippet.objects.create(
+            source=source,
+            snippet_order=1,
+            snippet_text="Italy requires a specific export declaration for humanitarian goods being shipped to third countries.",
+        )
+        # The __str__ method truncates to first 50 chars of snippet_text
+        self.assertEqual(str(snippet), "Export Snippet 1 - Italy requires a specific export declaration for h...")
+
+    def test_country_export_evidence_snippet_ordering(self):
+        """Test that snippets are ordered by source and snippet_order."""
+        snapshot = models.CountryExportSnapshot.objects.create(
+            country_name="Austria",
+            is_current=True,
+            confidence="High",
+            status="success",
+        )
+        source = models.CountryExportSource.objects.create(
+            snapshot=snapshot,
+            rank=1,
+            url="https://example.com/austria",
+            title="Austria Export Info",
+        )
+        snippet3 = models.CountryExportEvidenceSnippet.objects.create(
+            source=source, snippet_order=3, snippet_text="Third snippet"
+        )
+        snippet1 = models.CountryExportEvidenceSnippet.objects.create(
+            source=source, snippet_order=1, snippet_text="First snippet"
+        )
+        snippet2 = models.CountryExportEvidenceSnippet.objects.create(
+            source=source, snippet_order=2, snippet_text="Second snippet"
+        )
+        snippets = list(models.CountryExportEvidenceSnippet.objects.filter(source=source))
+        self.assertEqual(snippets[0].snippet_order, 1)
+        self.assertEqual(snippets[1].snippet_order, 2)
+        self.assertEqual(snippets[2].snippet_order, 3)
+
+    def test_cascade_delete_snapshot_deletes_sources_and_snippets(self):
+        """Test that deleting a snapshot cascades to sources and snippets."""
+        snapshot = models.CountryExportSnapshot.objects.create(
+            country_name="Portugal",
+            is_current=True,
+            confidence="Medium",
+            status="success",
+        )
+        source = models.CountryExportSource.objects.create(
+            snapshot=snapshot,
+            rank=1,
+            url="https://example.com/portugal",
+            title="Portugal Export",
+        )
+        models.CountryExportEvidenceSnippet.objects.create(
+            source=source, snippet_order=1, snippet_text="Evidence text"
+        )
+        snapshot_id = snapshot.id
+        source_id = source.id
+
+        # Delete snapshot
+        snapshot.delete()
+
+        # Verify cascade deletion
+        self.assertEqual(models.CountryExportSnapshot.objects.filter(id=snapshot_id).count(), 0)
+        self.assertEqual(models.CountryExportSource.objects.filter(id=source_id).count(), 0)
+        self.assertEqual(models.CountryExportEvidenceSnippet.objects.filter(source_id=source_id).count(), 0)
+
+    def test_snapshot_default_values(self):
+        """Test that snapshot has correct default values."""
+        snapshot = models.CountryExportSnapshot.objects.create(
+            country_name="Sweden",
+        )
+        self.assertTrue(snapshot.is_current)
+        self.assertEqual(snapshot.confidence, "Medium")
+        self.assertEqual(snapshot.status, "success")
+        self.assertEqual(snapshot.summary_text, "")
+        self.assertEqual(snapshot.current_situation_bullets, [])
+
+    def test_snapshot_status_choices(self):
+        """Test snapshot status field accepts valid choices."""
+        for status, _ in models.CountryExportSnapshot.STATUS_CHOICES:
+            snapshot = models.CountryExportSnapshot.objects.create(
+                country_name=f"Test Country {status}",
+                is_current=False,
+                status=status,
+            )
+            self.assertEqual(snapshot.status, status)
+
+    def test_snapshot_confidence_choices(self):
+        """Test snapshot confidence field accepts valid choices."""
+        for confidence, _ in models.CountryExportSnapshot.CONFIDENCE_CHOICES:
+            snapshot = models.CountryExportSnapshot.objects.create(
+                country_name=f"Test Country {confidence}",
+                is_current=False,
+                confidence=confidence,
+            )
+            self.assertEqual(snapshot.confidence, confidence)
