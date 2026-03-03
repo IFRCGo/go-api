@@ -18,6 +18,7 @@ from .models import (
     PlannedInterventionIndicators,
     ProposedAction,
     RiskSecurity,
+    SourceInformation,
 )
 from .utils import get_email_context
 
@@ -50,6 +51,7 @@ TRANSLATABLE_RELATED_MODELS = [
     RiskSecurity,
     ProposedAction,
     PlannedInterventionIndicators,
+    SourceInformation,
 ]
 
 
