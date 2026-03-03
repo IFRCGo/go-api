@@ -1262,5 +1262,147 @@ admin.site.register(models.CountryCustomsSnapshot, CountryCustomsSnapshotAdmin)
 admin.site.register(models.CountryCustomsSource, CountryCustomsSourceAdmin)
 admin.site.register(models.CountryCustomsEvidenceSnippet, CountryCustomsEvidenceSnippetAdmin)
 
+
+# =============================================================================
+# Export Regulation Admin (mirrors Customs/Import admin structure)
+# =============================================================================
+
+
+class CountryExportEvidenceSnippetInline(admin.TabularInline):
+    model = models.CountryExportEvidenceSnippet
+    extra = 0
+    readonly_fields = ("id",)
+    fields = ("snippet_order", "snippet_text", "claim_tags")
+
+
+class CountryExportSourceInline(admin.TabularInline):
+    model = models.CountryExportSource
+    extra = 0
+    readonly_fields = ("id", "retrieved_at", "content_hash")
+    fields = ("rank", "url", "title", "publisher", "total_score")
+
+
+class CountryExportSnapshotAdmin(admin.ModelAdmin):
+    list_display = ("country_name", "confidence", "status", "generated_at", "is_current")
+    list_filter = ("confidence", "status", "is_current", "generated_at")
+    search_fields = ("country_name",)
+    readonly_fields = ("id", "generated_at", "evidence_hash")
+    inlines = [CountryExportSourceInline]
+    fieldsets = (
+        (
+            _("Snapshot Info"),
+            {
+                "fields": (
+                    "id",
+                    "country_name",
+                    "is_current",
+                    "generated_at",
+                    "model_name",
+                    "confidence",
+                )
+            },
+        ),
+        (
+            _("Content"),
+            {
+                "fields": (
+                    "summary_text",
+                    "current_situation_bullets",
+                    "search_query",
+                )
+            },
+        ),
+        (
+            _("Status"),
+            {
+                "fields": (
+                    "status",
+                    "error_message",
+                    "evidence_hash",
+                )
+            },
+        ),
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+
+class CountryExportSourceAdmin(admin.ModelAdmin):
+    list_display = ("title", "publisher", "rank", "total_score", "retrieved_at")
+    list_filter = ("rank", "retrieved_at", "snapshot__country_name")
+    search_fields = ("title", "url", "publisher")
+    readonly_fields = ("id", "retrieved_at", "content_hash", "snapshot")
+    inlines = [CountryExportEvidenceSnippetInline]
+    fieldsets = (
+        (
+            _("Source Info"),
+            {
+                "fields": (
+                    "id",
+                    "snapshot",
+                    "rank",
+                    "url",
+                    "title",
+                    "publisher",
+                    "published_at",
+                    "retrieved_at",
+                )
+            },
+        ),
+        (
+            _("Scores"),
+            {
+                "fields": (
+                    "authority_score",
+                    "freshness_score",
+                    "relevance_score",
+                    "specificity_score",
+                    "total_score",
+                )
+            },
+        ),
+        (
+            _("Content Hash"),
+            {"fields": ("content_hash",)},
+        ),
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+
+class CountryExportEvidenceSnippetAdmin(admin.ModelAdmin):
+    list_display = ("snippet_order", "source_title", "snippet_preview")
+    list_filter = ("source__snapshot__country_name", "snippet_order")
+    search_fields = ("snippet_text", "source__title")
+    readonly_fields = ("id", "source")
+    fieldsets = (
+        (
+            _("Snippet Info"),
+            {"fields": ("id", "source", "snippet_order")},
+        ),
+        (
+            _("Content"),
+            {"fields": ("snippet_text", "claim_tags")},
+        ),
+    )
+
+    @admin.display(description=_("Source"))
+    def source_title(self, obj):
+        return obj.source.title if obj.source else "—"
+
+    @admin.display(description=_("Preview"))
+    def snippet_preview(self, obj):
+        return obj.snippet_text[:100] + "..." if len(obj.snippet_text) > 100 else obj.snippet_text
+
+    def has_add_permission(self, request):
+        return False
+
+
+admin.site.register(models.CountryExportSnapshot, CountryExportSnapshotAdmin)
+admin.site.register(models.CountryExportSource, CountryExportSourceAdmin)
+admin.site.register(models.CountryExportEvidenceSnippet, CountryExportEvidenceSnippetAdmin)
+
 admin.site.site_url = settings.GO_WEB_URL
 admin.widgets.RelatedFieldWidgetWrapper.template_name = "related_widget_wrapper.html"

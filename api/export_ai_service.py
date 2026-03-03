@@ -1,6 +1,6 @@
 """
-Service for generating AI-powered customs updates using OpenAI.
-Uses OpenAI's native web search capability via function tools.
+Service for generating AI-powered export regulation updates using OpenAI.
+Mirrors the structure of customs_ai_service.py but focuses on EXPORT regulations.
 """
 
 import hashlib
@@ -14,9 +14,9 @@ import openai
 from django.conf import settings
 
 from api.models import (
-    CountryCustomsEvidenceSnippet,
-    CountryCustomsSnapshot,
-    CountryCustomsSource,
+    CountryExportEvidenceSnippet,
+    CountryExportSnapshot,
+    CountryExportSource,
 )
 
 logger = logging.getLogger(__name__)
@@ -29,39 +29,36 @@ def _get_openai_client():
     return openai.OpenAI(api_key=settings.OPENAI_API_KEY)
 
 
-# Keywords for evidence extraction
-EVIDENCE_KEYWORDS = {
-    "customs",
-    "clearance",
-    "import permit",
-    "permit",
-    "documentation",
-    "restricted items",
+# Keywords for export evidence extraction
+EXPORT_EVIDENCE_KEYWORDS = {
+    "export",
+    "export permit",
+    "export license",
+    "export declaration",
+    "export clearance",
+    "export documentation",
+    "restricted export",
+    "prohibited export",
     "sanctions",
-    "port of entry",
-    "delays",
-    "inspection",
-    "broker",
-    "agent",
-    "exemption",
-    "humanitarian",
-    "relief",
-    "duty-free",
-    "tax exempt",
-    "ngo",
-    "red cross",
-    "red crescent",
-    "ocha",
-    "consignment",
-    "donation",
-    "in-kind",
-    "medical supplies",
-    "temporary admission",
+    "dual-use",
+    "strategic goods",
+    "controlled goods",
+    "export control",
+    "humanitarian export",
+    "relief goods export",
+    "donation export",
+    "re-export",
+    "temporary export",
     "transit",
-    "pre-clearance",
+    "customs declaration",
+    "export duty",
+    "export tax",
+    "certificate of origin",
+    "phytosanitary",
+    "veterinary certificate",
 }
 
-# Authority scoring thresholds
+# Authority scoring thresholds (same as import service)
 HIGH_AUTHORITY_PUBLISHERS = {
     "gov.",
     "government",
@@ -79,12 +76,14 @@ HIGH_AUTHORITY_PUBLISHERS = {
     "humanitarianresponse",
     "who.int",
     "unicef",
+    "trade",
+    "commerce",
 }
 MEDIUM_AUTHORITY_PUBLISHERS = {"ngo", "news", "org", "academic", "university", "institute"}
 
 
-class CustomsAIService:
-    """Service for generating customs updates via OpenAI Responses API."""
+class ExportAIService:
+    """Service for generating export regulation updates via OpenAI."""
 
     MAX_PAGES_TO_OPEN = 5
     MAX_SOURCES_TO_STORE = 3
@@ -95,7 +94,7 @@ class CustomsAIService:
     @staticmethod
     def validate_country_name(country_name: str) -> Tuple[bool, Optional[str]]:
         """
-        Validate country name using OpenAI (cheap!).
+        Validate country name using OpenAI.
         Returns (is_valid, error_message).
         """
         dirty_name = country_name.strip()
@@ -124,42 +123,42 @@ class CustomsAIService:
             return False, "Country validation service unavailable."
 
     @staticmethod
-    def generate_customs_snapshot(country_name: str) -> CountryCustomsSnapshot:
+    def generate_export_snapshot(country_name: str) -> CountryExportSnapshot:
         """
-        Generate a customs update snapshot for a country.
+        Generate an export regulation snapshot for a country.
         """
-        logger.info(f"Starting customs snapshot generation for {country_name}")
+        logger.info(f"Starting export snapshot generation for {country_name}")
 
-        snapshot = CountryCustomsSnapshot(
+        snapshot = CountryExportSnapshot(
             country_name=country_name,
             search_query="",
             status="failed",
         )
 
         current_year = datetime.now().year
-        query = f"{country_name} humanitarian relief goods customs import clearance procedures exemptions {current_year}"
+        query = f"{country_name} humanitarian relief goods export clearance procedures regulations permits {current_year}"
 
         snapshot.search_query = query
 
-        pages = CustomsAIService._search_and_extract_evidence(query)
+        pages = ExportAIService._search_and_extract_evidence(query)
 
         if not pages:
             snapshot.error_message = "No relevant sources found."
             return snapshot
 
-        scored_sources = CustomsAIService._score_and_rank_sources(pages, country_name)
+        scored_sources = ExportAIService._score_and_rank_sources(pages, country_name)
 
         if not scored_sources:
             snapshot.error_message = "No sources met credibility requirements."
             snapshot.status = "partial"
             return snapshot
 
-        top_3_sources = scored_sources[: CustomsAIService.MAX_SOURCES_TO_STORE]
+        top_3_sources = scored_sources[: ExportAIService.MAX_SOURCES_TO_STORE]
 
-        confidence = CustomsAIService._determine_confidence(top_3_sources)
+        confidence = ExportAIService._determine_confidence(top_3_sources)
         snapshot.confidence = confidence
 
-        summary_text = CustomsAIService._generate_summary(top_3_sources, country_name)
+        summary_text = ExportAIService._generate_summary(top_3_sources, country_name)
         snapshot.summary_text = summary_text
         snapshot.current_situation_bullets = []
 
@@ -171,7 +170,7 @@ class CustomsAIService:
             if not snippets:
                 continue
 
-            source = CountryCustomsSource(
+            source = CountryExportSource(
                 snapshot=snapshot,
                 rank=rank,
                 url=page_data.get("url", "")[:2048],
@@ -188,7 +187,7 @@ class CustomsAIService:
 
             snippet_texts = []
             for order, snippet in enumerate(snippets, start=1):
-                evidence = CountryCustomsEvidenceSnippet(source=source, snippet_order=order, snippet_text=snippet)
+                evidence = CountryExportEvidenceSnippet(source=source, snippet_order=order, snippet_text=snippet)
                 evidence.save()
                 snippet_texts.append(snippet)
 
@@ -203,13 +202,13 @@ class CustomsAIService:
         snapshot.is_current = True
         snapshot.save()
 
-        logger.info(f"Successfully generated snapshot for {country_name}")
+        logger.info(f"Successfully generated export snapshot for {country_name}")
         return snapshot
 
     @staticmethod
     def _search_and_extract_evidence(query: str) -> List[Dict[str, Any]]:
         """
-        Use DuckDuckGo to search for customs information and OpenAI to structure it.
+        Use DuckDuckGo to search for export regulation information and OpenAI to structure it.
         """
         pages = []
 
@@ -222,14 +221,12 @@ class CustomsAIService:
                 text_results = list(ddgs.text(query, max_results=8, timelimit="y"))
                 for r in text_results:
                     r["source_type"] = "text"
-                    # text() results usually don't have a structured date field
 
                 # B. Perform news search (better for recent dates)
                 try:
                     news_results = list(ddgs.news(query, max_results=5, timelimit="y"))
                     for r in news_results:
                         r["source_type"] = "news"
-                        # news() results have a 'date' field
                 except Exception as e:
                     logger.warning(f"DDGS News search failed: {str(e)}")
                     news_results = []
@@ -250,23 +247,24 @@ class CustomsAIService:
         results_text = json.dumps(results, indent=2)
         logger.info(f"Search results context (snippet): {results_text[:500]}...")
 
-        prompt = f"""You are a customs data extraction assistant.
+        prompt = f"""You are an export regulations data extraction assistant.
 
         I have performed a web search for: "{query}"
 
         Here are the raw search results:
         {results_text}
 
-        Please analyze these search results and extract relevant customs information about HUMANITARIAN IMPORTS.
-        If a source discusses both imports and exports, extract ONLY the import-related portions.
+        Please analyze these search results and extract relevant EXPORT regulation information for HUMANITARIAN GOODS.
+        Focus ONLY on EXPORT procedures - how to send goods OUT of this country.
+
         Select the most relevant 3-5 sources that contain specific details about:
-        - Customs clearance procedures specifically for humanitarian/relief imports
-        - Required documentation and permits for NGO or humanitarian shipments
-        - Duty or tax exemptions available for relief goods
-        - Restricted or prohibited items relevant to humanitarian operations (e.g., medical supplies, communications equipment)
-        - Port of entry or logistics corridor details for humanitarian cargo
-        - Typical clearance timelines and known bottlenecks
-        - Any recent regulatory changes affecting humanitarian imports
+        - Export clearance procedures for humanitarian/relief goods
+        - Required export documentation and permits
+        - Export duty or tax exemptions for relief goods
+        - Restricted or controlled items that may require special export licenses
+        - Export control regulations affecting humanitarian operations
+        - Typical export clearance timelines
+        - Any recent regulatory changes affecting humanitarian exports
 
         Structure the output as a valid JSON object matching this exact format:
         {{
@@ -285,10 +283,8 @@ class CustomsAIService:
         }}
 
         - Use ONLY the provided search results. Do not hallucinate new sources.
-        - Extract import-specific information even if the page also discusses exports.
-        - In your snippets, focus exclusively on import procedures and omit any export details.
-        - Prioritise information that would help a humanitarian logistics officer clear relief goods.
-        - If a source mentions both commercial and humanitarian import procedures, extract ONLY the humanitarian-specific details.
+        - Extract EXPORT-specific information only. Ignore import procedures.
+        - Prioritize information that would help a humanitarian logistics officer export relief goods.
         - "published_at" source priority:
             1. Use the "date" field from news results if present.
             2. Extract from "body" or "title" (e.g., "Oct 17, 2018").
@@ -304,7 +300,7 @@ class CustomsAIService:
                 messages=[
                     {
                         "role": "system",
-                        "content": "You are a helpful assistant that structures web search data.",
+                        "content": "You are a helpful assistant that structures web search data about export regulations.",
                     },
                     {
                         "role": "user",
@@ -315,12 +311,11 @@ class CustomsAIService:
             )
 
             text = response.choices[0].message.content
-            # The model is forced to return JSON object, but we parse carefully
             data = json.loads(text)
             pages = data.get("pages", [])
             logger.info(f"Successfully extracted {len(pages)} sources for {query}")
 
-            return pages[: CustomsAIService.MAX_PAGES_TO_OPEN]
+            return pages[: ExportAIService.MAX_PAGES_TO_OPEN]
 
         except Exception as e:
             logger.error(f"Evidence extraction/synthesis failed: {str(e)}")
@@ -338,33 +333,29 @@ class CustomsAIService:
             scores = {"authority": 0, "freshness": 0, "relevance": 0, "specificity": 0}
 
             publisher = page.get("publisher", "").lower()
-            scores["authority"] = CustomsAIService._score_authority(publisher)
+            scores["authority"] = ExportAIService._score_authority(publisher)
 
-            scores["freshness"] = CustomsAIService._score_freshness(page.get("published_at"))
+            scores["freshness"] = ExportAIService._score_freshness(page.get("published_at"))
 
             snippets = page.get("snippets", [])
             combined_text = " ".join(snippets).lower()
 
-            scores["relevance"] = CustomsAIService._score_relevance(combined_text)
-            scores["specificity"] = CustomsAIService._score_specificity(combined_text)
+            scores["relevance"] = ExportAIService._score_relevance(combined_text)
+            scores["specificity"] = ExportAIService._score_specificity(combined_text)
 
             scores["total"] = sum(scores.values())
             scored.append((page, scores))
 
-        # --- Adaptive Selection Strategy --- # Redo logic using exponential decay based on whether country is under crisis or not
-        # 1. Separate into "Fresh" (<= 90 days) and "Secondary" (> 90 days or unknown)
-        fresh_sources = [(p, s) for p, s in scored if s.get("freshness", 0) >= 15]  # 15+ means < 90 days in our scoring
+        # Adaptive Selection Strategy
+        fresh_sources = [(p, s) for p, s in scored if s.get("freshness", 0) >= 15]
         secondary_sources = [(p, s) for p, s in scored if s.get("freshness", 0) < 15]
 
-        # 2. Sort both pools by their total quality score
         fresh_sources.sort(key=lambda x: x[1]["total"], reverse=True)
         secondary_sources.sort(key=lambda x: x[1]["total"], reverse=True)
 
-        # 3. Fill the quota (MAX_SOURCES_TO_STORE is 3-5)
-        # We prefer Fresh, but if we don't have enough, we dip into Secondary.
-        final_selection = fresh_sources[: CustomsAIService.MAX_SOURCES_TO_STORE]
+        final_selection = fresh_sources[: ExportAIService.MAX_SOURCES_TO_STORE]
 
-        needed = CustomsAIService.MAX_SOURCES_TO_STORE - len(final_selection)
+        needed = ExportAIService.MAX_SOURCES_TO_STORE - len(final_selection)
         if needed > 0:
             final_selection.extend(secondary_sources[:needed])
 
@@ -396,13 +387,11 @@ class CustomsAIService:
         logger.debug(f"Scoring freshness for: '{published_at}'")
 
         try:
-            # Handle YYYY-MM-DD or ISO formats
             if "T" not in published_at and " " not in published_at:
                 published_at += "T00:00:00"
 
             pub_date = datetime.fromisoformat(published_at.replace("Z", "+00:00"))
 
-            # Ensure timezone awareness
             if pub_date.tzinfo is None:
                 pub_date = pub_date.replace(tzinfo=timezone.utc)
 
@@ -424,7 +413,7 @@ class CustomsAIService:
     @staticmethod
     def _score_relevance(combined_text: str) -> int:
         """Score relevance based on keyword occurrences."""
-        keyword_count = sum(combined_text.count(kw.lower()) for kw in EVIDENCE_KEYWORDS)
+        keyword_count = sum(combined_text.count(kw.lower()) for kw in EXPORT_EVIDENCE_KEYWORDS)
 
         if keyword_count >= 7:
             return 25
@@ -440,13 +429,13 @@ class CustomsAIService:
         """Score specificity based on specific elements."""
         score = 0
 
-        if any(doc in combined_text for doc in ["form ", "certificate", "declaration", "law ", "regulation"]):
+        if any(doc in combined_text for doc in ["form ", "certificate", "declaration", "law ", "regulation", "license"]):
             score += 10
 
-        if any(agency in combined_text for agency in ["agency", "authority", "procedure", "bureau"]):
+        if any(agency in combined_text for agency in ["agency", "authority", "procedure", "bureau", "ministry"]):
             score += 10
 
-        if any(route in combined_text for route in ["port", "border", "crossing", "airport", "terminal", "entry point"]):
+        if any(route in combined_text for route in ["port", "border", "crossing", "airport", "terminal"]):
             score += 5
 
         if any(delay in combined_text for delay in ["day", "week", "month", "delay", "hours", "process"]):
@@ -491,21 +480,21 @@ class CustomsAIService:
 
         evidence_text = "\n".join(all_snippets)
 
-        prompt = f"""Based ONLY on these evidence snippets about customs in {country_name},
-        generate a report focusing EXCLUSIVELY on IMPORTING HUMANITARIAN AND RELIEF GOODS.
-        Do NOT include any information about exports.
+        prompt = f"""Based ONLY on these evidence snippets about export regulations in {country_name},
+        generate a report focusing EXCLUSIVELY on EXPORTING HUMANITARIAN AND RELIEF GOODS.
+        Do NOT include any information about imports.
 
         Write a single coherent paragraph of 4-5 sentences aimed at a humanitarian logistics
-        officer planning a relief shipment. The summary should cover whichever of the following
-        topics are supported by the evidence:
-        - Key documents/permits required for humanitarian imports
-        - Any duty/tax exemptions for relief goods
-        - Restricted items relevant to humanitarian operations
-        - Estimated clearance timeframes or known delays
-        - Recommended entry points or logistics corridors
+        officer planning to ship relief goods FROM this country. The summary should cover whichever
+        of the following topics are supported by the evidence:
+        - Key documents/permits required for humanitarian exports
+        - Any duty/tax exemptions for exporting relief goods
+        - Restricted items that require special export licenses
+        - Estimated export clearance timeframes
+        - Recommended procedures or agencies to contact
 
         IMPORTANT: Only use information from the snippets below. If a topic is not covered
-        in the snippets, omit it rather than guessing. Do not include export information.
+        in the snippets, omit it rather than guessing. Do not include import information.
         Do NOT use bullet points. Write flowing prose only.
 
         Evidence:
@@ -534,3 +523,90 @@ class CustomsAIService:
             logger.error(f"Summary generation failed: {str(e)}")
 
         return "Not confirmed in sources"
+
+    @staticmethod
+    def get_or_generate_export_snapshot(country_name: str) -> CountryExportSnapshot:
+        """
+        Get existing current export snapshot or generate a new one.
+        """
+        existing = CountryExportSnapshot.objects.filter(country_name__iexact=country_name, is_current=True).first()
+
+        if existing:
+            return existing
+
+        # Mark any old snapshots as not current
+        CountryExportSnapshot.objects.filter(country_name__iexact=country_name).update(is_current=False)
+
+        return ExportAIService.generate_export_snapshot(country_name)
+
+    @staticmethod
+    def get_export_regulation_score(country_name: str) -> int:
+        """
+        Get a numeric score (0-100) for export regulation ease.
+        High confidence = 90, Medium = 60, Low = 30, Failed = 10
+        """
+        try:
+            snapshot = ExportAIService.get_or_generate_export_snapshot(country_name)
+
+            if snapshot.status == "failed":
+                return 10
+
+            confidence_scores = {
+                "High": 90,
+                "Medium": 60,
+                "Low": 30,
+            }
+            return confidence_scores.get(snapshot.confidence, 30)
+        except Exception as e:
+            logger.error(f"Failed to get export regulation score for {country_name}: {str(e)}")
+            return 10
+
+    @staticmethod
+    def get_export_regulation_data(country_name: str) -> dict:
+        """
+        Get export regulation data for a country.
+        Returns dict with 'confidence' (str), 'penalty' (int), and 'summary' (str, max 2 sentences).
+
+        Confidence levels:
+        - "High": Easy exports, no issues (penalty: 0)
+        - "Medium": Some bureaucracy (penalty: -10)
+        - "Low": Difficult/restrictions (penalty: -20)
+        - "Failed": Could indicate sanctions (penalty: -30)
+        """
+        try:
+            snapshot = ExportAIService.get_or_generate_export_snapshot(country_name)
+
+            if snapshot.status == "failed":
+                return {
+                    "confidence": "Failed",
+                    "penalty": -30,
+                    "summary": "Export regulation data unavailable - potential restrictions.",
+                }
+
+            confidence = snapshot.confidence or "Low"
+            penalties = {
+                "High": 0,
+                "Medium": -10,
+                "Low": -20,
+            }
+            penalty = penalties.get(confidence, -30)
+
+            # Get summary and truncate to max 2 sentences
+            summary = snapshot.summary_text or ""
+            if summary:
+                # Split by sentence endings and take first 2
+                import re
+
+                sentences = re.split(r"(?<=[.!?])\s+", summary.strip())
+                summary = " ".join(sentences[:2])
+                # Ensure it ends with punctuation
+                if summary and not summary[-1] in ".!?":
+                    summary += "."
+
+            if not summary:
+                summary = "No detailed export information available."
+
+            return {"confidence": confidence, "penalty": penalty, "summary": summary}
+        except Exception as e:
+            logger.error(f"Failed to get export regulation data for {country_name}: {str(e)}")
+            return {"confidence": "Failed", "penalty": -30, "summary": "Export regulation data unavailable."}
