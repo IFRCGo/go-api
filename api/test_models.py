@@ -455,9 +455,7 @@ class ExportRegulationModelTests(TestCase):
             url="https://example.com/portugal",
             title="Portugal Export",
         )
-        models.CountryExportEvidenceSnippet.objects.create(
-            source=source, snippet_order=1, snippet_text="Evidence text"
-        )
+        models.CountryExportEvidenceSnippet.objects.create(source=source, snippet_order=1, snippet_text="Evidence text")
         snapshot_id = snapshot.id
         source_id = source.id
 

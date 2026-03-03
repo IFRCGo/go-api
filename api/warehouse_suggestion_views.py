@@ -118,23 +118,14 @@ class WarehouseSuggestionView(views.APIView):
         item_name = request.query_params.get("item_name", "").strip()
 
         if not receiving_country:
-            return Response(
-                {"error": "receiving_country parameter is required"},
-                status=400
-            )
+            return Response({"error": "receiving_country parameter is required"}, status=400)
 
         if not item_name:
-            return Response(
-                {"error": "item_name parameter is required"},
-                status=400
-            )
+            return Response({"error": "item_name parameter is required"}, status=400)
 
         receiving_iso3 = normalize_country_to_iso3(receiving_country)
         if not receiving_iso3:
-            return Response(
-                {"error": f"Could not identify country: {receiving_country}"},
-                status=400
-            )
+            return Response({"error": f"Could not identify country: {receiving_country}"}, status=400)
 
         # Get all warehouses with the specified item in stock
         warehouses_with_stock = self._get_warehouses_with_item(item_name)
@@ -142,27 +133,23 @@ class WarehouseSuggestionView(views.APIView):
         logger.info(f"Found {len(warehouses_with_stock)} warehouses with item '{item_name}'")
 
         if not warehouses_with_stock:
-            return Response({
-                "suggestions": [],
-                "receiving_country": receiving_country,
-                "receiving_country_iso3": receiving_iso3,
-                "item_name": item_name,
-                "message": "No warehouses found with this item in stock"
-            })
+            return Response(
+                {
+                    "suggestions": [],
+                    "receiving_country": receiving_country,
+                    "receiving_country_iso3": receiving_iso3,
+                    "item_name": item_name,
+                    "message": "No warehouses found with this item in stock",
+                }
+            )
 
         # Find max stock quantity for scoring normalization
-        max_stock_qty = max(
-            (float(wh.get("stock_quantity") or 0) for wh in warehouses_with_stock),
-            default=0
-        )
+        max_stock_qty = max((float(wh.get("stock_quantity") or 0) for wh in warehouses_with_stock), default=0)
 
         # OPTIMIZATION: If 3 or fewer warehouses have stock, return them directly
         # without expensive AI-based export regulation scoring
         if len(warehouses_with_stock) <= 3:
-            logger.info(
-                f"Only {len(warehouses_with_stock)} warehouses with stock - "
-                "skipping AI scoring, returning all"
-            )
+            logger.info(f"Only {len(warehouses_with_stock)} warehouses with stock - " "skipping AI scoring, returning all")
             suggestions = []
             for wh in warehouses_with_stock:
                 wh_country = wh.get("country") or wh.get("country_iso3") or ""
@@ -178,10 +165,7 @@ class WarehouseSuggestionView(views.APIView):
                 else:
                     wh["is_domestic"] = False
                     wh_country_iso3 = wh.get("country_iso3") or ""
-                    distance = get_distance_between_countries(
-                        wh_country_iso3 or wh_country,
-                        receiving_iso3
-                    )
+                    distance = get_distance_between_countries(wh_country_iso3 or wh_country, receiving_iso3)
                     wh["distance_km"] = round(distance, 1) if distance else None
                     wh["distance_score"] = get_distance_score(distance)
                     # Default no penalty when skipping AI
@@ -197,13 +181,15 @@ class WarehouseSuggestionView(views.APIView):
             # Sort by total score
             suggestions.sort(key=lambda x: x.get("total_score", 0), reverse=True)
 
-            return Response({
-                "suggestions": suggestions,
-                "receiving_country": receiving_country,
-                "receiving_country_iso3": receiving_iso3,
-                "item_name": item_name,
-                "message": f"Returning all {len(suggestions)} available warehouses (AI scoring skipped)"
-            })
+            return Response(
+                {
+                    "suggestions": suggestions,
+                    "receiving_country": receiving_country,
+                    "receiving_country_iso3": receiving_iso3,
+                    "item_name": item_name,
+                    "message": f"Returning all {len(suggestions)} available warehouses (AI scoring skipped)",
+                }
+            )
 
         # Separate domestic vs foreign warehouses
         domestic_warehouses = []
@@ -222,11 +208,7 @@ class WarehouseSuggestionView(views.APIView):
 
         # If we have 3+ domestic warehouses, return top 3 by stock quantity
         if len(domestic_warehouses) >= 3:
-            domestic_sorted = sorted(
-                domestic_warehouses,
-                key=lambda x: float(x.get("stock_quantity") or 0),
-                reverse=True
-            )
+            domestic_sorted = sorted(domestic_warehouses, key=lambda x: float(x.get("stock_quantity") or 0), reverse=True)
             suggestions = domestic_sorted[:3]
 
             # Add placeholder scores for domestic
@@ -237,23 +219,22 @@ class WarehouseSuggestionView(views.APIView):
                 s["stock_score"] = get_stock_quantity_score(stock_qty, max_stock_qty)
                 s["total_score"] = s["distance_score"] + s["stock_score"] + s["export_penalty"]
 
-            return Response({
-                "suggestions": suggestions,
-                "receiving_country": receiving_country,
-                "receiving_country_iso3": receiving_iso3,
-                "item_name": item_name,
-                "message": "Domestic warehouses available"
-            })
+            return Response(
+                {
+                    "suggestions": suggestions,
+                    "receiving_country": receiving_country,
+                    "receiving_country_iso3": receiving_iso3,
+                    "item_name": item_name,
+                    "message": "Domestic warehouses available",
+                }
+            )
 
         # Score foreign warehouses
         # First, calculate distance for ALL foreign warehouses (cheap operation)
         for wh in foreign_warehouses:
             wh_country = wh.get("country") or ""
             wh_country_iso3 = wh.get("country_iso3") or ""
-            distance = get_distance_between_countries(
-                wh_country_iso3 or wh_country,
-                receiving_iso3
-            )
+            distance = get_distance_between_countries(wh_country_iso3 or wh_country, receiving_iso3)
             wh["distance_km"] = round(distance, 1) if distance else None
             wh["distance_score"] = get_distance_score(distance)
             wh["stock_quantity_float"] = float(wh.get("stock_quantity") or 0)
@@ -263,21 +244,19 @@ class WarehouseSuggestionView(views.APIView):
         candidate_indices = set()
         if len(foreign_warehouses) >= 10:
             half_count = len(foreign_warehouses) // 2
-            logger.info(f"Filtering {len(foreign_warehouses)} foreign warehouses to top 50% candidates ({half_count} each by stock/distance)")
+            logger.info(
+                f"Filtering {len(foreign_warehouses)} foreign warehouses to top 50% candidates ({half_count} each by stock/distance)"
+            )
 
             # Top 50% by stock (highest stock first)
-            by_stock = sorted(
-                enumerate(foreign_warehouses),
-                key=lambda x: x[1]["stock_quantity_float"],
-                reverse=True
-            )
+            by_stock = sorted(enumerate(foreign_warehouses), key=lambda x: x[1]["stock_quantity_float"], reverse=True)
             for i in range(half_count):
                 candidate_indices.add(by_stock[i][0])
 
             # Top 50% by distance (closest first, so ascending)
             by_distance = sorted(
                 enumerate(foreign_warehouses),
-                key=lambda x: x[1]["distance_km"] if x[1]["distance_km"] is not None else float('inf')
+                key=lambda x: x[1]["distance_km"] if x[1]["distance_km"] is not None else float("inf"),
             )
             for i in range(half_count):
                 candidate_indices.add(by_distance[i][0])
@@ -294,11 +273,15 @@ class WarehouseSuggestionView(views.APIView):
             export_lookup_country = wh_country or wh_country_iso3
             stock_qty = wh["stock_quantity_float"]
 
-            logger.info(f"Processing foreign warehouse: {wh.get('warehouse_id')} in {export_lookup_country}, stock={stock_qty}, is_candidate={idx in candidate_indices}")
+            logger.info(
+                f"Processing foreign warehouse: {wh.get('warehouse_id')} in {export_lookup_country}, stock={stock_qty}, is_candidate={idx in candidate_indices}"
+            )
 
             # Skip export generation for non-candidates
             if idx not in candidate_indices:
-                logger.info(f"Skipping export generation for {export_lookup_country} - not a candidate (outside top 50% by stock and distance)")
+                logger.info(
+                    f"Skipping export generation for {export_lookup_country} - not a candidate (outside top 50% by stock and distance)"
+                )
                 wh["export_penalty"] = 0
                 wh["export_summary"] = "Export data not analyzed (warehouse not in top candidates)."
             # Skip export generation for warehouses with 0 stock
@@ -312,7 +295,9 @@ class WarehouseSuggestionView(views.APIView):
                     export_data = ExportAIService.get_export_regulation_data(export_lookup_country)
                     wh["export_penalty"] = export_data["penalty"]
                     wh["export_summary"] = export_data["summary"]
-                    logger.info(f"Export data for {export_lookup_country}: penalty={export_data['penalty']}, summary={export_data['summary'][:50]}...")
+                    logger.info(
+                        f"Export data for {export_lookup_country}: penalty={export_data['penalty']}, summary={export_data['summary'][:50]}..."
+                    )
                 except Exception as e:
                     logger.warning(f"Failed to get export data for {export_lookup_country}: {e}")
                     wh["export_penalty"] = -30  # Worst penalty if unknown
@@ -325,11 +310,7 @@ class WarehouseSuggestionView(views.APIView):
             wh["total_score"] = wh["distance_score"] + wh["stock_score"] + wh["export_penalty"]
 
         # Sort foreign warehouses by total score
-        foreign_sorted = sorted(
-            foreign_warehouses,
-            key=lambda x: x.get("total_score", 0),
-            reverse=True
-        )
+        foreign_sorted = sorted(foreign_warehouses, key=lambda x: x.get("total_score", 0), reverse=True)
 
         # Combine: prioritize domestic, then top foreign
         # Add scores to domestic warehouses
@@ -340,21 +321,19 @@ class WarehouseSuggestionView(views.APIView):
             dw["stock_score"] = get_stock_quantity_score(stock_qty, max_stock_qty)
             dw["total_score"] = dw["distance_score"] + dw["stock_score"] + dw["export_penalty"]
 
-        domestic_sorted = sorted(
-            domestic_warehouses,
-            key=lambda x: float(x.get("stock_quantity") or 0),
-            reverse=True
-        )
+        domestic_sorted = sorted(domestic_warehouses, key=lambda x: float(x.get("stock_quantity") or 0), reverse=True)
 
         combined = domestic_sorted + foreign_sorted
         suggestions = combined[:3]
 
-        return Response({
-            "suggestions": suggestions,
-            "receiving_country": receiving_country,
-            "receiving_country_iso3": receiving_iso3,
-            "item_name": item_name
-        })
+        return Response(
+            {
+                "suggestions": suggestions,
+                "receiving_country": receiving_country,
+                "receiving_country_iso3": receiving_iso3,
+                "item_name": item_name,
+            }
+        )
 
     def _get_warehouses_with_item(self, item_name: str) -> List[Dict[str, Any]]:
         """
@@ -394,7 +373,7 @@ class WarehouseSuggestionView(views.APIView):
                             "item_name": {
                                 "query": item_name,
                                 "operator": "and",  # All terms must match
-                                "fuzziness": "AUTO"  # Allow for minor typos
+                                "fuzziness": "AUTO",  # Allow for minor typos
                             }
                         }
                     }
@@ -405,26 +384,20 @@ class WarehouseSuggestionView(views.APIView):
         # Aggregate by warehouse
         aggs = {
             "by_warehouse": {
-                "terms": {
-                    "field": "warehouse_id.keyword",
-                    "size": 1000
-                },
+                "terms": {"field": "warehouse_id.keyword", "size": 1000},
                 "aggs": {
                     "total_quantity": {"sum": {"field": "quantity"}},
                     "warehouse_info": {
                         "top_hits": {
                             "size": 1,
-                            "_source": ["warehouse_id", "warehouse_name", "country", "country_iso3", "region"]
+                            "_source": ["warehouse_id", "warehouse_name", "country", "country_iso3", "region"],
                         }
-                    }
-                }
+                    },
+                },
             }
         }
 
-        resp = ES_CLIENT.search(
-            index=WAREHOUSE_INDEX_NAME,
-            body={"size": 0, "query": query, "aggs": aggs}
-        )
+        resp = ES_CLIENT.search(index=WAREHOUSE_INDEX_NAME, body={"size": 0, "query": query, "aggs": aggs})
 
         results = []
         buckets = resp.get("aggregations", {}).get("by_warehouse", {}).get("buckets", [])
@@ -437,14 +410,16 @@ class WarehouseSuggestionView(views.APIView):
             hits = bucket.get("warehouse_info", {}).get("hits", {}).get("hits", [])
             if hits:
                 src = hits[0].get("_source", {})
-                results.append({
-                    "warehouse_id": warehouse_id,
-                    "warehouse_name": src.get("warehouse_name", ""),
-                    "country": src.get("country", ""),
-                    "country_iso3": src.get("country_iso3", ""),
-                    "region": src.get("region", ""),
-                    "stock_quantity": total_qty
-                })
+                results.append(
+                    {
+                        "warehouse_id": warehouse_id,
+                        "warehouse_name": src.get("warehouse_name", ""),
+                        "country": src.get("country", ""),
+                        "country_iso3": src.get("country_iso3", ""),
+                        "region": src.get("region", ""),
+                        "stock_quantity": total_qty,
+                    }
+                )
 
         logger.info(f"ES query returned {len(results)} warehouses for item query")
         return results
@@ -463,23 +438,22 @@ class WarehouseSuggestionView(views.APIView):
 
         # Build product lookup
         products = DimProduct.objects.all().values("id", "name")
-        product_ids_for_item = [
-            str(p["id"]) for p in products
-            if item_name.lower() in _safe_str(p.get("name")).lower()
-        ]
+        product_ids_for_item = [str(p["id"]) for p in products if item_name.lower() in _safe_str(p.get("name")).lower()]
 
         if not product_ids_for_item:
             return []
 
         # Query inventory lines
-        qset = DimInventoryTransactionLine.objects.filter(
-            item_status_name="Available",
-            product__in=product_ids_for_item
-        ).values("warehouse").annotate(total_qty=Sum("quantity"))
+        qset = (
+            DimInventoryTransactionLine.objects.filter(item_status_name="Available", product__in=product_ids_for_item)
+            .values("warehouse")
+            .annotate(total_qty=Sum("quantity"))
+        )
 
         # Fetch country mappings for region/country name resolution
         try:
             import requests
+
             url = getattr(settings, "GOADMIN_COUNTRY_URL", "https://goadmin.ifrc.org/api/v2/country/?limit=300")
             resp = requests.get(url, timeout=10)
             data = resp.json()
@@ -533,13 +507,15 @@ class WarehouseSuggestionView(views.APIView):
             else:
                 qty_out = float(qty) if qty else 0
 
-            results.append({
-                "warehouse_id": warehouse_id,
-                "warehouse_name": wh.get("warehouse_name", ""),
-                "country": country_name,
-                "country_iso3": country_iso3,
-                "region": region_name,
-                "stock_quantity": qty_out
-            })
+            results.append(
+                {
+                    "warehouse_id": warehouse_id,
+                    "warehouse_name": wh.get("warehouse_name", ""),
+                    "country": country_name,
+                    "country_iso3": country_iso3,
+                    "region": region_name,
+                    "stock_quantity": qty_out,
+                }
+            )
 
         return results

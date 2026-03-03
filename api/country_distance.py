@@ -483,7 +483,10 @@ def normalize_country_to_iso3(country: str) -> Optional[str]:
 
     logger.warning(f"Could not normalize country '{country}' to ISO3")
     return None
+
+
 ##Ask teammates if there is an api for above, used ai to generate
+
 
 def get_country_centroid(iso3: str) -> Optional[Tuple[float, float]]:
     """
@@ -528,10 +531,7 @@ def get_distance_between_countries(from_country: str, to_country: str) -> Option
     if not from_centroid or not to_centroid:
         return None
 
-    return haversine_distance(
-        from_centroid[0], from_centroid[1],
-        to_centroid[0], to_centroid[1]
-    )
+    return haversine_distance(from_centroid[0], from_centroid[1], to_centroid[0], to_centroid[1])
 
 
 def get_distance_score(distance_km: Optional[float], max_distance: float = 20000) -> int:

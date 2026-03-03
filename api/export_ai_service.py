@@ -529,18 +529,13 @@ class ExportAIService:
         """
         Get existing current export snapshot or generate a new one.
         """
-        existing = CountryExportSnapshot.objects.filter(
-            country_name__iexact=country_name,
-            is_current=True
-        ).first()
+        existing = CountryExportSnapshot.objects.filter(country_name__iexact=country_name, is_current=True).first()
 
         if existing:
             return existing
 
         # Mark any old snapshots as not current
-        CountryExportSnapshot.objects.filter(
-            country_name__iexact=country_name
-        ).update(is_current=False)
+        CountryExportSnapshot.objects.filter(country_name__iexact=country_name).update(is_current=False)
 
         return ExportAIService.generate_export_snapshot(country_name)
 
@@ -571,7 +566,7 @@ class ExportAIService:
         """
         Get export regulation data for a country.
         Returns dict with 'confidence' (str), 'penalty' (int), and 'summary' (str, max 2 sentences).
-        
+
         Confidence levels:
         - "High": Easy exports, no issues (penalty: 0)
         - "Medium": Some bureaucracy (penalty: -10)
@@ -585,7 +580,7 @@ class ExportAIService:
                 return {
                     "confidence": "Failed",
                     "penalty": -30,
-                    "summary": "Export regulation data unavailable - potential restrictions."
+                    "summary": "Export regulation data unavailable - potential restrictions.",
                 }
 
             confidence = snapshot.confidence or "Low"
@@ -601,24 +596,17 @@ class ExportAIService:
             if summary:
                 # Split by sentence endings and take first 2
                 import re
-                sentences = re.split(r'(?<=[.!?])\s+', summary.strip())
-                summary = ' '.join(sentences[:2])
+
+                sentences = re.split(r"(?<=[.!?])\s+", summary.strip())
+                summary = " ".join(sentences[:2])
                 # Ensure it ends with punctuation
-                if summary and not summary[-1] in '.!?':
-                    summary += '.'
+                if summary and not summary[-1] in ".!?":
+                    summary += "."
 
             if not summary:
                 summary = "No detailed export information available."
 
-            return {
-                "confidence": confidence,
-                "penalty": penalty,
-                "summary": summary
-            }
+            return {"confidence": confidence, "penalty": penalty, "summary": summary}
         except Exception as e:
             logger.error(f"Failed to get export regulation data for {country_name}: {str(e)}")
-            return {
-                "confidence": "Failed",
-                "penalty": -30,
-                "summary": "Export regulation data unavailable."
-            }
+            return {"confidence": "Failed", "penalty": -30, "summary": "Export regulation data unavailable."}
