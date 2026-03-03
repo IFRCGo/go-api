@@ -2046,7 +2046,7 @@ class CustomsUpdatesCountryView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         except IntegrityError:
-            # Race condition: another request created the snapshot while we were generating
+            # Incase another request created the snapshot while we were generating
             # Return the existing snapshot instead
             logger.info(f"Race condition detected for {country}, returning existing snapshot")
             existing_snapshot = CountryCustomsSnapshot.objects.filter(

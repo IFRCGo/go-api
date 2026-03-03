@@ -58,6 +58,7 @@ from api.warehouse_stocks_views import (
     WarehouseStocksSummaryView,
     WarehouseStocksView,
 )
+from api.warehouse_suggestion_views import WarehouseSuggestionView
 from country_plan import drf_views as country_plan_views
 from databank import views as data_bank_views
 from databank.views import CountryOverviewViewSet
@@ -277,6 +278,7 @@ urlpatterns = [
     url(r"^api/v1/warehouse-stocks/aggregated/", AggregatedWarehouseStocksView.as_view()),
     url(r"^api/v1/warehouse-stocks/summary/", WarehouseStocksSummaryView.as_view()),
     url(r"^api/v1/warehouse-stocks/", WarehouseStocksView.as_view()),
+    url(r"^api/v1/warehouse-suggestions/", WarehouseSuggestionView.as_view()),
     url(r"^api/v1/pro-bono-services/", ProBonoServicesView.as_view()),
     url(r"^api/v1/es_health/", EsPageHealth.as_view()),
     # If we want to use the next one, some permission overthink is needed:
