@@ -121,7 +121,9 @@ class Command(BaseCommand):
 
     def load(self, url: str, file_field: str, field_inserted_date_field: str):
         auth = (settings.APPEALS_USER, settings.APPEALS_PASS)
-        results = requests.get(url, auth=auth, headers={"Accept": "application/json"}).json()
+        # IFRC App Gateway doesn't like python-requests/2... as User-Agent, so let's fix it via the first one:
+        headers = {"User-Agent": "go-requests/2.32.4", "Accept": "application/json"}
+        results = requests.get(url, auth=auth, headers=headers).json()
         for result in results:
             try:
                 self.load_for_country(result, file_field, field_inserted_date_field)

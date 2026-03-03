@@ -24,7 +24,8 @@ class Command(BaseCommand):
 
         logger.info("Starting NS Contacts")
         url = "https://go-api.ifrc.org/"
-        headers = {"accept": "application/xml;q=0.9, */*;q=0.8"}
+        # IFRC App Gateway doesn't like python-requests/2... as User-Agent, so let's fix it via the first one:
+        headers = {"User-Agent": "go-requests/2.32.4", "accept": "application/xml;q=0.9, */*;q=0.8"}
         response = requests.get(
             "https://go-api.ifrc.org/api/NationalSocietiesContacts/",
             auth=HTTPBasicAuth(settings.NS_CONTACT_USERNAME, settings.NS_CONTACT_PASSWORD),
