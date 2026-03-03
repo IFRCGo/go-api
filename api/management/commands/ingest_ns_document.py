@@ -23,7 +23,8 @@ class Command(BaseCommand):
 
         # Fetch country codes
         country_code_url = "https://go-api.ifrc.org/api/NationalSocietiesContacts/"
-        headers = {"Authorization": f"Basic {settings.NS_INITIATIVES_API_TOKEN}"}
+        # IFRC App Gateway doesn't like python-requests/2... as User-Agent, so let's fix it via the first one:
+        headers = {"User-Agent": "go-requests/2.32.4", "Authorization": f"Basic {settings.NS_INITIATIVES_API_TOKEN}"}
         country_code_response = requests.get(url=country_code_url, headers=headers)
 
         if country_code_response.status_code != 200:
