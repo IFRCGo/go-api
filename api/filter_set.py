@@ -10,6 +10,7 @@ from api.models import (
     AppealDocument,
     AppealHistory,
     AppealType,
+    CleanedFrameworkAgreement,
     Country,
     CountryKeyDocument,
     CountryKeyFigure,
@@ -424,6 +425,58 @@ class CountrySupportingPartnerFilter(filters.FilterSet):
     class Meta:
         model = CountrySupportingPartner
         fields = ()
+
+
+class CleanedFrameworkAgreementFilter(filters.FilterSet):
+    """FilterSet for CleanedFrameworkAgreement using camelCase query params.
+
+    Multi-select values are provided as comma-separated lists, e.g.:
+      ?regionCountriesCovered=Global,Europe
+      ?itemCategory=Shelter,Health
+      ?vendorCountry=CHE,FRA
+    """
+
+    regionCountriesCovered = filters.CharFilter(method="filter_region_countries_covered")
+    itemCategory = filters.CharFilter(method="filter_item_category")
+    vendorCountry = filters.CharFilter(method="filter_vendor_country")
+
+    # Sorting: ?sort=regionCountriesCovered or ?sort=-regionCountriesCovered
+    sort = filters.OrderingFilter(
+        fields=(
+            ("region_countries_covered", "regionCountriesCovered"),
+            ("item_category", "itemCategory"),
+            ("vendor_country", "vendorCountry"),
+            ("agreement_id", "agreementId"),
+        )
+    )
+
+    class Meta:
+        model = CleanedFrameworkAgreement
+        fields = ()
+
+    @staticmethod
+    def _split_csv(value):
+        if not value:
+            return []
+        return [v.strip() for v in value.split(",") if v.strip()]
+
+    def filter_region_countries_covered(self, queryset, name, value):
+        values = self._split_csv(value)
+        if not values:
+            return queryset
+        return queryset.filter(region_countries_covered__in=values)
+
+    def filter_item_category(self, queryset, name, value):
+        values = self._split_csv(value)
+        if not values:
+            return queryset
+        return queryset.filter(item_category__in=values)
+
+    def filter_vendor_country(self, queryset, name, value):
+        values = self._split_csv(value)
+        if not values:
+            return queryset
+        return queryset.filter(vendor_country__in=values)
 
 
 class FabricDimAgreementLineFilter(filters.FilterSet):
