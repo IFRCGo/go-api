@@ -497,6 +497,7 @@ class ExportRegulationModelTests(TestCase):
                 confidence=confidence,
             )
             self.assertEqual(snapshot.confidence, confidence)
+
     def test_cleaned_framework_agreement_str_with_vendor(self):
         agreement = models.CleanedFrameworkAgreement.objects.create(
             agreement_id="FA-TEST001",
