@@ -2608,9 +2608,7 @@ class CustomsUpdatesCountryView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-    def delete(
-        self, request, country
-    ):  # logic is a bit rudimentary bneeds to be updated to something like force uipdate so it generates new snapshot/ or perhaps delete only latest snapshot
+    def delete(self, request, country):  # logic is rudimentary needs update to force update so it generates new snapshot
         """
         Delete all customs snapshots for a country.
         DELETE /api/v2/customs-ai-updates/<country>/ - Delete all snapshots for country

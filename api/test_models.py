@@ -368,19 +368,19 @@ class ExportRegulationModelTests(TestCase):
             confidence="Medium",
             status="success",
         )
-        source2 = models.CountryExportSource.objects.create(
+        models.CountryExportSource.objects.create(
             snapshot=snapshot,
             rank=2,
             url="https://example.com/source2",
             title="Source 2",
         )
-        source1 = models.CountryExportSource.objects.create(
+        models.CountryExportSource.objects.create(
             snapshot=snapshot,
             rank=1,
             url="https://example.com/source1",
             title="Source 1",
         )
-        source3 = models.CountryExportSource.objects.create(
+        models.CountryExportSource.objects.create(
             snapshot=snapshot,
             rank=3,
             url="https://example.com/source3",
@@ -427,15 +427,9 @@ class ExportRegulationModelTests(TestCase):
             url="https://example.com/austria",
             title="Austria Export Info",
         )
-        snippet3 = models.CountryExportEvidenceSnippet.objects.create(
-            source=source, snippet_order=3, snippet_text="Third snippet"
-        )
-        snippet1 = models.CountryExportEvidenceSnippet.objects.create(
-            source=source, snippet_order=1, snippet_text="First snippet"
-        )
-        snippet2 = models.CountryExportEvidenceSnippet.objects.create(
-            source=source, snippet_order=2, snippet_text="Second snippet"
-        )
+        models.CountryExportEvidenceSnippet.objects.create(source=source, snippet_order=3, snippet_text="Third snippet")
+        models.CountryExportEvidenceSnippet.objects.create(source=source, snippet_order=1, snippet_text="First snippet")
+        models.CountryExportEvidenceSnippet.objects.create(source=source, snippet_order=2, snippet_text="Second snippet")
         snippets = list(models.CountryExportEvidenceSnippet.objects.filter(source=source))
         self.assertEqual(snippets[0].snippet_order, 1)
         self.assertEqual(snippets[1].snippet_order, 2)

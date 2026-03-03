@@ -5,7 +5,7 @@ Suggests top warehouses based on distance and export regulations.
 
 import logging
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from django.conf import settings
 from django.db.models import Sum
@@ -21,12 +21,7 @@ from api.country_distance import (
 from api.esconnection import ES_CLIENT
 from api.export_ai_service import ExportAIService
 from api.indexes import WAREHOUSE_INDEX_NAME
-from api.models import (
-    DimInventoryTransactionLine,
-    DimProduct,
-    DimProductCategory,
-    DimWarehouse,
-)
+from api.models import DimInventoryTransactionLine, DimProduct, DimWarehouse
 
 logger = logging.getLogger(__name__)
 
@@ -245,7 +240,8 @@ class WarehouseSuggestionView(views.APIView):
         if len(foreign_warehouses) >= 10:
             half_count = len(foreign_warehouses) // 2
             logger.info(
-                f"Filtering {len(foreign_warehouses)} foreign warehouses to top 50% candidates ({half_count} each by stock/distance)"
+                f"Filtering {len(foreign_warehouses)} foreign warehouses "
+                f"to top 50% candidates ({half_count} each by stock/distance)"
             )
 
             # Top 50% by stock (highest stock first)
@@ -274,13 +270,16 @@ class WarehouseSuggestionView(views.APIView):
             stock_qty = wh["stock_quantity_float"]
 
             logger.info(
-                f"Processing foreign warehouse: {wh.get('warehouse_id')} in {export_lookup_country}, stock={stock_qty}, is_candidate={idx in candidate_indices}"
+                f"Processing foreign warehouse: {wh.get('warehouse_id')} "
+                f"in {export_lookup_country}, stock={stock_qty}, "
+                f"is_candidate={idx in candidate_indices}"
             )
 
             # Skip export generation for non-candidates
             if idx not in candidate_indices:
                 logger.info(
-                    f"Skipping export generation for {export_lookup_country} - not a candidate (outside top 50% by stock and distance)"
+                    f"Skipping export generation for {export_lookup_country} "
+                    "- not a candidate (outside top 50% by stock and distance)"
                 )
                 wh["export_penalty"] = 0
                 wh["export_summary"] = "Export data not analyzed (warehouse not in top candidates)."
@@ -296,7 +295,9 @@ class WarehouseSuggestionView(views.APIView):
                     wh["export_penalty"] = export_data["penalty"]
                     wh["export_summary"] = export_data["summary"]
                     logger.info(
-                        f"Export data for {export_lookup_country}: penalty={export_data['penalty']}, summary={export_data['summary'][:50]}..."
+                        f"Export data for {export_lookup_country}: "
+                        f"penalty={export_data['penalty']}, "
+                        f"summary={export_data['summary'][:50]}..."
                     )
                 except Exception as e:
                     logger.warning(f"Failed to get export data for {export_lookup_country}: {e}")
