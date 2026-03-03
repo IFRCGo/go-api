@@ -483,7 +483,7 @@ def normalize_country_to_iso3(country: str) -> Optional[str]:
 
     logger.warning(f"Could not normalize country '{country}' to ISO3")
     return None
-
+##Ask teammates if there is an api for above, used ai to generate
 
 def get_country_centroid(iso3: str) -> Optional[Tuple[float, float]]:
     """
