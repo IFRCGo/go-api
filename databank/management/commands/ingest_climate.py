@@ -29,11 +29,33 @@ class Command(BaseCommand):
             if not country_iso3:
                 continue
 
-            response = requests.get(
-                f"https://climateknowledgeportal.worldbank.org/api/v1/cru-x0.5_climatology_tasmin,tas,tasmax,pr_climatology_monthly_1991-2020_mean_historical_cru_ts4.07_mean/{country_iso3}?_format=json"  # noqa: E501
-            )
-
-            response.raise_for_status()
+            try:
+                response = requests.get(
+                    f"https://climateknowledgeportal.worldbank.org/api/v1/cru-x0.5_climatology_tasmin,tas,tasmax,pr_climatology_monthly_1991-2020_mean_historical_cru_ts4.07_mean/{country_iso3}?_format=json",  # noqa: E501
+                    timeout=30,
+                )
+                response.raise_for_status()
+            except requests.HTTPError as exc:
+                status_code = getattr(getattr(exc, "response", None), "status_code", None)
+                if status_code is None:
+                    status_code = getattr(response, "status_code", None)
+                if status_code == 404 or "404" in str(exc):
+                    logger.warning(
+                        "Climate API returned 404 for %s; skipping. url=%s",
+                        country_iso3,
+                        getattr(response, "url", None),
+                    )
+                    continue
+                logger.error(
+                    "Climate API HTTP error for %s (status=%s). url=%s",
+                    country_iso3,
+                    status_code,
+                    getattr(response, "url", None),
+                )
+                raise
+            except requests.RequestException:
+                logger.exception("Climate API request error for %s.", country_iso3)
+                raise
             response_data = response.json()
             data = response_data.get("data", {})
             if not data:
