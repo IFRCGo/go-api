@@ -8,6 +8,9 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-connect-timeout: "360s"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "360s"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "360s"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header X-Forwarded-For $remote_addr;
+      proxy_set_header X-Real-IP $remote_addr;
 spec:
   ingressClassName:
     nginx
@@ -57,6 +60,9 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/permanent-redirect: "https://www.chromatic.com/library?appId=66557be6b68dacbf0a96db23&branch=develop"
     nginx.ingress.kubernetes.io/permanent-redirect-code: "301"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header X-Forwarded-For $remote_addr;
+      proxy_set_header X-Real-IP $remote_addr;
 spec:
   ingressClassName:
     nginx

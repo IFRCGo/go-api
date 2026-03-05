@@ -121,6 +121,7 @@ env = environ.Env(
     DJANGO_READ_ONLY=(bool, False),
     # Misc
     DISABLE_API_CACHE=(bool, False),
+    LOG_REQUEST_IP=(bool, False),
     # jwt private and public key (NOTE: Used algorithm ES256)
     # FIXME: Deprecated configuration. Remove this and it references
     JWT_PRIVATE_KEY_BASE64_ENCODED=(str, None),
@@ -151,6 +152,8 @@ env = environ.Env(
     POWERBI_WORKSPACE_ID=(str, None),
     POWERBI_DATASET_IDS=(str, None),
 )
+
+LOG_REQUEST_IP = True  # temporary setting. For long term: env("LOG_REQUEST_IP")
 
 
 # Requires uppercase variable https://docs.djangoproject.com/en/2.1/topics/settings/#creating-your-own-settings
@@ -674,7 +677,7 @@ if DEBUG:
             "console": {
                 "()": "colorlog.ColoredFormatter",
                 "format": (
-                    "%(log_color)s%(levelname)-8s%(red)s%(module)-8s%(reset)s %(asctime)s %(blue)s%(message)s %(context)s"
+                    "%(log_color)s%(levelname)-8s%(red)s%(module)-11s%(reset)s %(asctime)s %(blue)s%(message)s %(context)s"
                 ),
             },
         },
