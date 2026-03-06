@@ -26,14 +26,17 @@ RUN set -eux; \
       > /etc/apt/sources.list.d/microsoft-prod.list; \
     apt-get update -y; \
     ACCEPT_EULA=Y apt-get install -y --no-install-recommends \
-        nginx mdbtools vim tidy less gettext \
+      nginx mdbtools vim tidy less gettext \
         cron \
         wait-for-it \
         binutils libproj-dev gdal-bin poppler-utils \
         unixodbc unixodbc-dev msodbcsql18 \
+      openjdk-11-jre-headless \
         libnss3 libnspr4 libdbus-1-3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libpango-1.0-0 libpangocairo-1.0-0 libcairo2 libxcb-dri3-0 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxinerama1 libxrandr2 libxrender1 libxss1 libxtst6 libgbm1 libasound2 libxslt1.1; \
     apt-get autoremove -y; \
     rm -rf /var/lib/apt/lists/*
+
+  ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 
 ENV HOME=/home/ifrc
 WORKDIR $HOME
@@ -43,6 +46,8 @@ RUN --mount=type=cache,target=$UV_CACHE_DIR \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     uv sync --frozen --no-install-project --all-groups
+
+# pyspark is installed via pyproject.toml during `uv sync`
 
 RUN python -m playwright install --with-deps
 
@@ -64,11 +69,10 @@ RUN perl -pi -e "s/logger.warning.*/pass/" ${OPENCENSUSINIT} 2>/dev/null
 ENV CLICKJACKING=/usr/local/lib/python3.11/site-packages/django/middleware/clickjacking.py
 RUN perl -pi -e "s/if response.get/if response is None:\n            return\n\n        if response.get/" ${CLICKJACKING} 2>/dev/null
 
-
 COPY main/nginx.conf /etc/nginx/sites-available/
 RUN \
-	ln -s /etc/nginx/sites-available/nginx.conf /etc/nginx/sites-enabled; \
-	>> /etc/nginx/nginx.conf
+  ln -s /etc/nginx/sites-available/nginx.conf /etc/nginx/sites-enabled; \
+  >> /etc/nginx/nginx.conf
 
 COPY main/runserver.sh /usr/local/bin/
 RUN chmod 755 /usr/local/bin/runserver.sh
