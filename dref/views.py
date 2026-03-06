@@ -1,4 +1,5 @@
 import csv
+import logging
 from collections import defaultdict
 
 import django.utils.timezone as timezone
@@ -18,7 +19,6 @@ from rest_framework import (
     viewsets,
 )
 from rest_framework.decorators import action
-from rest_framework.exceptions import NotFound
 from reversion.views import RevisionMixin
 
 from api.models import Appeal, AppealFilter
@@ -49,6 +49,8 @@ from dref.serializers import (
 )
 from dref.tasks import process_dref_translation
 from main.permissions import DenyGuestUserPermission
+
+logger = logging.getLogger(__name__)
 
 
 def filter_dref_queryset_by_user_access(user, queryset):
@@ -626,10 +628,8 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):  # type: ignore[misc]
         # numeric id filter (?id=3 or ?id=3,7)
         id_param = request.query_params.get("id")
         if id_param:
-            wanted_ids = {i.strip() for i in str(id_param).split(",") if i.strip().isdigit()}
-            if wanted_ids:
-                wanted_ints = {int(i) for i in wanted_ids}
-                data = [row for row in data if row.get("id") in wanted_ints]
+            if wanted_ids := {i.strip() for i in str(id_param).split(",")}:
+                data = [row for row in data if row.get("id") in wanted_ids]
         # pagination
         try:
             limit = int(request.query_params.get("limit")) if request.query_params.get("limit") else None
@@ -697,6 +697,8 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):  # type: ignore[misc]
             global_filters["appeal_code__in"] = [
                 appeal_code for appeal_code in appeal_codes if appeal_code.upper() not in excluded_codes
             ]
+            if not global_filters["appeal_code__in"]:
+                return {}
 
         drefs = Dref.objects.filter(**global_filters).prefetch_related(*prefetch_related_fields).order_by("created_at")
 
@@ -787,10 +789,14 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):  # type: ignore[misc]
 
     def retrieve(self, request, *args, **kwargs):
         codes = self.kwargs.get(self.lookup_field)
+        if isinstance(codes, str):
+            codes = [codes]
+
         instances_by_appeal_code = self.get_objects_by_appeal_code(codes)
 
         if not instances_by_appeal_code:
-            raise NotFound(f"No Dref, Operational Update, or Final Report found with codes '{codes}'.")
+            logger.warning("No Dref, Operational Update, or Final Report found with codes '%s'.", codes)
+            return response.Response([])
 
         prefetched_appeal_by_code = {
             appeal.code: appeal for appeal in Appeal.objects.only("code", "event_id").filter(code__in=codes).all()
