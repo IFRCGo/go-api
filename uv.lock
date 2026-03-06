@@ -2344,6 +2344,7 @@ name = "pure-eval"
 version = "0.2.3"
 source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/cd/05/0a34433a064256a578f1783a10da6df098ceaa4a57bbeaa96a6c0352786b/pure_eval-0.2.3.tar.gz", hash = "sha256:5f4e983f40564c576c7c8635ae88db5956bb2229d7e9237d03b3c0b0190eaf42", size = 19752, upload-time = "2024-07-21T12:58:21.801Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/cd/05/0a34433a064256a578f1783a10da6df098ceaa4a57bbeaa96a6c0352786b/pure_eval-0.2.3.tar.gz", hash = "sha256:5f4e983f40564c576c7c8635ae88db5956bb2229d7e9237d03b3c0b0190eaf42", size = 19752, upload-time = "2024-07-21T12:58:21.801Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/8e/37/efad0257dc6e593a18957422533ff0f87ede7c9c6ea010a2177d738fb82f/pure_eval-0.2.3-py3-none-any.whl", hash = "sha256:1db8e35b67b3d218d818ae653e27f06c3aa420901fa7b081ca98cbedc874e0d0", size = 11842, upload-time = "2024-07-21T12:58:20.04Z" },
 ]
@@ -2595,6 +2596,7 @@ version = "1.27.9"
 source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/ce/f8/2a21acd3a73911cff2bed6fc5345e8196124d537609b998f20025eff3687/PyPDF2-1.27.9.tar.gz", hash = "sha256:5f7937fd94ba387a2a241db8858770e53091d8ffab9922512c0bf48e3f4cc615", size = 1430698, upload-time = "2022-04-24T13:31:27.608Z" }
 wheels = [
+    { url = "https://files.pythonhosted.org/packages/1a/09/7c598522e07057b28c7bd2afc1590d4b1cf5d4b18324143bc17119348d91/PyPDF2-1.27.9-py3-none-any.whl", hash = "sha256:5e29ffaf2efcfb77c25206e3b8df517a18af84e64ebe1b3a93abac8d01176374", size = 71142, upload-time = "2022-04-24T13:31:24.256Z" },
     { url = "https://files.pythonhosted.org/packages/1a/09/7c598522e07057b28c7bd2afc1590d4b1cf5d4b18324143bc17119348d91/PyPDF2-1.27.9-py3-none-any.whl", hash = "sha256:5e29ffaf2efcfb77c25206e3b8df517a18af84e64ebe1b3a93abac8d01176374", size = 71142, upload-time = "2022-04-24T13:31:24.256Z" },
 ]
 
