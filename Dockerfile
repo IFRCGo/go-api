@@ -29,6 +29,7 @@ RUN set -eux; \
       nginx mdbtools vim tidy less gettext \
         cron \
         wait-for-it \
+      openjdk-17-jre-headless \
         binutils libproj-dev gdal-bin poppler-utils \
         unixodbc unixodbc-dev msodbcsql18 \
       openjdk-11-jre-headless \
