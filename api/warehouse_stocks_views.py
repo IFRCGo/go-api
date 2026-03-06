@@ -1,4 +1,5 @@
 import hashlib
+import logging
 from decimal import Decimal
 
 import requests
@@ -98,7 +99,6 @@ class WarehouseStocksView(views.APIView):
         except Exception:
             iso2_to_iso3, iso3_to_country_name, iso3_to_region_name = {}, {}, {}
 
-        # cache settings per-request
         try:
             disable_cache = bool(getattr(settings, "DISABLE_API_CACHE", False))
             cache_ttl = int(getattr(settings, "CACHE_MIDDLEWARE_SECONDS", 60) or 60)
@@ -123,7 +123,6 @@ class WarehouseStocksView(views.APIView):
         )
         cache_key = "wh_pg_" + hashlib.sha1(cache_key_raw.encode("utf-8")).hexdigest()
 
-        # Try cache first
         if (not disable_cache) and cache_key:
             cached_resp = cache.get(cache_key)
             if cached_resp is not None:
@@ -133,16 +132,13 @@ class WarehouseStocksView(views.APIView):
         # provide a DB fallback so filters have options to show.
         if request.query_params.get("distinct", "0") == "1" and ES_CLIENT is None:
             try:
-                # Get products and warehouses that have Available stock
                 stock_lines = DimInventoryTransactionLine.objects.filter(item_status_name="Available")
                 products_with_stock = set(stock_lines.values_list("product", flat=True).distinct())
                 warehouses_with_stock = set(stock_lines.values_list("warehouse", flat=True).distinct())
 
-                # item names from products that have stock
                 products_qs = DimProduct.objects.filter(id__in=products_with_stock).values("id", "name", "product_category")
                 item_names = sorted([p["name"] for p in products_qs if p.get("name")])
 
-                # item groups from categories that have products with stock
                 category_codes_with_stock = set(p["product_category"] for p in products_qs if p.get("product_category"))
                 cat_code_to_name = {
                     str(c["category_code"]): c["name"]
@@ -152,14 +148,12 @@ class WarehouseStocksView(views.APIView):
                 }
                 item_groups = sorted([name for name in cat_code_to_name.values() if name])
 
-                # regions and countries via warehouses that have stock
                 warehouses = DimWarehouse.objects.filter(id__in=warehouses_with_stock).values("id", "country")
                 regions_set = set()
                 countries_set = set()
                 for w in warehouses:
                     iso3 = (w.get("country") or "").upper()
                     wh_id = str(w.get("id") or "")
-                    # Derive iso3 from warehouse ID prefix if not set
                     if not iso3 and len(wh_id) >= 2:
                         iso2 = wh_id[:2].upper()
                         iso3 = iso2_to_iso3.get(iso2, "")
@@ -184,7 +178,6 @@ class WarehouseStocksView(views.APIView):
                     }
                 )
             except Exception:
-                # On any error, fall through to normal processing
                 pass
 
         results = []
@@ -255,20 +248,16 @@ class WarehouseStocksView(views.APIView):
                         }
                     )
                 except Exception:
-                    # ES failed, fall back to DB for distinct
                     try:
-                        # Get products and warehouses that have Available stock
                         stock_lines = DimInventoryTransactionLine.objects.filter(item_status_name="Available")
                         products_with_stock = set(stock_lines.values_list("product", flat=True).distinct())
                         warehouses_with_stock = set(stock_lines.values_list("warehouse", flat=True).distinct())
 
-                        # item names from products that have stock
                         products_qs = DimProduct.objects.filter(id__in=products_with_stock).values(
                             "id", "name", "product_category"
                         )
                         item_names = sorted([p["name"] for p in products_qs if p.get("name")])
 
-                        # item groups from categories that have products with stock
                         category_codes_with_stock = set(p["product_category"] for p in products_qs if p.get("product_category"))
                         cat_code_to_name = {
                             str(c["category_code"]): c["name"]
@@ -278,14 +267,12 @@ class WarehouseStocksView(views.APIView):
                         }
                         item_groups = sorted([name for name in cat_code_to_name.values() if name])
 
-                        # regions and countries via warehouses that have stock
                         warehouses = DimWarehouse.objects.filter(id__in=warehouses_with_stock).values("id", "country")
                         regions_set = set()
                         countries_set = set()
                         for w in warehouses:
                             iso3 = (w.get("country") or "").upper()
                             wh_id = str(w.get("id") or "")
-                            # Derive iso3 from warehouse ID prefix if not set
                             if not iso3 and len(wh_id) >= 2:
                                 iso2 = wh_id[:2].upper()
                                 iso3 = iso2_to_iso3.get(iso2, "")
@@ -307,12 +294,9 @@ class WarehouseStocksView(views.APIView):
                             }
                         )
                     except Exception as e:
-                        import logging
-
                         logging.getLogger(__name__).error(f"DB fallback for distinct failed: {e}")
                         # Fall through to normal processing
 
-            # Only request necessary fields to reduce payload and parsing time
             _src_fields = [
                 "id",
                 "warehouse_id",
@@ -366,8 +350,6 @@ class WarehouseStocksView(views.APIView):
                     src = h.get("_source", {})
 
                     country_iso3_src = (src.get("country_iso3") or "").upper()
-                    # Read country_name and region directly from ES (already indexed)
-                    # Fall back to goadmin lookup if ES values are empty
                     country_name = src.get("country_name") or ""
                     if not country_name and country_iso3_src:
                         country_name = iso3_to_country_name.get(country_iso3_src, "")
@@ -446,11 +428,9 @@ class WarehouseStocksView(views.APIView):
                 qset = qset.filter(item_status_name="Available")
 
             if item_name_q:
-                # Filter by related product name for DB fallback
                 try:
                     qset = qset.filter(product__name__icontains=item_name_q)
                 except Exception:
-                    # If the relation/field isn't available, skip the filter
                     pass
 
             agg = qset.values("warehouse", "product", "item_status_name").annotate(quantity=Sum("quantity"))
@@ -472,11 +452,9 @@ class WarehouseStocksView(views.APIView):
                 country_name = iso3_to_country_name.get(country_iso3_value, "") if country_iso3_value else ""
                 region_name = iso3_to_region_name.get(country_iso3_value, "") if country_iso3_value else ""
 
-                # apply country filter for DB fallback
                 if country_iso3_list and country_iso3_value not in country_iso3_list:
                     continue
 
-                # apply region filter for DB fallback
                 if region_list and region_name and region_name.lower() not in [r.lower() for r in region_list]:
                     continue
 
@@ -525,7 +503,6 @@ class WarehouseStocksView(views.APIView):
                     }
                 )
 
-            # DB fallback: apply full-text search filter (q parameter)
             if q and results:
                 q_lower = q.lower()
                 results = [
@@ -537,7 +514,6 @@ class WarehouseStocksView(views.APIView):
                     or q_lower in (r.get("item_group") or "").lower()
                 ]
 
-            # DB fallback: apply sorting
             if sort_field and results:
                 sort_key_map = {
                     "quantity": lambda x: float(x.get("quantity") or 0) if x.get("quantity") else 0,
@@ -552,7 +528,6 @@ class WarehouseStocksView(views.APIView):
                     except Exception:
                         pass
 
-            # DB fallback: set total_hits and apply pagination
             total_hits = len(results)
             start_idx = (page - 1) * page_size
             end_idx = start_idx + page_size
@@ -562,12 +537,10 @@ class WarehouseStocksView(views.APIView):
         if total_hits is not None:
             resp_payload.update({"total": total_hits, "page": page, "page_size": page_size})
 
-        # Cache the per-page response for subsequent identical requests
         try:
             if (not disable_cache) and cache_key and resp_payload is not None:
                 cache.set(cache_key, resp_payload, cache_ttl)
         except Exception:
-            # Ignore cache failures — we still return the results
             pass
 
         return Response(resp_payload)
@@ -710,7 +683,6 @@ class AggregatedWarehouseStocksView(views.APIView):
                 results = []
 
         if not results:
-            # Fallback to DB aggregation
             warehouses = DimWarehouse.objects.all().values("id", "name", "country")
             wh_by_id = {
                 str(w["id"]): {"warehouse_name": _safe_str(w.get("name")), "country_iso3": _safe_str(w.get("country")).upper()}
@@ -758,7 +730,6 @@ class AggregatedWarehouseStocksView(views.APIView):
 
             for iso3, total in totals_by_country.items():
                 region_name = iso3_to_region_name.get(iso3, "")
-                # apply region filter for DB fallback
                 if region_list and region_name and region_name.lower() not in [r.lower() for r in region_list]:
                     continue
 
@@ -772,12 +743,10 @@ class AggregatedWarehouseStocksView(views.APIView):
                     }
                 )
 
-        # Cache the results for subsequent identical requests
         try:
             if (not disable_cache) and cache_key and results is not None:
                 cache.set(cache_key, results, cache_ttl)
         except Exception:
-            # Ignore cache failures — we still return the results
             pass
 
         return Response({"results": results})
@@ -867,7 +836,6 @@ class WarehouseStocksSummaryView(views.APIView):
 
             try:
                 resp = ES_CLIENT.search(index=WAREHOUSE_INDEX_NAME, body={"size": 0, "query": query, "aggs": aggs})
-                # total hits
                 total = resp.get("hits", {}).get("total") or {}
                 if isinstance(total, dict):
                     results["total"] = total.get("value", 0)
@@ -892,7 +860,6 @@ class WarehouseStocksSummaryView(views.APIView):
                         {"item_group": ig, "total_quantity": tq_out, "product_count": int(pc) if pc is not None else 0}
                     )
 
-                # low stock count - use doc_count of filter bucket if present, otherwise fallback to hits total
                 low_stock_bucket = aggregations.get("low_stock", {})
                 low_count = low_stock_bucket.get("doc_count") if low_stock_bucket else None
                 if low_count is None:
@@ -900,16 +867,12 @@ class WarehouseStocksSummaryView(views.APIView):
                 else:
                     results["low_stock"]["count"] = int(low_count)
             except Exception:
-                # fallthrough to DB fallback
                 pass
 
-        # DB fallback (accurate but slower)
         if not results["by_item_group"]:
-            # build product category lookup - map product ID to category code
             products = DimProduct.objects.all().values("id", "product_category")
             prod_cat = {str(p["id"]): _safe_str(p.get("product_category")) for p in products}
 
-            # build category code to name lookup
             categories = DimProductCategory.objects.all().values("category_code", "name")
             cat_code_to_name = {str(c["category_code"]): _safe_str(c.get("name")) for c in categories}
 
@@ -924,18 +887,15 @@ class WarehouseStocksSummaryView(views.APIView):
                     pass
 
             if country_iso3_list:
-                # warehouse field is a CharField (ID), not a FK - must lookup IDs first
                 wh_ids = list(DimWarehouse.objects.filter(country__in=country_iso3_list).values_list("id", flat=True))
                 if wh_ids:
                     qset = qset.filter(warehouse__in=[str(w) for w in wh_ids])
 
             if warehouse_name_q:
-                # warehouse field is a CharField (ID), not a FK - must lookup IDs first
                 wh_ids = list(DimWarehouse.objects.filter(name__icontains=warehouse_name_q).values_list("id", flat=True))
                 if wh_ids:
                     qset = qset.filter(warehouse__in=[str(w) for w in wh_ids])
 
-            # aggregate by product category
             agg = qset.values("product").annotate(quantity=Sum("quantity"))
 
             totals_by_group = {}
@@ -954,9 +914,8 @@ class WarehouseStocksSummaryView(views.APIView):
                     except Exception:
                         continue
 
-                # Get category code first, then convert to name
                 cat_code = prod_cat.get(prod_id, "")
-                group = cat_code_to_name.get(cat_code, cat_code)  # fallback to code if name not found
+                group = cat_code_to_name.get(cat_code, cat_code)
                 totals_by_group[group] = totals_by_group.get(group, Decimal(0)) + qty_val
                 product_seen.add(prod_id)
 
@@ -964,7 +923,6 @@ class WarehouseStocksSummaryView(views.APIView):
             for group, total in totals_by_group.items():
                 results["by_item_group"].append({"item_group": group, "total_quantity": format(total, "f"), "product_count": 0})
 
-            # low stock count via DB simple pass: count rows with quantity <= threshold
             low_qs = qset.filter(quantity__lte=low_stock_threshold)
             try:
                 results["low_stock"]["count"] = int(low_qs.count())

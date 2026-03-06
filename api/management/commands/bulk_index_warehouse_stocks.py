@@ -91,11 +91,10 @@ class Command(BaseCommand):
         logger.info("Building lookup tables for products, warehouses and categories")
 
         warehouses = DimWarehouse.objects.all().values("id", "name", "country")
-        # Build warehouse lookup; store raw country field and warehouse id for later iso2->iso3 fallback
         wh_by_id = {
             str(w["id"]): {
                 "warehouse_name": _safe_str(w.get("name")),
-                "country_iso3_raw": _safe_str(w.get("country")).upper(),  # may be empty
+                "country_iso3_raw": _safe_str(w.get("country")).upper(),
                 "warehouse_id_raw": _safe_str(w.get("id")),
             }
             for w in warehouses
@@ -140,7 +139,6 @@ class Command(BaseCommand):
             if not wh or not prod:
                 continue
 
-            # Quantity as numeric if possible
             qty = row.get("quantity")
             if qty is None:
                 qty_num = None
@@ -156,10 +154,8 @@ class Command(BaseCommand):
                     qty_num = None
 
             status_val = _safe_str(row.get("item_status_name"))
-            # include status in doc id to avoid collisions when multiple statuses exist
             doc_id = f"{warehouse_id}__{product_id}__{status_val}"
 
-            # Derive country_iso3: prefer stored value, else extract 2-letter prefix from warehouse ID and convert iso2->iso3
             country_iso3_raw = wh.get("country_iso3_raw") or ""
             if country_iso3_raw:
                 country_iso3 = country_iso3_raw
@@ -188,7 +184,6 @@ class Command(BaseCommand):
             actions.append(action)
             count += 1
 
-            # Flush periodically to save memory
             if len(actions) >= batch_size:
                 created, errors = bulk(client=ES_CLIENT, actions=actions, chunk_size=batch_size)
                 logger.info(f"Indexed {created} documents (batch)")
@@ -196,7 +191,6 @@ class Command(BaseCommand):
                     logger.error("Errors during bulk index: %s", errors)
                 actions = []
 
-        # Final flush
         if actions:
             created, errors = bulk(client=ES_CLIENT, actions=actions, chunk_size=batch_size)
             logger.info(f"Indexed {created} documents (final)")
