@@ -105,10 +105,12 @@ class Command(BaseCommand):
             adapter = HTTPAdapter(max_retries=settings.RETRY_STRATEGY)
             sess = Session()
             sess.mount("https://", adapter)
+            # IFRC App Gateway doesn't like python-requests/2... as User-Agent.
+            headers = {"User-Agent": "go-requests/2.32.4"}
 
             # try 3 times to reach the API
             try:
-                response = sess.get(url, auth=auth)
+                response = sess.get(url, auth=auth, headers=headers)
             except reqexc.HTTPError as ex:
                 log_text = f"Error querying AppealBilaterals API: {ex}"
                 logger.error(log_text)
@@ -131,7 +133,7 @@ class Command(BaseCommand):
             url = "https://go-api.ifrc.org/api/appeals"  # DEBUG: can append filter ?app_code=MDRDJ003
             # try 3 times to reach the API
             try:
-                response = sess.get(url, auth=auth)
+                response = sess.get(url, auth=auth, headers=headers)
             except reqexc.HTTPError as ex:
                 log_text = f"Error querying Appeals API: {ex}"
                 logger.error(log_text)
