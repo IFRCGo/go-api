@@ -366,12 +366,16 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
                 "field_reports",
                 "auto_generated_source",
                 "parent_event",
+                "created_at",
+                "updated_at",
             )
         else:
             self.readonly_fields = (
                 "appeals",
                 "field_reports",
                 "auto_generated_source",
+                "created_at",
+                "updated_at",
             )
 
         # Set severity level from GET parameter
