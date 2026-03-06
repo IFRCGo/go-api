@@ -245,6 +245,7 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
         "auto_generated_source",
     )
     list_filter = [IsFeaturedFilter, EventSourceFilter]
+    actions = ["create_field_reports"]
     search_fields = (
         "name",
         "countries__name",
@@ -505,6 +506,72 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
             response.context_data["expanded_results"] = json.dumps(expanded_results, default=str)
 
         return response
+
+    def create_field_reports(self, request, queryset):
+        created_count = 0
+        skipped_existing = []
+        skipped_missing_dtype = []
+        skipped_missing_countries = []
+
+        for event in queryset:
+            if getattr(event, "field_reports").exists():
+                skipped_existing.append(event)
+                continue
+            if event.dtype is None:
+                skipped_missing_dtype.append(event)
+                continue
+            if not event.countries.exists():
+                skipped_missing_countries.append(event)
+                continue
+
+            report = models.FieldReport.objects.create(
+                event=event,
+                dtype=event.dtype,
+                title=event.name,
+                summary=event.name,
+                visibility=event.visibility,
+            )
+            report.countries.set(event.countries.all())
+            if event.regions.exists():
+                report.regions.set(event.regions.all())
+            if event.districts.exists():
+                report.districts.set(event.districts.all())
+            created_count += 1
+
+        if created_count:
+            report_label = "field report" if created_count == 1 else "field reports"
+            self.message_user(
+                request,
+                format_html(
+                    '{} <a href="/admin/api/fieldreport/">{}</a> created.',
+                    created_count,
+                    report_label,
+                ),
+            )
+        if skipped_existing:
+            self.message_user(
+                request,
+                (
+                    "Action skipped because the event already has a field report."
+                    if len(skipped_existing) == 1
+                    else f"Action skipped for {len(skipped_existing)} events because they already have field reports."
+                ),
+                level=messages.WARNING,
+            )
+        if skipped_missing_dtype:
+            self.message_user(
+                request,
+                f"Action skipped for {len(skipped_missing_dtype)} event(s) because disaster type is missing.",
+                level=messages.WARNING,
+            )
+        if skipped_missing_countries:
+            self.message_user(
+                request,
+                f"Action skipped for {len(skipped_missing_countries)} event(s) because no countries are set.",
+                level=messages.WARNING,
+            )
+
+    create_field_reports.short_description = "Create field reports from selected events"
 
     class Media:
         js = ("js/event_severity_help.js",)
