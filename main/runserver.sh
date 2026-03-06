@@ -24,12 +24,14 @@ touch $HOME/logs/ingest_mdb.log
 
 # Start Gunicorn processes
 echo Starting Gunicorn.
+#--access-logformat: https://gunicorn.org/reference/settings/?h=logformat#access_log_format
 exec gunicorn main.wsgi:application \
     --name main \
     --preload \
     --bind unix:/home/ifrc/django_app.sock \
     --workers 3 \
     --timeout 120 \
+    --access-logformat '%(h)s %(l)s %(u)s %(t)s [%({x-forwarded-for}i)s] "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"' \
     --log-level=info \
     --log-file=$HOME/logs/gunicorn.log \
     --access-logfile=$HOME/logs/access.log &
