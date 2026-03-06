@@ -22,6 +22,7 @@ from oauth2_provider import urls as oauth2_urls
 from rest_framework import routers
 
 from api import drf_views as api_views
+from api import customs_spark_views
 from api.admin_reports import UsersPerPermissionViewSet
 from api.pro_bono_views import ProBonoServicesView
 from api.views import (
@@ -324,10 +325,10 @@ urlpatterns = [
     url(r"^resend_validation", ResendValidation.as_view()),
     # Customs Regulations - SPARK
     # Country regulations - Spark
-    path("api/v2/country-regulations/", api_views.CustomsRegulationsView.as_view(), name="country_regulations"),
+    path("api/v2/country-regulations/", customs_spark_views.CustomsRegulationsView.as_view(), name="country_regulations"),
     path(
         "api/v2/country-regulations/<str:country>/",
-        api_views.CustomsRegulationCountryView.as_view(),
+        customs_spark_views.CustomsRegulationCountryView.as_view(),
         name="country_regulations_detail",
     ),
     path(
@@ -346,10 +347,10 @@ urlpatterns = [
         name="fabric_cleaned_framework_agreement_map_stats",
     ),
     # Customs Updates - AI Generated Updates
-    path("api/v2/customs-ai-updates/", api_views.CustomsUpdatesView.as_view(), name="customs_updates_list"),
+    path("api/v2/customs-ai-updates/", customs_spark_views.CustomsUpdatesView.as_view(), name="customs_updates_list"),
     path(
         "api/v2/customs-ai-updates/<str:country>/",
-        api_views.CustomsUpdatesCountryView.as_view(),
+        customs_spark_views.CustomsUpdatesCountryView.as_view(),
         name="customs_updates_detail",
     ),
     url(r"^api/v2/", include(router.urls)),
