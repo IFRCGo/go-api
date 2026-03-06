@@ -110,17 +110,17 @@ class Command(BaseCommand):
 
             # try 3 times to reach the API
             try:
-                response = sess.get(url, auth=auth, headers=headers)
+                response = sess.get(url, auth=auth, headers=headers)  # Bilaterals API doesn't need narrowing by date
             except reqexc.HTTPError as ex:
                 log_text = f"Error querying AppealBilaterals API: {ex}"
                 logger.error(log_text)
                 create_cron_record(CRON_NAME, log_text, CronJobStatus.ERRONEOUS)
-                return
+                return None, None, None
             except Exception as ex:
                 log_text = f"Error querying AppealBilaterals API at {url}: {str(ex)}"
                 logger.error(log_text)
                 create_cron_record(CRON_NAME, log_text, CronJobStatus.ERRONEOUS)
-                return
+                return None, None, None
             records = response.json()
             bilaterals = self.create_bilaterals_dict(records)
 
@@ -130,20 +130,21 @@ class Command(BaseCommand):
 
             # get latest APPEALS
             logger.info("Querying appeals API for new appeals data")
-            url = "https://go-api.ifrc.org/api/appeals"  # DEBUG: can append filter ?app_code=MDRDJ003
+            url = "https://go-api.ifrc.org/api/appeals"  # DEBUG: can append filter &app_code=MDRDJ003
+            params = {"App_startDate": "2020-01-01|2100-01-01"}
             # try 3 times to reach the API
             try:
-                response = sess.get(url, auth=auth, headers=headers)
+                response = sess.get(url, auth=auth, headers=headers, params=params)
             except reqexc.HTTPError as ex:
                 log_text = f"Error querying Appeals API: {ex}"
                 logger.error(log_text)
                 create_cron_record(CRON_NAME, log_text, CronJobStatus.ERRONEOUS)
-                return
+                return None, None, None
             except Exception as ex:
                 log_text = f"Error querying Appeals API at {url}: {str(ex)}"
                 logger.error(log_text)
                 create_cron_record(CRON_NAME, log_text, CronJobStatus.ERRONEOUS)
-                return
+                return None, None, None
 
             records = response.json()
 
@@ -301,6 +302,9 @@ class Command(BaseCommand):
             new, modified, bilaterals = self.get_new_or_modified_appeals()
         except Exception as ex:
             logger.error(f"Getting Appeals and AppealBilaterals failed: {str(ex)}")
+            return
+        if new is None or modified is None or bilaterals is None:
+            logger.error("Appeals ingest aborted due to upstream API errors.")
             return
         logger.info(f"{start_appeals_count} current appeals")
         logger.info(f"Creating {len(new)} new appeals")
