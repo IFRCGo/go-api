@@ -1,4 +1,5 @@
 import csv
+from collections import defaultdict
 
 import django.utils.timezone as timezone
 from django.contrib.auth.models import Permission
@@ -20,7 +21,7 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from reversion.views import RevisionMixin
 
-from api.models import AppealFilter
+from api.models import Appeal, AppealFilter
 from api.utils import get_model_name
 from dref.filter_set import (
     ActiveDrefFilterSet,
@@ -591,39 +592,35 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):  # type: ignore[misc]
 
         data = []
         old_kwargs = getattr(self, "kwargs", {}).copy()
-        for code in codes:
-            self.kwargs = {self.lookup_field: code}
-            try:
-                resp = self.retrieve(request)
-            except NotFound:
-                # Skip codes that have no visible records for this user
-                continue
-            if resp.status_code == 200:
-                for item in resp.data if isinstance(resp.data, list) else [resp.data]:
-                    if stage_filter:
-                        stage_val = None
-                        if isinstance(item, dict):
-                            stage_val = item.get("stage") or item.get("Stage")
-                        if stage_val:
-                            normalized_stage = stage_val.lower()
-                            if normalized_stage.startswith("operational update"):
-                                normalized_stage = "operational_update"
-                            elif normalized_stage == "final report":
-                                normalized_stage = "final_report"
-                            elif normalized_stage == "application":
-                                normalized_stage = "application"
-                            if normalized_stage not in stage_filter:
-                                continue
-                        else:
-                            # If stage filter present and we cannot determine stage, skip
+        self.kwargs = {self.lookup_field: codes}
+        resp = self.retrieve(request)
+
+        if resp.status_code == 200:
+            for item in resp.data if isinstance(resp.data, list) else [resp.data]:
+                if stage_filter:
+                    stage_val = None
+                    if isinstance(item, dict):
+                        stage_val = item.get("stage") or item.get("Stage")
+                    if stage_val:
+                        normalized_stage = stage_val.lower()
+                        if normalized_stage.startswith("operational update"):
+                            normalized_stage = "operational_update"
+                        elif normalized_stage == "final report":
+                            normalized_stage = "final_report"
+                        elif normalized_stage == "application":
+                            normalized_stage = "application"
+
+                        if normalized_stage not in stage_filter:
                             continue
-                    data.append(item)
+                    else:
+                        # If stage filter present and we cannot determine stage, skip
+                        continue
+                data.append(item)
         self.kwargs = old_kwargs  # Restore old kwargs
 
-        # Assign ephemeral numeric ids (1-based sequence) per request and silent_operation flag
         silents = self._excluded_codes()
-        for idx, row in enumerate(data, start=1):
-            row["id"] = idx
+        # TODO: Is this required, isn't this already done?
+        for row in data:
             row["public"] = row["appeal_id"] not in silents
 
         # numeric id filter (?id=3 or ?id=3,7)
@@ -674,73 +671,58 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):  # type: ignore[misc]
     #    def get_renderers(self):
     #        return [renderer() for renderer in tuple(api_settings.DEFAULT_RENDERER_CLASSES)]
 
-    def get_objects_by_appeal_code(self, appeal_code):
-        results = []
+    def get_objects_by_appeal_code(self, appeal_codes):
         user = self.request.user
 
-        if not self._has_full_access(user):
-            # If code is in the excluded list, return no results for anonymous users
-            excluded_codes = self._excluded_codes()
-            if appeal_code and appeal_code.upper() in excluded_codes:
-                return []
-            # Light users: only published records are visible
-            drefs = (
-                Dref.objects.filter(appeal_code=appeal_code, status=Dref.Status.APPROVED)
-                .prefetch_related("planned_interventions")
-                .order_by("created_at")
-            )
-            if drefs.exists():
-                results.extend(drefs)
-
-            operational_updates = (
-                DrefOperationalUpdate.objects.filter(appeal_code=appeal_code, status=Dref.Status.APPROVED)
-                .prefetch_related("planned_interventions")
-                .order_by("created_at")
-            )
-            if operational_updates.exists():
-                results.extend(operational_updates)
-
-            final_reports = (
-                DrefFinalReport.objects.filter(appeal_code=appeal_code, status=Dref.Status.APPROVED)
-                .prefetch_related("planned_interventions")
-                .order_by("created_at")
-            )
-            if final_reports.exists():
-                results.extend(final_reports)
-            return results
+        prefetch_related_fields = (
+            # M2M
+            "planned_interventions",
+            "district",
+            # FK
+            "country",
+            "country__region",
+            "disaster_type",
+        )
 
         # Strong users: allow more access
-        drefs = Dref.objects.filter(appeal_code=appeal_code).prefetch_related("planned_interventions").order_by("created_at")
-        drefs = filter_dref_queryset_by_user_access(user, drefs)
-        if drefs.exists():
-            results.extend(drefs)
+        global_filters = {
+            "appeal_code__in": appeal_codes,
+        }
+        if not self._has_full_access(user):
+            # Light users: only published records are visible
+            global_filters["status"] = Dref.Status.APPROVED
+
+            # If code is in the excluded list, return no results for anonymous users
+            excluded_codes = self._excluded_codes()
+            global_filters["appeal_code__in"] = [
+                appeal_code for appeal_code in appeal_codes if appeal_code.upper() not in excluded_codes
+            ]
+
+        drefs = Dref.objects.filter(**global_filters).prefetch_related(*prefetch_related_fields).order_by("created_at")
 
         operational_updates = (
-            DrefOperationalUpdate.objects.filter(appeal_code=appeal_code)
-            .prefetch_related("planned_interventions")
+            DrefOperationalUpdate.objects.filter(**global_filters)
+            .prefetch_related(*prefetch_related_fields)
             .order_by("created_at")
         )
-        operational_updates = filter_dref_queryset_by_user_access(user, operational_updates)
-        if operational_updates.exists():
-            results.extend(operational_updates)
 
         final_reports = (
-            DrefFinalReport.objects.filter(appeal_code=appeal_code)
-            .prefetch_related("planned_interventions")
-            .order_by("created_at")
+            DrefFinalReport.objects.filter(**global_filters).prefetch_related(*prefetch_related_fields).order_by("created_at")
         )
-        final_reports = filter_dref_queryset_by_user_access(user, final_reports)
-        if final_reports.exists():
-            results.extend(final_reports)
-        return results
 
-    def retrieve(self, request, *args, **kwargs):
-        code = self.kwargs.get(self.lookup_field)
-        instances = self.get_objects_by_appeal_code(code)
+        if self._has_full_access(user):
+            drefs = filter_dref_queryset_by_user_access(user, drefs)
+            operational_updates = filter_dref_queryset_by_user_access(user, operational_updates)
+            final_reports = filter_dref_queryset_by_user_access(user, final_reports)
 
-        if not instances:
-            raise NotFound(f"No Dref, Operational Update, or Final Report found with code '{code}'.")
+        results_by_appeal_code = defaultdict(list)
+        for items_list in [drefs, operational_updates, final_reports]:
+            for item in items_list:
+                results_by_appeal_code[item.appeal_code].append(item)
 
+        return results_by_appeal_code
+
+    def handle_retrieve(self, code, instances, prefetched_appeal_by_code):
         serialized_data = []
         ops_update_count = 0
         allocation_count = 1  # Dref Application is always the first allocation
@@ -754,6 +736,7 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):  # type: ignore[misc]
                 next_inst = instances[i + 1] if i + 1 < len(instances) else None
                 if next_inst is None or getattr(next_inst, "status", None) != Dref.Status.APPROVED:
                     latest_index = i
+
         # Build serialized rows with flag
         for i, instance in enumerate(instances):
             is_latest_stage = i == latest_index
@@ -765,6 +748,7 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):  # type: ignore[misc]
                         "allocation": a[0],
                         "public": public,
                         "is_latest_stage": is_latest_stage,
+                        "prefetched_appeal_by_code": prefetched_appeal_by_code,
                     },
                 )
             elif isinstance(instance, DrefOperationalUpdate):
@@ -781,6 +765,7 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):  # type: ignore[misc]
                         "allocation": allocation,
                         "public": public,
                         "is_latest_stage": is_latest_stage,
+                        "prefetched_appeal_by_code": prefetched_appeal_by_code,
                     },
                 )
             elif isinstance(instance, DrefFinalReport):
@@ -791,13 +776,33 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):  # type: ignore[misc]
                         "allocation": "No allocation",
                         "public": public,
                         "is_latest_stage": is_latest_stage,
+                        "prefetched_appeal_by_code": prefetched_appeal_by_code,
                     },
                 )
             else:
                 continue
             serialized_data.append(serializer.data)
 
-        return response.Response(serialized_data)
+        return serialized_data
+
+    def retrieve(self, request, *args, **kwargs):
+        codes = self.kwargs.get(self.lookup_field)
+        instances_by_appeal_code = self.get_objects_by_appeal_code(codes)
+
+        if not instances_by_appeal_code:
+            raise NotFound(f"No Dref, Operational Update, or Final Report found with codes '{codes}'.")
+
+        prefetched_appeal_by_code = {
+            appeal.code: appeal for appeal in Appeal.objects.only("code", "event_id").filter(code__in=codes).all()
+        }
+
+        return response.Response(
+            [
+                item
+                for code, instances in instances_by_appeal_code.items()
+                for item in self.handle_retrieve(code, instances, prefetched_appeal_by_code)
+            ]
+        )
 
     def get_renderer_context(self):
         context = super().get_renderer_context()

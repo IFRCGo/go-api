@@ -1656,8 +1656,7 @@ class DrefGlobalFilesSerializer(serializers.Serializer):
 
 
 class BaseDref3Serializer(serializers.ModelSerializer):
-    # Ephemeral numeric id (assigned per request in list view)
-    id = serializers.IntegerField(read_only=True)
+    id = serializers.SerializerMethodField()
     appeal_id = serializers.CharField(source="appeal_code", read_only=True)
     stage = serializers.SerializerMethodField()
     allocation = serializers.SerializerMethodField()
@@ -1812,6 +1811,9 @@ class BaseDref3Serializer(serializers.ModelSerializer):
     # -----------------------------
     # Simple computed fields
     # -----------------------------
+    def get_id(self, obj):
+        return f"{type(obj).__name__}-{obj.id}"
+
     def get_pillar(self, obj):
         return "Anticipatory" if obj.type_of_dref == Dref.DrefType.IMMINENT else "Response"
 
@@ -2120,7 +2122,10 @@ class BaseDref3Serializer(serializers.ModelSerializer):
             appeal = cache[code]
         else:
             try:
-                appeal = Appeal.objects.only("event_id").get(code=code)
+                appeal = self.context.get("prefetched_appeal_by_code", {}).get(code)
+                if appeal is None:
+                    # XXX: N+1
+                    appeal = Appeal.objects.only("event_id").get(code=code)
             except Appeal.DoesNotExist:
                 appeal = None
             cache[code] = appeal
