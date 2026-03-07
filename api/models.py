@@ -3335,6 +3335,38 @@ class FctSalesOrder(models.Model):
     def __str__(self):
         return f"{self.id} - {self.customer if self.customer else 'Sales Order'}"
 
+class StockInventory(models.Model):
+    """
+    Aggregated stock inventory data from PySpark ETL pipeline.
+    Shows current stock quantities by warehouse, country, and product.
+    """
+
+    warehouse_id = models.CharField(verbose_name=_("Warehouse ID"), max_length=100, db_index=True)
+    warehouse = models.CharField(verbose_name=_("Warehouse Name"), max_length=255)
+    warehouse_country = models.CharField(verbose_name=_("Warehouse Country"), max_length=100, db_index=True)
+    product_category = models.CharField(verbose_name=_("Product Category"), max_length=255)
+    item_name = models.TextField(verbose_name=_("Item Name"))
+    quantity = models.DecimalField(
+        verbose_name=_("Quantity"),
+        max_digits=18,
+        decimal_places=2,
+        help_text=_("Aggregated quantity in stock"),
+    )
+
+    class Meta:
+        verbose_name = _("Stock Inventory")
+        verbose_name_plural = _("Stock Inventories")
+        indexes = [
+            models.Index(fields=["warehouse_id", "warehouse_country"], name="stock_warehouse_idx"),
+            models.Index(fields=["product_category"], name="stock_category_idx"),
+        ]
+        ordering = ["warehouse", "product_category", "-quantity"]
+
+    def __str__(self):
+        return f"{self.warehouse} - {self.item_name} ({self.quantity})"
+
+
+### END OF SPARK MODELS
 
 class ProductCategoryHierarchyFlattened(models.Model):
     product_category = models.CharField(verbose_name=_("Product Category"), max_length=100, primary_key=True)
@@ -3596,3 +3628,5 @@ class CountryExportEvidenceSnippet(models.Model):
 
     def __str__(self):
         return f"Export Snippet {self.snippet_order} - {self.snippet_text[:50]}..."
+
+
