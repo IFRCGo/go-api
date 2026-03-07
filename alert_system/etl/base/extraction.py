@@ -103,7 +103,7 @@ class BaseExtractionClass(ABC):
             "collection": collection_type,
         }
 
-    def get_datetime_filter(self) -> str:
+    def get_start_datetime(self) -> str:
         """
         Generate datetime filter string for STAC queries.
 
@@ -113,8 +113,8 @@ class BaseExtractionClass(ABC):
 
         now = timezone.now()
 
-        start_time = self.connector.last_success_run or self.connector.polling_start_datetime or (now - timedelta(days=1))
-        return f"{start_time.isoformat()}/{now.isoformat()}"
+        start_datetime = self.connector.last_success_run or self.connector.polling_start_datetime or (now - timedelta(days=1))
+        return f"{start_datetime.isoformat()}"
 
     def _save_stac_item(self, stac_id: str, defaults: Dict) -> Optional[ExtractionItem]:
         """
@@ -203,7 +203,6 @@ class BaseExtractionClass(ABC):
             filters.append(f"({hazard_cql})")
 
         loader = self.loader_class()
-
         try:
             event_items = self.fetch_stac_data(
                 self.base_url,
@@ -211,7 +210,8 @@ class BaseExtractionClass(ABC):
                     collections=self.event_collection_type,
                     additional_filters=filters,
                     guid=guid,
-                    datetime_range=None if is_past_event else self.get_datetime_filter(),
+                    start_datetime=None if is_past_event else self.get_start_datetime(),
+                    end_datetime=None if is_past_event else f"{timezone.now().isoformat()}",
                 ),
             )
         except Exception as e:
@@ -294,8 +294,8 @@ class PastEventExtractionClass:
         return guids
 
     def find_related_guids(self, load_obj: LoadItem) -> set[str]:
-        start = timezone.now() - timedelta(weeks=self.extractor.connector.lookback_weeks)
-        end = timezone.now()
+        start_datetime = timezone.now() - timedelta(weeks=self.extractor.connector.lookback_weeks)
+        end_datetime = timezone.now()
 
         guids = set()
 
@@ -315,7 +315,8 @@ class PastEventExtractionClass:
                 build_stac_search(
                     collections=self.extractor.impact_collection_type,
                     additional_filters=additional_filters,
-                    datetime_range=f"{start.isoformat()}/{end.isoformat()}",
+                    start_datetime=f"{start_datetime.isoformat()}",
+                    end_datetime=f"{end_datetime.isoformat()}",
                     forecasted_data=self.extractor.forecasted_data,
                 ),
             )
