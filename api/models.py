@@ -3352,6 +3352,13 @@ class StockInventory(models.Model):
         decimal_places=2,
         help_text=_("Aggregated quantity in stock"),
     )
+    unit_measurement = models.CharField(
+        verbose_name=_("Unit of Measurement"),
+        max_length=50,
+        blank=True,
+        null=True,
+        help_text=_("Unit of measure (e.g., ea, kg, m)"),
+    )
 
     class Meta:
         verbose_name = _("Stock Inventory")
