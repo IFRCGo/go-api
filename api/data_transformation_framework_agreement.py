@@ -1,31 +1,23 @@
 from __future__ import annotations
 
-from api.warehouse_stocks_views import _fetch_goadmin_maps
+import os
 
-from pyspark.sql import SparkSession, DataFrame
-from pyspark.sql.functions import (
-    col,
-    when,
-    lit,
-    length,
-    trim,
-    split as spark_split,
-    substring,
-    round as spark_round,
-)
+from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql.functions import col, length, lit
+from pyspark.sql.functions import round as spark_round
+from pyspark.sql.functions import split as spark_split
+from pyspark.sql.functions import substring, trim, when
 
 from api.models import (
-    FctAgreement,
-    DimProduct,
+    CleanedFrameworkAgreement,
     DimAgreementLine,
+    DimProduct,
+    DimProductCategory,
     DimVendor,
     DimVendorPhysicalAddress,
-    DimProductCategory,
-    CleanedFrameworkAgreement,
+    FctAgreement,
 )
-
-from pyspark.sql import SparkSession, DataFrame
-import os
+from api.warehouse_stocks_views import _fetch_goadmin_maps
 
 
 def _queryset_to_spark_df(spark: SparkSession, rows):
@@ -36,8 +28,9 @@ def _queryset_to_spark_df(spark: SparkSession, rows):
     """
     rows_list = list(rows)
     if not rows_list:
-        return spark.createDataFrame([], schema=[])  
+        return spark.createDataFrame([], schema=[])
     return spark.createDataFrame(rows_list)
+
 
 def get_country_region_mapping(spark: SparkSession, table_name: str = "api.warehouse_stocks_views.feat_goadmin_map") -> DataFrame:
     """Return a Spark DataFrame mapping `iso2` -> `country_name` and `region`.
@@ -67,6 +60,7 @@ def get_country_region_mapping(spark: SparkSession, table_name: str = "api.wareh
     df = df.withColumn("iso2", trim(col("iso2")))
     return df
 
+
 def read_csv_mapping(spark: SparkSession, path: str, header: bool = True) -> DataFrame:
     """Read a CSV mapping into a Spark DataFrame.
 
@@ -74,6 +68,7 @@ def read_csv_mapping(spark: SparkSession, path: str, header: bool = True) -> Dat
     The function preserves headers when present and returns the DataFrame as-is.
     """
     return spark.read.format("csv").option("header", str(header).lower()).load(path)
+
 
 def build_base_agreement(spark: SparkSession, mapping_df: DataFrame) -> DataFrame:
     """Load and prepare the base `fct_agreement` table enriched with mapping."""
@@ -95,19 +90,17 @@ def build_base_agreement(spark: SparkSession, mapping_df: DataFrame) -> DataFram
         trim(substring(col("managing_business_unit_organizational_unit"), 1, 2)),
     )
 
-    joined = fct_agreement.join(
-        mapping_df.select("iso2", "country_name", "region"), on="iso2", how="left"
-    )
+    joined = fct_agreement.join(mapping_df.select("iso2", "country_name", "region"), on="iso2", how="left")
 
     fct_agreement = (
-        joined
-        .withColumnRenamed("country_name", "pa_bu_country_name")
+        joined.withColumnRenamed("country_name", "pa_bu_country_name")
         .withColumnRenamed("region", "pa_bu_region_name")
         .drop("iso2")
         .drop("managing_business_unit_organizational_unit")
     )
 
     return fct_agreement
+
 
 def load_dimension_tables(spark: SparkSession) -> dict:
     """Load used dimension tables and return them in a dict."""
@@ -161,6 +154,7 @@ def load_dimension_tables(spark: SparkSession) -> dict:
         "dim_agreement_line": dim_agreement_line,
         "vendor_joined": vendor_joined,
     }
+
 
 def transform_and_clean(
     fct_agreement: DataFrame,
@@ -300,6 +294,7 @@ def transform_and_clean(
 
     return final_df
 
+
 def transform_framework_agreement(
     spark: SparkSession,
     csv_dir: str = "/home/ifrc/go-api/api/datatransformationlogic",
@@ -372,6 +367,7 @@ def transform_framework_agreement(
         raise
 
     return final_df
+
 
 def main() -> None:
     spark = SparkSession.builder.appName("fa-data-transformation").getOrCreate()
