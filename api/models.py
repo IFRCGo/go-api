@@ -3482,11 +3482,6 @@ class CountryCustomsEvidenceSnippet(models.Model):
         return f"Snippet {self.snippet_order} - {self.snippet_text[:50]}..."
 
 
-# =============================================================================
-# Export Regulations Models (mirror structure of Import/Customs models)
-# =============================================================================
-
-
 class CountryExportSnapshot(models.Model):
     """
     Stores generated export regulation summaries per country.
