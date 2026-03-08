@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - ES aggregated endpoints Stock Inventory
  - Redis caching for Stock Inventory
  - Fix filtering for item name
+ - Data transformation script for framework agreements
 
 ## 1.1.508
 
