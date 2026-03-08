@@ -1,6 +1,6 @@
 """
 Service for generating AI-powered customs updates using OpenAI.
-Uses OpenAI's native web search capability via function tools.
+Uses Brave Search API for web search and OpenAI for evidence extraction.
 """
 
 import hashlib
@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
 import openai
+import requests
 from django.conf import settings
 
 from api.models import (
@@ -54,7 +55,7 @@ EVIDENCE_KEYWORDS = {
     "ocha",
     "consignment",
     "donation",
-    "in-kind",
+    "in-kind",acc
     "medical supplies",
     "temporary admission",
     "transit",
@@ -82,6 +83,8 @@ HIGH_AUTHORITY_PUBLISHERS = {
 }
 MEDIUM_AUTHORITY_PUBLISHERS = {"ngo", "news", "org", "academic", "university", "institute"}
 
+BRAVE_SEARCH_API_BASE_URL = "https://api.search.brave.com/res/v1"
+
 
 class CustomsAIService:
     """Service for generating customs updates via OpenAI Responses API."""
@@ -91,6 +94,165 @@ class CustomsAIService:
     MAX_SNIPPETS_PER_SOURCE = 8
     SNIPPET_MIN_CHARS = 500
     SNIPPET_MAX_CHARS = 1000
+
+    @staticmethod
+    def _get_brave_headers() -> dict:
+        """Get headers for Brave Search API requests."""
+        if not settings.BRAVE_SEARCH_API_KEY:
+            raise ValueError("BRAVE_SEARCH_API_KEY is not configured in settings")
+        return {
+            "Accept": "application/json",
+            "Accept-Encoding": "gzip",
+            "X-Subscription-Token": settings.BRAVE_SEARCH_API_KEY,
+        }
+
+    @staticmethod
+    def _find_official_customs_doc(country_name: str) -> Optional[Dict[str, str]]:
+        """
+        Search for the official government customs authority page for a country.
+        Returns {"url": "...", "title": "..."} or None.
+        """
+        query = f"{country_name} official government customs authority import regulations"
+        headers = CustomsAIService._get_brave_headers()
+
+        try:
+            resp = requests.get(
+                f"{BRAVE_SEARCH_API_BASE_URL}/web/search",
+                headers=headers,
+                params={"q": query, "count": 10},
+                timeout=15,
+            )
+            resp.raise_for_status()
+            web_results = resp.json().get("web", {}).get("results", [])
+        except Exception as e:
+            logger.warning(f"Brave search for official docs failed: {str(e)}")
+            return None
+
+        if not web_results:
+            logger.info(f"No web results for official doc search: {country_name}")
+            return None
+
+        logger.info(f"Official doc search returned {len(web_results)} results for {country_name}")
+
+        results_for_llm = [
+            {"url": r.get("url", ""), "title": r.get("title", ""), "description": r.get("description", "")}
+            for r in web_results
+        ]
+
+        prompt = f"""From these search results, identify the single MOST OFFICIAL customs/import
+regulations page from {country_name}'s own government or customs authority.
+
+Prefer:
+1. The country's customs authority website (e.g. customs.gov.xx, revenue authority)
+2. A government trade/commerce ministry page about import procedures
+3. An official government gazette or legal portal with customs regulations
+
+Do NOT select pages from international organisations (UN, WFP, IFRC, UNCTAD, etc.), news outlets, or NGOs.
+The page MUST be from {country_name}'s own government domain.
+
+Search results:
+{json.dumps(results_for_llm, indent=2)}
+
+If none of the results are from {country_name}'s government, respond with:
+{{"url": "", "title": ""}}
+
+Otherwise respond with ONLY valid JSON:
+{{"url": "the exact url from the results", "title": "the exact title from the results"}}
+"""
+
+        try:
+            response = _get_openai_client().chat.completions.create(
+                model="gpt-4-turbo",
+                max_tokens=200,
+                messages=[{"role": "user", "content": prompt}],
+                response_format={"type": "json_object"},
+            )
+            data = json.loads(response.choices[0].message.content)
+            url = data.get("url", "").strip()
+            title = data.get("title", "").strip()
+            if url:
+                logger.info(f"Found official doc for {country_name}: {url}")
+                return {"url": url, "title": title}
+            logger.info(f"No official government doc identified for {country_name}")
+        except Exception as e:
+            logger.warning(f"Official doc extraction failed: {str(e)}")
+
+        return None
+
+    @staticmethod
+    def _find_rc_society_source(country_name: str) -> Optional[Dict[str, str]]:
+        """
+        Search for the country's Red Cross or Red Crescent society page
+        with customs/logistics-related content.
+        Returns {"url": "...", "title": "..."} or None.
+        """
+        query = f"{country_name} Red Cross Red Crescent society customs import humanitarian logistics"
+        headers = CustomsAIService._get_brave_headers()
+
+        try:
+            resp = requests.get(
+                f"{BRAVE_SEARCH_API_BASE_URL}/web/search",
+                headers=headers,
+                params={"q": query, "count": 10},
+                timeout=15,
+            )
+            resp.raise_for_status()
+            web_results = resp.json().get("web", {}).get("results", [])
+        except Exception as e:
+            logger.warning(f"Brave search for RC society failed: {str(e)}")
+            return None
+
+        if not web_results:
+            logger.info(f"No web results for RC society search: {country_name}")
+            return None
+
+        logger.info(f"RC society search returned {len(web_results)} results for {country_name}")
+
+        results_for_llm = [
+            {"url": r.get("url", ""), "title": r.get("title", ""), "description": r.get("description", "")}
+            for r in web_results
+        ]
+
+        prompt = f"""From these search results, identify the single MOST RELEVANT page from
+{country_name}'s Red Cross or Red Crescent national society that relates to customs,
+humanitarian imports, logistics, or relief operations.
+
+Prefer:
+1. The national Red Cross or Red Crescent society's official website
+2. Pages about logistics, customs, import procedures, or relief operations
+3. News or updates from the society about humanitarian shipments or customs
+
+The page MUST be from {country_name}'s Red Cross or Red Crescent society, or from IFRC/ICRC
+pages specifically about {country_name}'s society.
+
+Search results:
+{json.dumps(results_for_llm, indent=2)}
+
+If none of the results are from {country_name}'s Red Cross/Red Crescent society, respond with:
+{{"url": "", "title": ""}}
+
+Otherwise respond with ONLY valid JSON:
+{{"url": "the exact url from the results", "title": "the exact title from the results"}}
+"""
+
+        try:
+            response = _get_openai_client().chat.completions.create(
+                model="gpt-4-turbo",
+                max_tokens=200,
+                messages=[{"role": "user", "content": prompt}],
+                response_format={"type": "json_object"},
+            )
+            data = json.loads(response.choices[0].message.content)
+            url = data.get("url", "").strip()
+            title = data.get("title", "").strip()
+            if url:
+                logger.info(f"Found RC society source for {country_name}: {url}")
+                return {"url": url, "title": title}
+            logger.info(f"No RC society source identified for {country_name}")
+        except Exception as e:
+            logger.warning(f"RC society source extraction failed: {str(e)}")
+
+        return None
 
     @staticmethod
     def validate_country_name(country_name: str) -> Tuple[bool, Optional[str]]:
@@ -163,6 +325,18 @@ class CustomsAIService:
         snapshot.summary_text = summary_text
         snapshot.current_situation_bullets = []
 
+        # Find official government customs documentation
+        official_doc = CustomsAIService._find_official_customs_doc(country_name)
+        if official_doc:
+            snapshot.official_doc_url = official_doc.get("url", "")[:2048]
+            snapshot.official_doc_title = official_doc.get("title", "")[:500]
+
+        # Find Red Cross/Red Crescent society source
+        rc_society = CustomsAIService._find_rc_society_source(country_name)
+        if rc_society:
+            snapshot.rc_society_url = rc_society.get("url", "")[:2048]
+            snapshot.rc_society_title = rc_society.get("title", "")[:500]
+
         all_hashes = []
         snapshot.save()
 
@@ -209,38 +383,33 @@ class CustomsAIService:
     @staticmethod
     def _search_and_extract_evidence(query: str) -> List[Dict[str, Any]]:
         """
-        Use DuckDuckGo to search for customs information and OpenAI to structure it.
+        Use Brave Search API to search for customs information and OpenAI to structure it.
         """
         pages = []
 
-        # 1. Perform Web Search
+        # 1. Perform Web Search via Brave Search API
+        results = []
+        headers = CustomsAIService._get_brave_headers()
+
+        # A. Web search
         try:
-            from ddgs import DDGS
-
-            with DDGS() as ddgs:
-                # A. Perform standard web search
-                text_results = list(ddgs.text(query, max_results=8, timelimit="y"))
-                for r in text_results:
-                    r["source_type"] = "text"
-                    # text() results usually don't have a structured date field
-
-                # B. Perform news search (better for recent dates)
-                try:
-                    news_results = list(ddgs.news(query, max_results=5, timelimit="y"))
-                    for r in news_results:
-                        r["source_type"] = "news"
-                        # news() results have a 'date' field
-                except Exception as e:
-                    logger.warning(f"DDGS News search failed: {str(e)}")
-                    news_results = []
-
-                results = text_results + news_results
-        except ImportError:
-            logger.error("ddgs library not found.")
-            return []
+            resp = requests.get(
+                f"{BRAVE_SEARCH_API_BASE_URL}/web/search",
+                headers=headers,
+                params={"q": query, "count": 10, "freshness": "py"},
+                timeout=15,
+            )
+            resp.raise_for_status()
+            for r in resp.json().get("web", {}).get("results", []):
+                results.append({
+                    "url": r.get("url", ""),
+                    "title": r.get("title", ""),
+                    "body": r.get("description", ""),
+                    "date": r.get("page_age"),
+                    "source_type": "text",
+                })
         except Exception as e:
-            logger.error(f"DuckDuckGo search failed: {str(e)}")
-            return []
+            logger.error(f"Brave web search failed: {str(e)}")
 
         if not results:
             logger.warning(f"No search results found for query: {query}")
@@ -351,7 +520,7 @@ class CustomsAIService:
             scores["total"] = sum(scores.values())
             scored.append((page, scores))
 
-        # --- Adaptive Selection Strategy --- # Redo logic using exponential decay based on whether country is under crisis or not
+        # --- Adaptive Selection Strategy --- # Redo logic using exponential decay based on whether country is under crisis or not - use ifrc api for this
         # 1. Separate into "Fresh" (<= 90 days) and "Secondary" (> 90 days or unknown)
         fresh_sources = [(p, s) for p, s in scored if s.get("freshness", 0) >= 15]  # 15+ means < 90 days in our scoring
         secondary_sources = [(p, s) for p, s in scored if s.get("freshness", 0) < 15]
