@@ -535,7 +535,8 @@ def write_to_database(df: DataFrame, dry_run: bool = False) -> None:
 
     Writes the stock inventory data to the api_stockinventory table in PostgreSQL.
     In dry-run mode, displays sample data without performing the write operation.
-    Uses 'overwrite' mode to replace existing data.
+    Uses a truncate + append strategy to preserve the Django-managed table schema,
+    indexes, and constraints.
 
     Args:
         df: Stock inventory DataFrame to write
@@ -558,9 +559,16 @@ def write_to_database(df: DataFrame, dry_run: bool = False) -> None:
 
     jdbc_config = get_jdbc_config()
 
+    # Keep the migration-defined table structure intact by truncating rows first,
+    # then writing with append mode instead of JDBC overwrite.
+    from django.db import connection
+
+    with connection.cursor() as cursor:
+        cursor.execute("TRUNCATE TABLE api_stockinventory RESTART IDENTITY")
+
     df.write.format("jdbc").option("url", jdbc_config["url"]).option("dbtable", "api_stockinventory").option(
         "user", jdbc_config["user"]
-    ).option("password", jdbc_config["password"]).option("driver", "org.postgresql.Driver").mode("overwrite").save()
+    ).option("password", jdbc_config["password"]).option("driver", "org.postgresql.Driver").mode("append").save()
 
     logger.info("✓ Stock inventory successfully written to database")
 
