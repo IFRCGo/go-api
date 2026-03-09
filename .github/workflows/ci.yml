@@ -41,7 +41,7 @@ jobs:
         run: uv venv
 
       - name: uv lock check
-        run: uv lock --locked
+        run: uv lock --locked --offline
 
       - name: uv sync
         run: uv sync --all-extras
