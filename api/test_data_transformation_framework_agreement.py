@@ -13,12 +13,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from django.test import TestCase, TransactionTestCase
-from pyspark.sql.types import (
-    DecimalType,
-    StringType,
-    StructField,
-    StructType,
-)
+from pyspark.sql.types import DecimalType, StringType, StructField, StructType
 
 from api.data_transformation_framework_agreement import (
     _queryset_to_spark_df,
