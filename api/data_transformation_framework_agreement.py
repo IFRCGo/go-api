@@ -33,13 +33,16 @@ def _queryset_to_spark_df(spark: SparkSession, rows):
 
 
 def get_country_region_mapping(spark: SparkSession, table_name: str = "api.warehouse_stocks_views.feat_goadmin_map") -> DataFrame:
-    """Return a Spark DataFrame mapping `iso2` -> `country_name` and `region`.
+    """Return a Spark DataFrame with ISO mapping plus `country_name` and `region`.
 
 
     Prefer using the existing `_fetch_goadmin_maps()` helper from
     `api.warehouse_stocks_views` (it fetches live data from GOAdmin). If that
     import or call fails (e.g., running outside Django), fall back to reading
     the provided warehouse table `table_name`.
+
+    Returned columns include both `iso2` and `iso3` so callers can join using
+    whichever code they need.
     """
     iso2_to_iso3, iso3_to_country_name, iso3_to_region_name = _fetch_goadmin_maps()
 
@@ -51,13 +54,23 @@ def get_country_region_mapping(spark: SparkSession, table_name: str = "api.wareh
         iso3_u = str(iso3).upper().strip()
         country_name = iso3_to_country_name.get(iso3_u) if iso3_to_country_name else None
         region_name = iso3_to_region_name.get(iso3_u) if iso3_to_region_name else None
-        rows.append({"iso2": iso2_u, "country_name": country_name or "", "region": region_name or ""})
+        rows.append(
+            {
+                "iso2": iso2_u,
+                "iso3": iso3_u,
+                "country_name": country_name or "",
+                "region": region_name or "",
+            }
+        )
 
     if rows:
         return spark.createDataFrame(rows)
 
     df = spark.table(table_name)
-    df = df.withColumn("iso2", trim(col("iso2")))
+    if "iso2" in df.columns:
+        df = df.withColumn("iso2", trim(col("iso2")))
+    if "iso3" in df.columns:
+        df = df.withColumn("iso3", trim(col("iso3")))
     return df
 
 
