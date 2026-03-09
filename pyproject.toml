@@ -85,7 +85,6 @@ dependencies = [
     "openai",
     "azure-identity",
     "pyodbc==5.1.0",
-    "ddgs>=8.1.1",
 ]
 
 [dependency-groups]
