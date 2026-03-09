@@ -3335,6 +3335,7 @@ class FctSalesOrder(models.Model):
     def __str__(self):
         return f"{self.id} - {self.customer if self.customer else 'Sales Order'}"
 
+
 class StockInventory(models.Model):
     """
     Aggregated stock inventory data from PySpark ETL pipeline.
@@ -3387,6 +3388,7 @@ class StockInventory(models.Model):
 
 
 ### END OF SPARK MODELS
+
 
 class ProductCategoryHierarchyFlattened(models.Model):
     product_category = models.CharField(verbose_name=_("Product Category"), max_length=100, primary_key=True)
@@ -3648,5 +3650,3 @@ class CountryExportEvidenceSnippet(models.Model):
 
     def __str__(self):
         return f"Export Snippet {self.snippet_order} - {self.snippet_text[:50]}..."
-
-

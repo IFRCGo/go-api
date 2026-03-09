@@ -25,7 +25,11 @@ import logging
 
 from django.core.management.base import BaseCommand
 
-from api.data_transformation_stock_inventory import DEFAULT_WAREHOUSE_CODES, create_spark_session, transform_stock_inventory
+from api.data_transformation_stock_inventory import (
+    DEFAULT_WAREHOUSE_CODES,
+    create_spark_session,
+    transform_stock_inventory,
+)
 
 
 class Command(BaseCommand):

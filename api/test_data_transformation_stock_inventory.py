@@ -12,7 +12,14 @@ from unittest.mock import patch
 
 from django.test import TestCase, TransactionTestCase
 from pyspark.sql import SparkSession
-from pyspark.sql.types import BooleanType, DecimalType, IntegerType, StringType, StructField, StructType
+from pyspark.sql.types import (
+    BooleanType,
+    DecimalType,
+    IntegerType,
+    StringType,
+    StructField,
+    StructType,
+)
 
 from api.data_transformation_stock_inventory import (
     apply_product_category_filters,
@@ -270,10 +277,13 @@ class ExportToCsvTest(SparkTestMixin, TestCase):
             out_path = tmp.name
 
         try:
-            with patch(
-                "api.data_transformation_stock_inventory.load_jdbc_table",
-                return_value=test_df,
-            ), patch("api.data_transformation_stock_inventory.get_jdbc_config", return_value={}):
+            with (
+                patch(
+                    "api.data_transformation_stock_inventory.load_jdbc_table",
+                    return_value=test_df,
+                ),
+                patch("api.data_transformation_stock_inventory.get_jdbc_config", return_value={}),
+            ):
                 export_to_csv(self.spark, out_path)
             self.assertTrue(Path(out_path).exists())
             with open(out_path, newline="") as csv_file:
@@ -428,8 +438,9 @@ class StockInventoryTransformationIntegrationTest(SparkTestMixin, TransactionTes
         def _fake_country_mapping(spark):
             spark.createDataFrame(isomapping_rows, isomapping_schema).createOrReplaceTempView("isomapping")
 
-        with patch("api.data_transformation_stock_inventory.load_dimension_tables", return_value=dataframes), patch(
-            "api.data_transformation_stock_inventory.load_country_region_mapping", side_effect=_fake_country_mapping
+        with (
+            patch("api.data_transformation_stock_inventory.load_dimension_tables", return_value=dataframes),
+            patch("api.data_transformation_stock_inventory.load_country_region_mapping", side_effect=_fake_country_mapping),
         ):
             result_df = transform_stock_inventory(
                 self.spark,
