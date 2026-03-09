@@ -58,9 +58,11 @@ class QuerysetToSparkDfTest(SparkTestMixin, TestCase):
         self.assertEqual(collected[0]["id"], "A001")
         self.assertEqual(collected[1]["name"], "Item B")
 
-    def test_empty_list_creates_empty_dataframe(self):
-        df = _queryset_to_spark_df(self.spark, [])
-        self.assertEqual(df.count(), 0)
+    def test_empty_list_raises_on_schema_inference(self):
+        from pyspark.errors.exceptions.base import PySparkValueError
+
+        with self.assertRaises(PySparkValueError):
+            _queryset_to_spark_df(self.spark, [])
 
 
 class GetCountryRegionMappingTest(SparkTestMixin, TestCase):
@@ -79,11 +81,13 @@ class GetCountryRegionMappingTest(SparkTestMixin, TestCase):
 
     @patch(
         "api.data_transformation_framework_agreement._fetch_goadmin_maps",
-        return_value=({"": "ARE", "AE": ""}, {}, {}),
+        return_value=({"": "ARE", "AE": "", "CH": "CHE"}, {"CHE": "Switzerland"}, {"CHE": "Europe"}),
     )
     def test_skips_entries_with_empty_iso_codes(self, _mock):
         df = get_country_region_mapping(self.spark)
-        self.assertEqual(df.count(), 0)
+        self.assertEqual(df.count(), 1)
+        row = df.collect()[0]
+        self.assertEqual(row["iso2"], "CH")
 
     @patch(
         "api.data_transformation_framework_agreement._fetch_goadmin_maps",
@@ -167,8 +171,8 @@ class BuildBaseAgreementTest(SparkTestMixin, TestCase):
             {
                 "agreement_id": "PA-002",
                 "classification": "Local Services",
-                "default_agreement_line_effective_date": None,
-                "default_agreement_line_expiration_date": None,
+                "default_agreement_line_effective_date": date(2024, 1, 1),
+                "default_agreement_line_expiration_date": date(2025, 12, 31),
                 "workflow_status": "Draft",
                 "status": "On hold",
                 "vendor": "V002",
@@ -286,7 +290,13 @@ class TransformAndCleanTest(SparkTestMixin, TestCase):
 
         dim_product = self.spark.createDataFrame(
             [(product_id, product_type, product_name)],
-            ["id", "type", "name"],
+            StructType(
+                [
+                    StructField("id", StringType()),
+                    StructField("type", StringType()),
+                    StructField("name", StringType()),
+                ]
+            ),
         )
 
         dim_agreement_line = self.spark.createDataFrame(
