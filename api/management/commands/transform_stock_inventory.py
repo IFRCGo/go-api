@@ -3,19 +3,22 @@ Django management command for stock inventory transformation.
 
 Usage:
     # Run full transformation
-    python manage.py transform_stock_inventory
+    docker compose run --rm serve python manage.py transform_stock_inventory
 
     # Dry run (show results without writing to database)
-    python manage.py transform_stock_inventory --dry-run
+    docker compose run --rm serve python manage.py transform_stock_inventory --dry-run
 
     # Limit output rows (for testing)
-    python manage.py transform_stock_inventory --limit 100
+    docker compose run --rm serve python manage.py transform_stock_inventory --limit 100
 
     # Use custom warehouse codes
-    python manage.py transform_stock_inventory --warehouse-ids AE1DUB002,AR1BUE002,ES1LAS001
+    docker compose run --rm serve python manage.py transform_stock_inventory --warehouse-ids AE1DUB002,AR1BUE002,ES1LAS001
+
+    # Export to CSV after transformation
+    docker compose run --rm serve python manage.py transform_stock_inventory --export-csv stock_inventory.csv
 
     # Combine options
-    python manage.py transform_stock_inventory --dry-run --limit 50 --warehouse-ids AE1DUB002
+    docker compose run --rm serve python manage.py transform_stock_inventory --dry-run --limit 50 --warehouse-ids AE1DUB002
 """
 
 import logging
@@ -46,6 +49,12 @@ class Command(BaseCommand):
             default=None,
             help="Comma-separated warehouse IDs to filter (e.g., 'AE1DUB002,AR1BUE002')",
         )
+        parser.add_argument(
+            "--export-csv",
+            type=str,
+            default=None,
+            help="Export results to CSV file (e.g., 'stock_inventory.csv')",
+        )
 
     def handle(self, *args, **options):
         # Configure logging for better CLI output
@@ -59,6 +68,7 @@ class Command(BaseCommand):
         dry_run = options.get("dry_run", False)
         limit = options.get("limit")
         warehouse_ids_str = options.get("warehouse_ids")
+        export_csv = options.get("export_csv")
 
         # Parse warehouse IDs if provided
         if warehouse_ids_str:
@@ -73,6 +83,11 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING("🔍 DRY RUN MODE - No data will be written to database"))
         if limit:
             self.stdout.write(self.style.WARNING(f"⚠️  LIMIT MODE - Processing only {limit} rows"))
+        if export_csv:
+            if dry_run:
+                self.stdout.write(self.style.WARNING("⚠️  CSV export will be skipped in dry-run mode"))
+            else:
+                self.stdout.write(f"📄 CSV will be exported to: {export_csv}")
 
         # Create Spark session (with JDBC driver download)
         spark = create_spark_session()
@@ -84,6 +99,7 @@ class Command(BaseCommand):
                 warehouse_codes=warehouse_codes,
                 dry_run=dry_run,
                 limit=limit,
+                export_csv=export_csv,
             )
 
             # Success message

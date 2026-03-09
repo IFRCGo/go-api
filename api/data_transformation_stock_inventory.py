@@ -13,6 +13,7 @@ Usage:
     docker compose run --rm serve python manage.py transform_stock_inventory
     docker compose run --rm serve python manage.py transform_stock_inventory --dry-run
     docker compose run --rm serve python manage.py transform_stock_inventory --limit 100
+    docker compose run --rm serve python manage.py transform_stock_inventory --export-csv stock_inventory.csv
     docker compose run --rm serve python manage.py transform_stock_inventory --warehouse-ids AE1DUB002,AR1BUE002
 """
 
@@ -404,6 +405,35 @@ def verify_and_display_results(spark: SparkSession, num_rows: int = 20) -> None:
         raise
 
 
+def export_to_csv(spark: SparkSession, output_path: str = "stock_inventory.csv") -> None:
+    """Export the stock inventory table to CSV file.
+
+    Args:
+        spark: Active Spark session
+        output_path: Path where CSV file should be saved (default: stock_inventory.csv)
+    """
+    logger.info(f"Exporting stock inventory to CSV: {output_path}")
+
+    jdbc_config = get_jdbc_config()
+
+    try:
+        # Load the table from database
+        df = load_jdbc_table(spark, jdbc_config, "api_stockinventory")
+        total_count = df.count()
+
+        logger.info(f"  - Loading {total_count:,} rows from database...")
+
+        # Convert to Pandas and export to CSV
+        pandas_df = df.toPandas()
+        pandas_df.to_csv(output_path, index=False)
+
+        logger.info(f"✓ Successfully exported {total_count:,} rows to {output_path}")
+
+    except Exception as e:
+        logger.error(f"✗ Failed to export CSV: {str(e)}")
+        raise
+
+
 # ============================================================================
 # MAIN ORCHESTRATION
 # ============================================================================
@@ -414,6 +444,7 @@ def transform_stock_inventory(
     warehouse_codes: Optional[list[str]] = None,
     dry_run: bool = False,
     limit: Optional[int] = None,
+    export_csv: Optional[str] = None,
 ) -> DataFrame:
     """Main orchestration function for stock inventory transformation.
 
@@ -422,6 +453,7 @@ def transform_stock_inventory(
         warehouse_codes: Optional list of warehouse codes to filter (defaults to configured list)
         dry_run: If True, show results without writing to database
         limit: Optional row limit for testing
+        export_csv: Optional CSV file path to export results after transformation
 
     Returns:
         Final stock inventory DataFrame
@@ -459,6 +491,10 @@ def transform_stock_inventory(
         # Step 7: Verify results (unless dry run)
         if not dry_run:
             verify_and_display_results(spark, num_rows=20)
+
+        # Step 8: Export to CSV if requested (unless dry run)
+        if export_csv and not dry_run:
+            export_to_csv(spark, output_path=export_csv)
 
         logger.info("=" * 80)
         logger.info("✓ STOCK INVENTORY TRANSFORMATION COMPLETED SUCCESSFULLY")
