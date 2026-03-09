@@ -32,6 +32,20 @@ class Command(BaseCommand):
     help = "Transform and load stock inventory data using PySpark"
 
     def add_arguments(self, parser):
+        """Add command-line arguments for the management command.
+
+        Defines the following optional arguments:
+            --dry-run: Run transformation without writing to database
+            --limit: Limit number of output rows for testing
+            --warehouse-ids: Comma-separated warehouse codes to filter
+            --export-csv: Export results to CSV file
+
+        Args:
+            parser: Django command argument parser (argparse.ArgumentParser)
+
+        Returns:
+            None
+        """
         parser.add_argument(
             "--dry-run",
             action="store_true",
@@ -57,6 +71,30 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        """Execute the stock inventory transformation command.
+
+        Main command handler that:
+            1. Configures logging
+            2. Parses and validates command-line options
+            3. Creates Spark session with JDBC driver
+            4. Executes the transformation pipeline
+            5. Handles success/error reporting
+            6. Ensures proper Spark session cleanup
+
+        Args:
+            *args: Positional arguments (unused)
+            **options: Dictionary of command-line options including:
+                - dry_run (bool): Whether to skip database write
+                - limit (int or None): Row limit for output
+                - warehouse_ids (str or None): Comma-separated warehouse codes
+                - export_csv (str or None): CSV export file path
+
+        Returns:
+            None
+
+        Raises:
+            Exception: Re-raises any exception from transformation after logging it
+        """
         # Configure logging for better CLI output
         logging.basicConfig(
             level=logging.INFO,
