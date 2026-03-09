@@ -3344,6 +3344,13 @@ class StockInventory(models.Model):
     warehouse_id = models.CharField(verbose_name=_("Warehouse ID"), max_length=100, db_index=True)
     warehouse = models.CharField(verbose_name=_("Warehouse Name"), max_length=255)
     warehouse_country = models.CharField(verbose_name=_("Warehouse Country"), max_length=100, db_index=True)
+    region = models.CharField(
+        verbose_name=_("Region"),
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text=_("Geographical region (e.g., Asia Pacific, Americas)"),
+    )
     product_category = models.CharField(verbose_name=_("Product Category"), max_length=255)
     item_name = models.TextField(verbose_name=_("Item Name"))
     quantity = models.DecimalField(
@@ -3358,6 +3365,12 @@ class StockInventory(models.Model):
         blank=True,
         null=True,
         help_text=_("Unit of measure (e.g., ea, kg, m)"),
+    )
+    catalogue_link = models.TextField(
+        verbose_name=_("Catalogue Link"),
+        blank=True,
+        null=True,
+        help_text=_("URL to item catalogue or product information"),
     )
 
     class Meta:
