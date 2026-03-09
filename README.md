@@ -65,12 +65,6 @@ email-verification only, is to be found
 
 ## Elasticsearch (Cleaned Framework Agreements)
 
-### Run Stock Inventory Transformation Command
-     $ docker compose run --rm serve python manage.py transform_stock_inventory
-     dry run:
-     $ docker compose run --rm serve python manage.py transform_stock_inventory --dry-run
-     export result to csv:
-     $ docker compose run --rm serve python manage.py transform_stock_inventory --export-csv stock_inventory.csv
 
 If you want the `/api/v2/fabric/cleaned-framework-agreements/` endpoint to use Elasticsearch locally, create the index and bulk index the data:
 
@@ -78,6 +72,15 @@ If you want the `/api/v2/fabric/cleaned-framework-agreements/` endpoint to use E
      $ docker compose run --rm serve python manage.py create_cleaned_framework_agreements_index
      
      $ docker compose run --rm serve python manage.py bulk_index_cleaned_framework_agreements
+
+### Run Stock Inventory Transformation Command
+     $ docker compose run --rm serve python manage.py transform_stock_inventory
+     dry run:
+     $ docker compose run --rm serve python manage.py transform_stock_inventory --dry-run
+     export result to csv:
+     $ docker compose run --rm serve python manage.py transform_stock_inventory --export-csv stock_inventory.csv
+
+
 
 ## Backend CI Checks (Run Locally)
 
@@ -125,6 +128,10 @@ docker compose run --rm serve pytest --reuse-db --durations=10
 This check never fails.
 
 ---
+
+### Stock Inventory Transformation Checks
+     $ docker compose run --rm serve python manage.py test api.test_data_transformation_stock_inventory --keepdb --verbosity=1
+
 
 ### Accessing python shell
 
