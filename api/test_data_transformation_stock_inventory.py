@@ -1,5 +1,4 @@
 """
-Must-have tests for stock inventory PySpark transformation.
 run:
 docker compose run --rm serve python manage.py test api.test_data_transformation_stock_inventory --keepdb --verbosity=1
 """
@@ -11,7 +10,6 @@ from pathlib import Path
 from unittest.mock import patch
 
 from django.test import TestCase, TransactionTestCase
-from pyspark.sql import SparkSession
 from pyspark.sql.types import (
     BooleanType,
     DecimalType,
@@ -30,24 +28,7 @@ from api.data_transformation_stock_inventory import (
     transform_stock_inventory,
 )
 from api.factories.spark import ItemCodeMappingFactory
-
-
-class SparkTestMixin:
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.spark = (
-            SparkSession.builder.appName("test-stock-inventory")
-            .master("local[2]")
-            .config("spark.sql.shuffle.partitions", "2")
-            .config("spark.driver.memory", "512m")
-            .getOrCreate()
-        )
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.spark.stop()
-        super().tearDownClass()
+from api.test_spark_helpers import SparkTestMixin
 
 
 class ApplyTransactionFiltersTest(SparkTestMixin, TestCase):
@@ -297,7 +278,6 @@ class ExportToCsvTest(SparkTestMixin, TestCase):
 
 class StockInventoryTransformationIntegrationTest(SparkTestMixin, TransactionTestCase):
     def test_transform_pipeline_with_real_spark_session(self):
-        # Use factory pattern for Django-backed catalogue mapping.
         ItemCodeMappingFactory(code="PROD001", url="https://example.com/catalog/prod001")
 
         warehouse_schema = StructType(
