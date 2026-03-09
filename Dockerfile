@@ -50,6 +50,10 @@ RUN --mount=type=cache,target=$UV_CACHE_DIR \
 
 # pyspark is installed via pyproject.toml during `uv sync`
 
+# Refresh apt metadata and preinstall the package that previously failed in CI.
+RUN apt-get update -o Acquire::Retries=3 \
+  && apt-get install -y --fix-missing libopenmpt0
+
 RUN python -m playwright install --with-deps
 
 # To avoid some SyntaxWarnings ("is" with a literal), still needed on 20241024:
