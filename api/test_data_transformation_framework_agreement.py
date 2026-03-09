@@ -5,15 +5,15 @@ run:
 docker compose run --rm serve python manage.py test api.test_data_transformation_framework_agreement --keepdb --verbosity=1
 """
 
+import os
 import tempfile
 from datetime import date, datetime, timezone
 from decimal import Decimal
 from pathlib import Path
 from unittest.mock import patch
 
-from django.test import TestCase
+from django.test import TestCase, TransactionTestCase
 from pyspark.sql.types import (
-    DateType,
     DecimalType,
     StringType,
     StructField,
@@ -26,7 +26,18 @@ from api.data_transformation_framework_agreement import (
     get_country_region_mapping,
     load_dimension_tables,
     read_csv_mapping,
+    transform_and_clean,
+    transform_framework_agreement,
 )
+from api.factories.spark import (
+    DimAgreementLineFactory,
+    DimProductCategoryFactory,
+    DimProductFactory,
+    DimVendorFactory,
+    DimVendorPhysicalAddressFactory,
+    FctAgreementFactory,
+)
+from api.models import CleanedFrameworkAgreement
 from api.test_spark_helpers import SparkTestMixin
 
 GOADMIN_MAPS = (
@@ -245,3 +256,285 @@ class LoadDimensionTablesTest(SparkTestMixin, TestCase):
         vj_row = vj.collect()[0]
         self.assertEqual(vj_row["vendor_name"], "Acme Corp")
         self.assertEqual(vj_row["vendor_country"], "CHE")
+
+
+class TransformAndCleanTest(SparkTestMixin, TestCase):
+    """Unit tests for transform_and_clean() business logic.
+
+    All inputs are constructed as in-memory Spark DataFrames so no Django ORM
+    or external calls are needed.
+    """
+
+    def _build_inputs(
+        self,
+        classification="Global Items",
+        vendor_code="V001",
+        product_id="PROD001",
+        product_type="Item",
+        product_name="Tarpaulin",
+        pa_bu_country_name="United Arab Emirates",
+        pa_bu_region_name="Middle East",
+        price=Decimal("123.456"),
+        procurement_category="Shelter",
+        product_csv_code="PROD001",
+        product_csv_category="Medical, Health",
+        procurement_csv_name="Shelter",
+        procurement_csv_category="Shelter & Relief",
+    ):
+        fct_agreement = self.spark.createDataFrame(
+            [
+                {
+                    "agreement_id": "PA-001",
+                    "classification": classification,
+                    "default_agreement_line_effective_date": date(2024, 1, 1),
+                    "default_agreement_line_expiration_date": date(2025, 12, 31),
+                    "workflow_status": "Active",
+                    "status": "Effective",
+                    "vendor": vendor_code,
+                    "pa_bu_country_name": pa_bu_country_name,
+                    "pa_bu_region_name": pa_bu_region_name,
+                }
+            ]
+        )
+
+        dim_product = self.spark.createDataFrame(
+            [(product_id, product_type, product_name)],
+            ["id", "type", "name"],
+        )
+
+        dim_agreement_line = self.spark.createDataFrame(
+            [("PA-001", product_id, price, procurement_category)],
+            StructType(
+                [
+                    StructField("agreement_id", StringType()),
+                    StructField("product", StringType()),
+                    StructField("price_per_unit", DecimalType(35, 6)),
+                    StructField("pa_line_procurement_category", StringType()),
+                ]
+            ),
+        )
+
+        vendor_joined = self.spark.createDataFrame(
+            [(vendor_code, "Acme Corp", datetime(2024, 1, 1), datetime(2025, 12, 31), "CHE")],
+            ["vendor_code", "vendor_name", "vendor_valid_from", "vendor_valid_to", "vendor_country"],
+        )
+
+        dim_tables = {
+            "dim_product": dim_product,
+            "dim_agreement_line": dim_agreement_line,
+            "vendor_joined": vendor_joined,
+        }
+
+        product_categories_df = self.spark.createDataFrame(
+            [(product_csv_code, product_csv_category)],
+            ["Item Code", "SPARK Item Category"],
+        )
+
+        procurement_categories_df = self.spark.createDataFrame(
+            [(procurement_csv_name, procurement_csv_category)],
+            ["Category Name", "SPARK Item Category"],
+        )
+
+        return fct_agreement, dim_tables, product_categories_df, procurement_categories_df
+
+    def _run(self, **kwargs):
+        fct, dim, prod_csv, proc_csv = self._build_inputs(**kwargs)
+        return transform_and_clean(fct, dim, prod_csv, proc_csv).collect()[0]
+
+    # -- Geographic coverage ---------------------------------------------------
+
+    def test_global_classification_sets_region_countries_covered_to_global(self):
+        row = self._run(classification="Global Items")
+        self.assertEqual(row["region_countries_covered"], "Global")
+
+    def test_regional_classification_uses_region_name(self):
+        row = self._run(classification="Regional Services", pa_bu_region_name="Middle East")
+        self.assertEqual(row["region_countries_covered"], "Middle East")
+
+    def test_local_classification_uses_country_name(self):
+        row = self._run(classification="Local Items", pa_bu_country_name="Switzerland")
+        self.assertEqual(row["region_countries_covered"], "Switzerland")
+
+    def test_unknown_classification_sets_region_countries_covered_to_null(self):
+        row = self._run(classification="Other Something")
+        self.assertIsNone(row["region_countries_covered"])
+
+    # -- Item type from product ------------------------------------------------
+
+    def test_product_type_item_produces_goods(self):
+        row = self._run(product_id="PROD001", product_type="Item")
+        self.assertEqual(row["item_type"], "Goods")
+
+    def test_product_type_service_produces_services(self):
+        row = self._run(product_id="PROD001", product_type="Service")
+        self.assertEqual(row["item_type"], "Services")
+
+    # -- Item type from classification fallback --------------------------------
+
+    def test_no_product_classification_items_produces_goods(self):
+        row = self._run(
+            product_id=None,
+            product_type=None,
+            product_name=None,
+            classification="Global Items",
+            product_csv_code="__NOMATCH__",
+        )
+        self.assertEqual(row["item_type"], "Goods")
+
+    def test_no_product_classification_services_produces_services(self):
+        row = self._run(
+            product_id=None,
+            product_type=None,
+            product_name=None,
+            classification="Regional Services",
+            product_csv_code="__NOMATCH__",
+        )
+        self.assertEqual(row["item_type"], "Services")
+
+    # -- Item category ---------------------------------------------------------
+
+    def test_product_present_uses_product_category_mapping(self):
+        row = self._run(
+            product_id="PROD001",
+            product_csv_code="PROD001",
+            product_csv_category="Medical, Health",
+        )
+        self.assertEqual(row["item_category"], "Medical, Health")
+
+    def test_no_product_uses_procurement_category_mapping(self):
+        row = self._run(
+            product_id=None,
+            product_type=None,
+            product_name=None,
+            procurement_category="Shelter",
+            procurement_csv_name="Shelter",
+            procurement_csv_category="Shelter & Relief",
+            product_csv_code="__NOMATCH__",
+        )
+        self.assertEqual(row["item_category"], "Shelter & Relief")
+
+    # -- Short description -----------------------------------------------------
+
+    def test_short_description_uses_product_name_when_available(self):
+        row = self._run(product_name="Tarpaulin Roll 4x6m")
+        self.assertEqual(row["item_service_short_description"], "Tarpaulin Roll 4x6m")
+
+    def test_short_description_falls_back_to_procurement_category(self):
+        row = self._run(
+            product_id=None,
+            product_type=None,
+            product_name=None,
+            procurement_category="Shelter",
+            product_csv_code="__NOMATCH__",
+        )
+        self.assertEqual(row["item_service_short_description"], "Shelter")
+
+    # -- Owner and price -------------------------------------------------------
+
+    def test_owner_is_always_ifrc(self):
+        row = self._run()
+        self.assertEqual(row["owner"], "IFRC")
+
+    def test_price_per_unit_is_rounded_to_two_decimals(self):
+        row = self._run(price=Decimal("123.456"))
+        self.assertAlmostEqual(float(row["price_per_unit"]), 123.46, places=2)
+
+    # -- Dropped columns -------------------------------------------------------
+
+    def test_intermediate_columns_are_dropped(self):
+        row = self._run()
+        dropped = {
+            "fa_geographical_coverage",
+            "pa_bu_region_name",
+            "pa_bu_country_name",
+            "vendor",
+            "product_type",
+            "product",
+            "product_name",
+            "classification",
+            "vendor_code",
+        }
+        for col_name in dropped:
+            self.assertNotIn(col_name, row.asDict())
+
+
+class FrameworkAgreementTransformationIntegrationTest(SparkTestMixin, TransactionTestCase):
+    """End-to-end test for transform_framework_agreement with real Django models."""
+
+    def test_transform_pipeline_creates_cleaned_records(self):
+        # Create dimension data via factories
+        product = DimProductFactory(id="PROD001", name="Tarpaulin", type="Item")
+        category = DimProductCategoryFactory(category_code="CAT01", name="Shelter")
+        DimAgreementLineFactory(
+            agreement_id="PA-TEST001",
+            product=product.id,
+            price_per_unit=Decimal("99.99"),
+            product_category=category.category_code,
+        )
+        vendor = DimVendorFactory(code="VEND001", name="Acme Corp")
+        DimVendorPhysicalAddressFactory(
+            id=vendor.code,
+            country="CHE",
+            valid_from=date(2024, 1, 1),
+            valid_to=date(2025, 12, 31),
+        )
+        FctAgreementFactory(
+            agreement_id="PA-TEST001",
+            classification="Global Items",
+            status="Effective",
+            workflow_status="Active",
+            vendor=vendor.code,
+            managing_business_unit_organizational_unit="AE Dubai Office",
+            default_agreement_line_effective_date=date(2024, 1, 1),
+            default_agreement_line_expiration_date=date(2025, 12, 31),
+        )
+
+        # Write temp CSV mapping files
+        tmp_dir = tempfile.mkdtemp()
+        product_csv = os.path.join(tmp_dir, "product_categories_to_use.csv")
+        procurement_csv = os.path.join(tmp_dir, "procurement_categories_to_use.csv")
+
+        with open(product_csv, "w") as f:
+            f.write("Item Code,SPARK Item Category\n")
+            f.write("PROD001,Medical\n")
+
+        with open(procurement_csv, "w") as f:
+            f.write("Category Name,SPARK Item Category\n")
+            f.write("Shelter,Shelter & Relief\n")
+
+        try:
+            with patch(
+                "api.data_transformation_framework_agreement._fetch_goadmin_maps",
+                return_value=(
+                    {"AE": "ARE"},
+                    {"ARE": "United Arab Emirates"},
+                    {"ARE": "Middle East"},
+                ),
+            ):
+                result_df = transform_framework_agreement(self.spark, csv_dir=tmp_dir)
+
+            # Verify Spark DataFrame output
+            rows = result_df.collect()
+            self.assertEqual(len(rows), 1)
+            self.assertEqual(rows[0]["agreement_id"], "PA-TEST001")
+            self.assertEqual(rows[0]["region_countries_covered"], "Global")
+            self.assertEqual(rows[0]["item_type"], "Goods")
+            self.assertEqual(rows[0]["item_category"], "Medical")
+            self.assertEqual(rows[0]["owner"], "IFRC")
+            self.assertEqual(rows[0]["vendor_name"], "Acme Corp")
+            self.assertEqual(rows[0]["item_service_short_description"], "Tarpaulin")
+
+            # Verify Django model records were created
+            db_records = CleanedFrameworkAgreement.objects.all()
+            self.assertEqual(db_records.count(), 1)
+
+            record = db_records.first()
+            self.assertEqual(record.agreement_id, "PA-TEST001")
+            self.assertEqual(record.region_countries_covered, "Global")
+            self.assertEqual(record.item_type, "Goods")
+            self.assertEqual(record.owner, "IFRC")
+
+        finally:
+            Path(product_csv).unlink(missing_ok=True)
+            Path(procurement_csv).unlink(missing_ok=True)
+            Path(tmp_dir).rmdir()
