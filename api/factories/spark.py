@@ -471,3 +471,28 @@ class ProductCategoryHierarchyFlattenedFactory(factory.django.DjangoModelFactory
     level_3_product_category = fuzzy.FuzzyText(length=1)
     level_2_product_category = "LVL#2_SUBMAIN"
     level_1_product_category = "LVL#1_MAIN"
+
+
+class ItemCodeMappingFactory(factory.django.DjangoModelFactory):
+    """Factory for ItemCodeMapping model."""
+
+    class Meta:
+        model = models.ItemCodeMapping
+
+    code = factory.Sequence(lambda n: f"ITEM{n:05d}")
+    url = factory.Faker("url")
+
+
+class StockInventoryFactory(factory.django.DjangoModelFactory):
+    """Factory for StockInventory model."""
+
+    class Meta:
+        model = models.StockInventory
+
+    warehouse_id = factory.Sequence(lambda n: f"WH{n:03d}")
+    warehouse = fuzzy.FuzzyText(length=20, prefix="Warehouse ")
+    warehouse_country = fuzzy.FuzzyText(length=3)
+    product_category = fuzzy.FuzzyText(length=20)
+    item_name = fuzzy.FuzzyText(length=50)
+    quantity = fuzzy.FuzzyDecimal(1.0, 1000.0, precision=2)
+    unit_measurement = fuzzy.FuzzyChoice(["ea", "kg", "m", "litre", "box"])

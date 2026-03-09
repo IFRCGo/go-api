@@ -29,6 +29,7 @@ RUN set -eux; \
       nginx mdbtools vim tidy less gettext \
         cron \
         wait-for-it \
+      openjdk-17-jre-headless \
         binutils libproj-dev gdal-bin poppler-utils \
         unixodbc unixodbc-dev msodbcsql18 \
       openjdk-11-jre-headless \
@@ -48,6 +49,10 @@ RUN --mount=type=cache,target=$UV_CACHE_DIR \
     uv sync --frozen --no-install-project --all-groups
 
 # pyspark is installed via pyproject.toml during `uv sync`
+
+# Refresh apt metadata and preinstall the package that previously failed in CI.
+RUN apt-get update -o Acquire::Retries=3 \
+  && apt-get install -y --fix-missing libopenmpt0
 
 RUN python -m playwright install --with-deps
 
