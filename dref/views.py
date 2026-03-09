@@ -674,12 +674,15 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):  # type: ignore[misc]
     def get_objects_by_appeal_code(self, appeal_codes):
         user = self.request.user
 
+        select_related_fields = (
+            # FK
+            "country",
+        )
         prefetch_related_fields = (
             # M2M
             "planned_interventions",
             "district",
-            # FK
-            "country",
+            # FK – these fields are not included to select_related, because that way run time just increases
             "country__region",
             "disaster_type",
         )
@@ -700,16 +703,25 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):  # type: ignore[misc]
             if not global_filters["appeal_code__in"]:
                 return {}
 
-        drefs = Dref.objects.filter(**global_filters).prefetch_related(*prefetch_related_fields).order_by("created_at")
+        drefs = (
+            Dref.objects.filter(**global_filters)
+            .select_related(*select_related_fields)
+            .prefetch_related(*prefetch_related_fields)
+            .order_by("created_at")
+        )
 
         operational_updates = (
             DrefOperationalUpdate.objects.filter(**global_filters)
+            .select_related(*select_related_fields)
             .prefetch_related(*prefetch_related_fields)
             .order_by("created_at")
         )
 
         final_reports = (
-            DrefFinalReport.objects.filter(**global_filters).prefetch_related(*prefetch_related_fields).order_by("created_at")
+            DrefFinalReport.objects.filter(**global_filters)
+            .select_related(*select_related_fields)
+            .prefetch_related(*prefetch_related_fields)
+            .order_by("created_at")
         )
 
         if self._has_full_access(user):
