@@ -26,6 +26,7 @@ from typing import Optional
 from urllib.request import urlretrieve
 
 from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql.functions import col
 from pyspark.sql.types import StringType, StructField, StructType
 
 logger = logging.getLogger(__name__)
@@ -288,18 +289,12 @@ def apply_warehouse_filter(spark: SparkSession, warehouse_codes: list[str]) -> N
         AnalysisException: If dimwarehouse view doesn't exist
         ValueError: If warehouse_codes list is empty
     """
+    if not warehouse_codes:
+        raise ValueError("warehouse_codes cannot be empty")
+
     logger.info(f"Filtering to {len(warehouse_codes)} specific warehouses...")
 
-    # Build SQL IN clause
-    codes_sql = ", ".join(f"'{code}'" for code in warehouse_codes)
-
-    filtered_warehouses = spark.sql(
-        f"""
-        SELECT *
-        FROM dimwarehouse
-        WHERE id IN ({codes_sql})
-    """
-    )
+    filtered_warehouses = spark.table("dimwarehouse").filter(col("id").isin(warehouse_codes))
 
     filtered_count = filtered_warehouses.count()
     filtered_warehouses.createOrReplaceTempView("dimwarehouse")
