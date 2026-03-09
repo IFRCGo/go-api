@@ -10,10 +10,10 @@ Usage:
     python api/data_transformation_stock_inventory.py
 
     # As a Django management command (recommended)
-    python manage.py transform_stock_inventory
-    python manage.py transform_stock_inventory --dry-run
-    python manage.py transform_stock_inventory --limit 100
-    python manage.py transform_stock_inventory --warehouse-ids AE1DUB002,AR1BUE002
+    docker compose run --rm serve python manage.py transform_stock_inventory
+    docker compose run --rm serve python manage.py transform_stock_inventory --dry-run
+    docker compose run --rm serve python manage.py transform_stock_inventory --limit 100
+    docker compose run --rm serve python manage.py transform_stock_inventory --warehouse-ids AE1DUB002,AR1BUE002
 """
 
 from __future__ import annotations
