@@ -200,78 +200,10 @@ router.register(r"bulk-upload-local-unit", local_units_views.LocalUnitBulkUpload
 # Databank
 router.register(r"country-income", data_bank_views.FDRSIncomeViewSet, basename="country_income")
 
-# Fabric endpoints (ViewSets)
-router.register(r"fabric/dim-agreement-line", api_views.FabricDimAgreementLineViewSet, basename="fabric_dim_agreement_line")
-router.register(r"fabric/dim-appeal", api_views.FabricDimAppealViewSet, basename="fabric_dim_appeal")
-router.register(r"fabric/dim-buyer-group", api_views.FabricDimBuyerGroupViewSet, basename="fabric_dim_buyer_group")
-router.register(r"fabric/dim-consignment", api_views.FabricDimConsignmentViewSet, basename="fabric_dim_consignment")
-router.register(r"fabric/dim-delivery-mode", api_views.FabricDimDeliveryModeViewSet, basename="fabric_dim_delivery_mode")
-router.register(r"fabric/dim-donor", api_views.FabricDimDonorViewSet, basename="fabric_dim_donor")
-router.register(r"fabric/dim-inventory-item", api_views.FabricDimInventoryItemViewSet, basename="fabric_dim_inventory_item")
-router.register(
-    r"fabric/dim-inventory-item-status",
-    api_views.FabricDimInventoryItemStatusViewSet,
-    basename="fabric_dim_inventory_item_status",
-)
-router.register(r"fabric/dim-inventory-module", api_views.FabricDimInventoryModuleViewSet, basename="fabric_dim_inventory_module")
-router.register(r"fabric/dim-inventory-owner", api_views.FabricDimInventoryOwnerViewSet, basename="fabric_dim_inventory_owner")
-router.register(
-    r"fabric/dim-inventory-transaction",
-    api_views.FabricDimInventoryTransactionViewSet,
-    basename="fabric_dim_inventory_transaction",
-)
-router.register(
-    r"fabric/dim-inventory-transaction-line",
-    api_views.FabricDimInventoryTransactionLineViewSet,
-    basename="fabric_dim_inventory_transaction_line",
-)
-router.register(
-    r"fabric/dim-inventory-transaction-origin",
-    api_views.FabricDimInventoryTransactionOriginViewSet,
-    basename="fabric_dim_inventory_transaction_origin",
-)
-router.register(r"fabric/dim-item-batch", api_views.FabricDimItemBatchViewSet, basename="fabric_dim_item_batch")
-router.register(r"fabric/dim-location", api_views.FabricDimLocationViewSet, basename="fabric_dim_location")
-router.register(
-    r"fabric/dim-logistics-location", api_views.FabricDimLogisticsLocationViewSet, basename="fabric_dim_logistics_location"
-)
-router.register(
-    r"fabric/dim-packing-slip-line", api_views.FabricDimPackingSlipLineViewSet, basename="fabric_dim_packing_slip_line"
-)
-router.register(r"fabric/dim-product", api_views.FabricDimProductViewSet, basename="fabric_dim_product")
-router.register(r"fabric/dim-product-category", api_views.FabricDimProductCategoryViewSet, basename="fabric_dim_product_category")
-router.register(
-    r"fabric/dim-product-receipt-line", api_views.FabricDimProductReceiptLineViewSet, basename="fabric_dim_product_receipt_line"
-)
-router.register(r"fabric/dim-project", api_views.FabricDimProjectViewSet, basename="fabric_dim_project")
-router.register(r"fabric/dim-sales-order-line", api_views.FabricDimSalesOrderLineViewSet, basename="fabric_dim_sales_order_line")
-router.register(r"fabric/dim-site", api_views.FabricDimSiteViewSet, basename="fabric_dim_site")
-router.register(r"fabric/dim-vendor", api_views.FabricDimVendorViewSet, basename="fabric_dim_vendor")
-router.register(r"fabric/dim-vendor-contact", api_views.FabricDimVendorContactViewSet, basename="fabric_dim_vendor_contact")
-router.register(
-    r"fabric/dim-vendor-contact-email", api_views.FabricDimVendorContactEmailViewSet, basename="fabric_dim_vendor_contact_email"
-)
-router.register(
-    r"fabric/dim-vendor-physical-address",
-    api_views.FabricDimVendorPhysicalAddressViewSet,
-    basename="fabric_dim_vendor_physical_address",
-)
-router.register(r"fabric/dim-warehouse", api_views.FabricDimWarehouseViewSet, basename="fabric_dim_warehouse")
-
-router.register(r"fabric/fct-agreement", api_views.FabricFctAgreementViewSet, basename="fabric_fct_agreement")
-router.register(r"fabric/fct-product-receipt", api_views.FabricFctProductReceiptViewSet, basename="fabric_fct_product_receipt")
-router.register(r"fabric/fct-purchase-order", api_views.FabricFctPurchaseOrderViewSet, basename="fabric_fct_purchase_order")
-router.register(r"fabric/fct-sales-order", api_views.FabricFctSalesOrderViewSet, basename="fabric_fct_sales_order")
 router.register(
     r"fabric/cleaned-framework-agreements",
     api_views.CleanedFrameworkAgreementViewSet,
     basename="fabric_cleaned_framework_agreements",
-)
-
-router.register(
-    r"fabric/product-category-hierarchy-flattened",
-    api_views.FabricProductCategoryHierarchyFlattenedViewSet,
-    basename="fabric_product_category_hierarchy_flattened",
 )
 
 admin.site.site_header = "IFRC Go administration"
