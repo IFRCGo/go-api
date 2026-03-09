@@ -1,5 +1,4 @@
 """
-Must-have tests for stock inventory PySpark transformation.
 run:
 docker compose run --rm serve python manage.py test api.test_data_transformation_stock_inventory --keepdb --verbosity=1
 """
@@ -279,7 +278,6 @@ class ExportToCsvTest(SparkTestMixin, TestCase):
 
 class StockInventoryTransformationIntegrationTest(SparkTestMixin, TransactionTestCase):
     def test_transform_pipeline_with_real_spark_session(self):
-        # Use factory pattern for Django-backed catalogue mapping.
         ItemCodeMappingFactory(code="PROD001", url="https://example.com/catalog/prod001")
 
         warehouse_schema = StructType(

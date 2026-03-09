@@ -1,16 +1,3 @@
-"""
-Shared PySpark test infrastructure for data transformation tests.
-
-Provides SparkTestMixin that manages a local Spark session for test classes.
-
-Usage:
-    from api.test_spark_helpers import SparkTestMixin
-
-    class MySparkTest(SparkTestMixin, TestCase):
-        def test_something(self):
-            df = self.spark.createDataFrame(...)
-"""
-
 from pyspark.sql import SparkSession
 
 

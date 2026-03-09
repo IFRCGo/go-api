@@ -238,18 +238,15 @@ class LoadDimensionTablesTest(SparkTestMixin, TestCase):
         self.assertIn("dim_agreement_line", result)
         self.assertIn("vendor_joined", result)
 
-        # dim_product
         dp = result["dim_product"]
         self.assertEqual(set(dp.columns), {"id", "type", "name"})
         self.assertEqual(dp.count(), 1)
 
-        # dim_agreement_line has pa_line_procurement_category from the category join
         dal = result["dim_agreement_line"]
         self.assertIn("pa_line_procurement_category", dal.columns)
         dal_row = dal.collect()[0]
         self.assertEqual(dal_row["pa_line_procurement_category"], "Shelter")
 
-        # vendor_joined
         vj = result["vendor_joined"]
         expected_cols = {"vendor_code", "vendor_name", "vendor_valid_from", "vendor_valid_to", "vendor_country"}
         self.assertEqual(set(vj.columns), expected_cols)
@@ -259,11 +256,6 @@ class LoadDimensionTablesTest(SparkTestMixin, TestCase):
 
 
 class TransformAndCleanTest(SparkTestMixin, TestCase):
-    """Unit tests for transform_and_clean() business logic.
-
-    All inputs are constructed as in-memory Spark DataFrames so no Django ORM
-    or external calls are needed.
-    """
 
     def _build_inputs(
         self,
@@ -459,10 +451,8 @@ class TransformAndCleanTest(SparkTestMixin, TestCase):
 
 
 class FrameworkAgreementTransformationIntegrationTest(SparkTestMixin, TransactionTestCase):
-    """End-to-end test for transform_framework_agreement with real Django models."""
 
     def test_transform_pipeline_creates_cleaned_records(self):
-        # Create dimension data via factories
         product = DimProductFactory(id="PROD001", name="Tarpaulin", type="Item")
         category = DimProductCategoryFactory(category_code="CAT01", name="Shelter")
         DimAgreementLineFactory(
@@ -489,7 +479,6 @@ class FrameworkAgreementTransformationIntegrationTest(SparkTestMixin, Transactio
             default_agreement_line_expiration_date=date(2025, 12, 31),
         )
 
-        # Write temp CSV mapping files
         tmp_dir = tempfile.mkdtemp()
         product_csv = os.path.join(tmp_dir, "product_categories_to_use.csv")
         procurement_csv = os.path.join(tmp_dir, "procurement_categories_to_use.csv")
@@ -513,7 +502,6 @@ class FrameworkAgreementTransformationIntegrationTest(SparkTestMixin, Transactio
             ):
                 result_df = transform_framework_agreement(self.spark, csv_dir=tmp_dir)
 
-            # Verify Spark DataFrame output
             rows = result_df.collect()
             self.assertEqual(len(rows), 1)
             self.assertEqual(rows[0]["agreement_id"], "PA-TEST001")
@@ -524,7 +512,6 @@ class FrameworkAgreementTransformationIntegrationTest(SparkTestMixin, Transactio
             self.assertEqual(rows[0]["vendor_name"], "Acme Corp")
             self.assertEqual(rows[0]["item_service_short_description"], "Tarpaulin")
 
-            # Verify Django model records were created
             db_records = CleanedFrameworkAgreement.objects.all()
             self.assertEqual(db_records.count(), 1)
 
