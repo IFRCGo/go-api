@@ -3387,7 +3387,7 @@ class StockInventory(models.Model):
         return f"{self.warehouse} - {self.item_name} ({self.quantity})"
 
 
-### END OF SPARK MODELS
+# END OF SPARK MODELS
 
 
 class ProductCategoryHierarchyFlattened(models.Model):

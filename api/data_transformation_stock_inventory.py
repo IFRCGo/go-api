@@ -84,7 +84,10 @@ def get_jdbc_config() -> dict:
         "database": os.environ["DJANGO_DB_NAME"],
         "user": os.environ["DJANGO_DB_USER"],
         "password": os.environ["DJANGO_DB_PASS"],
-        "url": f"jdbc:postgresql://{os.getenv('DJANGO_DB_HOST', 'db')}:{os.getenv('DJANGO_DB_PORT', '5432')}/{os.environ['DJANGO_DB_NAME']}",
+        "url": (
+            f"jdbc:postgresql://{os.getenv('DJANGO_DB_HOST', 'db')}:"
+            f"{os.getenv('DJANGO_DB_PORT', '5432')}/{os.environ['DJANGO_DB_NAME']}"
+        ),
     }
 
 
