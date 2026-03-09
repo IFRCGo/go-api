@@ -206,9 +206,8 @@ def load_dimension_tables(spark: SparkSession) -> dict[str, DataFrame]:
     dataframes = {}
     for name, table in tables.items():
         df = load_jdbc_table(spark, jdbc_config, table)
-        count = df.count()
         dataframes[name] = df
-        logger.info(f"  ✓ {name}: {count:,} rows")
+        logger.info(f"  ✓ {name} loaded")
 
     logger.info("✓ All dimension tables loaded successfully")
     return dataframes
