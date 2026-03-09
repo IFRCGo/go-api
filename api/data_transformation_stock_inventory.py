@@ -260,8 +260,8 @@ def apply_transaction_filters(spark: SparkSession) -> None:
         """
         SELECT *
         FROM diminventorytransaction
-        WHERE reference_category NOT ILIKE '%Weighted average inventory closing%'
-          AND NOT excluded_from_inventory_value
+                WHERE COALESCE(reference_category, '') NOT ILIKE '%Weighted average inventory closing%'
+                    AND excluded_from_inventory_value IS NOT TRUE
         ORDER BY id
     """
     )
@@ -334,10 +334,10 @@ def apply_transaction_line_filters(spark: SparkSession) -> None:
         f"""
         SELECT *
         FROM diminventorytransactionline
-        WHERE owner NOT ILIKE '%#ifrc%'
+                WHERE COALESCE(owner, '') NOT ILIKE '%#ifrc%'
           AND status IN ({statuses_sql})
           AND item_status = 'OK'
-          AND NOT packing_slip_returned
+                    AND packing_slip_returned IS NOT TRUE
     """
     )
 
@@ -368,7 +368,7 @@ def apply_product_category_filters(spark: SparkSession) -> None:
         """
         SELECT *
         FROM dimproductcategory
-        WHERE name NOT ILIKE 'services'
+        WHERE COALESCE(name, '') NOT ILIKE 'services'
     """
     )
 
