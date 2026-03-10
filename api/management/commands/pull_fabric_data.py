@@ -11,6 +11,128 @@ from api.fabric_sql import fetch_all
 
 DEFAULT_APP_LABEL = "api"
 
+# --------------------------------------------------------------------------- #
+# Staging-table helpers                                                        #
+# --------------------------------------------------------------------------- #
+
+# Rows per INSERT statement – keeps us well under psycopg2's 65 535 param limit.
+_STAGING_INSERT_BATCH = 2000
+
+# Stable lock key derived from the command name.  All Postgres sessions running
+# this command share the same slot so concurrent cron invocations are detected.
+_ADVISORY_LOCK_KEY = int(hashlib.md5(b"pull_fabric_data").hexdigest()[:16], 16) & 0x7FFFFFFFFFFFFFFF
+
+
+def _acquire_advisory_lock() -> bool:
+    """
+    Try to acquire a Postgres session-level advisory lock.
+    Returns True if the lock was acquired, False if another session holds it.
+    The lock is automatically released when the process (session) exits.
+    """
+    with connection.cursor() as cur:
+        cur.execute("SELECT pg_try_advisory_lock(%s)", [_ADVISORY_LOCK_KEY])
+        return bool(cur.fetchone()[0])
+
+
+def _release_advisory_lock() -> None:
+    with connection.cursor() as cur:
+        cur.execute("SELECT pg_advisory_unlock(%s)", [_ADVISORY_LOCK_KEY])
+
+
+def _create_staging_table(live_table: str, run_id: str) -> str:
+    """
+    Create a fresh, uniquely named staging table for this run.
+    The name embeds *run_id* (short UUID hex) so concurrent cron runs cannot
+    collide or truncate each other's in-progress data.
+    No indexes or FK constraints are copied so bulk loads stay fast.
+    Returns the staging table name.
+    """
+    staging = f"{live_table}_stg_{run_id}"
+    with connection.cursor() as cur:
+        cur.execute(f'CREATE TABLE "{staging}" (LIKE "{live_table}" INCLUDING DEFAULTS)')
+    return staging
+
+
+def _build_insertable_fields(model_cls, pk_name: str) -> list:
+    """
+    Return the concrete fields that should be inserted explicitly.
+    Auto-generated PK fields are excluded so the sequence fills them in.
+    """
+    _AUTO_PK_TYPES = {"AutoField", "BigAutoField", "SmallAutoField"}
+    return [f for f in model_cls._meta.concrete_fields if not (f.name == pk_name and f.__class__.__name__ in _AUTO_PK_TYPES)]
+
+
+def _bulk_insert_staging(staging_table: str, insertable_fields: list, objs: list) -> int:
+    """
+    Insert *objs* (Django model instances) into *staging_table* via raw SQL.
+    Uses sub-batches of *_STAGING_INSERT_BATCH* rows to stay within psycopg2's
+    parameter limit.  Returns the total number of rows inserted.
+    """
+    if not objs:
+        return 0
+
+    col_str = ", ".join(f'"{f.column}"' for f in insertable_fields)
+    row_tpl = "(" + ", ".join(["%s"] * len(insertable_fields)) + ")"
+    inserted = 0
+
+    with connection.cursor() as cur:
+        for start in range(0, len(objs), _STAGING_INSERT_BATCH):
+            sub_batch = objs[start : start + _STAGING_INSERT_BATCH]
+            flat_values: list = []
+            for obj in sub_batch:
+                for f in insertable_fields:
+                    flat_values.append(getattr(obj, f.attname))
+            value_rows = ", ".join([row_tpl] * len(sub_batch))
+            cur.execute(
+                f'INSERT INTO "{staging_table}" ({col_str}) VALUES {value_rows}',
+                flat_values,
+            )
+            inserted += len(sub_batch)
+
+    return inserted
+
+
+def _atomic_live_swap(live_table: str, staging_table: str, insertable_fields: list) -> None:
+    """
+    Replace live table contents atomically with the staging table contents.
+
+    Within a single transaction:
+      1. TRUNCATE the live table  — ACCESS EXCLUSIVE lock held for the txn duration.
+      2. INSERT INTO live (col1, col2, …) SELECT col1, col2, … FROM staging.
+
+    An explicit column list is used so the swap is correct regardless of any
+    column-order difference between the two tables.
+
+    With READ COMMITTED isolation (Postgres default), readers queue behind the
+    ACCESS EXCLUSIVE lock and see the fully populated table once the txn commits.
+    They will never observe an empty or partially filled table.
+    """
+    col_str = ", ".join(f'"{f.column}"' for f in insertable_fields)
+    with transaction.atomic():
+        with connection.cursor() as cur:
+            cur.execute(f'TRUNCATE TABLE "{live_table}" CASCADE')
+            cur.execute(f'INSERT INTO "{live_table}" ({col_str}) ' f'SELECT {col_str} FROM "{staging_table}"')
+
+
+def _merge_staging_into_live(live_table: str, staging_table: str, insertable_fields: list) -> None:
+    """
+    Insert staging rows into the live table, skipping rows that would violate
+    a PK or unique constraint.  Mirrors the original ``ignore_conflicts=True``
+    behaviour used with ``--no-truncate``.  An explicit column list is used so
+    the merge is correct regardless of column-order differences.
+    """
+    col_str = ", ".join(f'"{f.column}"' for f in insertable_fields)
+    with transaction.atomic():
+        with connection.cursor() as cur:
+            cur.execute(
+                f'INSERT INTO "{live_table}" ({col_str}) ' f'SELECT {col_str} FROM "{staging_table}" ON CONFLICT DO NOTHING'
+            )
+
+
+def _drop_staging_table(staging_table: str) -> None:
+    with connection.cursor() as cur:
+        cur.execute(f'DROP TABLE IF EXISTS "{staging_table}"')
+
 
 class Command(BaseCommand):
     help = "One-time pull of Fabric tables into Postgres (staged, chunked)."
@@ -30,7 +152,7 @@ class Command(BaseCommand):
             "--chunk-size",
             type=int,
             default=10000,
-            help="Rows per batch to fetch from Fabric (default: 250).",
+            help="Rows per batch to fetch from Fabric (default: 10000).",
         )
         parser.add_argument(
             "--no-truncate",
@@ -66,7 +188,7 @@ class Command(BaseCommand):
         with connection.cursor() as cur:
             cur.execute(f'TRUNCATE TABLE "{table}" CASCADE;')
 
-    def _row_to_model_kwargs(self, model_cls, row):
+    def _row_to_model_kwargs(self, row, model_fields, pk_name, pk_field):
         """
         Convert a Fabric row dict into kwargs for creating a Django model instance.
 
@@ -77,10 +199,6 @@ class Command(BaseCommand):
         - Drop helper columns (rn)
         """
         kwargs = {}
-
-        model_fields = {f.name: f for f in model_cls._meta.concrete_fields}
-        pk_name = model_cls._meta.pk.name
-        pk_field = model_fields.get(pk_name)
 
         def norm(v):
             # Treat empty/whitespace strings as None
