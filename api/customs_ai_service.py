@@ -178,6 +178,173 @@ COUNTRY_ALIASES: Dict[str, List[str]] = {
 
 BRAVE_SEARCH_API_BASE_URL = "https://api.search.brave.com/res/v1"
 
+# Retry settings for external API calls
+_MAX_RETRIES = 3
+_RETRY_BASE_DELAY = 1  # seconds; actual delay = base * 2^attempt
+_RETRYABLE_HTTP_CODES = {429, 500, 502, 503, 504}
+
+
+def _retry_api_call(fn, *, max_retries=_MAX_RETRIES, description="API call"):
+    """
+    Retry a callable up to *max_retries* times with exponential backoff.
+    Retries on:
+      - requests.HTTPError with a retryable status code
+      - openai.APIError / openai.RateLimitError / openai.APITimeoutError
+      - requests.ConnectionError / requests.Timeout
+    All other exceptions propagate immediately.
+    """
+    last_exc = None
+    for attempt in range(max_retries):
+        try:
+            return fn()
+        except requests.exceptions.HTTPError as e:
+            status = getattr(e.response, "status_code", None)
+            if status not in _RETRYABLE_HTTP_CODES:
+                raise
+            last_exc = e
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
+            last_exc = e
+        except (openai.RateLimitError, openai.APITimeoutError) as e:
+            last_exc = e
+        except openai.APIError as e:
+            status = getattr(e, "status_code", None)
+            if status and status not in _RETRYABLE_HTTP_CODES:
+                raise
+            last_exc = e
+
+        delay = _RETRY_BASE_DELAY * (2 ** attempt)
+        logger.warning(
+            f"{description} failed (attempt {attempt + 1}/{max_retries}), "
+            f"retrying in {delay}s: {last_exc}"
+        )
+        time.sleep(delay)
+
+    logger.error(f"{description} failed after {max_retries} attempts: {last_exc}")
+    raise last_exc
+
+
+# ---------------------------------------------------------------------------
+# Prompt templates — kept as module-level constants so they are easy to
+# locate, version-control, and review independently of the logic.
+# Use .format() or f-string interpolation at call sites.
+# ---------------------------------------------------------------------------
+
+_OFFICIAL_DOC_PROMPT = """From these search results, identify the single MOST OFFICIAL customs/import
+regulations page from {country_name}'s own government or customs authority.
+
+Prefer:
+1. The country's customs authority website (e.g. customs.gov.xx, revenue authority)
+2. A government trade/commerce ministry page about import procedures
+3. An official government gazette or legal portal with customs regulations
+
+Do NOT select pages from international organisations (UN, WFP, IFRC, UNCTAD, etc.), news outlets, or NGOs.
+The page MUST be from {country_name}'s own government domain.
+
+Search results:
+{results_json}
+
+If none of the results are from {country_name}'s government, respond with:
+{{"url": "", "title": ""}}
+
+Otherwise respond with ONLY valid JSON:
+{{"url": "the exact url from the results", "title": "the exact title from the results"}}
+"""
+
+_RC_SOCIETY_PROMPT = """From these search results, identify the single MOST RELEVANT page from
+{country_name}'s Red Cross or Red Crescent national society that relates to customs,
+humanitarian imports, logistics, or relief operations.
+
+Prefer:
+1. The national Red Cross or Red Crescent society's official website
+2. Pages about logistics, customs, import procedures, or relief operations
+3. News or updates from the society about humanitarian shipments or customs
+
+The page MUST be from {country_name}'s Red Cross or Red Crescent society, or from IFRC/ICRC
+pages specifically about {country_name}'s society.
+
+Search results:
+{results_json}
+
+If none of the results are from {country_name}'s Red Cross/Red Crescent society, respond with:
+{{"url": "", "title": ""}}
+
+Otherwise respond with ONLY valid JSON:
+{{"url": "the exact url from the results", "title": "the exact title from the results"}}
+"""
+
+_EVIDENCE_EXTRACTION_PROMPT = """You are a customs data extraction assistant.
+
+I have performed a web search for: "{query}"
+
+Here are the raw search results:
+{results_text}
+
+Please analyze these search results and extract relevant customs information about HUMANITARIAN IMPORTS.
+If a source discusses both imports and exports, extract ONLY the import-related portions.
+Select the most relevant 3-5 sources that contain specific details about:
+- Customs clearance procedures specifically for humanitarian/relief imports
+- Required documentation and permits for NGO or humanitarian shipments
+- Duty or tax exemptions available for relief goods
+- Restricted or prohibited items relevant to humanitarian operations (e.g., medical supplies, communications equipment)
+- Port of entry or logistics corridor details for humanitarian cargo
+- Typical clearance timelines and known bottlenecks
+- Any recent regulatory changes affecting humanitarian imports
+
+Structure the output as a valid JSON object matching this exact format:
+{{
+    "pages": [
+        {{
+            "url": "full url from search result",
+            "title": "title from search result",
+            "publisher": "inferred publisher/domain name",
+            "published_at": "YYYY-MM-DD if available in snippet, else null",
+            "snippets": [
+                "Specific relevant sentence from the snippet (150-250 chars)",
+                "Another specific detail (150-250 chars)"
+            ]
+        }}
+    ]
+}}
+
+- Use ONLY the provided search results. Do not hallucinate new sources.
+- Extract import-specific information even if the page also discusses exports.
+- In your snippets, focus exclusively on import procedures and omit any export details.
+- Prioritise information that would help a humanitarian logistics officer clear relief goods.
+- If a source mentions both commercial and humanitarian import procedures, extract ONLY the humanitarian-specific details.
+- "published_at" source priority:
+    1. Use the "date" field from news results if present.
+    2. Extract from "body" or "title" (e.g., "Oct 17, 2018").
+    3. Use approx date for relative terms (e.g., "2 days ago" -> {today}).
+    4. Default to null.
+- Ensure JSON is valid.
+"""
+
+_SUMMARY_PROMPT = """Based ONLY on these evidence snippets about customs in {country_name},
+generate a report focusing EXCLUSIVELY on IMPORTING HUMANITARIAN AND RELIEF GOODS.
+Do NOT include any information about exports.
+
+Write a single coherent paragraph of 4-5 sentences aimed at a humanitarian logistics
+officer planning a relief shipment. The summary should cover whichever of the following
+topics are supported by the evidence:
+- Key documents/permits required for humanitarian imports
+- Any duty/tax exemptions for relief goods
+- Restricted items relevant to humanitarian operations
+- Estimated clearance timeframes or known delays
+- Recommended entry points or logistics corridors
+
+IMPORTANT: Only use information from the snippets below. If a topic is not covered
+in the snippets, omit it rather than guessing. Do not include export information.
+Do NOT use bullet points. Write flowing prose only.
+
+Evidence:
+{evidence_text}
+
+Return ONLY valid JSON:
+{{
+    "summary_text": "..."
+}}
+"""
+
 
 class CustomsAIService:
     """Service for generating customs updates via OpenAI Responses API."""
@@ -228,8 +395,7 @@ class CustomsAIService:
         logger.info(f"Official doc search returned {len(web_results)} results for {country_name}")
 
         results_for_llm = [
-            {"url": r.get("url", ""), "title": r.get("title", ""), "description": r.get("description", "")}
-            for r in web_results
+            {"url": r.get("url", ""), "title": r.get("title", ""), "description": r.get("description", "")} for r in web_results
         ]
 
         prompt = f"""From these search results, identify the single MOST OFFICIAL customs/import
