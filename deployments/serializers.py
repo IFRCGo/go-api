@@ -1056,6 +1056,7 @@ class ERUReadinessTypeSerializer(serializers.ModelSerializer):
     equipment_readiness_display = serializers.CharField(source="get_equipment_readiness_display", read_only=True)
     people_readiness_display = serializers.CharField(source="get_people_readiness_display", read_only=True)
     funding_readiness_display = serializers.CharField(source="get_funding_readiness_display", read_only=True)
+    ns_contribution_display = serializers.CharField(source="get_ns_contribution_display", read_only=True)
 
     class Meta:
         model = ERUReadinessType

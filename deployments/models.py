@@ -927,6 +927,14 @@ class ERUReadinessType(models.Model):
         PARTIAL_CAPACITY = 2, _("Partial capacity")
         NO_CAPACITY = 3, _("No capacity")
 
+    class NationalSocietyContribution(models.IntegerChoices):
+
+        HOLDS = 1, _("Holds the ERU")
+        """The National Society owns and maintains the ERU and is responsible for its readiness."""
+
+        SUPPORTS = 2, _("Supports the ERU")
+        """The National Society provides support to the ERU but does not hold it."""
+
     type = models.IntegerField(choices=ERUType.choices, verbose_name=_("ERU type"))
     equipment_readiness = models.IntegerField(
         choices=ReadinessStatus.choices,
@@ -941,6 +949,10 @@ class ERUReadinessType(models.Model):
         verbose_name=_("funding readiness"),
     )
     comment = models.TextField(verbose_name=_("comment"), blank=True, null=True)
+    ns_contribution = models.IntegerField(
+        choices=NationalSocietyContribution.choices,
+        verbose_name=_("National Souciety Contribution"),
+    )
 
     class Meta:
         verbose_name = _("ERU Readiness Type")
