@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
 from elasticsearch.client import IndicesClient
 
+from api.esaliashelper import create_versioned_index, get_alias_targets, swap_alias
 from api.esconnection import ES_CLIENT
 from api.indexes import (
     CLEANED_FRAMEWORK_AGREEMENTS_INDEX_NAME,
@@ -11,26 +12,33 @@ from api.logger import logger
 
 
 class Command(BaseCommand):
-    help = "Create the cleaned_framework_agreements Elasticsearch index with mapping and settings"
+    help = "Create a versioned cleaned_framework_agreements Elasticsearch index and point the alias at it"
 
     def handle(self, *args, **options):
         if ES_CLIENT is None:
             logger.error("ES client not configured, cannot create index")
             return
 
+        alias_name = CLEANED_FRAMEWORK_AGREEMENTS_INDEX_NAME
         indices_client = IndicesClient(client=ES_CLIENT)
-        index_name = CLEANED_FRAMEWORK_AGREEMENTS_INDEX_NAME
+        old_indexes = get_alias_targets(indices_client, alias_name)
 
         try:
-            if indices_client.exists(index_name):
-                logger.info(f"Deleting existing index {index_name}")
-                indices_client.delete(index=index_name)
+            versioned_name = create_versioned_index(
+                es_client=ES_CLIENT,
+                alias_name=alias_name,
+                settings=CLEANED_FRAMEWORK_AGREEMENTS_SETTINGS,
+                mapping=CLEANED_FRAMEWORK_AGREEMENTS_MAPPING,
+            )
+            logger.info("Created versioned index '%s'", versioned_name)
 
-            logger.info(f"Creating index {index_name}")
-            indices_client.create(index=index_name, body=CLEANED_FRAMEWORK_AGREEMENTS_SETTINGS)
-            # ES7+: do not specify a document type
-            indices_client.put_mapping(index=index_name, body=CLEANED_FRAMEWORK_AGREEMENTS_MAPPING)
-            logger.info(f"Index {index_name} created")
+            swap_alias(
+                indices_client=indices_client,
+                alias_name=alias_name,
+                new_index=versioned_name,
+                old_indexes=old_indexes,
+            )
+            logger.info("Alias '%s' now points to '%s'", alias_name, versioned_name)
         except Exception as ex:
-            logger.error(f"Failed to create index {index_name}: {str(ex)[:512]}")
+            logger.error("Failed to create index for alias '%s': %s", alias_name, str(ex)[:512])
             raise
