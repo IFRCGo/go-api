@@ -61,8 +61,6 @@ def _parse_db_master(ws, countries: Dict):
     rows = ws.iter_rows(min_row=header_row_idx + 1, values_only=True)
 
     # Treat each non-empty cell as a Q&A item under a section
-    # Here we use a simple default section grouping. You can improve later.
-    # Example grouping: everything goes under "DB_Master"
     default_section = "DB_Master"
 
     for r in rows:
@@ -178,7 +176,3 @@ def load_customs_regulations() -> Dict:
 
     _cached_data = result
     return result
-
-
-# This code is highly unefficient and needs to be re-written later to store data in a DB.
-# It is kept as is for now due to small amounts of data
