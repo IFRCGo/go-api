@@ -156,3 +156,99 @@ class RegionValidator(TypedDict):
 class CountryValidator(TypedDict):
     country: int
     local_unit_types: list[int]
+
+
+# ---------------------------------------------------------------------------
+# Shared helpers used by warehouse / framework-agreement indexing & views.
+# ---------------------------------------------------------------------------
+
+
+def safe_str(v):
+    """Null-safe string conversion."""
+    return "" if v is None else str(v)
+
+
+def to_float(value):
+    """Convert *value* to float, handling None and Decimal gracefully."""
+    from decimal import Decimal
+
+    if value is None:
+        return None
+    if isinstance(value, Decimal):
+        try:
+            return float(value)
+        except Exception:
+            return None
+    try:
+        return float(value)
+    except Exception:
+        return None
+
+
+def fetch_goadmin_maps():
+    """Fetch country/region lookup tables from the GO Admin API.
+
+    Returns ``(iso2_to_iso3, iso3_to_country_name, iso3_to_region_name)``
+    dicts.  On any HTTP error the function returns three empty dicts.
+    """
+    import requests
+    from django.conf import settings
+
+    GOADMIN_COUNTRY_URL_DEFAULT = "https://goadmin.ifrc.org/api/v2/country/?limit=300"
+    url = getattr(settings, "GOADMIN_COUNTRY_URL", GOADMIN_COUNTRY_URL_DEFAULT)
+    try:
+        resp = requests.get(url, timeout=15)
+        resp.raise_for_status()
+        data = resp.json()
+        results = data.get("results", data) or []
+    except Exception:
+        return {}, {}, {}
+
+    region_code_to_name = {}
+    for r in results:
+        if r.get("record_type_display") == "Region":
+            code = r.get("region")
+            name = r.get("name")
+            if isinstance(code, int) and name:
+                region_code_to_name[code] = str(name)
+
+    iso2_to_iso3 = {}
+    iso3_to_country_name = {}
+    iso3_to_region_name = {}
+
+    for r in results:
+        if r.get("record_type_display") != "Country":
+            continue
+
+        iso2 = r.get("iso")
+        iso3 = r.get("iso3")
+        country_name = r.get("name")
+        region_code = r.get("region")
+
+        if iso2 and iso3:
+            iso2_to_iso3[str(iso2).upper()] = str(iso3).upper()
+
+        if iso3 and country_name:
+            iso3_to_country_name[str(iso3).upper()] = str(country_name)
+
+        if iso3 and isinstance(region_code, int):
+            region_full = region_code_to_name.get(region_code)
+            if region_full:
+                iso3_to_region_name[str(iso3).upper()] = str(region_full).replace(" Region", "")
+
+    return iso2_to_iso3, iso3_to_country_name, iso3_to_region_name
+
+
+def derive_country_iso3(warehouse_id: str, iso2_to_iso3: dict, country_iso3_raw: str = "") -> str:
+    """Derive ISO3 country code from a raw value or warehouse ID prefix.
+
+    Prefers *country_iso3_raw* when non-empty; otherwise extracts the first two
+    characters of *warehouse_id* as an ISO2 code and looks it up in
+    *iso2_to_iso3*.
+    """
+    if country_iso3_raw:
+        return country_iso3_raw.upper()
+    if warehouse_id and len(warehouse_id) >= 2:
+        iso2 = warehouse_id[:2].upper()
+        return iso2_to_iso3.get(iso2, "")
+    return ""
