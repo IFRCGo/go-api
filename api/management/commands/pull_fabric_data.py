@@ -251,7 +251,17 @@ class Command(BaseCommand):
         no_truncate = bool(options["no_truncate"])
 
         stages = [s for s in FABRIC_IMPORT_STAGES if (not only or s["slug"] in only) and s["slug"] not in exclude]
-        self.stdout.write(self.style.SUCCESS(f"Starting pull_fabric_data: {len(stages)} stages"))
+        self.stdout.write(self.style.SUCCESS(f"Starting pull_fabric_data: {len(stages)} stages (run_id={run_id})"))
+
+        # Verify Fabric connectivity once before processing any stages
+        t0 = time.time()
+        conn = get_fabric_connection()
+        cursor = conn.cursor()
+        first_table = stages[0]["table"] if stages else None
+        if first_table:
+            test_fq = f"[{FABRIC_DB}].[{FABRIC_SCHEMA}].[{first_table}]"
+            _ = fetch_all(cursor, f"SELECT TOP (1) * FROM {test_fq}", limit=1)
+            self.stdout.write(self.style.SUCCESS(f"[TEST] Fabric reachable ({time.time() - t0:.2f}s)"))
 
         for idx, stage in enumerate(stages, start=1):
             slug = stage["slug"]
