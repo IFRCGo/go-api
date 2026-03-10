@@ -1,4 +1,6 @@
+import hashlib
 import time
+import uuid
 from datetime import datetime
 
 from django.apps import apps
@@ -7,7 +9,7 @@ from django.db import connection, transaction
 from django.utils import timezone
 
 from api.fabric_import_map import FABRIC_DB, FABRIC_IMPORT_STAGES, FABRIC_SCHEMA
-from api.fabric_sql import fetch_all
+from api.fabric_sql import fetch_all, get_fabric_connection
 
 DEFAULT_APP_LABEL = "api"
 
