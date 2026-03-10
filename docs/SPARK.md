@@ -158,8 +158,7 @@ All SPARK endpoints are registered in `main/urls.py`:
 | File | Purpose |
 |------|---------|
 | `data/ProBono.csv` | Pro-bono logistics services data |
-| `data/Countries.csv` | Country reference data |
-| `data/IFRC_Customs_Data.xlsx` | IFRC customs regulations Q&A by country |
+| `data/IFRC_Customs_Data.xlsx` | IFRC customs regulations Q&A by country (not committed — IFRC supplies this file) |
 
 ---
 
