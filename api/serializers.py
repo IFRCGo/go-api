@@ -2762,4 +2762,3 @@ class CustomsUpdatesResponseSerializer(serializers.Serializer):
     summary_text = serializers.CharField()
     current_situation_bullets = serializers.ListField(child=serializers.CharField())
     sources = serializers.ListField(child=serializers.DictField())
-

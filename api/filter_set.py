@@ -1,7 +1,6 @@
 import django_filters as filters
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models import Q
 
 from api.event_sources import SOURCES
 from api.models import (
@@ -16,43 +15,10 @@ from api.models import (
     CountryKeyFigure,
     CountrySnippet,
     CountrySupportingPartner,
-    DimAgreementLine,
-    DimAppeal,
-    DimBuyerGroup,
-    DimConsignment,
-    DimDeliveryMode,
-    DimDonor,
-    DimInventoryItem,
-    DimInventoryItemStatus,
-    DimInventoryModule,
-    DimInventoryOwner,
-    DimInventoryTransaction,
-    DimInventoryTransactionLine,
-    DimInventoryTransactionOrigin,
-    DimItemBatch,
-    DimLocation,
-    DimLogisticsLocation,
-    DimPackingSlipLine,
-    DimProduct,
-    DimProductCategory,
-    DimProductReceiptLine,
-    DimProject,
-    DimSalesOrderLine,
-    DimSite,
-    DimVendor,
-    DimVendorContact,
-    DimVendorContactEmail,
-    DimVendorPhysicalAddress,
-    DimWarehouse,
     District,
     Event,
     EventSeverityLevelHistory,
-    FctAgreement,
-    FctProductReceipt,
-    FctPurchaseOrder,
-    FctSalesOrder,
     FieldReport,
-    ProductCategoryHierarchyFlattened,
     Region,
     RegionKeyFigure,
     RegionSnippet,
@@ -477,5 +443,3 @@ class CleanedFrameworkAgreementFilter(filters.FilterSet):
         if not values:
             return queryset
         return queryset.filter(vendor_country__in=values)
-
-

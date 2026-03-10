@@ -2,7 +2,7 @@ import logging
 from datetime import timedelta
 
 from django.contrib.auth.models import Group, User
-from django.db import IntegrityError, models
+from django.db import models
 from django.db.models import (
     Avg,
     Case,
@@ -23,7 +23,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django_filters import rest_framework as rest_filters
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import filters, mixins, serializers, status, viewsets
+from rest_framework import filters, mixins, serializers, viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
@@ -69,8 +69,6 @@ from main.utils import is_tableau
 from per.models import Overview
 from per.serializers import CountryLatestOverviewSerializer
 
-from .customs_ai_service import CustomsAIService
-from .customs_data_loader import load_customs_regulations
 from .esconnection import ES_CLIENT
 from .exceptions import BadRequest
 from .indexes import CLEANED_FRAMEWORK_AGREEMENTS_INDEX_NAME
@@ -83,7 +81,6 @@ from .models import (
     AppealType,
     CleanedFrameworkAgreement,
     Country,
-    CountryCustomsSnapshot,
     CountryKeyDocument,
     CountryKeyFigure,
     CountryOfFieldReportToReview,
@@ -116,7 +113,6 @@ from .serializers import (  # AppealSerializer,; Tableau Serializers; AppealTabl
     AppealDocumentTableauSerializer,
     AppealHistorySerializer,
     AppealHistoryTableauSerializer,
-    CountryCustomsSnapshotSerializer,
     CountryDisasterTypeCountSerializer,
     CountryDisasterTypeMonthlySerializer,
     CountryGeoSerializer,
@@ -124,7 +120,6 @@ from .serializers import (  # AppealSerializer,; Tableau Serializers; AppealTabl
     CountryKeyFigureInputSerializer,
     CountryKeyFigureSerializer,
     CountryOfFieldReportToReviewSerializer,
-    CountryRegulationSerializer,
     CountryRelationSerializer,
     CountrySerializerRMD,
     CountrySnippetSerializer,
@@ -2084,5 +2079,3 @@ class CleanedFrameworkAgreementMapStatsView(APIView):
             entry["vendorCountryAgreements"] = row.get("agreement_count", 0)
 
         return Response({"results": list(results.values())})
-
-

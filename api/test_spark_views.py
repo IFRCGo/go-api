@@ -23,7 +23,7 @@ class WarehouseStocksViewTest(APITestCase):
     def setUp(self):
         super().setUp()
         self._goadmin_patcher = patch(
-            "api.warehouse_stocks_views._fetch_goadmin_maps",
+            "api.warehouse_stocks_views.fetch_goadmin_maps",
             return_value=GOADMIN_MAPS,
         )
         self._goadmin_patcher.start()
@@ -215,7 +215,7 @@ class CustomsRegulationsViewTest(APITestCase):
 
     def test_list_authenticated_returns_200_with_mock_data(self):
         self.authenticate()
-        with patch("api.drf_views.load_customs_regulations", return_value=CUSTOMS_REGULATIONS_MOCK_DATA):
+        with patch("api.customs_spark_views.load_customs_regulations", return_value=CUSTOMS_REGULATIONS_MOCK_DATA):
             resp = self.client.get(reverse("country_regulations"))
         self.assert_200(resp)
         data = resp.json()
@@ -226,7 +226,7 @@ class CustomsRegulationsViewTest(APITestCase):
 
     def test_list_when_loader_fails_returns_500(self):
         self.authenticate()
-        with patch("api.drf_views.load_customs_regulations", side_effect=FileNotFoundError("No file")):
+        with patch("api.customs_spark_views.load_customs_regulations", side_effect=FileNotFoundError("No file")):
             resp = self.client.get(reverse("country_regulations"))
         self.assert_500(resp)
         data = resp.json()
@@ -239,7 +239,7 @@ class CustomsRegulationsViewTest(APITestCase):
 
     def test_country_detail_authenticated_country_found_returns_200(self):
         self.authenticate()
-        with patch("api.drf_views.load_customs_regulations", return_value=CUSTOMS_REGULATIONS_MOCK_DATA):
+        with patch("api.customs_spark_views.load_customs_regulations", return_value=CUSTOMS_REGULATIONS_MOCK_DATA):
             resp = self.client.get(reverse("country_regulations_detail", kwargs={"country": "Kenya"}))
         self.assert_200(resp)
         data = resp.json()
@@ -249,7 +249,7 @@ class CustomsRegulationsViewTest(APITestCase):
 
     def test_country_detail_authenticated_country_not_found_returns_404(self):
         self.authenticate()
-        with patch("api.drf_views.load_customs_regulations", return_value=CUSTOMS_REGULATIONS_MOCK_DATA):
+        with patch("api.customs_spark_views.load_customs_regulations", return_value=CUSTOMS_REGULATIONS_MOCK_DATA):
             resp = self.client.get(reverse("country_regulations_detail", kwargs={"country": "NonExistent"}))
         self.assert_404(resp)
         data = resp.json()
@@ -258,7 +258,7 @@ class CustomsRegulationsViewTest(APITestCase):
 
     def test_country_detail_when_loader_fails_returns_500(self):
         self.authenticate()
-        with patch("api.drf_views.load_customs_regulations", side_effect=RuntimeError("Loader error")):
+        with patch("api.customs_spark_views.load_customs_regulations", side_effect=RuntimeError("Loader error")):
             resp = self.client.get(reverse("country_regulations_detail", kwargs={"country": "Kenya"}))
         self.assert_500(resp)
         data = resp.json()
@@ -298,7 +298,7 @@ class CustomsUpdatesViewTest(APITestCase):
     def test_list_when_exception_returns_500(self):
         self.authenticate()
         with patch(
-            "api.drf_views.CountryCustomsSnapshot.objects.filter",
+            "api.customs_spark_views.CountryCustomsSnapshot.objects.filter",
             side_effect=RuntimeError("DB error"),
         ):
             resp = self.client.get(reverse("customs_updates_list"))
@@ -328,7 +328,7 @@ class CustomsUpdatesViewTest(APITestCase):
     def test_country_detail_authenticated_country_invalid_returns_400(self):
         self.authenticate()
         with patch(
-            "api.drf_views.CustomsAIService.validate_country_name",
+            "api.customs_spark_views.CustomsAIService.validate_country_name",
             return_value=(False, "Not a recognized country"),
         ):
             resp = self.client.get(reverse("customs_updates_detail", kwargs={"country": "InvalidCountry"}))
@@ -339,7 +339,7 @@ class CustomsUpdatesViewTest(APITestCase):
     def test_country_detail_when_exception_returns_error_response(self):
         self.authenticate()
         with patch(
-            "api.drf_views.CountryCustomsSnapshot.objects.filter",
+            "api.customs_spark_views.CountryCustomsSnapshot.objects.filter",
             side_effect=RuntimeError("Unexpected error"),
         ):
             resp = self.client.get(reverse("customs_updates_detail", kwargs={"country": "Kenya"}))
