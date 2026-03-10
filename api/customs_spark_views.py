@@ -148,36 +148,37 @@ class CustomsUpdatesCountryView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-    def delete(self, request, country):  # logic is rudimentary needs update to force update so it generates new snapshot
+    def delete(self, request, country):
         """
-        Delete all customs snapshots for a country.
-        DELETE /api/v2/customs-ai-updates/<country>/ - Delete all snapshots for country
+        Deactivate the current customs snapshot for a country.
+        DELETE /api/v2/customs-ai-updates/<country>/ - Mark current snapshot as inactive
         """
         try:
             country_name = country.strip()
 
-            # Find all snapshots for this country (case-insensitive)
-            snapshots = CountryCustomsSnapshot.objects.filter(country_name__iexact=country_name)
-            count = snapshots.count()
+            current_snapshot = CountryCustomsSnapshot.objects.filter(
+                country_name__iexact=country_name,
+                is_current=True,
+            ).first()
 
-            if count == 0:
+            if not current_snapshot:
                 return Response(
-                    {"detail": f"No customs data found for '{country_name}'"},
+                    {"detail": f"No active customs data found for '{country_name}'"},
                     status=status.HTTP_404_NOT_FOUND,
                 )
 
-            # Delete all snapshots (cascades to sources and evidence snippets)
-            snapshots.delete()
+            current_snapshot.is_current = False
+            current_snapshot.save(update_fields=["is_current"])
 
-            logger.info(f"Deleted {count} customs snapshot(s) for {country_name}")
+            logger.info(f"Deactivated current snapshot for {country_name} (id={current_snapshot.pk})")
             return Response(
-                {"detail": f"Successfully deleted {count} customs snapshot(s) for '{country_name}'"},
+                {"detail": f"Successfully deactivated customs snapshot for '{country_name}'"},
                 status=status.HTTP_200_OK,
             )
 
         except Exception as e:
-            logger.error(f"Failed to delete customs data for {country}: {str(e)}")
+            logger.error(f"Failed to deactivate customs data for {country}: {str(e)}")
             return Response(
-                {"detail": "Failed to delete customs data"},
+                {"detail": "Failed to deactivate customs data"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
