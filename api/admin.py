@@ -1301,8 +1301,10 @@ class CountryCustomsSnapshotAdmin(admin.ModelAdmin):
         # Show warning before proceeding
         self.message_user(
             request,
-            _('⚠️ WARNING: This action is TIME CONSUMING and potentially EXPENSIVE. '
-              'It will regenerate customs snapshots for ALL countries using external API calls.'),
+            _(
+                "⚠️ WARNING: This action is TIME CONSUMING and potentially EXPENSIVE. "
+                "It will regenerate customs snapshots for ALL countries using external API calls."
+            ),
             level=messages.WARNING,
         )
 
@@ -1322,8 +1324,7 @@ class CountryCustomsSnapshotAdmin(admin.ModelAdmin):
         failures = [r for r in results if "failed" in r]
         self.message_user(
             request,
-            f"Generation complete: {len(successes)} succeeded, {len(failures)} failed. "
-            + "; ".join(failures[:20]),
+            f"Generation complete: {len(successes)} succeeded, {len(failures)} failed. " + "; ".join(failures[:20]),
             level=messages.SUCCESS if not failures else messages.WARNING,
         )
 
