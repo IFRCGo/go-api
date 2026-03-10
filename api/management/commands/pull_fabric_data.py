@@ -6,6 +6,7 @@ from datetime import datetime
 from django.apps import apps
 from django.core.management.base import BaseCommand
 from django.db import connection, transaction
+from django.db.models import AutoField
 from django.utils import timezone
 
 from api.fabric_import_map import FABRIC_DB, FABRIC_IMPORT_STAGES, FABRIC_SCHEMA
@@ -41,17 +42,23 @@ def _release_advisory_lock() -> None:
         cur.execute("SELECT pg_advisory_unlock(%s)", [_ADVISORY_LOCK_KEY])
 
 
-def _create_staging_table(live_table: str, run_id: str) -> str:
+def _create_staging_table(live_table: str, run_id: str, pk_column: str | None = None) -> str:
     """
     Create a fresh, uniquely named staging table for this run.
     The name embeds *run_id* (short UUID hex) so concurrent cron runs cannot
     collide or truncate each other's in-progress data.
     No indexes or FK constraints are copied so bulk loads stay fast.
+
+    When *pk_column* is given (the auto-PK column name), its NOT NULL
+    constraint is dropped because the staging table does not inherit the
+    live table's sequence default.
     Returns the staging table name.
     """
     staging = f"{live_table}_stg_{run_id}"
     with connection.cursor() as cur:
         cur.execute(f'CREATE TABLE "{staging}" (LIKE "{live_table}" INCLUDING DEFAULTS)')
+        if pk_column:
+            cur.execute(f'ALTER TABLE "{staging}" ALTER COLUMN "{pk_column}" DROP NOT NULL')
     return staging
 
 
@@ -60,8 +67,7 @@ def _build_insertable_fields(model_cls, pk_name: str) -> list:
     Return the concrete fields that should be inserted explicitly.
     Auto-generated PK fields are excluded so the sequence fills them in.
     """
-    _AUTO_PK_TYPES = {"AutoField", "BigAutoField", "SmallAutoField"}
-    return [f for f in model_cls._meta.concrete_fields if not (f.name == pk_name and f.__class__.__name__ in _AUTO_PK_TYPES)]
+    return [f for f in model_cls._meta.concrete_fields if not (f.primary_key and isinstance(f, AutoField))]
 
 
 def _bulk_insert_staging(staging_table: str, insertable_fields: list, objs: list) -> int:
@@ -94,7 +100,7 @@ def _bulk_insert_staging(staging_table: str, insertable_fields: list, objs: list
     return inserted
 
 
-def _atomic_live_swap(live_table: str, staging_table: str, insertable_fields: list) -> None:
+def _atomic_live_swap(live_table: str, staging_table: str, insertable_fields: list, pk_column: str | None = None) -> None:
     """
     Replace live table contents atomically with the staging table contents.
 
@@ -105,15 +111,22 @@ def _atomic_live_swap(live_table: str, staging_table: str, insertable_fields: li
     An explicit column list is used so the swap is correct regardless of any
     column-order difference between the two tables.
 
+    When *pk_column* is given, ``DISTINCT ON`` is used to deduplicate staging
+    rows by the primary key column (keeps the first occurrence).
+
     With READ COMMITTED isolation (Postgres default), readers queue behind the
     ACCESS EXCLUSIVE lock and see the fully populated table once the txn commits.
     They will never observe an empty or partially filled table.
     """
     col_str = ", ".join(f'"{f.column}"' for f in insertable_fields)
+    if pk_column:
+        select_clause = f'SELECT DISTINCT ON ("{pk_column}") {col_str} FROM "{staging_table}"'
+    else:
+        select_clause = f'SELECT {col_str} FROM "{staging_table}"'
     with transaction.atomic():
         with connection.cursor() as cur:
             cur.execute(f'TRUNCATE TABLE "{live_table}" CASCADE')
-            cur.execute(f'INSERT INTO "{live_table}" ({col_str}) ' f'SELECT {col_str} FROM "{staging_table}"')
+            cur.execute(f'INSERT INTO "{live_table}" ({col_str}) {select_clause}')
 
 
 def _merge_staging_into_live(live_table: str, staging_table: str, insertable_fields: list) -> None:
@@ -304,7 +317,10 @@ class Command(BaseCommand):
             # Prepare staging table — live table is NOT touched at this point.  #
             # ---------------------------------------------------------------- #
             live_table = model_cls._meta.db_table
-            staging_table = _create_staging_table(live_table, run_id)
+            # Pass the PK column name so its NOT NULL constraint is dropped
+            # on the staging table (it won't have the live table's sequence).
+            auto_pk_col = pk_field.column if pk_field and isinstance(pk_field, AutoField) else None
+            staging_table = _create_staging_table(live_table, run_id, pk_column=auto_pk_col)
             self.stdout.write(self.style.SUCCESS(f"  Staging table '{staging_table}' created — loading '{slug}'..."))
 
             total_inserted = 0
@@ -343,6 +359,9 @@ class Command(BaseCommand):
                             if has_fabric_id:
                                 if not kwargs.get("fabric_id"):
                                     continue
+
+                            if kwargs.get(pk_name) is None:
+                                continue
 
                             objs.append(model_cls(**kwargs))
 
@@ -391,6 +410,9 @@ class Command(BaseCommand):
                                 if not kwargs.get("fabric_id"):
                                     continue
 
+                            if kwargs.get(pk_name) is None:
+                                continue
+
                             objs.append(model_cls(**kwargs))
 
                         n = _bulk_insert_staging(staging_table, insertable_fields, objs)
@@ -420,10 +442,6 @@ class Command(BaseCommand):
                     )
                 )
                 raise
-            finally:
-                # Always close Fabric cursor and connection regardless of outcome.
-                cursor.close()
-                conn.close()
 
             # ---------------------------------------------------------------- #
             # Atomically push staged data into the live table.                  #
@@ -435,7 +453,7 @@ class Command(BaseCommand):
                     _merge_staging_into_live(live_table, staging_table, insertable_fields)
                     self.stdout.write(self.style.SUCCESS(f"  [SWAP SUCCESS] '{live_table}' updated (merge, no truncate)"))
                 else:
-                    _atomic_live_swap(live_table, staging_table, insertable_fields)
+                    _atomic_live_swap(live_table, staging_table, insertable_fields, pk_column=pk_field.column)
                     self.stdout.write(self.style.SUCCESS(f"  [SWAP SUCCESS] '{live_table}' fully replaced from staging"))
             except Exception as exc:
                 self.stdout.write(
@@ -454,3 +472,7 @@ class Command(BaseCommand):
             )
 
         self.stdout.write(self.style.SUCCESS("\nDone."))
+
+        # Close Fabric cursor and connection after all stages complete.
+        cursor.close()
+        conn.close()
