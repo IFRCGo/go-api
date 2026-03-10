@@ -409,6 +409,44 @@ class Command(BaseCommand):
                 else:
                     raise RuntimeError(f"Unknown pagination mode '{pagination}' for stage '{slug}'")
 
+            except Exception as exc:
+                self.stdout.write(
+                    self.style.ERROR(
+                        f"  [ROLLBACK] Stage '{slug}' failed during staging load: {exc}\n"
+                        f"  Live table '{live_table}' is unchanged. "
+                        f"Staging table '{staging_table}' preserved for inspection."
+                    )
+                )
+                raise
+            finally:
+                # Always close Fabric cursor and connection regardless of outcome.
+                cursor.close()
+                conn.close()
+
+            # ---------------------------------------------------------------- #
+            # Atomically push staged data into the live table.                  #
+            # Only reached when all batches completed without error.            #
+            # ---------------------------------------------------------------- #
+            self.stdout.write(f"  [SWAP START] '{staging_table}' ({total_inserted} rows) -> '{live_table}'")
+            try:
+                if no_truncate:
+                    _merge_staging_into_live(live_table, staging_table, insertable_fields)
+                    self.stdout.write(self.style.SUCCESS(f"  [SWAP SUCCESS] '{live_table}' updated (merge, no truncate)"))
+                else:
+                    _atomic_live_swap(live_table, staging_table, insertable_fields)
+                    self.stdout.write(self.style.SUCCESS(f"  [SWAP SUCCESS] '{live_table}' fully replaced from staging"))
+            except Exception as exc:
+                self.stdout.write(
+                    self.style.ERROR(
+                        f"  [SWAP FAIL] Swap failed for '{slug}': {exc}\n"
+                        f"  Staging table '{staging_table}' preserved for manual recovery."
+                    )
+                )
+                raise
+
+            _drop_staging_table(staging_table)
+            self.stdout.write(self.style.SUCCESS(f"  Staging table '{staging_table}' dropped"))
+
             self.stdout.write(
                 self.style.SUCCESS(f"  Stage complete: {slug} inserted={total_inserted} time={time.time() - stage_start:.2f}s")
             )
