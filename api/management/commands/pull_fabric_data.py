@@ -250,6 +250,18 @@ class Command(BaseCommand):
         chunk_size = int(options["chunk_size"])
         no_truncate = bool(options["no_truncate"])
 
+        if not _acquire_advisory_lock():
+            self.stdout.write(
+                self.style.ERROR(
+                    "Another pull_fabric_data run is already in progress "
+                    f"(advisory lock key {_ADVISORY_LOCK_KEY}). Exiting safely."
+                )
+            )
+            return
+        # The session-level advisory lock auto-releases when this process exits.
+        # An explicit _release_advisory_lock() call is not required for cron safety.
+        run_id = uuid.uuid4().hex[:12]
+
         stages = [s for s in FABRIC_IMPORT_STAGES if (not only or s["slug"] in only) and s["slug"] not in exclude]
         self.stdout.write(self.style.SUCCESS(f"Starting pull_fabric_data: {len(stages)} stages (run_id={run_id})"))
 
