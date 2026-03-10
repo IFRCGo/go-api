@@ -292,80 +292,72 @@ class Command(BaseCommand):
             self.stdout.write(f"  Target model: {model_cls.__module__}.{model_cls.__name__}")
             self.stdout.write(f"  Pagination: {pagination} | page_key: {page_key} | chunk_size: {chunk_size}")
 
-            t0 = time.time()
-            test_sql = f"SELECT TOP (1) * FROM {fq_table}"
-            _ = fetch_all(test_sql, limit=1)
-            self.stdout.write(self.style.SUCCESS(f"  [TEST] Fabric reachable ({time.time() - t0:.2f}s)"))
+            model_fields = {f.name: f for f in model_cls._meta.concrete_fields}
+            pk_name = model_cls._meta.pk.name
+            pk_field = model_fields.get(pk_name)
+            has_fabric_id = "fabric_id" in model_fields
+            insertable_fields = _build_insertable_fields(model_cls, pk_name)
 
-            # Truncate local table once per stage
-            if not no_truncate:
-                self.stdout.write("  Truncating local table...")
-                with transaction.atomic():
-                    self._truncate_model_table(model_cls)
-                self.stdout.write(self.style.SUCCESS("  Truncate OK"))
+            # ---------------------------------------------------------------- #
+            # Prepare staging table — live table is NOT touched at this point.  #
+            # ---------------------------------------------------------------- #
+            live_table = model_cls._meta.db_table
+            staging_table = _create_staging_table(live_table, run_id)
+            self.stdout.write(self.style.SUCCESS(f"  Staging table '{staging_table}' created — loading '{slug}'..."))
 
             total_inserted = 0
             batch_num = 0
             stage_start = time.time()
 
-            if pagination == "keyset":
-                last_val = None
-                while True:
-                    if last_val is None:
-                        sql = f"""
-                            SELECT TOP ({chunk_size}) *
-                            FROM {fq_table}
-                            ORDER BY [{page_key}] ASC
-                        """
-                        rows = fetch_all(sql, limit=chunk_size)
-                    else:
-                        sql = f"""
-                            SELECT TOP ({chunk_size}) *
-                            FROM {fq_table}
-                            WHERE [{page_key}] > ?
-                            ORDER BY [{page_key}] ASC
-                        """
-                        rows = fetch_all(sql, params=(last_val,), limit=chunk_size)
-
-                    if not rows:
-                        break
-
-                    # Build model objects from row dicts
+            try:
+                if pagination == "keyset":
+                    sql_initial = f"""
+                        SELECT TOP ({chunk_size}) *
+                        FROM {fq_table}
+                        ORDER BY [{page_key}] ASC
+                    """
+                    sql_keyset = f"""
+                        SELECT TOP ({chunk_size}) *
+                        FROM {fq_table}
+                        WHERE [{page_key}] > ?
+                        ORDER BY [{page_key}] ASC
+                    """
+                    last_val = None
                     objs = []
-                    for r in rows:
-                        r.pop("rn", None)  # just in case
-                        kwargs = self._row_to_model_kwargs(model_cls, r)
+                    while True:
+                        if last_val is None:
+                            rows = fetch_all(cursor, sql_initial, limit=chunk_size)
+                        else:
+                            rows = fetch_all(cursor, sql_keyset, params=(last_val,), limit=chunk_size)
 
-                        # If model expects fabric_id, skip rows where it's missing/blank
-                        if "fabric_id" in {f.name for f in model_cls._meta.concrete_fields}:
-                            if not kwargs.get("fabric_id"):
-                                continue
+                        if not rows:
+                            break
 
-                        objs.append(model_cls(**kwargs))
+                        objs.clear()
+                        for r in rows:
+                            r.pop("rn", None)
+                            kwargs = self._row_to_model_kwargs(r, model_fields, pk_name, pk_field)
 
-                    # Insert chunk
-                    with transaction.atomic():
-                        model_cls.objects.bulk_create(
-                            objs, batch_size=chunk_size, ignore_conflicts=True
-                        )  # <-- skips duplicates of the PK because in our case all duplicates are identical
+                            if has_fabric_id:
+                                if not kwargs.get("fabric_id"):
+                                    continue
 
-                    batch_num += 1
-                    total_inserted += len(objs)
-                    last_val = rows[-1][page_key]
+                            objs.append(model_cls(**kwargs))
 
-                    self.stdout.write(
-                        self.style.SUCCESS(
-                            f"  [BATCH {batch_num}] inserted {len(objs)} (total={total_inserted}) last_{page_key}={last_val}"
+                        n = _bulk_insert_staging(staging_table, insertable_fields, objs)
+                        batch_num += 1
+                        total_inserted += n
+                        last_val = rows[-1][page_key]
+
+                        self.stdout.write(
+                            self.style.SUCCESS(
+                                f"  [BATCH {batch_num}] staged {n} rows to '{staging_table}' "
+                                f"(total={total_inserted}) last_{page_key}={last_val}"
+                            )
                         )
-                    )
 
-            elif pagination == "row_number":
-                last_rn = 0
-                while True:
-                    start_rn = last_rn + 1
-                    end_rn = last_rn + chunk_size
-
-                    sql = f"""
+                elif pagination == "row_number":
+                    sql_rn = f"""
                         WITH numbered AS (
                             SELECT
                                 *,
@@ -377,42 +369,45 @@ class Command(BaseCommand):
                         WHERE rn BETWEEN ? AND ?
                         ORDER BY rn ASC
                     """
-                    rows = fetch_all(sql, params=(start_rn, end_rn), limit=chunk_size)
-
-                    if not rows:
-                        break
-
+                    last_rn = 0
                     objs = []
-                    for r in rows:
-                        r.pop("rn", None)  # remove helper column
-                        kwargs = self._row_to_model_kwargs(model_cls, r)
+                    while True:
+                        start_rn = last_rn + 1
+                        end_rn = last_rn + chunk_size
 
-                        # If model expects fabric_id, skip rows where it's missing/blank
-                        if "fabric_id" in {f.name for f in model_cls._meta.concrete_fields}:
-                            if not kwargs.get("fabric_id"):
-                                continue
+                        rows = fetch_all(cursor, sql_rn, params=(start_rn, end_rn), limit=chunk_size)
 
-                        objs.append(model_cls(**kwargs))
+                        if not rows:
+                            break
 
-                    with transaction.atomic():
-                        model_cls.objects.bulk_create(
-                            objs, batch_size=chunk_size, ignore_conflicts=True
-                        )  # <-- skips duplicates of the PK because in our case all duplicates are identical
+                        objs.clear()
+                        for r in rows:
+                            r.pop("rn", None)
+                            kwargs = self._row_to_model_kwargs(r, model_fields, pk_name, pk_field)
 
-                    batch_num += 1
-                    total_inserted += len(objs)
-                    last_rn = end_rn
+                            if has_fabric_id:
+                                if not kwargs.get("fabric_id"):
+                                    continue
 
-                    self.stdout.write(
-                        self.style.SUCCESS(
-                            f"  [BATCH {batch_num}] inserted {len(objs)} (total={total_inserted}) rn={start_rn}..{end_rn}"
+                            objs.append(model_cls(**kwargs))
+
+                        n = _bulk_insert_staging(staging_table, insertable_fields, objs)
+                        batch_num += 1
+                        total_inserted += n
+                        last_rn = end_rn
+
+                        self.stdout.write(
+                            self.style.SUCCESS(
+                                f"  [BATCH {batch_num}] staged {n} rows to '{staging_table}' "
+                                f"(total={total_inserted}) rn={start_rn}..{end_rn}"
+                            )
                         )
-                    )
 
-                    if len(rows) < chunk_size:
-                        break
-            else:
-                raise RuntimeError(f"Unknown pagination mode '{pagination}' for stage '{slug}'")
+                        if len(rows) < chunk_size:
+                            break
+
+                else:
+                    raise RuntimeError(f"Unknown pagination mode '{pagination}' for stage '{slug}'")
 
             self.stdout.write(
                 self.style.SUCCESS(f"  Stage complete: {slug} inserted={total_inserted} time={time.time() - stage_start:.2f}s")
