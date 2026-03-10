@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - ES aggregated endpoints Stock Inventory
  - Redis caching for Stock Inventory
  - Fix filtering for item name
+ - Data transformation script for framework agreements
+ - Added a PySpark-based stock inventory ETL pipeline
+ - Added a new `StockInventory` model
+ - Add stock inventory command
+ - Added stock inventory test coverage and supporting factories for transformation, filtering, and CSV export flows
 
 ## 1.1.508
 

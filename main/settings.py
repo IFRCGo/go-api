@@ -204,6 +204,7 @@ ALLOWED_HOSTS = [
     "0.0.0.0",
     "posological-whited-myrtle.ngrok-free.dev",
     "vocably-avaricious-mirtha.ngrok-free.dev",
+    "undeadened-superlocally-clair.ngrok-free.dev",
     urlparse(GO_API_URL).hostname,
     *env("DJANGO_ADDITIONAL_ALLOWED_HOSTS"),
 ]

@@ -65,7 +65,6 @@ class Command(BaseCommand):
         logger.info("Building lookup tables for products, warehouses and categories")
 
         warehouses = DimWarehouse.objects.all().values("id", "name", "country")
-        # Build warehouse lookup; store raw country field and warehouse id for later iso2->iso3 fallback
         wh_by_id = {
             str(w["id"]): {
                 "warehouse_name": safe_str(w.get("name")),
@@ -147,7 +146,6 @@ class Command(BaseCommand):
             actions.append(action)
             count += 1
 
-            # Flush periodically to save memory
             if len(actions) >= batch_size:
                 created, errors = bulk(client=ES_CLIENT, actions=actions, chunk_size=batch_size)
                 logger.info(f"Indexed {created} documents (batch)")
@@ -156,7 +154,6 @@ class Command(BaseCommand):
                     had_bulk_errors = True
                 actions = []
 
-        # Final flush
         if actions:
             created, errors = bulk(client=ES_CLIENT, actions=actions, chunk_size=batch_size)
             logger.info(f"Indexed {created} documents (final)")

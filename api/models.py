@@ -2593,7 +2593,7 @@ class Export(models.Model):
 
 class CleanedFrameworkAgreement(models.Model):
     id = models.BigAutoField(primary_key=True)
-    agreement_id = models.CharField(verbose_name=_("Agreement ID"), max_length=100, db_index=True)
+    agreement_id = models.CharField(verbose_name=_("Agreement ID"), max_length=100, db_index=True, null=True, blank=True)
     classification = models.CharField(verbose_name=_("Classification"), max_length=128, null=True, blank=True)
     default_agreement_line_effective_date = models.DateField(
         verbose_name=_("Default Agreement Line Effective Date"), null=True, blank=True
@@ -2617,7 +2617,7 @@ class CleanedFrameworkAgreement(models.Model):
     item_type = models.CharField(verbose_name=_("Item Type"), max_length=128, null=True, blank=True)
     item_category = models.CharField(verbose_name=_("Item Category"), max_length=128, null=True, blank=True)
     item_service_short_description = models.TextField(verbose_name=_("Item / Service Short Description"), null=True, blank=True)
-    owner = models.CharField(verbose_name=_("Owner"), max_length=255, null=False, blank=False, default="")
+    owner = models.CharField(verbose_name=_("Owner"), max_length=255, null=True, blank=True, default="")
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -2631,9 +2631,9 @@ class CleanedFrameworkAgreement(models.Model):
 
 
 class DimAgreementLine(models.Model):
-    agreement_line_id = models.CharField(verbose_name=_("Agreement Line ID"), max_length=100, unique=True)
-    agreement_id = models.CharField(verbose_name=_("Agreement ID"), max_length=100)
-    line_number = models.IntegerField(verbose_name=_("Line Number"))
+    agreement_line_id = models.CharField(verbose_name=_("Agreement Line ID"), max_length=100, unique=True, null=True, blank=True)
+    agreement_id = models.CharField(verbose_name=_("Agreement ID"), max_length=100, null=True, blank=True)
+    line_number = models.IntegerField(verbose_name=_("Line Number"), null=True, blank=True)
     product = models.CharField(verbose_name=_("Product"), max_length=255, blank=True, null=True)
     product_category = models.CharField(verbose_name=_("Product Category"), max_length=255, blank=True, null=True)
     effective_date = models.DateField(verbose_name=_("Effective Date"), blank=True, null=True)
@@ -2681,8 +2681,8 @@ class DimAgreementLine(models.Model):
 class DimAppeal(models.Model):
     id = models.BigAutoField(primary_key=True)
 
-    fabric_id = models.CharField(max_length=100, db_index=True)
-    appeal_name = models.CharField(max_length=255)
+    fabric_id = models.CharField(max_length=100, db_index=True, null=True, blank=True)
+    appeal_name = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
         db_table = "api_dimappeal"
@@ -2695,7 +2695,7 @@ class DimAppeal(models.Model):
 
 class DimBuyerGroup(models.Model):
     code = models.CharField(verbose_name=_("Buyer Group Code"), max_length=100, primary_key=True)
-    name = models.CharField(verbose_name=_("Buyer Group Name"), max_length=500)
+    name = models.CharField(verbose_name=_("Buyer Group Name"), max_length=500, null=True, blank=True)
 
     class Meta:
         verbose_name = _("Buyer Group")
@@ -2719,7 +2719,7 @@ class DimConsignment(models.Model):
 
 class DimDeliveryMode(models.Model):
     id = models.CharField(verbose_name=_("Delivery Mode ID"), max_length=100, primary_key=True)
-    description = models.CharField(verbose_name=_("Description"), max_length=255)
+    description = models.CharField(verbose_name=_("Description"), max_length=255, null=True, blank=True)
 
     class Meta:
         verbose_name = _("Delivery Mode")
@@ -2731,7 +2731,7 @@ class DimDeliveryMode(models.Model):
 
 class DimDonor(models.Model):
     donor_code = models.CharField(verbose_name=_("Donor Code"), max_length=100, primary_key=True)
-    donor_name = models.CharField(verbose_name=_("Donor Name"), max_length=255)
+    donor_name = models.CharField(verbose_name=_("Donor Name"), max_length=255, null=True, blank=True)
 
     class Meta:
         verbose_name = _("Donor")
@@ -2743,7 +2743,7 @@ class DimDonor(models.Model):
 
 class DimInventoryItem(models.Model):
     id = models.CharField(verbose_name=_("Inventory Item ID"), max_length=100, primary_key=True)
-    unit_of_measure = models.CharField(verbose_name=_("Unit of Measure"), max_length=100)
+    unit_of_measure = models.CharField(verbose_name=_("Unit of Measure"), max_length=100, null=True, blank=True)
 
     class Meta:
         verbose_name = _("Inventory Item")
@@ -2755,7 +2755,7 @@ class DimInventoryItem(models.Model):
 
 class DimInventoryItemStatus(models.Model):
     id = models.CharField(verbose_name=_("Status ID"), max_length=100, primary_key=True)
-    name = models.CharField(verbose_name=_("Status Name"), max_length=255)
+    name = models.CharField(verbose_name=_("Status Name"), max_length=255, null=True, blank=True)
 
     class Meta:
         verbose_name = _("Inventory Item Status")
@@ -2767,9 +2767,9 @@ class DimInventoryItemStatus(models.Model):
 
 class DimInventoryModule(models.Model):
     id = models.CharField(verbose_name=_("Inventory Module ID"), max_length=100, primary_key=True)
-    unit_of_measure = models.CharField(verbose_name=_("Unit of Measure"), max_length=100)
-    item_id = models.CharField(verbose_name=_("Item ID"), max_length=100)
-    type = models.CharField(verbose_name=_("Type"), max_length=100)
+    unit_of_measure = models.CharField(verbose_name=_("Unit of Measure"), max_length=100, null=True, blank=True)
+    item_id = models.CharField(verbose_name=_("Item ID"), max_length=100, null=True, blank=True)
+    type = models.CharField(verbose_name=_("Type"), max_length=100, null=True, blank=True)
 
     class Meta:
         verbose_name = _("Inventory Module")
@@ -2781,7 +2781,7 @@ class DimInventoryModule(models.Model):
 
 class DimInventoryOwner(models.Model):
     id = models.CharField(verbose_name=_("Inventory Owner ID"), max_length=100, primary_key=True)
-    name = models.CharField(verbose_name=_("Inventory Owner Name"), max_length=500)
+    name = models.CharField(verbose_name=_("Inventory Owner Name"), max_length=500, null=True, blank=True)
 
     class Meta:
         verbose_name = _("Inventory Owner")
@@ -2890,7 +2890,7 @@ class DimItemBatch(models.Model):
 
 class DimLocation(models.Model):
     id = models.CharField(verbose_name=_("Location ID"), max_length=100, primary_key=True)
-    location = models.CharField(verbose_name=_("Location"), max_length=100)
+    location = models.CharField(verbose_name=_("Location"), max_length=100, null=True, blank=True)
 
     class Meta:
         verbose_name = _("Location")
@@ -2953,7 +2953,7 @@ class DimProduct(models.Model):
 
 class DimProductCategory(models.Model):
     category_code = models.CharField(verbose_name=_("Category Code"), max_length=100, primary_key=True)
-    name = models.CharField(verbose_name=_("Category Name"), max_length=255)
+    name = models.CharField(verbose_name=_("Category Name"), max_length=255, null=True, blank=True)
     parent_category_code = models.CharField(verbose_name=_("Parent Category Code"), max_length=100, null=True, blank=True)
     level = models.IntegerField(verbose_name=_("Level"), null=True, blank=True)
 
@@ -2987,7 +2987,7 @@ class DimProductReceiptLine(models.Model):
 
 class DimProject(models.Model):
     id = models.CharField(verbose_name=_("Project ID"), max_length=100, primary_key=True)
-    project_name = models.CharField(verbose_name=_("Project Name"), max_length=255)
+    project_name = models.CharField(verbose_name=_("Project Name"), max_length=255, null=True, blank=True)
 
     class Meta:
         verbose_name = _("Project")
@@ -3139,7 +3139,7 @@ class DimSalesOrderLine(models.Model):
 
 class DimSite(models.Model):
     id = models.CharField(verbose_name=_("Site ID"), max_length=100, primary_key=True)
-    name = models.CharField(verbose_name=_("Site Name"), max_length=255)
+    name = models.CharField(verbose_name=_("Site Name"), max_length=255, null=True, blank=True)
 
     class Meta:
         verbose_name = _("Site")
@@ -3151,7 +3151,7 @@ class DimSite(models.Model):
 
 class DimVendor(models.Model):
     code = models.CharField(verbose_name=_("Vendor Code"), max_length=100, primary_key=True)
-    name = models.CharField(verbose_name=_("Vendor Name"), max_length=255)
+    name = models.CharField(verbose_name=_("Vendor Name"), max_length=255, null=True, blank=True)
 
     class Meta:
         verbose_name = _("Vendor")
@@ -3336,6 +3336,60 @@ class FctSalesOrder(models.Model):
         return f"{self.id} - {self.customer if self.customer else 'Sales Order'}"
 
 
+class StockInventory(models.Model):
+    """
+    Aggregated stock inventory data from PySpark ETL pipeline.
+    Shows current stock quantities by warehouse, country, and product.
+    """
+
+    warehouse_id = models.CharField(verbose_name=_("Warehouse ID"), max_length=100, db_index=True)
+    warehouse = models.CharField(verbose_name=_("Warehouse Name"), max_length=255)
+    warehouse_country = models.CharField(verbose_name=_("Warehouse Country"), max_length=100, db_index=True)
+    region = models.CharField(
+        verbose_name=_("Region"),
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text=_("Geographical region (e.g., Asia Pacific, Americas)"),
+    )
+    product_category = models.CharField(verbose_name=_("Product Category"), max_length=255)
+    item_name = models.TextField(verbose_name=_("Item Name"))
+    quantity = models.DecimalField(
+        verbose_name=_("Quantity"),
+        max_digits=18,
+        decimal_places=2,
+        help_text=_("Aggregated quantity in stock"),
+    )
+    unit_measurement = models.CharField(
+        verbose_name=_("Unit of Measurement"),
+        max_length=50,
+        blank=True,
+        null=True,
+        help_text=_("Unit of measure (e.g., ea, kg, m)"),
+    )
+    catalogue_link = models.TextField(
+        verbose_name=_("Catalogue Link"),
+        blank=True,
+        null=True,
+        help_text=_("URL to item catalogue or product information"),
+    )
+
+    class Meta:
+        verbose_name = _("Stock Inventory")
+        verbose_name_plural = _("Stock Inventories")
+        indexes = [
+            models.Index(fields=["warehouse_id", "warehouse_country"], name="stock_warehouse_idx"),
+            models.Index(fields=["product_category"], name="stock_category_idx"),
+        ]
+        ordering = ["warehouse", "product_category", "-quantity"]
+
+    def __str__(self):
+        return f"{self.warehouse} - {self.item_name} ({self.quantity})"
+
+
+# END OF SPARK MODELS
+
+
 class ProductCategoryHierarchyFlattened(models.Model):
     product_category = models.CharField(verbose_name=_("Product Category"), max_length=100, primary_key=True)
     level_4_product_category = models.CharField(verbose_name=_("Level 4 Product Category"), max_length=100, null=True, blank=True)
@@ -3352,8 +3406,8 @@ class ProductCategoryHierarchyFlattened(models.Model):
 
 
 class ItemCodeMapping(models.Model):
-    code = models.CharField(verbose_name=_("Item Code"), max_length=100, unique=True, db_index=True)
-    url = models.URLField(verbose_name=_("Item URL"), max_length=500)
+    code = models.CharField(verbose_name=_("Item Code"), max_length=100, unique=True, db_index=True, null=True, blank=True)
+    url = models.URLField(verbose_name=_("Item URL"), max_length=500, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -3385,16 +3439,16 @@ class CountryCustomsSnapshot(models.Model):
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    country_name = models.CharField(max_length=255, db_index=True)
-    is_current = models.BooleanField(default=True)
-    generated_at = models.DateTimeField(auto_now_add=True)
-    model_name = models.CharField(max_length=100, default="gpt-4")
-    confidence = models.CharField(max_length=20, choices=CONFIDENCE_CHOICES, default="Medium")
-    summary_text = models.TextField()
-    current_situation_bullets = models.JSONField(default=list, help_text="Array of bullet point strings")
-    evidence_hash = models.CharField(max_length=64, blank=True, help_text="Hash of all source hashes")
-    search_query = models.TextField(blank=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="success")
+    country_name = models.CharField(max_length=255, db_index=True, null=True, blank=True)
+    is_current = models.BooleanField(default=True, null=True, blank=True)
+    generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    model_name = models.CharField(max_length=100, default="gpt-4", null=True, blank=True)
+    confidence = models.CharField(max_length=20, choices=CONFIDENCE_CHOICES, default="Medium", null=True, blank=True)
+    summary_text = models.TextField(null=True, blank=True)
+    current_situation_bullets = models.JSONField(default=list, help_text="Array of bullet point strings", null=True, blank=True)
+    evidence_hash = models.CharField(max_length=64, blank=True, null=True, help_text="Hash of all source hashes")
+    search_query = models.TextField(blank=True, null=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="success", null=True, blank=True)
     error_message = models.TextField(blank=True, null=True)
     official_doc_url = models.URLField(
         max_length=2048, blank=True, help_text="URL to the country's official customs documentation"
@@ -3433,19 +3487,21 @@ class CountryCustomsSource(models.Model):
         CountryCustomsSnapshot,
         on_delete=models.CASCADE,
         related_name="sources",
+        null=True,
+        blank=True,
     )
-    rank = models.PositiveSmallIntegerField(help_text="Ranking by total score (1-3)")
-    url = models.URLField(max_length=2048)
-    title = models.CharField(max_length=500)
-    publisher = models.CharField(max_length=255, blank=True)
+    rank = models.PositiveSmallIntegerField(help_text="Ranking by total score (1-3)", null=True, blank=True)
+    url = models.URLField(max_length=2048, null=True, blank=True)
+    title = models.CharField(max_length=500, null=True, blank=True)
+    publisher = models.CharField(max_length=255, blank=True, null=True)
     published_at = models.DateTimeField(null=True, blank=True)
-    retrieved_at = models.DateTimeField(auto_now_add=True)
-    authority_score = models.SmallIntegerField(default=0)
-    freshness_score = models.SmallIntegerField(default=0)
-    relevance_score = models.SmallIntegerField(default=0)
-    specificity_score = models.SmallIntegerField(default=0)
-    total_score = models.SmallIntegerField(default=0)
-    content_hash = models.CharField(max_length=64, blank=True, help_text="Hash of source's evidence snippets")
+    retrieved_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    authority_score = models.SmallIntegerField(default=0, null=True, blank=True)
+    freshness_score = models.SmallIntegerField(default=0, null=True, blank=True)
+    relevance_score = models.SmallIntegerField(default=0, null=True, blank=True)
+    specificity_score = models.SmallIntegerField(default=0, null=True, blank=True)
+    total_score = models.SmallIntegerField(default=0, null=True, blank=True)
+    content_hash = models.CharField(max_length=64, blank=True, null=True, help_text="Hash of source's evidence snippets")
 
     class Meta:
         verbose_name = _("Country Customs Source")
@@ -3469,10 +3525,12 @@ class CountryCustomsEvidenceSnippet(models.Model):
         CountryCustomsSource,
         on_delete=models.CASCADE,
         related_name="snippets",
+        null=True,
+        blank=True,
     )
-    snippet_order = models.PositiveSmallIntegerField()
-    snippet_text = models.TextField()
-    claim_tags = models.JSONField(default=list, blank=True, help_text="Optional: array of tags")
+    snippet_order = models.PositiveSmallIntegerField(null=True, blank=True)
+    snippet_text = models.TextField(null=True, blank=True)
+    claim_tags = models.JSONField(default=list, blank=True, null=True, help_text="Optional: array of tags")
 
     class Meta:
         verbose_name = _("Country Customs Evidence Snippet")
