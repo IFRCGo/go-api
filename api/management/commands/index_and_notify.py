@@ -25,11 +25,18 @@ from api.models import (
 from deployments.models import ERU, Personnel, PersonnelDeployment
 from main.sentry import SentryMonitor
 from notifications.hello import get_hello
-from notifications.models import RecordType, Subscription, SubscriptionType, SurgeAlert
+from notifications.models import (
+    NotificationGUID,
+    RecordType,
+    Subscription,
+    SubscriptionType,
+    SurgeAlert,
+)
 from notifications.notification import send_notification
 from utils.elasticsearch import construct_es_data
 
-time_5_minutes = timedelta(minutes=5)
+# avoid skipping new entities that were created during 2 consecutive runs, scheduled to every 5 minutes:
+time_9_minutes = timedelta(minutes=9)
 time_1_day = timedelta(days=1)
 time_1_week = timedelta(days=7)  # for digest mode
 digest_time = int(10314)  # weekday - hour - min for digest timing (5 minutes once a week, Monday dawn)
@@ -72,23 +79,23 @@ class Command(BaseCommand):
 
     # Digest mode duration is 5 minutes once a week
     def is_digest_mode(self):
-        today = datetime.utcnow().replace(tzinfo=timezone.utc)
+        today = datetime.now(timezone.utc)
         weekdayhourmin = int(today.strftime("%w%H%M"))
         return digest_time <= weekdayhourmin and weekdayhourmin < digest_time + 5
 
     def is_daily_checkup_time(self):
-        today = datetime.utcnow().replace(tzinfo=timezone.utc)
+        today = datetime.now(timezone.utc)
         hourmin = int(today.strftime("%H%M"))
         return daily_retro <= hourmin and hourmin < daily_retro + 5
 
-    def diff_5_minutes(self):
-        return datetime.utcnow().replace(tzinfo=timezone.utc) - time_5_minutes
+    def diff_9_minutes(self):
+        return datetime.now(timezone.utc) - time_9_minutes
 
     def diff_1_day(self):
-        return datetime.utcnow().replace(tzinfo=timezone.utc) - time_1_day
+        return datetime.now(timezone.utc) - time_1_day
 
     def diff_1_week(self):
-        return datetime.utcnow().replace(tzinfo=timezone.utc) - time_1_week
+        return datetime.now(timezone.utc) - time_1_week
 
     def gather_country_and_region(self, records):
         # Appeals only, since these have a single country/region
@@ -337,7 +344,7 @@ class Command(BaseCommand):
         return display
 
     def get_weekly_digest_data(self, field):
-        today = datetime.utcnow().replace(tzinfo=timezone.utc)
+        today = datetime.now(timezone.utc)
         if field == "dref":
             return Appeal.objects.filter(end_date__gt=today, atype=0).count()
         elif field == "ea":
@@ -709,6 +716,11 @@ class Command(BaseCommand):
             }
         return rec_obj
 
+    def has_recent_notificationguid_entry(self, mailtypes, since):
+        if not mailtypes:
+            return False
+        return NotificationGUID.objects.filter(created_at__gte=since, email_type__in=mailtypes).exists()
+
     def notify(self, records, rtype, stype, uid=None):
         record_count = 0
         if records:
@@ -780,6 +792,21 @@ class Command(BaseCommand):
 
         if self.is_daily_checkup_time():
             subject += " [daily followup]"
+
+        mailtype_prefixes = [f"{RTYPE_NAMES[rtype]} notification"]
+        if uid is None and rtype == RecordType.FIELD_REPORT:
+            mailtype_prefixes = [
+                f"{RTYPE_NAMES[rtype]} notification (non_ifrc)",
+                f"{RTYPE_NAMES[rtype]} notification (ifrc)",
+            ]
+
+        mailtype_variants = [f"{prefix} - {subject}" for prefix in mailtype_prefixes]
+        if record_count == 1 and rtype != RecordType.WEEKLY_DIGEST:
+            mailtype_variants.extend([f"{prefix} - {subject}: {record_entries[0]['title']}" for prefix in mailtype_prefixes])
+
+        if self.has_recent_notificationguid_entry(mailtype_variants, self.diff_9_minutes()):
+            logger.info("Skipping notification – already sent recently.")
+            return
 
         template_path = self.get_template()
         if rtype == RecordType.FIELD_REPORT or rtype == RecordType.APPEAL or rtype == RecordType.WEEKLY_DIGEST:
@@ -992,7 +1019,7 @@ class Command(BaseCommand):
         if self.is_digest_mode():
             time_diff = self.diff_1_week()  # in digest mode (once a week, for new_entities only) we use a bigger interval
         else:
-            time_diff = self.diff_5_minutes()
+            time_diff = self.diff_9_minutes()
         time_diff_1_day = self.diff_1_day()
 
         cond1 = Q(created_at__gte=time_diff)
