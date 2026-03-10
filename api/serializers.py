@@ -1606,7 +1606,7 @@ class AppealSerializer(ModelSerializer):
         )
 
 
-class EventMiniSerializer(ModelSerializer):
+class EventDetailsSerializer(ModelSerializer):
     ifrc_severity_level_display = serializers.CharField(source="get_ifrc_severity_level_display", read_only=True)
 
     class Meta:
@@ -1616,7 +1616,7 @@ class EventMiniSerializer(ModelSerializer):
             "name",
             "ifrc_severity_level",
             "ifrc_severity_level_display",
-            "disaster_start_date",
+            "updated_at",
         )
 
 
@@ -1624,7 +1624,7 @@ class AppealHistorySerializer(ModelSerializer):
     country = MiniCountrySerializer(read_only=True)
     dtype = DisasterTypeSerializer(read_only=True)
     region = RegionSerializer(read_only=True)
-    event = EventMiniSerializer(source="appeal.event", read_only=True)
+    event_details = EventDetailsSerializer(source="appeal.event", read_only=True)
     atype_display = serializers.CharField(source="get_atype_display", read_only=True)
     status_display = serializers.CharField(source="get_status_display", read_only=True)
     code = serializers.CharField(source="appeal.code", read_only=True)
@@ -1632,6 +1632,7 @@ class AppealHistorySerializer(ModelSerializer):
     created_at = serializers.CharField(source="appeal.created_at", read_only=True)
     modified_at = serializers.CharField(source="appeal.modified_at", read_only=True)
     real_data_update = serializers.CharField(source="appeal.real_data_update", read_only=True)
+    event = serializers.IntegerField(source="appeal.event_id", read_only=True)
     id = serializers.CharField(source="appeal.id", read_only=True)
     name = serializers.CharField(source="appeal.name", read_only=True)
 
@@ -1660,6 +1661,7 @@ class AppealHistorySerializer(ModelSerializer):
             "country",
             "region",
             "id",
+            "event_details",
         )
 
 
