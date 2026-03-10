@@ -62,26 +62,119 @@ EVIDENCE_KEYWORDS = {
     "pre-clearance",
 }
 
-# Authority scoring thresholds
-HIGH_AUTHORITY_PUBLISHERS = {
-    "gov.",
-    "government",
-    "customs",
-    ".go.",
-    ".int",
-    "ifrc",
-    "icrc",
-    "wfp",
-    "ocha",
-    "iom",
-    "un",
-    "reliefweb",
-    "logcluster",
-    "humanitarianresponse",
-    "who.int",
-    "unicef",
+# Grouped keyword categories for relevance scoring.
+# Each category is scored independently to reward breadth of coverage
+# and avoid over-rewarding repetitive use of the same terms.
+RELEVANCE_KEYWORD_CATEGORIES = {
+    "customs_clearance": [
+        "customs",
+        "clearance",
+        "import",
+        "declaration",
+        "tariff",
+        "harmonized",
+        "customs broker",
+        "customs agent",
+    ],
+    "humanitarian_relief": [
+        "humanitarian",
+        "relief",
+        "emergency",
+        "disaster",
+        "aid",
+        "ngo",
+        "red cross",
+        "red crescent",
+        "ocha",
+        "donation",
+        "in-kind",
+    ],
+    "permits_documentation": [
+        "permit",
+        "license",
+        "certificate",
+        "documentation",
+        "waiver",
+        "pre-clearance",
+        "authorization",
+        "approval",
+    ],
+    "duty_tax_exemptions": [
+        "exemption",
+        "duty-free",
+        "tax exempt",
+        "duty free",
+        "tax-free",
+        "tax waiver",
+        "concession",
+        "zero-rated",
+    ],
+    "logistics_entry": [
+        "port",
+        "airport",
+        "border",
+        "corridor",
+        "terminal",
+        "entry point",
+        "crossing",
+        "transit",
+        "consignment",
+        "shipment",
+        "cargo",
+    ],
 }
-MEDIUM_AUTHORITY_PUBLISHERS = {"ngo", "news", "org", "academic", "university", "institute"}
+
+# Humanitarian org domains scored as medium-high authority.
+# Matched against URL hostname with endswith() to avoid false positives.
+HUMANITARIAN_ORG_DOMAINS = [
+    "ifrc.org",
+    "icrc.org",
+    "wfp.org",
+    "unocha.org",
+    "who.int",
+    "unicef.org",
+    "unhcr.org",
+    "iom.int",
+    "un.org",
+    "unctad.org",
+    "wcoomd.org",
+]
+
+# Humanitarian information platforms — slightly lower than org domains.
+HUMANITARIAN_PLATFORM_DOMAINS = [
+    "reliefweb.int",
+    "logcluster.org",
+    "humanitarianresponse.info",
+]
+
+# Common alternative country names, abbreviations, and official names.
+# Keys are the canonical name (lowercase); values are lists of alternates.
+# Used by _score_country_specificity for flexible matching.
+COUNTRY_ALIASES: Dict[str, List[str]] = {
+    "united states": ["usa", "us", "united states of america", "u.s.", "u.s.a."],
+    "united kingdom": ["uk", "u.k.", "great britain", "britain", "england"],
+    "democratic republic of the congo": ["drc", "dr congo", "congo-kinshasa", "congo kinshasa"],
+    "republic of the congo": ["congo-brazzaville", "congo brazzaville"],
+    "south korea": ["republic of korea", "korea", "rok"],
+    "north korea": ["dprk", "democratic people's republic of korea"],
+    "ivory coast": ["côte d'ivoire", "cote d'ivoire", "cote divoire"],
+    "myanmar": ["burma"],
+    "eswatini": ["swaziland"],
+    "czechia": ["czech republic"],
+    "türkiye": ["turkey", "turkiye"],
+    "timor-leste": ["east timor"],
+    "cabo verde": ["cape verde"],
+    "bosnia and herzegovina": ["bih", "bosnia"],
+    "trinidad and tobago": ["trinidad"],
+    "papua new guinea": ["png"],
+    "central african republic": ["car"],
+    "south sudan": ["s. sudan", "s sudan"],
+    "north macedonia": ["macedonia", "fyrom"],
+    "saudi arabia": ["ksa"],
+    "united arab emirates": ["uae"],
+    "new zealand": ["aotearoa"],
+    "philippines": ["the philippines"],
+}
 
 BRAVE_SEARCH_API_BASE_URL = "https://api.search.brave.com/res/v1"
 
