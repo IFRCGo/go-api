@@ -3396,6 +3396,14 @@ class CountryCustomsSnapshot(models.Model):
     search_query = models.TextField(blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="success")
     error_message = models.TextField(blank=True, null=True)
+    official_doc_url = models.URLField(
+        max_length=2048, blank=True, help_text="URL to the country's official customs documentation"
+    )
+    official_doc_title = models.CharField(max_length=500, blank=True, help_text="Title of the official customs documentation")
+    rc_society_url = models.URLField(
+        max_length=2048, blank=True, help_text="URL to the country's Red Cross/Red Crescent society page"
+    )
+    rc_society_title = models.CharField(max_length=500, blank=True, help_text="Title of the Red Cross/Red Crescent society page")
 
     class Meta:
         verbose_name = _("Country Customs Snapshot")

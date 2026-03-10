@@ -288,7 +288,6 @@ class SparkModelStrTests(TestCase):
         )
         self.assertEqual(str(origin), "O-TEST002 - Cat")
 
-
     def test_cleaned_framework_agreement_str_with_vendor(self):
         agreement = models.CleanedFrameworkAgreement.objects.create(
             agreement_id="FA-TEST001",
@@ -302,3 +301,209 @@ class SparkModelStrTests(TestCase):
             vendor_name="",
         )
         self.assertEqual(str(agreement), "FA-TEST002 - ")
+
+
+class CountryCustomsSnapshotTest(TestCase):
+    def setUp(self):
+        self.snapshot = models.CountryCustomsSnapshot.objects.create(
+            country_name="Kenya",
+            summary_text="Test customs summary for Kenya.",
+            status="success",
+            confidence="High",
+            evidence_hash="abc123",
+            search_query="Kenya customs import",
+        )
+
+    def test_snapshot_str(self):
+        expected = f"Kenya - {self.snapshot.generated_at.strftime('%Y-%m-%d')}"
+        self.assertEqual(str(self.snapshot), expected)
+
+    def test_snapshot_defaults(self):
+        snapshot = models.CountryCustomsSnapshot.objects.create(
+            country_name="Uganda",
+            summary_text="Test summary",
+        )
+        self.assertTrue(snapshot.is_current)
+        self.assertEqual(snapshot.confidence, "Medium")
+        self.assertEqual(snapshot.status, "success")
+        self.assertEqual(snapshot.model_name, "gpt-4")
+        self.assertEqual(snapshot.current_situation_bullets, [])
+        self.assertEqual(snapshot.official_doc_url, "")
+        self.assertEqual(snapshot.official_doc_title, "")
+        self.assertEqual(snapshot.rc_society_url, "")
+        self.assertEqual(snapshot.rc_society_title, "")
+
+    def test_snapshot_with_official_doc(self):
+        snapshot = models.CountryCustomsSnapshot.objects.create(
+            country_name="Tanzania",
+            summary_text="Test summary",
+            official_doc_url="https://customs.gov.tz/regulations",
+            official_doc_title="Tanzania Revenue Authority - Import Regulations",
+        )
+        self.assertEqual(snapshot.official_doc_url, "https://customs.gov.tz/regulations")
+        self.assertEqual(snapshot.official_doc_title, "Tanzania Revenue Authority - Import Regulations")
+
+    def test_snapshot_with_rc_society(self):
+        snapshot = models.CountryCustomsSnapshot.objects.create(
+            country_name="Rwanda",
+            summary_text="Test summary",
+            rc_society_url="https://rwandarcs.org/logistics",
+            rc_society_title="Rwanda Red Cross Society - Logistics Updates",
+        )
+        self.assertEqual(snapshot.rc_society_url, "https://rwandarcs.org/logistics")
+        self.assertEqual(snapshot.rc_society_title, "Rwanda Red Cross Society - Logistics Updates")
+
+    def test_unique_current_snapshot_per_country(self):
+        """Only one is_current=True snapshot per country_name is allowed."""
+        with self.assertRaises(Exception):
+            models.CountryCustomsSnapshot.objects.create(
+                country_name="Kenya",
+                summary_text="Duplicate current snapshot",
+                is_current=True,
+            )
+
+    def test_multiple_non_current_snapshots_allowed(self):
+        self.snapshot.is_current = False
+        self.snapshot.save()
+        models.CountryCustomsSnapshot.objects.create(
+            country_name="Kenya",
+            summary_text="New snapshot",
+            is_current=False,
+        )
+        self.assertEqual(
+            models.CountryCustomsSnapshot.objects.filter(country_name="Kenya").count(),
+            2,
+        )
+
+    def test_cascade_delete_removes_sources_and_snippets(self):
+        source = models.CountryCustomsSource.objects.create(
+            snapshot=self.snapshot,
+            rank=1,
+            url="https://example.com",
+            title="Test Source",
+        )
+        models.CountryCustomsEvidenceSnippet.objects.create(
+            source=source,
+            snippet_order=1,
+            snippet_text="Test snippet text",
+        )
+        self.snapshot.delete()
+        self.assertEqual(models.CountryCustomsSource.objects.count(), 0)
+        self.assertEqual(models.CountryCustomsEvidenceSnippet.objects.count(), 0)
+
+
+class CountryCustomsSourceTest(TestCase):
+    def setUp(self):
+        self.snapshot = models.CountryCustomsSnapshot.objects.create(
+            country_name="Ethiopia",
+            summary_text="Test summary",
+        )
+        self.source = models.CountryCustomsSource.objects.create(
+            snapshot=self.snapshot,
+            rank=1,
+            url="https://customs.gov.et/import",
+            title="Ethiopia Customs Import Guide",
+            publisher="customs.gov.et",
+            authority_score=50,
+            freshness_score=30,
+            relevance_score=25,
+            specificity_score=20,
+            total_score=125,
+        )
+
+    def test_source_str(self):
+        self.assertEqual(str(self.source), "Ethiopia Customs Import Guide (Rank 1)")
+
+    def test_source_defaults(self):
+        source = models.CountryCustomsSource.objects.create(
+            snapshot=self.snapshot,
+            rank=2,
+            url="https://example.com",
+            title="Another Source",
+        )
+        self.assertEqual(source.authority_score, 0)
+        self.assertEqual(source.freshness_score, 0)
+        self.assertEqual(source.relevance_score, 0)
+        self.assertEqual(source.specificity_score, 0)
+        self.assertEqual(source.total_score, 0)
+        self.assertEqual(source.content_hash, "")
+        self.assertIsNone(source.published_at)
+
+    def test_source_ordering(self):
+        models.CountryCustomsSource.objects.create(
+            snapshot=self.snapshot,
+            rank=3,
+            url="https://example.com/3",
+            title="Third",
+        )
+        models.CountryCustomsSource.objects.create(
+            snapshot=self.snapshot,
+            rank=2,
+            url="https://example.com/2",
+            title="Second",
+        )
+        sources = list(self.snapshot.sources.values_list("rank", flat=True))
+        self.assertEqual(sources, [1, 2, 3])
+
+    def test_source_related_name(self):
+        self.assertEqual(self.snapshot.sources.count(), 1)
+        self.assertEqual(self.snapshot.sources.first(), self.source)
+
+
+class CountryCustomsEvidenceSnippetTest(TestCase):
+    def setUp(self):
+        self.snapshot = models.CountryCustomsSnapshot.objects.create(
+            country_name="Somalia",
+            summary_text="Test summary",
+        )
+        self.source = models.CountryCustomsSource.objects.create(
+            snapshot=self.snapshot,
+            rank=1,
+            url="https://example.com",
+            title="Test Source",
+        )
+        self.snippet = models.CountryCustomsEvidenceSnippet.objects.create(
+            source=self.source,
+            snippet_order=1,
+            snippet_text="Humanitarian goods imported into Somalia require a customs declaration form.",
+        )
+
+    def test_snippet_str(self):
+        self.assertEqual(
+            str(self.snippet),
+            "Snippet 1 - Humanitarian goods imported into Somalia require a...",
+        )
+
+    def test_snippet_defaults(self):
+        self.assertEqual(self.snippet.claim_tags, [])
+
+    def test_snippet_ordering(self):
+        models.CountryCustomsEvidenceSnippet.objects.create(
+            source=self.source,
+            snippet_order=3,
+            snippet_text="Third snippet",
+        )
+        models.CountryCustomsEvidenceSnippet.objects.create(
+            source=self.source,
+            snippet_order=2,
+            snippet_text="Second snippet",
+        )
+        orders = list(self.source.snippets.values_list("snippet_order", flat=True))
+        self.assertEqual(orders, [1, 2, 3])
+
+    def test_snippet_related_name(self):
+        self.assertEqual(self.source.snippets.count(), 1)
+        self.assertEqual(self.source.snippets.first(), self.snippet)
+
+    def test_snippet_with_claim_tags(self):
+        snippet = models.CountryCustomsEvidenceSnippet.objects.create(
+            source=self.source,
+            snippet_order=2,
+            snippet_text="Duty-free exemption available for NGOs.",
+            claim_tags=["exemption", "duty-free"],
+        )
+        self.assertEqual(snippet.claim_tags, ["exemption", "duty-free"])
+
+    def test_cascade_delete_source_removes_snippets(self):
+        self.source.delete()
+        self.assertEqual(models.CountryCustomsEvidenceSnippet.objects.count(), 0)

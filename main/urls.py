@@ -21,8 +21,8 @@ from oauth2_provider import urls as oauth2_urls
 # DRF routes
 from rest_framework import routers
 
-from api import drf_views as api_views
 from api import customs_spark_views
+from api import drf_views as api_views
 from api.admin_reports import UsersPerPermissionViewSet
 from api.pro_bono_views import ProBonoServicesView
 from api.views import (
