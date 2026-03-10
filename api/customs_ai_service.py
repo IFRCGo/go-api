@@ -216,11 +216,8 @@ def _retry_api_call(fn, *, max_retries=_MAX_RETRIES, description="API call"):
                 raise
             last_exc = e
 
-        delay = _RETRY_BASE_DELAY * (2 ** attempt)
-        logger.warning(
-            f"{description} failed (attempt {attempt + 1}/{max_retries}), "
-            f"retrying in {delay}s: {last_exc}"
-        )
+        delay = _RETRY_BASE_DELAY * (2**attempt)
+        logger.warning(f"{description} failed (attempt {attempt + 1}/{max_retries}), " f"retrying in {delay}s: {last_exc}")
         time.sleep(delay)
 
     logger.error(f"{description} failed after {max_retries} attempts: {last_exc}")
@@ -380,6 +377,7 @@ class CustomsAIService:
         headers = CustomsAIService._get_brave_headers()
 
         try:
+
             def _search():
                 resp = requests.get(
                     f"{BRAVE_SEARCH_API_BASE_URL}/web/search",
@@ -411,6 +409,7 @@ class CustomsAIService:
         )
 
         try:
+
             def _llm_call():
                 return _get_openai_client().chat.completions.create(
                     model="gpt-4-turbo",
@@ -443,6 +442,7 @@ class CustomsAIService:
         headers = CustomsAIService._get_brave_headers()
 
         try:
+
             def _search():
                 resp = requests.get(
                     f"{BRAVE_SEARCH_API_BASE_URL}/web/search",
@@ -474,6 +474,7 @@ class CustomsAIService:
         )
 
         try:
+
             def _llm_call():
                 return _get_openai_client().chat.completions.create(
                     model="gpt-4-turbo",
@@ -644,6 +645,7 @@ class CustomsAIService:
         headers = CustomsAIService._get_brave_headers()
 
         try:
+
             def _search():
                 resp = requests.get(
                     f"{BRAVE_SEARCH_API_BASE_URL}/web/search",
@@ -679,10 +681,11 @@ class CustomsAIService:
         prompt = _EVIDENCE_EXTRACTION_PROMPT.format(
             query=query,
             results_text=results_text,
-            today=datetime.now().strftime('%Y-%m-%d'),
+            today=datetime.now().strftime("%Y-%m-%d"),
         )
 
         try:
+
             def _llm_call():
                 return _get_openai_client().chat.completions.create(
                     model="gpt-4-turbo",
@@ -1219,6 +1222,7 @@ class CustomsAIService:
         )
 
         try:
+
             def _llm_call():
                 return _get_openai_client().chat.completions.create(
                     model="gpt-4-turbo",
