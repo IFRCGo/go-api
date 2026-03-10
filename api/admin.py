@@ -1207,7 +1207,7 @@ class CountryCustomsSnapshotAdmin(admin.ModelAdmin):
     search_fields = ("country_name",)
     readonly_fields = ("id", "generated_at", "evidence_hash")
     inlines = [CountryCustomsSourceInline]
-    actions = ["regenerate_snapshots"]
+    actions = ["regenerate_snapshots", "generate_all_countries"]
     fieldsets = (
         (
             _("Snapshot Info"),
@@ -1294,6 +1294,37 @@ class CountryCustomsSnapshotAdmin(admin.ModelAdmin):
             request,
             "Re-generation complete: " + "; ".join(results),
             level=messages.SUCCESS,
+        )
+
+    @admin.action(description=_("Generate customs snapshots for ALL countries"))
+    def generate_all_countries(self, request, queryset):
+        # Show warning before proceeding
+        self.message_user(
+            request,
+            _('⚠️ WARNING: This action is TIME CONSUMING and potentially EXPENSIVE. '
+              'It will regenerate customs snapshots for ALL countries using external API calls.'),
+            level=messages.WARNING,
+        )
+
+        country_names = list(
+            models.Country.objects.filter(
+                record_type=models.CountryType.COUNTRY,
+                is_deprecated=False,
+            )
+            .values_list("name", flat=True)
+            .order_by("name")
+        )
+        results = []
+        for name in country_names:
+            results.append(self._regenerate_for_country(name))
+
+        successes = [r for r in results if "failed" not in r]
+        failures = [r for r in results if "failed" in r]
+        self.message_user(
+            request,
+            f"Generation complete: {len(successes)} succeeded, {len(failures)} failed. "
+            + "; ".join(failures[:20]),
+            level=messages.SUCCESS if not failures else messages.WARNING,
         )
 
 
