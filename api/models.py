@@ -3501,7 +3501,7 @@ class CountryCustomsSource(models.Model):
     relevance_score = models.SmallIntegerField(default=0, null=True, blank=True)
     specificity_score = models.SmallIntegerField(default=0, null=True, blank=True)
     total_score = models.SmallIntegerField(default=0, null=True, blank=True)
-    content_hash = models.CharField(max_length=64, blank=True, null=True, help_text="Hash of source's evidence snippets")
+    content_hash = models.CharField(max_length=64, blank=True, default="", help_text="Hash of source's evidence snippets")
 
     class Meta:
         verbose_name = _("Country Customs Source")

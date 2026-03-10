@@ -54,7 +54,6 @@ RUN --mount=type=cache,target=$UV_CACHE_DIR \
 RUN apt-get update -o Acquire::Retries=3 \
   && apt-get install -y --fix-missing libopenmpt0
 
-RUN python -m playwright install --with-deps
 
 # To avoid some SyntaxWarnings ("is" with a literal), still needed on 20241024:
 ENV AZUREROOT=/usr/local/lib/python3.11/site-packages/azure/storage/
