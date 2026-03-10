@@ -1,9 +1,11 @@
 from django.core.management.base import BaseCommand
 from django.db.models import Sum
+from elasticsearch.client import IndicesClient
 from elasticsearch.helpers import bulk
 
+from api.esaliashelper import create_versioned_index, get_alias_targets, swap_alias
 from api.esconnection import ES_CLIENT
-from api.indexes import WAREHOUSE_INDEX_NAME
+from api.indexes import WAREHOUSE_INDEX_NAME, WAREHOUSE_MAPPING, WAREHOUSE_SETTINGS
 from api.logger import logger
 from api.models import (
     DimInventoryTransactionLine,
@@ -26,6 +28,13 @@ class Command(BaseCommand):
             help="Whether to only include lines with item_status_name 'Available' (default: 1)",
         )
         parser.add_argument("--batch-size", type=int, default=500, help="Bulk helper chunk size (default: 500)")
+        parser.add_argument(
+            "--delete-old",
+            type=int,
+            choices=(0, 1),
+            default=0,
+            help="Delete the previous index after a successful alias swap (default: 0)",
+        )
 
     def handle(self, *args, **options):
         if ES_CLIENT is None:
@@ -34,6 +43,24 @@ class Command(BaseCommand):
 
         only_available = options.get("only_available", 1) == 1
         batch_size = options.get("batch_size", 500)
+        delete_old = options.get("delete_old", 0) == 1
+
+        # ------------------------------------------------------------------ #
+        # Resolve the current alias targets BEFORE creating the new index so  #
+        # we know which indexes to remove during the atomic swap later.        #
+        # ------------------------------------------------------------------ #
+        alias_name = WAREHOUSE_INDEX_NAME  # alias the application queries
+        indices_client = IndicesClient(client=ES_CLIENT)
+        old_indexes = get_alias_targets(indices_client, alias_name)
+
+        logger.info("Creating versioned index for alias '%s' (previous: %s)", alias_name, old_indexes or "none")
+        versioned_index = create_versioned_index(
+            es_client=ES_CLIENT,
+            alias_name=alias_name,
+            settings=WAREHOUSE_SETTINGS,
+            mapping=WAREHOUSE_MAPPING,
+        )
+        logger.info("Versioned index '%s' created", versioned_index)
 
         logger.info("Building lookup tables for products, warehouses and categories")
 
@@ -78,6 +105,7 @@ class Command(BaseCommand):
 
         actions = []
         count = 0
+        had_bulk_errors = False
         for row in agg.iterator():
             warehouse_id = safe_str(row.get("warehouse"))
             product_id = safe_str(row.get("product"))
@@ -115,7 +143,7 @@ class Command(BaseCommand):
                 "quantity": qty_num,
             }
 
-            action = {"_op_type": "index", "_index": WAREHOUSE_INDEX_NAME, "_id": doc_id, **doc}
+            action = {"_op_type": "index", "_index": versioned_index, "_id": doc_id, **doc}
             actions.append(action)
             count += 1
 
@@ -125,6 +153,7 @@ class Command(BaseCommand):
                 logger.info(f"Indexed {created} documents (batch)")
                 if errors:
                     logger.error("Errors during bulk index: %s", errors)
+                    had_bulk_errors = True
                 actions = []
 
         # Final flush
@@ -133,5 +162,30 @@ class Command(BaseCommand):
             logger.info(f"Indexed {created} documents (final)")
             if errors:
                 logger.error("Errors during bulk index: %s", errors)
+                had_bulk_errors = True
 
         logger.info(f"Bulk indexing complete. Total documents indexed (approx): {count}")
+
+        if had_bulk_errors:
+            raise RuntimeError(
+                f"Bulk indexing for alias '{alias_name}' completed with errors. "
+                "Alias swap aborted to preserve the existing index."
+            )
+
+        # ------------------------------------------------------------------ #
+        # Atomically swap the alias from old index(es) to the new one.        #
+        # ------------------------------------------------------------------ #
+        logger.info("Swapping alias '%s' -> '%s'", alias_name, versioned_index)
+        swap_alias(
+            indices_client=indices_client,
+            alias_name=alias_name,
+            new_index=versioned_index,
+            old_indexes=old_indexes,
+        )
+        logger.info("Alias '%s' now points to '%s'", alias_name, versioned_index)
+
+        if delete_old and old_indexes:
+            for old_idx in old_indexes:
+                if old_idx != versioned_index:
+                    logger.info("Deleting old index '%s'", old_idx)
+                    indices_client.delete(index=old_idx)
