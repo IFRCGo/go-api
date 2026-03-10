@@ -1,13 +1,11 @@
-from decimal import Decimal
-
-import requests
-from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db.models import Sum
+from elasticsearch.client import IndicesClient
 from elasticsearch.helpers import bulk
 
+from api.esaliashelper import create_versioned_index, get_alias_targets, swap_alias
 from api.esconnection import ES_CLIENT
-from api.indexes import WAREHOUSE_INDEX_NAME
+from api.indexes import WAREHOUSE_INDEX_NAME, WAREHOUSE_MAPPING, WAREHOUSE_SETTINGS
 from api.logger import logger
 from api.models import (
     DimInventoryTransactionLine,
@@ -15,56 +13,7 @@ from api.models import (
     DimProductCategory,
     DimWarehouse,
 )
-
-
-def _safe_str(v):
-    return "" if v is None else str(v)
-
-
-def _fetch_goadmin_maps():
-    GOADMIN_COUNTRY_URL_DEFAULT = "https://goadmin.ifrc.org/api/v2/country/?limit=300"
-    url = getattr(settings, "GOADMIN_COUNTRY_URL", GOADMIN_COUNTRY_URL_DEFAULT)
-    try:
-        resp = requests.get(url, timeout=15)
-        resp.raise_for_status()
-        data = resp.json()
-        results = data.get("results", data) or []
-    except Exception:
-        return {}, {}, {}
-
-    region_code_to_name = {}
-    for r in results:
-        if r.get("record_type_display") == "Region":
-            code = r.get("region")
-            name = r.get("name")
-            if isinstance(code, int) and name:
-                region_code_to_name[code] = str(name)
-
-    iso2_to_iso3 = {}
-    iso3_to_country_name = {}
-    iso3_to_region_name = {}
-
-    for r in results:
-        if r.get("record_type_display") != "Country":
-            continue
-
-        iso2 = r.get("iso")
-        iso3 = r.get("iso3")
-        country_name = r.get("name")
-        region_code = r.get("region")
-
-        if iso2 and iso3:
-            iso2_to_iso3[str(iso2).upper()] = str(iso3).upper()
-
-        if iso3 and country_name:
-            iso3_to_country_name[str(iso3).upper()] = str(country_name)
-
-        if iso3 and isinstance(region_code, int):
-            region_full = region_code_to_name.get(region_code)
-            if region_full:
-                iso3_to_region_name[str(iso3).upper()] = str(region_full).replace(" Region", "")
-
-    return iso2_to_iso3, iso3_to_country_name, iso3_to_region_name
+from api.utils import derive_country_iso3, fetch_goadmin_maps, safe_str, to_float
 
 
 class Command(BaseCommand):
@@ -79,6 +28,13 @@ class Command(BaseCommand):
             help="Whether to only include lines with item_status_name 'Available' (default: 1)",
         )
         parser.add_argument("--batch-size", type=int, default=500, help="Bulk helper chunk size (default: 500)")
+        parser.add_argument(
+            "--delete-old",
+            type=int,
+            choices=(0, 1),
+            default=0,
+            help="Delete the previous index after a successful alias swap (default: 0)",
+        )
 
     def handle(self, *args, **options):
         if ES_CLIENT is None:
@@ -87,15 +43,33 @@ class Command(BaseCommand):
 
         only_available = options.get("only_available", 1) == 1
         batch_size = options.get("batch_size", 500)
+        delete_old = options.get("delete_old", 0) == 1
+
+        # ------------------------------------------------------------------ #
+        # Resolve the current alias targets BEFORE creating the new index so  #
+        # we know which indexes to remove during the atomic swap later.        #
+        # ------------------------------------------------------------------ #
+        alias_name = WAREHOUSE_INDEX_NAME  # alias the application queries
+        indices_client = IndicesClient(client=ES_CLIENT)
+        old_indexes = get_alias_targets(indices_client, alias_name)
+
+        logger.info("Creating versioned index for alias '%s' (previous: %s)", alias_name, old_indexes or "none")
+        versioned_index = create_versioned_index(
+            es_client=ES_CLIENT,
+            alias_name=alias_name,
+            settings=WAREHOUSE_SETTINGS,
+            mapping=WAREHOUSE_MAPPING,
+        )
+        logger.info("Versioned index '%s' created", versioned_index)
 
         logger.info("Building lookup tables for products, warehouses and categories")
 
         warehouses = DimWarehouse.objects.all().values("id", "name", "country")
         wh_by_id = {
             str(w["id"]): {
-                "warehouse_name": _safe_str(w.get("name")),
-                "country_iso3_raw": _safe_str(w.get("country")).upper(),
-                "warehouse_id_raw": _safe_str(w.get("id")),
+                "warehouse_name": safe_str(w.get("name")),
+                "country_iso3_raw": safe_str(w.get("country")).upper(),  # may be empty
+                "warehouse_id_raw": safe_str(w.get("id")),
             }
             for w in warehouses
         }
@@ -108,18 +82,18 @@ class Command(BaseCommand):
         )
         prod_by_id = {
             str(p["id"]): {
-                "item_number": _safe_str(p.get("id")),
-                "item_name": _safe_str(p.get("name")),
-                "unit": _safe_str(p.get("unit_of_measure")),
-                "product_category_code": _safe_str(p.get("product_category")),
+                "item_number": safe_str(p.get("id")),
+                "item_name": safe_str(p.get("name")),
+                "unit": safe_str(p.get("unit_of_measure")),
+                "product_category_code": safe_str(p.get("product_category")),
             }
             for p in products
         }
 
         categories = DimProductCategory.objects.all().values("category_code", "name")
-        cat_by_code = {str(c["category_code"]): _safe_str(c.get("name")) for c in categories}
+        cat_by_code = {str(c["category_code"]): safe_str(c.get("name")) for c in categories}
 
-        iso2_to_iso3, iso3_to_country_name, iso3_to_region_name = _fetch_goadmin_maps()
+        iso2_to_iso3, iso3_to_country_name, iso3_to_region_name = fetch_goadmin_maps()
 
         logger.info("Querying transaction lines and aggregating by warehouse+product")
         q = DimInventoryTransactionLine.objects.all()
@@ -130,39 +104,27 @@ class Command(BaseCommand):
 
         actions = []
         count = 0
+        had_bulk_errors = False
         for row in agg.iterator():
-            warehouse_id = _safe_str(row.get("warehouse"))
-            product_id = _safe_str(row.get("product"))
+            warehouse_id = safe_str(row.get("warehouse"))
+            product_id = safe_str(row.get("product"))
 
             wh = wh_by_id.get(warehouse_id)
             prod = prod_by_id.get(product_id)
             if not wh or not prod:
                 continue
 
-            qty = row.get("quantity")
-            if qty is None:
-                qty_num = None
-            elif isinstance(qty, Decimal):
-                try:
-                    qty_num = float(qty)
-                except Exception:
-                    qty_num = None
-            else:
-                try:
-                    qty_num = float(qty)
-                except Exception:
-                    qty_num = None
+            qty_num = to_float(row.get("quantity"))
 
-            status_val = _safe_str(row.get("item_status_name"))
+            status_val = safe_str(row.get("item_status_name"))
+            # include status in doc id to avoid collisions when multiple statuses exist
             doc_id = f"{warehouse_id}__{product_id}__{status_val}"
 
-            country_iso3_raw = wh.get("country_iso3_raw") or ""
-            if country_iso3_raw:
-                country_iso3 = country_iso3_raw
-            else:
-                wh_id_raw = wh.get("warehouse_id_raw") or ""
-                iso2_prefix = wh_id_raw[:2].upper() if len(wh_id_raw) >= 2 else ""
-                country_iso3 = iso2_to_iso3.get(iso2_prefix, "")
+            country_iso3 = derive_country_iso3(
+                wh.get("warehouse_id_raw") or "",
+                iso2_to_iso3,
+                wh.get("country_iso3_raw") or "",
+            )
 
             doc = {
                 "id": doc_id,
@@ -180,7 +142,7 @@ class Command(BaseCommand):
                 "quantity": qty_num,
             }
 
-            action = {"_op_type": "index", "_index": WAREHOUSE_INDEX_NAME, "_id": doc_id, **doc}
+            action = {"_op_type": "index", "_index": versioned_index, "_id": doc_id, **doc}
             actions.append(action)
             count += 1
 
@@ -189,6 +151,7 @@ class Command(BaseCommand):
                 logger.info(f"Indexed {created} documents (batch)")
                 if errors:
                     logger.error("Errors during bulk index: %s", errors)
+                    had_bulk_errors = True
                 actions = []
 
         if actions:
@@ -196,5 +159,30 @@ class Command(BaseCommand):
             logger.info(f"Indexed {created} documents (final)")
             if errors:
                 logger.error("Errors during bulk index: %s", errors)
+                had_bulk_errors = True
 
         logger.info(f"Bulk indexing complete. Total documents indexed (approx): {count}")
+
+        if had_bulk_errors:
+            raise RuntimeError(
+                f"Bulk indexing for alias '{alias_name}' completed with errors. "
+                "Alias swap aborted to preserve the existing index."
+            )
+
+        # ------------------------------------------------------------------ #
+        # Atomically swap the alias from old index(es) to the new one.        #
+        # ------------------------------------------------------------------ #
+        logger.info("Swapping alias '%s' -> '%s'", alias_name, versioned_index)
+        swap_alias(
+            indices_client=indices_client,
+            alias_name=alias_name,
+            new_index=versioned_index,
+            old_indexes=old_indexes,
+        )
+        logger.info("Alias '%s' now points to '%s'", alias_name, versioned_index)
+
+        if delete_old and old_indexes:
+            for old_idx in old_indexes:
+                if old_idx != versioned_index:
+                    logger.info("Deleting old index '%s'", old_idx)
+                    indices_client.delete(index=old_idx)

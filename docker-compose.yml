@@ -63,6 +63,7 @@ x-server: &base_server_setup
 
   volumes:
     - ".:/home/ifrc/go-api"
+    - "~/.azure:/root/.azure"
 
   depends_on:
     - db
@@ -205,6 +206,11 @@ services:
   ingest_mdb:
     <<: *base_server_setup
     command: python manage.py ingest_mdb
+    profiles: [cli]
+
+  pull_fabric_data:
+    <<: *base_server_setup
+    command: python manage.py pull_fabric_data
     profiles: [cli]
 
   migrate:

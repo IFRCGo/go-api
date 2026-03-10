@@ -152,6 +152,8 @@ env = environ.Env(
     POWERBI_DATASET_IDS=(str, None),
     # OpenAI API (for customs updates)
     OPENAI_API_KEY=(str, None),
+    # Brave Search API (for customs/export web search)
+    BRAVE_SEARCH_API_KEY=(str, None),
 )
 
 
@@ -867,6 +869,9 @@ AZURE_OPENAI_DEPLOYMENT_NAME = env("AZURE_OPENAI_DEPLOYMENT_NAME")
 
 # OpenAI API for customs updates
 OPENAI_API_KEY = env("OPENAI_API_KEY")
+
+# Brave Search API for customs/export web search
+BRAVE_SEARCH_API_KEY = env("BRAVE_SEARCH_API_KEY")
 
 OIDC_ENABLE = env("OIDC_ENABLE")
 OIDC_RSA_PRIVATE_KEY = None

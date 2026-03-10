@@ -3450,6 +3450,14 @@ class CountryCustomsSnapshot(models.Model):
     search_query = models.TextField(blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="success", null=True, blank=True)
     error_message = models.TextField(blank=True, null=True)
+    official_doc_url = models.URLField(
+        max_length=2048, blank=True, help_text="URL to the country's official customs documentation"
+    )
+    official_doc_title = models.CharField(max_length=500, blank=True, help_text="Title of the official customs documentation")
+    rc_society_url = models.URLField(
+        max_length=2048, blank=True, help_text="URL to the country's Red Cross/Red Crescent society page"
+    )
+    rc_society_title = models.CharField(max_length=500, blank=True, help_text="Title of the Red Cross/Red Crescent society page")
 
     class Meta:
         verbose_name = _("Country Customs Snapshot")
@@ -3493,7 +3501,7 @@ class CountryCustomsSource(models.Model):
     relevance_score = models.SmallIntegerField(default=0, null=True, blank=True)
     specificity_score = models.SmallIntegerField(default=0, null=True, blank=True)
     total_score = models.SmallIntegerField(default=0, null=True, blank=True)
-    content_hash = models.CharField(max_length=64, blank=True, null=True, help_text="Hash of source's evidence snippets")
+    content_hash = models.CharField(max_length=64, blank=True, default="", help_text="Hash of source's evidence snippets")
 
     class Meta:
         verbose_name = _("Country Customs Source")
@@ -3534,119 +3542,3 @@ class CountryCustomsEvidenceSnippet(models.Model):
 
     def __str__(self):
         return f"Snippet {self.snippet_order} - {self.snippet_text[:50]}..."
-
-
-class CountryExportSnapshot(models.Model):
-    """
-    Stores generated export regulation summaries per country.
-    Only one current snapshot per country (is_current = true).
-    """
-
-    STATUS_CHOICES = [
-        ("success", "Success"),
-        ("partial", "Partial"),
-        ("failed", "Failed"),
-    ]
-
-    CONFIDENCE_CHOICES = [
-        ("High", "High"),
-        ("Medium", "Medium"),
-        ("Low", "Low"),
-    ]
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    country_name = models.CharField(max_length=255, db_index=True, null=True, blank=True)
-    is_current = models.BooleanField(default=True, null=True, blank=True)
-    generated_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
-    model_name = models.CharField(max_length=100, default="gpt-4", null=True, blank=True)
-    confidence = models.CharField(max_length=20, choices=CONFIDENCE_CHOICES, default="Medium", null=True, blank=True)
-    summary_text = models.TextField(blank=True, default="", null=True)
-    current_situation_bullets = models.JSONField(default=list, help_text="Array of bullet point strings", null=True, blank=True)
-    evidence_hash = models.CharField(max_length=64, blank=True, null=True, help_text="Hash of all source hashes")
-    search_query = models.TextField(blank=True, null=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="success", null=True, blank=True)
-    error_message = models.TextField(blank=True, null=True)
-
-    class Meta:
-        verbose_name = _("Country Export Snapshot")
-        verbose_name_plural = _("Country Export Snapshots")
-        indexes = [
-            models.Index(fields=["country_name", "-generated_at"], name="export_country_date_idx"),
-        ]
-        constraints = [
-            models.UniqueConstraint(
-                fields=["country_name"],
-                condition=models.Q(is_current=True),
-                name="unique_current_country_export_snapshot",
-            ),
-        ]
-
-    def __str__(self):
-        return f"{self.country_name} Export - {self.generated_at.strftime('%Y-%m-%d')}"
-
-
-class CountryExportSource(models.Model):
-    """
-    Stores source metadata and credibility scores for an export snapshot.
-    """
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    snapshot = models.ForeignKey(
-        CountryExportSnapshot,
-        on_delete=models.CASCADE,
-        related_name="sources",
-        null=True,
-        blank=True,
-    )
-    rank = models.PositiveSmallIntegerField(help_text="Ranking by total score (1-3)", null=True, blank=True)
-    url = models.URLField(max_length=2048, null=True, blank=True)
-    title = models.CharField(max_length=500, null=True, blank=True)
-    publisher = models.CharField(max_length=255, blank=True, null=True)
-    published_at = models.DateTimeField(null=True, blank=True)
-    retrieved_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
-    authority_score = models.SmallIntegerField(default=0, null=True, blank=True)
-    freshness_score = models.SmallIntegerField(default=0, null=True, blank=True)
-    relevance_score = models.SmallIntegerField(default=0, null=True, blank=True)
-    specificity_score = models.SmallIntegerField(default=0, null=True, blank=True)
-    total_score = models.SmallIntegerField(default=0, null=True, blank=True)
-    content_hash = models.CharField(max_length=64, blank=True, null=True, help_text="Hash of source's evidence snippets")
-
-    class Meta:
-        verbose_name = _("Country Export Source")
-        verbose_name_plural = _("Country Export Sources")
-        indexes = [
-            models.Index(fields=["snapshot", "rank"], name="export_source_rank_idx"),
-        ]
-        ordering = ["snapshot", "rank"]
-
-    def __str__(self):
-        return f"{self.title} (Rank {self.rank})"
-
-
-class CountryExportEvidenceSnippet(models.Model):
-    """
-    Stores individual evidence snippets extracted from an export source.
-    """
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    source = models.ForeignKey(
-        CountryExportSource,
-        on_delete=models.CASCADE,
-        related_name="snippets",
-        null=True,
-        blank=True,
-    )
-    snippet_order = models.PositiveSmallIntegerField(null=True, blank=True)
-    snippet_text = models.TextField(null=True, blank=True)
-    claim_tags = models.JSONField(default=list, blank=True, null=True, help_text="Optional: array of tags")
-
-    class Meta:
-        verbose_name = _("Country Export Evidence Snippet")
-        verbose_name_plural = _("Country Export Evidence Snippets")
-        indexes = [
-            models.Index(fields=["source", "snippet_order"], name="export_snippet_order_idx"),
-        ]
-        ordering = ["source", "snippet_order"]
-
-    def __str__(self):
-        return f"Export Snippet {self.snippet_order} - {self.snippet_text[:50]}..."

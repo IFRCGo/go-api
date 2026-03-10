@@ -17,7 +17,7 @@ from api.models import (
     DimVendorPhysicalAddress,
     FctAgreement,
 )
-from api.warehouse_stocks_views import _fetch_goadmin_maps
+from api.utils import fetch_goadmin_maps as _fetch_goadmin_maps
 
 
 def _queryset_to_spark_df(spark: SparkSession, rows):

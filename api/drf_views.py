@@ -2,7 +2,7 @@ import logging
 from datetime import timedelta
 
 from django.contrib.auth.models import Group, User
-from django.db import IntegrityError, models
+from django.db import models
 from django.db.models import (
     Avg,
     Case,
@@ -23,7 +23,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django_filters import rest_framework as rest_filters
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import filters, mixins, serializers, status, viewsets
+from rest_framework import filters, mixins, serializers, viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
@@ -47,39 +47,6 @@ from api.filter_set import (
     EventFilter,
     EventSeverityLevelHistoryFilter,
     EventSnippetFilter,
-    FabricDimAgreementLineFilter,
-    FabricDimAppealFilter,
-    FabricDimBuyerGroupFilter,
-    FabricDimConsignmentFilter,
-    FabricDimDeliveryModeFilter,
-    FabricDimDonorFilter,
-    FabricDimInventoryItemFilter,
-    FabricDimInventoryItemStatusFilter,
-    FabricDimInventoryModuleFilter,
-    FabricDimInventoryOwnerFilter,
-    FabricDimInventoryTransactionFilter,
-    FabricDimInventoryTransactionLineFilter,
-    FabricDimInventoryTransactionOriginFilter,
-    FabricDimItemBatchFilter,
-    FabricDimLocationFilter,
-    FabricDimLogisticsLocationFilter,
-    FabricDimPackingSlipLineFilter,
-    FabricDimProductCategoryFilter,
-    FabricDimProductFilter,
-    FabricDimProductReceiptLineFilter,
-    FabricDimProjectFilter,
-    FabricDimSalesOrderLineFilter,
-    FabricDimSiteFilter,
-    FabricDimVendorContactEmailFilter,
-    FabricDimVendorContactFilter,
-    FabricDimVendorFilter,
-    FabricDimVendorPhysicalAddressFilter,
-    FabricDimWarehouseFilter,
-    FabricFctAgreementFilter,
-    FabricFctProductReceiptFilter,
-    FabricFctPurchaseOrderFilter,
-    FabricFctSalesOrderFilter,
-    FabricProductCategoryHierarchyFlattenedFilter,
     FieldReportFilter,
     GoHistoricalFilter,
     RegionKeyFigureFilter,
@@ -102,8 +69,6 @@ from main.utils import is_tableau
 from per.models import Overview
 from per.serializers import CountryLatestOverviewSerializer
 
-from .customs_ai_service import CustomsAIService
-from .customs_data_loader import load_customs_regulations
 from .esconnection import ES_CLIENT
 from .exceptions import BadRequest
 from .indexes import CLEANED_FRAMEWORK_AGREEMENTS_INDEX_NAME
@@ -116,40 +81,11 @@ from .models import (
     AppealType,
     CleanedFrameworkAgreement,
     Country,
-    CountryCustomsSnapshot,
     CountryKeyDocument,
     CountryKeyFigure,
     CountryOfFieldReportToReview,
     CountrySnippet,
     CountrySupportingPartner,
-    DimAgreementLine,
-    DimAppeal,
-    DimBuyerGroup,
-    DimConsignment,
-    DimDeliveryMode,
-    DimDonor,
-    DimInventoryItem,
-    DimInventoryItemStatus,
-    DimInventoryModule,
-    DimInventoryOwner,
-    DimInventoryTransaction,
-    DimInventoryTransactionLine,
-    DimInventoryTransactionOrigin,
-    DimItemBatch,
-    DimLocation,
-    DimLogisticsLocation,
-    DimPackingSlipLine,
-    DimProduct,
-    DimProductCategory,
-    DimProductReceiptLine,
-    DimProject,
-    DimSalesOrderLine,
-    DimSite,
-    DimVendor,
-    DimVendorContact,
-    DimVendorContactEmail,
-    DimVendorPhysicalAddress,
-    DimWarehouse,
     DisasterType,
     District,
     Event,
@@ -157,13 +93,8 @@ from .models import (
     EventSeverityLevelHistory,
     Export,
     ExternalPartner,
-    FctAgreement,
-    FctProductReceipt,
-    FctPurchaseOrder,
-    FctSalesOrder,
     FieldReport,
     MainContact,
-    ProductCategoryHierarchyFlattened,
     Profile,
     Region,
     RegionKeyFigure,
@@ -182,7 +113,6 @@ from .serializers import (  # AppealSerializer,; Tableau Serializers; AppealTabl
     AppealDocumentTableauSerializer,
     AppealHistorySerializer,
     AppealHistoryTableauSerializer,
-    CountryCustomsSnapshotSerializer,
     CountryDisasterTypeCountSerializer,
     CountryDisasterTypeMonthlySerializer,
     CountryGeoSerializer,
@@ -190,7 +120,6 @@ from .serializers import (  # AppealSerializer,; Tableau Serializers; AppealTabl
     CountryKeyFigureInputSerializer,
     CountryKeyFigureSerializer,
     CountryOfFieldReportToReviewSerializer,
-    CountryRegulationSerializer,
     CountryRelationSerializer,
     CountrySerializerRMD,
     CountrySnippetSerializer,
@@ -206,39 +135,6 @@ from .serializers import (  # AppealSerializer,; Tableau Serializers; AppealTabl
     ExportSerializer,
     ExternalPartnerSerializer,
     FabricCleanedFrameworkAgreementSerializer,
-    FabricDimAgreementLineSerializer,
-    FabricDimAppealSerializer,
-    FabricDimBuyerGroupSerializer,
-    FabricDimConsignmentSerializer,
-    FabricDimDeliveryModeSerializer,
-    FabricDimDonorSerializer,
-    FabricDimInventoryItemSerializer,
-    FabricDimInventoryItemStatusSerializer,
-    FabricDimInventoryModuleSerializer,
-    FabricDimInventoryOwnerSerializer,
-    FabricDimInventoryTransactionLineSerializer,
-    FabricDimInventoryTransactionOriginSerializer,
-    FabricDimInventoryTransactionSerializer,
-    FabricDimItemBatchSerializer,
-    FabricDimLocationSerializer,
-    FabricDimLogisticsLocationSerializer,
-    FabricDimPackingSlipLineSerializer,
-    FabricDimProductCategorySerializer,
-    FabricDimProductReceiptLineSerializer,
-    FabricDimProductSerializer,
-    FabricDimProjectSerializer,
-    FabricDimSalesOrderLineSerializer,
-    FabricDimSiteSerializer,
-    FabricDimVendorContactEmailSerializer,
-    FabricDimVendorContactSerializer,
-    FabricDimVendorPhysicalAddressSerializer,
-    FabricDimVendorSerializer,
-    FabricDimWarehouseSerializer,
-    FabricFctAgreementSerializer,
-    FabricFctProductReceiptSerializer,
-    FabricFctPurchaseOrderSerializer,
-    FabricFctSalesOrderSerializer,
-    FabricProductCategoryHierarchyFlattenedSerializer,
     FieldReportGeneratedTitleSerializer,
     FieldReportGenerateTitleSerializer,
     FieldReportSerializer,
@@ -2183,461 +2079,3 @@ class CleanedFrameworkAgreementMapStatsView(APIView):
             entry["vendorCountryAgreements"] = row.get("agreement_count", 0)
 
         return Response({"results": list(results.values())})
-
-
-class FabricDimAgreementLineViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = FabricDimAgreementLineSerializer
-    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
-    filterset_class = FabricDimAgreementLineFilter
-
-    def get_queryset(self):
-        return DimAgreementLine.objects.all()
-
-
-class FabricDimAppealViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = FabricDimAppealSerializer
-    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
-    filterset_class = FabricDimAppealFilter
-
-    def get_queryset(self):
-        return DimAppeal.objects.all()
-
-
-class FabricDimBuyerGroupViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = FabricDimBuyerGroupSerializer
-    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
-    filterset_class = FabricDimBuyerGroupFilter
-
-    def get_queryset(self):
-        return DimBuyerGroup.objects.all()
-
-
-class FabricDimConsignmentViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = FabricDimConsignmentSerializer
-    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
-    filterset_class = FabricDimConsignmentFilter
-
-    def get_queryset(self):
-        return DimConsignment.objects.all()
-
-
-class FabricDimDeliveryModeViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = FabricDimDeliveryModeSerializer
-    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
-    filterset_class = FabricDimDeliveryModeFilter
-
-    def get_queryset(self):
-        return DimDeliveryMode.objects.all()
-
-
-class FabricDimDonorViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = FabricDimDonorSerializer
-    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
-    filterset_class = FabricDimDonorFilter
-
-    def get_queryset(self):
-        return DimDonor.objects.all()
-
-
-class FabricDimInventoryItemViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = FabricDimInventoryItemSerializer
-    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
-    filterset_class = FabricDimInventoryItemFilter
-
-    def get_queryset(self):
-        return DimInventoryItem.objects.all()
-
-
-class FabricDimInventoryItemStatusViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = FabricDimInventoryItemStatusSerializer
-    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
-    filterset_class = FabricDimInventoryItemStatusFilter
-
-    def get_queryset(self):
-        return DimInventoryItemStatus.objects.all()
-
-
-class FabricDimInventoryModuleViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = FabricDimInventoryModuleSerializer
-    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
-    filterset_class = FabricDimInventoryModuleFilter
-
-    def get_queryset(self):
-        return DimInventoryModule.objects.all()
-
-
-class FabricDimInventoryOwnerViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = FabricDimInventoryOwnerSerializer
-    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
-    filterset_class = FabricDimInventoryOwnerFilter
-
-    def get_queryset(self):
-        return DimInventoryOwner.objects.all()
-
-
-class FabricDimInventoryTransactionViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = FabricDimInventoryTransactionSerializer
-    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
-    filterset_class = FabricDimInventoryTransactionFilter
-
-    def get_queryset(self):
-        return DimInventoryTransaction.objects.all()
-
-
-class FabricDimInventoryTransactionLineViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = FabricDimInventoryTransactionLineSerializer
-    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
-    filterset_class = FabricDimInventoryTransactionLineFilter
-
-    def get_queryset(self):
-        return DimInventoryTransactionLine.objects.all()
-
-
-class FabricDimInventoryTransactionOriginViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = FabricDimInventoryTransactionOriginSerializer
-    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
-    filterset_class = FabricDimInventoryTransactionOriginFilter
-
-    def get_queryset(self):
-        return DimInventoryTransactionOrigin.objects.all()
-
-
-class FabricDimItemBatchViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = FabricDimItemBatchSerializer
-    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
-    filterset_class = FabricDimItemBatchFilter
-
-    def get_queryset(self):
-        return DimItemBatch.objects.all()
-
-
-class FabricDimLocationViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = FabricDimLocationSerializer
-    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
-    filterset_class = FabricDimLocationFilter
-
-    def get_queryset(self):
-        return DimLocation.objects.all()
-
-
-class FabricDimLogisticsLocationViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = FabricDimLogisticsLocationSerializer
-    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
-    filterset_class = FabricDimLogisticsLocationFilter
-
-    def get_queryset(self):
-        return DimLogisticsLocation.objects.all()
-
-
-class FabricDimPackingSlipLineViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = FabricDimPackingSlipLineSerializer
-    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
-    filterset_class = FabricDimPackingSlipLineFilter
-
-    def get_queryset(self):
-        return DimPackingSlipLine.objects.all()
-
-
-class FabricDimProductViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = FabricDimProductSerializer
-    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
-    filterset_class = FabricDimProductFilter
-
-    def get_queryset(self):
-        return DimProduct.objects.all()
-
-
-class FabricDimProductCategoryViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = FabricDimProductCategorySerializer
-    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
-    filterset_class = FabricDimProductCategoryFilter
-
-    def get_queryset(self):
-        return DimProductCategory.objects.all()
-
-
-class FabricDimProductReceiptLineViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = FabricDimProductReceiptLineSerializer
-    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
-    filterset_class = FabricDimProductReceiptLineFilter
-
-    def get_queryset(self):
-        return DimProductReceiptLine.objects.all()
-
-
-class FabricDimProjectViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = FabricDimProjectSerializer
-    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
-    filterset_class = FabricDimProjectFilter
-
-    def get_queryset(self):
-        return DimProject.objects.all()
-
-
-class FabricDimSalesOrderLineViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = FabricDimSalesOrderLineSerializer
-    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
-    filterset_class = FabricDimSalesOrderLineFilter
-
-    def get_queryset(self):
-        return DimSalesOrderLine.objects.all()
-
-
-class FabricDimSiteViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = FabricDimSiteSerializer
-    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
-    filterset_class = FabricDimSiteFilter
-
-    def get_queryset(self):
-        return DimSite.objects.all()
-
-
-class FabricDimVendorViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = FabricDimVendorSerializer
-    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
-    filterset_class = FabricDimVendorFilter
-
-    def get_queryset(self):
-        return DimVendor.objects.all()
-
-
-class FabricDimVendorContactViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = FabricDimVendorContactSerializer
-    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
-    filterset_class = FabricDimVendorContactFilter
-
-    def get_queryset(self):
-        return DimVendorContact.objects.all()
-
-
-class FabricDimVendorContactEmailViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = FabricDimVendorContactEmailSerializer
-    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
-    filterset_class = FabricDimVendorContactEmailFilter
-
-    def get_queryset(self):
-        return DimVendorContactEmail.objects.all()
-
-
-class FabricDimVendorPhysicalAddressViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = FabricDimVendorPhysicalAddressSerializer
-    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
-    filterset_class = FabricDimVendorPhysicalAddressFilter
-
-    def get_queryset(self):
-        return DimVendorPhysicalAddress.objects.all()
-
-
-class FabricDimWarehouseViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = FabricDimWarehouseSerializer
-    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
-    filterset_class = FabricDimWarehouseFilter
-
-    def get_queryset(self):
-        return DimWarehouse.objects.all()
-
-
-class FabricFctAgreementViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = FabricFctAgreementSerializer
-    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
-    filterset_class = FabricFctAgreementFilter
-
-    def get_queryset(self):
-        return FctAgreement.objects.all()
-
-
-class FabricFctProductReceiptViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = FabricFctProductReceiptSerializer
-    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
-    filterset_class = FabricFctProductReceiptFilter
-
-    def get_queryset(self):
-        return FctProductReceipt.objects.all()
-
-
-class FabricFctPurchaseOrderViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = FabricFctPurchaseOrderSerializer
-    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
-    filterset_class = FabricFctPurchaseOrderFilter
-
-    def get_queryset(self):
-        return FctPurchaseOrder.objects.all()
-
-
-class FabricFctSalesOrderViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = FabricFctSalesOrderSerializer
-    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
-    filterset_class = FabricFctSalesOrderFilter
-
-    def get_queryset(self):
-        return FctSalesOrder.objects.all()
-
-
-class FabricProductCategoryHierarchyFlattenedViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = FabricProductCategoryHierarchyFlattenedSerializer
-    permission_classes = [IsAuthenticated, DenyGuestUserPermission]
-    filterset_class = FabricProductCategoryHierarchyFlattenedFilter
-
-    def get_queryset(self):
-        return ProductCategoryHierarchyFlattened.objects.all()
-
-
-class CustomsRegulationsView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        try:
-            data = load_customs_regulations()
-            return Response(data, status=status.HTTP_200_OK)
-        except Exception:
-            return Response(
-                {"detail": "Failed to load customs regulations"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
-
-
-class CustomsRegulationCountryView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, country):
-        try:
-            data = load_customs_regulations()
-
-            for c in data.get("countries", []):
-                if c.get("country", "").lower() == country.lower():
-                    serializer = CountryRegulationSerializer(c)
-                    return Response(serializer.data, status=status.HTTP_200_OK)
-
-            return Response({"detail": "Country not found"}, status=status.HTTP_404_NOT_FOUND)
-        except Exception:
-            return Response(
-                {"detail": "Failed to load country regulations"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
-
-
-class CustomsUpdatesView(APIView):
-    """
-    List available AI-generated customs updates.
-    GET /api/v2/customs-ai-updates/ - List all countries with current snapshots
-    """
-
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        try:
-            snapshots = CountryCustomsSnapshot.objects.filter(is_current=True).order_by("country_name")
-            serializer = CountryCustomsSnapshotSerializer(snapshots, many=True)
-            return Response({"results": serializer.data}, status=status.HTTP_200_OK)
-        except Exception as e:
-            logger.error(f"Failed to list customs updates: {str(e)}")
-            return Response(
-                {"detail": "Failed to load customs updates"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
-
-
-class CustomsUpdatesCountryView(APIView):
-    """
-    Get or generate AI-powered customs update for a country.
-    GET /api/v2/customs-ai-updates/<country>/ - Get snapshot, or generate if doesn't exist
-    """
-
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, country):
-        try:
-            country_name = country.strip()
-
-            existing_snapshot = CountryCustomsSnapshot.objects.filter(
-                country_name__iexact=country_name,
-                is_current=True,
-            ).first()
-
-            if existing_snapshot:
-                logger.info(f"Returning existing snapshot for {country_name}")
-                serializer = CountryCustomsSnapshotSerializer(existing_snapshot)
-                return Response(serializer.data, status=status.HTTP_200_OK)
-
-            logger.info(f"No snapshot found for {country_name}, validating and generating...")
-
-            is_valid, error_msg = CustomsAIService.validate_country_name(country_name)
-            if not is_valid:
-                logger.warning(f"Invalid country name: {country_name}")
-                return Response(
-                    {"detail": error_msg or f"'{country_name}' is not a recognized country."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            logger.info(f"Country '{country_name}' validation passed, generating snapshot...")
-            snapshot = CustomsAIService.generate_customs_snapshot(country_name)
-
-            if snapshot.status == "failed":
-                logger.error(f"Generation failed for {country_name}: {snapshot.error_message}")
-                return Response(
-                    {
-                        "detail": snapshot.error_message or "Failed to generate customs update",
-                        "country": country_name,
-                    },
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                )
-
-            serializer = CountryCustomsSnapshotSerializer(snapshot)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-        except IntegrityError:
-            # Incase another request created the snapshot while we were generating
-            # Return the existing snapshot instead
-            logger.info(f"Race condition detected for {country}, returning existing snapshot")
-            existing_snapshot = CountryCustomsSnapshot.objects.filter(
-                country_name__iexact=country.strip(),
-                is_current=True,
-            ).first()
-            if existing_snapshot:
-                serializer = CountryCustomsSnapshotSerializer(existing_snapshot)
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(
-                {"detail": "An error occurred while processing customs update"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
-
-        except Exception as e:
-            logger.error(f"Exception in customs update endpoint for {country}: {str(e)}")
-            return Response(
-                {"detail": "An error occurred while processing customs update"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
-
-    def delete(self, request, country):  # logic is rudimentary needs update to force update so it generates new snapshot
-        """
-        Delete all customs snapshots for a country.
-        DELETE /api/v2/customs-ai-updates/<country>/ - Delete all snapshots for country
-        """
-        try:
-            country_name = country.strip()
-
-            # Find all snapshots for this country (case-insensitive)
-            snapshots = CountryCustomsSnapshot.objects.filter(country_name__iexact=country_name)
-            count = snapshots.count()
-
-            if count == 0:
-                return Response(
-                    {"detail": f"No customs data found for '{country_name}'"},
-                    status=status.HTTP_404_NOT_FOUND,
-                )
-
-            # Delete all snapshots (cascades to sources and evidence snippets)
-            snapshots.delete()
-
-            logger.info(f"Deleted {count} customs snapshot(s) for {country_name}")
-            return Response(
-                {"detail": f"Successfully deleted {count} customs snapshot(s) for '{country_name}'"},
-                status=status.HTTP_200_OK,
-            )
-
-        except Exception as e:
-            logger.error(f"Failed to delete customs data for {country}: {str(e)}")
-            return Response(
-                {"detail": "Failed to delete customs data"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )

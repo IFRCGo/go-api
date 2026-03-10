@@ -1126,20 +1126,79 @@ admin.site.register(models.CountryOfFieldReportToReview, CountryOfFieldReportToR
 # admin.site.register(Revision, RevisionAdmin)
 
 
-# Customs Updates Admin
+# Customs Updates Admin — single admin with inlines.
+# Sources are edited inline on the snapshot page.
+# Evidence snippets are edited inline on the source change page
+# (accessible via the "change" link on each source row).
+
+
 class CountryCustomsEvidenceSnippetInline(admin.TabularInline):
     model = models.CountryCustomsEvidenceSnippet
-    extra = 0
-    readonly_fields = ("id", "retrieved_at")
+    extra = 1
+    readonly_fields = ("id",)
     fields = ("snippet_order", "snippet_text", "claim_tags")
 
 
 class CountryCustomsSourceInline(admin.TabularInline):
     model = models.CountryCustomsSource
-    extra = 0
+    extra = 1
     readonly_fields = ("id", "retrieved_at", "content_hash")
-    fields = ("rank", "url", "title", "publisher", "total_score", "status")
+    fields = (
+        "rank",
+        "url",
+        "title",
+        "publisher",
+        "published_at",
+        "authority_score",
+        "freshness_score",
+        "relevance_score",
+        "specificity_score",
+        "total_score",
+    )
+    show_change_link = True
+
+
+class CountryCustomsSourceAdmin(admin.ModelAdmin):
+    """Accessed via the 'change' link on source inlines; not shown in sidebar."""
+
     inlines = [CountryCustomsEvidenceSnippetInline]
+    list_display = ("title", "publisher", "rank", "total_score", "retrieved_at")
+    search_fields = ("title", "url", "publisher")
+    readonly_fields = ("id", "retrieved_at", "content_hash", "snapshot")
+    fieldsets = (
+        (
+            _("Source Info"),
+            {
+                "fields": (
+                    "id",
+                    "snapshot",
+                    "rank",
+                    "url",
+                    "title",
+                    "publisher",
+                    "published_at",
+                    "retrieved_at",
+                )
+            },
+        ),
+        (
+            _("Scores"),
+            {
+                "fields": (
+                    "authority_score",
+                    "freshness_score",
+                    "relevance_score",
+                    "specificity_score",
+                    "total_score",
+                )
+            },
+        ),
+        (_("Content Hash"), {"fields": ("content_hash",)}),
+    )
+
+    def has_module_permission(self, request):
+        # Hide from admin sidebar; only reachable via snapshot inline links.
+        return False
 
 
 class CountryCustomsSnapshotAdmin(admin.ModelAdmin):
@@ -1147,6 +1206,8 @@ class CountryCustomsSnapshotAdmin(admin.ModelAdmin):
     list_filter = ("confidence", "status", "is_current", "generated_at")
     search_fields = ("country_name",)
     readonly_fields = ("id", "generated_at", "evidence_hash")
+    inlines = [CountryCustomsSourceInline]
+    actions = ["regenerate_snapshots", "generate_all_countries"]
     fieldsets = (
         (
             _("Snapshot Info"),
@@ -1172,6 +1233,17 @@ class CountryCustomsSnapshotAdmin(admin.ModelAdmin):
             },
         ),
         (
+            _("Official & RC Sources"),
+            {
+                "fields": (
+                    "official_doc_url",
+                    "official_doc_title",
+                    "rc_society_url",
+                    "rc_society_title",
+                )
+            },
+        ),
+        (
             _("Status"),
             {
                 "fields": (
@@ -1183,226 +1255,82 @@ class CountryCustomsSnapshotAdmin(admin.ModelAdmin):
         ),
     )
 
-    def has_add_permission(self, request):
-        return False
+    def _regenerate_for_country(self, country_name: str) -> str:
+        """
+        Mark existing current snapshot(s) for *country_name* as not current
+        and generate a fresh snapshot.  If generation fails the old snapshots
+        are restored so data is never lost.
+        """
+        from api.customs_ai_service import CustomsAIService
 
+        old_ids = list(
+            models.CountryCustomsSnapshot.objects.filter(country_name=country_name, is_current=True).values_list("id", flat=True)
+        )
 
-class CountryCustomsSourceAdmin(admin.ModelAdmin):
-    list_display = ("title", "publisher", "rank", "total_score", "retrieved_at")
-    list_filter = ("rank", "retrieved_at", "snapshot__country_name")
-    search_fields = ("title", "url", "publisher")
-    readonly_fields = ("id", "retrieved_at", "content_hash", "snapshot")
-    fieldsets = (
-        (
-            _("Source Info"),
-            {
-                "fields": (
-                    "id",
-                    "snapshot",
-                    "rank",
-                    "url",
-                    "title",
-                    "publisher",
-                    "published_at",
-                    "retrieved_at",
-                )
-            },
-        ),
-        (
-            _("Scores"),
-            {
-                "fields": (
-                    "authority_score",
-                    "freshness_score",
-                    "relevance_score",
-                    "specificity_score",
-                    "total_score",
-                )
-            },
-        ),
-        (
-            _("Content Hash"),
-            {"fields": ("content_hash",)},
-        ),
-    )
+        # Mark old snapshots as historical
+        models.CountryCustomsSnapshot.objects.filter(id__in=old_ids).update(is_current=False)
 
-    def has_add_permission(self, request):
-        return False
+        try:
+            new_snapshot = CustomsAIService.generate_customs_snapshot(country_name)
+            if new_snapshot.pk and new_snapshot.status == "success":
+                return f"{country_name}: {new_snapshot.status}"
+            # Generation returned but didn't produce a usable snapshot — restore old
+            models.CountryCustomsSnapshot.objects.filter(id__in=old_ids).update(is_current=True)
+            return f"{country_name}: failed ({new_snapshot.error_message or 'generation unsuccessful'})"
+        except Exception as exc:
+            # Restore old snapshots so the user still sees data
+            models.CountryCustomsSnapshot.objects.filter(id__in=old_ids).update(is_current=True)
+            return f"{country_name}: failed ({exc})"
 
+    @admin.action(description=_("Re-generate customs snapshot for selected countries"))
+    def regenerate_snapshots(self, request, queryset):
+        # Deduplicate by country name so we only regenerate once per country
+        country_names = list(queryset.values_list("country_name", flat=True).distinct())
+        results = []
+        for name in country_names:
+            results.append(self._regenerate_for_country(name))
 
-class CountryCustomsEvidenceSnippetAdmin(admin.ModelAdmin):
-    list_display = ("snippet_order", "source_title", "snippet_preview")
-    list_filter = ("source__snapshot__country_name", "snippet_order")
-    search_fields = ("snippet_text", "source__title")
-    readonly_fields = ("id", "source")
-    fieldsets = (
-        (
-            _("Snippet Info"),
-            {"fields": ("id", "source", "snippet_order")},
-        ),
-        (
-            _("Content"),
-            {"fields": ("snippet_text", "claim_tags")},
-        ),
-    )
+        self.message_user(
+            request,
+            "Re-generation complete: " + "; ".join(results),
+            level=messages.SUCCESS,
+        )
 
-    @admin.display(description=_("Source"))
-    def source_title(self, obj):
-        return obj.source.title if obj.source else "—"
+    @admin.action(description=_("Generate customs snapshots for ALL countries"))
+    def generate_all_countries(self, request, queryset):
+        # Show warning before proceeding
+        self.message_user(
+            request,
+            _(
+                "⚠️ WARNING: This action is TIME CONSUMING and potentially EXPENSIVE. "
+                "It will regenerate customs snapshots for ALL countries using external API calls."
+            ),
+            level=messages.WARNING,
+        )
 
-    @admin.display(description=_("Preview"))
-    def snippet_preview(self, obj):
-        return obj.snippet_text[:100] + "..." if len(obj.snippet_text) > 100 else obj.snippet_text
+        country_names = list(
+            models.Country.objects.filter(
+                record_type=models.CountryType.COUNTRY,
+                is_deprecated=False,
+            )
+            .values_list("name", flat=True)
+            .order_by("name")
+        )
+        results = []
+        for name in country_names:
+            results.append(self._regenerate_for_country(name))
 
-    def has_add_permission(self, request):
-        return False
+        successes = [r for r in results if "failed" not in r]
+        failures = [r for r in results if "failed" in r]
+        self.message_user(
+            request,
+            f"Generation complete: {len(successes)} succeeded, {len(failures)} failed. " + "; ".join(failures[:20]),
+            level=messages.SUCCESS if not failures else messages.WARNING,
+        )
 
 
 admin.site.register(models.CountryCustomsSnapshot, CountryCustomsSnapshotAdmin)
 admin.site.register(models.CountryCustomsSource, CountryCustomsSourceAdmin)
-admin.site.register(models.CountryCustomsEvidenceSnippet, CountryCustomsEvidenceSnippetAdmin)
-
-
-# =============================================================================
-# Export Regulation Admin (mirrors Customs/Import admin structure)
-# =============================================================================
-
-
-class CountryExportEvidenceSnippetInline(admin.TabularInline):
-    model = models.CountryExportEvidenceSnippet
-    extra = 0
-    readonly_fields = ("id",)
-    fields = ("snippet_order", "snippet_text", "claim_tags")
-
-
-class CountryExportSourceInline(admin.TabularInline):
-    model = models.CountryExportSource
-    extra = 0
-    readonly_fields = ("id", "retrieved_at", "content_hash")
-    fields = ("rank", "url", "title", "publisher", "total_score")
-
-
-class CountryExportSnapshotAdmin(admin.ModelAdmin):
-    list_display = ("country_name", "confidence", "status", "generated_at", "is_current")
-    list_filter = ("confidence", "status", "is_current", "generated_at")
-    search_fields = ("country_name",)
-    readonly_fields = ("id", "generated_at", "evidence_hash")
-    inlines = [CountryExportSourceInline]
-    fieldsets = (
-        (
-            _("Snapshot Info"),
-            {
-                "fields": (
-                    "id",
-                    "country_name",
-                    "is_current",
-                    "generated_at",
-                    "model_name",
-                    "confidence",
-                )
-            },
-        ),
-        (
-            _("Content"),
-            {
-                "fields": (
-                    "summary_text",
-                    "current_situation_bullets",
-                    "search_query",
-                )
-            },
-        ),
-        (
-            _("Status"),
-            {
-                "fields": (
-                    "status",
-                    "error_message",
-                    "evidence_hash",
-                )
-            },
-        ),
-    )
-
-    def has_add_permission(self, request):
-        return False
-
-
-class CountryExportSourceAdmin(admin.ModelAdmin):
-    list_display = ("title", "publisher", "rank", "total_score", "retrieved_at")
-    list_filter = ("rank", "retrieved_at", "snapshot__country_name")
-    search_fields = ("title", "url", "publisher")
-    readonly_fields = ("id", "retrieved_at", "content_hash", "snapshot")
-    inlines = [CountryExportEvidenceSnippetInline]
-    fieldsets = (
-        (
-            _("Source Info"),
-            {
-                "fields": (
-                    "id",
-                    "snapshot",
-                    "rank",
-                    "url",
-                    "title",
-                    "publisher",
-                    "published_at",
-                    "retrieved_at",
-                )
-            },
-        ),
-        (
-            _("Scores"),
-            {
-                "fields": (
-                    "authority_score",
-                    "freshness_score",
-                    "relevance_score",
-                    "specificity_score",
-                    "total_score",
-                )
-            },
-        ),
-        (
-            _("Content Hash"),
-            {"fields": ("content_hash",)},
-        ),
-    )
-
-    def has_add_permission(self, request):
-        return False
-
-
-class CountryExportEvidenceSnippetAdmin(admin.ModelAdmin):
-    list_display = ("snippet_order", "source_title", "snippet_preview")
-    list_filter = ("source__snapshot__country_name", "snippet_order")
-    search_fields = ("snippet_text", "source__title")
-    readonly_fields = ("id", "source")
-    fieldsets = (
-        (
-            _("Snippet Info"),
-            {"fields": ("id", "source", "snippet_order")},
-        ),
-        (
-            _("Content"),
-            {"fields": ("snippet_text", "claim_tags")},
-        ),
-    )
-
-    @admin.display(description=_("Source"))
-    def source_title(self, obj):
-        return obj.source.title if obj.source else "—"
-
-    @admin.display(description=_("Preview"))
-    def snippet_preview(self, obj):
-        return obj.snippet_text[:100] + "..." if len(obj.snippet_text) > 100 else obj.snippet_text
-
-    def has_add_permission(self, request):
-        return False
-
-
-admin.site.register(models.CountryExportSnapshot, CountryExportSnapshotAdmin)
-admin.site.register(models.CountryExportSource, CountryExportSourceAdmin)
-admin.site.register(models.CountryExportEvidenceSnippet, CountryExportEvidenceSnippetAdmin)
 
 admin.site.site_url = settings.GO_WEB_URL
 admin.widgets.RelatedFieldWidgetWrapper.template_name = "related_widget_wrapper.html"
