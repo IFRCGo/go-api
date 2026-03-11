@@ -951,7 +951,7 @@ class ERUReadinessType(models.Model):
     comment = models.TextField(verbose_name=_("comment"), blank=True, null=True)
     ns_contribution = models.IntegerField(
         choices=NationalSocietyContribution.choices,
-        verbose_name=_("National Souciety Contribution"),
+        verbose_name=_("National Society Contribution"),
     )
 
     class Meta:
