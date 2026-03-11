@@ -2,7 +2,77 @@
 
 [![CircleCI](https://circleci.com/gh/IFRCGo/go-api.svg?style=svg&circle-token=4337c3da24907bbcb5d6aa06f0d60c5f27845435)](https://circleci.com/gh/IFRCGo/go-api)
 
-# IFRC GO API
+
+# SPARK Integration into GO Platform 
+
+## Requirements
+
+-   docker
+
+## Project Setup
+
+### Prerequisites
+
+Create a `.env` file with the same format as `.env-spark`
+
+Set FABRIC_SQL_SERVER to the SQL endpoint from Microsoft Fabric:
+Fabric → Logistics Gold → Settings → SQL endpoint
+
+### Setup
+
+     $ docker compose build
+     $ docker compose run --rm migrate
+     $ docker compose run --rm loaddata
+
+## Pulling Fabric Data
+
+     $ docker compose up serve celery
+     $ docker compose exec serve az login 
+
+Follow instructions on screen, then run:
+
+     $ docker compose exec serve python manage.py pull_fabric_data
+
+Note: sometimes there may be issues fabric-side for some tables which leads to the command breaking, in which case use the `--exclude` flag to skip over the affected tables. Example:
+
+     $ docker compose exec serve python manage.py pull_fabric_data --exclude dim-appeal
+
+### Creating and Build ElasticSearch Indices for SPARK
+
+     $ docker compose run --rm serve python manage.py create_build_index_for_spark
+
+### Scrape Item Catalogue URLs
+
+     $ docker compose run --rm serve python manage.py scrape_items 
+
+### To Create User for SPARK
+
+     $ docker-compose run --rm createsuperuser
+
+## Testing
+
+Run all tests: 
+
+     $ docker compose run --rm test
+
+Run only the SPARK-related tests:
+
+     $ docker compose run --rm test pytest api/test_models.py::SparkModelStrTests api/test_models.py::ExportRegulationModelTests --durations=10
+
+Run API integration tests:
+
+     $ docker compose run --rm test pytest api/test_spark_views.py --durations=10
+
+Run data transformation tests (framework agreements):
+
+     $ docker compose run --rm serve python manage.py test api.test_data_transformation_framework_agreement --keepdb --verbosity=1
+
+Run data transformation tests (stock inventory):
+
+     $ docker compose run --rm serve python manage.py test api.test_data_transformation_stock_inventory --keepdb --verbosity=1
+
+
+# IFRC GO API (Original)
 
 ## Staff email domains
 
@@ -37,101 +107,6 @@ email-verification only, is to be found
 ### Applying the last migration files to database
 
      $ docker-compose run --rm migrate
-
-### Scrape Item Catalogue URLs
-
-     $ docker compose run --rm serve python manage.py scrape_items
-
-## Pulling Fabric Data
-
-### 1. Environment setup (`.env`)
-     Add the following variables to your `.env` file:
-
-     FABRIC_SQL_SERVER=""
-     FABRIC_SQL_DATABASE="logistics_gold"
-
-     Set FABRIC_SQL_SERVER to the SQL endpoint from Microsoft Fabric:
-     Fabric → Logistics Gold → Settings → SQL endpoint
-
-### 2. Build
-     Rebuild and run services so changes take effect
-     $ docker compose build
-     $ docker compose run --rm migrate
-     $ docker compose up serve celery
-     $ docker compose exec serve az login (follow instr on screen)
-
-### 3. Pull Data
-     $ docker compose exec serve python manage.py pull_fabric_data
-
-## Elasticsearch (Cleaned Framework Agreements)
-
-
-If you want the `/api/v2/fabric/cleaned-framework-agreements/` endpoint to use Elasticsearch locally, create the index and bulk index the data:
-
-
-     $ docker compose run --rm serve python manage.py create_cleaned_framework_agreements_index
-     
-     $ docker compose run --rm serve python manage.py bulk_index_cleaned_framework_agreements
-
-### Run Stock Inventory Transformation Command
-     $ docker compose run --rm serve python manage.py transform_stock_inventory
-     dry run:
-     $ docker compose run --rm serve python manage.py transform_stock_inventory --dry-run
-     export result to csv:
-     $ docker compose run --rm serve python manage.py transform_stock_inventory --export-csv stock_inventory.csv
-
-
-
-## Backend CI Checks (Run Locally)
-
-Before pushing backend changes, run the following checks to avoid CI failures.
-
----
-
-### 1. Pre-commit checks
-
-Run before every push:
-
-```bash
-pre-commit run --all-files
-```
-
-Prerequisites:
-- Install `uv`
-- Install `pre-commit`:
-  ```bash
-  uv tool install pre-commit
-  ```
-
-If there are conflicts or errors, resolve them and run the command again until it passes.
-
----
-
-### 2. Django / Python tests
-
-CI will fail if backend tests do not pass.
-
-If you modified Django models:
-```bash
-docker compose run --rm serve ./manage.py test --keepdb -v 2 --pattern="test_fake.py"
-```
-
-If you added or modified tests:
-```bash
-docker compose run --rm serve pytest --reuse-db --durations=10
-```
-
----
-
-### 3. Helm validation
-
-This check never fails.
-
----
-
-### Stock Inventory Transformation Checks
-     $ docker compose run --rm serve python manage.py test api.test_data_transformation_stock_inventory --keepdb --verbosity=1
-
 
 ### Accessing python shell
 
@@ -292,12 +267,6 @@ For updating the cron monitored tasks
 docker-compose exec serve bash ./manage.py cron_job_monitor
 ```
 
-## Indexing Stock Inventory
-
-```(bash)
-docker compose run --rm serve python manage.py bulk_index_warehouse_stocks --only-available=0
-```
-
 ## See logs from Kubernetes
 There are a few different ways to see logs in the new Kubernetes based stack. Both of the options require `kubectl`, access to the cluster. Once the cluster is added to your local kubernetes context, follow the steps below:
 
@@ -374,7 +343,6 @@ Run ` python manage.py update-sovereign-and-disputed new_fields.csv` to update t
 To update GO countries and districts Mapbox tilesets, run the management command `python manage.py update-mapbox-tilesets`. This will export all country and district geometries to a GeoJSON file, and then upload them to Mapbox. The tilesets will take a while to process. The updated status can be viewed on the Mapbox Studio under tilesets. To run this management command, MAPBOX_ACCESS_TOKEN should be set in the environment. The referred files are in ./mapbox/..., so you should **not** run this command from an arbitrary point of the vm's filesystem (e.g. from the location of shapefiles), but from Django root.
 
 ### Options available for the command
-* `--production` — update production tilesets. If this flag is not set, by default the script will only update staging tiles
 * `--update-countries` — update tileset for countries, including labels
 * `--update-districts` — update tileset for districts, including labels
 * `--update-all` — update all countries and districts tilesets
