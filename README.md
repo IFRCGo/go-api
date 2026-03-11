@@ -27,8 +27,15 @@ Fabric → Logistics Gold → Settings → SQL endpoint
 ## Pulling Fabric Data
 
      $ docker compose up serve celery
-     $ docker compose exec serve az login (follow instructions on screen)
+     $ docker compose exec serve az login 
+
+Follow instructions on screen, then run:
+
      $ docker compose exec serve python manage.py pull_fabric_data
+
+Note: sometimes there may be issues fabric-side for some tables which leads to the command breaking, in which case use the `--exclude` flag to skip over the affected tables. Example:
+
+     $ docker compose exec serve python manage.py pull_fabric_data --exclude dim-appeal
 
 ### Creating and Build ElasticSearch Indices for SPARK
 
