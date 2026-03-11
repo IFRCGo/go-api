@@ -295,7 +295,7 @@ docker-compose exec serve bash ./manage.py cron_job_monitor
 ## Indexing Stock Inventory
 
 ```(bash)
-docker compose run --rm serve python manage.py bulk_index_warehouse_stocks --only-available=0
+docker compose run --rm serve python manage.py bulk_index_stock_inventory
 ```
 
 ## See logs from Kubernetes
