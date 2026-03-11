@@ -7,6 +7,7 @@ env
 # secret settings env variables
 .env*
 !.env-sample
+!.env-spark
 
 # python stuff
 *.pyc
