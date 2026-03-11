@@ -23,7 +23,7 @@ class WarehouseStocksViewTest(APITestCase):
     def setUp(self):
         super().setUp()
         self._goadmin_patcher = patch(
-            "api.warehouse_stocks_views.fetch_goadmin_maps",
+            "api.stock_inventory_view.fetch_goadmin_maps",
             return_value=GOADMIN_MAPS,
         )
         self._goadmin_patcher.start()

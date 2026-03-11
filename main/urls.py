@@ -54,11 +54,11 @@ from api.views import (
     UpdateSubscriptionPreferences,
     logout_user,
 )
-from api.warehouse_stocks_views import (
-    AggregatedWarehouseStocksView,
-    WarehouseStocksSummaryView,
-    WarehouseStocksView,
+from api.stock_inventory_view import (
+    AggregatedStockInventoryView,
+    StockInventoryView,
 )
+from api import framework_agreement_views as fa_views
 from country_plan import drf_views as country_plan_views
 from databank import views as data_bank_views
 from databank.views import CountryOverviewViewSet
@@ -202,7 +202,7 @@ router.register(r"country-income", data_bank_views.FDRSIncomeViewSet, basename="
 
 router.register(
     r"fabric/cleaned-framework-agreements",
-    api_views.CleanedFrameworkAgreementViewSet,
+    fa_views.CleanedFrameworkAgreementViewSet,
     basename="fabric_cleaned_framework_agreements",
 )
 
@@ -212,9 +212,8 @@ admin.site.site_title = "IFRC Go admin"
 urlpatterns = [
     # url(r"^api/v1/es_search/", EsPageSearch.as_view()),
     url(r"^api/v1/search/", HayStackSearch.as_view()),
-    url(r"^api/v1/warehouse-stocks/aggregated/", AggregatedWarehouseStocksView.as_view()),
-    url(r"^api/v1/warehouse-stocks/summary/", WarehouseStocksSummaryView.as_view()),
-    url(r"^api/v1/warehouse-stocks/", WarehouseStocksView.as_view()),
+    url(r"^api/v1/stock-inventory/aggregated/", AggregatedStockInventoryView.as_view()),
+    url(r"^api/v1/stock-inventory/", StockInventoryView.as_view()),
     url(r"^api/v1/pro-bono-services/", ProBonoServicesView.as_view()),
     url(r"^api/v1/es_health/", EsPageHealth.as_view()),
     # If we want to use the next one, some permission overthink is needed:
@@ -263,17 +262,17 @@ urlpatterns = [
     ),
     path(
         "api/v2/fabric/cleaned-framework-agreements/item-categories/",
-        api_views.CleanedFrameworkAgreementItemCategoryOptionsView.as_view(),
+        fa_views.CleanedFrameworkAgreementItemCategoryOptionsView.as_view(),
         name="fabric_cleaned_framework_agreement_item_categories",
     ),
     path(
         "api/v2/fabric/cleaned-framework-agreements/summary/",
-        api_views.CleanedFrameworkAgreementSummaryView.as_view(),
+        fa_views.CleanedFrameworkAgreementSummaryView.as_view(),
         name="fabric_cleaned_framework_agreement_summary",
     ),
     path(
         "api/v2/fabric/cleaned-framework-agreements/map-stats/",
-        api_views.CleanedFrameworkAgreementMapStatsView.as_view(),
+        fa_views.CleanedFrameworkAgreementMapStatsView.as_view(),
         name="fabric_cleaned_framework_agreement_map_stats",
     ),
     # Customs Updates - AI Generated Updates

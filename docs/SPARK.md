@@ -72,7 +72,7 @@ Defined in `api/models.py`.
 |------|-----------|
 | `api/drf_views.py` | `CleanedFrameworkAgreementViewSet` (read-only, paginated, ES or DB); `CleanedFrameworkAgreementItemCategoryOptionsView`; `CleanedFrameworkAgreementSummaryView`; `CleanedFrameworkAgreementMapStatsView`; `CustomsRegulationsView` (AI-generated customs updates); `FabricDim*ViewSet` / `FabricFct*ViewSet` for raw Fabric data |
 | `api/views.py` | `FabricImportAPIView` — bulk create/truncate of `CleanedFrameworkAgreement` records |
-| `api/warehouse_stocks_views.py` | `WarehouseStocksView`, `AggregatedWarehouseStocksView`, `WarehouseStocksSummaryView` — serve warehouse stock data from ES with GO Admin country enrichment |
+| `api/stock_inventory_view.py` | `StockInventoryView`, `AggregatedStockInventoryView` — serve stock inventory data from ES with GO Admin country enrichment |
 | `api/warehouse_suggestion_views.py` | `WarehouseSuggestionView` — suggests optimal warehouses by distance scoring and export regulation checks |
 | `api/pro_bono_views.py` | `ProBonoServicesView` — serves pro-bono logistics services from `data/ProBono.csv` |
 
