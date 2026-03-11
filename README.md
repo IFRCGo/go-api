@@ -36,7 +36,11 @@ Fabric → Logistics Gold → Settings → SQL endpoint
 
 ### Scrape Item Catalogue URLs
 
-     $ docker compose run --rm serve python manage.py scrape_items     
+     $ docker compose run --rm serve python manage.py scrape_items 
+
+### To Create User for SPARK
+
+     $ docker-compose run --rm createsuperuser
 
 ## Testing
 
