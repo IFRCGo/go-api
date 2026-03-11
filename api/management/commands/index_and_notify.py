@@ -128,7 +128,7 @@ class Command(BaseCommand):
         # many-to-many relationship to countries and regions through event table
         countries = []
         for record in records:
-            if record.event.countries is not None:
+            if record.event is not None and record.event.countries is not None:
                 countries += [country.id for country in record.event.countries.all()]
         countries = list(set(countries))
         qs = Country.objects.filter(pk__in=countries)
