@@ -1,4 +1,3 @@
-import logging
 from decimal import Decimal
 
 from rest_framework import views
@@ -6,9 +5,7 @@ from rest_framework.response import Response
 
 from api.esconnection import ES_CLIENT
 from api.indexes import STOCK_INVENTORY_INDEX_NAME
-from api.models import (
-    StockInventory,
-)
+from api.models import StockInventory
 from api.utils import derive_country_iso3, fetch_goadmin_maps
 
 MAP_WAREHOUSE_IDS = [
@@ -79,8 +76,14 @@ class StockInventoryView(views.APIView):
         }
 
         allowed_sorts = {
-            "warehouse_id", "warehouse", "warehouse_country", "region",
-            "product_category", "item_name", "quantity", "unit_measurement",
+            "warehouse_id",
+            "warehouse",
+            "warehouse_country",
+            "region",
+            "product_category",
+            "item_name",
+            "quantity",
+            "unit_measurement",
         }
         if sort_field in allowed_sorts:
             es_sort_field = sort_field + ".raw" if sort_field in ("warehouse", "warehouse_country", "item_name") else sort_field
@@ -97,20 +100,22 @@ class StockInventoryView(views.APIView):
         for hit in hits.get("hits", []):
             src = hit["_source"]
             qty = src.get("quantity")
-            rows.append({
-                "id": str(src.get("id", hit["_id"])),
-                "warehouse_id": src.get("warehouse_id"),
-                "warehouse": src.get("warehouse"),
-                "warehouse_country": src.get("warehouse_country"),
-                "country": src.get("country"),
-                "country_iso3": src.get("country_iso3"),
-                "region": src.get("region"),
-                "product_category": src.get("product_category"),
-                "item_name": src.get("item_name"),
-                "quantity": str(qty) if qty is not None else None,
-                "unit_measurement": src.get("unit_measurement"),
-                "catalogue_link": src.get("catalogue_link"),
-            })
+            rows.append(
+                {
+                    "id": str(src.get("id", hit["_id"])),
+                    "warehouse_id": src.get("warehouse_id"),
+                    "warehouse": src.get("warehouse"),
+                    "warehouse_country": src.get("warehouse_country"),
+                    "country": src.get("country"),
+                    "country_iso3": src.get("country_iso3"),
+                    "region": src.get("region"),
+                    "product_category": src.get("product_category"),
+                    "item_name": src.get("item_name"),
+                    "quantity": str(qty) if qty is not None else None,
+                    "unit_measurement": src.get("unit_measurement"),
+                    "catalogue_link": src.get("catalogue_link"),
+                }
+            )
 
         return Response({"results": rows, "total": total_hits, "page": page, "page_size": page_size})
 
@@ -284,13 +289,15 @@ class AggregatedStockInventoryView(views.APIView):
             region_buckets = bucket.get("region_name", {}).get("buckets", [])
             region_name = region_buckets[0]["key"] if region_buckets else ""
 
-            results.append({
-                "country_iso3": iso3,
-                "country": country_name,
-                "region": region_name,
-                "total_quantity": str(bucket.get("total_quantity", {}).get("value", 0)),
-                "warehouse_count": bucket.get("warehouse_count", {}).get("value", 0),
-            })
+            results.append(
+                {
+                    "country_iso3": iso3,
+                    "country": country_name,
+                    "region": region_name,
+                    "total_quantity": str(bucket.get("total_quantity", {}).get("value", 0)),
+                    "warehouse_count": bucket.get("warehouse_count", {}).get("value", 0),
+                }
+            )
 
         return Response({"results": results})
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from datetime import date, datetime
+from datetime import datetime
 from decimal import Decimal
 
 from pyspark.sql import DataFrame, SparkSession
@@ -179,8 +179,8 @@ def read_csv_mapping(spark: SparkSession, path: str, header: bool = True) -> Dat
                 new_names = [str(v) if v else f"_c{i}" for i, v in enumerate(header_row[1])]
                 df_raw = df_raw.toDF(*[f"_c{i}" for i in range(len(df_raw.columns))])
                 # Drop the first two rows (empty line + header line)
-                from pyspark.sql.window import Window as _W
                 from pyspark.sql.functions import monotonically_increasing_id as _mid
+
                 df_raw = df_raw.withColumn("_row_idx", _mid())
                 # Get the IDs of the first 2 rows
                 first_ids = {r["_row_idx"] for r in df_raw.orderBy("_row_idx").limit(2).collect()}
@@ -192,10 +192,13 @@ def read_csv_mapping(spark: SparkSession, path: str, header: bool = True) -> Dat
 def build_base_agreement(spark: SparkSession, mapping_df: DataFrame) -> DataFrame:
     """Load and prepare the base `fct_agreement` table enriched with mapping."""
     fct_cols = [
-        "agreement_id", "classification",
+        "agreement_id",
+        "classification",
         "default_agreement_line_effective_date",
         "default_agreement_line_expiration_date",
-        "workflow_status", "status", "vendor",
+        "workflow_status",
+        "status",
+        "vendor",
         "managing_business_unit_organizational_unit",
     ]
     qs = FctAgreement.objects.values(*fct_cols)
@@ -224,19 +227,22 @@ def load_dimension_tables(spark: SparkSession) -> dict:
     """Load used dimension tables and return them in a dict."""
     prod_cols = ["id", "type", "name"]
     dim_product = _queryset_to_spark_df(
-        spark, DimProduct.objects.values(*prod_cols),
+        spark,
+        DimProduct.objects.values(*prod_cols),
         schema=_schema_for_model(DimProduct, prod_cols),
     )
 
     # dim_agreement_line joined with product category name
     al_cols = ["agreement_id", "product", "price_per_unit", "product_category"]
     dim_agreement_line_df = _queryset_to_spark_df(
-        spark, DimAgreementLine.objects.values(*al_cols),
+        spark,
+        DimAgreementLine.objects.values(*al_cols),
         schema=_schema_for_model(DimAgreementLine, al_cols),
     )
     pc_cols = ["category_code", "name"]
     prod_cat_df = _queryset_to_spark_df(
-        spark, DimProductCategory.objects.values(*pc_cols).order_by(),
+        spark,
+        DimProductCategory.objects.values(*pc_cols).order_by(),
         schema=_schema_for_model(DimProductCategory, pc_cols),
     )
 
@@ -258,12 +264,14 @@ def load_dimension_tables(spark: SparkSession) -> dict:
     # vendor tables
     v_cols = ["code", "name"]
     vendor = _queryset_to_spark_df(
-        spark, DimVendor.objects.values(*v_cols),
+        spark,
+        DimVendor.objects.values(*v_cols),
         schema=_schema_for_model(DimVendor, v_cols),
     )
     vpa_cols = ["id", "valid_from", "valid_to", "country"]
     vendor_physical_address = _queryset_to_spark_df(
-        spark, DimVendorPhysicalAddress.objects.values(*vpa_cols),
+        spark,
+        DimVendorPhysicalAddress.objects.values(*vpa_cols),
         schema=_schema_for_model(DimVendorPhysicalAddress, vpa_cols),
     )
 

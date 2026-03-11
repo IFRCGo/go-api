@@ -23,8 +23,10 @@ from rest_framework import routers
 
 from api import customs_spark_views
 from api import drf_views as api_views
+from api import framework_agreement_views as fa_views
 from api.admin_reports import UsersPerPermissionViewSet
 from api.pro_bono_views import ProBonoServicesView
+from api.stock_inventory_view import AggregatedStockInventoryView, StockInventoryView
 from api.views import (
     AddCronJobLog,
     AddSubscription,
@@ -54,11 +56,6 @@ from api.views import (
     UpdateSubscriptionPreferences,
     logout_user,
 )
-from api.stock_inventory_view import (
-    AggregatedStockInventoryView,
-    StockInventoryView,
-)
-from api import framework_agreement_views as fa_views
 from country_plan import drf_views as country_plan_views
 from databank import views as data_bank_views
 from databank.views import CountryOverviewViewSet
