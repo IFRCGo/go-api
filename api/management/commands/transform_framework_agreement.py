@@ -8,11 +8,11 @@ class Command(BaseCommand):
     help = "Run framework agreement ETL and optionally write output"
 
     def add_arguments(self, parser):
-        parser.add_argument("--csv-dir", default="datatransformationlogic", help="Directory for mapping CSVs")
+        parser.add_argument("--csv-dir", default="api/datatransformationlogic", help="Directory for mapping CSVs")
         parser.add_argument("--output", default=None, help="Parquet output path (optional)")
         parser.add_argument(
             "--mapping-table",
-            default="api.warehouse_stocks_views.feat_goadmin_map",
+            default="api.stock_inventory_view.feat_goadmin_map",
             help="Country->region mapping table",
         )
 
