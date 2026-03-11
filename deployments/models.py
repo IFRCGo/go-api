@@ -928,11 +928,15 @@ class ERUReadinessType(models.Model):
         NO_CAPACITY = 3, _("No capacity")
 
     class NationalSocietyContribution(models.IntegerChoices):
+        """
+        Note:The enum values are intentionally written in a longer form so the frontend design and
+        labels can directly use and reflect them.
+        """
 
-        HOLDS = 1, _("Holds the ERU")
+        HOLDS = 1, _("Confirm that you have the capacity to hold this type of ERU")
         """The National Society owns and maintains the ERU and is responsible for its readiness."""
 
-        SUPPORTS = 2, _("Supports the ERU")
+        SUPPORTS = 2, _("Confirm that you have the capacity to support this type of ERU")
         """The National Society provides support to the ERU but does not hold it."""
 
     type = models.IntegerField(choices=ERUType.choices, verbose_name=_("ERU type"))
