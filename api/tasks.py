@@ -93,6 +93,7 @@ def generate_url(url, export_id, user, title, language):
                     Export.ExportType.DREF,
                     Export.ExportType.OPS_UPDATE,
                     Export.ExportType.FINAL_REPORT,
+                    Export.ExportType.OLD_FINAL_REPORT,
                 ]:
                     storage_state = build_storage_state(
                         tmp_dir,
