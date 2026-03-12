@@ -213,12 +213,12 @@ def load_table_via_django(spark: SparkSession, table_name: str) -> DataFrame:
         columns = [desc[0] for desc in cursor.description]
         rows = cursor.fetchall()
 
+    # Always provide an explicit schema so PySpark doesn't fail when all values
+    # in a column are None (CANNOT_DETERMINE_TYPE).
+    schema = StructType([StructField(column, StringType(), True) for column in columns])
     records = [dict(zip(columns, row)) for row in rows]
-    if not records:
-        schema = StructType([StructField(column, StringType(), True) for column in columns])
-        return spark.createDataFrame([], schema=schema)
 
-    return spark.createDataFrame(records)
+    return spark.createDataFrame(records, schema=schema)
 
 
 # ============================================================================
