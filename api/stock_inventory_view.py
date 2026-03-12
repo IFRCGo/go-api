@@ -64,7 +64,7 @@ class StockInventoryView(views.APIView):
         if product_category_q:
             filters.append({"term": {"product_category": product_category_q}})
         if item_name_q:
-            filters.append({"match": {"item_name.autocomplete": item_name_q}})
+            filters.append({"term": {"item_name.raw": item_name_q}})
         if warehouse_ids:
             filters.append({"terms": {"warehouse_id": warehouse_ids}})
         else:
@@ -153,7 +153,7 @@ class StockInventoryView(views.APIView):
         if product_category_q:
             queryset = queryset.filter(product_category__iexact=product_category_q)
         if item_name_q:
-            queryset = queryset.filter(item_name__icontains=item_name_q)
+            queryset = queryset.filter(item_name__iexact=item_name_q)
         if warehouse_ids:
             queryset = queryset.filter(warehouse_id__in=warehouse_ids)
         else:
@@ -221,25 +221,62 @@ class StockInventoryView(views.APIView):
 
     def get(self, request):
         if request.query_params.get("distinct") == "1":
-            return self._distinct_options()
+            return self._distinct_options(request)
         es_response = self._es_list(request)
         if es_response is not None:
             return es_response
         return self._db_list(request)
 
     @staticmethod
-    def _distinct_options():
+    def _distinct_options(request):
+        # Return distinct filter options, optionally filtered by query params
         qs = StockInventory.objects.all()
-        regions = sorted(qs.values_list("region", flat=True).distinct())
-        countries = sorted(qs.values_list("warehouse_country", flat=True).distinct())
-        item_groups = sorted(qs.values_list("product_category", flat=True).distinct())
-        item_names = sorted(qs.values_list("item_name", flat=True).distinct())
+
+        region_q = request.query_params.get("region", "").strip()
+        region_list = [r.strip() for r in region_q.split(",") if r.strip()]
+        country_iso3_raw = request.query_params.get("country_iso3") or ""
+        country_iso3_list = [c.strip().upper() for c in country_iso3_raw.split(",") if c.strip()]
+        product_category_q = request.query_params.get("product_category", "").strip()
+
+        if region_list:
+            qs = qs.filter(region__in=region_list)
+        if product_category_q:
+            qs = qs.filter(product_category__iexact=product_category_q)
+
+        # If caller requested filtering by country iso3, we need to derive iso3
+        # from warehouse_id using goadmin maps, because `country_iso3` is not
+        # stored on the StockInventory model.
+        try:
+            iso2_to_iso3, _, _ = fetch_goadmin_maps()
+        except Exception:
+            iso2_to_iso3 = {}
+
+        regions = set()
+        countries = set()
+        item_groups = set()
+        item_names = set()
+
+        for stock in qs.iterator():
+            # derive country iso3 from warehouse id
+            country_iso3 = derive_country_iso3(getattr(stock, "warehouse_id", ""), iso2_to_iso3, "")
+            if country_iso3_list and country_iso3 not in country_iso3_list:
+                continue
+
+            if stock.region:
+                regions.add(stock.region)
+            if stock.warehouse_country:
+                countries.add(stock.warehouse_country)
+            if stock.product_category:
+                item_groups.add(stock.product_category)
+            if stock.item_name:
+                item_names.add(stock.item_name)
+
         return Response(
             {
-                "regions": [r for r in regions if r],
-                "countries": [c for c in countries if c],
-                "item_groups": [g for g in item_groups if g],
-                "item_names": [n for n in item_names if n],
+                "regions": sorted([r for r in regions if r]),
+                "countries": sorted([c for c in countries if c]),
+                "item_groups": sorted([g for g in item_groups if g]),
+                "item_names": sorted([n for n in item_names if n]),
             }
         )
 
@@ -274,7 +311,7 @@ class AggregatedStockInventoryView(views.APIView):
         if product_category_q:
             filters.append({"term": {"product_category": product_category_q}})
         if item_name_q:
-            filters.append({"match": {"item_name.autocomplete": item_name_q}})
+            filters.append({"term": {"item_name.raw": item_name_q}})
         if warehouse_ids:
             filters.append({"terms": {"warehouse_id": warehouse_ids}})
 
@@ -340,7 +377,7 @@ class AggregatedStockInventoryView(views.APIView):
         if product_category_q:
             queryset = queryset.filter(product_category__iexact=product_category_q)
         if item_name_q:
-            queryset = queryset.filter(item_name__icontains=item_name_q)
+            queryset = queryset.filter(item_name__iexact=item_name_q)
         if warehouse_ids:
             queryset = queryset.filter(warehouse_id__in=warehouse_ids)
 
