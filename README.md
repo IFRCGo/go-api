@@ -43,7 +43,7 @@ Note: sometimes there may be issues fabric-side for some tables which leads to t
      (Note: Indices must be created and built AFTER item urls are scraped)
 
 ### Transform Framework Agreement and Stock Inventory data for SPARK
-      $ docker compose run --rm serve python manage.py create_build_index_for_spark     
+      $ docker compose run --rm serve python manage.py create_build_transform_for_spark    
      
 ### Creating and Build ElasticSearch Indices for SPARK
 
