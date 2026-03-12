@@ -35,7 +35,7 @@ class RedCrossItemScraper:
         try:
             print(f"Fetching (with JS rendering): {url}")
             with sync_playwright() as p:
-                browser = p.chromium.launch(headless=True)
+                browser = p.chromium.connect(settings.PLAYWRIGHT_SERVER_URL)
                 page = browser.new_page()
                 page.goto(url, wait_until="networkidle")
 

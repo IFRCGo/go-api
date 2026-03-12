@@ -29,11 +29,11 @@ GenericSetting = {
 
 ES_PAGE_NAME = "page_all"
 
-# Warehouse stocks index
-WAREHOUSE_INDEX_NAME = "warehouse_stocks"
-
 # Cleaned Framework Agreements index
 CLEANED_FRAMEWORK_AGREEMENTS_INDEX_NAME = "cleaned_framework_agreements"
+
+# Stock Inventory index (PySpark-transformed stock data)
+STOCK_INVENTORY_INDEX_NAME = "stock_inventory"
 
 CLEANED_FRAMEWORK_AGREEMENTS_MAPPING = {
     "properties": {
@@ -66,26 +66,24 @@ CLEANED_FRAMEWORK_AGREEMENTS_SETTINGS = {
     }
 }
 
-WAREHOUSE_MAPPING = {
+STOCK_INVENTORY_MAPPING = {
     "properties": {
+        "id": {"type": "long"},
         "warehouse_id": {"type": "keyword"},
-        "warehouse_name": {"type": "text", "fields": {"raw": {"type": "keyword", "normalizer": "lowercase"}}},
+        "warehouse": {"type": "text", "fields": {"raw": {"type": "keyword"}}},
+        "warehouse_country": {"type": "text", "fields": {"raw": {"type": "keyword"}}},
         "country_iso3": {"type": "keyword"},
-        "country_name": {"type": "text", "fields": {"raw": {"type": "keyword"}}},
+        "country": {"type": "text", "fields": {"raw": {"type": "keyword"}}},
         "region": {"type": "keyword"},
-        "product_id": {"type": "keyword"},
-        "item_number": {"type": "keyword"},
+        "product_category": {"type": "keyword"},
         "item_name": {"type": "text", "analyzer": "autocomplete", "fields": {"raw": {"type": "keyword"}}},
-        "item_group": {"type": "keyword"},
-        "unit": {"type": "keyword"},
         "quantity": {"type": "double"},
-        "item_status": {"type": "keyword"},
-        "item_status_name": {"type": "keyword"},
-        "last_updated": {"type": "date"},
+        "unit_measurement": {"type": "keyword"},
+        "catalogue_link": {"type": "keyword", "index": False},
     }
 }
 
-WAREHOUSE_SETTINGS = {
+STOCK_INVENTORY_SETTINGS = {
     "settings": {
         "number_of_shards": 1,
         "analysis": {
@@ -95,7 +93,6 @@ WAREHOUSE_SETTINGS = {
             "analyzer": {
                 "autocomplete": {"type": "custom", "tokenizer": "standard", "filter": ["lowercase", "autocomplete_filter"]}
             },
-            "normalizer": {"lowercase": {"type": "custom", "char_filter": [], "filter": ["lowercase"]}},
         },
     }
 }

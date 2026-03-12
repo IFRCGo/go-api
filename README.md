@@ -37,13 +37,15 @@ Note: sometimes there may be issues fabric-side for some tables which leads to t
 
      $ docker compose exec serve python manage.py pull_fabric_data --exclude dim-appeal
 
+### Scrape Item Catalogue URLs
+
+     $ docker compose run --rm serve python manage.py scrape_items 
+     (Note: Indices must be created and built AFTER item urls are scraped)
+     
 ### Creating and Build ElasticSearch Indices for SPARK
 
      $ docker compose run --rm serve python manage.py create_build_index_for_spark
 
-### Scrape Item Catalogue URLs
-
-     $ docker compose run --rm serve python manage.py scrape_items 
 
 ### To Create User for SPARK
 

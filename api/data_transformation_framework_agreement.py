@@ -1,12 +1,24 @@
 from __future__ import annotations
 
 import os
+from datetime import datetime
+from decimal import Decimal
 
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.functions import col, length, lit
 from pyspark.sql.functions import round as spark_round
 from pyspark.sql.functions import split as spark_split
 from pyspark.sql.functions import substring, trim, when
+from pyspark.sql.types import (
+    DateType,
+    DecimalType,
+    IntegerType,
+    LongType,
+    StringType,
+    StructField,
+    StructType,
+    TimestampType,
+)
 
 from api.models import (
     CleanedFrameworkAgreement,
@@ -19,25 +31,97 @@ from api.models import (
 )
 from api.utils import fetch_goadmin_maps as _fetch_goadmin_maps
 
+# --------------------------------------------------------------------------- #
+# Django field type → PySpark type mapping                                     #
+# --------------------------------------------------------------------------- #
+_DJANGO_TO_SPARK = {
+    "CharField": StringType(),
+    "TextField": StringType(),
+    "IntegerField": IntegerType(),
+    "BigIntegerField": LongType(),
+    "SmallIntegerField": IntegerType(),
+    "AutoField": IntegerType(),
+    "BigAutoField": LongType(),
+    "DateField": DateType(),
+    "DateTimeField": TimestampType(),
+}
 
-def _queryset_to_spark_df(spark: SparkSession, rows):
+
+def _django_field_to_spark(field):
+    """Map a single Django model field to a PySpark DataType."""
+    internal = field.get_internal_type()
+    if internal == "DecimalField":
+        md = getattr(field, "max_digits", 30) or 30
+        dp = getattr(field, "decimal_places", 14) or 14
+        return DecimalType(md, dp)
+    return _DJANGO_TO_SPARK.get(internal, StringType())
+
+
+def _schema_for_model(model_cls, column_names: list[str]) -> StructType:
+    """Build a PySpark StructType from a Django model for the given columns."""
+    field_map = {f.name: f for f in model_cls._meta.concrete_fields}
+    fields = []
+    for col_name in column_names:
+        f = field_map.get(col_name)
+        if f is None:
+            fields.append(StructField(col_name, StringType(), nullable=True))
+        else:
+            spark_type = _django_field_to_spark(f)
+            nullable = not f.primary_key
+            fields.append(StructField(col_name, spark_type, nullable=nullable))
+    return StructType(fields)
+
+
+def _coerce_row(row: dict, schema: StructType) -> dict:
+    """Coerce Python values so PySpark accepts them for the given schema.
+
+    - Decimal values stay as Decimal for DecimalType fields
+    - Decimal → float for non-DecimalType fields
+    - float → Decimal for DecimalType fields
+    - datetime → date for DateType fields
+    """
+    out = {}
+    for field in schema.fields:
+        val = row.get(field.name)
+        if val is None:
+            out[field.name] = None
+        elif isinstance(field.dataType, DecimalType):
+            # DecimalType requires Decimal objects, not float
+            if isinstance(val, Decimal):
+                out[field.name] = val
+            else:
+                out[field.name] = Decimal(str(val))
+        elif isinstance(val, Decimal):
+            out[field.name] = float(val)
+        elif isinstance(field.dataType, DateType) and isinstance(val, datetime):
+            out[field.name] = val.date()
+        else:
+            out[field.name] = val
+    return out
+
+
+def _queryset_to_spark_df(spark: SparkSession, rows, schema: StructType | None = None):
     """Create a Spark DataFrame from an iterable of dict-like rows.
 
-    This expects the rows to be an iterable of mapping objects (as returned
-    by Django's QuerySet.values()).
+    When *schema* is provided it is passed to ``createDataFrame`` so PySpark
+    doesn't need to infer types (which fails when every value in a column is
+    ``None``).
     """
     rows_list = list(rows)
     if not rows_list:
-        return spark.createDataFrame([], schema=[])
+        return spark.createDataFrame([], schema=schema or StructType([]))
+    if schema is not None:
+        rows_list = [_coerce_row(r, schema) for r in rows_list]
+        return spark.createDataFrame(rows_list, schema=schema)
     return spark.createDataFrame(rows_list)
 
 
-def get_country_region_mapping(spark: SparkSession, table_name: str = "api.warehouse_stocks_views.feat_goadmin_map") -> DataFrame:
+def get_country_region_mapping(spark: SparkSession, table_name: str = "api.stock_inventory_view.feat_goadmin_map") -> DataFrame:
     """Return a Spark DataFrame with ISO mapping plus `country_name` and `region`.
 
 
     Prefer using the existing `_fetch_goadmin_maps()` helper from
-    `api.warehouse_stocks_views` (it fetches live data from GOAdmin). If that
+    `api.stock_inventory_view` (it fetches live data from GOAdmin). If that
     import or call fails (e.g., running outside Django), fall back to reading
     the provided warehouse table `table_name`.
 
@@ -77,15 +161,37 @@ def get_country_region_mapping(spark: SparkSession, table_name: str = "api.wareh
 def read_csv_mapping(spark: SparkSession, path: str, header: bool = True) -> DataFrame:
     """Read a CSV mapping into a Spark DataFrame.
 
-
-    The function preserves headers when present and returns the DataFrame as-is.
+    If `header=True` but the first row is entirely blank/empty, the file is
+    re-read without a header and the *second* row is used as column names
+    (common when CSVs are exported from Excel with a leading empty row).
     """
-    return spark.read.format("csv").option("header", str(header).lower()).load(path)
+    df = spark.read.format("csv").option("header", str(header).lower()).load(path)
+
+    if header:
+        # Detect an all-empty header row (columns named '', ' ', '_c0', etc.)
+        real_names = [c for c in df.columns if c.strip() and not c.startswith("_c")]
+        if not real_names:
+            # Re-read without header, use second row as header
+            df_raw = spark.read.format("csv").option("header", "false").load(path)
+            # Row 0 is the empty line, row 1 has real headers
+            header_row = df_raw.limit(2).collect()
+            if len(header_row) >= 2:
+                new_names = [str(v) if v else f"_c{i}" for i, v in enumerate(header_row[1])]
+                df_raw = df_raw.toDF(*[f"_c{i}" for i in range(len(df_raw.columns))])
+                # Drop the first two rows (empty line + header line)
+                from pyspark.sql.functions import monotonically_increasing_id as _mid
+
+                df_raw = df_raw.withColumn("_row_idx", _mid())
+                # Get the IDs of the first 2 rows
+                first_ids = {r["_row_idx"] for r in df_raw.orderBy("_row_idx").limit(2).collect()}
+                df_raw = df_raw.filter(~df_raw["_row_idx"].isin(first_ids)).drop("_row_idx")
+                df = df_raw.toDF(*new_names)
+    return df
 
 
 def build_base_agreement(spark: SparkSession, mapping_df: DataFrame) -> DataFrame:
     """Load and prepare the base `fct_agreement` table enriched with mapping."""
-    qs = FctAgreement.objects.values(
+    fct_cols = [
         "agreement_id",
         "classification",
         "default_agreement_line_effective_date",
@@ -94,8 +200,10 @@ def build_base_agreement(spark: SparkSession, mapping_df: DataFrame) -> DataFram
         "status",
         "vendor",
         "managing_business_unit_organizational_unit",
-    )
-    fct_agreement = _queryset_to_spark_df(spark, qs)
+    ]
+    qs = FctAgreement.objects.values(*fct_cols)
+    fct_schema = _schema_for_model(FctAgreement, fct_cols)
+    fct_agreement = _queryset_to_spark_df(spark, qs, schema=fct_schema)
 
     # Extract iso2 from PA org unit and join mapping
     fct_agreement = fct_agreement.withColumn(
@@ -117,13 +225,26 @@ def build_base_agreement(spark: SparkSession, mapping_df: DataFrame) -> DataFram
 
 def load_dimension_tables(spark: SparkSession) -> dict:
     """Load used dimension tables and return them in a dict."""
-    dim_product = _queryset_to_spark_df(spark, DimProduct.objects.values("id", "type", "name"))
+    prod_cols = ["id", "type", "name"]
+    dim_product = _queryset_to_spark_df(
+        spark,
+        DimProduct.objects.values(*prod_cols),
+        schema=_schema_for_model(DimProduct, prod_cols),
+    )
 
     # dim_agreement_line joined with product category name
+    al_cols = ["agreement_id", "product", "price_per_unit", "product_category"]
     dim_agreement_line_df = _queryset_to_spark_df(
-        spark, DimAgreementLine.objects.values("agreement_id", "product", "price_per_unit", "product_category")
+        spark,
+        DimAgreementLine.objects.values(*al_cols),
+        schema=_schema_for_model(DimAgreementLine, al_cols),
     )
-    prod_cat_df = _queryset_to_spark_df(spark, DimProductCategory.objects.values("category_code", "name").order_by())
+    pc_cols = ["category_code", "name"]
+    prod_cat_df = _queryset_to_spark_df(
+        spark,
+        DimProductCategory.objects.values(*pc_cols).order_by(),
+        schema=_schema_for_model(DimProductCategory, pc_cols),
+    )
 
     dim_agreement_line = (
         dim_agreement_line_df.alias("dim_al")
@@ -141,9 +262,17 @@ def load_dimension_tables(spark: SparkSession) -> dict:
     )
 
     # vendor tables
-    vendor = _queryset_to_spark_df(spark, DimVendor.objects.values("code", "name"))
+    v_cols = ["code", "name"]
+    vendor = _queryset_to_spark_df(
+        spark,
+        DimVendor.objects.values(*v_cols),
+        schema=_schema_for_model(DimVendor, v_cols),
+    )
+    vpa_cols = ["id", "valid_from", "valid_to", "country"]
     vendor_physical_address = _queryset_to_spark_df(
-        spark, DimVendorPhysicalAddress.objects.values("id", "valid_from", "valid_to", "country")
+        spark,
+        DimVendorPhysicalAddress.objects.values(*vpa_cols),
+        schema=_schema_for_model(DimVendorPhysicalAddress, vpa_cols),
     )
 
     vendor_joined = (
@@ -295,10 +424,9 @@ def transform_and_clean(
         "product_type",
         "product",
         "product_name",
-        "pc_item_code",
         "classification",
+        "pc_item_code",
         "vendor_code",
-        "pa_line_procurement_category",
     ]
 
     # Only drop columns that exist
@@ -312,7 +440,7 @@ def transform_framework_agreement(
     spark: SparkSession,
     csv_dir: str = "/home/ifrc/go-api/api/datatransformationlogic",
     output_path=None,
-    mapping_table: str = "api.warehouse_stocks_views.feat_goadmin_map",
+    mapping_table: str = "api.stock_inventory_view.feat_goadmin_map",
 ) -> DataFrame:
     """Performs the full transformation and writes the result to DB.
     Parameters

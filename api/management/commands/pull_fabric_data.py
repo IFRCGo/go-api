@@ -310,6 +310,7 @@ class Command(BaseCommand):
             model_fields = {f.name: f for f in model_cls._meta.concrete_fields}
             pk_name = model_cls._meta.pk.name
             pk_field = model_fields.get(pk_name)
+            is_auto_pk = pk_field is not None and isinstance(pk_field, AutoField)
             has_fabric_id = "fabric_id" in model_fields
             insertable_fields = _build_insertable_fields(model_cls, pk_name)
 
@@ -360,7 +361,10 @@ class Command(BaseCommand):
                                 if not kwargs.get("fabric_id"):
                                     continue
 
-                            if kwargs.get(pk_name) is None:
+                            # Only enforce non-None PK for non-auto PKs;
+                            # AutoField PKs are omitted from kwargs by design
+                            # (the DB sequence generates them).
+                            if not is_auto_pk and kwargs.get(pk_name) is None:
                                 continue
 
                             objs.append(model_cls(**kwargs))
@@ -410,7 +414,7 @@ class Command(BaseCommand):
                                 if not kwargs.get("fabric_id"):
                                     continue
 
-                            if kwargs.get(pk_name) is None:
+                            if not is_auto_pk and kwargs.get(pk_name) is None:
                                 continue
 
                             objs.append(model_cls(**kwargs))
@@ -453,7 +457,11 @@ class Command(BaseCommand):
                     _merge_staging_into_live(live_table, staging_table, insertable_fields)
                     self.stdout.write(self.style.SUCCESS(f"  [SWAP SUCCESS] '{live_table}' updated (merge, no truncate)"))
                 else:
-                    _atomic_live_swap(live_table, staging_table, insertable_fields, pk_column=pk_field.column)
+                    # For AutoField PKs the staging rows have NULL ids (the
+                    # sequence is not copied), so DISTINCT ON(pk) would collapse
+                    # everything to a single row.  Skip dedup for those tables.
+                    swap_pk = pk_field.column if not is_auto_pk else None
+                    _atomic_live_swap(live_table, staging_table, insertable_fields, pk_column=swap_pk)
                     self.stdout.write(self.style.SUCCESS(f"  [SWAP SUCCESS] '{live_table}' fully replaced from staging"))
             except Exception as exc:
                 self.stdout.write(

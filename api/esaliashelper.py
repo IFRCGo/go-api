@@ -54,6 +54,14 @@ def swap_alias(
     if old_indexes is None:
         old_indexes = get_alias_targets(indices_client, alias_name)
 
+    # One-time migration: if a concrete index with the alias name exists (i.e.
+    # pre-dates the alias pattern), delete it so ES accepts the alias creation.
+    try:
+        if indices_client.exists(alias_name) and not indices_client.exists_alias(name=alias_name):
+            indices_client.delete(index=alias_name)
+    except Exception:
+        pass
+
     actions: List[dict] = []
     for idx in old_indexes:
         if idx != new_index:

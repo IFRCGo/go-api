@@ -22,6 +22,28 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Added stock inventory test coverage and supporting factories for transformation, filtering, and CSV export flows
  - Add SPARK Integration Section to README
 
+ *** Modify the below to sound less AI
+ - Added Microsoft Fabric SQL integration with Azure CLI token authentication, caching, and retry logic.
+ - Added a Fabric import mapping layer for dimension and fact table ingestion with pagination strategies.
+ - Added a data synchronization workflow from Fabric SQL to Postgres using staging tables, advisory locking, and atomic swaps.
+ - Added PySpark-based ETL pipelines for stock inventory and framework agreements.
+ - Added country and region enrichment, mapping support, and business-rule filtering in SPARK transformations.
+ - Added management commands to run ETL workflows with dry-run, filtering, output, and orchestration options.
+ - Added a management command for item catalogue scraping and code-to-URL mapping persistence.
+ - Added new data models for SPARK outputs and AI-generated customs snapshots with related source and evidence entities.
+ - Added supporting factories for SPARK model test coverage.
+ - Added Elasticsearch alias swap utilities for versioned index creation and zero-downtime updates.
+ - Added management commands for Elasticsearch index creation, bulk indexing, and unified indexing orchestration.
+ - Added stock inventory API endpoints for listing, aggregation, summary metrics, filtering, sorting, and distinct filter options.
+ - Added framework agreement API endpoints for listing, item-category options, summary statistics, and map-focused stats.
+ - Added a public API endpoint for pro bono services sourced from CSV data.
+ - Added authenticated customs regulation and customs update API endpoints.
+ - Added an AI customs service for source retrieval, evidence extraction, scoring, and snapshot generation.
+ - Added unit tests for SPARK model string representations and customs snapshot/source/evidence behaviors.
+ - Added unit tests for stock inventory and framework agreement PySpark transformation logic.
+ - Added integration tests for SPARK-related API endpoints.
+ ***
+
 ## 1.1.508
 
 ### Added

@@ -10,7 +10,7 @@ Fabric (Azure SQL) ─► pull_fabric_data ─► Postgres (Dim/Fct tables)
                                               ▼
                                    CleanedFrameworkAgreement / StockInventory
                                               │
-                              bulk_index / create_warehouse_index
+                              bulk_index commands
                                               │
                                               ▼
                                         Elasticsearch
@@ -60,9 +60,9 @@ Defined in `api/models.py`.
 
 | File | Purpose |
 |------|---------|
-| `api/indexes.py` | Defines `warehouse_stocks` and `cleaned_framework_agreements` index names, mappings, and settings |
-| `api/management/commands/create_warehouse_index.py` | Creates (or recreates) the `warehouse_stocks` ES index |
-| `api/management/commands/bulk_index_warehouse_stocks.py` | Bulk-indexes warehouse stock data from SPARK dimension tables into the `warehouse_stocks` ES index |
+| `api/indexes.py` | Defines `stock_inventory` and `cleaned_framework_agreements` index names, mappings, and settings |
+| `api/management/commands/bulk_index_stock_inventory.py` | Creates/switches versioned `stock_inventory` index and bulk-indexes `StockInventory` rows |
+| `api/management/commands/bulk_index_cleaned_framework_agreements.py` | Creates/switches versioned `cleaned_framework_agreements` index and bulk-indexes `CleanedFrameworkAgreement` rows |
 
 ---
 
@@ -70,9 +70,10 @@ Defined in `api/models.py`.
 
 | File | Key views |
 |------|-----------|
-| `api/drf_views.py` | `CleanedFrameworkAgreementViewSet` (read-only, paginated, ES or DB); `CleanedFrameworkAgreementItemCategoryOptionsView`; `CleanedFrameworkAgreementSummaryView`; `CleanedFrameworkAgreementMapStatsView`; `CustomsRegulationsView` (AI-generated customs updates); `FabricDim*ViewSet` / `FabricFct*ViewSet` for raw Fabric data |
+| `api/framework_agreement_views.py` | `CleanedFrameworkAgreementViewSet` (read-only, paginated, ES or DB); `CleanedFrameworkAgreementItemCategoryOptionsView`; `CleanedFrameworkAgreementSummaryView`; `CleanedFrameworkAgreementMapStatsView` |
+| `api/drf_views.py` | `CustomsRegulationsView` (AI-generated customs updates); `FabricDim*ViewSet` / `FabricFct*ViewSet` for raw Fabric data |
 | `api/views.py` | `FabricImportAPIView` — bulk create/truncate of `CleanedFrameworkAgreement` records |
-| `api/warehouse_stocks_views.py` | `WarehouseStocksView`, `AggregatedWarehouseStocksView`, `WarehouseStocksSummaryView` — serve warehouse stock data from ES with GO Admin country enrichment |
+| `api/stock_inventory_view.py` | `StockInventoryView`, `AggregatedStockInventoryView` — serve stock inventory data from ES with GO Admin country enrichment |
 | `api/warehouse_suggestion_views.py` | `WarehouseSuggestionView` — suggests optimal warehouses by distance scoring and export regulation checks |
 | `api/pro_bono_views.py` | `ProBonoServicesView` — serves pro-bono logistics services from `data/ProBono.csv` |
 

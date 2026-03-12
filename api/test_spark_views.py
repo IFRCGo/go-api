@@ -17,13 +17,13 @@ GOADMIN_MAPS = (
 )
 
 
-class WarehouseStocksViewTest(APITestCase):
-    """Integration tests for Stock inventory (warehouse stocks) endpoints."""
+class StockInventoryViewTest(APITestCase):
+    """Integration tests for Stock inventory endpoints."""
 
     def setUp(self):
         super().setUp()
         self._goadmin_patcher = patch(
-            "api.warehouse_stocks_views.fetch_goadmin_maps",
+            "api.stock_inventory_view.fetch_goadmin_maps",
             return_value=GOADMIN_MAPS,
         )
         self._goadmin_patcher.start()
@@ -33,14 +33,14 @@ class WarehouseStocksViewTest(APITestCase):
         super().tearDown()
 
     def test_list_returns_200_and_results(self):
-        resp = self.client.get("/api/v1/warehouse-stocks/")
+        resp = self.client.get("/api/v1/stock-inventory/")
         self.assert_200(resp)
         data = resp.json()
         self.assertIn("results", data)
         self.assertIsInstance(data["results"], list)
 
     def test_list_with_page_params_returns_200_and_results(self):
-        resp = self.client.get("/api/v1/warehouse-stocks/?page=1&page_size=10")
+        resp = self.client.get("/api/v1/stock-inventory/?page=1&page_size=10")
         self.assert_200(resp)
         data = resp.json()
         self.assertIn("results", data)
@@ -50,7 +50,7 @@ class WarehouseStocksViewTest(APITestCase):
             self.assertEqual(data["page_size"], 10)
 
     def test_list_with_distinct_returns_filter_options(self):
-        resp = self.client.get("/api/v1/warehouse-stocks/?distinct=1")
+        resp = self.client.get("/api/v1/stock-inventory/?distinct=1")
         self.assert_200(resp)
         data = resp.json()
         self.assertIn("regions", data)
@@ -63,14 +63,14 @@ class WarehouseStocksViewTest(APITestCase):
         self.assertIsInstance(data["item_names"], list)
 
     def test_aggregated_returns_200_and_results(self):
-        resp = self.client.get("/api/v1/warehouse-stocks/aggregated/")
+        resp = self.client.get("/api/v1/stock-inventory/aggregated/")
         self.assert_200(resp)
         data = resp.json()
         self.assertIn("results", data)
         self.assertIsInstance(data["results"], list)
 
     def test_summary_returns_200_and_shape(self):
-        resp = self.client.get("/api/v1/warehouse-stocks/summary/")
+        resp = self.client.get("/api/v1/stock-inventory/summary/")
         self.assert_200(resp)
         data = resp.json()
         self.assertIn("total", data)
@@ -82,7 +82,7 @@ class WarehouseStocksViewTest(APITestCase):
         self.assertIn("count", data["low_stock"])
 
     def test_summary_respects_low_stock_threshold(self):
-        resp = self.client.get("/api/v1/warehouse-stocks/summary/?low_stock_threshold=10")
+        resp = self.client.get("/api/v1/stock-inventory/summary/?low_stock_threshold=10")
         self.assert_200(resp)
         data = resp.json()
         self.assertEqual(data["low_stock"]["threshold"], 10)
