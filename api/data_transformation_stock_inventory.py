@@ -23,6 +23,7 @@ import logging
 import os
 from pathlib import Path
 from typing import Optional
+import zipfile
 from urllib.request import urlretrieve
 
 from pyspark.sql import DataFrame, SparkSession
@@ -110,7 +111,10 @@ def create_spark_session(app_name: str = "stock-inventory-transformation") -> Sp
     """
     logger.info("Creating Spark session...")
 
-    # Download PostgreSQL JDBC driver if not present
+    # Prefer system-installed JDBC driver from the container image.
+    system_jdbc_jar = Path("/usr/share/java/postgresql.jar")
+
+    # Fallback download when running outside the container image.
     postgres_jdbc_version = "42.7.4"
     postgres_jdbc_jar = Path(f"/tmp/postgresql-{postgres_jdbc_version}.jar")
     postgres_jdbc_url = (
@@ -118,20 +122,48 @@ def create_spark_session(app_name: str = "stock-inventory-transformation") -> Sp
         f"{postgres_jdbc_version}/postgresql-{postgres_jdbc_version}.jar"
     )
 
-    if not postgres_jdbc_jar.exists():
-        logger.info(f"Downloading PostgreSQL JDBC driver version {postgres_jdbc_version}...")
-        urlretrieve(postgres_jdbc_url, postgres_jdbc_jar)
-        logger.info(f"  ✓ JDBC driver downloaded to {postgres_jdbc_jar}")
+    if system_jdbc_jar.exists():
+        postgres_jdbc_jar = system_jdbc_jar
+        logger.info(f"  ✓ Using system JDBC driver at {postgres_jdbc_jar}")
     else:
-        logger.info(f"  ✓ Using existing JDBC driver at {postgres_jdbc_jar}")
+        if not postgres_jdbc_jar.exists():
+            logger.info(f"Downloading PostgreSQL JDBC driver version {postgres_jdbc_version}...")
+            urlretrieve(postgres_jdbc_url, postgres_jdbc_jar)
+            logger.info(f"  ✓ JDBC driver downloaded to {postgres_jdbc_jar}")
+        else:
+            logger.info(f"  ✓ Using existing JDBC driver at {postgres_jdbc_jar}")
+
+    # Fail fast with a clear error if the file is not a valid JDBC jar.
+    with zipfile.ZipFile(postgres_jdbc_jar, "r") as jar_file:
+        if "org/postgresql/Driver.class" not in jar_file.namelist():
+            raise RuntimeError(
+                f"Invalid JDBC jar at {postgres_jdbc_jar}: org/postgresql/Driver.class not found",
+            )
 
     spark_master = os.getenv("SPARK_MASTER", "local[*]")
+    jdbc_jar_path = str(postgres_jdbc_jar)
+
+    # Ensure the JDBC jar is available to the Spark JVM at startup.
+    submit_args = os.getenv("PYSPARK_SUBMIT_ARGS", "pyspark-shell")
+    if "--jars" not in submit_args and "--driver-class-path" not in submit_args:
+        os.environ["PYSPARK_SUBMIT_ARGS"] = (
+            f"--jars {jdbc_jar_path} --driver-class-path {jdbc_jar_path} {submit_args}"
+        )
+
+    spark_classpath = os.getenv("SPARK_CLASSPATH", "")
+    if jdbc_jar_path not in spark_classpath.split(":"):
+        os.environ["SPARK_CLASSPATH"] = (
+            f"{jdbc_jar_path}:{spark_classpath}" if spark_classpath else jdbc_jar_path
+        )
 
     spark = (
         SparkSession.builder.appName(app_name)
         .master(spark_master)
         .config("spark.sql.adaptive.enabled", "true")
-        .config("spark.jars", str(postgres_jdbc_jar))
+        .config("spark.jars", jdbc_jar_path)
+        # Ensure the JDBC driver is also on the JVM classpath used by the driver/executors.
+        .config("spark.driver.extraClassPath", jdbc_jar_path)
+        .config("spark.executor.extraClassPath", jdbc_jar_path)
         .getOrCreate()
     )
 
@@ -155,15 +187,42 @@ def load_jdbc_table(spark: SparkSession, jdbc_config: dict, table_name: str) -> 
     Raises:
         Py4JJavaError: If JDBC connection fails or table doesn't exist
     """
-    return (
-        spark.read.format("jdbc")
-        .option("url", jdbc_config["url"])
-        .option("dbtable", table_name)
-        .option("user", jdbc_config["user"])
-        .option("password", jdbc_config["password"])
-        .option("driver", "org.postgresql.Driver")
-        .load()
-    )
+    try:
+        return (
+            spark.read.format("jdbc")
+            .option("url", jdbc_config["url"])
+            .option("dbtable", table_name)
+            .option("user", jdbc_config["user"])
+            .option("password", jdbc_config["password"])
+            .option("driver", "org.postgresql.Driver")
+            .load()
+        )
+    except Exception as ex:
+        if "org.postgresql.Driver" not in str(ex):
+            raise
+
+        logger.warning(
+            "PostgreSQL JDBC driver not available for Spark; falling back to Django DB load for table %s",
+            table_name,
+        )
+        return load_table_via_django(spark, table_name)
+
+
+def load_table_via_django(spark: SparkSession, table_name: str) -> DataFrame:
+    """Fallback loader: read a table with Django DB API and create a Spark DataFrame."""
+    from django.db import connection
+
+    with connection.cursor() as cursor:
+        cursor.execute(f'SELECT * FROM "{table_name}"')
+        columns = [desc[0] for desc in cursor.description]
+        rows = cursor.fetchall()
+
+    records = [dict(zip(columns, row)) for row in rows]
+    if not records:
+        schema = StructType([StructField(column, StringType(), True) for column in columns])
+        return spark.createDataFrame([], schema=schema)
+
+    return spark.createDataFrame(records)
 
 
 # ============================================================================
@@ -565,9 +624,49 @@ def write_to_database(df: DataFrame, dry_run: bool = False) -> None:
     with connection.cursor() as cursor:
         cursor.execute("TRUNCATE TABLE api_stockinventory RESTART IDENTITY")
 
-    df.write.format("jdbc").option("url", jdbc_config["url"]).option("dbtable", "api_stockinventory").option(
-        "user", jdbc_config["user"]
-    ).option("password", jdbc_config["password"]).option("driver", "org.postgresql.Driver").mode("append").save()
+    try:
+        df.write.format("jdbc").option("url", jdbc_config["url"]).option("dbtable", "api_stockinventory").option(
+            "user", jdbc_config["user"]
+        ).option("password", jdbc_config["password"]).option("driver", "org.postgresql.Driver").mode("append").save()
+    except Exception as ex:
+        if "org.postgresql.Driver" not in str(ex):
+            raise
+
+        logger.warning(
+            "PostgreSQL JDBC driver not available for Spark; falling back to Django DB write for api_stockinventory",
+        )
+
+        columns = [
+            "warehouse_id",
+            "warehouse",
+            "warehouse_country",
+            "region",
+            "product_category",
+            "item_name",
+            "quantity",
+            "unit_measurement",
+            "catalogue_link",
+        ]
+
+        rows = [tuple(row[c] for c in columns) for row in df.select(*columns).collect()]
+        if rows:
+            with connection.cursor() as cursor:
+                cursor.executemany(
+                    """
+                    INSERT INTO api_stockinventory (
+                        warehouse_id,
+                        warehouse,
+                        warehouse_country,
+                        region,
+                        product_category,
+                        item_name,
+                        quantity,
+                        unit_measurement,
+                        catalogue_link
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    """,
+                    rows,
+                )
 
     logger.info("✓ Stock inventory successfully written to database")
 

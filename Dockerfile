@@ -32,6 +32,7 @@ RUN set -eux; \
         cron \
         wait-for-it \
       openjdk-11-jre-headless \
+        libpostgresql-jdbc-java \
         binutils libproj-dev gdal-bin poppler-utils \
         unixodbc unixodbc-dev msodbcsql18 \
         libnss3 libnspr4 libdbus-1-3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libpango-1.0-0 libpangocairo-1.0-0 libcairo2 libxcb-dri3-0 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxinerama1 libxrandr2 libxrender1 libxss1 libxtst6 libgbm1 libasound2 libxslt1.1 \
