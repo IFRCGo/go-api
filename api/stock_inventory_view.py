@@ -64,7 +64,7 @@ class StockInventoryView(views.APIView):
         if product_category_q:
             filters.append({"term": {"product_category": product_category_q}})
         if item_name_q:
-            filters.append({"match": {"item_name.autocomplete": item_name_q}})
+            filters.append({"term": {"item_name.raw": item_name_q}})
         if warehouse_ids:
             filters.append({"terms": {"warehouse_id": warehouse_ids}})
         else:
@@ -153,7 +153,7 @@ class StockInventoryView(views.APIView):
         if product_category_q:
             queryset = queryset.filter(product_category__iexact=product_category_q)
         if item_name_q:
-            queryset = queryset.filter(item_name__icontains=item_name_q)
+            queryset = queryset.filter(item_name__iexact=item_name_q)
         if warehouse_ids:
             queryset = queryset.filter(warehouse_id__in=warehouse_ids)
         else:
@@ -274,7 +274,7 @@ class AggregatedStockInventoryView(views.APIView):
         if product_category_q:
             filters.append({"term": {"product_category": product_category_q}})
         if item_name_q:
-            filters.append({"match": {"item_name.autocomplete": item_name_q}})
+            filters.append({"term": {"item_name.raw": item_name_q}})
         if warehouse_ids:
             filters.append({"terms": {"warehouse_id": warehouse_ids}})
 
@@ -340,7 +340,7 @@ class AggregatedStockInventoryView(views.APIView):
         if product_category_q:
             queryset = queryset.filter(product_category__iexact=product_category_q)
         if item_name_q:
-            queryset = queryset.filter(item_name__icontains=item_name_q)
+            queryset = queryset.filter(item_name__iexact=item_name_q)
         if warehouse_ids:
             queryset = queryset.filter(warehouse_id__in=warehouse_ids)
 
