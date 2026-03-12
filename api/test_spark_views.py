@@ -167,10 +167,7 @@ class StockInventoryViewTest(APITestCase):
         self._seed_stock_inventory()
 
         with patch("api.stock_inventory_view.ES_CLIENT", None):
-            resp = self.client.get(
-                "/api/v1/stock-inventory/aggregated/?"
-                "warehouse_ids=AE1DUB002,AR1BUE002"
-            )
+            resp = self.client.get("/api/v1/stock-inventory/aggregated/?" "warehouse_ids=AE1DUB002,AR1BUE002")
 
         self.assert_200(resp)
         rows = resp.json()["results"]
