@@ -478,7 +478,9 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.SUCCESS(f"  Staging table '{staging_table}' dropped"))
 
                 self.stdout.write(
-                    self.style.SUCCESS(f"  Stage complete: {slug} inserted={total_inserted} time={time.time() - stage_start:.2f}s")
+                    self.style.SUCCESS(
+                        f"  Stage complete: {slug} inserted={total_inserted} time={time.time() - stage_start:.2f}s"
+                    )
                 )
 
             self.stdout.write(self.style.SUCCESS("\nDone."))

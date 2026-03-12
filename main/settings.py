@@ -725,6 +725,16 @@ CELERY_RESULT_BACKEND = CELERY_REDIS_URL
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_ACKS_LATE = True
 
+from celery.schedules import crontab  # noqa: E402
+
+CELERY_BEAT_SCHEDULE = {
+    "pull-fabric-data-weekly": {
+        "task": "api.tasks.pull_fabric_data_task",
+        "schedule": crontab(hour=2, minute=0, day_of_week=0),
+        "options": {"queue": "cronjob"},
+    },
+}
+
 RETRY_STRATEGY = Retry(total=3, status_forcelist=[429, 500, 502, 503, 504], allowed_methods=["HEAD", "GET", "OPTIONS"])
 
 MOLNIX_API_BASE = env("MOLNIX_API_BASE")

@@ -148,3 +148,16 @@ def generate_url(url, export_id, user, title, language):
         export.status = Export.ExportStatus.ERRORED
         export.save(update_fields=["status"])
     logger.info(f"End export: {export.pk}")
+
+
+@shared_task(bind=True, queue="cronjob")
+def pull_fabric_data_task(self):
+    from django.core.management import call_command
+
+    logger.info("pull_fabric_data_task: starting scheduled Fabric pull")
+    try:
+        call_command("pull_fabric_data")
+        logger.info("pull_fabric_data_task: completed successfully")
+    except Exception:
+        logger.error("pull_fabric_data_task: failed", exc_info=True)
+        raise
