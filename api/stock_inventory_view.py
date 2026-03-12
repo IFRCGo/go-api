@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from django.db.models import Count, Sum
 from rest_framework import views
 from rest_framework.response import Response
 
@@ -219,10 +220,28 @@ class StockInventoryView(views.APIView):
         )
 
     def get(self, request):
+        if request.query_params.get("distinct") == "1":
+            return self._distinct_options()
         es_response = self._es_list(request)
         if es_response is not None:
             return es_response
         return self._db_list(request)
+
+    @staticmethod
+    def _distinct_options():
+        qs = StockInventory.objects.all()
+        regions = sorted(qs.values_list("region", flat=True).distinct())
+        countries = sorted(qs.values_list("warehouse_country", flat=True).distinct())
+        item_groups = sorted(qs.values_list("product_category", flat=True).distinct())
+        item_names = sorted(qs.values_list("item_name", flat=True).distinct())
+        return Response(
+            {
+                "regions": [r for r in regions if r],
+                "countries": [c for c in countries if c],
+                "item_groups": [g for g in item_groups if g],
+                "item_names": [n for n in item_names if n],
+            }
+        )
 
 
 class AggregatedStockInventoryView(views.APIView):
@@ -374,3 +393,42 @@ class AggregatedStockInventoryView(views.APIView):
         if es_response is not None:
             return es_response
         return self._db_aggregated(request)
+
+
+class StockInventorySummaryView(views.APIView):
+    """Return summary statistics for stock inventory."""
+
+    permission_classes = []
+
+    def get(self, request):
+        try:
+            low_stock_threshold = int(request.query_params.get("low_stock_threshold", 100))
+        except (ValueError, TypeError):
+            low_stock_threshold = 100
+
+        qs = StockInventory.objects.all()
+        total = qs.count()
+
+        by_item_group = list(
+            qs.values("product_category").annotate(count=Count("id"), total_quantity=Sum("quantity")).order_by("product_category")
+        )
+
+        low_stock_count = qs.filter(quantity__lte=low_stock_threshold).count()
+
+        return Response(
+            {
+                "total": total,
+                "by_item_group": [
+                    {
+                        "product_category": row["product_category"],
+                        "count": row["count"],
+                        "total_quantity": str(row["total_quantity"]) if row["total_quantity"] is not None else "0",
+                    }
+                    for row in by_item_group
+                ],
+                "low_stock": {
+                    "threshold": low_stock_threshold,
+                    "count": low_stock_count,
+                },
+            }
+        )

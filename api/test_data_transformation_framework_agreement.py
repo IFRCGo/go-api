@@ -58,11 +58,9 @@ class QuerysetToSparkDfTest(SparkTestMixin, TestCase):
         self.assertEqual(collected[0]["id"], "A001")
         self.assertEqual(collected[1]["name"], "Item B")
 
-    def test_empty_list_raises_on_schema_inference(self):
-        from pyspark.errors.exceptions.base import PySparkValueError
-
-        with self.assertRaises(PySparkValueError):
-            _queryset_to_spark_df(self.spark, [])
+    def test_empty_list_returns_empty_dataframe(self):
+        df = _queryset_to_spark_df(self.spark, [])
+        self.assertEqual(df.count(), 0)
 
 
 class GetCountryRegionMappingTest(SparkTestMixin, TestCase):
@@ -192,6 +190,7 @@ class BuildBaseAgreementTest(SparkTestMixin, TestCase):
 
 
 class LoadDimensionTablesTest(SparkTestMixin, TestCase):
+    @patch("api.data_transformation_framework_agreement._schema_for_model", return_value=None)
     @patch("api.data_transformation_framework_agreement.DimVendorPhysicalAddress")
     @patch("api.data_transformation_framework_agreement.DimVendor")
     @patch("api.data_transformation_framework_agreement.DimProductCategory")
@@ -204,6 +203,7 @@ class LoadDimensionTablesTest(SparkTestMixin, TestCase):
         mock_prod_cat,
         mock_vendor,
         mock_vendor_addr,
+        _mock_schema,
     ):
         mock_product.objects.values.return_value = [
             {"id": "PROD001", "type": "Item", "name": "Tarpaulin"},

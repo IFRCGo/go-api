@@ -26,7 +26,11 @@ from api import drf_views as api_views
 from api import framework_agreement_views as fa_views
 from api.admin_reports import UsersPerPermissionViewSet
 from api.pro_bono_views import ProBonoServicesView
-from api.stock_inventory_view import AggregatedStockInventoryView, StockInventoryView
+from api.stock_inventory_view import (
+    AggregatedStockInventoryView,
+    StockInventorySummaryView,
+    StockInventoryView,
+)
 from api.views import (
     AddCronJobLog,
     AddSubscription,
@@ -210,6 +214,7 @@ urlpatterns = [
     # url(r"^api/v1/es_search/", EsPageSearch.as_view()),
     url(r"^api/v1/search/", HayStackSearch.as_view()),
     url(r"^api/v1/stock-inventory/aggregated/", AggregatedStockInventoryView.as_view()),
+    url(r"^api/v1/stock-inventory/summary/", StockInventorySummaryView.as_view()),
     url(r"^api/v1/stock-inventory/", StockInventoryView.as_view()),
     url(r"^api/v1/pro-bono-services/", ProBonoServicesView.as_view()),
     url(r"^api/v1/es_health/", EsPageHealth.as_view()),

@@ -424,6 +424,7 @@ def transform_and_clean(
         "product_type",
         "product",
         "product_name",
+        "classification",
         "pc_item_code",
         "vendor_code",
     ]
