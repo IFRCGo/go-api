@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Added a new `StockInventory` model
  - Add stock inventory command
  - Added stock inventory test coverage and supporting factories for transformation, filtering, and CSV export flows
+ - Add SPARK Integration Section to README
 
  *** Modify the below to sound less AI
  - Added Microsoft Fabric SQL integration with Azure CLI token authentication, caching, and retry logic.
