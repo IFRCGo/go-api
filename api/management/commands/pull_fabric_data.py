@@ -479,7 +479,7 @@ class Command(BaseCommand):
                 self.style.SUCCESS(f"  Stage complete: {slug} inserted={total_inserted} time={time.time() - stage_start:.2f}s")
             )
 
-        self.stdout.write(self.style.SUCCESS("\nDone."))
+        self.stdout.write(self.style.SUCCESS("\nCompleted."))
 
         # Close Fabric cursor and connection after all stages complete.
         cursor.close()
