@@ -40,6 +40,18 @@ RUN set -eux; \
         azure-cli; \
     rm -rf /var/lib/apt/lists/*
 
+# Ensure JAVA_HOME is available regardless of architecture variant.
+# Some Debian/Ubuntu packages install architecture-specific JVM directories
+RUN set -eux; \
+    if [ -d /usr/lib/jvm ]; then \
+      JAVA_DIR=$(ls -1 /usr/lib/jvm | grep -E 'java-11-openjdk|openjdk-11' | head -n1 || true); \
+      if [ -n "${JAVA_DIR}" ]; then \
+        if [ ! -e /usr/lib/jvm/java-11-openjdk-amd64 ]; then \
+          ln -s "/usr/lib/jvm/${JAVA_DIR}" /usr/lib/jvm/java-11-openjdk-amd64 || true; \
+        fi; \
+      fi; \
+    fi
+
 ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 ENV HOME=/home/ifrc
 WORKDIR $HOME
