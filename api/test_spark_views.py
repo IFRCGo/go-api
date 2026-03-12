@@ -2,18 +2,24 @@
 Integration tests for SPARK-related API endpoints (Stock inventory, Framework agreements, etc.).
 """
 
+from decimal import Decimal
 from unittest.mock import patch
 
 from django.urls import reverse
 
-from api.models import CountryCustomsSnapshot
+from api.models import (
+    CleanedFrameworkAgreement,
+    Country,
+    CountryCustomsSnapshot,
+    StockInventory,
+)
 from main.test_case import APITestCase
 
 # Fixed maps returned by mocked _fetch_goadmin_maps (no network calls in tests).
 GOADMIN_MAPS = (
-    {"XX": "XXX"},  # iso2_to_iso3
-    {"XXX": "Test Country"},  # iso3_to_country_name
-    {"XXX": "Test Region"},  # iso3_to_region_name
+    {"AE": "ARE", "AR": "ARG", "MY": "MYS"},  # iso2_to_iso3
+    {"ARE": "United Arab Emirates", "ARG": "Argentina", "MYS": "Malaysia"},  # iso3_to_country_name
+    {"ARE": "MENA", "ARG": "Americas", "MYS": "Asia Pacific"},  # iso3_to_region_name
 )
 
 
@@ -31,6 +37,38 @@ class StockInventoryViewTest(APITestCase):
     def tearDown(self):
         self._goadmin_patcher.stop()
         super().tearDown()
+
+    def _seed_stock_inventory(self):
+        StockInventory.objects.create(
+            warehouse_id="AE1DUB002",
+            warehouse="Dubai Hub",
+            warehouse_country="United Arab Emirates",
+            region="MENA",
+            product_category="Shelter",
+            item_name="Tent A",
+            quantity=Decimal("5.00"),
+            unit_measurement="ea",
+        )
+        StockInventory.objects.create(
+            warehouse_id="AE1DUB002",
+            warehouse="Dubai Hub",
+            warehouse_country="United Arab Emirates",
+            region="MENA",
+            product_category="Shelter",
+            item_name="Tent B",
+            quantity=Decimal("3.00"),
+            unit_measurement="ea",
+        )
+        StockInventory.objects.create(
+            warehouse_id="AR1BUE002",
+            warehouse="Buenos Aires Hub",
+            warehouse_country="Argentina",
+            region="Americas",
+            product_category="Health",
+            item_name="Kit C",
+            quantity=Decimal("20.00"),
+            unit_measurement="ea",
+        )
 
     def test_list_returns_200_and_results(self):
         resp = self.client.get("/api/v1/stock-inventory/")
@@ -86,6 +124,80 @@ class StockInventoryViewTest(APITestCase):
         self.assert_200(resp)
         data = resp.json()
         self.assertEqual(data["low_stock"]["threshold"], 10)
+
+    def test_list_filter_sort_and_pagination_returns_expected_rows(self):
+        self._seed_stock_inventory()
+
+        with patch("api.stock_inventory_view.ES_CLIENT", None):
+            resp = self.client.get(
+                "/api/v1/stock-inventory/?"
+                "region=MENA&"
+                "product_category=Shelter&"
+                "country_iso3=ARE&"
+                "warehouse_ids=AE1DUB002&"
+                "sort=quantity&order=asc&"
+                "page=1&page_size=1"
+            )
+
+        self.assert_200(resp)
+        data = resp.json()
+        self.assertEqual(data["total"], 2)
+        self.assertEqual(data["page"], 1)
+        self.assertEqual(data["page_size"], 1)
+        self.assertEqual(len(data["results"]), 1)
+        self.assertEqual(data["results"][0]["item_name"], "Tent B")
+        self.assertEqual(data["results"][0]["country_iso3"], "ARE")
+
+        with patch("api.stock_inventory_view.ES_CLIENT", None):
+            resp_page_2 = self.client.get(
+                "/api/v1/stock-inventory/?"
+                "region=MENA&"
+                "product_category=Shelter&"
+                "country_iso3=ARE&"
+                "warehouse_ids=AE1DUB002&"
+                "sort=quantity&order=asc&"
+                "page=2&page_size=1"
+            )
+        self.assert_200(resp_page_2)
+        data_page_2 = resp_page_2.json()
+        self.assertEqual(len(data_page_2["results"]), 1)
+        self.assertEqual(data_page_2["results"][0]["item_name"], "Tent A")
+
+    def test_aggregated_returns_expected_country_totals(self):
+        self._seed_stock_inventory()
+
+        with patch("api.stock_inventory_view.ES_CLIENT", None):
+            resp = self.client.get(
+                "/api/v1/stock-inventory/aggregated/?"
+                "warehouse_ids=AE1DUB002,AR1BUE002"
+            )
+
+        self.assert_200(resp)
+        rows = resp.json()["results"]
+        keyed = {r["country_iso3"]: r for r in rows}
+
+        self.assertIn("ARE", keyed)
+        self.assertIn("ARG", keyed)
+        self.assertEqual(Decimal(keyed["ARE"]["total_quantity"]), Decimal("8.00"))
+        self.assertEqual(keyed["ARE"]["warehouse_count"], 1)
+        self.assertEqual(Decimal(keyed["ARG"]["total_quantity"]), Decimal("20.00"))
+
+    def test_summary_returns_expected_aggregates(self):
+        self._seed_stock_inventory()
+
+        resp = self.client.get("/api/v1/stock-inventory/summary/?low_stock_threshold=10")
+        self.assert_200(resp)
+        data = resp.json()
+
+        self.assertEqual(data["total"], 3)
+        self.assertEqual(data["low_stock"]["threshold"], 10)
+        self.assertEqual(data["low_stock"]["count"], 2)
+
+        by_category = {row["product_category"]: row for row in data["by_item_group"]}
+        self.assertEqual(by_category["Shelter"]["count"], 2)
+        self.assertEqual(Decimal(by_category["Shelter"]["total_quantity"]), Decimal("8.00"))
+        self.assertEqual(by_category["Health"]["count"], 1)
+        self.assertEqual(Decimal(by_category["Health"]["total_quantity"]), Decimal("20.00"))
 
 
 class CleanedFrameworkAgreementViewTest(APITestCase):
@@ -148,6 +260,72 @@ class CleanedFrameworkAgreementViewTest(APITestCase):
         data = resp.json()
         self.assertIn("results", data)
         self.assertIsInstance(data["results"], list)
+
+    def _seed_framework_agreements(self):
+        CleanedFrameworkAgreement.objects.create(
+            agreement_id="A-100",
+            owner="IFRC",
+            vendor_name="Vendor One",
+            vendor_country="KEN",
+            region_countries_covered="Kenya",
+            item_category="Shelter",
+        )
+        CleanedFrameworkAgreement.objects.create(
+            agreement_id="A-200",
+            owner="Partner",
+            vendor_name="Vendor Two",
+            vendor_country="KEN",
+            region_countries_covered="Kenya",
+            item_category="Health",
+        )
+        CleanedFrameworkAgreement.objects.create(
+            agreement_id="A-300",
+            owner="IFRC",
+            vendor_name="Vendor Three",
+            vendor_country="UGA",
+            region_countries_covered="Uganda",
+            item_category="Health",
+        )
+
+    def test_summary_returns_expected_framework_aggregates(self):
+        self.authenticate()
+        self._seed_framework_agreements()
+
+        with patch("api.framework_agreement_views.ES_CLIENT", None):
+            resp = self.client.get(reverse("fabric_cleaned_framework_agreement_summary"))
+
+        self.assert_200(resp)
+        data = resp.json()
+        self.assertEqual(data["ifrcFrameworkAgreements"], 3)
+        self.assertEqual(data["suppliers"], 3)
+        self.assertEqual(data["otherFrameworkAgreements"], 1)
+        self.assertEqual(data["otherSuppliers"], 1)
+        self.assertEqual(data["itemCategoriesCovered"], 2)
+
+    def test_map_stats_returns_expected_counts_for_country(self):
+        self.authenticate()
+        self._seed_framework_agreements()
+        Country.objects.update_or_create(
+            name="Kenya",
+            defaults={
+                "iso": "KE",
+                "iso3": "KEN",
+                "independent": True,
+                "is_deprecated": False,
+            },
+        )
+
+        with patch("api.framework_agreement_views.ES_CLIENT", None):
+            resp = self.client.get(reverse("fabric_cleaned_framework_agreement_map_stats"))
+
+        self.assert_200(resp)
+        rows = resp.json()["results"]
+        kenya = next((r for r in rows if r["iso3"] == "KEN"), None)
+        self.assertIsNotNone(kenya)
+        self.assertEqual(kenya["exclusiveFrameworkAgreements"], 2)
+        self.assertEqual(kenya["exclusiveIfrcAgreements"], 1)
+        self.assertEqual(kenya["exclusiveOtherAgreements"], 1)
+        self.assertEqual(kenya["vendorCountryAgreements"], 2)
 
 
 class ProBonoServicesViewTest(APITestCase):
@@ -346,3 +524,45 @@ class CustomsUpdatesViewTest(APITestCase):
         data = resp.json()
         self.assertIn("detail", data)
         self.assertIn("An error occurred while processing customs update", data["detail"])
+
+    def test_list_orders_results_by_country_name(self):
+        self.authenticate()
+        CountryCustomsSnapshot.objects.create(country_name="Zimbabwe", is_current=True, summary_text="S1")
+        CountryCustomsSnapshot.objects.create(country_name="Albania", is_current=True, summary_text="S2")
+
+        resp = self.client.get(reverse("customs_updates_list"))
+        self.assert_200(resp)
+        names = [row["country_name"] for row in resp.json()["results"]]
+        self.assertEqual(names, sorted(names))
+
+    def test_country_detail_creates_snapshot_when_missing(self):
+        self.authenticate()
+        generated_snapshot = CountryCustomsSnapshot(
+            country_name="Kenya",
+            is_current=True,
+            summary_text="Generated summary",
+        )
+
+        with (
+            patch("api.customs_spark_views.CustomsAIService.validate_country_name", return_value=(True, None)),
+            patch("api.customs_spark_views.CustomsAIService.generate_customs_snapshot", return_value=generated_snapshot),
+        ):
+            resp = self.client.get(reverse("customs_updates_detail", kwargs={"country": "Kenya"}))
+
+        self.assert_201(resp)
+        data = resp.json()
+        self.assertEqual(data["country_name"], "Kenya")
+
+    def test_country_detail_delete_deactivates_current_snapshot(self):
+        self.authenticate()
+        snapshot = CountryCustomsSnapshot.objects.create(
+            country_name="Kenya",
+            is_current=True,
+            summary_text="To deactivate",
+        )
+
+        resp = self.client.delete(reverse("customs_updates_detail", kwargs={"country": "Kenya"}))
+        self.assert_200(resp)
+
+        snapshot.refresh_from_db()
+        self.assertFalse(snapshot.is_current)
