@@ -20,7 +20,7 @@ Fabric → Logistics Gold → Settings → SQL endpoint
 
 ### Setup
 
-     $ docker compose build
+     $ docker compose build --no-cache
      $ docker compose run --rm migrate
      $ docker compose run --rm loaddata
 
