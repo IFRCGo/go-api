@@ -258,7 +258,7 @@ class StockInventoryView(views.APIView):
 
         for stock in qs.iterator():
             # derive country iso3 from warehouse id
-            country_iso3 = derive_country_iso3(getattr(stock, 'warehouse_id', ''), iso2_to_iso3, "")
+            country_iso3 = derive_country_iso3(getattr(stock, "warehouse_id", ""), iso2_to_iso3, "")
             if country_iso3_list and country_iso3 not in country_iso3_list:
                 continue
 
