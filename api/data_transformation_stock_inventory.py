@@ -21,9 +21,9 @@ from __future__ import annotations
 
 import logging
 import os
+import zipfile
 from pathlib import Path
 from typing import Optional
-import zipfile
 from urllib.request import urlretrieve
 
 from pyspark.sql import DataFrame, SparkSession
@@ -146,15 +146,11 @@ def create_spark_session(app_name: str = "stock-inventory-transformation") -> Sp
     # Ensure the JDBC jar is available to the Spark JVM at startup.
     submit_args = os.getenv("PYSPARK_SUBMIT_ARGS", "pyspark-shell")
     if "--jars" not in submit_args and "--driver-class-path" not in submit_args:
-        os.environ["PYSPARK_SUBMIT_ARGS"] = (
-            f"--jars {jdbc_jar_path} --driver-class-path {jdbc_jar_path} {submit_args}"
-        )
+        os.environ["PYSPARK_SUBMIT_ARGS"] = f"--jars {jdbc_jar_path} --driver-class-path {jdbc_jar_path} {submit_args}"
 
     spark_classpath = os.getenv("SPARK_CLASSPATH", "")
     if jdbc_jar_path not in spark_classpath.split(":"):
-        os.environ["SPARK_CLASSPATH"] = (
-            f"{jdbc_jar_path}:{spark_classpath}" if spark_classpath else jdbc_jar_path
-        )
+        os.environ["SPARK_CLASSPATH"] = f"{jdbc_jar_path}:{spark_classpath}" if spark_classpath else jdbc_jar_path
 
     spark = (
         SparkSession.builder.appName(app_name)
