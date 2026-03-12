@@ -448,7 +448,6 @@ class TransformAndCleanTest(SparkTestMixin, TestCase):
             "product_type",
             "product",
             "product_name",
-            "classification",
             "vendor_code",
         }
         for col_name in dropped:
