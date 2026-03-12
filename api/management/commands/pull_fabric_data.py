@@ -273,214 +273,219 @@ class Command(BaseCommand):
                 )
             )
             return
-        # The session-level advisory lock auto-releases when this process exits.
-        # An explicit _release_advisory_lock() call is not required for cron safety.
-        run_id = uuid.uuid4().hex[:12]
 
-        stages = [s for s in FABRIC_IMPORT_STAGES if (not only or s["slug"] in only) and s["slug"] not in exclude]
-        self.stdout.write(self.style.SUCCESS(f"Starting pull_fabric_data: {len(stages)} stages (run_id={run_id})"))
+        try:
+            # The session-level advisory lock auto-releases when this process exits.
+            # An explicit _release_advisory_lock() call is not required for cron safety.
+            run_id = uuid.uuid4().hex[:12]
 
-        # Verify Fabric connectivity once before processing any stages
-        t0 = time.time()
-        conn = get_fabric_connection()
-        cursor = conn.cursor()
-        first_table = stages[0]["table"] if stages else None
-        if first_table:
-            test_fq = f"[{FABRIC_DB}].[{FABRIC_SCHEMA}].[{first_table}]"
-            _ = fetch_all(cursor, f"SELECT TOP (1) * FROM {test_fq}", limit=1)
-            self.stdout.write(self.style.SUCCESS(f"[TEST] Fabric reachable ({time.time() - t0:.2f}s)"))
+            stages = [s for s in FABRIC_IMPORT_STAGES if (not only or s["slug"] in only) and s["slug"] not in exclude]
+            self.stdout.write(self.style.SUCCESS(f"Starting pull_fabric_data: {len(stages)} stages (run_id={run_id})"))
 
-        for idx, stage in enumerate(stages, start=1):
-            slug = stage["slug"]
-            table = stage["table"]
-            page_key = stage.get("page_key")
-            pagination = stage.get("pagination", "keyset")
+            # Verify Fabric connectivity once before processing any stages
+            t0 = time.time()
+            conn = get_fabric_connection()
+            cursor = conn.cursor()
+            first_table = stages[0]["table"] if stages else None
+            if first_table:
+                test_fq = f"[{FABRIC_DB}].[{FABRIC_SCHEMA}].[{first_table}]"
+                _ = fetch_all(cursor, f"SELECT TOP (1) * FROM {test_fq}", limit=1)
+                self.stdout.write(self.style.SUCCESS(f"[TEST] Fabric reachable ({time.time() - t0:.2f}s)"))
 
-            if not page_key:
-                raise RuntimeError(f"Stage '{slug}' is missing 'page_key'")
+            for idx, stage in enumerate(stages, start=1):
+                slug = stage["slug"]
+                table = stage["table"]
+                page_key = stage.get("page_key")
+                pagination = stage.get("pagination", "keyset")
 
-            fq_table = f"[{FABRIC_DB}].[{FABRIC_SCHEMA}].[{table}]"
+                if not page_key:
+                    raise RuntimeError(f"Stage '{slug}' is missing 'page_key'")
 
-            model_cls = self._resolve_model(stage)
-            self.stdout.write(f"\n[{idx}/{len(stages)}] Stage: {slug}")
-            self.stdout.write(f"  Fabric table: {fq_table}")
-            self.stdout.write(f"  Target model: {model_cls.__module__}.{model_cls.__name__}")
-            self.stdout.write(f"  Pagination: {pagination} | page_key: {page_key} | chunk_size: {chunk_size}")
+                fq_table = f"[{FABRIC_DB}].[{FABRIC_SCHEMA}].[{table}]"
 
-            model_fields = {f.name: f for f in model_cls._meta.concrete_fields}
-            pk_name = model_cls._meta.pk.name
-            pk_field = model_fields.get(pk_name)
-            is_auto_pk = pk_field is not None and isinstance(pk_field, AutoField)
-            has_fabric_id = "fabric_id" in model_fields
-            insertable_fields = _build_insertable_fields(model_cls, pk_name)
+                model_cls = self._resolve_model(stage)
+                self.stdout.write(f"\n[{idx}/{len(stages)}] Stage: {slug}")
+                self.stdout.write(f"  Fabric table: {fq_table}")
+                self.stdout.write(f"  Target model: {model_cls.__module__}.{model_cls.__name__}")
+                self.stdout.write(f"  Pagination: {pagination} | page_key: {page_key} | chunk_size: {chunk_size}")
 
-            # ---------------------------------------------------------------- #
-            # Prepare staging table — live table is NOT touched at this point.  #
-            # ---------------------------------------------------------------- #
-            live_table = model_cls._meta.db_table
-            # Pass the PK column name so its NOT NULL constraint is dropped
-            # on the staging table (it won't have the live table's sequence).
-            auto_pk_col = pk_field.column if pk_field and isinstance(pk_field, AutoField) else None
-            staging_table = _create_staging_table(live_table, run_id, pk_column=auto_pk_col)
-            self.stdout.write(self.style.SUCCESS(f"  Staging table '{staging_table}' created — loading '{slug}'..."))
+                model_fields = {f.name: f for f in model_cls._meta.concrete_fields}
+                pk_name = model_cls._meta.pk.name
+                pk_field = model_fields.get(pk_name)
+                is_auto_pk = pk_field is not None and isinstance(pk_field, AutoField)
+                has_fabric_id = "fabric_id" in model_fields
+                insertable_fields = _build_insertable_fields(model_cls, pk_name)
 
-            total_inserted = 0
-            batch_num = 0
-            stage_start = time.time()
+                # ---------------------------------------------------------------- #
+                # Prepare staging table — live table is NOT touched at this point.  #
+                # ---------------------------------------------------------------- #
+                live_table = model_cls._meta.db_table
+                # Pass the PK column name so its NOT NULL constraint is dropped
+                # on the staging table (it won't have the live table's sequence).
+                auto_pk_col = pk_field.column if pk_field and isinstance(pk_field, AutoField) else None
+                staging_table = _create_staging_table(live_table, run_id, pk_column=auto_pk_col)
+                self.stdout.write(self.style.SUCCESS(f"  Staging table '{staging_table}' created — loading '{slug}'..."))
 
-            try:
-                if pagination == "keyset":
-                    sql_initial = f"""
-                        SELECT TOP ({chunk_size}) *
-                        FROM {fq_table}
-                        ORDER BY [{page_key}] ASC
-                    """
-                    sql_keyset = f"""
-                        SELECT TOP ({chunk_size}) *
-                        FROM {fq_table}
-                        WHERE [{page_key}] > ?
-                        ORDER BY [{page_key}] ASC
-                    """
-                    last_val = None
-                    objs = []
-                    while True:
-                        if last_val is None:
-                            rows = fetch_all(cursor, sql_initial, limit=chunk_size)
-                        else:
-                            rows = fetch_all(cursor, sql_keyset, params=(last_val,), limit=chunk_size)
+                total_inserted = 0
+                batch_num = 0
+                stage_start = time.time()
 
-                        if not rows:
-                            break
-
-                        objs.clear()
-                        for r in rows:
-                            r.pop("rn", None)
-                            kwargs = self._row_to_model_kwargs(r, model_fields, pk_name, pk_field)
-
-                            if has_fabric_id:
-                                if not kwargs.get("fabric_id"):
-                                    continue
-
-                            # Only enforce non-None PK for non-auto PKs;
-                            # AutoField PKs are omitted from kwargs by design
-                            # (the DB sequence generates them).
-                            if not is_auto_pk and kwargs.get(pk_name) is None:
-                                continue
-
-                            objs.append(model_cls(**kwargs))
-
-                        n = _bulk_insert_staging(staging_table, insertable_fields, objs)
-                        batch_num += 1
-                        total_inserted += n
-                        last_val = rows[-1][page_key]
-
-                        self.stdout.write(
-                            self.style.SUCCESS(
-                                f"  [BATCH {batch_num}] staged {n} rows to '{staging_table}' "
-                                f"(total={total_inserted}) last_{page_key}={last_val}"
-                            )
-                        )
-
-                elif pagination == "row_number":
-                    sql_rn = f"""
-                        WITH numbered AS (
-                            SELECT
-                                *,
-                                ROW_NUMBER() OVER (ORDER BY [{page_key}] ASC) AS rn
+                try:
+                    if pagination == "keyset":
+                        sql_initial = f"""
+                            SELECT TOP ({chunk_size}) *
                             FROM {fq_table}
-                        )
-                        SELECT *
-                        FROM numbered
-                        WHERE rn BETWEEN ? AND ?
-                        ORDER BY rn ASC
-                    """
-                    last_rn = 0
-                    objs = []
-                    while True:
-                        start_rn = last_rn + 1
-                        end_rn = last_rn + chunk_size
+                            ORDER BY [{page_key}] ASC
+                        """
+                        sql_keyset = f"""
+                            SELECT TOP ({chunk_size}) *
+                            FROM {fq_table}
+                            WHERE [{page_key}] > ?
+                            ORDER BY [{page_key}] ASC
+                        """
+                        last_val = None
+                        objs = []
+                        while True:
+                            if last_val is None:
+                                rows = fetch_all(cursor, sql_initial, limit=chunk_size)
+                            else:
+                                rows = fetch_all(cursor, sql_keyset, params=(last_val,), limit=chunk_size)
 
-                        rows = fetch_all(cursor, sql_rn, params=(start_rn, end_rn), limit=chunk_size)
+                            if not rows:
+                                break
 
-                        if not rows:
-                            break
+                            objs.clear()
+                            for r in rows:
+                                r.pop("rn", None)
+                                kwargs = self._row_to_model_kwargs(r, model_fields, pk_name, pk_field)
 
-                        objs.clear()
-                        for r in rows:
-                            r.pop("rn", None)
-                            kwargs = self._row_to_model_kwargs(r, model_fields, pk_name, pk_field)
+                                if has_fabric_id:
+                                    if not kwargs.get("fabric_id"):
+                                        continue
 
-                            if has_fabric_id:
-                                if not kwargs.get("fabric_id"):
+                                # Only enforce non-None PK for non-auto PKs;
+                                # AutoField PKs are omitted from kwargs by design
+                                # (the DB sequence generates them).
+                                if not is_auto_pk and kwargs.get(pk_name) is None:
                                     continue
 
-                            if not is_auto_pk and kwargs.get(pk_name) is None:
-                                continue
+                                objs.append(model_cls(**kwargs))
 
-                            objs.append(model_cls(**kwargs))
+                            n = _bulk_insert_staging(staging_table, insertable_fields, objs)
+                            batch_num += 1
+                            total_inserted += n
+                            last_val = rows[-1][page_key]
 
-                        n = _bulk_insert_staging(staging_table, insertable_fields, objs)
-                        batch_num += 1
-                        total_inserted += n
-                        last_rn = end_rn
-
-                        self.stdout.write(
-                            self.style.SUCCESS(
-                                f"  [BATCH {batch_num}] staged {n} rows to '{staging_table}' "
-                                f"(total={total_inserted}) rn={start_rn}..{end_rn}"
+                            self.stdout.write(
+                                self.style.SUCCESS(
+                                    f"  [BATCH {batch_num}] staged {n} rows to '{staging_table}' "
+                                    f"(total={total_inserted}) last_{page_key}={last_val}"
+                                )
                             )
+
+                    elif pagination == "row_number":
+                        sql_rn = f"""
+                            WITH numbered AS (
+                                SELECT
+                                    *,
+                                    ROW_NUMBER() OVER (ORDER BY [{page_key}] ASC) AS rn
+                                FROM {fq_table}
+                            )
+                            SELECT *
+                            FROM numbered
+                            WHERE rn BETWEEN ? AND ?
+                            ORDER BY rn ASC
+                        """
+                        last_rn = 0
+                        objs = []
+                        while True:
+                            start_rn = last_rn + 1
+                            end_rn = last_rn + chunk_size
+
+                            rows = fetch_all(cursor, sql_rn, params=(start_rn, end_rn), limit=chunk_size)
+
+                            if not rows:
+                                break
+
+                            objs.clear()
+                            for r in rows:
+                                r.pop("rn", None)
+                                kwargs = self._row_to_model_kwargs(r, model_fields, pk_name, pk_field)
+
+                                if has_fabric_id:
+                                    if not kwargs.get("fabric_id"):
+                                        continue
+
+                                if not is_auto_pk and kwargs.get(pk_name) is None:
+                                    continue
+
+                                objs.append(model_cls(**kwargs))
+
+                            n = _bulk_insert_staging(staging_table, insertable_fields, objs)
+                            batch_num += 1
+                            total_inserted += n
+                            last_rn = end_rn
+
+                            self.stdout.write(
+                                self.style.SUCCESS(
+                                    f"  [BATCH {batch_num}] staged {n} rows to '{staging_table}' "
+                                    f"(total={total_inserted}) rn={start_rn}..{end_rn}"
+                                )
+                            )
+
+                            if len(rows) < chunk_size:
+                                break
+
+                    else:
+                        raise RuntimeError(f"Unknown pagination mode '{pagination}' for stage '{slug}'")
+
+                except Exception as exc:
+                    self.stdout.write(
+                        self.style.ERROR(
+                            f"  [ROLLBACK] Stage '{slug}' failed during staging load: {exc}\n"
+                            f"  Live table '{live_table}' is unchanged. "
+                            f"Staging table '{staging_table}' preserved for inspection."
                         )
-
-                        if len(rows) < chunk_size:
-                            break
-
-                else:
-                    raise RuntimeError(f"Unknown pagination mode '{pagination}' for stage '{slug}'")
-
-            except Exception as exc:
-                self.stdout.write(
-                    self.style.ERROR(
-                        f"  [ROLLBACK] Stage '{slug}' failed during staging load: {exc}\n"
-                        f"  Live table '{live_table}' is unchanged. "
-                        f"Staging table '{staging_table}' preserved for inspection."
                     )
-                )
-                raise
+                    raise
 
-            # ---------------------------------------------------------------- #
-            # Atomically push staged data into the live table.                  #
-            # Only reached when all batches completed without error.            #
-            # ---------------------------------------------------------------- #
-            self.stdout.write(f"  [SWAP START] '{staging_table}' ({total_inserted} rows) -> '{live_table}'")
-            try:
-                if no_truncate:
-                    _merge_staging_into_live(live_table, staging_table, insertable_fields)
-                    self.stdout.write(self.style.SUCCESS(f"  [SWAP SUCCESS] '{live_table}' updated (merge, no truncate)"))
-                else:
-                    # For AutoField PKs the staging rows have NULL ids (the
-                    # sequence is not copied), so DISTINCT ON(pk) would collapse
-                    # everything to a single row.  Skip dedup for those tables.
-                    swap_pk = pk_field.column if not is_auto_pk else None
-                    _atomic_live_swap(live_table, staging_table, insertable_fields, pk_column=swap_pk)
-                    self.stdout.write(self.style.SUCCESS(f"  [SWAP SUCCESS] '{live_table}' fully replaced from staging"))
-            except Exception as exc:
-                self.stdout.write(
-                    self.style.ERROR(
-                        f"  [SWAP FAIL] Swap failed for '{slug}': {exc}\n"
-                        f"  Staging table '{staging_table}' preserved for manual recovery."
+                # ---------------------------------------------------------------- #
+                # Atomically push staged data into the live table.                  #
+                # Only reached when all batches completed without error.            #
+                # ---------------------------------------------------------------- #
+                self.stdout.write(f"  [SWAP START] '{staging_table}' ({total_inserted} rows) -> '{live_table}'")
+                try:
+                    if no_truncate:
+                        _merge_staging_into_live(live_table, staging_table, insertable_fields)
+                        self.stdout.write(self.style.SUCCESS(f"  [SWAP SUCCESS] '{live_table}' updated (merge, no truncate)"))
+                    else:
+                        # For AutoField PKs the staging rows have NULL ids (the
+                        # sequence is not copied), so DISTINCT ON(pk) would collapse
+                        # everything to a single row.  Skip dedup for those tables.
+                        swap_pk = pk_field.column if not is_auto_pk else None
+                        _atomic_live_swap(live_table, staging_table, insertable_fields, pk_column=swap_pk)
+                        self.stdout.write(self.style.SUCCESS(f"  [SWAP SUCCESS] '{live_table}' fully replaced from staging"))
+                except Exception as exc:
+                    self.stdout.write(
+                        self.style.ERROR(
+                            f"  [SWAP FAIL] Swap failed for '{slug}': {exc}\n"
+                            f"  Staging table '{staging_table}' preserved for manual recovery."
+                        )
                     )
+                    raise
+
+                _drop_staging_table(staging_table)
+                self.stdout.write(self.style.SUCCESS(f"  Staging table '{staging_table}' dropped"))
+
+                self.stdout.write(
+                    self.style.SUCCESS(f"  Stage complete: {slug} inserted={total_inserted} time={time.time() - stage_start:.2f}s")
                 )
-                raise
 
-            _drop_staging_table(staging_table)
-            self.stdout.write(self.style.SUCCESS(f"  Staging table '{staging_table}' dropped"))
+            self.stdout.write(self.style.SUCCESS("\nDone."))
 
-            self.stdout.write(
-                self.style.SUCCESS(f"  Stage complete: {slug} inserted={total_inserted} time={time.time() - stage_start:.2f}s")
-            )
+            # Close Fabric cursor and connection after all stages complete.
+            cursor.close()
+            conn.close()
 
-        self.stdout.write(self.style.SUCCESS("\nDone."))
-
-        # Close Fabric cursor and connection after all stages complete.
-        cursor.close()
-        conn.close()
+        finally:
+            _release_advisory_lock()
