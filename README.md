@@ -52,7 +52,7 @@ Note: sometimes there may be issues fabric-side for some tables which leads to t
 
 ### To Create User for SPARK
 
-     $ docker-compose run --rm createsuperuser
+     $ docker compose run --rm createsuperuser
 
 ## Testing
 
