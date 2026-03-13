@@ -663,6 +663,12 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
         type_of_dref = validated_data.get("type_of_dref")
         if modified_at is None:
             raise serializers.ValidationError({"modified_at": "Modified At is required!"})
+
+        if instance.status == Dref.Status.APPROVED:
+            raise serializers.ValidationError(
+                {"non_field_errors": gettext("This Dref has already been approved and cannot be modified.")}
+            )
+
         if type_of_dref and type_of_dref == Dref.DrefType.ASSESSMENT:
             # Previous Operations
             validated_data["lessons_learned"] = None
@@ -1105,6 +1111,12 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
 
         if modified_at and instance.modified_at and modified_at < instance.modified_at:
             raise serializers.ValidationError({"modified_at": settings.DREF_OP_UPDATE_FINAL_REPORT_UPDATE_ERROR_MESSAGE})
+
+        if instance.status == Dref.Status.APPROVED:
+            raise serializers.ValidationError(
+                {"non_field_errors": gettext("This Operational Update has already been approved and cannot be modified.")}
+            )
+
         validated_data["modified_at"] = timezone.now()
         return super().update(instance, validated_data)
 
@@ -1565,6 +1577,10 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             raise serializers.ValidationError({"modified_at": "Modified At is required!"})
         if modified_at and instance.modified_at and modified_at < instance.modified_at:
             raise serializers.ValidationError({"modified_at": settings.DREF_OP_UPDATE_FINAL_REPORT_UPDATE_ERROR_MESSAGE})
+        if instance.status == Dref.Status.APPROVED:
+            raise serializers.ValidationError(
+                {"non_field_errors": gettext("This Final Report has already been approved and cannot be modified.")}
+            )
         validated_data["modified_at"] = timezone.now()
         validated_data["modified_by"] = self.context["request"].user
         return super().update(instance, validated_data)
