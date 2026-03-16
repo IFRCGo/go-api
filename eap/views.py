@@ -64,7 +64,7 @@ class ActiveEAPViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
         return (
             super()
             .get_queryset()
-            .filter(status__in=[EAPStatus.APPROVED, EAPStatus.ACTIVATED])
+            .filter(status=EAPStatus.APPROVED)
             .select_related("disaster_type", "country")
             .annotate(
                 requirement_cost=Case(

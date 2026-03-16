@@ -260,7 +260,7 @@ class EAPRegistrationTestCase(APITestCase):
             partners=[self.partner2.id],
             created_by=self.country_admin,
             modified_by=self.country_admin,
-            status=EAPStatus.ACTIVATED,
+            status=EAPStatus.APPROVED,
             eap_type=EAPType.SIMPLIFIED_EAP,
         )
         EAPRegistrationFactory.create(
@@ -1719,36 +1719,6 @@ class EAPStatusTransitionTestCase(APITestCase):
         response = self.client.patch(url, update_data, format="json")
         self.assertEqual(response.status_code, 400)
 
-        # NOTE: Transition to ACTIVATED
-        # APPROVED -> ACTIVATED
-        data = {
-            "status": EAPStatus.ACTIVATED,
-        }
-
-        # LOGIN as country admin user
-        # FAILS: As only ifrc admins or superuser can
-        self.authenticate(self.country_admin)
-        response = self.client.post(self.url, data, format="json")
-        self.assertEqual(response.status_code, 400)
-
-        # LOGIN as IFRC admin user
-        # SUCCESS: As only ifrc admins or superuser can
-        self.assertIsNone(self.eap_registration.activated_at)
-        self.authenticate(self.ifrc_admin_user)
-        response = self.client.post(self.url, data, format="json")
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["status"], EAPStatus.ACTIVATED)
-        # Check is the activated timeline is added
-        self.eap_registration.refresh_from_db()
-        self.assertIsNotNone(self.eap_registration.activated_at)
-
-        # Check as if NS user cannot update after ACTIVATED
-        # FAILS As simplified EAP is in ACTIVATED, cannot updated
-        self.authenticate(self.country_admin)
-        url = f"/api/v2/simplified-eap/{simplified_eap.id}/"
-        response = self.client.patch(url, update_data, format="json")
-        self.assertEqual(response.status_code, 400)
-
     @mock.patch("eap.serializers.generate_export_eap_pdf")
     @mock.patch("eap.serializers.group")
     @mock.patch("eap.serializers.send_new_eap_submission_email")
@@ -2427,6 +2397,7 @@ class EAPFullTestCase(APITestCase):
             "total_budget": 10000,
             "objective": "FUll eap objective",
             "lead_time": 5,
+            "lead_timeframe_unit": TimeFrame.DAYS,
             "expected_submission_time": "2024-12-31",
             "readiness_budget": 3000,
             "pre_positioning_budget": 4000,
