@@ -441,7 +441,7 @@ class EnablingApproach(models.Model):
 
     approach = models.IntegerField(choices=Approach.choices, verbose_name=_("Approach"))
     budget_per_approach = models.IntegerField(verbose_name=_("Budget per approach (CHF)"))
-    ap_code = models.IntegerField(verbose_name=_("AP Code"), null=True, blank=True)
+    ap_code = models.IntegerField(verbose_name=_("AP Code"))
     previous_id = models.PositiveIntegerField(verbose_name=_("Previous ID"), null=True, blank=True)
 
     indicators = models.ManyToManyField(
@@ -553,7 +553,7 @@ class EAPStatus(models.IntegerChoices):
     IFRC can change status to NS_ADDRESSING_COMMENTS or PENDING_PFA.
     """
 
-    PENDING_PFA = 50, _("Pending PFA")
+    PENDING_PFA = 50, _("Approved(Pending PFA)")
     """EAP is in the process of signing the PFA between IFRC and NS.
     """
 
@@ -561,9 +561,6 @@ class EAPStatus(models.IntegerChoices):
     """IFRC has to upload validated budget file.
     Cannot be changed back to previous statuses.
     """
-
-    ACTIVATED = 70, _("Activated")
-    """EAP has been activated"""
 
 
 # BASE MODEL FOR EAP
@@ -721,12 +718,6 @@ class EAPRegistration(EAPBaseModel):
         blank=True,
         verbose_name=_("pending pfa at"),
         help_text=_("Timestamp when the EAP was marked as pending PFA."),
-    )
-    activated_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        verbose_name=_("activated at"),
-        help_text=_("Timestamp when the EAP was activated."),
     )
 
     # EAP submission deadline
@@ -1449,9 +1440,15 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
     )
 
     # NOTE: In days
-    # TODO(susilnem): add unit for lead time
     lead_time = models.IntegerField(
         verbose_name=_("Lead Time"),
+        null=True,
+        blank=True,
+    )
+
+    lead_timeframe_unit = models.IntegerField(
+        choices=TimeFrame.choices,
+        verbose_name=_("Lead Timeframe Unit"),
         null=True,
         blank=True,
     )

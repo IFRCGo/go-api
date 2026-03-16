@@ -255,7 +255,6 @@ class MiniEAPSerializer(serializers.ModelSerializer):
             "status",
             "status_display",
             "requirement_cost",
-            "activated_at",
             "approved_at",
             "created_at",
             "modified_at",
@@ -784,6 +783,23 @@ class FullEAPSerializer(
         )
         exclude = ("cover_image",)
 
+    def _validate_timeframe(self, data: dict[str, typing.Any]) -> None:
+        lead_unit = data.get("lead_timeframe_unit")
+        lead_time_value = data.get("lead_time")
+
+        if lead_time_value is not None and lead_unit is None:
+            raise serializers.ValidationError(
+                {
+                    "lead_timeframe_unit": gettext("lead timeframe and unit must both be provided."),
+                }
+            )
+
+        if lead_unit is not None and lead_time_value is not None:
+            if lead_unit != TimeFrame.DAYS:
+                raise serializers.ValidationError(
+                    {"lead_timeframe_unit": gettext("lead timeframe unit must be Days for Full EAP.")}
+                )
+
     def validate(self, data: dict[str, typing.Any]) -> dict[str, typing.Any]:
         original_eap_registration = getattr(self.instance, "eap_registration", None) if self.instance else None
         eap_registration: EAPRegistration | None = data.get("eap_registration", original_eap_registration)
@@ -811,6 +827,9 @@ class FullEAPSerializer(
         eap_type = eap_registration.get_eap_type_enum
         if eap_type and eap_type != EAPType.FULL_EAP:
             raise serializers.ValidationError("Cannot create Full EAP for non-full EAP registration.")
+
+        # Validate timeframe fields
+        self._validate_timeframe(data)
 
         # Validate all image fields in one place
         for field in self.IMAGE_FIELDS:
@@ -844,7 +863,6 @@ VALID_IFRC_EAP_STATUS_TRANSITIONS = set(
         (EAPRegistration.Status.TECHNICALLY_VALIDATED, EAPRegistration.Status.NS_ADDRESSING_COMMENTS),
         (EAPRegistration.Status.TECHNICALLY_VALIDATED, EAPRegistration.Status.PENDING_PFA),
         (EAPRegistration.Status.PENDING_PFA, EAPRegistration.Status.APPROVED),
-        (EAPRegistration.Status.APPROVED, EAPRegistration.Status.ACTIVATED),
     ]
 )
 
@@ -1065,17 +1083,6 @@ class EAPStatusSerializer(BaseEAPSerializer):
                 ]
             )
 
-        elif (current_status, new_status) == (
-            EAPRegistration.Status.APPROVED,
-            EAPRegistration.Status.ACTIVATED,
-        ):
-            # Update timestamp
-            self.instance.activated_at = timezone.now()
-            self.instance.save(
-                update_fields=[
-                    "activated_at",
-                ]
-            )
         return validated_data
 
     def validate(self, validated_data: dict[str, typing.Any]) -> dict[str, typing.Any]:
