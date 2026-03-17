@@ -9,5 +9,5 @@ gdacs_cyclone_config: ExtractionConfig = {
     "filter_hazard": None,
     "filter_impact": None,
     "people_exposed_threshold": 500,
-    "forecasted_data": False,
+    "forecasted_data": True,
 }
