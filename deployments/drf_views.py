@@ -1021,6 +1021,7 @@ class ERUReadinessFilter(filters.FilterSet):
     eru_owner = filters.NumberFilter(field_name="eru_owner", lookup_expr="exact")
     eru_type = filters.NumberFilter(field_name="eru_types__type", lookup_expr="exact")
     eru_type__in = ListFilter(field_name="eru_types__type")
+    ns_contribution = filters.NumberFilter(field_name="eru_types__ns_contribution", lookup_expr="exact")
 
 
 class ERUReadinessViewSet(RevisionMixin, viewsets.ModelViewSet):
