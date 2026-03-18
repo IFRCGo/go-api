@@ -1606,10 +1606,26 @@ class AppealSerializer(ModelSerializer):
         )
 
 
+class EventDetailsSerializer(ModelSerializer):
+    ifrc_severity_level_display = serializers.CharField(source="get_ifrc_severity_level_display", read_only=True)
+
+    class Meta:
+        model = Event
+        fields = (
+            "id",
+            "name",
+            "ifrc_severity_level",
+            "ifrc_severity_level_display",
+            "ifrc_severity_level_update_date",
+            "updated_at",
+        )
+
+
 class AppealHistorySerializer(ModelSerializer):
     country = MiniCountrySerializer(read_only=True)
     dtype = DisasterTypeSerializer(read_only=True)
     region = RegionSerializer(read_only=True)
+    event_details = EventDetailsSerializer(source="appeal.event", read_only=True)
     atype_display = serializers.CharField(source="get_atype_display", read_only=True)
     status_display = serializers.CharField(source="get_status_display", read_only=True)
     code = serializers.CharField(source="appeal.code", read_only=True)
@@ -1646,6 +1662,7 @@ class AppealHistorySerializer(ModelSerializer):
             "country",
             "region",
             "id",
+            "event_details",
         )
 
 
