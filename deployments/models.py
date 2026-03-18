@@ -927,6 +927,18 @@ class ERUReadinessType(models.Model):
         PARTIAL_CAPACITY = 2, _("Partial capacity")
         NO_CAPACITY = 3, _("No capacity")
 
+    class NationalSocietyContribution(models.IntegerChoices):
+        """
+        Note:The enum values are intentionally written in a longer form so the frontend design and
+        labels can directly use and reflect them.
+        """
+
+        HOLDS = 1, _("Confirm that you have the capacity to hold this type of ERU")
+        """The National Society owns and maintains the ERU and is responsible for its readiness."""
+
+        SUPPORTS = 2, _("Confirm that you have the capacity to support this type of ERU")
+        """The National Society provides support to the ERU but does not hold it."""
+
     type = models.IntegerField(choices=ERUType.choices, verbose_name=_("ERU type"))
     equipment_readiness = models.IntegerField(
         choices=ReadinessStatus.choices,
@@ -941,6 +953,10 @@ class ERUReadinessType(models.Model):
         verbose_name=_("funding readiness"),
     )
     comment = models.TextField(verbose_name=_("comment"), blank=True, null=True)
+    ns_contribution = models.IntegerField(
+        choices=NationalSocietyContribution.choices,
+        verbose_name=_("National Society Contribution"),
+    )
 
     class Meta:
         verbose_name = _("ERU Readiness Type")
