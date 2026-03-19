@@ -40,7 +40,6 @@ class BaseExtractionClass(ABC):
     filter_event: Optional[Dict] = None
     filter_hazard: Optional[Dict] = None
     filter_impact: Optional[Dict] = None
-    forecasted_data: bool | None = False
 
     config: ExtractionConfig
 
@@ -143,7 +142,6 @@ class BaseExtractionClass(ABC):
                 build_stac_search(
                     collections=self.impact_collection_type,
                     guid=stac_obj.guid,
-                    forecasted_data=self.forecasted_data,
                 ),
             )
         except Exception as e:
@@ -317,7 +315,6 @@ class PastEventExtractionClass:
                     additional_filters=additional_filters,
                     start_datetime=f"{start_datetime.isoformat()}",
                     end_datetime=f"{end_datetime.isoformat()}",
-                    forecasted_data=self.extractor.forecasted_data,
                 ),
             )
 
