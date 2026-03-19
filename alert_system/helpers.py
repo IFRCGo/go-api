@@ -25,10 +25,6 @@ def build_guid_filter(guid: str) -> str:
     return f"monty:guid = '{guid}'"
 
 
-def build_forecasted_filter(forecasted: bool):
-    return f"forecasted = {forecasted}"
-
-
 def build_datetime_filter(start_date: str, end_date: str) -> str:
     return f"datetime >= '{start_date}' AND datetime < '{end_date}'"
 
@@ -40,12 +36,9 @@ def build_stac_search(
     start_datetime: str | None = None,
     end_datetime: str | None = None,
     extra_params: dict | None = None,
-    forecasted_data: bool | None = False,
 ) -> dict:
     filters = additional_filters.copy() if additional_filters else []
 
-    if forecasted_data:
-        filters.append(build_forecasted_filter(forecasted_data))
     if guid:
         filters.append(build_guid_filter(guid))
     if start_datetime and end_datetime:
