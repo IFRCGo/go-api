@@ -182,15 +182,22 @@ class IfrcTranslator(BaseTranslator):
 
             # Cache the translation if original text was short enough
             if use_cache:
-                TranslationCache.objects.create(
+                obj, created = TranslationCache.objects.get_or_create(
                     text=text,
                     text_hash=text_hash,
                     source_language=source_language or "",  # source_language can be "detected"
                     dest_language=dest_language,
-                    translated_text=translated,
-                    table_field=table_field or "",
-                    last_used=timezone.now(),
+                    defaults={
+                        "translated_text": translated,
+                        "table_field": table_field or "",
+                        "last_used": timezone.now(),
+                    },
                 )
+                if not created:
+                    TranslationCache.objects.filter(pk=obj.pk).update(
+                        last_used=timezone.now(),
+                        num_calls=F("num_calls") + 1,
+                    )
             return translated + textTail
 
 
