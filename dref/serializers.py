@@ -65,7 +65,7 @@ class PlannedInterventionIndicatorsSerializer(ModelSerializer):
         fields = "__all__"
 
 
-class ProposedActionActivitySerializer(serializers.ModelSerializer):
+class ProposedActionActivitySerializer(ModelSerializer):
     id = serializers.IntegerField(required=False)
     sector = serializers.PrimaryKeyRelatedField(queryset=Sector.objects.all(), required=True)
 

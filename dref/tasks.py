@@ -17,6 +17,7 @@ from .models import (
     PlannedIntervention,
     PlannedInterventionIndicators,
     ProposedAction,
+    ProposedActionActivities,
     RiskSecurity,
     SourceInformation,
 )
@@ -50,6 +51,7 @@ TRANSLATABLE_RELATED_MODELS = [
     PlannedIntervention,
     RiskSecurity,
     ProposedAction,
+    ProposedActionActivities,
     PlannedInterventionIndicators,
     SourceInformation,
 ]
