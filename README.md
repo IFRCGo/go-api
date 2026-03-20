@@ -77,6 +77,71 @@ Run data transformation tests (stock inventory):
      $ docker compose run --rm serve python manage.py test api.test_data_transformation_stock_inventory --keepdb --verbosity=1
 
 
+## Project Structure (SPARK)
+
+```
+go-api/
+├── api/
+│   ├── models.py                         # Dim/Fct Fabric models, CleanedFrameworkAgreement, StockInventory, customs/export models
+│   ├── serializers.py                    # DRF serializers for SPARK models
+│   ├── filter_set.py                     # CleanedFrameworkAgreementFilter
+│   │
+│   ├── framework_agreement_views.py      # Framework agreement API (list, summary, map-stats, item-categories)
+│   ├── stock_inventory_view.py           # Stock inventory API (list, aggregated, summary)
+│   ├── customs_spark_views.py            # Customs regulations & AI-generated updates
+│   ├── pro_bono_views.py                 # Pro-bono logistics services
+│   │
+│   ├── fabric_sql.py                     # Azure SQL connection to Microsoft Fabric
+│   ├── fabric_import_map.py              # Maps Fabric tables to Django models
+│   ├── customs_ai_service.py             # OpenAI-based customs regulation summaries
+│   ├── customs_data_loader.py            # Loads IFRC customs Excel data
+│   │
+│   ├── data_transformation_framework_agreement.py  # PySpark ETL for framework agreements
+│   ├── data_transformation_stock_inventory.py      # PySpark ETL for stock inventory
+│   │
+│   ├── indexes.py                        # Elasticsearch index definitions
+│   ├── esconnection.py                   # Elasticsearch client setup
+│   │
+│   ├── datatransformationlogic/
+│   │   ├── procurement_categories_to_use.csv   # Category mappings for PySpark transforms
+│   │   └── product_categories_to_use.csv
+│   │
+│   ├── scrapers/
+│   │   └── item_scraper.py               # Scrapes Red Cross Item Catalogue URLs
+│   │
+│   ├── management/commands/
+│   │   ├── pull_fabric_data.py                           # Pulls Fabric data into Postgres
+│   │   ├── create_build_transform_for_spark.py           # Runs all PySpark transforms
+│   │   ├── create_build_index_for_spark.py               # Creates and populates all ES indices
+│   │   ├── transform_framework_agreement.py              # PySpark framework agreement command
+│   │   ├── transform_stock_inventory.py                  # PySpark stock inventory command
+│   │   ├── bulk_index_cleaned_framework_agreements.py    # Bulk index framework agreements into ES
+│   │   ├── bulk_index_stock_inventory.py                 # Bulk index stock inventory into ES
+│   │   ├── create_cleaned_framework_agreements_index.py  # Creates framework agreements ES index
+│   │   └── scrape_items.py                               # Scrapes item catalogue URLs
+│   │
+│   ├── factories/
+│   │   └── spark.py                      # Factory Boy factories for SPARK models
+│   │
+│   ├── test_spark_views.py               # API integration tests
+│   ├── test_spark_helpers.py             # Test helpers
+│   ├── test_data_transformation_framework_agreement.py   # Framework agreement transform tests
+│   └── test_data_transformation_stock_inventory.py       # Stock inventory transform tests
+│
+├── data/
+│   └── ProBono.csv                       # Pro-bono logistics services data
+│
+├── docs/
+│   └── SPARK.md                          # SPARK architecture documentation
+│
+├── main/
+│   └── urls.py                           # URL routing (fabric/*, api/v2/country-regulations/*, etc.)
+│
+├── docker-compose.yml
+├── Dockerfile
+└── .env-spark                            # Environment variable template (FABRIC_SQL_SERVER, etc.)
+```
+
 # IFRC GO API (Original)
 
 ## Staff email domains
