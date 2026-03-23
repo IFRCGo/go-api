@@ -77,17 +77,22 @@ class ProposedActionActivitySerializer(ModelSerializer):
 class ProposedActionSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
     proposed_type_display = serializers.CharField(source="get_proposed_type_display", read_only=True)
-    activities = ProposedActionActivitySerializer(many=True, required=True)
+    # note(frozenhelium): Early response activities are optional
+    activities = ProposedActionActivitySerializer(many=True, required=False)
     total_budget = serializers.IntegerField(required=True)
 
     class Meta:
         model = ProposedAction
         fields = "__all__"
 
-    def validate_activities(self, activities):
-        if not activities:
-            raise serializers.ValidationError("At least one activity is required")
-        return activities
+    def validate(self, data):
+        activities = data.get("activities")
+        proposed_type = data.get("proposed_type")
+
+        if proposed_type is ProposedAction.Action.EARLY_ACTION.value and not activities:
+            raise serializers.ValidationError("At least one early action activity is required")
+
+        return data
 
 
 class DrefFileInputSerializer(serializers.Serializer):
