@@ -904,7 +904,7 @@ class RecoverPassword(APIView):
         token = get_random_string(length=32)
         Recovery.objects.filter(user=user).delete()
         Recovery.objects.create(user=user, token=token)
-        email_context = {"frontend_url": settings.FRONTEND_URL, "username": user.username, "token": token}
+        email_context = {"frontend_url": settings.GO_WEB_URL, "username": user.username, "token": token}
         send_notification(
             "Reset your password",
             [user.email],

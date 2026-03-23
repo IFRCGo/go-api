@@ -47,3 +47,32 @@ spec:
               number: 80
   {{- end }}
 {{- end }}
+
+{{- if eq (.Values.env.GO_ENVIRONMENT | default "") "staging" }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ template "ifrcgo-helm.fullname" . }}-ingress-user-library
+  annotations:
+    nginx.ingress.kubernetes.io/permanent-redirect: "https://www.chromatic.com/library?appId=66557be6b68dacbf0a96db23&branch=develop"
+    nginx.ingress.kubernetes.io/permanent-redirect-code: "301"
+spec:
+  ingressClassName:
+    nginx
+  tls:
+    - hosts:
+      - go-user-library.ifrc.org
+      secretName: {{ template "ifrcgo-helm.fullname" . }}-secret-api-cert
+  rules:
+  - host: go-user-library.ifrc.org
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ template "ifrcgo-helm.fullname" . }}-api
+            port:
+              number: 80
+{{- end }}

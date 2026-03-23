@@ -57,7 +57,7 @@ class Command(BaseCommand):
 
         # loop through each feature in the shapefile
         for feature in data[0]:
-            code = feature.get("ADMIN01COD")
+            code = feature.get("admin1_pco")
             name = feature.get("ADMIN01NAM")
 
             geom_wkt = feature.geom.wkt
@@ -142,7 +142,7 @@ class Command(BaseCommand):
         print("done!")
 
     def add_district(self, options, import_missing, feature, geom, centroid, bbox):
-        code = feature.get("ADMIN01COD") or "N.A"
+        code = feature.get("admin1_pco") or "N.A"
         name = feature.get("ADMIN01NAM")
         district = District()
         district.code = code

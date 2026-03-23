@@ -1,16 +1,21 @@
 import csv
+import json
 import time
 
+from django import forms
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import Permission, User
 from django.contrib.gis import admin as geoadmin
 from django.core.exceptions import ValidationError
-from django.db.models import Value
+from django.db.models import OuterRef, Subquery, Value
 from django.db.models.functions import Concat
 from django.http import HttpResponse, HttpResponseRedirect
+from django.template.loader import render_to_string
 from django.urls import reverse
+from django.utils import timezone
+from django.utils.formats import date_format
 from django.utils.html import format_html, format_html_join
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
@@ -25,10 +30,25 @@ from api.event_sources import SOURCES
 from api.management.commands.index_and_notify import Command as Notify
 from lang.admin import TranslationAdmin, TranslationInlineModelAdmin
 from notifications.models import RecordType, SubscriptionType
+from notifications.notification import send_notification
 
 from .forms import ActionForm
 
 # from reversion.models import Revision
+
+CC_COLOR_MAP = {
+    0: "#C8A600",
+    1: "#C56A00",
+    2: "#B00020",
+}
+CC_DOT_TEMPLATE = '<span style="color: {}; font-size: 1.4em;">●</span>'
+
+
+def format_cc_dot(level):
+    color = CC_COLOR_MAP.get(level)
+    if not color:
+        return ""
+    return format_html(CC_DOT_TEMPLATE, color)
 
 
 class ProfileInline(admin.StackedInline):
@@ -199,6 +219,11 @@ class EventLinkInline(admin.TabularInline, TranslationInlineModelAdmin):
 
 
 class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
+
+    @admin.display(ordering="ifrc_severity_level_update_date")
+    def level_updated_at(self, obj):
+        return obj.ifrc_severity_level_update_date
+
     country_in = "countries__pk__in"
     region_in = "regions__pk__in"
 
@@ -212,12 +237,15 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     ]
     list_display = (
         "name",
-        "ifrc_severity_level",
+        "severity_level_link",
+        "level_updated_at",
+        "cc_status",
         "glide",
         "auto_generated",
         "auto_generated_source",
     )
     list_filter = [IsFeaturedFilter, EventSourceFilter]
+    actions = ["create_field_reports"]
     search_fields = (
         "name",
         "countries__name",
@@ -228,6 +256,94 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
         "districts",
         "parent_event",
     )
+
+    def _crisis_categorisation_link_data(self, obj):
+        # If there are event countries missing a CC-by-country record, prefer sending the user
+        # to the "add" form prefilled with the first missing country.
+        event_country_ids = list(obj.countries.values_list("pk", flat=True))
+        if event_country_ids:
+            existing_country_ids = set(
+                models.CrisisCategorisationByCountry.objects.filter(event=obj, country_id__in=event_country_ids).values_list(
+                    "country_id", flat=True
+                )
+            )
+            missing_country_id = next((cid for cid in event_country_ids if cid not in existing_country_ids), None)
+            if missing_country_id is not None:
+                return (
+                    reverse("admin:api_crisiscategorisationbycountry_add")
+                    + f"?event={obj.pk}"
+                    + f"&country={missing_country_id}"
+                    + f"&crisis_categorisation={obj.ifrc_severity_level}",
+                    "Add crisis categorisation",
+                )
+
+        first_crisis_cat = models.CrisisCategorisationByCountry.objects.filter(event=obj).first()
+        if first_crisis_cat:
+            return (
+                reverse("admin:api_crisiscategorisationbycountry_change", args=[first_crisis_cat.pk]),
+                "Edit crisis categorisation",
+            )
+
+        return (
+            reverse("admin:api_crisiscategorisationbycountry_add")
+            + f"?event={obj.pk}"
+            + f"&crisis_categorisation={obj.ifrc_severity_level}",
+            "Add crisis categorisation",
+        )
+
+    def severity_level_link(self, obj):
+        """Display severity level as a link to Crisis Categorisation"""
+        url, title = self._crisis_categorisation_link_data(obj)
+
+        severity_display = obj.get_ifrc_severity_level_display()
+        severity_dot = format_cc_dot(obj.ifrc_severity_level)
+        if severity_display and severity_dot:
+            severity_display = format_html("{} {}", severity_dot, severity_display)
+        return format_html('<a href="{}" title="{}">{}</a>', url, title, severity_display)
+
+    def get_form(self, request, obj=None, change=False, **kwargs):
+        form = super().get_form(request, obj, change=change, **kwargs)
+        if obj is None:
+            return form
+
+        field = form.base_fields.get("ifrc_severity_level")
+        if not field:
+            return form
+
+        url, title = self._crisis_categorisation_link_data(obj)
+        field.label = mark_safe(
+            f'<a href="{url}" title="{title}">IFRC Severity level</a>'
+            ' <span class="help-icon cc-help-icon ifrc-severity-help-icon" '
+            'title="Click for more information" '
+            'aria-label="IFRC Severity level help">ⓘ</span>'
+            ' <div class="help-tooltip cc-help-tooltip ifrc-severity-help-tooltip" role="tooltip">'
+            "Link to the crisis categorisation page belonging to this event.<br>"
+            "If this is a multi-country event, you may want to select the country yourself from the "
+            '<a target="_blank" href="/admin/api/crisiscategorisationbycountry/">list</a> or'
+            ' add a new record <a target="_blank" href="/admin/api/crisiscategorisationbycountry/add/'
+            f'?event={obj.pk}&crisis_categorisation={obj.ifrc_severity_level}">here</a>.<br>'
+            "</div>"
+        )
+        return form
+
+    severity_level_link.short_description = "Crisis Categorisation"
+    severity_level_link.admin_order_field = "ifrc_severity_level"
+
+    @admin.display(description="CC Status", ordering="_cc_status")
+    def cc_status(self, obj):
+        latest_cc = models.CrisisCategorisationByCountry.objects.filter(event=obj).order_by("-updated_at").first()
+        if not latest_cc or latest_cc.status is None:
+            return "-"
+        return latest_cc.get_status_display()
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        latest_cc_status = (
+            models.CrisisCategorisationByCountry.objects.filter(event=OuterRef("pk")).order_by("-updated_at").values("status")[:1]
+        )
+        return qs.annotate(
+            _cc_status=Subquery(latest_cc_status),
+        )
 
     def appeals(self, instance):
         if getattr(instance, "appeals").exists():
@@ -241,25 +357,59 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     # To add the 'Notify subscribers now' button
     # WikiJS links added
     change_form_template = "admin/emergency_change_form.html"
-    change_list_template = "admin/emergency_change_list.html"
+    change_list_template = "admin/emergency_change_list_with_history.html"
 
     # Overwriting readonly fields for Edit mode
-    def changeform_view(self, request, *args, **kwargs):
+    def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
         if not request.user.is_superuser:
             self.readonly_fields = (
                 "appeals",
                 "field_reports",
                 "auto_generated_source",
                 "parent_event",
+                "created_at",
+                "updated_at",
             )
         else:
             self.readonly_fields = (
                 "appeals",
                 "field_reports",
                 "auto_generated_source",
+                "created_at",
+                "updated_at",
             )
 
-        return super(EventAdmin, self).changeform_view(request, *args, **kwargs)
+        # Set severity level from GET parameter
+        if object_id and request.GET.get("set_ifrc_severity_level"):
+            # Not good, because this way no history will be saved:
+            try:
+                severity_level = int(request.GET.get("set_ifrc_severity_level"))
+                if severity_level in [0, 1, 2]:  # Validate it's a valid choice
+                    obj = self.get_object(request, object_id)
+                    if obj:
+                        original = models.Event.objects.get(pk=obj.pk)
+                        severity_changed = original.ifrc_severity_level != severity_level
+                        if severity_changed:
+                            new_update_date = timezone.now()
+                            if (
+                                original.ifrc_severity_level_update_date is not None
+                                and original.ifrc_severity_level_update_date > new_update_date
+                            ):
+                                messages.error(request, "A severity level update date can not be earlier than the previous one.")
+                            else:
+                                obj.ifrc_severity_level = severity_level
+                                obj.ifrc_severity_level_update_date = new_update_date
+                                obj.save(update_fields=["ifrc_severity_level", "ifrc_severity_level_update_date"])
+                                models.EventSeverityLevelHistory.objects.create(
+                                    event=obj,
+                                    ifrc_severity_level=original.ifrc_severity_level,
+                                    ifrc_severity_level_update_date=original.ifrc_severity_level_update_date,
+                                    created_by=request.user,
+                                )
+            except (ValueError, TypeError):
+                pass
+
+        return super(EventAdmin, self).changeform_view(request, object_id, form_url, extra_context)
 
     # Evaluate if the regular 'Save' or 'Notify subscribers now' button was pushed
     def response_change(self, request, obj):
@@ -313,6 +463,122 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
         return mark_safe('<span class="errors">No related field reports</span>')
 
     field_reports.short_description = "Field Reports"
+
+    def changelist_view(self, request, extra_context=None):
+        response = super().changelist_view(request, extra_context)
+
+        # Check if we have a result list to process
+        if hasattr(response, "context_data") and "cl" in response.context_data:
+            cl = response.context_data["cl"]
+            result_list = list(cl.result_list)
+            expanded_results = []
+
+            for event in result_list:
+                # Add the main event row
+                expanded_results.append(
+                    {
+                        "object": event,
+                        "is_history": False,
+                        "history_record": None,
+                    }
+                )
+
+                # Add history rows if they exist
+                history_records = models.EventSeverityLevelHistory.objects.filter(event=event).order_by(
+                    "-ifrc_severity_level_update_date"
+                )
+
+                for history in history_records:
+                    expanded_results.append(
+                        {
+                            "object": event,
+                            "is_history": True,
+                            "history_record": {
+                                "date": (
+                                    date_format(history.ifrc_severity_level_update_date, "N j, Y, g:i a")
+                                    if history.ifrc_severity_level_update_date
+                                    else ""
+                                ),
+                                "severity": history.get_ifrc_severity_level_display(),
+                                "severity_value": history.ifrc_severity_level,
+                            },
+                        }
+                    )
+
+            # Convert to JSON for JavaScript
+
+            response.context_data["expanded_results"] = json.dumps(expanded_results, default=str)
+
+        return response
+
+    def create_field_reports(self, request, queryset):
+        created_count = 0
+        skipped_existing = []
+        skipped_missing_dtype = []
+        skipped_missing_countries = []
+
+        for event in queryset:
+            if getattr(event, "field_reports").exists():
+                skipped_existing.append(event)
+                continue
+            if event.dtype is None:
+                skipped_missing_dtype.append(event)
+                continue
+            if not event.countries.exists():
+                skipped_missing_countries.append(event)
+                continue
+
+            report = models.FieldReport.objects.create(
+                event=event,
+                dtype=event.dtype,
+                title=event.name,
+                summary=event.name,
+                visibility=event.visibility,
+            )
+            report.countries.set(event.countries.all())
+            if event.regions.exists():
+                report.regions.set(event.regions.all())
+            if event.districts.exists():
+                report.districts.set(event.districts.all())
+            created_count += 1
+
+        if created_count:
+            report_label = "field report" if created_count == 1 else "field reports"
+            self.message_user(
+                request,
+                format_html(
+                    '{} <a href="/admin/api/fieldreport/">{}</a> created.',
+                    created_count,
+                    report_label,
+                ),
+            )
+        if skipped_existing:
+            self.message_user(
+                request,
+                (
+                    "Action skipped because the event already has a field report."
+                    if len(skipped_existing) == 1
+                    else f"Action skipped for {len(skipped_existing)} events because they already have field reports."
+                ),
+                level=messages.WARNING,
+            )
+        if skipped_missing_dtype:
+            self.message_user(
+                request,
+                f"Action skipped for {len(skipped_missing_dtype)} event(s) because disaster type is missing.",
+                level=messages.WARNING,
+            )
+        if skipped_missing_countries:
+            self.message_user(
+                request,
+                f"Action skipped for {len(skipped_missing_countries)} event(s) because no countries are set.",
+                level=messages.WARNING,
+            )
+
+    create_field_reports.short_description = "Create field reports from selected events"
+
+    class Media:
+        js = ("js/event_severity_help.js",)
 
 
 class GdacsAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
@@ -1061,6 +1327,498 @@ class EventSeverityLevelHistoryAdmin(admin.ModelAdmin):
         "event",
         "created_by",
     )
+
+
+class CrisisCategorisationByCountryAdminForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop("request", None)
+        super().__init__(*args, **kwargs)
+
+    def clean_status(self):
+        new_status = self.cleaned_data.get("status")
+        if new_status is None:
+            return new_status
+
+        validated_status = int(models.CrisisCategorisationStatus.VALIDATED)
+        original_status = getattr(self.instance, "status", None)
+
+        # Only restrict transitions *to* VALIDATED (3) or above.
+        is_transition_to_validated_or_above = new_status >= validated_status and new_status != original_status
+        if not is_transition_to_validated_or_above:
+            return new_status
+
+        request = getattr(self, "request", None)
+        if request is None:
+            return new_status
+
+        user = request.user
+        allowed_group_names = [f"{i} Regional Admins" for i in range(5)]
+        is_allowed = bool(getattr(user, "is_superuser", False) or user.groups.filter(name__in=allowed_group_names).exists())
+        if not is_allowed:
+            raise forms.ValidationError(_("Only superusers or Regional Admins (0-4) can set status to Validated or above."))
+
+        notification_subject = "Crisis categorisation status updated"
+        cc_id = self.instance.pk if self.instance.pk is not None else "new"
+        notification_content = f"Crisis categorisation (id = {cc_id}) status was changed to {new_status}."
+        notification_html = render_to_string(
+            "design/generic_notification.html",
+            {
+                "count": 1,
+                "records": [
+                    {
+                        "title": notification_subject,
+                        "content": notification_content,
+                        "resource_uri": settings.GO_WEB_URL,
+                    }
+                ],
+                "subject": notification_subject,
+                "hide_preferences": True,
+                "frontend_url": settings.GO_WEB_URL,
+            },
+        )
+        recipients = list(
+            User.objects.filter(groups__name="Crisis Categorization Validator", is_active=True)
+            .exclude(email__isnull=True)
+            .exclude(email="")
+            .values_list("email", flat=True)
+            .distinct()
+        )
+        if recipients:
+            send_notification(
+                notification_subject,
+                recipients,
+                notification_html,
+                f"Crisis categorisation status update - {cc_id} to {new_status}",
+            )
+
+        return new_status
+
+    class Meta:
+        model = models.CrisisCategorisationByCountry
+        fields = "__all__"
+
+
+@admin.register(models.CrisisCategorisationByCountry)
+class CrisisCategorisationByCountryAdmin(admin.ModelAdmin):
+    form = CrisisCategorisationByCountryAdminForm
+
+    def get_form(self, request, obj=None, change=False, **kwargs):
+        label = str(_("Crisis Categorisation Overview"))
+        if obj and obj.event_id:
+            iso2_codes = list(
+                obj.event.countries.exclude(iso__isnull=True).exclude(iso="").values_list("iso", flat=True).order_by("iso")
+            )
+            if iso2_codes:
+                iso_list = ", ".join(iso2_codes)
+                cc_dot = format_cc_dot(obj.event.ifrc_severity_level)
+                if cc_dot:
+                    inner = format_html("{} {}", cc_dot, iso_list)
+                else:
+                    inner = iso_list
+                label = format_html("<strong>{}</strong> ({})", label, inner)
+        self.__class__.event_countries_overview.short_description = format_html("{}", label)
+
+        base_form_class = super().get_form(request, obj, change=change, **kwargs)
+
+        class FormWithRequest(base_form_class):
+            def __init__(self, *args, **kwargs):
+                kwargs["request"] = request
+                super().__init__(*args, **kwargs)
+
+        return FormWithRequest
+
+    list_display = [
+        "event",
+        "country",
+        "crisis_categorisation",
+        "crisis_score",
+        "status",
+        "updated_at",
+    ]
+    list_filter = ["crisis_categorisation", "event"]
+    list_select_related = ["event", "country"]
+    search_fields = ["event__name", "country__name"]
+    autocomplete_fields = ["event"]
+    readonly_fields = [
+        "created_at",
+        "updated_at",
+        "event_countries_overview",
+        "pre_crisis_vulnerability",
+        "crisis_complexity",
+        "scope_and_scale",
+        "humanitarian_conditions",
+        "capacity_and_response",
+        # "pre_crisis_vulnerability_hazard_exposure_intermediate",
+        # "pre_crisis_vulnerability_vulnerability_intermediate",
+        # "pre_crisis_vulnerability_coping_mechanism_intermediate",
+        # "crisis_complexity_humanitarian_access_acaps",
+        # "scope_and_scale_number_of_affected_population",
+        # "scope_and_scale_total_population_of_the_affected_area",
+        # "scope_and_scale_percentage_affected_population",
+        # "scope_and_scale_impact_index_inform",
+        # "humanitarian_conditions_casualties_injrd_deaths_missing",
+        # "humanitarian_conditions_severity",
+        # "humanitarian_conditions_people_in_need",
+        # "capacity_and_response_ifrc_international_staff",
+        # "capacity_and_response_ifrc_national_staff",
+        # "capacity_and_response_ifrc_total_staff",
+        # "capacity_and_response_regional_office",
+        # "capacity_and_response_ops_capacity_ranking",
+        # "capacity_and_response_number_of_ns_staff",
+        # "capacity_and_response_ratio_staff_volunteer",
+        # "capacity_and_response_number_of_ns_volunteer",
+        # "capacity_and_response_number_of_dref_ea_last_3_years",
+    ]
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj:  # This is a "Change" – we do not allow to change the country
+            return self.readonly_fields + ["event", "country"]
+        return self.readonly_fields
+
+    class Media:
+        js = ("js/crisis_categorisation_headers.js",)
+
+    def event_countries_overview(self, obj):
+        """Display a table of all countries for this event with their crisis scores"""
+        if not obj.event:
+            return ""
+
+        # Get all crisis categorisations for this event
+        categorisations = (
+            models.CrisisCategorisationByCountry.objects.filter(event=obj.event)
+            .select_related("country")
+            .order_by("country__name")
+        )
+
+        if not categorisations.exists():
+            return mark_safe('<p style="color: #666;">No countries categorised for this event yet.</p>')
+
+        # Build HTML table
+        html = """
+        <style>
+            .crisis-overview-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 10px 0;
+                font-size: 12px;
+            }
+            .crisis-overview-table th {
+                background: #417690;
+                color: white;
+                padding: 8px 10px;
+                text-align: left;
+                font-weight: 600;
+                border: 1px solid #ddd;
+            }
+            .crisis-overview-table td {
+                padding: 6px 10px;
+                border: 1px solid #ddd;
+                background: #fff;
+            }
+            .crisis-overview-table tr:nth-child(even) td {
+                background: #f8f8f8;
+            }
+            .crisis-overview-table tr:hover td {
+                background: #e8f4f8;
+            }
+            .crisis-overview-table tr.current-country td {
+                background: #fffacd !important;
+                font-weight: 600;
+            }
+            .cc-badge {
+                display: inline-block;
+                padding: 3px 10px;
+                border-radius: 3px;
+                font-weight: 600;
+                text-align: center;
+                min-width: 70px;
+            }
+            .cc-yellow { background: #FFD700; color: #000; }
+            .cc-orange { background: #FFA500; color: #000; }
+            .cc-red { background: #DC143C; color: #fff; }
+
+            .crisis-overview-table a {
+                color: #0066cc;
+                text-decoration: none;
+            }
+            .crisis-overview-table a:hover {
+                text-decoration: underline;
+            }
+
+            /* Dark theme support */
+            @media (prefers-color-scheme: dark) {
+                .crisis-overview-table th {
+                    background: #2b5468;
+                    border-color: #444;
+                }
+                .crisis-overview-table td {
+                    background: #2b2b2b;
+                    border-color: #444;
+                    color: #f0f0f0;
+                }
+                .crisis-overview-table tr:nth-child(even) td {
+                    background: #333;
+                }
+                .crisis-overview-table tr:hover td {
+                    background: #3a4d5c;
+                }
+                .crisis-overview-table tr.current-country td {
+                    background: #4a4520 !important;
+                    color: #ffd;
+                }
+                .crisis-overview-table a {
+                    color: #6eb3ff;
+                }
+            }
+        </style>
+        <table class="crisis-overview-table">
+            <thead>
+                <tr>
+                    <th>Country</th>
+                    <th>CC</th>
+                    <th>Crisis score</th>
+                    <th>1. Pre-crisis vulnerability</th>
+                    <th>2. Crisis complexity</th>
+                    <th>3. Scope & scale</th>
+                    <th>4. Humanitarian conditions</th>
+                    <th>5. Capacity & response</th>
+                </tr>
+            </thead>
+            <tbody>
+        """
+
+        total_count = categorisations.count()
+
+        for cat in categorisations:
+            cc_display = cat.get_crisis_categorisation_display() if cat.crisis_categorisation is not None else "-"
+            cc_dot = format_cc_dot(cat.crisis_categorisation)
+            if cc_display != "-" and cc_dot:
+                cc_display = f"{cc_dot} {cc_display}"
+
+            if total_count == 1 and obj.status and obj.status > 2 and cat.crisis_categorisation in [0, 1, 2]:
+                event_url_base = f"../../../event/{obj.event.pk}/change/"
+                finalise_url = f"{event_url_base}?set_ifrc_severity_level={cat.crisis_categorisation}"
+                cc_display = (
+                    f'{cc_display} (<a target="_blank" href="{finalise_url}" style="text-decoration: none;">'
+                    "Approve as final"
+                    "</a>)"
+                )
+
+            # Highlight current country
+            row_class = "current-country" if cat.country == obj.country else ""
+            change_url = f"../../{cat.pk}/change/"
+
+            html += f"""
+                <tr class="{row_class}">
+                    <td><a href="{change_url}">{cat.country.name}</a></td>
+                    <td>{cc_display}</td>
+                    <td>{cat.crisis_score if cat.crisis_score else "-"}</td>
+                    <td>{cat.pre_crisis_vulnerability if cat.pre_crisis_vulnerability else "-"}</td>
+                    <td>{cat.crisis_complexity if cat.crisis_complexity else "-"}</td>
+                    <td>{cat.scope_and_scale if cat.scope_and_scale else "-"}</td>
+                    <td>{cat.humanitarian_conditions if cat.humanitarian_conditions else "-"}</td>
+                    <td>{cat.capacity_and_response if cat.capacity_and_response else "-"}</td>
+                </tr>
+            """
+
+        # Add final row with averages if there are multiple countries
+        if total_count > 1:
+            # Calculate averages
+            def calc_avg(field_name):
+                values = [getattr(cat, field_name) for cat in categorisations if getattr(cat, field_name) is not None]
+                if values:
+                    return round(sum(values) / len(values), 2)
+                return "-"
+
+            avg_crisis_score = calc_avg("crisis_score")
+            avg_pre_crisis = calc_avg("pre_crisis_vulnerability")
+            avg_crisis_complexity = calc_avg("crisis_complexity")
+            avg_scope_scale = calc_avg("scope_and_scale")
+            avg_humanitarian = calc_avg("humanitarian_conditions")
+            avg_capacity = calc_avg("capacity_and_response")
+
+            # Create links for Y, O, R to event page with severity level filters
+            event_url_base = f"../../../event/{obj.event.pk}/change/"
+            y_link = (
+                f'<a target="_blank" href="{event_url_base}?set_ifrc_severity_level=0" style="text-decoration: none;">Yellow</a>'
+            )
+            o_link = (
+                f'<a target="_blank" href="{event_url_base}?set_ifrc_severity_level=1" style="text-decoration: none;">Orange</a>'
+            )
+            r_link = (
+                f'<a target="_blank" href="{event_url_base}?set_ifrc_severity_level=2" style="text-decoration: none;">Red</a>'
+            )
+
+            if obj.status > 2:
+                finalize = f"Approve as {y_link} / {o_link} / {r_link}"
+            else:
+                finalize = "Get this categorisation validated."
+
+            html += f"""
+                <tr style="font-weight: 600; background: #f0f0f0 !important;">
+                    <td>Summary</td>
+                    <td>{finalize}</td>
+                    <td>{avg_crisis_score}</td>
+                    <td>{avg_pre_crisis}</td>
+                    <td>{avg_crisis_complexity}</td>
+                    <td>{avg_scope_scale}</td>
+                    <td>{avg_humanitarian}</td>
+                    <td>{avg_capacity}</td>
+                </tr>
+            """
+
+        html += """
+            </tbody>
+        </table>
+        """
+
+        return mark_safe(html)
+
+    event_countries_overview.short_description = mark_safe("<strong>" + _("Crisis Categorisation Overview") + "</strong>")
+
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    "event",
+                    "event_countries_overview",
+                    "country",
+                    "crisis_categorisation",
+                    "crisis_score",
+                )
+            },
+        ),
+        (
+            "1. Pre-Crisis Vulnerability",
+            {
+                "fields": (
+                    "pre_crisis_vulnerability",
+                    ("pre_crisis_vulnerability_hazard_exposure", "pre_crisis_vulnerability_hazard_exposure_comment"),
+                    (
+                        "pre_crisis_vulnerability_hazard_exposure_intermediate",
+                        "pre_crisis_vulnerability_hazard_exposure_intermediate_comment",
+                    ),
+                    ("pre_crisis_vulnerability_vulnerability", "pre_crisis_vulnerability_vulnerability_comment"),
+                    (
+                        "pre_crisis_vulnerability_vulnerability_intermediate",
+                        "pre_crisis_vulnerability_vulnerability_intermediate_comment",
+                    ),
+                    ("pre_crisis_vulnerability_coping_mechanism", "pre_crisis_vulnerability_coping_mechanism_comment"),
+                    (
+                        "pre_crisis_vulnerability_coping_mechanism_intermediate",
+                        "pre_crisis_vulnerability_coping_mechanism_intermediate_comment",
+                    ),
+                )
+            },
+        ),
+        (
+            "2. Crisis Complexity",
+            {
+                "fields": (
+                    "crisis_complexity",
+                    ("crisis_complexity_humanitarian_access_score", "crisis_complexity_humanitarian_access_score_comment"),
+                    ("crisis_complexity_humanitarian_access_acaps", "crisis_complexity_humanitarian_access_acaps_comment"),
+                    ("crisis_complexity_government_response", "crisis_complexity_government_response_comment"),
+                    ("crisis_complexity_media_attention", "crisis_complexity_media_attention_comment"),
+                    ("crisis_complexity_ifrc_security_phase", "crisis_complexity_ifrc_security_phase_comment"),
+                )
+            },
+        ),
+        (
+            "3. Scope & Scale",
+            {
+                "fields": (
+                    "scope_and_scale",
+                    (
+                        "scope_and_scale_number_of_affected_population_score",
+                        "scope_and_scale_number_of_affected_population_score_comment",
+                    ),
+                    (
+                        "scope_and_scale_number_of_affected_population",
+                        "scope_and_scale_number_of_affected_population_comment",
+                    ),
+                    (
+                        "scope_and_scale_percentage_affected_population_score",
+                        "scope_and_scale_percentage_affected_population_score_comment",
+                    ),
+                    (
+                        "scope_and_scale_total_population_of_the_affected_area",
+                        "scope_and_scale_total_population_of_the_affected_area_comment",
+                    ),
+                    (
+                        "scope_and_scale_percentage_affected_population",
+                        "scope_and_scale_percentage_affected_population_comment",
+                    ),
+                    ("scope_and_scale_impact_index_score", "scope_and_scale_impact_index_score_comment"),
+                    ("scope_and_scale_impact_index_inform", "scope_and_scale_impact_index_inform_comment"),
+                )
+            },
+        ),
+        (
+            "4. Humanitarian Conditions",
+            {
+                "fields": (
+                    "humanitarian_conditions",
+                    ("humanitarian_conditions_casualties_score", "humanitarian_conditions_casualties_score_comment"),
+                    (
+                        "humanitarian_conditions_casualties_injrd_deaths_missing",
+                        "humanitarian_conditions_casualties_injrd_deaths_missing_comment",
+                    ),
+                    ("humanitarian_conditions_severity_score", "humanitarian_conditions_severity_score_comment"),
+                    ("humanitarian_conditions_severity", "humanitarian_conditions_severity_comment"),
+                    ("humanitarian_conditions_people_in_need_score", "humanitarian_conditions_people_in_need_score_comment"),
+                    ("humanitarian_conditions_people_in_need", "humanitarian_conditions_people_in_need_comment"),
+                )
+            },
+        ),
+        (
+            "5. Capacity & Response",
+            {
+                "fields": (
+                    "capacity_and_response",
+                    ("capacity_and_response_ifrc_capacity_score", "capacity_and_response_ifrc_capacity_score_comment"),
+                    ("capacity_and_response_ifrc_international_staff", "capacity_and_response_ifrc_international_staff_comment"),
+                    ("capacity_and_response_ifrc_national_staff", "capacity_and_response_ifrc_national_staff_comment"),
+                    ("capacity_and_response_ifrc_total_staff", "capacity_and_response_ifrc_total_staff_comment"),
+                    ("capacity_and_response_regional_office", "capacity_and_response_regional_office_comment"),
+                    ("capacity_and_response_ops_capacity_score", "capacity_and_response_ops_capacity_score_comment"),
+                    ("capacity_and_response_ops_capacity_ranking", "capacity_and_response_ops_capacity_ranking_comment"),
+                    ("capacity_and_response_ns_staff_score", "capacity_and_response_ns_staff_score_comment"),
+                    ("capacity_and_response_number_of_ns_staff", "capacity_and_response_number_of_ns_staff_comment"),
+                    (
+                        "capacity_and_response_ratio_staff_to_volunteer_score",
+                        "capacity_and_response_ratio_staff_to_volunteer_score_comment",
+                    ),
+                    ("capacity_and_response_ratio_staff_volunteer", "capacity_and_response_ratio_staff_volunteer_comment"),
+                    ("capacity_and_response_number_of_ns_volunteer", "capacity_and_response_number_of_ns_volunteer_comment"),
+                    ("capacity_and_response_number_of_dref_score", "capacity_and_response_number_of_dref_score_comment"),
+                    (
+                        "capacity_and_response_number_of_dref_ea_last_3_years",
+                        "capacity_and_response_number_of_dref_ea_last_3_years_comment",
+                    ),
+                    (
+                        "capacity_and_response_presence_support_pns_in_country",
+                        "capacity_and_response_presence_support_pns_in_country_comment",
+                    ),
+                )
+            },
+        ),
+        (
+            "––––––––––––––––––––",
+            {"fields": ("commentary", "general_document", "status")},
+        ),
+        (
+            "Timestamps",
+            {
+                "fields": ("created_at", "updated_at"),
+                "classes": ("collapse",),
+            },
+        ),
+    )
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related("event", "country")
 
 
 @admin.register(models.Export)

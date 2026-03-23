@@ -5,3 +5,318 @@
 p.deletelink-box {
 	margin-top: 0;
 }
+
+/* Crisis Categorisation By Country - Event field width */
+.model-crisiscategorisationbycountry.change-form #id_event {
+    min-width: 400px;
+}
+
+/* Crisis Categorisation By Country - Inline field layout */
+
+/* Make form rows display fields side by side */
+.model-crisiscategorisationbycountry.change-form .form-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: flex-start;
+}
+
+/* First field in a row (score fields) - wider for longer labels */
+.model-crisiscategorisationbycountry.change-form .form-row > div:first-child:not(:only-child) {
+    flex: 0 0 30%;
+    min-width: 200px;
+}
+
+/* Second field in a row (comment fields) - 68% width */
+.model-crisiscategorisationbycountry.change-form .form-row > div:last-child:not(:only-child) {
+    flex: 1 1 auto;
+    min-width: 300px;
+}
+
+/* Single fields (not in tuples) take full width */
+.model-crisiscategorisationbycountry.change-form .form-row > div:only-child {
+    flex: 1 1 100%;
+    max-width: 100%;
+}
+
+/* Ensure labels don't break the layout and don't wrap */
+.model-crisiscategorisationbycountry.change-form .form-row label {
+    display: block;
+    margin-bottom: 5px;
+    white-space: nowrap;
+    overflow: visible;
+}
+
+/* Input fields should not exceed their container */
+.model-crisiscategorisationbycountry.change-form .form-row input[type="text"],
+.model-crisiscategorisationbycountry.change-form .form-row input[type="number"],
+.model-crisiscategorisationbycountry.change-form .form-row select,
+.model-crisiscategorisationbycountry.change-form .form-row textarea {
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* Crisis Categorisation: ensure IntegerField inputs match DecimalField width but aren't oversized */
+.model-crisiscategorisationbycountry.change-form .vIntegerField {
+    width: 14em;
+}
+
+/* Comment fields (second column) should fill their container */
+.model-crisiscategorisationbycountry.change-form .form-row > div:last-child:not(:only-child) input[type="text"] {
+    width: 100%;
+}
+
+/* Fieldset with positioned header field */
+.model-crisiscategorisationbycountry.change-form fieldset.module {
+    position: relative;
+}
+
+.model-crisiscategorisationbycountry.change-form fieldset.module > h2 {
+    padding-right: 200px; /* Space for the input field */
+}
+
+/* Table header row for fieldsets - custom HTML version */
+.model-crisiscategorisationbycountry.change-form .fieldset-table-header {
+    display: flex;
+    gap: 15px;
+    background: #f8f8f8;
+    padding: 8px 10px;
+    margin: 4px 0 0;  /* Gap between header and subheader */
+    border-bottom: 1px solid #ddd;
+    font-weight: 600;
+    font-size: 11px;
+    color: #666;
+}
+
+.model-crisiscategorisationbycountry.change-form .fieldset-table-header .header-actions {
+    flex: 0 0 auto;
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+}
+
+.model-crisiscategorisationbycountry.change-form .cc-calc-button {
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 1.2;
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid currentColor;
+    color: inherit;
+    opacity: 0.9;
+    white-space: nowrap;
+}
+
+.model-crisiscategorisationbycountry.change-form .cc-calc-button:hover {
+    opacity: 1;
+}
+
+.model-crisiscategorisationbycountry.change-form .fieldset-table-header .header-indicator {
+    flex: 0 0 30%;
+    min-width: 200px;
+}
+
+.model-crisiscategorisationbycountry.change-form .fieldset-table-header .header-comment {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+/* Dark theme support for subheaders */
+@media (prefers-color-scheme: dark) {
+    .model-crisiscategorisationbycountry.change-form .fieldset-table-header {
+        background: #2b2b2b;
+        border-bottom-color: #444;
+        color: #b0b0b0;
+    }
+
+    .model-crisiscategorisationbycountry.change-form .fieldset-table-header .cc-calc-button {
+        color: #fff;
+        border-color: rgba(255, 255, 255, 0.75);
+        background: #3a3a3a;
+        opacity: 1;
+    }
+
+    .model-crisiscategorisationbycountry.change-form .fieldset-table-header .cc-calc-button:hover {
+        border-color: #fff;
+        background: #444;
+    }
+}
+
+
+/* Position first form-row with single field to the header area */
+.model-crisiscategorisationbycountry.change-form fieldset.module > .form-row:first-of-type > div:only-child {
+    position: absolute;
+    top: 3px;
+    right: 15px;
+    margin: 0;
+    z-index: 10;
+}
+
+/* Exception: commentary and event fields should NOT be positioned in header */
+.model-crisiscategorisationbycountry.change-form fieldset.module > .form-row:first-of-type > div:only-child:has(textarea[name="commentary"]),
+.model-crisiscategorisationbycountry.change-form fieldset.module > .form-row:first-of-type > div:only-child:has(input[name="commentary"]),
+.model-crisiscategorisationbycountry.change-form fieldset.module > .form-row:first-of-type > div:only-child:has(select[name="event"]) {
+    position: static;
+}
+
+.model-crisiscategorisationbycountry.change-form fieldset.module > .form-row:first-of-type > div:only-child label {
+    display: none;
+}
+
+/* Show label for commentary and event fields */
+.model-crisiscategorisationbycountry.change-form fieldset.module > .form-row:first-of-type > div:only-child:has(textarea[name="commentary"]) label,
+.model-crisiscategorisationbycountry.change-form fieldset.module > .form-row:first-of-type > div:only-child:has(input[name="commentary"]) label,
+.model-crisiscategorisationbycountry.change-form fieldset.module > .form-row:first-of-type > div:only-child:has(select[name="event"]) label {
+    display: block;
+}
+
+.model-crisiscategorisationbycountry.change-form fieldset.module > .form-row:first-of-type > div:only-child input,
+.model-crisiscategorisationbycountry.change-form fieldset.module > .form-row:first-of-type > div:only-child select {
+    width: 100px;
+    max-width: 100px;
+    margin: 0;
+    padding: 4px 6px;
+    font-size: 13px;
+}
+
+/* Reset width for commentary and event fields */
+.model-crisiscategorisationbycountry.change-form fieldset.module > .form-row:first-of-type > div:only-child textarea[name="commentary"],
+.model-crisiscategorisationbycountry.change-form fieldset.module > .form-row:first-of-type > div:only-child input[name="commentary"],
+.model-crisiscategorisationbycountry.change-form fieldset.module > .form-row:first-of-type > div:only-child select[name="event"] {
+    width: 100%;
+    max-width: 100%;
+    padding: initial;
+    font-size: initial;
+}
+
+/* Hide the form-row container but show its content via absolute positioning */
+.model-crisiscategorisationbycountry.change-form fieldset.module > .form-row:first-of-type:has(> div:only-child) {
+    height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+}
+
+/* Show normal height for commentary and event form-rows */
+.model-crisiscategorisationbycountry.change-form fieldset.module > .form-row:first-of-type:has(textarea[name="commentary"]),
+.model-crisiscategorisationbycountry.change-form fieldset.module > .form-row:first-of-type:has(input[name="commentary"]),
+.model-crisiscategorisationbycountry.change-form fieldset.module > .form-row:first-of-type:has(select[name="event"]) {
+    height: auto;
+    margin: initial;
+    padding: initial;
+}
+
+/* Did not work to align Event left
+.change-form .form-row.field-event > div {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+} */
+
+/* Clickable help icon + tooltip attached to Crisis Categorisation headers */
+.precrisis-help-icon,
+.cc-help-icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+    text-align: center;
+    border-radius: 50%;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-left: 5px;
+    vertical-align: middle;
+    user-select: none;
+    position: relative;
+    top: -0.3rem;
+}
+
+.ifrc-severity-help-icon {
+    background: transparent;
+    color: #0b6aa2;
+}
+
+/* Tooltip bubble */
+.precrisis-help-tooltip,
+.cc-help-tooltip {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 0;
+    background: #fff;
+    color: #333;
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 12px;
+    max-width: 90vw;
+    max-height: 80vh;
+    overflow: auto;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    margin-top: 0;
+}
+
+.ifrc-severity-help-tooltip {
+    top: calc(100% + 2px);
+    bottom: auto;
+    font-weight: normal;
+}
+
+.precrisis-help-tooltip img,
+.cc-help-tooltip img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+.precrisis-help-tooltip::before,
+.cc-help-tooltip::before {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 20px;
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid #ccc;
+}
+
+.ifrc-severity-help-tooltip::before {
+    top: -5px;
+    bottom: auto;
+    border-top: none;
+    border-bottom: 5px solid #ccc;
+}
+
+.precrisis-help-tooltip.visible,
+.cc-help-tooltip.visible {
+    display: block;
+}
+
+/* Dark theme support */
+@media (prefers-color-scheme: dark) {
+    .precrisis-help-tooltip,
+    .cc-help-tooltip {
+        background: #1a1a1a;
+        color: #eee;
+        border: 1px solid #444;
+    }
+
+    .precrisis-help-tooltip::before,
+    .cc-help-tooltip::before {
+        border-top-color: #1a1a1a;
+    }
+
+    .ifrc-severity-help-icon {
+        background: transparent;
+        color: #4ea3d8;
+    }
+
+    .ifrc-severity-help-tooltip::before {
+        border-bottom-color: #1a1a1a;
+    }
+}

@@ -663,6 +663,13 @@ class DrefTestCase(APITestCase):
             status=Dref.Status.DRAFT,
             type_of_dref=Dref.DrefType.IMMINENT,
         )
+        dref2 = DrefFactory.create(
+            title="test-2",
+            created_by=root_user,
+            country=country,
+            status=Dref.Status.APPROVED,
+            type_of_dref=Dref.DrefType.IMMINENT,
+        )
 
         self.client.force_authenticate(root_user)
         # ---- PATCH updates ----
@@ -707,6 +714,11 @@ class DrefTestCase(APITestCase):
         self.assert_200(response)
         dref.refresh_from_db()
         self.assertEqual(dref.status, Dref.Status.APPROVED)
+
+        # Test approved dref update(patch)
+        url = f"/api/v2/dref/{dref2.id}/"
+        response = self.client.patch(url, data)
+        self.assert_400(response)
 
     def test_dref_operation_update_create(self):
         """
@@ -806,6 +818,21 @@ class DrefTestCase(APITestCase):
             status=Dref.Status.APPROVED,
             operational_update_number=1,
         )
+
+        dref1 = DrefFactory.create(
+            title="Test Title",
+            created_by=self.user,
+            status=Dref.Status.APPROVED,
+        )
+        dref1.users.add(user1)
+
+        op_update1 = DrefOperationalUpdateFactory.create(
+            dref=dref1,
+            status=Dref.Status.APPROVED,
+            operational_update_number=1,
+            created_by=user1,
+        )
+
         url = "/api/v2/dref-op-update/"
         data = {
             "dref": dref.id,
@@ -826,6 +853,12 @@ class DrefTestCase(APITestCase):
         self.authenticate(user=user1)
         response = self.client.patch(url, data)
         self.assert_200(response)
+
+        # Test Approve operational update(patch)
+        url = f"/api/v2/dref-op-update/{op_update1.id}/"
+        self.authenticate(user=user1)
+        response = self.client.patch(url, data=data)
+        self.assert_400(response)
 
     def test_dref_change_on_final_report_create(self):
         user1 = UserFactory.create()
@@ -955,7 +988,24 @@ class DrefTestCase(APITestCase):
             type_of_dref=Dref.DrefType.RESPONSE,
             status=Dref.Status.FINALIZED,
         )
+
+        dref2 = DrefFactory.create(
+            title="Test Title-2",
+            type_of_dref=Dref.DrefType.ASSESSMENT,
+            created_by=user1,
+            country=country,
+            status=Dref.Status.APPROVED,
+        )
+        final_report2 = DrefFinalReportFactory(
+            title="Test title-2",
+            dref=dref2,
+            country=country,
+            type_of_dref=Dref.DrefType.RESPONSE,
+            status=Dref.Status.APPROVED,
+        )
+
         final_report.users.set([user1])
+        final_report2.users.set([user1])
 
         patch_url = f"/api/v2/dref-final-report/{final_report.id}/"
 
@@ -975,6 +1025,11 @@ class DrefTestCase(APITestCase):
         self.assert_200(response)
         final_report.refresh_from_db()
         self.assertEqual(final_report.status, Dref.Status.APPROVED)
+
+        # Test Approved final report(patch)
+        patch_url = f"/api/v2/dref-final-report/{final_report2.id}/"
+        response = self.client.patch(patch_url, data)
+        self.assert_400(response)
 
     def test_dref_for_assessment_report(self):
         old_count = Dref.objects.count()

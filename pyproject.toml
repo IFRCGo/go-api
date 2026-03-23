@@ -9,7 +9,7 @@ readme = "README.md"
 dependencies = [
     "Django>=4.2,<5.0",
     "Markdown==3.3.4",
-    "Pillow==10.3.0",
+    "Pillow==12.1.1",
     "PyPDF2==1.27.9",
     "pdf2image==1.16.0",
     "beautifulsoup4==4.6.3",
@@ -18,7 +18,7 @@ dependencies = [
     "coreapi==2.3.3",
     "coreschema==0.0.4",
     "coverage==4.4.2",
-    "cryptography==44.0.1",
+    "cryptography==46.0.5",
     "django-admin-autocomplete-filter",
     "django-admin-list-filter-dropdown",
     "django-cors-headers==3.11.0",
@@ -32,6 +32,7 @@ dependencies = [
     "django-read-only==1.12.0",
     "django-reversion-compare==0.16.2",
     "django-reversion==5.0.12",
+    "django-smart-selects>=1.7.2",
     "django-storages[s3,azure]==1.14.5",
     "django-tinymce==4.1.0",
     "django-oauth-toolkit==3.0.1",
@@ -70,7 +71,7 @@ dependencies = [
     "xmltodict==0.11.0",
     "xhtml2pdf==0.2.17",
     "reportlab",  # XXX: Used by xhtml2pdf reportlab==3.6.7 breaks for now
-    "celery[redis]==5.1.2",
+    "celery[redis]>=5.2.2",
     "django-redis==5.0.0",
     "sentry-sdk",
     "django-haystack[elasticsearch]",
@@ -92,7 +93,7 @@ dev = [
   "pytest-ordering",
   "pytest-django",
   "snapshottest==0.6.0",
-  "django-debug-toolbar==4.1.0",
+  "django-debug-toolbar==6.2.0",
   "django-stubs",
 ]
 celery = [

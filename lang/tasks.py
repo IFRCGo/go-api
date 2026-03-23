@@ -57,6 +57,10 @@ class ModelTranslator:
                 table_field=table_field,
             )
 
+            if new_value is None:
+                logger.warning(f"Translation failed for Model ({type(obj)}<{lang_field}>) pk: ({obj.pk})")
+                continue
+
             field_max_length = model._meta.get_field(field).max_length
             if field_max_length and len(new_value) > field_max_length:
                 logger.warning(f"Greater then max_length found for Model ({type(obj)}<{lang_field}>) pk: ({obj.pk})")

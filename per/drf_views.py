@@ -792,9 +792,14 @@ class PerMapDataView(views.APIView):
                     ),
                     "updated_at": getattr(ov, "updated_at", None),
                     "prioritized_components": prioritized_components,
-                    "epi_considerations": epi_considerations,
-                    "climate_environmental_considerations": climate_considerations,
-                    "urban_considerations": urban_considerations,
+                    "epi_considerations": getattr(ov, "assess_preparedness_of_country", None),
+                    "climate_environmental_considerations": getattr(ov, "assess_climate_environment_of_country", None),
+                    "urban_considerations": getattr(ov, "assess_urban_aspect_of_country", None),
+                    "migration_considerations": getattr(ov, "assess_migration_aspect_of_country", None),
+                    "epi_considerations_from_assessment": epi_considerations,
+                    "climate_environmental_considerations_from_assessment": climate_considerations,
+                    "urban_considerations_from_assessment": urban_considerations,
+                    "migration_considerations_from_assessment": migration_considerations,
                     "components": components,
                 }
             )

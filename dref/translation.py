@@ -11,6 +11,7 @@ from dref.models import (
     PlannedInterventionIndicators,
     ProposedActionActivities,
     RiskSecurity,
+    SourceInformation,
 )
 
 
@@ -72,6 +73,8 @@ class DrefFinalReportTO(TranslationOptions):
         "selection_criteria",
         "operation_objective",
         "response_strategy",
+        "lessons_learned_and_challenges",
+        "mitigation_efforts_and_achievements",
         "major_coordination_mechanism",
         "risk_security_concern",
         "event_text",
@@ -115,10 +118,7 @@ class DrefOperationalUpdateTO(TranslationOptions):
 
 @register(IdentifiedNeed)
 class IdentifiedNeedTO(TranslationOptions):
-    fields = (
-        "title",
-        "description",
-    )
+    fields = ("description",)
 
 
 @register(NationalSocietyAction)
@@ -129,7 +129,6 @@ class NationalSocietyActionTO(TranslationOptions):
 @register(PlannedIntervention)
 class PlannedInterventionTO(TranslationOptions):
     fields = (
-        "title",
         "description",
         "progress_towards_outcome",
         "narrative_description_of_achievements",
@@ -154,3 +153,8 @@ class RiskSecurityTO(TranslationOptions):
 @register(ProposedActionActivities)
 class ProposedActionActivitiesTO(TranslationOptions):
     fields = ("activity",)
+
+
+@register(SourceInformation)
+class SourceInformationTO(TranslationOptions):
+    fields = ("source_name",)

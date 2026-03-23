@@ -24,6 +24,7 @@ from api.models import (
 )
 from deployments.models import ERU, Personnel, PersonnelDeployment
 from main.sentry import SentryMonitor
+from main.utils import logger_context
 from notifications.hello import get_hello
 from notifications.models import (
     NotificationGUID,
@@ -128,7 +129,7 @@ class Command(BaseCommand):
         # many-to-many relationship to countries and regions through event table
         countries = []
         for record in records:
-            if record.event.countries is not None:
+            if record.event is not None and record.event.countries is not None:
                 countries += [country.id for country in record.event.countries.all()]
         countries = list(set(countries))
         qs = Country.objects.filter(pk__in=countries)
@@ -238,24 +239,24 @@ class Command(BaseCommand):
     # Get the front-end url of the resource
     def get_resource_uri(self, record, rtype):
         # Determine the front-end URL
-        resource_uri = settings.FRONTEND_URL
+        resource_uri = settings.GO_WEB_URL
         if (
             rtype == RecordType.SURGE_ALERT or rtype == RecordType.FIELD_REPORT
         ):  # Pointing to event instead of field report %s/%s/%s - Munu asked - ¤
             belonging_event = (
                 record.event.id if record.event is not None else 57
             )  # Very rare – giving a non-existent | manually created surge – no event
-            resource_uri = "%s/emergencies/%s" % (settings.FRONTEND_URL, belonging_event)
+            resource_uri = "%s/emergencies/%s" % (settings.GO_WEB_URL, belonging_event)
         elif rtype == RecordType.SURGE_DEPLOYMENT_MESSAGES:
-            resource_uri = "%s/%s" % (settings.FRONTEND_URL, "surge/overview")  # could be further sophisticated:
+            resource_uri = "%s/%s" % (settings.GO_WEB_URL, "surge/overview")  # could be further sophisticated:
             # e.g. emergencies/6700/surge, where 6700 is the related emergency ID
         elif rtype == RecordType.APPEAL and (record.event is not None and not record.needs_confirmation):
             # Appeals with confirmed emergencies link to that emergency
-            resource_uri = "%s/emergencies/%s" % (settings.FRONTEND_URL, record.event.id)
+            resource_uri = "%s/emergencies/%s" % (settings.GO_WEB_URL, record.event.id)
         elif rtype != RecordType.APPEAL:
             # One-by-one followed or globally subscribed emergencies
             resource_uri = "%s/%s/%s" % (
-                settings.FRONTEND_URL,
+                settings.GO_WEB_URL,
                 # this else never occurs, see ¤
                 "emergencies" if rtype == RecordType.EVENT or rtype == RecordType.FOLLOWED_EVENT else "field-reports",
                 record.id,
@@ -401,8 +402,8 @@ class Command(BaseCommand):
         #             'type': 'Alert',
         #             'operation': alert.operation,
         #            'event_url': (
-        #                '{}/emergencies/{}'.format(settings.FRONTEND_URL, event.id) if event else
-        #                settings.FRONTEND_URL,
+        #                '{}/emergencies/{}'.format(settings.GO_WEB_URL, event.id) if event else
+        #                settings.GO_WEB_URL,
         #            ),
         #             'society_from': '',
         #             'deployed_to': '',
@@ -420,7 +421,7 @@ class Command(BaseCommand):
             country_from = Country.objects.get(id=pers.country_from_id) if pers.country_from_id is not None else None
             dep_to_add = {
                 "operation": event.name if event else "",
-                "event_url": ("{}/emergencies/{}".format(settings.FRONTEND_URL, event.id) if event else settings.FRONTEND_URL),
+                "event_url": ("{}/emergencies/{}".format(settings.GO_WEB_URL, event.id) if event else settings.GO_WEB_URL),
                 "society_from": country_from.society_name if country_from else "",
                 "name": pers.name,
                 "role": pers.role,
@@ -662,10 +663,10 @@ class Command(BaseCommand):
                     volunteers += int(f.num_volunteers or 0)
                     delegates += int(f.num_expats_delegates or 0)
             resource_uri, follow_url = self.get_resource_uri(record, rtype), None
-            if resource_uri != settings.FRONTEND_URL:
+            if resource_uri != settings.GO_WEB_URL:
                 follow_url = resource_uri + "/follow"
             rec_obj = {
-                "frontend_url": settings.FRONTEND_URL,
+                "frontend_url": settings.GO_WEB_URL,
                 "resource_uri": resource_uri,
                 "follow_url": follow_url,
                 "admin_uri": self.get_admin_uri(record, rtype),
@@ -689,7 +690,7 @@ class Command(BaseCommand):
             }
         elif rtype == RecordType.WEEKLY_DIGEST:
             rec_obj = {
-                "resource_uri": settings.FRONTEND_URL,
+                "resource_uri": settings.GO_WEB_URL,
                 "active_dref": self.get_weekly_digest_data("dref"),
                 "active_ea": self.get_weekly_digest_data("ea"),
                 "funding_coverage": self.get_weekly_digest_data("fund"),
@@ -821,6 +822,7 @@ class Command(BaseCommand):
                 "is_staff": True if uid is None else is_staff,  # TODO: fork the sending to "is_staff / not ~" groups
                 "subject": subject,
                 "hide_preferences": False,
+                "frontend_url": settings.GO_WEB_URL,
             },
         )
         recipients = emails
@@ -857,6 +859,7 @@ class Command(BaseCommand):
                                 "is_staff": True if uid is None else is_staff,
                                 "subject": subject,
                                 "hide_preferences": False,
+                                "frontend_url": settings.GO_WEB_URL,
                             },
                         )
                         send_notification(
@@ -891,6 +894,7 @@ class Command(BaseCommand):
                         "is_staff": True if uid is None else is_staff,
                         "subject": subject,
                         "hide_preferences": False,
+                        "frontend_url": settings.GO_WEB_URL,
                     },
                 )
 
@@ -960,12 +964,16 @@ class Command(BaseCommand):
     def bulk(self, actions):
         try:
             created, errors = bulk(client=ES_CLIENT, actions=actions)
-            if len(errors):
-                logger.error("Produced the following errors:")
-                logger.error("[%s]" % ", ".join(map(str, errors)))
-        except Exception as e:
-            logger.error("Could not index records")
-            logger.error("%s..." % str(e)[:512])
+            if errors:
+                logger.error(
+                    "(index_and_notify:bulk): produced errors:",
+                    extra=logger_context(dict(errors=errors)),
+                )
+        except Exception:
+            logger.error(
+                "(index_and_notify:bulk): could not index records",
+                exc_info=True,
+            )
 
     # Remove items in a queryset where updated_at == created_at.
     # This leaves us with only ones that have been modified.

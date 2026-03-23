@@ -110,7 +110,7 @@ class PendingAdmin(CompareVersionAdmin):
             if usr:
                 if usr.is_active is False:
 
-                    email_context = {"frontend_url": settings.FRONTEND_URL}
+                    email_context = {"frontend_url": settings.GO_WEB_URL}
 
                     send_notification(
                         "Your account has been approved",
@@ -133,7 +133,7 @@ class PendingAdmin(CompareVersionAdmin):
             if usr:
                 if usr.is_active is False:
 
-                    email_context = {"frontend_url": settings.FRONTEND_URL}
+                    email_context = {"frontend_url": settings.GO_WEB_URL}
 
                     send_notification(
                         "Your account has been approved",

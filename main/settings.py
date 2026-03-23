@@ -276,6 +276,8 @@ INSTALLED_APPS = [
     "debug_toolbar",
     # GIS
     "django.contrib.gis",
+    # chained select
+    "smart_selects",
 ]
 
 REST_FRAMEWORK = {

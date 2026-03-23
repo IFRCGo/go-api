@@ -42,7 +42,7 @@ class NotificationGUIDAdmin(admin.ModelAdmin):
         "created_at",
     )
     list_filter = ("email_type",)
-    search_fields = ("email_type",)
+    search_fields = ("email_type", "api_guid")
     readonly_fields = (
         "api_guid",
         "email_type",
