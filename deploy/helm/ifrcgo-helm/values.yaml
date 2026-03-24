@@ -214,11 +214,11 @@ argoHooks:
 
 cronjobsDefaultResources:
   requests:
-    cpu: 1
+    cpu: 0.1
     memory: 4Gi
   limits:
-    cpu: 1
-    memory: 4Gi
+    cpu: 4
+    memory: 5Gi
 
 cronjobs:
   - command: 'index_and_notify'
@@ -227,11 +227,11 @@ cronjobs:
     schedule: '10 */2 * * *'
     resources:
       requests:
-        memory: 6Gi
-        cpu: 2
+        memory: 5Gi
+        cpu: 0.1
       limits:
-        memory: 8Gi
-        cpu: 2
+        memory: 6Gi
+        cpu: 4
   - command: 'ingest_appeals'
     schedule: '*/30 * * * *'
   - command: 'sync_appealdocs'
