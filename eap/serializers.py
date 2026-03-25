@@ -218,7 +218,7 @@ class MiniFullEAPSerializer(
 
     class Meta:
         model = FullEAP
-        fields = [
+        fields = (
             "id",
             "total_budget",
             "readiness_budget",
@@ -232,7 +232,7 @@ class MiniFullEAPSerializer(
             "updated_checklist_file_details",
             "created_at",
             "modified_at",
-        ]
+        )
 
 
 class MiniEAPSerializer(serializers.ModelSerializer):
@@ -574,6 +574,8 @@ class SimplifiedEAPSerializer(
         read_only_fields = [
             "version",
             "is_locked",
+            "created_by",
+            "modified_by",
         ]
         exclude = ("cover_image",)
 
@@ -626,6 +628,11 @@ class SimplifiedEAPSerializer(
                     {"operational_timeframe": gettext("operational timeframe value is not valid for Months unit.")}
                 )
 
+    def validate_eap_registration(self, eap_registration: EAPRegistration) -> EAPRegistration:
+        if not self.instance and eap_registration.has_eap_application:
+            raise serializers.ValidationError("EAP for this registration has already been created.")
+        return eap_registration
+
     def validate(self, data: dict[str, typing.Any]) -> dict[str, typing.Any]:
         original_eap_registration = getattr(self.instance, "eap_registration", None) if self.instance else None
         eap_registration: EAPRegistration | None = data.get("eap_registration", original_eap_registration)
@@ -633,9 +640,6 @@ class SimplifiedEAPSerializer(
 
         if self.instance and original_eap_registration != eap_registration:
             raise serializers.ValidationError("EAP Registration cannot be changed for existing EAP.")
-
-        if not self.instance and eap_registration.has_eap_application:
-            raise serializers.ValidationError("Simplified EAP for this EAP registration already exists.")
 
         if self.instance and eap_registration.get_status_enum not in [
             EAPRegistration.Status.UNDER_DEVELOPMENT,
@@ -777,10 +781,12 @@ class FullEAPSerializer(
 
     class Meta:
         model = FullEAP
-        read_only_fields = (
+        read_only_fields = [
+            "version",
+            "is_locked",
             "created_by",
             "modified_by",
-        )
+        ]
         exclude = ("cover_image",)
 
     def _validate_timeframe(self, data: dict[str, typing.Any]) -> None:
@@ -794,11 +800,13 @@ class FullEAPSerializer(
                 }
             )
 
-        if lead_unit is not None and lead_time_value is not None:
-            if lead_unit != TimeFrame.DAYS:
-                raise serializers.ValidationError(
-                    {"lead_timeframe_unit": gettext("lead timeframe unit must be Days for Full EAP.")}
-                )
+        if lead_unit is not None and lead_time_value is not None and lead_unit != TimeFrame.DAYS:
+            raise serializers.ValidationError({"lead_timeframe_unit": gettext("lead timeframe unit must be Days for Full EAP.")})
+
+    def validate_eap_registration(self, eap_registration: EAPRegistration) -> EAPRegistration:
+        if not self.instance and eap_registration.has_eap_application:
+            raise serializers.ValidationError("EAP for this registration has already been created.")
+        return eap_registration
 
     def validate(self, data: dict[str, typing.Any]) -> dict[str, typing.Any]:
         original_eap_registration = getattr(self.instance, "eap_registration", None) if self.instance else None
@@ -807,9 +815,6 @@ class FullEAPSerializer(
 
         if self.instance and original_eap_registration != eap_registration:
             raise serializers.ValidationError("EAP Registration cannot be changed for existing EAP.")
-
-        if not self.instance and eap_registration.has_eap_application:
-            raise serializers.ValidationError("Full EAP for this EAP registration already exists.")
 
         if self.instance and eap_registration.get_status_enum not in [
             EAPRegistration.Status.UNDER_DEVELOPMENT,

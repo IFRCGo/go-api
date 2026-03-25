@@ -716,7 +716,7 @@ class EAPSimplifiedTestCase(APITestCase):
 
         # Cannot create Simplified EAP for the same EAP Registration again
         response = self.client.post(url, data, format="json")
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 400, response.data)
 
     def test_update_simplified_eap(self):
         eap_registration = EAPRegistrationFactory.create(
