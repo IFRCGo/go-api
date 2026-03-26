@@ -297,12 +297,15 @@ class RegionViewset(viewsets.ReadOnlyModelViewSet):
 
         user = getattr(self.request, "user", None)
 
+        power_bi_embed = Q(snippet__contains='data-snippet-type="power_bi"')
+
         if not user or not user.is_authenticated:
-            snip_qs = RegionSnippet.objects.filter(visibility=VisibilityChoices.PUBLIC)
+            # Guests: only PUBLIC; exclude power_bi embeds
+            snip_qs = RegionSnippet.objects.filter(visibility=VisibilityChoices.PUBLIC).exclude(power_bi_embed)
         else:
             profile = getattr(user, "profile", None)
             if profile and profile.limit_access_to_guest:
-                snip_qs = RegionSnippet.objects.filter(visibility=VisibilityChoices.PUBLIC)
+                snip_qs = RegionSnippet.objects.filter(visibility=VisibilityChoices.PUBLIC).exclude(power_bi_embed)
             elif is_user_ifrc(user):
                 snip_qs = RegionSnippet.objects.all()
             else:
@@ -319,6 +322,8 @@ class RegionViewset(viewsets.ReadOnlyModelViewSet):
                 snip_qs = snip_qs.exclude(
                     Q(visibility=VisibilityChoices.IFRC_NS) & ~Q(region_id__in=allowed_region_ids_for_ifrc_ns)
                 )
+                # Exclude power_bi embedded snippets when user is not IFRC
+                snip_qs = snip_qs.exclude(power_bi_embed)
 
         return self.queryset.prefetch_related(models.Prefetch("snippets", queryset=snip_qs))
 
@@ -680,6 +685,17 @@ class RegionSnippetViewset(ReadOnlyVisibilityViewset):
             return RegionSnippetTableauSerializer
         return RegionSnippetSerializer
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        user = getattr(self.request, "user", None)
+        power_bi_embed = Q(snippet__contains='data-snippet-type="power_bi"')
+        if not user or not user.is_authenticated or (getattr(user, "profile", None) and user.profile.limit_access_to_guest):
+            return qs.exclude(power_bi_embed)
+        # Non-IFRC auth users: still exclude power_bi embeds
+        if not is_user_ifrc(user):
+            return qs.exclude(power_bi_embed)
+        return qs
+
 
 class CountrySnippetViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
@@ -691,6 +707,16 @@ class CountrySnippetViewset(ReadOnlyVisibilityViewset):
         if is_tableau(self.request) is True:
             return CountrySnippetTableauSerializer
         return CountrySnippetSerializer
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        user = getattr(self.request, "user", None)
+        power_bi_embed = Q(snippet__contains='data-snippet-type="power_bi"')
+        if not user or not user.is_authenticated or (getattr(user, "profile", None) and user.profile.limit_access_to_guest):
+            return qs.exclude(power_bi_embed)
+        if not is_user_ifrc(user):
+            return qs.exclude(power_bi_embed)
+        return qs
 
 
 class DistrictViewset(viewsets.ReadOnlyModelViewSet):
@@ -890,6 +916,16 @@ class EventSnippetViewset(ReadOnlyVisibilityViewset):
     filterset_class = EventSnippetFilter
     visibility_model_class = Snippet
     ordering_fields = "__all__"
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        user = getattr(self.request, "user", None)
+        power_bi_embed = Q(snippet__contains='data-snippet-type="power_bi"')
+        if not user or not user.is_authenticated or (getattr(user, "profile", None) and user.profile.limit_access_to_guest):
+            return qs.exclude(power_bi_embed)
+        if not is_user_ifrc(user):
+            return qs.exclude(power_bi_embed)
+        return qs
 
 
 class SituationReportTypeViewset(viewsets.ReadOnlyModelViewSet):
