@@ -7,6 +7,7 @@ from api.logger import logger
 from api.molnix_utils import MolnixApi
 
 DEBUG_LEVEL = 2  # Set to 0 for no debug, higher numbers for more verbose debug output
+APPRAISALS_PER_PAGE = 15
 
 
 def extract_appraisals(payload):
@@ -67,17 +68,15 @@ def remove_tags_and_deployments(value, parent_key=None):
     return value
 
 
-def collect_person_ids(value, collected):
-    if isinstance(value, dict):
-        for key, item in value.items():
-            if key == "person_id":
-                collected.append(item)
-            else:
-                collect_person_ids(item, collected)
+def collect_person_ids(appraiser_records, collected):
+    if not isinstance(appraiser_records, list):
         return
-    if isinstance(value, list):
-        for item in value:
-            collect_person_ids(item, collected)
+    for record in appraiser_records:
+        if not isinstance(record, dict):
+            continue
+        person_id = record.get("person_id")
+        if person_id is not None:
+            collected.append(person_id)
 
 
 def find_person_payload(value):
@@ -109,6 +108,46 @@ def filter_person_data(person_data):
     }
 
 
+def normalize_appraisal(appraisal):
+    if not isinstance(appraisal, dict):
+        return {}
+    cleaned = remove_tags_and_deployments(appraisal, "appraisal")
+    return {
+        "id": cleaned.get("id"),
+        "target_id": cleaned.get("target_id"),
+        "stage": cleaned.get("stage"),
+        "created_at": cleaned.get("created_at"),
+        "updated_at": cleaned.get("updated_at"),
+        "appraisers_count": cleaned.get("appraisers_count"),
+        "objectives": cleaned.get("objectives"),
+        "competencies": cleaned.get("competencies"),
+        "score": cleaned.get("score"),
+        "appraisers": cleaned.get("appraisers"),
+    }
+
+
+def normalize_appraiser(appraiser):
+    if not isinstance(appraiser, dict):
+        return {}
+    cleaned = remove_tags_and_deployments(appraiser)
+    return {
+        "id": cleaned.get("id"),
+        "appraisal_id": cleaned.get("appraisal_id"),
+        "appraiser_type": cleaned.get("appraiser_type"),
+        "person_id": cleaned.get("person_id"),
+        "name": cleaned.get("name"),
+        "email": cleaned.get("email"),
+        "position_title": cleaned.get("position_title"),
+        "required": cleaned.get("required"),
+        "notified_at": cleaned.get("notified_at"),
+        "notification_counter": cleaned.get("notification_counter"),
+        "completed_at": cleaned.get("completed_at"),
+        "created_at": cleaned.get("created_at"),
+        "updated_at": cleaned.get("updated_at"),
+        "responses": cleaned.get("responses"),
+    }
+
+
 class Command(BaseCommand):
     help = "Fetch and print Molnix appraisals"
 
@@ -125,9 +164,11 @@ class Command(BaseCommand):
         page = 1
         total = 0
         person_ids = []
+        appraisals_stream_count = 0
+        appraisers_stream_count = 0
         while True:
             log_debug(1, "Fetching page %d" % page)
-            data = molnix.call_api(path="appraisals", params={"page": page})
+            data = molnix.call_api(path="appraisals", params={"page": page, "per_page": APPRAISALS_PER_PAGE})
             appraisals = extract_appraisals(data)
             if isinstance(data, dict):
                 original = data.get("original") if isinstance(data.get("original"), dict) else {}
@@ -148,9 +189,21 @@ class Command(BaseCommand):
                 log_debug(1, "No appraisals returned, stopping")
                 break
             for appraisal in appraisals:
-                collect_person_ids(appraisal, person_ids)
-                cleaned_appraisal = remove_tags_and_deployments(appraisal)
-                self.stdout.write(json.dumps(cleaned_appraisal, indent=2, sort_keys=True))
+                if not isinstance(appraisal, dict):
+                    continue
+                appraisal_data = normalize_appraisal(appraisal.get("appraisal"))
+                if appraisal_data:
+                    self.stdout.write(
+                        json.dumps({"record_type": "molnix_appraisal", "data": appraisal_data}, indent=2, sort_keys=True)
+                    )
+                    appraisals_stream_count += 1
+                appraiser_data = normalize_appraiser(appraisal)
+                if appraiser_data:
+                    self.stdout.write(
+                        json.dumps({"record_type": "molnix_appraiser", "data": appraiser_data}, indent=2, sort_keys=True)
+                    )
+                    appraisers_stream_count += 1
+                collect_person_ids([appraiser_data], person_ids)
                 total += 1
             if not should_continue(data, appraisals):
                 log_debug(1, "Pagination indicates no more pages")
@@ -158,7 +211,6 @@ class Command(BaseCommand):
             page += 1
 
         unique_person_ids = sorted({pid for pid in person_ids if pid is not None})
-        # self.stdout.write(json.dumps(unique_person_ids, indent=2, sort_keys=True))
         log_debug(1, "Collected %d person_id values" % len(unique_person_ids))
         for person_id in unique_person_ids:
             log_debug(1, "Fetching person_id %s" % person_id)
@@ -166,9 +218,15 @@ class Command(BaseCommand):
             filtered_person_data = filter_person_data(person_data)
             if not filtered_person_data:
                 log_debug(2, "No person payload found for person_id %s" % person_id)
-            self.stdout.write(json.dumps(filtered_person_data, indent=2, sort_keys=True))
+            self.stdout.write(
+                json.dumps(
+                    {"record_type": "molnix_person_sex", "person_id": person_id, "data": filtered_person_data},
+                    indent=2,
+                    sort_keys=True,
+                )
+            )
         # log_debug(1, "Smoke test: response_capacity endpoint")
         # response_capacity_data = molnix.call_api(path="response_capacity")
         # self.stdout.write(json.dumps(response_capacity_data, indent=2, sort_keys=True))
-        logger.info("Printed %d appraisals" % total)
+        logger.info("Printed %d items (appraisals=%d appraisers=%d)" % (total, appraisals_stream_count, appraisers_stream_count))
         molnix.logout()
