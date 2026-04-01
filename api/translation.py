@@ -66,6 +66,7 @@ class CountryTO(TranslationOptions):
         "overview",
         "additional_tab_name",
     )
+    skip_fields = ("name", "society_name")
 
 
 @register(CountrySnippet)
