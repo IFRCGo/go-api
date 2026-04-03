@@ -10,7 +10,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from api.models import Region, RegionName
-from eap.models import EAPType, FullEAP, SimplifiedEAP
+from eap.models import EAPType
 
 REGION_EMAIL_MAP: dict[RegionName, list[str]] = {
     RegionName.AFRICA: settings.EMAIL_EAP_AFRICA_COORDINATORS,
@@ -114,23 +114,8 @@ def get_eap_email_context(instance):
 
     if instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP:
         latest_eap_data = instance.latest_simplified_eap
-        eap_model = SimplifiedEAP
     else:
         latest_eap_data = instance.latest_full_eap
-        eap_model = FullEAP
-
-    latest_version = latest_eap_data.version
-
-    previous_eap = (
-        eap_model.objects.filter(
-            eap_registration=instance,
-            version__lt=latest_version,
-        )
-        .order_by("-version")
-        .first()
-    )
-
-    previous_version = previous_eap.version if previous_eap else None
 
     email_context.update(
         {
@@ -138,7 +123,6 @@ def get_eap_email_context(instance):
             "people_targeted": latest_eap_data.people_targeted,
             "total_budget": latest_eap_data.total_budget,
             "latest_version": latest_eap_data.version,
-            "previous_version": previous_version,
             "export_file": (latest_eap_data.export_file.url if latest_eap_data.export_file else None),
             "diff_file": (latest_eap_data.diff_file.url if latest_eap_data.diff_file else None),
             "budget_file": get_file_url(latest_eap_data.budget_file),
