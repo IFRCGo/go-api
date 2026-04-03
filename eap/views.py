@@ -238,6 +238,7 @@ class SimplifiedEAPViewSet(EAPModelViewSet):
             )
             .prefetch_related(
                 "eap_registration__partners",
+                "partners",
                 "partner_contacts",
                 "admin2",
                 Prefetch(
@@ -273,6 +274,43 @@ class SimplifiedEAPViewSet(EAPModelViewSet):
             )
         )
 
+    @extend_schema(
+        request=None,
+    )
+    @action(
+        detail=True,
+        url_path="revise",
+        methods=["post"],
+        serializer_class=SimplifiedEAPSerializer,
+        permission_classes=[
+            permissions.IsAuthenticated,
+            DenyGuestUserMutationPermission,
+            EAPBasePermission,
+        ],
+    )
+    def revise(
+        self,
+        request,
+        id: int,
+    ):
+        simplified_eap_instance = self.get_object()
+        if simplified_eap_instance.is_locked:
+            return response.Response(
+                {"detail": "This version is locked and cannot be revised again."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if simplified_eap_instance.eap_registration.status != EAPStatus.NS_ADDRESSING_COMMENTS:
+            return response.Response(
+                {"detail": f"Only EAPs with status {EAPStatus.NS_ADDRESSING_COMMENTS} can be revised."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        snapshot_instance = simplified_eap_instance.generate_snapshot()
+        simplified_eap_instance.eap_registration.latest_simplified_eap = snapshot_instance
+        simplified_eap_instance.eap_registration.save(update_fields=["latest_simplified_eap"])
+        serializer = SimplifiedEAPSerializer(snapshot_instance, context={"request": request})
+        return response.Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class FullEAPViewSet(EAPModelViewSet):
     queryset = FullEAP.objects.all()
@@ -296,6 +334,7 @@ class FullEAPViewSet(EAPModelViewSet):
             )
             .prefetch_related(
                 "admin2",
+                "partners",
                 "partner_contacts",
                 "prioritized_impacts",
                 "early_actions",
@@ -347,6 +386,44 @@ class FullEAPViewSet(EAPModelViewSet):
                 ),
             )
         )
+
+    @extend_schema(
+        request=None,
+    )
+    @action(
+        detail=True,
+        url_path="revise",
+        methods=["post"],
+        serializer_class=FullEAPSerializer,
+        permission_classes=[
+            permissions.IsAuthenticated,
+            DenyGuestUserMutationPermission,
+            EAPBasePermission,
+        ],
+    )
+    def revise(
+        self,
+        request,
+        id: int,
+    ):
+        full_eap_instance = self.get_object()
+        if full_eap_instance.is_locked:
+            return response.Response(
+                {"detail": "This version is locked and cannot be revised again."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if full_eap_instance.eap_registration.status != EAPStatus.NS_ADDRESSING_COMMENTS:
+            return response.Response(
+                {"detail": f"Only EAPs with status {EAPStatus.NS_ADDRESSING_COMMENTS} can be revised."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        snapshot_instance = full_eap_instance.generate_snapshot()
+        full_eap_instance.eap_registration.latest_full_eap = snapshot_instance
+        full_eap_instance.eap_registration.save(update_fields=["latest_full_eap"])
+        serializer = FullEAPSerializer(snapshot_instance, context={"request": request})
+        return response.Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class EAPFileViewSet(
