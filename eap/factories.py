@@ -138,7 +138,6 @@ class EnablingApproachFactory(factory.django.DjangoModelFactory):
 
     approach = fuzzy.FuzzyChoice(EnablingApproach.Approach)
     budget_per_approach = fuzzy.FuzzyInteger(1000, 1000000)
-    ap_code = fuzzy.FuzzyInteger(100, 999)
 
     @factory.post_generation
     def readiness_activities(self, create, extracted, **kwargs):
@@ -175,7 +174,6 @@ class PlannedOperationFactory(factory.django.DjangoModelFactory):
     sector = fuzzy.FuzzyChoice(PlannedOperation.Sector)
     people_targeted = fuzzy.FuzzyInteger(100, 100000)
     budget_per_sector = fuzzy.FuzzyInteger(1000, 1000000)
-    ap_code = fuzzy.FuzzyInteger(100, 999)
 
     @factory.post_generation
     def readiness_activities(self, create, extracted, **kwargs):

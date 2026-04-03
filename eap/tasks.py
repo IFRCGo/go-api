@@ -217,8 +217,7 @@ def send_new_eap_submission_email(eap_registration_id: int):
             eap_registration_id=instance.id,
             version=latest_eap.version,
         )
-    partner_contacts = latest_eap.partner_contacts
-    partner_ns_emails = list(partner_contacts.values_list("email", flat=True))
+    partner_ns_emails = list(latest_eap.partner_contacts.values_list("email", flat=True))
 
     regional_coordinator_emails: list[str] = get_coordinator_emails_by_region(instance.country.region)
 
@@ -265,8 +264,7 @@ def send_feedback_email(eap_registration_id: int):
 
     ifrc_delegation_focal_point_email = latest_eap.ifrc_delegation_focal_point_email
 
-    partner_contacts = latest_eap.partner_contacts
-    partner_ns_emails = list(partner_contacts.values_list("email", flat=True))
+    partner_ns_emails = list(latest_eap.partner_contacts.values_list("email", flat=True))
 
     regional_coordinator_emails: list[str] = get_coordinator_emails_by_region(instance.country.region)
 
@@ -314,16 +312,13 @@ def send_eap_resubmission_email(eap_registration_id: int):
     else:
         latest_eap = instance.latest_full_eap
 
-    latest_version = latest_eap.version
-
     if not latest_eap.diff_file:
         generate_export_diff_pdf(
             eap_registration_id=instance.id,
             version=latest_eap.version,
         )
 
-    partner_contacts = latest_eap.partner_contacts
-    partner_ns_emails = list(partner_contacts.values_list("email", flat=True))
+    partner_ns_emails = list(latest_eap.partner_contacts.values_list("email", flat=True))
 
     regional_coordinator_emails: list[str] = get_coordinator_emails_by_region(instance.country.region)
 
@@ -345,7 +340,7 @@ def send_eap_resubmission_email(eap_registration_id: int):
     email_context = get_eap_email_context(instance)
     email_subject = (
         f"[DREF {instance.get_eap_type_display()} FOR REVIEW] "
-        f"{instance.country} {instance.disaster_type} version {latest_version} TO THE IFRC-DREF"
+        f"{instance.country} {instance.disaster_type} version {latest_eap.version} TO THE IFRC-DREF"
     )
     email_body = render_to_string("email/eap/re-submission.html", email_context)
     email_type = "Feedback to the National Society"
@@ -369,26 +364,10 @@ def send_feedback_email_for_resubmitted_eap(eap_registration_id: int):
 
     if instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP:
         latest_eap = instance.latest_simplified_eap
-        eap_model = SimplifiedEAP
     else:
         latest_eap = instance.latest_full_eap
-        eap_model = FullEAP
 
-    latest_version = latest_eap.version
-
-    partner_contacts = latest_eap.partner_contacts
-    partner_ns_emails = list(partner_contacts.values_list("email", flat=True))
-
-    previous_eap = (
-        eap_model.objects.filter(
-            eap_registration=instance,
-            version__lt=latest_version,
-        )
-        .order_by("-version")
-        .first()
-    )
-
-    previous_version = previous_eap.version if previous_eap else None
+    partner_ns_emails = list(latest_eap.partner_contacts.values_list("email", flat=True))
 
     regional_coordinator_emails: list[str] = get_coordinator_emails_by_region(instance.country.region)
 
@@ -409,7 +388,7 @@ def send_feedback_email_for_resubmitted_eap(eap_registration_id: int):
     email_context = get_eap_email_context(instance)
     email_subject = (
         f"[DREF {instance.get_eap_type_display()} FEEDBACK] "
-        f"{instance.country} {instance.disaster_type} version {previous_version} TO {instance.national_society}"
+        f"{instance.country} {instance.disaster_type} version {latest_eap.version} TO {instance.national_society}"
     )
     email_body = render_to_string("email/eap/feedback_to_revised_eap.html", email_context)
     email_type = "Feedback to the National Society"
@@ -491,8 +470,7 @@ def send_pending_pfa_email(eap_registration_id: int):
             eap_registration_id=instance.id,
         )
 
-    partner_contacts = latest_eap.partner_contacts
-    partner_ns_emails = list(partner_contacts.values_list("email", flat=True))
+    partner_ns_emails = list(latest_eap.partner_contacts.values_list("email", flat=True))
 
     regional_coordinator_emails: list[str] = get_coordinator_emails_by_region(instance.country.region)
 
