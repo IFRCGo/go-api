@@ -21,6 +21,30 @@ def parse_date(date):
     return datetime.datetime.strptime(date.split("T")[0], RELIEFWEB_DATETIME_FORMAT)
 
 
+def _post_reliefweb(query_params, url, context):
+    try:
+        response = requests.post(url, data=query_params)
+        response.raise_for_status()
+        return response.json()
+    except requests.HTTPError as exc:
+        status_code = exc.response.status_code if exc.response else None
+        if status_code == 410:
+            logger.warning(
+                "ReliefWeb API returned 410 Gone for %s. Skipping %s prefetch. URL: %s",
+                DISASTER_API,
+                context,
+                url,
+            )
+            return None
+        raise
+    except requests.RequestException:
+        logger.exception("ReliefWeb API request failed for %s. URL: %s", context, url)
+        raise
+    except ValueError:
+        logger.exception("ReliefWeb API returned invalid JSON for %s. URL: %s", context, url)
+        raise
+
+
 def _crises_event_prefetch():
     query_params = json.dumps(
         {
@@ -42,9 +66,9 @@ def _crises_event_prefetch():
     url = DISASTER_API
     data = {}
     while True:
-        response = requests.post(url, data=query_params)
-        response.raise_for_status()
-        response = response.json()
+        response = _post_reliefweb(query_params, url, "crises_event")
+        if response is None:
+            return {}
 
         for disaster in response["data"]:
             disaster = disaster["fields"]
@@ -90,9 +114,9 @@ def _epidemics_prefetch():
     url = DISASTER_API
     data = {}
     while True:
-        response = requests.post(url, data=query_params)
-        response.raise_for_status()
-        response = response.json()
+        response = _post_reliefweb(query_params, url, "epidemics")
+        if response is None:
+            return {}
 
         for epidemic in response["data"]:
             epidemic = epidemic["fields"]
