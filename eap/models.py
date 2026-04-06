@@ -391,19 +391,21 @@ class PlannedOperation(models.Model):
         ENVIRONMENT_SUSTAINABILITY = 111, _("Environment Sustainability")
         COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY = 112, _("Community Engagement And Accountability")
 
-    # NOTE: Use integer values directly in APCode rather than referencing `Sector` directly
-    class APCode(models.IntegerChoices):
-        SHELTER_SETTLEMENT_AND_HOUSING = 101, _("AP101, AP103, AP104")
-        LIVELIHOODS = 102, _("AP007")
-        PROTECTION_GENDER_AND_INCLUSION = 103, _("AP114, AP116, AP117")
-        HEALTH_AND_CARE = 104, _("AP107, AP108, AP109")
-        RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY = 105, _("AP101, AP103, AP104, AP105, AP106")
-        MULTIPURPOSE_CASH = 106, _("AP081")
-        WATER_SANITATION_AND_HYGIENE = 107, _("AP110, AP111")
-        EDUCATION = 109, _("AP115")
-        MIGRATION = 110, _("AP112, AP113")
-        ENVIRONMENT_SUSTAINABILITY = 111, _("AP102")
-        COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY = 112, _("AP129")
+        @classmethod
+        def get_sector_ap_codes(cls) -> dict[int, list[str]]:
+            return {
+                cls.SHELTER_SETTLEMENT_AND_HOUSING: ["AP101", "AP103", "AP104"],
+                cls.LIVELIHOODS: ["AP007"],
+                cls.PROTECTION_GENDER_AND_INCLUSION: ["AP114", "AP116", "AP117"],
+                cls.HEALTH_AND_CARE: ["AP107", "AP108", "AP109"],
+                cls.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY: ["AP101", "AP103", "AP104", "AP105", "AP106"],
+                cls.MULTIPURPOSE_CASH: ["AP081"],
+                cls.WATER_SANITATION_AND_HYGIENE: ["AP110", "AP111"],
+                cls.EDUCATION: ["AP115"],
+                cls.MIGRATION: ["AP112", "AP113"],
+                cls.ENVIRONMENT_SUSTAINABILITY: ["AP102"],
+                cls.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY: ["AP129"],
+            }
 
     sector = models.IntegerField(choices=Sector.choices, verbose_name=_("sector"))
     people_targeted = models.IntegerField(verbose_name=_("People Targeted"))
@@ -451,14 +453,21 @@ class EnablingApproach(models.Model):
         NATIONAL_SOCIETY_STRENGTHENING = 20, _("National Society Strengthening")
         PARTNERSHIP_AND_COORDINATION = 30, _("Partnership And Coordination")
 
-    # NOTE: AP Codes are read only in EAP forms and passed through ENUMS for now.
-    # They are not stored in the database but are derived from the Approach field. Make sure to keep them in sync.
-    class APCode(models.IntegerChoices):
-        SECRETARIAT_SERVICES = 10, _("AP122")
-        NATIONAL_SOCIETY_STRENGTHENING = 20, _("AP124, AP125, AP126")
-        PARTNERSHIP_AND_COORDINATION = 30, _(
-            "AP049, AP118, AP119, AP120, AP121, AP127, AP128"
-        )
+        @classmethod
+        def get_approach_ap_codes(cls) -> dict[int, list[str]]:
+            return {
+                cls.SECRETARIAT_SERVICES: ["AP122"],
+                cls.NATIONAL_SOCIETY_STRENGTHENING: ["AP124", "AP125", "AP126"],
+                cls.PARTNERSHIP_AND_COORDINATION: [
+                    "AP049",
+                    "AP118",
+                    "AP119",
+                    "AP120",
+                    "AP121",
+                    "AP127",
+                    "AP128",
+                ],
+            }
 
     approach = models.IntegerField(choices=Approach.choices, verbose_name=_("Approach"))
     budget_per_approach = models.IntegerField(verbose_name=_("Budget per approach (CHF)"))

@@ -222,6 +222,8 @@ urlpatterns = [
     url(r"^api/v2/brief", Brief.as_view()),
     url(r"^api/v2/erutype", ERUTypes.as_view()),
     url(r"^api/v2/export-eru-readiness", deployment_views.ExportERUReadinessView.as_view()),
+    # EAP
+    url(r"^api/v2/eap/options/", eap_views.EAPOptionsView.as_view()),
     url(r"^api/v2/recentaffected", RecentAffecteds.as_view()),
     url(r"^api/v2/fieldreportstatus", FieldReportStatuses.as_view()),
     url(r"^api/v2/primarysector", ProjectPrimarySectors.as_view()),
