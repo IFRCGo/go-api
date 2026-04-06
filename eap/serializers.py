@@ -1196,3 +1196,8 @@ class EAPStatusSerializer(BaseEAPSerializer):
             transaction.on_commit(lambda: send_approved_email.delay(eap_registration_id))
 
         return updated_instance
+
+
+class EAPOptionsSerializer(serializers.Serializer):
+    sector_ap_codes = serializers.DictField(child=serializers.ListField(child=serializers.CharField()))
+    approach_ap_codes = serializers.DictField(child=serializers.ListField(child=serializers.CharField()))
