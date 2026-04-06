@@ -5,6 +5,7 @@ from django.templatetags.static import static
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import mixins, permissions, response, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.generics import GenericAPIView
 
 from eap.filter_set import (
     EAPRegistrationFilterSet,
@@ -32,6 +33,7 @@ from eap.serializers import (
     EAPFileInputSerializer,
     EAPFileSerializer,
     EAPGlobalFilesSerializer,
+    EAPOptionsSerializer,
     EAPRegistrationSerializer,
     EAPShareUserSerializer,
     EAPStatusSerializer,
@@ -512,3 +514,15 @@ class EAPGlobalFilesViewSet(
             )
         serializer = EAPGlobalFilesSerializer({"url": request.build_absolute_uri(static(self.template_map[template_type]))})
         return response.Response(serializer.data)
+
+
+class EAPOptionsView(GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
+    serializer_class = EAPOptionsSerializer
+
+    def get(self, request, *args, **kwargs):
+        data = {
+            "sector_ap_codes": PlannedOperation.Sector.get_sector_ap_codes(),
+            "approach_ap_codes": EnablingApproach.Approach.get_approach_ap_codes(),
+        }
+        return response.Response(self.get_serializer(data).data)
