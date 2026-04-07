@@ -1078,6 +1078,7 @@ class ListEventSerializer(ModelSerializer):
     dtype = DisasterTypeSerializer(required=False)
     ifrc_severity_level_display = serializers.CharField(source="get_ifrc_severity_level_display", read_only=True)
     active_deployments = serializers.IntegerField(read_only=True)
+    visibility_display = serializers.CharField(source="get_visibility_display", read_only=True)
 
     class Meta:
         model = Event
@@ -1107,6 +1108,8 @@ class ListEventSerializer(ModelSerializer):
             "tab_three_title",
             "emergency_response_contact_email",
             "active_deployments",
+            "visibility",
+            "visibility_display",
         )
 
 

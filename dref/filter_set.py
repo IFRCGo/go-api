@@ -1,7 +1,7 @@
 import django_filters as filters
 from django.db import models
 
-from api.models import Country, DisasterType
+from api.models import Country, DisasterType, Event
 from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
 
 
@@ -38,6 +38,10 @@ class BaseDrefFilterSet(filters.FilterSet):
     disaster_type = filters.ModelChoiceFilter(
         field_name="disaster_type",
         queryset=DisasterType.objects.all(),
+    )
+    event = filters.ModelChoiceFilter(
+        field_name="event",
+        queryset=Event.objects.all(),
     )
     appeal_code = filters.CharFilter(field_name="appeal_code", lookup_expr="icontains")
 
