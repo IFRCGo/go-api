@@ -918,7 +918,9 @@ class EAPStatusSerializer(BaseEAPSerializer):
             EAPRegistration.Status.UNDER_REVIEW,
         ):
             if self.instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP:
-                # NOTE: Generating PDF asynchronously
+                self.instance.latest_simplified_eap.is_locked = True
+                self.instance.latest_simplified_eap.save(update_fields=["is_locked"])
+                # NOTE: Generating export PDF asynchronously
                 transaction.on_commit(
                     lambda: generate_export_eap_pdf.delay(
                         eap_registration_id=self.instance.id,
@@ -926,6 +928,9 @@ class EAPStatusSerializer(BaseEAPSerializer):
                     )
                 )
             else:
+                self.instance.latest_full_eap.is_locked = True
+                self.instance.latest_full_eap.save(update_fields=["is_locked"])
+                # NOTE: Generate export PDF asynchronously
                 transaction.on_commit(
                     lambda: generate_export_eap_pdf.delay(
                         eap_registration_id=self.instance.id,
@@ -1000,6 +1005,13 @@ class EAPStatusSerializer(BaseEAPSerializer):
 
             # Check latest EAP has NS Addressing Comments file uploaded
             if self.instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP:
+                # NOTE: If EAP is locked, NS has to revise the EAP to address the comments before resubmitting.
+                if self.instance.latest_simplified_eap.is_locked:
+                    raise serializers.ValidationError(
+                        gettext("Cannot change status to %s, Please revise the EAP to address the comments.")
+                        % EAPRegistration.Status(new_status).label
+                    )
+
                 if not (self.instance.latest_simplified_eap and self.instance.latest_simplified_eap.updated_checklist_file):
                     raise serializers.ValidationError(
                         {
@@ -1009,6 +1021,10 @@ class EAPStatusSerializer(BaseEAPSerializer):
                             % (EAPRegistration.Status(new_status).label)
                         },
                     )
+
+                # Lock the latest eap
+                self.instance.latest_simplified_eap.is_locked = True
+                self.instance.latest_simplified_eap.save(update_fields=["is_locked"])
 
                 # Generating PDFs asynchronously
                 transaction.on_commit(
@@ -1025,6 +1041,12 @@ class EAPStatusSerializer(BaseEAPSerializer):
                 )
 
             else:
+                if self.instance.latest_full_eap.is_locked:
+                    raise serializers.ValidationError(
+                        gettext("Cannot change status to %s, Please revise the EAP to address the comments.")
+                        % EAPRegistration.Status(new_status).label
+                    )
+
                 if not (self.instance.latest_full_eap and self.instance.latest_full_eap.updated_checklist_file):
                     raise serializers.ValidationError(
                         {
@@ -1034,6 +1056,10 @@ class EAPStatusSerializer(BaseEAPSerializer):
                             % (EAPRegistration.Status(new_status).label)
                         },
                     )
+
+                # Lock the latest full eap
+                self.instance.latest_full_eap.is_locked = True
+                self.instance.latest_full_eap.save(update_fields=["is_locked"])
 
                 # Generating PDFs asynchronously
                 transaction.on_commit(
