@@ -1275,7 +1275,7 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
         ]
 
     def __str__(self):
-        return f"Simplified EAP for {self.eap_registration}- version:{self.version}"
+        return f"{self.eap_registration} (VERSION {self.version})"
 
     def generate_snapshot(self):
         """
@@ -1291,6 +1291,7 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
                 overrides={
                     "parent_id": self.id,
                     "version": self.version + 1,
+                    "is_locked": False,
                     "created_by_id": self.created_by_id,
                     "modified_by_id": self.modified_by_id,
                     "review_checklist_file": None,
@@ -1823,7 +1824,7 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         ]
 
     def __str__(self):
-        return f"Full EAP for {self.eap_registration}- version:{self.version}"
+        return f"{self.eap_registration} (VERSION {self.version})"
 
     def generate_snapshot(self):
         """
@@ -1838,6 +1839,7 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
                 overrides={
                     "parent_id": self.id,
                     "version": self.version + 1,
+                    "is_locked": False,
                     "created_by_id": self.created_by_id,
                     "modified_by_id": self.modified_by_id,
                     "review_checklist_file": None,

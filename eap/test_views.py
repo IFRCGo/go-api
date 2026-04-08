@@ -1274,6 +1274,8 @@ class EAPStatusTransitionTestCase(APITestCase):
         response = self.client.post(self.url, data, format="json")
         self.assertEqual(response.status_code, 200, response.data)
         self.assertEqual(response.data["status"], EAPStatus.UNDER_REVIEW)
+        simplified_eap.refresh_from_db()
+        self.assertTrue(simplified_eap.is_locked)
 
         # NOTE: Check if the NS can update after changing to UNDER_REVIEW
         # FAILS: As simplified EAP is in UNDER_REVIEW, cannot update
@@ -1283,6 +1285,7 @@ class EAPStatusTransitionTestCase(APITestCase):
             "readiness_budget": 5000,
             "pre_positioning_budget": 5000,
             "early_action_budget": 5000,
+            "modified_at": datetime.now(),
         }
         url = f"/api/v2/simplified-eap/{simplified_eap.id}/"
         response = self.client.patch(url, update_data, format="json")
@@ -1321,12 +1324,25 @@ class EAPStatusTransitionTestCase(APITestCase):
                 self.eap_registration.latest_simplified_eap.review_checklist_file,
             )
 
+        # Fails, As NS has to revise the EAP before transitioning to UNDER_REVIEW.
+        status_data = {
+            "status": EAPStatus.UNDER_REVIEW,
+        }
+        response = self.client.post(self.url, status_data)
+        self.assertEqual(response.status_code, 400, response.data)
+
+        # Fails, As User only can revise after NS_ADDRESSING_COMMENTS, cannot update directly as it's locked
+        update_data["modified_at"] = datetime.now()
+        response = self.client.patch(url, update_data, format="json")
+        self.assertEqual(response.status_code, 400, response.data)
+
         # NOTE: NS revise which creates a snapshot of simplified eap
         # updates the latest simplified eap with updated checklist file. So, there should be two snapshots of SimplifiedEAP now.
         revise_url = f"/api/v2/simplified-eap/{simplified_eap.id}/revise/"
         self.authenticate(self.country_admin)
         response = self.client.post(revise_url)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200, response.data)
+        self.assertFalse(response.data["is_locked"], response.data)
 
         # NOTE: Check if snapshot is created or not
         # First SimplifedEAP should be locked
@@ -1371,11 +1387,19 @@ class EAPStatusTransitionTestCase(APITestCase):
             self.eap_registration.latest_simplified_eap.id,
             second_snapshot.id,
         )
+        # Second snapshot should not be locked.
+        self.assertFalse(second_snapshot.is_locked, "Latest snapshot shouldn't be locked."),
 
-        # NOTE: Cannot create another snapshot from locked snapshot
+        # NOTE: Cannot create revise as this eap has already been revised once.
         revise_url = f"/api/v2/simplified-eap/{simplified_eap.id}/revise/"
         self.authenticate(self.country_admin)
         response = self.client.post(revise_url)
+        self.assertEqual(response.status_code, 400, response.data)
+
+        # NOTE: Cannot update in previous snapshot
+        url = f"/api/v2/simplified-eap/{simplified_eap.id}/"
+        update_data["modified_at"] = datetime.now()
+        response = self.client.patch(url, update_data, format="json")
         self.assertEqual(response.status_code, 400, response.data)
 
         # NOTE: Transition to UNDER_REVIEW
@@ -1411,6 +1435,8 @@ class EAPStatusTransitionTestCase(APITestCase):
         response = self.client.post(self.url, data, format="json")
         self.assertEqual(response.status_code, 200, response.data)
         self.assertEqual(response.data["status"], EAPStatus.UNDER_REVIEW)
+        second_snapshot.refresh_from_db()
+        self.assertTrue(second_snapshot.is_locked, "Should be locked after transition to UNDER_REVIEW.")
 
         # AGAIN NOTE: Transition to NS_ADDRESSING_COMMENTS
         # UNDER_REVIEW -> NS_ADDRESSING_COMMENTS
@@ -1433,10 +1459,23 @@ class EAPStatusTransitionTestCase(APITestCase):
             self.assertEqual(response.status_code, 200, response.data)
             self.assertEqual(response.data["status"], EAPStatus.NS_ADDRESSING_COMMENTS)
 
+        # Fails, As NS has to revise the EAP before transitioning to UNDER_REVIEW.
+        status_data = {
+            "status": EAPStatus.UNDER_REVIEW,
+        }
+        response = self.client.post(self.url, status_data)
+        self.assertEqual(response.status_code, 400, response.data)
+
+        # Cannot update as it is in NS_ADDRESSING_COMMENTS, only revise is allowed
+        update_data["modified_at"] = datetime.now()
+        response = self.client.patch(url, update_data, format="json")
+        self.assertEqual(response.status_code, 400, response.data)
+
         revise_url = f"/api/v2/simplified-eap/{second_snapshot.id}/revise/"
         self.authenticate(self.country_admin)
         response = self.client.post(revise_url)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200, response.data)
+        self.assertFalse(response.data["is_locked"])
 
         # Check if three snapshots are created now
         self.eap_registration.refresh_from_db()
@@ -1482,10 +1521,16 @@ class EAPStatusTransitionTestCase(APITestCase):
             third_snapshot.id,
         )
 
-        # NOTE: Cannot create another snapshot from locked snapshot
+        # NOTE: Cannot create another snapshot as this eap has already been revised
         revise_url = f"/api/v2/simplified-eap/{second_snapshot.id}/revise/"
         self.authenticate(self.country_admin)
         response = self.client.post(revise_url)
+        self.assertEqual(response.status_code, 400, response.data)
+
+        # NOTE: Cannot update the previous snapshot
+        url = f"/api/v2/simplified-eap/{second_snapshot.id}/"
+        update_data["modified_at"] = datetime.now()
+        response = self.client.patch(url, update_data, format="json")
         self.assertEqual(response.status_code, 400, response.data)
 
         # NOTE: Again Transition to UNDER_REVIEW
@@ -1555,6 +1600,13 @@ class EAPStatusTransitionTestCase(APITestCase):
             response = self.client.post(self.url, data, format="multipart")
             self.assertEqual(response.status_code, 200, response.data)
             self.assertEqual(response.data["status"], EAPStatus.NS_ADDRESSING_COMMENTS)
+
+        # Fails, As NS has to revise the EAP before transitioning to UNDER_REVIEW.
+        status_data = {
+            "status": EAPStatus.UNDER_REVIEW,
+        }
+        response = self.client.post(self.url, status_data)
+        self.assertEqual(response.status_code, 400, response.data)
 
         revise_url = f"/api/v2/simplified-eap/{third_snapshot.id}/revise/"
         self.authenticate(self.country_admin)
@@ -1706,7 +1758,7 @@ class EAPStatusTransitionTestCase(APITestCase):
         # FAILS As simplified EAP is in PENDING_PFA, cannot updated
         url = f"/api/v2/simplified-eap/{simplified_eap.id}/"
         response = self.client.patch(url, update_data, format="json")
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 400, response.data)
 
         # NOTE: Transition to APPROVED
         # PENDING_PFA -> APPROVED
@@ -1736,7 +1788,7 @@ class EAPStatusTransitionTestCase(APITestCase):
         self.authenticate(self.country_admin)
         url = f"/api/v2/simplified-eap/{simplified_eap.id}/"
         response = self.client.patch(url, update_data, format="json")
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 400, response.data)
 
     @mock.patch("eap.serializers.generate_export_eap_pdf")
     @mock.patch("eap.serializers.group")
