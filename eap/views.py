@@ -296,14 +296,23 @@ class SimplifiedEAPViewSet(EAPModelViewSet):
         id: int,
     ):
         simplified_eap_instance = self.get_object()
-        if simplified_eap_instance.is_locked:
-            return response.Response(
-                {"detail": "This version is locked and cannot be revised again."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
         if simplified_eap_instance.eap_registration.status != EAPStatus.NS_ADDRESSING_COMMENTS:
             return response.Response(
                 {"detail": f"Only EAPs with status {EAPStatus.NS_ADDRESSING_COMMENTS} can be revised."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if simplified_eap_instance.is_locked is False:
+            return response.Response(
+                {"detail": "EAP can only be revised when it is locked."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Check if new version of EAP can be created (i.e. if the current version is locked)
+        eap_registration_instance = EAPRegistration.objects.filter(id=simplified_eap_instance.eap_registration_id).first()
+        if eap_registration_instance and eap_registration_instance.latest_simplified_eap_id != simplified_eap_instance.id:
+            return response.Response(
+                {"detail": "A new version of the EAP has already been created. Please revise the latest version of the EAP."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -409,15 +418,23 @@ class FullEAPViewSet(EAPModelViewSet):
         id: int,
     ):
         full_eap_instance = self.get_object()
-        if full_eap_instance.is_locked:
-            return response.Response(
-                {"detail": "This version is locked and cannot be revised again."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
         if full_eap_instance.eap_registration.status != EAPStatus.NS_ADDRESSING_COMMENTS:
             return response.Response(
                 {"detail": f"Only EAPs with status {EAPStatus.NS_ADDRESSING_COMMENTS} can be revised."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if full_eap_instance.is_locked is False:
+            return response.Response(
+                {"detail": "EAP can only be revised when it is locked."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Check if new version of EAP can be created (i.e. if the current version is locked)
+        eap_registration_instance = EAPRegistration.objects.filter(id=full_eap_instance.eap_registration_id).first()
+        if eap_registration_instance and eap_registration_instance.latest_full_eap_id != full_eap_instance.id:
+            return response.Response(
+                {"detail": "A new version of the EAP has already been created. Please revise the latest version of the EAP."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
