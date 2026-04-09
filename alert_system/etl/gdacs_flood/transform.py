@@ -13,14 +13,14 @@ class GdacsTransformer(BaseTransformerClass):
     Extracts and normalizes impact fields, computes derived values, and stores metadata.
     """
 
-    # NOTE: This logic might change in future
+    # NOTE: This logic might change in future. Currently only creating a function for future use.
     def compute_people_exposed(self, metadata_list) -> Optional[int]:
         for data in metadata_list:
             if data["category"] == ImpactDetailsEnum.Category.PEOPLE and data["type"] == ImpactDetailsEnum.Type.AFFECTED_TOTAL:
                 return data["value"]
         return None
 
-    # NOTE: This logic might change in future
+    # NOTE: This logic might change in future. Currently only creating a function for future use.
     def compute_buildings_exposed(self, metadata_list) -> Optional[int]:
         """
         Compute the 'buildings_exposed' field.
@@ -30,28 +30,35 @@ class GdacsTransformer(BaseTransformerClass):
                 return data["value"]
         return None
 
-    # NOTE: This logic will change with changes in montandon.
     def process_impact(self, impact_items) -> BaseTransformerClass.ImpactType:
-        metadata = []
+        meta_hash_map = {}
+
         for item in impact_items:
             properties = item.resp_data.get("properties", {})
-            impact_detail = properties.get("monty:impact_detail", {})
-            category = impact_detail.get("category")
-            type_ = impact_detail.get("type")
-            value = impact_detail.get("value")
-            if category == ImpactDetailsEnum.Category.PEOPLE and type_ == ImpactDetailsEnum.Type.AFFECTED_TOTAL:
-                metadata = [
-                    {
-                        "category": category,
-                        "type": type_,
-                        "value": value,
-                        "unit": impact_detail.get("unit", ""),
-                        "estimate_type": impact_detail.get("estimate_type", ""),
-                    }
-                ]
+            detail = properties.get("monty:impact_detail", {})
+
+            category = detail.get("category")
+            type_ = detail.get("type")
+            value = detail.get("value") or 0
+
+            key = (category, type_)
+            meta_hash_map[key] = meta_hash_map.get(key, 0) + value
+
+        metadata = [
+            {
+                "category": category,
+                "type": type_,
+                "value": value,
+            }
+            for (category, type_), value in meta_hash_map.items()
+            if category == ImpactDetailsEnum.Category.PEOPLE
+        ]
+
         return {
-            "people_exposed": self.compute_people_exposed(metadata),
-            "buildings_exposed": self.compute_buildings_exposed(metadata),
+            "people_exposed": meta_hash_map.get(
+                (ImpactDetailsEnum.Category.PEOPLE, ImpactDetailsEnum.Type.AFFECTED_TOTAL)  # Taking only people exposed.
+            ),
+            "buildings_exposed": meta_hash_map.get((ImpactDetailsEnum.Category.BUILDINGS, ImpactDetailsEnum.Type.DAMAGED)),
             "impact_metadata": metadata,
         }
 
