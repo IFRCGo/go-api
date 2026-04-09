@@ -8,7 +8,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from alert_system.helpers import build_stac_search
-from alert_system.models import Connector, ExtractionItem, LoadItem
+from alert_system.models import Connector, ExtractionItem, ImpactDetailsEnum, LoadItem
 
 from .config import ExtractionConfig
 from .loader import BaseLoaderClass
@@ -267,7 +267,11 @@ class PastEventExtractionClass:
         filters = []
 
         for data in impact_metadata or []:
-            if data.get("category") and data.get("type") and data.get("value") is not None:
+            if (
+                data.get("category") == ImpactDetailsEnum.Category.PEOPLE
+                and data.get("type") == ImpactDetailsEnum.Type.AFFECTED_TOTAL  # TODO: Add other possible types here.
+                and data.get("value") is not None
+            ):
                 filters.append(
                     f"monty:impact_detail.category = '{data['category']}' AND "
                     f"monty:impact_detail.type = '{data['type']}' AND "
