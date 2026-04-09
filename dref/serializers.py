@@ -11,9 +11,10 @@ from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-from api.models import Appeal
+from api.models import Appeal, Event
 from api.serializers import (
     DisasterTypeSerializer,
+    ListEventSerializer,
     MiniCountrySerializer,
     MiniDistrictSerializer,
     UserNameSerializer,
@@ -217,6 +218,7 @@ class MiniDrefSerializer(serializers.ModelSerializer):
     operational_update_details = serializers.SerializerMethodField()
     final_report_details = serializers.SerializerMethodField()
     starting_language = serializers.CharField(read_only=True)
+    event_detail = ListEventSerializer(source="event", read_only=True)
 
     class Meta:
         model = Dref
@@ -248,6 +250,7 @@ class MiniDrefSerializer(serializers.ModelSerializer):
             "status_display",
             "date_of_approval",
             "starting_language",
+            "event_detail",
         ]
 
     @extend_schema_field(MiniOperationalUpdateActiveSerializer(many=True))
@@ -431,6 +434,7 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
         source="contingency_plans_supporting_document", read_only=True, required=False, allow_null=True
     )
     proposed_action = ProposedActionSerializer(many=True, required=False)
+    event = serializers.PrimaryKeyRelatedField(queryset=Event.objects.all(), required=False)
 
     class Meta:
         model = Dref
@@ -1598,6 +1602,7 @@ class CompletedDrefOperationsSerializer(serializers.ModelSerializer):
     application_type = serializers.SerializerMethodField()
     application_type_display = serializers.SerializerMethodField()
     starting_language = serializers.CharField(read_only=True)
+    event_detail = ListEventSerializer(source="dref__event", read_only=True)
 
     class Meta:
         model = DrefFinalReport
@@ -1616,6 +1621,7 @@ class CompletedDrefOperationsSerializer(serializers.ModelSerializer):
             "status",
             "status_display",
             "starting_language",
+            "event_detail",
         )
 
     def get_application_type(self, obj) -> str:

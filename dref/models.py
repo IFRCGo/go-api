@@ -11,7 +11,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from pdf2image import convert_from_bytes
 
-from api.models import Country, DisasterType, District, FieldReport
+from api.models import Country, DisasterType, District, Event, FieldReport
 from deployments.models import Sector
 from main.fields import SecureFileField
 
@@ -295,6 +295,15 @@ class Dref(models.Model):
         related_name="modified_by_dref",
     )
     users = models.ManyToManyField(settings.AUTH_USER_MODEL, verbose_name=_("users"), blank=True, related_name="user_dref")
+
+    event = models.ForeignKey[Event](
+        Event,
+        verbose_name=_("event"),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="dref_event",
+    )
     field_report = models.ForeignKey(
         FieldReport,
         verbose_name=_("field report"),

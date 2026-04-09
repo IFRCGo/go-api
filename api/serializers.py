@@ -1078,6 +1078,7 @@ class ListEventSerializer(ModelSerializer):
     dtype = DisasterTypeSerializer(required=False)
     ifrc_severity_level_display = serializers.CharField(source="get_ifrc_severity_level_display", read_only=True)
     active_deployments = serializers.IntegerField(read_only=True)
+    visibility_display = serializers.CharField(source="get_visibility_display", read_only=True)
 
     class Meta:
         model = Event
@@ -1107,6 +1108,8 @@ class ListEventSerializer(ModelSerializer):
             "tab_three_title",
             "emergency_response_contact_email",
             "active_deployments",
+            "visibility",
+            "visibility_display",
         )
 
 
@@ -2179,7 +2182,7 @@ class FieldReportSerializer(
     countries_details = MiniCountrySerializer(source="countries", many=True, read_only=True)
     districts_details = MiniDistrictSerializer(source="districts", many=True, read_only=True)
     regions_details = RegionSerializer(source="regions", many=True, read_only=True)
-    event_details = MiniEventSerializer(source="event", read_only=True)
+    event_details = ListEventSerializer(source="event", read_only=True)
     dtype_details = DisasterTypeSerializer(source="dtype", read_only=True)
     external_partners_details = ExternalPartnerSerializer(source="external_partners", many=True, read_only=True)
     supported_activities_details = SupportedActivitySerializer(source="supported_activities", many=True, read_only=True)

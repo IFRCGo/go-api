@@ -10,6 +10,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core import management
 from rest_framework import status
 
+from api.factories.event import EventFactory
 from api.models import Country, DisasterType, District, Region, RegionName
 from api.utils import get_model_name
 from deployments.factories.project import SectorFactory
@@ -119,6 +120,7 @@ class DrefTestCase(APITestCase):
         old_count = Dref.objects.count()
         national_society = Country.objects.create(name="xzz")
         disaster_type = DisasterType.objects.create(name="abc")
+        event = EventFactory.create(name="Test event")
         data = {
             "title": "Dref test title",
             "type_of_onset": Dref.OnsetType.SLOW.value,
@@ -182,6 +184,7 @@ class DrefTestCase(APITestCase):
             "originator_email": "test@gmail.com",
             "national_society": national_society.id,
             "disaster_type": disaster_type.id,
+            "event": event.id,
             # NOTE: Test Many to Many fields
             "risk_security": [
                 {"risk": "Test Risk 1", "mitigation_measure": "Test Mitigation Measure"},
@@ -246,6 +249,7 @@ class DrefTestCase(APITestCase):
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, 201)
         self.assertEqual(Dref.objects.count(), old_count + 1)
+        self.assertEqual(response.data["event"], event.id)
         instance = Dref.objects.get(id=response.data["id"])
         instance.users.add(self.user.id)
         instance_user_email = [user.email for user in instance.users.all()]
@@ -1928,10 +1932,14 @@ class DrefTestCase(APITestCase):
     def test_filter_active_dref(self):
         country_1 = Country.objects.create(name="country1")
         country_2 = Country.objects.create(name="country2")
-
+        event = EventFactory.create(name="Test Event")
         # create some dref
         dref_1 = DrefFactory.create(
-            is_active=True, type_of_dref=Dref.DrefType.ASSESSMENT, country=country_1, created_by=self.root_user
+            is_active=True,
+            type_of_dref=Dref.DrefType.ASSESSMENT,
+            country=country_1,
+            created_by=self.root_user,
+            event=event,
         )
         dref_2 = DrefFactory.create(is_active=True, type_of_dref=Dref.DrefType.LOAN, country=country_2, created_by=self.root_user)
         # some dref final report
@@ -1967,6 +1975,12 @@ class DrefTestCase(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data["results"]), 1)
         self.assertEqual(response.data["results"][0]["final_report_details"]["id"], dref_final_report.id)
+
+        # filter by event
+        url = f"/api/v2/active-dref/?event={event.id}"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data["results"]), 1)
 
     def test_dref_share_users(self):
         user1 = UserFactory.create(

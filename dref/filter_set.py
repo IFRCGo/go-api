@@ -39,6 +39,7 @@ class BaseDrefFilterSet(filters.FilterSet):
         field_name="disaster_type",
         queryset=DisasterType.objects.all(),
     )
+    event = filters.NumberFilter(field_name="event", lookup_expr="exact")
     appeal_code = filters.CharFilter(field_name="appeal_code", lookup_expr="icontains")
 
 
