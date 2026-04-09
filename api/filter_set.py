@@ -365,6 +365,7 @@ class FieldReportFilter(filters.FilterSet):
     id = filters.NumberFilter(field_name="id", lookup_expr="exact")
     is_covid_report = filters.BooleanFilter(field_name="is_covid_report")
     summary = filters.CharFilter(field_name="summary", lookup_expr="icontains")
+    event = filters.NumberFilter(field_name="event", lookup_expr="exact")
 
     class Meta:
         model = FieldReport

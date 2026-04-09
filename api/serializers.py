@@ -2182,7 +2182,7 @@ class FieldReportSerializer(
     countries_details = MiniCountrySerializer(source="countries", many=True, read_only=True)
     districts_details = MiniDistrictSerializer(source="districts", many=True, read_only=True)
     regions_details = RegionSerializer(source="regions", many=True, read_only=True)
-    event_details = MiniEventSerializer(source="event", read_only=True)
+    event_details = ListEventSerializer(source="event", read_only=True)
     dtype_details = DisasterTypeSerializer(source="dtype", read_only=True)
     external_partners_details = ExternalPartnerSerializer(source="external_partners", many=True, read_only=True)
     supported_activities_details = SupportedActivitySerializer(source="supported_activities", many=True, read_only=True)
