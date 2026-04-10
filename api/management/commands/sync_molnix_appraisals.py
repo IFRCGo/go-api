@@ -1,13 +1,22 @@
 import json
+from datetime import datetime
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
+from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 
 from api.logger import logger
 from api.molnix_utils import MolnixApi
+from deployments.models import (
+    MolnixAppraisal,
+    MolnixAppraiser,
+    RrmsEventParticipation,
+    RrmsPersonSnapshot,
+)
 
-DEBUG_LEVEL = 2  # Set to 0 for no debug, higher numbers for more verbose debug output
-OUTPUT = 0  # 0=print only, 1=print + DB (TODO), 2=DB only (TODO)
+DEBUG_LEVEL = 1  # Set to 0 for no debug, higher numbers (1 or 2) for more verbose debug output
+OUTPUT = 2  # 0=print only, 1=print + DB, 2=DB only
 APPRAISALS_PER_PAGE = 15
 EVENTS_PER_PAGE = 15
 
@@ -78,6 +87,116 @@ def log_debug(level, message):
 def output_record(stdout, payload):
     if OUTPUT in (0, 1):
         stdout.write(json.dumps(payload, indent=2, sort_keys=True))
+
+
+def normalize_datetime(value):
+    if value is None:
+        return None
+    if isinstance(value, str):
+        value = parse_datetime(value)
+    if isinstance(value, datetime):
+        if timezone.is_naive(value):
+            return timezone.make_aware(value, timezone.get_current_timezone())
+        return value
+    return value
+
+
+def write_record(record_type, data):
+    if OUTPUT not in (1, 2):
+        return False
+    try:
+        if record_type == "molnix_appraisal":
+            molnix_id = data.get("molnix_id")
+            if molnix_id is None:
+                return False
+            MolnixAppraisal.objects.update_or_create(
+                molnix_id=molnix_id,
+                defaults={
+                    "target_id": data.get("target_id"),
+                    "deployment_molnix_id": data.get("deployment_molnix_id"),
+                    "stage": data.get("stage"),
+                    "appraisers_count": data.get("appraisers_count"),
+                    "score": data.get("score"),
+                    "deployment_country_id": data.get("deployment_country_id"),
+                    "deployment_start": data.get("deployment_start"),
+                    "deployment_end": data.get("deployment_end"),
+                    "deployment_title": data.get("deployment_title"),
+                    "sending_organization_id": data.get("sending_organization_id"),
+                    "receiving_organization_id": data.get("receiving_organization_id"),
+                    "deployment_tags_json": data.get("deployment_tags_json"),
+                    "competencies_json": data.get("competencies_json"),
+                    "created_at": data.get("created_at"),
+                    "updated_at": data.get("updated_at"),
+                },
+            )
+            return True
+        if record_type == "molnix_appraiser":
+            molnix_id = data.get("molnix_id")
+            if molnix_id is None:
+                return False
+            MolnixAppraiser.objects.update_or_create(
+                molnix_id=molnix_id,
+                defaults={
+                    "appraisal_molnix_id": data.get("appraisal_molnix_id"),
+                    "appraiser_type": data.get("appraiser_type"),
+                    "person_id": data.get("person_id"),
+                    "required": data.get("required"),
+                    "notified_at": data.get("notified_at"),
+                    "completed_at": data.get("completed_at"),
+                    "created_at": data.get("created_at"),
+                    "updated_at": data.get("updated_at"),
+                },
+            )
+            return True
+        if record_type == "rrms_person_snapshot":
+            person_id = data.get("person_id")
+            if person_id is None:
+                return False
+            RrmsPersonSnapshot.objects.update_or_create(
+                person_id=person_id,
+                defaults={
+                    "person_status": data.get("person_status"),
+                    "sex": data.get("sex"),
+                    "current_availability": data.get("current_availability"),
+                    "outofscope": data.get("outofscope"),
+                    "organization_id": data.get("organization_id"),
+                    "organization_name": data.get("organization_name"),
+                    "roles_json": data.get("roles_json"),
+                    "languages_json": data.get("languages_json"),
+                    "tags_json": data.get("tags_json"),
+                    "source_updated_at": data.get("source_updated_at"),
+                },
+            )
+            return True
+        if record_type == "rrms_event_participation":
+            event_id = data.get("event_id")
+            person_id = data.get("person_id")
+            event_person_role = data.get("event_person_role")
+            if event_id is None or person_id is None:
+                return False
+            RrmsEventParticipation.objects.update_or_create(
+                event_id=event_id,
+                person_id=person_id,
+                event_person_role=event_person_role,
+                defaults={
+                    "event_name": data.get("event_name"),
+                    "event_type": data.get("event_type"),
+                    "event_scale_type": data.get("event_scale_type"),
+                    "event_from": data.get("event_from"),
+                    "event_to": data.get("event_to"),
+                    "participant_start": data.get("participant_start"),
+                    "participant_end": data.get("participant_end"),
+                    "requested": data.get("requested"),
+                    "event_organization_id": data.get("event_organization_id"),
+                    "event_organization_name": data.get("event_organization_name"),
+                    "venue": data.get("venue"),
+                    "tags_json": data.get("tags_json"),
+                },
+            )
+            return True
+    except Exception as ex:
+        logger.error("Failed to write %s: %s" % (record_type, str(ex)))
+    return False
 
 
 def get_deployment_payload(value):
@@ -208,6 +327,7 @@ def filter_person_data(person_data, org_lookup):
         "organization_name": org_name,
         "current_availability": payload.get("current_availability"),
         "outofscope": payload.get("outofscope"),
+        "source_updated_at": normalize_datetime(payload.get("updated_at")),
     }
 
 
@@ -223,15 +343,15 @@ def normalize_appraisal(appraisal, sending_org_id=None, receiving_org_id=None):
         "appraisers_count": appraisal.get("appraisers_count"),
         "score": appraisal.get("score"),
         "deployment_country_id": deployment.get("country_id"),
-        "deployment_start": deployment.get("start"),
-        "deployment_end": deployment.get("end"),
+        "deployment_start": normalize_datetime(deployment.get("start")),
+        "deployment_end": normalize_datetime(deployment.get("end")),
         "deployment_title": deployment.get("title"),
         "sending_organization_id": sending_org_id,
         "receiving_organization_id": receiving_org_id,
         "deployment_tags_json": deployment.get("tags"),
         "competencies_json": appraisal.get("competencies"),
-        "created_at": appraisal.get("created_at"),
-        "updated_at": appraisal.get("updated_at"),
+        "created_at": normalize_datetime(appraisal.get("created_at")),
+        "updated_at": normalize_datetime(appraisal.get("updated_at")),
     }
 
 
@@ -244,10 +364,10 @@ def normalize_appraiser(appraiser):
         "appraiser_type": appraiser.get("appraiser_type"),
         "person_id": appraiser.get("person_id"),
         "required": appraiser.get("required"),
-        "notified_at": appraiser.get("notified_at"),
-        "completed_at": appraiser.get("completed_at"),
-        "created_at": appraiser.get("created_at"),
-        "updated_at": appraiser.get("updated_at"),
+        "notified_at": normalize_datetime(appraiser.get("notified_at")),
+        "completed_at": normalize_datetime(appraiser.get("completed_at")),
+        "created_at": normalize_datetime(appraiser.get("created_at")),
+        "updated_at": normalize_datetime(appraiser.get("updated_at")),
     }
 
 
@@ -268,10 +388,10 @@ def normalize_event_participation(event, org_lookup):
             "event_person_role": pivot.get("role"),
             "event_type": event.get("event_type"),
             "event_scale_type": event.get("type"),
-            "event_from": event.get("from"),
-            "event_to": event.get("to"),
-            "participant_start": pivot.get("start"),
-            "participant_end": pivot.get("end"),
+            "event_from": normalize_datetime(event.get("from")),
+            "event_to": normalize_datetime(event.get("to")),
+            "participant_start": normalize_datetime(pivot.get("start")),
+            "participant_end": normalize_datetime(pivot.get("end")),
             "requested": pivot.get("requested"),
             "event_organization_id": org_id,
             "event_organization_name": org_name,
@@ -282,12 +402,14 @@ def normalize_event_participation(event, org_lookup):
     return records
 
 
-def handle_person_ids(molnix, person_ids, org_lookup, stdout):
+def handle_person_ids(molnix, person_ids, org_lookup, stdout, db_write_counts):
     person_snapshot_cache = {}
     for person_id in person_ids:
         cached_snapshot = person_snapshot_cache.get(person_id)
         if cached_snapshot is not None:
             output_record(stdout, {"record_type": "rrms_person_snapshot", "data": cached_snapshot})
+            if write_record("rrms_person_snapshot", cached_snapshot):
+                db_write_counts["rrms_person_snapshot"] += 1
             continue
         log_debug(1, "Fetching person_id %s" % person_id)
         person_data = safe_call_api(molnix, path="people/%s" % person_id, label="people/%s" % person_id)
@@ -311,6 +433,8 @@ def handle_person_ids(molnix, person_ids, org_lookup, stdout):
         )
         person_snapshot_cache[person_id] = filtered_person_data
         output_record(stdout, {"record_type": "rrms_person_snapshot", "data": filtered_person_data})
+        if write_record("rrms_person_snapshot", filtered_person_data):
+            db_write_counts["rrms_person_snapshot"] += 1
 
 
 class Command(BaseCommand):
@@ -329,7 +453,7 @@ class Command(BaseCommand):
         org_lookup = build_org_lookup(molnix)
 
         if OUTPUT == 2:
-            self.stdout.write("OUTPUT=2 (DB-only mode) is selected; DB writes are not implemented yet.")
+            self.stdout.write("OUTPUT=2 (DB-only mode) is selected.")
 
         page = 1
         total = 0
@@ -338,6 +462,12 @@ class Command(BaseCommand):
         appraisals_stream_count = 0
         appraisers_stream_count = 0
         events_stream_count = 0
+        db_write_counts = {
+            "molnix_appraisal": 0,
+            "molnix_appraiser": 0,
+            "rrms_event_participation": 0,
+            "rrms_person_snapshot": 0,
+        }
         deployment_org_cache = {}
         while True:
             log_debug(1, "Fetching page %d" % page)
@@ -375,10 +505,14 @@ class Command(BaseCommand):
                 appraisal_data = normalize_appraisal(appraisal_payload, sending_org_id, receiving_org_id)
                 if appraisal_data:
                     output_record(self.stdout, {"record_type": "molnix_appraisal", "data": appraisal_data})
+                    if write_record("molnix_appraisal", appraisal_data):
+                        db_write_counts["molnix_appraisal"] += 1
                     appraisals_stream_count += 1
                 appraiser_data = normalize_appraiser(appraisal)
                 if appraiser_data:
                     output_record(self.stdout, {"record_type": "molnix_appraiser", "data": appraiser_data})
+                    if write_record("molnix_appraiser", appraiser_data):
+                        db_write_counts["molnix_appraiser"] += 1
                     appraisers_stream_count += 1
                 collect_person_ids([appraiser_data], person_ids)
                 total += 1
@@ -388,6 +522,7 @@ class Command(BaseCommand):
             page += 1
 
         event_page = 1
+        seen_event_ids = set()
         while True:
             log_debug(1, "Fetching events page %d" % event_page)
             events_payload = safe_call_api(
@@ -412,14 +547,26 @@ class Command(BaseCommand):
             if not events:
                 log_debug(1, "No events returned, stopping")
                 break
+            page_event_ids = [event.get("id") for event in events if isinstance(event, dict) and event.get("id") is not None]
+            if page_event_ids and set(page_event_ids).issubset(seen_event_ids):
+                log_debug(1, "Events page contains only previously seen ids, stopping")
+                break
+            seen_event_ids.update(page_event_ids)
+            if len(events) < EVENTS_PER_PAGE:
+                log_debug(1, "Events page size below per_page, stopping")
+                should_fetch_next = False
+            else:
+                should_fetch_next = should_continue(events_payload, events)
             for event in events:
                 records = normalize_event_participation(event, org_lookup)
                 for record in records:
                     output_record(self.stdout, {"record_type": "rrms_event_participation", "data": record})
+                    if write_record("rrms_event_participation", record):
+                        db_write_counts["rrms_event_participation"] += 1
                     events_stream_count += 1
                     if record.get("person_id") is not None:
                         event_person_ids.append(record.get("person_id"))
-            if not should_continue(events_payload, events):
+            if not should_fetch_next:
                 log_debug(1, "Events pagination indicates no more pages")
                 break
             event_page += 1
@@ -432,8 +579,8 @@ class Command(BaseCommand):
             "Collected %d appraisal person_id values and %d event person_id values"
             % (len(appraisal_person_ids), len(event_person_ids)),
         )
-        handle_person_ids(molnix, appraisal_person_ids, org_lookup, self.stdout)
-        handle_person_ids(molnix, event_person_ids, org_lookup, self.stdout)
+        handle_person_ids(molnix, appraisal_person_ids, org_lookup, self.stdout, db_write_counts)
+        handle_person_ids(molnix, event_person_ids, org_lookup, self.stdout, db_write_counts)
         # log_debug(1, "Smoke test: response_capacity endpoint")
         # response_capacity_data = molnix.call_api(path="response_capacity")
         # self.stdout.write(json.dumps(response_capacity_data, indent=2, sort_keys=True))
@@ -448,6 +595,16 @@ class Command(BaseCommand):
                     len(unique_person_ids),
                 )
             )
+        if OUTPUT in (1, 2):
+            logger.info(
+                "DB writes (appraisals=%d appraisers=%d events=%d persons=%d)"
+                % (
+                    db_write_counts["molnix_appraisal"],
+                    db_write_counts["molnix_appraiser"],
+                    db_write_counts["rrms_event_participation"],
+                    db_write_counts["rrms_person_snapshot"],
+                )
+            )
         if OUTPUT == 2:
-            self.stdout.write("Completed DB-only run (writes not implemented yet).")
+            self.stdout.write("Completed DB-only run.")
         molnix.logout()
