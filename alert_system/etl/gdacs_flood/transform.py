@@ -39,8 +39,9 @@ class GdacsTransformer(BaseTransformerClass):
 
             category = detail.get("category")
             type_ = detail.get("type")
-            value = detail.get("value") or 0
-
+            value = detail.get("value")
+            if value in (None, -1):
+                value = 0
             key = (category, type_)
             meta_hash_map[key] = meta_hash_map.get(key, 0) + value
 
