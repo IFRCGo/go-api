@@ -7,6 +7,7 @@ from api.logger import logger
 from api.molnix_utils import MolnixApi
 
 DEBUG_LEVEL = 2  # Set to 0 for no debug, higher numbers for more verbose debug output
+OUTPUT = 0  # 0=print only, 1=print + DB (TODO), 2=DB only (TODO)
 APPRAISALS_PER_PAGE = 15
 EVENTS_PER_PAGE = 15
 
@@ -72,6 +73,11 @@ def should_continue(payload, appraisals):
 def log_debug(level, message):
     if DEBUG_LEVEL >= level:
         logger.info("[debug-%d] %s" % (level, message))
+
+
+def output_record(stdout, payload):
+    if OUTPUT in (0, 1):
+        stdout.write(json.dumps(payload, indent=2, sort_keys=True))
 
 
 def get_deployment_payload(value):
@@ -281,13 +287,7 @@ def handle_person_ids(molnix, person_ids, org_lookup, stdout):
     for person_id in person_ids:
         cached_snapshot = person_snapshot_cache.get(person_id)
         if cached_snapshot is not None:
-            stdout.write(
-                json.dumps(
-                    {"record_type": "rrms_person_snapshot", "data": cached_snapshot},
-                    indent=2,
-                    sort_keys=True,
-                )
-            )
+            output_record(stdout, {"record_type": "rrms_person_snapshot", "data": cached_snapshot})
             continue
         log_debug(1, "Fetching person_id %s" % person_id)
         person_data = safe_call_api(molnix, path="people/%s" % person_id, label="people/%s" % person_id)
@@ -310,13 +310,7 @@ def handle_person_ids(molnix, person_ids, org_lookup, stdout):
             }
         )
         person_snapshot_cache[person_id] = filtered_person_data
-        stdout.write(
-            json.dumps(
-                {"record_type": "rrms_person_snapshot", "data": filtered_person_data},
-                indent=2,
-                sort_keys=True,
-            )
-        )
+        output_record(stdout, {"record_type": "rrms_person_snapshot", "data": filtered_person_data})
 
 
 class Command(BaseCommand):
@@ -333,6 +327,9 @@ class Command(BaseCommand):
             return
 
         org_lookup = build_org_lookup(molnix)
+
+        if OUTPUT == 2:
+            self.stdout.write("OUTPUT=2 (DB-only mode) is selected; DB writes are not implemented yet.")
 
         page = 1
         total = 0
@@ -377,15 +374,11 @@ class Command(BaseCommand):
                 sending_org_id, receiving_org_id = fetch_deployment_org_ids(molnix, deployment_id, deployment_org_cache)
                 appraisal_data = normalize_appraisal(appraisal_payload, sending_org_id, receiving_org_id)
                 if appraisal_data:
-                    self.stdout.write(
-                        json.dumps({"record_type": "molnix_appraisal", "data": appraisal_data}, indent=2, sort_keys=True)
-                    )
+                    output_record(self.stdout, {"record_type": "molnix_appraisal", "data": appraisal_data})
                     appraisals_stream_count += 1
                 appraiser_data = normalize_appraiser(appraisal)
                 if appraiser_data:
-                    self.stdout.write(
-                        json.dumps({"record_type": "molnix_appraiser", "data": appraiser_data}, indent=2, sort_keys=True)
-                    )
+                    output_record(self.stdout, {"record_type": "molnix_appraiser", "data": appraiser_data})
                     appraisers_stream_count += 1
                 collect_person_ids([appraiser_data], person_ids)
                 total += 1
@@ -422,13 +415,7 @@ class Command(BaseCommand):
             for event in events:
                 records = normalize_event_participation(event, org_lookup)
                 for record in records:
-                    self.stdout.write(
-                        json.dumps(
-                            {"record_type": "rrms_event_participation", "data": record},
-                            indent=2,
-                            sort_keys=True,
-                        )
-                    )
+                    output_record(self.stdout, {"record_type": "rrms_event_participation", "data": record})
                     events_stream_count += 1
                     if record.get("person_id") is not None:
                         event_person_ids.append(record.get("person_id"))
@@ -450,14 +437,17 @@ class Command(BaseCommand):
         # log_debug(1, "Smoke test: response_capacity endpoint")
         # response_capacity_data = molnix.call_api(path="response_capacity")
         # self.stdout.write(json.dumps(response_capacity_data, indent=2, sort_keys=True))
-        logger.info(
-            "Printed %d items (appraisals=%d appraisers=%d events=%d persons=%d)"
-            % (
-                total,
-                appraisals_stream_count,
-                appraisers_stream_count,
-                events_stream_count,
-                len(unique_person_ids),
+        if OUTPUT in (0, 1):
+            logger.info(
+                "Printed %d items (appraisals=%d appraisers=%d events=%d persons=%d)"
+                % (
+                    total,
+                    appraisals_stream_count,
+                    appraisers_stream_count,
+                    events_stream_count,
+                    len(unique_person_ids),
+                )
             )
-        )
+        if OUTPUT == 2:
+            self.stdout.write("Completed DB-only run (writes not implemented yet).")
         molnix.logout()
