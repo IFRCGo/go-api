@@ -108,6 +108,7 @@ class EAPRegistrationViewSet(EAPModelViewSet):
             )
             .prefetch_related(
                 "partners",
+                "users",
                 Prefetch(
                     "simplified_eaps",
                     queryset=SimplifiedEAP.objects.select_related(
@@ -122,6 +123,12 @@ class EAPRegistrationViewSet(EAPModelViewSet):
                     queryset=FullEAP.objects.select_related(
                         "budget_file__created_by",
                         "budget_file__modified_by",
+                        "updated_checklist_file__created_by",
+                        "updated_checklist_file__modified_by",
+                        "theory_of_change_table_file__created_by",
+                        "theory_of_change_table_file__modified_by",
+                        "forecast_table_file__created_by",
+                        "forecast_table_file__modified_by",
                     ),
                 ),
             )
