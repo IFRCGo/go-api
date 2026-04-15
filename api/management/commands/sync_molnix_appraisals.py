@@ -7,10 +7,12 @@ from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
 from api.logger import logger
+from api.models import Country
 from api.molnix_utils import MolnixApi
 from deployments.models import (
     MolnixAppraisal,
     MolnixAppraiser,
+    Personnel,
     RrmsEventParticipation,
     RrmsPersonSnapshot,
 )
@@ -19,6 +21,7 @@ DEBUG_LEVEL = 1  # Set to 0 for no debug, higher numbers (1 or 2) for more verbo
 OUTPUT = 2  # 0=print only, 1=print + DB, 2=DB only
 APPRAISALS_PER_PAGE = 15
 EVENTS_PER_PAGE = 15
+EVENTS_LAST_PAGE_DEFAULT = 13000
 
 
 def extract_appraisals(payload):
@@ -109,6 +112,10 @@ def write_record(record_type, data):
             molnix_id = data.get("molnix_id")
             if molnix_id is None:
                 return False
+            personnel = None
+            target_id = data.get("target_id")
+            if target_id is not None:
+                personnel = Personnel.objects.filter(molnix_id=target_id).first()
             MolnixAppraisal.objects.update_or_create(
                 molnix_id=molnix_id,
                 defaults={
@@ -125,6 +132,7 @@ def write_record(record_type, data):
                     "receiving_organization_id": data.get("receiving_organization_id"),
                     "deployment_tags_json": data.get("deployment_tags_json"),
                     "competencies_json": data.get("competencies_json"),
+                    "personnel": personnel,
                     "created_at": data.get("created_at"),
                     "updated_at": data.get("updated_at"),
                 },
@@ -134,12 +142,25 @@ def write_record(record_type, data):
             molnix_id = data.get("molnix_id")
             if molnix_id is None:
                 return False
+            appraisal = None
+            personnel = None
+            appraisal_molnix_id = data.get("appraisal_molnix_id")
+            if appraisal_molnix_id is not None:
+                appraisal = MolnixAppraisal.objects.filter(molnix_id=appraisal_molnix_id).first()
+                if appraisal is not None:
+                    personnel = appraisal.personnel
+            if personnel is None:
+                person_id = data.get("person_id")
+                if person_id is not None:
+                    personnel = Personnel.objects.filter(molnix_id=person_id).first()
             MolnixAppraiser.objects.update_or_create(
                 molnix_id=molnix_id,
                 defaults={
                     "appraisal_molnix_id": data.get("appraisal_molnix_id"),
+                    "appraisal": appraisal,
                     "appraiser_type": data.get("appraiser_type"),
                     "person_id": data.get("person_id"),
+                    "personnel": personnel,
                     "required": data.get("required"),
                     "notified_at": data.get("notified_at"),
                     "completed_at": data.get("completed_at"),
@@ -152,6 +173,7 @@ def write_record(record_type, data):
             person_id = data.get("person_id")
             if person_id is None:
                 return False
+            personnel = Personnel.objects.filter(molnix_id=person_id).first()
             RrmsPersonSnapshot.objects.update_or_create(
                 person_id=person_id,
                 defaults={
@@ -164,6 +186,7 @@ def write_record(record_type, data):
                     "roles_json": data.get("roles_json"),
                     "languages_json": data.get("languages_json"),
                     "tags_json": data.get("tags_json"),
+                    "personnel": personnel,
                     "source_updated_at": data.get("source_updated_at"),
                 },
             )
@@ -229,13 +252,19 @@ def extract_org_list(payload):
     return []
 
 
-def normalize_org(value, org_lookup):
+def normalize_org(value, org_lookup, country_lookup):
     if isinstance(value, dict):
         org_id = value.get("id")
         org_name = value.get("name") or org_lookup.get(org_id)
         return org_id, org_name
     if value is None:
         return None, None
+    if isinstance(value, str):
+        key = value.strip().lower()
+        match = country_lookup.get(key)
+        if match is not None:
+            return match["id"], match["name"]
+        return None, value
     org_id = value
     org_name = org_lookup.get(org_id)
     return org_id, org_name
@@ -260,6 +289,19 @@ def build_org_lookup(molnix):
     return lookup
 
 
+def build_country_lookup():
+    lookup = {}
+    for country in Country.objects.values("id", "name", "society_name"):
+        name = country.get("name")
+        if isinstance(name, str) and name.strip():
+            lookup.setdefault(name.strip().lower(), {"id": country["id"], "name": name})
+        society_name = country.get("society_name")
+        if isinstance(society_name, str) and society_name.strip():
+            lookup.setdefault(society_name.strip().lower(), {"id": country["id"], "name": society_name})
+    log_debug(1, "Loaded %d country name mappings" % len(lookup))
+    return lookup
+
+
 def safe_call_api(molnix, path, params=None, label=None):
     try:
         return molnix.call_api(path=path, params=params or {})
@@ -270,7 +312,7 @@ def safe_call_api(molnix, path, params=None, label=None):
         return None
 
 
-def fetch_deployment_org_ids(molnix, deployment_id, cache):
+def fetch_deployment_org_ids(molnix, deployment_id, cache, org_lookup, country_lookup):
     if deployment_id is None:
         return None, None
     if deployment_id in cache:
@@ -281,8 +323,8 @@ def fetch_deployment_org_ids(molnix, deployment_id, cache):
         return cache[deployment_id]
     sending_org = payload.get("sending_organization")
     receiving_org = payload.get("receiving_organization")
-    sending_id = sending_org.get("id") if isinstance(sending_org, dict) else sending_org
-    receiving_id = receiving_org.get("id") if isinstance(receiving_org, dict) else receiving_org
+    sending_id, _sending_name = normalize_org(sending_org, org_lookup, country_lookup)
+    receiving_id, _receiving_name = normalize_org(receiving_org, org_lookup, country_lookup)
     cache[deployment_id] = (sending_id, receiving_id)
     return cache[deployment_id]
 
@@ -316,11 +358,11 @@ def find_person_payload(value):
     return None
 
 
-def filter_person_data(person_data, org_lookup):
+def filter_person_data(person_data, org_lookup, country_lookup):
     payload = find_person_payload(person_data)
     if not isinstance(payload, dict):
         return {}
-    org_id, org_name = normalize_org(payload.get("organization"), org_lookup)
+    org_id, org_name = normalize_org(payload.get("organization"), org_lookup, country_lookup)
     return {
         "sex": payload.get("sex"),
         "organization_id": org_id,
@@ -371,10 +413,10 @@ def normalize_appraiser(appraiser):
     }
 
 
-def normalize_event_participation(event, org_lookup):
+def normalize_event_participation(event, org_lookup, country_lookup):
     if not isinstance(event, dict):
         return []
-    org_id, org_name = normalize_org(event.get("organization"), org_lookup)
+    org_id, org_name = normalize_org(event.get("organization"), org_lookup, country_lookup)
     people = event.get("person") if isinstance(event.get("person"), list) else []
     records = []
     for person in people:
@@ -402,7 +444,7 @@ def normalize_event_participation(event, org_lookup):
     return records
 
 
-def handle_person_ids(molnix, person_ids, org_lookup, stdout, db_write_counts):
+def handle_person_ids(molnix, person_ids, org_lookup, country_lookup, stdout, db_write_counts):
     person_snapshot_cache = {}
     for person_id in person_ids:
         cached_snapshot = person_snapshot_cache.get(person_id)
@@ -419,7 +461,7 @@ def handle_person_ids(molnix, person_ids, org_lookup, stdout, db_write_counts):
         roles_payload = safe_call_api(molnix, path="people/%s/roles" % person_id, label="people/%s/roles" % person_id)
         languages_payload = safe_call_api(molnix, path="people/%s/languages" % person_id, label="people/%s/languages" % person_id)
         tags_payload = safe_call_api(molnix, path="people/%s/tags" % person_id, label="people/%s/tags" % person_id)
-        filtered_person_data = filter_person_data(person_data, org_lookup)
+        filtered_person_data = filter_person_data(person_data, org_lookup, country_lookup)
         if not filtered_person_data:
             log_debug(2, "No person payload found for person_id %s" % person_id)
             filtered_person_data = {}
@@ -451,6 +493,7 @@ class Command(BaseCommand):
             return
 
         org_lookup = build_org_lookup(molnix)
+        country_lookup = build_country_lookup()
 
         if OUTPUT == 2:
             self.stdout.write("OUTPUT=2 (DB-only mode) is selected.")
@@ -501,7 +544,13 @@ class Command(BaseCommand):
                     continue
                 appraisal_payload = appraisal.get("appraisal")
                 deployment_id = appraisal_payload.get("deployment", {}).get("id") if isinstance(appraisal_payload, dict) else None
-                sending_org_id, receiving_org_id = fetch_deployment_org_ids(molnix, deployment_id, deployment_org_cache)
+                sending_org_id, receiving_org_id = fetch_deployment_org_ids(
+                    molnix,
+                    deployment_id,
+                    deployment_org_cache,
+                    org_lookup,
+                    country_lookup,
+                )
                 appraisal_data = normalize_appraisal(appraisal_payload, sending_org_id, receiving_org_id)
                 if appraisal_data:
                     output_record(self.stdout, {"record_type": "molnix_appraisal", "data": appraisal_data})
@@ -534,12 +583,15 @@ class Command(BaseCommand):
             events = extract_events(events_payload)
             if isinstance(events_payload, dict):
                 original = events_payload.get("original") if isinstance(events_payload.get("original"), dict) else {}
+                events_last_page = original.get("last_page")
+                if events_last_page is None:
+                    events_last_page = EVENTS_LAST_PAGE_DEFAULT
                 log_debug(
                     1,
                     "Events pagination current=%s last=%s next_url=%s count=%d"
                     % (
                         original.get("current_page"),
-                        original.get("last_page"),
+                        events_last_page,
                         original.get("next_page_url"),
                         len(events),
                     ),
@@ -558,7 +610,7 @@ class Command(BaseCommand):
             else:
                 should_fetch_next = should_continue(events_payload, events)
             for event in events:
-                records = normalize_event_participation(event, org_lookup)
+                records = normalize_event_participation(event, org_lookup, country_lookup)
                 for record in records:
                     output_record(self.stdout, {"record_type": "rrms_event_participation", "data": record})
                     if write_record("rrms_event_participation", record):
@@ -579,8 +631,8 @@ class Command(BaseCommand):
             "Collected %d appraisal person_id values and %d event person_id values"
             % (len(appraisal_person_ids), len(event_person_ids)),
         )
-        handle_person_ids(molnix, appraisal_person_ids, org_lookup, self.stdout, db_write_counts)
-        handle_person_ids(molnix, event_person_ids, org_lookup, self.stdout, db_write_counts)
+        handle_person_ids(molnix, appraisal_person_ids, org_lookup, country_lookup, self.stdout, db_write_counts)
+        handle_person_ids(molnix, event_person_ids, org_lookup, country_lookup, self.stdout, db_write_counts)
         # log_debug(1, "Smoke test: response_capacity endpoint")
         # response_capacity_data = molnix.call_api(path="response_capacity")
         # self.stdout.write(json.dumps(response_capacity_data, indent=2, sort_keys=True))
