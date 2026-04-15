@@ -215,6 +215,8 @@ class MiniFullEAPSerializer(
 ):
     updated_checklist_file_details = EAPFileSerializer(source="updated_checklist_file", read_only=True)
     budget_file_details = EAPFileSerializer(source="budget_file", read_only=True)
+    theory_of_change_table_file_details = EAPFileSerializer(source="theory_of_change_table_file", read_only=True)
+    forecast_table_file_details = EAPFileSerializer(source="forecast_table_file", read_only=True)
 
     class Meta:
         model = FullEAP
@@ -230,6 +232,8 @@ class MiniFullEAPSerializer(
             "is_locked",
             "review_checklist_file",
             "updated_checklist_file_details",
+            "theory_of_change_table_file_details",
+            "forecast_table_file_details",
             "created_at",
             "modified_at",
         )

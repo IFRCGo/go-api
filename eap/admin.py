@@ -14,6 +14,11 @@ from eap.models import (
 @admin.register(EAPFile)
 class EAPFileAdmin(admin.ModelAdmin):
     search_fields = ("caption",)
+    list_select_related = True
+    autocomplete_fields = (
+        "created_by",
+        "modified_by",
+    )
 
 
 @admin.register(EAPRegistration)
