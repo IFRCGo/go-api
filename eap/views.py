@@ -5,6 +5,7 @@ from django.templatetags.static import static
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import mixins, permissions, response, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.generics import GenericAPIView
 
 from eap.filter_set import (
     EAPRegistrationFilterSet,
@@ -32,6 +33,7 @@ from eap.serializers import (
     EAPFileInputSerializer,
     EAPFileSerializer,
     EAPGlobalFilesSerializer,
+    EAPOptionsSerializer,
     EAPRegistrationSerializer,
     EAPShareUserSerializer,
     EAPStatusSerializer,
@@ -64,7 +66,7 @@ class ActiveEAPViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
         return (
             super()
             .get_queryset()
-            .filter(status__in=[EAPStatus.APPROVED, EAPStatus.ACTIVATED])
+            .filter(status=EAPStatus.APPROVED)
             .select_related("disaster_type", "country")
             .annotate(
                 requirement_cost=Case(
@@ -106,6 +108,7 @@ class EAPRegistrationViewSet(EAPModelViewSet):
             )
             .prefetch_related(
                 "partners",
+                "users",
                 Prefetch(
                     "simplified_eaps",
                     queryset=SimplifiedEAP.objects.select_related(
@@ -120,6 +123,12 @@ class EAPRegistrationViewSet(EAPModelViewSet):
                     queryset=FullEAP.objects.select_related(
                         "budget_file__created_by",
                         "budget_file__modified_by",
+                        "updated_checklist_file__created_by",
+                        "updated_checklist_file__modified_by",
+                        "theory_of_change_table_file__created_by",
+                        "theory_of_change_table_file__modified_by",
+                        "forecast_table_file__created_by",
+                        "forecast_table_file__modified_by",
                     ),
                 ),
             )
@@ -238,6 +247,7 @@ class SimplifiedEAPViewSet(EAPModelViewSet):
             )
             .prefetch_related(
                 "eap_registration__partners",
+                "partners",
                 "partner_contacts",
                 "admin2",
                 Prefetch(
@@ -273,6 +283,52 @@ class SimplifiedEAPViewSet(EAPModelViewSet):
             )
         )
 
+    @extend_schema(
+        request=None,
+    )
+    @action(
+        detail=True,
+        url_path="revise",
+        methods=["post"],
+        serializer_class=SimplifiedEAPSerializer,
+        permission_classes=[
+            permissions.IsAuthenticated,
+            DenyGuestUserMutationPermission,
+            EAPBasePermission,
+        ],
+    )
+    def revise(
+        self,
+        request,
+        id: int,
+    ):
+        simplified_eap_instance = self.get_object()
+        if simplified_eap_instance.eap_registration.status != EAPStatus.NS_ADDRESSING_COMMENTS:
+            return response.Response(
+                {"detail": f"Only EAPs with status {EAPStatus.NS_ADDRESSING_COMMENTS} can be revised."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if simplified_eap_instance.is_locked is False:
+            return response.Response(
+                {"detail": "EAP can only be revised when it is locked."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Check if new version of EAP can be created (i.e. if the current version is locked)
+        eap_registration_instance = EAPRegistration.objects.filter(id=simplified_eap_instance.eap_registration_id).first()
+        if eap_registration_instance and eap_registration_instance.latest_simplified_eap_id != simplified_eap_instance.id:
+            return response.Response(
+                {"detail": "A new version of the EAP has already been created. Please revise the latest version of the EAP."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        snapshot_instance = simplified_eap_instance.generate_snapshot()
+        simplified_eap_instance.eap_registration.latest_simplified_eap = snapshot_instance
+        simplified_eap_instance.eap_registration.save(update_fields=["latest_simplified_eap"])
+        serializer = SimplifiedEAPSerializer(snapshot_instance, context={"request": request})
+        return response.Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class FullEAPViewSet(EAPModelViewSet):
     queryset = FullEAP.objects.all()
@@ -296,6 +352,7 @@ class FullEAPViewSet(EAPModelViewSet):
             )
             .prefetch_related(
                 "admin2",
+                "partners",
                 "partner_contacts",
                 "prioritized_impacts",
                 "early_actions",
@@ -347,6 +404,52 @@ class FullEAPViewSet(EAPModelViewSet):
                 ),
             )
         )
+
+    @extend_schema(
+        request=None,
+    )
+    @action(
+        detail=True,
+        url_path="revise",
+        methods=["post"],
+        serializer_class=FullEAPSerializer,
+        permission_classes=[
+            permissions.IsAuthenticated,
+            DenyGuestUserMutationPermission,
+            EAPBasePermission,
+        ],
+    )
+    def revise(
+        self,
+        request,
+        id: int,
+    ):
+        full_eap_instance = self.get_object()
+        if full_eap_instance.eap_registration.status != EAPStatus.NS_ADDRESSING_COMMENTS:
+            return response.Response(
+                {"detail": f"Only EAPs with status {EAPStatus.NS_ADDRESSING_COMMENTS} can be revised."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if full_eap_instance.is_locked is False:
+            return response.Response(
+                {"detail": "EAP can only be revised when it is locked."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Check if new version of EAP can be created (i.e. if the current version is locked)
+        eap_registration_instance = EAPRegistration.objects.filter(id=full_eap_instance.eap_registration_id).first()
+        if eap_registration_instance and eap_registration_instance.latest_full_eap_id != full_eap_instance.id:
+            return response.Response(
+                {"detail": "A new version of the EAP has already been created. Please revise the latest version of the EAP."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        snapshot_instance = full_eap_instance.generate_snapshot()
+        full_eap_instance.eap_registration.latest_full_eap = snapshot_instance
+        full_eap_instance.eap_registration.save(update_fields=["latest_full_eap"])
+        serializer = FullEAPSerializer(snapshot_instance, context={"request": request})
+        return response.Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class EAPFileViewSet(
@@ -435,3 +538,15 @@ class EAPGlobalFilesViewSet(
             )
         serializer = EAPGlobalFilesSerializer({"url": request.build_absolute_uri(static(self.template_map[template_type]))})
         return response.Response(serializer.data)
+
+
+class EAPOptionsView(GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
+    serializer_class = EAPOptionsSerializer
+
+    def get(self, request, *args, **kwargs):
+        data = {
+            "sector_ap_codes": PlannedOperation.Sector.get_sector_ap_codes(),
+            "approach_ap_codes": EnablingApproach.Approach.get_approach_ap_codes(),
+        }
+        return response.Response(self.get_serializer(data).data)

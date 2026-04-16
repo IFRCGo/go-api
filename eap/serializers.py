@@ -215,10 +215,12 @@ class MiniFullEAPSerializer(
 ):
     updated_checklist_file_details = EAPFileSerializer(source="updated_checklist_file", read_only=True)
     budget_file_details = EAPFileSerializer(source="budget_file", read_only=True)
+    theory_of_change_table_file_details = EAPFileSerializer(source="theory_of_change_table_file", read_only=True)
+    forecast_table_file_details = EAPFileSerializer(source="forecast_table_file", read_only=True)
 
     class Meta:
         model = FullEAP
-        fields = [
+        fields = (
             "id",
             "total_budget",
             "readiness_budget",
@@ -230,9 +232,11 @@ class MiniFullEAPSerializer(
             "is_locked",
             "review_checklist_file",
             "updated_checklist_file_details",
+            "theory_of_change_table_file_details",
+            "forecast_table_file_details",
             "created_at",
             "modified_at",
-        ]
+        )
 
 
 class MiniEAPSerializer(serializers.ModelSerializer):
@@ -255,7 +259,6 @@ class MiniEAPSerializer(serializers.ModelSerializer):
             "status",
             "status_display",
             "requirement_cost",
-            "activated_at",
             "approved_at",
             "created_at",
             "modified_at",
@@ -498,6 +501,7 @@ class CommonEAPFieldsSerializer(serializers.ModelSerializer):
         fields["budget_file"] = serializers.PrimaryKeyRelatedField(
             queryset=EAPFile.objects.all(), required=False, allow_null=True
         )
+        fields["partners_details"] = MiniCountrySerializer(source="partners", many=True, read_only=True)
         fields["budget_file_details"] = EAPFileSerializer(source="budget_file", read_only=True)
         fields["updated_checklist_file_details"] = EAPFileSerializer(source="updated_checklist_file", read_only=True)
         return fields
@@ -575,6 +579,8 @@ class SimplifiedEAPSerializer(
         read_only_fields = [
             "version",
             "is_locked",
+            "created_by",
+            "modified_by",
         ]
         exclude = ("cover_image",)
 
@@ -627,6 +633,11 @@ class SimplifiedEAPSerializer(
                     {"operational_timeframe": gettext("operational timeframe value is not valid for Months unit.")}
                 )
 
+    def validate_eap_registration(self, eap_registration: EAPRegistration) -> EAPRegistration:
+        if not self.instance and eap_registration.has_eap_application:
+            raise serializers.ValidationError("EAP for this registration has already been created.")
+        return eap_registration
+
     def validate(self, data: dict[str, typing.Any]) -> dict[str, typing.Any]:
         original_eap_registration = getattr(self.instance, "eap_registration", None) if self.instance else None
         eap_registration: EAPRegistration | None = data.get("eap_registration", original_eap_registration)
@@ -634,9 +645,6 @@ class SimplifiedEAPSerializer(
 
         if self.instance and original_eap_registration != eap_registration:
             raise serializers.ValidationError("EAP Registration cannot be changed for existing EAP.")
-
-        if not self.instance and eap_registration.has_eap_application:
-            raise serializers.ValidationError("Simplified EAP for this EAP registration already exists.")
 
         if self.instance and eap_registration.get_status_enum not in [
             EAPRegistration.Status.UNDER_DEVELOPMENT,
@@ -778,11 +786,32 @@ class FullEAPSerializer(
 
     class Meta:
         model = FullEAP
-        read_only_fields = (
+        read_only_fields = [
+            "version",
+            "is_locked",
             "created_by",
             "modified_by",
-        )
+        ]
         exclude = ("cover_image",)
+
+    def _validate_timeframe(self, data: dict[str, typing.Any]) -> None:
+        lead_unit = data.get("lead_timeframe_unit")
+        lead_time_value = data.get("lead_time")
+
+        if lead_time_value is not None and lead_unit is None:
+            raise serializers.ValidationError(
+                {
+                    "lead_timeframe_unit": gettext("lead timeframe and unit must both be provided."),
+                }
+            )
+
+        if lead_unit is not None and lead_time_value is not None and lead_unit != TimeFrame.DAYS:
+            raise serializers.ValidationError({"lead_timeframe_unit": gettext("lead timeframe unit must be Days for Full EAP.")})
+
+    def validate_eap_registration(self, eap_registration: EAPRegistration) -> EAPRegistration:
+        if not self.instance and eap_registration.has_eap_application:
+            raise serializers.ValidationError("EAP for this registration has already been created.")
+        return eap_registration
 
     def validate(self, data: dict[str, typing.Any]) -> dict[str, typing.Any]:
         original_eap_registration = getattr(self.instance, "eap_registration", None) if self.instance else None
@@ -792,16 +821,13 @@ class FullEAPSerializer(
         if self.instance and original_eap_registration != eap_registration:
             raise serializers.ValidationError("EAP Registration cannot be changed for existing EAP.")
 
-        if not self.instance and eap_registration.has_eap_application:
-            raise serializers.ValidationError("Full EAP for this EAP registration already exists.")
-
         if self.instance and eap_registration.get_status_enum not in [
             EAPRegistration.Status.UNDER_DEVELOPMENT,
             EAPRegistration.Status.NS_ADDRESSING_COMMENTS,
         ]:
             raise serializers.ValidationError(
-                gettext("Cannot update while EAP Application is in %s."),
-                EAPRegistration.Status(eap_registration.get_status_enum).label,
+                gettext("Cannot update while EAP Application is in %s.")
+                % EAPRegistration.Status(eap_registration.get_status_enum).label
             )
 
         # NOTE: Cannot update locked Full EAP
@@ -811,6 +837,9 @@ class FullEAPSerializer(
         eap_type = eap_registration.get_eap_type_enum
         if eap_type and eap_type != EAPType.FULL_EAP:
             raise serializers.ValidationError("Cannot create Full EAP for non-full EAP registration.")
+
+        # Validate timeframe fields
+        self._validate_timeframe(data)
 
         # Validate all image fields in one place
         for field in self.IMAGE_FIELDS:
@@ -844,7 +873,6 @@ VALID_IFRC_EAP_STATUS_TRANSITIONS = set(
         (EAPRegistration.Status.TECHNICALLY_VALIDATED, EAPRegistration.Status.NS_ADDRESSING_COMMENTS),
         (EAPRegistration.Status.TECHNICALLY_VALIDATED, EAPRegistration.Status.PENDING_PFA),
         (EAPRegistration.Status.PENDING_PFA, EAPRegistration.Status.APPROVED),
-        (EAPRegistration.Status.APPROVED, EAPRegistration.Status.ACTIVATED),
     ]
 )
 
@@ -894,7 +922,9 @@ class EAPStatusSerializer(BaseEAPSerializer):
             EAPRegistration.Status.UNDER_REVIEW,
         ):
             if self.instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP:
-                # NOTE: Generating PDF asynchronously
+                self.instance.latest_simplified_eap.is_locked = True
+                self.instance.latest_simplified_eap.save(update_fields=["is_locked"])
+                # NOTE: Generating export PDF asynchronously
                 transaction.on_commit(
                     lambda: generate_export_eap_pdf.delay(
                         eap_registration_id=self.instance.id,
@@ -902,6 +932,9 @@ class EAPStatusSerializer(BaseEAPSerializer):
                     )
                 )
             else:
+                self.instance.latest_full_eap.is_locked = True
+                self.instance.latest_full_eap.save(update_fields=["is_locked"])
+                # NOTE: Generate export PDF asynchronously
                 transaction.on_commit(
                     lambda: generate_export_eap_pdf.delay(
                         eap_registration_id=self.instance.id,
@@ -927,19 +960,12 @@ class EAPStatusSerializer(BaseEAPSerializer):
                     % EAPRegistration.Status(new_status).label
                 )
 
-            # latest EAP
             if self.instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP:
-                snapshot_instance = self.instance.latest_simplified_eap.generate_snapshot()
-                self.instance.latest_simplified_eap = snapshot_instance
-                snapshot_instance.review_checklist_file = review_checklist_file
-                snapshot_instance.save(update_fields=["review_checklist_file"])
-                self.instance.save(update_fields=["latest_simplified_eap"])
+                self.instance.latest_simplified_eap.review_checklist_file = review_checklist_file
+                self.instance.latest_simplified_eap.save(update_fields=["review_checklist_file"])
             else:
-                snapshot_instance = self.instance.latest_full_eap.generate_snapshot()
-                self.instance.latest_full_eap = snapshot_instance
-                snapshot_instance.review_checklist_file = review_checklist_file
-                snapshot_instance.save(update_fields=["review_checklist_file"])
-                self.instance.save(update_fields=["latest_full_eap"])
+                self.instance.latest_full_eap.review_checklist_file = review_checklist_file
+                self.instance.latest_full_eap.save(update_fields=["review_checklist_file"])
 
             # NOTE: Clearing validated budget file, if changes to NS Addressing Comments.
             if (current_status, new_status) == (
@@ -947,7 +973,13 @@ class EAPStatusSerializer(BaseEAPSerializer):
                 EAPRegistration.Status.NS_ADDRESSING_COMMENTS,
             ):
                 self.instance.validated_budget_file = None
-                self.instance.save(update_fields=["validated_budget_file"])
+                self.instance.technically_validated_at = None
+                self.instance.save(
+                    update_fields=[
+                        "validated_budget_file",
+                        "technically_validated_at",
+                    ]
+                )
 
         elif (current_status, new_status) == (
             EAPRegistration.Status.UNDER_REVIEW,
@@ -977,6 +1009,13 @@ class EAPStatusSerializer(BaseEAPSerializer):
 
             # Check latest EAP has NS Addressing Comments file uploaded
             if self.instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP:
+                # NOTE: If EAP is locked, NS has to revise the EAP to address the comments before resubmitting.
+                if self.instance.latest_simplified_eap.is_locked:
+                    raise serializers.ValidationError(
+                        gettext("Cannot change status to %s, Please revise the EAP to address the comments.")
+                        % EAPRegistration.Status(new_status).label
+                    )
+
                 if not (self.instance.latest_simplified_eap and self.instance.latest_simplified_eap.updated_checklist_file):
                     raise serializers.ValidationError(
                         {
@@ -986,6 +1025,10 @@ class EAPStatusSerializer(BaseEAPSerializer):
                             % (EAPRegistration.Status(new_status).label)
                         },
                     )
+
+                # Lock the latest eap
+                self.instance.latest_simplified_eap.is_locked = True
+                self.instance.latest_simplified_eap.save(update_fields=["is_locked"])
 
                 # Generating PDFs asynchronously
                 transaction.on_commit(
@@ -1002,6 +1045,12 @@ class EAPStatusSerializer(BaseEAPSerializer):
                 )
 
             else:
+                if self.instance.latest_full_eap.is_locked:
+                    raise serializers.ValidationError(
+                        gettext("Cannot change status to %s, Please revise the EAP to address the comments.")
+                        % EAPRegistration.Status(new_status).label
+                    )
+
                 if not (self.instance.latest_full_eap and self.instance.latest_full_eap.updated_checklist_file):
                     raise serializers.ValidationError(
                         {
@@ -1011,6 +1060,10 @@ class EAPStatusSerializer(BaseEAPSerializer):
                             % (EAPRegistration.Status(new_status).label)
                         },
                     )
+
+                # Lock the latest full eap
+                self.instance.latest_full_eap.is_locked = True
+                self.instance.latest_full_eap.save(update_fields=["is_locked"])
 
                 # Generating PDFs asynchronously
                 transaction.on_commit(
@@ -1065,17 +1118,6 @@ class EAPStatusSerializer(BaseEAPSerializer):
                 ]
             )
 
-        elif (current_status, new_status) == (
-            EAPRegistration.Status.APPROVED,
-            EAPRegistration.Status.ACTIVATED,
-        ):
-            # Update timestamp
-            self.instance.activated_at = timezone.now()
-            self.instance.save(
-                update_fields=[
-                    "activated_at",
-                ]
-            )
         return validated_data
 
     def validate(self, validated_data: dict[str, typing.Any]) -> dict[str, typing.Any]:
@@ -1118,31 +1160,30 @@ class EAPStatusSerializer(BaseEAPSerializer):
         ]:
             """
             NOTE:
-                At the transition (UNDER_REVIEW -> NS_ADDRESSING_COMMENTS), the EAP snapshot
-                is generated inside `_validate_status()` BEFORE we reach this `update()` method.
-
+                At the transition (UNDER_REVIEW -> NS_ADDRESSING_COMMENTS),
+                after revise of eap, new snapshot will be created with incremented version.
                 That snapshot operation:
                 - Locks the reviewed EAP (previous version)
                 - Creates a new snapshot (incremented version)
                 - Updates latest_simplified_eap or latest_full_eap to the new version
 
                 Email logic based on eap_count:
-                - If eap_count == 2 (i.e., first snapshot already exists and this is the first IFRC feedback cycle)
+                - If eap_count == 1 (i.e., first eap has been created), indicating the first feedback cycle:
                     - Send the first feedback email
-                - Else (eap_count > 2), indicating subsequent feedback cycles:
+                - Else (eap_count > 1), indicating subsequent feedback cycles:
                     - Send the resubmitted feedback email
 
                 Therefore:
-                - version == 2 always corresponds to the first IFRC feedback cycle
-                - Any later versions (>= 3) correspond to resubmitted cycles
-                - Also when the IFRC resubmits after technical validation, it will be version >= 3
+                - version == 1 always corresponds to the first IFRC feedback cycle
+                - Any later versions (>1) correspond to resubmitted cycles
+                - Also when the IFRC resubmits after technical validation, it will be version > 2
 
                Deadline update rules:
                 - First IFRC feedback cycle: deadline is set to 90 days from the current date.
                 - Subsequent feedback or resubmission cycles: deadline is set to 30 days from the current date.
             """
 
-            if eap_count == 2:
+            if eap_count == 1:
                 updated_instance.deadline = timezone.now().date() + timedelta(days=90)
                 updated_instance.save(
                     update_fields=[
@@ -1151,7 +1192,7 @@ class EAPStatusSerializer(BaseEAPSerializer):
                 )
                 transaction.on_commit(lambda: send_feedback_email.delay(eap_registration_id))
 
-            elif eap_count > 2:
+            elif eap_count > 1:
                 updated_instance.deadline = timezone.now().date() + timedelta(days=30)
                 updated_instance.save(
                     update_fields=[
@@ -1185,3 +1226,8 @@ class EAPStatusSerializer(BaseEAPSerializer):
             transaction.on_commit(lambda: send_approved_email.delay(eap_registration_id))
 
         return updated_instance
+
+
+class EAPOptionsSerializer(serializers.Serializer):
+    sector_ap_codes = serializers.DictField(child=serializers.ListField(child=serializers.CharField()))
+    approach_ap_codes = serializers.DictField(child=serializers.ListField(child=serializers.CharField()))

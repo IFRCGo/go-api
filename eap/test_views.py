@@ -260,7 +260,7 @@ class EAPRegistrationTestCase(APITestCase):
             partners=[self.partner2.id],
             created_by=self.country_admin,
             modified_by=self.country_admin,
-            status=EAPStatus.ACTIVATED,
+            status=EAPStatus.APPROVED,
             eap_type=EAPType.SIMPLIFIED_EAP,
         )
         EAPRegistrationFactory.create(
@@ -606,7 +606,6 @@ class EAPSimplifiedTestCase(APITestCase):
             "planned_operations": [
                 {
                     "sector": PlannedOperation.Sector.SHELTER_SETTLEMENT_AND_HOUSING,
-                    "ap_code": 111,
                     "people_targeted": 10000,
                     "budget_per_sector": 100000,
                     "indicators": [
@@ -650,7 +649,6 @@ class EAPSimplifiedTestCase(APITestCase):
             ],
             "enabling_approaches": [
                 {
-                    "ap_code": 11,
                     "approach": EnablingApproach.Approach.SECRETARIAT_SERVICES,
                     "budget_per_approach": 10000,
                     "indicators": [
@@ -716,7 +714,7 @@ class EAPSimplifiedTestCase(APITestCase):
 
         # Cannot create Simplified EAP for the same EAP Registration again
         response = self.client.post(url, data, format="json")
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 400, response.data)
 
     def test_update_simplified_eap(self):
         eap_registration = EAPRegistrationFactory.create(
@@ -773,7 +771,6 @@ class EAPSimplifiedTestCase(APITestCase):
         enabling_approach = EnablingApproachFactory.create(
             approach=EnablingApproach.Approach.SECRETARIAT_SERVICES,
             budget_per_approach=5000,
-            ap_code=123,
             readiness_activities=[
                 enabling_approach_readiness_operation_activity_1.id,
                 enabling_approach_readiness_operation_activity_2.id,
@@ -830,7 +827,6 @@ class EAPSimplifiedTestCase(APITestCase):
         # PLANNED OPERATION with activities
         planned_operation = PlannedOperationFactory.create(
             sector=PlannedOperation.Sector.SHELTER_SETTLEMENT_AND_HOUSING,
-            ap_code=456,
             people_targeted=5000,
             budget_per_sector=50000,
             readiness_activities=[
@@ -876,7 +872,6 @@ class EAPSimplifiedTestCase(APITestCase):
                     "id": enabling_approach.id,
                     "approach": EnablingApproach.Approach.NATIONAL_SOCIETY_STRENGTHENING,
                     "budget_per_approach": 8000,
-                    "ap_code": 123,
                     "readiness_activities": [
                         {
                             "id": enabling_approach_readiness_operation_activity_1.id,
@@ -906,7 +901,6 @@ class EAPSimplifiedTestCase(APITestCase):
                 {
                     "approach": EnablingApproach.Approach.PARTNERSHIP_AND_COORDINATION,
                     "budget_per_approach": 9000,
-                    "ap_code": 124,
                     "readiness_activities": [
                         {
                             "activity": "New Enabling Approach Readiness Activity",
@@ -943,7 +937,6 @@ class EAPSimplifiedTestCase(APITestCase):
                 {
                     "id": planned_operation.id,
                     "sector": PlannedOperation.Sector.SHELTER_SETTLEMENT_AND_HOUSING,
-                    "ap_code": 456,
                     "people_targeted": 8000,
                     "budget_per_sector": 80000,
                     "indicators": [
@@ -993,7 +986,6 @@ class EAPSimplifiedTestCase(APITestCase):
                 {
                     # CREATE NEW Planned OperationActivity
                     "sector": PlannedOperation.Sector.HEALTH_AND_CARE,
-                    "ap_code": 457,
                     "people_targeted": 6000,
                     "budget_per_sector": 60000,
                     "readiness_activities": [
@@ -1053,21 +1045,17 @@ class EAPSimplifiedTestCase(APITestCase):
                 response.data["enabling_approaches"][0]["id"],
                 response.data["enabling_approaches"][0]["approach"],
                 response.data["enabling_approaches"][0]["budget_per_approach"],
-                response.data["enabling_approaches"][0]["ap_code"],
                 # NEW DATA
                 response.data["enabling_approaches"][1]["approach"],
                 response.data["enabling_approaches"][1]["budget_per_approach"],
-                response.data["enabling_approaches"][1]["ap_code"],
             },
             {
                 enabling_approach.id,
                 data["enabling_approaches"][0]["approach"],
                 data["enabling_approaches"][0]["budget_per_approach"],
-                data["enabling_approaches"][0]["ap_code"],
                 # NEW DATA
                 data["enabling_approaches"][1]["approach"],
                 data["enabling_approaches"][1]["budget_per_approach"],
-                data["enabling_approaches"][1]["ap_code"],
             },
         )
         self.assertEqual(
@@ -1125,24 +1113,20 @@ class EAPSimplifiedTestCase(APITestCase):
             {
                 response.data["planned_operations"][0]["id"],
                 response.data["planned_operations"][0]["sector"],
-                response.data["planned_operations"][0]["ap_code"],
                 response.data["planned_operations"][0]["people_targeted"],
                 response.data["planned_operations"][0]["budget_per_sector"],
                 # NEW DATA
                 response.data["planned_operations"][1]["sector"],
-                response.data["planned_operations"][1]["ap_code"],
                 response.data["planned_operations"][1]["people_targeted"],
                 response.data["planned_operations"][1]["budget_per_sector"],
             },
             {
                 planned_operation.id,
                 data["planned_operations"][0]["sector"],
-                data["planned_operations"][0]["ap_code"],
                 data["planned_operations"][0]["people_targeted"],
                 data["planned_operations"][0]["budget_per_sector"],
                 # NEW DATA
                 data["planned_operations"][1]["sector"],
-                data["planned_operations"][1]["ap_code"],
                 data["planned_operations"][1]["people_targeted"],
                 data["planned_operations"][1]["budget_per_sector"],
             },
@@ -1264,12 +1248,10 @@ class EAPStatusTransitionTestCase(APITestCase):
         enabling_approach = EnablingApproachFactory.create(
             approach=EnablingApproach.Approach.SECRETARIAT_SERVICES,
             budget_per_approach=5000,
-            ap_code=123,
         )
 
         planned_operation = PlannedOperationFactory.create(
             sector=PlannedOperation.Sector.SHELTER_SETTLEMENT_AND_HOUSING,
-            ap_code=456,
             people_targeted=5000,
             budget_per_sector=50000,
         )
@@ -1292,6 +1274,8 @@ class EAPStatusTransitionTestCase(APITestCase):
         response = self.client.post(self.url, data, format="json")
         self.assertEqual(response.status_code, 200, response.data)
         self.assertEqual(response.data["status"], EAPStatus.UNDER_REVIEW)
+        simplified_eap.refresh_from_db()
+        self.assertTrue(simplified_eap.is_locked)
 
         # NOTE: Check if the NS can update after changing to UNDER_REVIEW
         # FAILS: As simplified EAP is in UNDER_REVIEW, cannot update
@@ -1301,6 +1285,7 @@ class EAPStatusTransitionTestCase(APITestCase):
             "readiness_budget": 5000,
             "pre_positioning_budget": 5000,
             "early_action_budget": 5000,
+            "modified_at": datetime.now(),
         }
         url = f"/api/v2/simplified-eap/{simplified_eap.id}/"
         response = self.client.patch(url, update_data, format="json")
@@ -1339,48 +1324,83 @@ class EAPStatusTransitionTestCase(APITestCase):
                 self.eap_registration.latest_simplified_eap.review_checklist_file,
             )
 
-            # NOTE: Check if snapshot is created or not
-            # First SimplifedEAP should be locked
-            simplified_eap.refresh_from_db()
-            self.assertTrue(simplified_eap.is_locked)
+        # Fails, As NS has to revise the EAP before transitioning to UNDER_REVIEW.
+        status_data = {
+            "status": EAPStatus.UNDER_REVIEW,
+        }
+        response = self.client.post(self.url, status_data)
+        self.assertEqual(response.status_code, 400, response.data)
 
-            # Two SimplifiedEAP should be there
-            eap_simplified_queryset = SimplifiedEAP.objects.filter(
-                eap_registration=self.eap_registration,
-            )
+        # Fails, As User only can revise after NS_ADDRESSING_COMMENTS, cannot update directly as it's locked
+        update_data["modified_at"] = datetime.now()
+        response = self.client.patch(url, update_data, format="json")
+        self.assertEqual(response.status_code, 400, response.data)
 
-            self.assertEqual(
-                eap_simplified_queryset.count(),
-                2,
-                "There should be two snapshots created.",
-            )
+        # NOTE: NS revise which creates a snapshot of simplified eap
+        # updates the latest simplified eap with updated checklist file. So, there should be two snapshots of SimplifiedEAP now.
+        revise_url = f"/api/v2/simplified-eap/{simplified_eap.id}/revise/"
+        self.authenticate(self.country_admin)
+        response = self.client.post(revise_url)
+        self.assertEqual(response.status_code, 200, response.data)
+        self.assertFalse(response.data["is_locked"], response.data)
 
-            # Check version of the latest snapshot
-            # Version should be 2
-            second_snapshot = eap_simplified_queryset.order_by("-version").first()
-            assert second_snapshot is not None, "Second snapshot should not be None."
+        # NOTE: Check if snapshot is created or not
+        # First SimplifedEAP should be locked
+        self.eap_registration.refresh_from_db()
+        simplified_eap.refresh_from_db()
+        self.assertTrue(simplified_eap.is_locked)
 
-            self.assertEqual(
-                second_snapshot.version,
-                2,
-                "Latest snapshot version should be 2.",
-            )
-            # Check for parent_id
-            self.assertEqual(
-                second_snapshot.parent_id,
-                simplified_eap.id,
-                "Latest snapshot's parent_id should be the first SimplifiedEAP id.",
-            )
-            # Snapshot Shouldn't have the updated checklist file
-            self.assertFalse(
-                second_snapshot.updated_checklist_file,
-                "Latest Snapshot shouldn't have the updated checklist file.",
-            )
-            # Check if the latest_simplified_eap is updated in EAPRegistration
-            self.assertEqual(
-                self.eap_registration.latest_simplified_eap.id,
-                second_snapshot.id,
-            )
+        # Two SimplifiedEAP should be there
+        eap_simplified_queryset = SimplifiedEAP.objects.filter(
+            eap_registration=self.eap_registration,
+        )
+
+        self.assertEqual(
+            eap_simplified_queryset.count(),
+            2,
+            "There should be two snapshots created.",
+        )
+
+        # Check version of the latest snapshot
+        # Version should be 2
+        second_snapshot = eap_simplified_queryset.order_by("-version").first()
+        assert second_snapshot is not None, "Second snapshot should not be None."
+
+        self.assertEqual(
+            second_snapshot.version,
+            2,
+            "Latest snapshot version should be 2.",
+        )
+        # Check for parent_id
+        self.assertEqual(
+            second_snapshot.parent_id,
+            simplified_eap.id,
+            "Latest snapshot's parent_id should be the first SimplifiedEAP id.",
+        )
+        # Snapshot Shouldn't have the updated checklist file
+        self.assertFalse(
+            second_snapshot.updated_checklist_file,
+            "Latest Snapshot shouldn't have the updated checklist file.",
+        )
+        # Check if the latest_simplified_eap is updated in EAPRegistration
+        self.assertEqual(
+            self.eap_registration.latest_simplified_eap.id,
+            second_snapshot.id,
+        )
+        # Second snapshot should not be locked.
+        self.assertFalse(second_snapshot.is_locked, "Latest snapshot shouldn't be locked."),
+
+        # NOTE: Cannot create revise as this eap has already been revised once.
+        revise_url = f"/api/v2/simplified-eap/{simplified_eap.id}/revise/"
+        self.authenticate(self.country_admin)
+        response = self.client.post(revise_url)
+        self.assertEqual(response.status_code, 400, response.data)
+
+        # NOTE: Cannot update in previous snapshot
+        url = f"/api/v2/simplified-eap/{simplified_eap.id}/"
+        update_data["modified_at"] = datetime.now()
+        response = self.client.patch(url, update_data, format="json")
+        self.assertEqual(response.status_code, 400, response.data)
 
         # NOTE: Transition to UNDER_REVIEW
         # NS_ADDRESSING_COMMENTS -> UNDER_REVIEW
@@ -1415,6 +1435,8 @@ class EAPStatusTransitionTestCase(APITestCase):
         response = self.client.post(self.url, data, format="json")
         self.assertEqual(response.status_code, 200, response.data)
         self.assertEqual(response.data["status"], EAPStatus.UNDER_REVIEW)
+        second_snapshot.refresh_from_db()
+        self.assertTrue(second_snapshot.is_locked, "Should be locked after transition to UNDER_REVIEW.")
 
         # AGAIN NOTE: Transition to NS_ADDRESSING_COMMENTS
         # UNDER_REVIEW -> NS_ADDRESSING_COMMENTS
@@ -1437,48 +1459,79 @@ class EAPStatusTransitionTestCase(APITestCase):
             self.assertEqual(response.status_code, 200, response.data)
             self.assertEqual(response.data["status"], EAPStatus.NS_ADDRESSING_COMMENTS)
 
-            # Check if three snapshots are created now
-            eap_simplified_queryset = SimplifiedEAP.objects.filter(
-                eap_registration=self.eap_registration,
-            )
-            self.assertEqual(
-                eap_simplified_queryset.count(),
-                3,
-                "There should be three snapshots created.",
-            )
+        # Fails, As NS has to revise the EAP before transitioning to UNDER_REVIEW.
+        status_data = {
+            "status": EAPStatus.UNDER_REVIEW,
+        }
+        response = self.client.post(self.url, status_data)
+        self.assertEqual(response.status_code, 400, response.data)
 
-            # Check version of the latest snapshot
-            # Version should be 3
-            third_snapshot = eap_simplified_queryset.order_by("-version").first()
-            assert third_snapshot is not None, "Third snapshot should not be None."
+        # Cannot update as it is in NS_ADDRESSING_COMMENTS, only revise is allowed
+        update_data["modified_at"] = datetime.now()
+        response = self.client.patch(url, update_data, format="json")
+        self.assertEqual(response.status_code, 400, response.data)
 
-            self.assertEqual(
-                third_snapshot.version,
-                3,
-                "Latest snapshot version should be 3.",
-            )
-            # Check for parent_id
-            self.assertEqual(
-                third_snapshot.parent_id,
-                second_snapshot.id,
-                "Latest snapshot's parent_id should be the second Snapshot id.",
-            )
+        revise_url = f"/api/v2/simplified-eap/{second_snapshot.id}/revise/"
+        self.authenticate(self.country_admin)
+        response = self.client.post(revise_url)
+        self.assertEqual(response.status_code, 200, response.data)
+        self.assertFalse(response.data["is_locked"])
 
-            # Check if the second snapshot is locked.
-            second_snapshot.refresh_from_db()
-            self.assertTrue(second_snapshot.is_locked)
-            # Snapshot Shouldn't have the updated checklist file
-            self.assertFalse(
-                third_snapshot.updated_checklist_file,
-                "Latest snapshot shouldn't have the updated checklist file.",
-            )
+        # Check if three snapshots are created now
+        self.eap_registration.refresh_from_db()
+        eap_simplified_queryset = SimplifiedEAP.objects.filter(
+            eap_registration=self.eap_registration,
+        )
+        self.assertEqual(
+            eap_simplified_queryset.count(),
+            3,
+            "There should be three snapshots created.",
+        )
 
-            # Check if the latest_simplified_eap is updated in EAPRegistration
-            self.eap_registration.refresh_from_db()
-            self.assertEqual(
-                self.eap_registration.latest_simplified_eap.id,
-                third_snapshot.id,
-            )
+        # Check version of the latest snapshot
+        # Version should be 3
+        third_snapshot = eap_simplified_queryset.order_by("-version").first()
+        assert third_snapshot is not None, "Third snapshot should not be None."
+
+        self.assertEqual(
+            third_snapshot.version,
+            3,
+            "Latest snapshot version should be 3.",
+        )
+        # Check for parent_id
+        self.assertEqual(
+            third_snapshot.parent_id,
+            second_snapshot.id,
+            "Latest snapshot's parent_id should be the second Snapshot id.",
+        )
+
+        # Check if the second snapshot is locked.
+        second_snapshot.refresh_from_db()
+        self.assertTrue(second_snapshot.is_locked)
+        # Snapshot Shouldn't have the updated checklist file
+        self.assertFalse(
+            third_snapshot.updated_checklist_file,
+            "Latest snapshot shouldn't have the updated checklist file.",
+        )
+
+        # Check if the latest_simplified_eap is updated in EAPRegistration
+        self.eap_registration.refresh_from_db()
+        self.assertEqual(
+            self.eap_registration.latest_simplified_eap.id,
+            third_snapshot.id,
+        )
+
+        # NOTE: Cannot create another snapshot as this eap has already been revised
+        revise_url = f"/api/v2/simplified-eap/{second_snapshot.id}/revise/"
+        self.authenticate(self.country_admin)
+        response = self.client.post(revise_url)
+        self.assertEqual(response.status_code, 400, response.data)
+
+        # NOTE: Cannot update the previous snapshot
+        url = f"/api/v2/simplified-eap/{second_snapshot.id}/"
+        update_data["modified_at"] = datetime.now()
+        response = self.client.patch(url, update_data, format="json")
+        self.assertEqual(response.status_code, 400, response.data)
 
         # NOTE: Again Transition to UNDER_REVIEW
         # NS_ADDRESSING_COMMENTS -> UNDER_REVIEW
@@ -1548,49 +1601,67 @@ class EAPStatusTransitionTestCase(APITestCase):
             self.assertEqual(response.status_code, 200, response.data)
             self.assertEqual(response.data["status"], EAPStatus.NS_ADDRESSING_COMMENTS)
 
-            # Check if four snapshots are created now
-            self.eap_registration.refresh_from_db()
-            eap_simplified_queryset = SimplifiedEAP.objects.filter(
-                eap_registration=self.eap_registration,
-            )
-            self.assertEqual(
-                eap_simplified_queryset.count(),
-                4,
-                "There should be four snapshots created.",
-            )
+        # Fails, As NS has to revise the EAP before transitioning to UNDER_REVIEW.
+        status_data = {
+            "status": EAPStatus.UNDER_REVIEW,
+        }
+        response = self.client.post(self.url, status_data)
+        self.assertEqual(response.status_code, 400, response.data)
 
-            # Check version of the latest snapshot
-            # Version should be 4
-            fourth_snapshot = eap_simplified_queryset.order_by("-version").first()
-            assert fourth_snapshot is not None, "fourth snapshot should not be None."
+        revise_url = f"/api/v2/simplified-eap/{third_snapshot.id}/revise/"
+        self.authenticate(self.country_admin)
+        response = self.client.post(revise_url)
+        self.assertEqual(response.status_code, 200)
 
-            self.assertEqual(
-                fourth_snapshot.version,
-                4,
-                "Latest snapshot version should be 4.",
-            )
-            # Check for parent_id
-            self.assertEqual(
-                fourth_snapshot.parent_id,
-                third_snapshot.id,
-                "Latest snapshot's parent_id should be the third Snapshot id.",
-            )
+        # Check if four snapshots are created now
+        self.eap_registration.refresh_from_db()
+        eap_simplified_queryset = SimplifiedEAP.objects.filter(
+            eap_registration=self.eap_registration,
+        )
+        self.assertEqual(
+            eap_simplified_queryset.count(),
+            4,
+            "There should be four snapshots created.",
+        )
 
-            # Check if the second snapshot is locked.
-            third_snapshot.refresh_from_db()
-            self.assertTrue(third_snapshot.is_locked)
-            # Snapshot Shouldn't have the updated checklist file
-            self.assertFalse(
-                fourth_snapshot.updated_checklist_file,
-                "Latest snapshot shouldn't have the updated checklist file.",
-            )
+        # Check version of the latest snapshot
+        # Version should be 4
+        fourth_snapshot = eap_simplified_queryset.order_by("-version").first()
+        assert fourth_snapshot is not None, "fourth snapshot should not be None."
 
-            # Check if the latest_simplified_eap is updated in EAPRegistration
-            self.eap_registration.refresh_from_db()
-            self.assertEqual(
-                self.eap_registration.latest_simplified_eap.id,
-                fourth_snapshot.id,
-            )
+        self.assertEqual(
+            fourth_snapshot.version,
+            4,
+            "Latest snapshot version should be 4.",
+        )
+        # Check for parent_id
+        self.assertEqual(
+            fourth_snapshot.parent_id,
+            third_snapshot.id,
+            "Latest snapshot's parent_id should be the third Snapshot id.",
+        )
+
+        # Check if the second snapshot is locked.
+        third_snapshot.refresh_from_db()
+        self.assertTrue(third_snapshot.is_locked)
+        # Snapshot Shouldn't have the updated checklist file
+        self.assertFalse(
+            fourth_snapshot.updated_checklist_file,
+            "Latest snapshot shouldn't have the updated checklist file.",
+        )
+
+        # Check if the latest_simplified_eap is updated in EAPRegistration
+        self.eap_registration.refresh_from_db()
+        self.assertEqual(
+            self.eap_registration.latest_simplified_eap.id,
+            fourth_snapshot.id,
+        )
+
+        # NOTE: Cannot create another snapshot from locked snapshot
+        revise_url = f"/api/v2/simplified-eap/{third_snapshot.id}/revise/"
+        self.authenticate(self.country_admin)
+        response = self.client.post(revise_url)
+        self.assertEqual(response.status_code, 400, response.data)
 
         # NOTE: NS Updates the latest changes on the fourth snapshot and update checklist file
 
@@ -1687,7 +1758,7 @@ class EAPStatusTransitionTestCase(APITestCase):
         # FAILS As simplified EAP is in PENDING_PFA, cannot updated
         url = f"/api/v2/simplified-eap/{simplified_eap.id}/"
         response = self.client.patch(url, update_data, format="json")
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 400, response.data)
 
         # NOTE: Transition to APPROVED
         # PENDING_PFA -> APPROVED
@@ -1717,37 +1788,7 @@ class EAPStatusTransitionTestCase(APITestCase):
         self.authenticate(self.country_admin)
         url = f"/api/v2/simplified-eap/{simplified_eap.id}/"
         response = self.client.patch(url, update_data, format="json")
-        self.assertEqual(response.status_code, 400)
-
-        # NOTE: Transition to ACTIVATED
-        # APPROVED -> ACTIVATED
-        data = {
-            "status": EAPStatus.ACTIVATED,
-        }
-
-        # LOGIN as country admin user
-        # FAILS: As only ifrc admins or superuser can
-        self.authenticate(self.country_admin)
-        response = self.client.post(self.url, data, format="json")
-        self.assertEqual(response.status_code, 400)
-
-        # LOGIN as IFRC admin user
-        # SUCCESS: As only ifrc admins or superuser can
-        self.assertIsNone(self.eap_registration.activated_at)
-        self.authenticate(self.ifrc_admin_user)
-        response = self.client.post(self.url, data, format="json")
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["status"], EAPStatus.ACTIVATED)
-        # Check is the activated timeline is added
-        self.eap_registration.refresh_from_db()
-        self.assertIsNotNone(self.eap_registration.activated_at)
-
-        # Check as if NS user cannot update after ACTIVATED
-        # FAILS As simplified EAP is in ACTIVATED, cannot updated
-        self.authenticate(self.country_admin)
-        url = f"/api/v2/simplified-eap/{simplified_eap.id}/"
-        response = self.client.patch(url, update_data, format="json")
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 400, response.data)
 
     @mock.patch("eap.serializers.generate_export_eap_pdf")
     @mock.patch("eap.serializers.group")
@@ -1802,12 +1843,10 @@ class EAPStatusTransitionTestCase(APITestCase):
         enabling_approach = EnablingApproachFactory.create(
             approach=EnablingApproach.Approach.SECRETARIAT_SERVICES,
             budget_per_approach=5000,
-            ap_code=123,
         )
 
         planned_operation = PlannedOperationFactory.create(
             sector=PlannedOperation.Sector.SHELTER_SETTLEMENT_AND_HOUSING,
-            ap_code=456,
             people_targeted=5000,
             budget_per_sector=50000,
         )
@@ -1865,11 +1904,19 @@ class EAPStatusTransitionTestCase(APITestCase):
         self.assertEqual(response.data["status"], EAPStatus.NS_ADDRESSING_COMMENTS)
         send_feedback_email.delay.assert_called_once_with(eap_registration.id)
         send_feedback_email.delay.reset_mock()
+
+        # Revise the eap which create a snapshot.
+        revise_url = f"/api/v2/simplified-eap/{simplified_eap.id}/revise/"
+        self.authenticate(self.ifrc_admin_user)
+        response = self.client.post(revise_url)
+        self.assert_200(response)
+
         # -----------------------------
         # Check snapshots after the status change
         # -----------------------------
         snapshot = SimplifiedEAP.objects.filter(eap_registration=eap_registration).order_by("-version").first()
         assert snapshot is not None, "Snapshot should exist now"
+        assert snapshot.version == 2, "Snapshot version should be 2"
         eap_registration.latest_simplified_eap = snapshot
         eap_registration.save()
 
@@ -1930,11 +1977,19 @@ class EAPStatusTransitionTestCase(APITestCase):
         self.assertEqual(response.data["status"], EAPStatus.NS_ADDRESSING_COMMENTS)
         send_feedback_email_for_resubmitted_eap.delay.assert_called_once_with(eap_registration.id)
         send_feedback_email_for_resubmitted_eap.delay.reset_mock()
+
+        # Revise the eap which create a snapshot.
+        revise_url = f"/api/v2/simplified-eap/{snapshot.id}/revise/"
+        self.authenticate(self.ifrc_admin_user)
+        response = self.client.post(revise_url)
+        self.assert_200(response)
+
         # -----------------------------
         # Check snapshots after the status change
         # -----------------------------
         snapshot = SimplifiedEAP.objects.filter(eap_registration=eap_registration).order_by("-version").first()
         assert snapshot is not None, "Snapshot should exist now"
+        assert snapshot.version == 3, "Snapshot version should be 3"
         eap_registration.latest_simplified_eap = snapshot
         eap_registration.save()
 
@@ -1999,11 +2054,19 @@ class EAPStatusTransitionTestCase(APITestCase):
         self.assertEqual(response.data["status"], EAPStatus.NS_ADDRESSING_COMMENTS)
         send_feedback_email_for_resubmitted_eap.delay.assert_called_once_with(eap_registration.id)
         send_feedback_email_for_resubmitted_eap.delay.reset_mock()
+
+        # Revise the eap which create a snapshot.
+        revise_url = f"/api/v2/simplified-eap/{snapshot.id}/revise/"
+        self.authenticate(self.ifrc_admin_user)
+        response = self.client.post(revise_url)
+        self.assert_200(response)
+
         # -----------------------------
         # Check snapshots after the status change
         # -----------------------------
         snapshot = SimplifiedEAP.objects.filter(eap_registration=eap_registration).order_by("-version").first()
         assert snapshot is not None, "Snapshot should exist now"
+        assert snapshot.version == 4, "Snapshot version should be 4"
         simplified_eap.refresh_from_db()
         eap_registration.latest_simplified_eap = snapshot
         eap_registration.save()
@@ -2427,6 +2490,7 @@ class EAPFullTestCase(APITestCase):
             "total_budget": 10000,
             "objective": "FUll eap objective",
             "lead_time": 5,
+            "lead_timeframe_unit": TimeFrame.DAYS,
             "expected_submission_time": "2024-12-31",
             "readiness_budget": 3000,
             "pre_positioning_budget": 4000,
@@ -2475,7 +2539,6 @@ class EAPFullTestCase(APITestCase):
             "planned_operations": [
                 {
                     "sector": PlannedOperation.Sector.SHELTER_SETTLEMENT_AND_HOUSING,
-                    "ap_code": 111,
                     "people_targeted": 10000,
                     "budget_per_sector": 100000,
                     "indicators": [
@@ -2519,7 +2582,6 @@ class EAPFullTestCase(APITestCase):
             ],
             "enabling_approaches": [
                 {
-                    "ap_code": 11,
                     "approach": EnablingApproach.Approach.SECRETARIAT_SERVICES,
                     "budget_per_approach": 10000,
                     "indicators": [
@@ -2668,7 +2730,6 @@ class TestSnapshotEAP(APITestCase):
         enabling_approach = EnablingApproachFactory.create(
             approach=EnablingApproach.Approach.SECRETARIAT_SERVICES,
             budget_per_approach=5000,
-            ap_code=123,
         )
         hazard_selection_image_1 = EAPFileFactory._create_file(
             created_by=self.user,
@@ -2690,7 +2751,6 @@ class TestSnapshotEAP(APITestCase):
 
         planned_operation = PlannedOperationFactory.create(
             sector=PlannedOperation.Sector.SHELTER_SETTLEMENT_AND_HOUSING,
-            ap_code=456,
             people_targeted=5000,
             budget_per_sector=50000,
             readiness_activities=[
