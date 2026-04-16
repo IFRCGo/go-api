@@ -14,6 +14,11 @@ from eap.models import (
 @admin.register(EAPFile)
 class EAPFileAdmin(admin.ModelAdmin):
     search_fields = ("caption",)
+    list_select_related = True
+    autocomplete_fields = (
+        "created_by",
+        "modified_by",
+    )
 
 
 @admin.register(EAPRegistration)
@@ -85,12 +90,13 @@ class SimplifiedEAPAdmin(admin.ModelAdmin):
         "eap_registration__country__name",
         "eap_registration__disaster_type__name",
     )
-    list_display = ("simplifed_eap_application", "version", "is_locked")
+    list_display = ("simplifed_eap_application", "eap_registration", "version", "is_locked")
     autocomplete_fields = (
         "eap_registration",
         "created_by",
         "modified_by",
         "admin2",
+        "partners",
     )
     readonly_fields = (
         "cover_image",
@@ -159,6 +165,7 @@ class SimplifiedEAPAdmin(admin.ModelAdmin):
             )
             .prefetch_related(
                 "admin2",
+                "partners",
                 "partner_contacts",
             )
         )
@@ -176,12 +183,13 @@ class FullEAPAdmin(admin.ModelAdmin):
         "eap_registration__country__name",
         "eap_registration__disaster_type__name",
     )
-    list_display = ("eap_registration",)
+    list_display = ("full_eap_application", "eap_registration", "version", "is_locked")
     autocomplete_fields = (
         "eap_registration",
         "created_by",
         "modified_by",
         "admin2",
+        "partners",
     )
     readonly_fields = (
         "partner_contacts",
@@ -244,6 +252,9 @@ class FullEAPAdmin(admin.ModelAdmin):
 
     regenerate_diff_pdf_file.short_description = "Regenerate EAP diff PDF files for selected Full EAPs"
 
+    def full_eap_application(self, obj):
+        return f"{obj.eap_registration.national_society.society_name} - {obj.eap_registration.disaster_type.name}"
+
     def get_queryset(self, request):
         return (
             super()
@@ -258,6 +269,7 @@ class FullEAPAdmin(admin.ModelAdmin):
             )
             .prefetch_related(
                 "admin2",
+                "partners",
                 "partner_contacts",
                 "key_actors",
                 "risk_analysis_source_of_information",
