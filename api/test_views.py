@@ -22,6 +22,7 @@ from api.models import Profile, VisibilityChoices
 from deployments.factories.user import UserFactory
 from dref.models import DrefFile
 from main.test_case import APITestCase
+from per.factories import OpsLearningFactory
 
 
 class AuthPowerBITest(APITestCase):
@@ -144,14 +145,19 @@ class GuestUserPermissionTest(APITestCase):
 
         # Create public field reports
         event_pub = EventFactory.create(visibility=VisibilityChoices.PUBLIC, parent_event=None)
-        FieldReportFactory.create_batch(4, event=event_pub, visibility=VisibilityChoices.PUBLIC)
+        self.public_field_report = FieldReportFactory.create(event=event_pub, visibility=VisibilityChoices.PUBLIC)
+        FieldReportFactory.create_batch(3, event=event_pub, visibility=VisibilityChoices.PUBLIC)
         # Create non-public field reports
         event_non_pub = EventFactory.create(visibility=VisibilityChoices.IFRC, parent_event=None)
         FieldReportFactory.create_batch(5, event=event_non_pub, visibility=VisibilityChoices.IFRC)
 
+        self.ops_learning = OpsLearningFactory.create(is_validated=True)
+
     def test_guest_user_permission(self):
         body = {}
         id = 1  # NOTE: id is used just to test api that requires id, it doesnot indicate real id. It can be any number.
+        field_report_id = self.public_field_report.id
+        ops_learning_id = self.ops_learning.id
 
         guest_apis = [
             "/api/v2/add_subscription/",
@@ -161,12 +167,12 @@ class GuestUserPermissionTest(APITestCase):
         guest_get_apis = [
             "/api/v2/user/me/",
             "/api/v2/field-report/",
-            f"/api/v2/field-report/{id}/",
+            f"/api/v2/field-report/{field_report_id}/",
             "/api/v2/language/",
             f"/api/v2/language/{id}/",
             "/api/v2/event/",
             "/api/v2/ops-learning/",
-            f"/api/v2/ops-learning/{id}/",
+            f"/api/v2/ops-learning/{ops_learning_id}/",
         ]
 
         go_post_apis = [

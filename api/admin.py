@@ -222,7 +222,11 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
 
     @admin.display(ordering="ifrc_severity_level_update_date")
     def level_updated_at(self, obj):
-        return obj.ifrc_severity_level_update_date
+        if obj.ifrc_severity_level_update_date:
+            return obj.ifrc_severity_level_update_date
+        if obj.created_at and str(obj.created_at.year)[:3] not in obj.name:
+            return f"{obj.created_at.year}"
+        return None
 
     country_in = "countries__pk__in"
     region_in = "regions__pk__in"

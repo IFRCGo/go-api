@@ -1054,14 +1054,20 @@ class OpsLearningSerializer(serializers.ModelSerializer):
         fields = "__all__"
         read_only_fields = ("created_at", "modified_at")
 
-    @staticmethod
-    def get_document_url(obj):
-        if obj.appeal_document_id and (document := AppealDocument.objects.filter(id=obj.appeal_document_id).first()):
+    def _get_document(self, obj):
+        if not obj.appeal_document_id:
+            return None
+        document_map = self.context.get("appeal_documents_map")
+        if document_map is not None:
+            return document_map.get(obj.appeal_document_id)
+        return AppealDocument.objects.filter(id=obj.appeal_document_id).first()
+
+    def get_document_url(self, obj):
+        if document := self._get_document(obj):
             return document.document_url
 
-    @staticmethod
-    def get_document_name(obj):
-        if obj.appeal_document_id and (document := AppealDocument.objects.filter(id=obj.appeal_document_id).first()):
+    def get_document_name(self, obj):
+        if document := self._get_document(obj):
             return document.name
 
 
@@ -1088,14 +1094,20 @@ class PublicOpsLearningSerializer(serializers.ModelSerializer):
         )
         exclude = ("learning", "type", "organization", "sector", "per_component")
 
-    @staticmethod
-    def get_document_url(obj):
-        if obj.appeal_document_id and (document := AppealDocument.objects.filter(id=obj.appeal_document_id).first()):
+    def _get_document(self, obj):
+        if not obj.appeal_document_id:
+            return None
+        document_map = self.context.get("appeal_documents_map")
+        if document_map is not None:
+            return document_map.get(obj.appeal_document_id)
+        return AppealDocument.objects.filter(id=obj.appeal_document_id).first()
+
+    def get_document_url(self, obj):
+        if document := self._get_document(obj):
             return document.document_url
 
-    @staticmethod
-    def get_document_name(obj):
-        if obj.appeal_document_id and (document := AppealDocument.objects.filter(id=obj.appeal_document_id).first()):
+    def get_document_name(self, obj):
+        if document := self._get_document(obj):
             return document.name
 
 
