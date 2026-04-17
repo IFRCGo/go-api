@@ -20,7 +20,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
-from api.models import Country, Region
+from api.models import AppealDocument, Country, Region
 from deployments.models import SectorTag
 from main.permissions import DenyGuestUserMutationPermission, DenyGuestUserPermission
 from main.utils import SpreadSheetContentNegotiation
@@ -1202,6 +1202,7 @@ class OpsLearningViewset(viewsets.ModelViewSet):
             return qs.select_related(
                 "appeal_code",
             ).prefetch_related(
+                "appeal_code__event__appeals",
                 "sector",
                 "sector_validated",
                 "organization",
@@ -1216,6 +1217,7 @@ class OpsLearningViewset(viewsets.ModelViewSet):
                 "appeal_code",
             )
             .prefetch_related(
+                "appeal_code__event__appeals",
                 "sector",
                 "sector_validated",
                 "organization",
@@ -1225,6 +1227,26 @@ class OpsLearningViewset(viewsets.ModelViewSet):
                 "appeal_code__event__countries_for_preview",
             )
         )
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        if getattr(self, "swagger_fake_view", False):
+            return context
+        view_action = getattr(self, "action", None)
+        if view_action == "list":
+            queryset = self.filter_queryset(self.get_queryset())
+            appeal_document_ids = list(
+                queryset.exclude(appeal_document_id__isnull=True).values_list("appeal_document_id", flat=True).distinct()
+            )
+            if appeal_document_ids:
+                context["appeal_documents_map"] = AppealDocument.objects.in_bulk(appeal_document_ids)
+        elif view_action == "retrieve":
+            lookup_kwarg = self.lookup_url_kwarg or self.lookup_field
+            if lookup_kwarg in self.kwargs:
+                obj = self.get_object()
+                if obj.appeal_document_id:
+                    context["appeal_documents_map"] = AppealDocument.objects.in_bulk([obj.appeal_document_id])
+        return context
 
     def get_serializer_class(self):
         if self.request.method == "GET":
