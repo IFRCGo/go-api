@@ -1,6 +1,7 @@
 import json
 import os
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
+from datetime import timezone as datetime_timezone
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -38,7 +39,7 @@ class Command(BaseCommand):
 
     def parse_date(self, date_string):
         timeformat = "%Y-%m-%dT%H:%M:%S"
-        return datetime.strptime(date_string[:18], timeformat).replace(tzinfo=timezone.utc)
+        return datetime.strptime(date_string[:18], timeformat).replace(tzinfo=datetime_timezone.utc)
 
     def create_bilaterals_dict(self, records):
         """Aggregate amounts (rec['AmountCHF']) of Bilateral records"""

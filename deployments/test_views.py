@@ -332,7 +332,7 @@ class ProjectGetTest(APITestCase):
                 "total_budget": 109102,
                 "target_total": 31000,
                 "reached_total": 9054,
-                "projects_by_status": [{"status": 0, "count": 3}, {"status": 1, "count": 2}, {"status": 2, "count": 3}],
+                "projects_by_status": [{"count": 2, "status": 1}, {"count": 3, "status": 0}, {"count": 3, "status": 2}],
             },
             resp.json(),
         )

@@ -247,7 +247,7 @@ class Command(BaseCommand):
                 "name": report_name if len(report_name) else report_dtype.name,
                 "summary": report_description,
                 "dtype": report_dtype,
-                "disaster_start_date": datetime.utcnow().replace(tzinfo=timezone.utc),
+                "disaster_start_date": timezone.now(),
                 "auto_generated": True,
                 "auto_generated_source": SOURCES["report_ingest"],
             }

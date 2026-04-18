@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from datetime import timezone as datetime_timezone
 
 from django.conf import settings
 from django.utils import timezone
@@ -42,7 +43,7 @@ class NotificationTestCase(APITestCase):
                 "created_at": datetime.strptime(
                     "%s:%s" % (alert[4].strip(), alert[5].strip()),
                     timeformat,
-                ).replace(tzinfo=timezone.utc),
+                ).replace(tzinfo=datetime_timezone.utc),
             }
             surge_alert = SurgeAlert(**fields)
             surge_alert.save()

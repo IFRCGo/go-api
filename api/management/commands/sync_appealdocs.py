@@ -1,9 +1,11 @@
-from datetime import datetime, timezone
+from datetime import datetime
+from datetime import timezone as datetime_timezone
 
 import requests
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.core.management.base import BaseCommand
+from django.utils import timezone
 from sentry_sdk.crons import monitor
 
 from api.logger import logger
@@ -36,7 +38,7 @@ class Command(BaseCommand):
 
     def parse_date(self, date_string):
         timeformat = "%Y-%m-%dT%H:%M:%S"
-        return datetime.strptime(date_string[:18], timeformat).replace(tzinfo=timezone.utc)
+        return datetime.strptime(date_string[:18], timeformat).replace(tzinfo=datetime_timezone.utc)
 
     @monitor(monitor_slug=SentryMonitor.SYNC_APPEALDOCS)
     def handle(self, *args, **options):
@@ -49,7 +51,7 @@ class Command(BaseCommand):
             qset = Appeal.objects.all()
         else:
             # By default, only check appeals for the past 6 months where Appeal Documents is 0
-            now = datetime.now().replace(tzinfo=timezone.utc)
+            now = timezone.now()
             six_months_ago = now - relativedelta(months=6)
             # This was the original qset, but it wouldn't get newer docs for the same Appeals
             # qset = Appeal.objects.filter(appealdocument__isnull=True).filter(end_date__gt=six_months_ago)

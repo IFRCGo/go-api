@@ -1103,7 +1103,7 @@ class ExportERUReadinessView(APIView):
             "eru_owner__national_society_country",
         ).prefetch_related("eru_types")
 
-        for eru_readiness in eru_readiness_queryset.iterator():
+        for eru_readiness in eru_readiness_queryset.iterator(chunk_size=1000):
             row_data = [
                 eru_readiness.eru_owner.national_society_country.name,
                 eru_readiness.updated_at.strftime("%Y-%m-%d"),
