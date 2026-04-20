@@ -1,3 +1,4 @@
+from django.utils.translation import gettext
 from rest_framework import serializers
 
 from api.serializers import (
@@ -269,6 +270,16 @@ class AlertSubscriptionSerialize(ModelSerializer):
     regions_detail = MiniRegionSerialzier(source="regions", many=True, read_only=True)
     hazard_types_detail = DisasterTypeSerializer(source="hazard_types", many=True, read_only=True)
     alert_per_day_display = serializers.CharField(source="get_alert_per_day_display", read_only=True)
+
+    def validate(self, attrs):
+        countries = attrs.get("countries")
+        regions = attrs.get("regions")
+
+        if not countries and not regions:
+            raise serializers.ValidationError(
+                {"non_field_errors": gettext("Please select at least one country or one region to create a subscription.")}
+            )
+        return attrs
 
     class Meta:
         model = AlertSubscription
