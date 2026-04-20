@@ -615,10 +615,13 @@ class RegionProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
             "total_budget": aggregate_data["total_budget"],
             "target_total": aggregate_data["target_total"],
             "reached_total": aggregate_data["reached_total"],
-            "projects_by_status": projects.order_by()
-            .values("status")
-            .annotate(count=models.Count("id", distinct=True))
-            .values("status", "count"),
+            "projects_by_status": (
+                projects.order_by()
+                .values("status")
+                .annotate(count=models.Count("id", distinct=True))
+                .values("status", "count")
+                .order_by("status", "count")
+            ),
         }
         return Response(data)
 
