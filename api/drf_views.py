@@ -980,6 +980,9 @@ class AppealViewset(mixins.ListModelMixin, viewsets.GenericViewSet):
 
 class AppealDocumentViewset(viewsets.ReadOnlyModelViewSet):
     queryset = AppealDocument.objects.select_related(
+        "appeal",
+        "appeal__event",
+        "appeal__event__dtype",
         "type",
         "iso",
     ).prefetch_related(
