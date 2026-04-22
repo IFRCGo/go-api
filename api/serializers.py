@@ -26,7 +26,6 @@ from notifications.models import Subscription
 from per.models import Overview
 from utils.file_check import validate_file_type
 
-from .event_sources import SOURCES
 from .models import (
     Action,
     ActionsTaken,
@@ -1065,7 +1064,7 @@ class ListMiniEventSerializer(ModelSerializer):
             "name",
             "slug",
             "dtype",
-            "auto_generated_source",
+            "source",
             "emergency_response_contact_email",
             "countries_for_preview",
         )
@@ -2197,7 +2196,7 @@ class FieldReportSerializer(
             summary=report.description or "",
             disaster_start_date=report.start_date,
             auto_generated=True,
-            auto_generated_source=SOURCES["new_report"],
+            source=Event.EventSources.NEW_REPORT,
             visibility=report.visibility,
             **{TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME: django_get_language()},
         )
