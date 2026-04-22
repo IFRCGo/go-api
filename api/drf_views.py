@@ -751,7 +751,7 @@ class EventViewset(ReadOnlyVisibilityViewset):
         if self.action == "response_activity_events":
             return (
                 qset.filter(parent_event__isnull=True)
-                .filter(Q(auto_generated=False) | Q(auto_generated_source="New field report"))
+                .filter(Q(auto_generated=False) | Q(source=Event.EventSource.NEW_REPORT))
                 .select_related("dtype")
             )
         return (
@@ -1344,7 +1344,7 @@ class SupportedActivityViewset(viewsets.ReadOnlyModelViewSet):
 #             summary=report.description or "",
 #             disaster_start_date=report.start_date,
 #             auto_generated=True,
-#             auto_generated_source=SOURCES["new_report"],
+#             source=Event.EventSource.NEW_REPORT,
 #             visibility=report.visibility,
 #             **{TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME: django_get_language()},
 #         )
@@ -1542,3 +1542,33 @@ class CountrySupportingPartnerViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return CountrySupportingPartner.objects.select_related("country")
+
+
+class EmergencyViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = Event.objects.all()
+    lookup_field = "id"
+    serializer_class = DetailEmergencySerializer
+    filterset_class = EventFilter
+
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .select_related(
+                "dtype",
+                "parent_event",
+            )
+            .prefetch_related(
+                "regions",
+                "countries",
+                "countries_for_preview",
+                Prefetch("key_figures", queryset=KeyFigure.objects.all()),
+                Prefetch("contacts", queryset=EventContact.objects.all()),
+            )
+            .annotate(
+                latest_field_report_id=Subquery(
+                    FieldReport.objects.filter(event=OuterRef("pk")).order_by("-created_at").values("id")[:1]
+                ),
+                appeal_id=Subquery(Appeal.objects.filter(event=OuterRef("pk")).order_by("-created_at").values("id")[:1]),
+            )
+        )
