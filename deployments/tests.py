@@ -266,6 +266,8 @@ class TestProjectAPI(SnapshotTestCase):
         new_country = country.CountryFactory(
             name="country-2",
             society_name="society-name-2",
+            iso="Te",
+            iso3="frj",
         )
         new_district = district.DistrictFactory(
             country=new_country,

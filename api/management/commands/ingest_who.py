@@ -11,7 +11,8 @@ class Command(BaseCommand):
     help = "Add new event (=emergency) entries from WHO API"
 
     def handle(self, *args, **options):
-        guids = [e.auto_generated_source for e in Event.objects.filter(auto_generated_source__startswith="www.who.int")]
+        # Change this at the top
+        guids = list(Event.objects.filter(source=Event.EventSource.WHO).values_list("who_guid", flat=True))
 
         logger.info("Querying WHO RSS feed for new emergency data")
         # get latest
@@ -48,9 +49,14 @@ class Command(BaseCommand):
                     "category": row.pop("category"),
                     "pubDate": row.pop("pubDate"),
                 }
-                if data["guid"] in guids:
-                    continue
                 if data["guid"] in ["WeDontWantThis", "NeitherThis"]:
+                    continue
+                try:
+                    who_guid = int(data["guid"].strip().split(".")[-1])
+                except (ValueError, IndexError):
+                    who_guid = None
+
+                if who_guid is None or who_guid in guids:
                     continue
 
                 title = data["title"]  # for csr link
@@ -131,7 +137,8 @@ class Command(BaseCommand):
                     "summary": summary,
                     "disaster_start_date": date,
                     "auto_generated": True,
-                    "auto_generated_source": data["guid"],
+                    "source": Event.EventSource.WHO,
+                    "who_guid": who_guid,
                     "ifrc_severity_level": alert_level,
                 }
                 # TODO: fields['name'] sometimes exceeds 100 maxlength, so will need some altering if this will be used
