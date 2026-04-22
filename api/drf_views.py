@@ -751,7 +751,7 @@ class EventViewset(ReadOnlyVisibilityViewset):
         if self.action == "response_activity_events":
             return (
                 qset.filter(parent_event__isnull=True)
-                .filter(Q(auto_generated=False) | Q(auto_generated_source="New field report"))
+                .filter(Q(auto_generated=False) | Q(source=Event.EventSources.NEW_REPORT))
                 .select_related("dtype")
             )
         return (
@@ -1344,7 +1344,7 @@ class SupportedActivityViewset(viewsets.ReadOnlyModelViewSet):
 #             summary=report.description or "",
 #             disaster_start_date=report.start_date,
 #             auto_generated=True,
-#             auto_generated_source=SOURCES["new_report"],
+#             source=Event.EventSources.NEW_REPORT,
 #             visibility=report.visibility,
 #             **{TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME: django_get_language()},
 #         )

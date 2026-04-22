@@ -767,6 +767,35 @@ def snippet_image_path(instance, filename):
 class Event(models.Model):
     """A disaster, which could cover multiple countries"""
 
+    class EventSources(models.IntegerChoices):
+
+        Manual_Input = 100, _("Manual input")
+        """MANUAL_INPUT: Event data manually entered by a user through the  event administration interface."""
+
+        GDACS = 110, _("GDACs scraper")
+        """GDACS: Event data automatically ingested from the GDACS scraper."""
+
+        WHO = 120, _("WHO scraper")
+        """WHO: Event data automatically ingested from the (WHO) scraper."""
+
+        REPORT_INGEST = 130, _("Field report DMIS ingest")
+        """REPORT_INGEST: Event data imported through the DMIS field report."""
+
+        REPORT_ADMIN = 140, _("Field report admin")
+        """REPORT_ADMIN: Event data created or modified via the field report administration interface."""
+
+        APPEAL_ADMIN = 150, _("Appeal admin")
+        """APPEAL_ADMIN: Event data created or managed through the appeal administration interface."""
+
+        NEW_REPORT = 160, _("New field report")
+        """NEW_REPORT: Event data originating from newly created field reports."""
+
+        DREF = 170, _("DREF")
+        """DREF: Event originating records."""
+
+        Unknown = 180, _("Unknown")
+        """UNKNOWN: Event source is not identified or does not fall under any known category."""
+
     name = models.CharField(verbose_name=_("name"), max_length=256)
     dtype = models.ForeignKey(DisasterType, verbose_name=_("disaster type"), null=True, on_delete=models.SET_NULL)
     disaster_start_date = models.DateTimeField(verbose_name=_("disaster start date"))
@@ -825,9 +854,7 @@ class Event(models.Model):
     previous_update = models.DateTimeField(verbose_name=_("previous update"), null=True, blank=True)
 
     auto_generated = models.BooleanField(verbose_name=_("auto generated"), default=False, editable=False)
-    auto_generated_source = models.CharField(
-        verbose_name=_("auto generated source"), max_length=50, null=True, blank=True, editable=False
-    )
+    source = models.IntegerField(choices=EventSources.choices, default=EventSources.Manual_Input, verbose_name=_("Event source"))
 
     # Meant to give the organization a way of highlighting certain, important events.
     is_featured = models.BooleanField(default=False, verbose_name=_("is featured on home page"))

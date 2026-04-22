@@ -72,7 +72,7 @@ class EventFactory(factory.django.DjangoModelFactory):
     previous_update = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
 
     auto_generated = fuzzy.FuzzyChoice([True, False])
-    auto_generated_source = fuzzy.FuzzyText(length=50)
+    source = fuzzy.FuzzyChoice(Event.EventSources.values)
 
     is_featured = fuzzy.FuzzyChoice([True, False])
     is_featured_region = fuzzy.FuzzyChoice([True, False])
