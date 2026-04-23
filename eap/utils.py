@@ -46,8 +46,11 @@ def get_file_url(file_obj):
     """
     if not file_obj:
         return None
-    if hasattr(file_obj, "file"):
-        return file_obj.file.url
+
+    file_attr = getattr(file_obj, "file", file_obj)
+    url = getattr(file_attr, "url", None)
+
+    return url if url else None
 
 
 def get_share_eap_email_context(instance):
@@ -104,6 +107,7 @@ def get_eap_email_context(instance):
         "supporting_partners": eap_registration_data["partners_details"],
         "disaster_type": eap_registration_data["disaster_type_details"]["name"],
         "ns_contact_name": eap_registration_data["national_society_contact_name"],
+        "ns_contact_title": eap_registration_data["national_society_contact_title"],
         "ns_contact_email": eap_registration_data["national_society_contact_email"],
         "ns_contact_phone": eap_registration_data["national_society_contact_phone_number"],
         "deadline": eap_registration_data["deadline"],
@@ -123,8 +127,8 @@ def get_eap_email_context(instance):
             "people_targeted": latest_eap_data.people_targeted,
             "total_budget": latest_eap_data.total_budget,
             "latest_version": latest_eap_data.version,
-            "export_file": (latest_eap_data.export_file.url if latest_eap_data.export_file else None),
-            "diff_file": (latest_eap_data.diff_file.url if latest_eap_data.diff_file else None),
+            "export_file": latest_eap_data.export_file.url if latest_eap_data.export_file else None,
+            "diff_file": latest_eap_data.diff_file.url if latest_eap_data.diff_file else None,
             "budget_file": get_file_url(latest_eap_data.budget_file),
             "updated_checklist_file": get_file_url(latest_eap_data.updated_checklist_file),
             "review_checklist_file": (

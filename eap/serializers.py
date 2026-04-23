@@ -1,7 +1,7 @@
 import typing
 from datetime import timedelta
 
-from celery import group
+from celery import chain, group
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import transaction
@@ -357,7 +357,7 @@ class OperationActivitySerializer(
     )
     timeframe_display = serializers.CharField(source="get_timeframe_display", read_only=True)
     time_value = serializers.ListField(
-        child=serializers.IntegerField(),
+        child=serializers.IntegerField(required=True),
         required=True,
     )
 
@@ -370,6 +370,9 @@ class OperationActivitySerializer(
     def validate(self, validated_data: dict[str, typing.Any]) -> dict[str, typing.Any]:
         timeframe = validated_data["timeframe"]
         time_value = validated_data["time_value"]
+
+        if time_value is None or len(time_value) == 0:
+            raise serializers.ValidationError({"time_value": gettext("time_value is required and cannot be empty.")})
 
         allowed_values = ALLOWED_MAP_TIMEFRAMES_VALUE.get(timeframe, [])
         invalid_values = [value for value in time_value if value not in allowed_values]
@@ -880,7 +883,7 @@ VALID_IFRC_EAP_STATUS_TRANSITIONS = set(
 class EAPStatusSerializer(BaseEAPSerializer):
     status_display = serializers.CharField(source="get_status_display", read_only=True)
     # NOTE: Only required when changing status to NS Addressing Comments
-    review_checklist_file = serializers.FileField(required=False)
+    review_checklist_file = serializers.FileField(required=False, write_only=True)
 
     class Meta:
         model = EAPRegistration
@@ -924,23 +927,9 @@ class EAPStatusSerializer(BaseEAPSerializer):
             if self.instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP:
                 self.instance.latest_simplified_eap.is_locked = True
                 self.instance.latest_simplified_eap.save(update_fields=["is_locked"])
-                # NOTE: Generating export PDF asynchronously
-                transaction.on_commit(
-                    lambda: generate_export_eap_pdf.delay(
-                        eap_registration_id=self.instance.id,
-                        version=self.instance.latest_simplified_eap.version,
-                    )
-                )
             else:
                 self.instance.latest_full_eap.is_locked = True
                 self.instance.latest_full_eap.save(update_fields=["is_locked"])
-                # NOTE: Generate export PDF asynchronously
-                transaction.on_commit(
-                    lambda: generate_export_eap_pdf.delay(
-                        eap_registration_id=self.instance.id,
-                        version=self.instance.latest_full_eap.version,
-                    )
-                )
 
         # NOTE: IFRC Admins should be able to transition from TECHNICALLY_VALIDATED
         # to NS_ADDRESSING_COMMENTS to allow NS users to update their EAP changes after validated budget has been set.
@@ -1029,21 +1018,6 @@ class EAPStatusSerializer(BaseEAPSerializer):
                 # Lock the latest eap
                 self.instance.latest_simplified_eap.is_locked = True
                 self.instance.latest_simplified_eap.save(update_fields=["is_locked"])
-
-                # Generating PDFs asynchronously
-                transaction.on_commit(
-                    lambda: group(
-                        generate_export_eap_pdf.s(
-                            eap_registration_id=self.instance.id,
-                            version=self.instance.latest_simplified_eap.version,
-                        ),
-                        generate_export_diff_pdf.s(
-                            eap_registration_id=self.instance.id,
-                            version=self.instance.latest_simplified_eap.version,
-                        ),
-                    ).apply_async()
-                )
-
             else:
                 if self.instance.latest_full_eap.is_locked:
                     raise serializers.ValidationError(
@@ -1064,20 +1038,6 @@ class EAPStatusSerializer(BaseEAPSerializer):
                 # Lock the latest full eap
                 self.instance.latest_full_eap.is_locked = True
                 self.instance.latest_full_eap.save(update_fields=["is_locked"])
-
-                # Generating PDFs asynchronously
-                transaction.on_commit(
-                    lambda: group(
-                        generate_export_eap_pdf.s(
-                            eap_registration_id=self.instance.id,
-                            version=self.instance.latest_full_eap.version,
-                        ),
-                        generate_export_diff_pdf.s(
-                            eap_registration_id=self.instance.id,
-                            version=self.instance.latest_full_eap.version,
-                        ),
-                    ).apply_async()
-                )
 
         elif (current_status, new_status) == (
             EAPRegistration.Status.TECHNICALLY_VALIDATED,
@@ -1101,10 +1061,6 @@ class EAPStatusSerializer(BaseEAPSerializer):
                     "pending_pfa_at",
                 ]
             )
-
-            # Generate summary eap for full eap
-            if self.instance.get_eap_type_enum == EAPType.FULL_EAP:
-                transaction.on_commit(lambda: generate_eap_summary_pdf.delay(self.instance.id))
 
         elif (current_status, new_status) == (
             EAPRegistration.Status.PENDING_PFA,
@@ -1152,7 +1108,18 @@ class EAPStatusSerializer(BaseEAPSerializer):
             EAPRegistration.Status.UNDER_DEVELOPMENT,
             EAPRegistration.Status.UNDER_REVIEW,
         ):
-            transaction.on_commit(lambda: send_new_eap_submission_email.delay(eap_registration_id))
+            # NOTE: Generating export pdf and sending email to IFRC at the first submission to under review.
+            latest_eap = (
+                instance.latest_simplified_eap
+                if instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP
+                else instance.latest_full_eap
+            )
+            transaction.on_commit(
+                lambda: chain(
+                    generate_export_eap_pdf.s(eap_registration_id, latest_eap.version),
+                    send_new_eap_submission_email.si(eap_registration_id),
+                ).apply_async()
+            )
 
         elif (old_status, new_status) in [
             (EAPRegistration.Status.UNDER_REVIEW, EAPRegistration.Status.NS_ADDRESSING_COMMENTS),
@@ -1205,7 +1172,18 @@ class EAPStatusSerializer(BaseEAPSerializer):
             EAPRegistration.Status.NS_ADDRESSING_COMMENTS,
             EAPRegistration.Status.UNDER_REVIEW,
         ):
-            transaction.on_commit(lambda: send_eap_resubmission_email.delay(eap_registration_id))
+            # NOTE: Generating diff pdf and sending email to IFRC after NS resubmission.
+            latest_eap = (
+                instance.latest_simplified_eap
+                if instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP
+                else instance.latest_full_eap
+            )
+            transaction.on_commit(
+                lambda: chain(
+                    generate_export_diff_pdf.s(eap_registration_id, latest_eap.version),
+                    send_eap_resubmission_email.si(eap_registration_id),
+                ).apply_async()
+            )
 
         elif (old_status, new_status) == (
             EAPRegistration.Status.UNDER_REVIEW,
@@ -1217,7 +1195,23 @@ class EAPStatusSerializer(BaseEAPSerializer):
             EAPRegistration.Status.TECHNICALLY_VALIDATED,
             EAPRegistration.Status.PENDING_PFA,
         ):
-            transaction.on_commit(lambda: send_pending_pfa_email.delay(eap_registration_id))
+            # NOTE: Generating diff pdf and summary pdf (for full eap) and sending email to PFA after technical validation.
+            is_full_eap = instance.get_eap_type_enum == EAPType.FULL_EAP
+            version = instance.latest_simplified_eap.version if not is_full_eap else instance.latest_full_eap.version
+
+            tasks = [
+                generate_export_diff_pdf.s(eap_registration_id, version),
+            ]
+
+            if is_full_eap:
+                tasks.append(generate_eap_summary_pdf.s(eap_registration_id))
+
+            transaction.on_commit(
+                lambda: chain(
+                    group(tasks),
+                    send_pending_pfa_email.si(eap_registration_id),
+                ).apply_async()
+            )
 
         elif (old_status, new_status) == (
             EAPRegistration.Status.PENDING_PFA,

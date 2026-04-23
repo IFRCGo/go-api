@@ -96,7 +96,7 @@ class EAPRegistrationViewSet(EAPModelViewSet):
     filterset_class = EAPRegistrationFilterSet
 
     def get_queryset(self) -> QuerySet[EAPRegistration]:
-        return (
+        base_qs = (
             super()
             .get_queryset()
             .select_related(
@@ -106,9 +106,15 @@ class EAPRegistrationViewSet(EAPModelViewSet):
                 "disaster_type",
                 "country",
             )
-            .prefetch_related(
+            .prefetch_related("users")
+        )
+
+        if self.action in [
+            "list",
+            "retrieve",
+        ]:
+            return base_qs.prefetch_related(
                 "partners",
-                "users",
                 Prefetch(
                     "simplified_eaps",
                     queryset=SimplifiedEAP.objects.select_related(
@@ -132,7 +138,7 @@ class EAPRegistrationViewSet(EAPModelViewSet):
                     ),
                 ),
             )
-        )
+        return base_qs
 
     @action(
         detail=True,
