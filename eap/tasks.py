@@ -212,11 +212,6 @@ def send_new_eap_submission_email(eap_registration_id: int):
     else:
         latest_eap = instance.latest_full_eap
 
-    if not latest_eap.export_file:
-        generate_export_eap_pdf(
-            eap_registration_id=instance.id,
-            version=latest_eap.version,
-        )
     partner_ns_emails = list(latest_eap.partner_contacts.values_list("email", flat=True))
 
     regional_coordinator_emails: list[str] = get_coordinator_emails_by_region(instance.country.region)
@@ -253,7 +248,7 @@ def send_new_eap_submission_email(eap_registration_id: int):
 
 @shared_task
 def send_feedback_email(eap_registration_id: int):
-    instance = EAPRegistration.objects.filter(id=eap_registration_id).first()
+    instance: EAPRegistration | None = EAPRegistration.objects.filter(id=eap_registration_id).first()
     if not instance:
         return None
 
@@ -286,7 +281,7 @@ def send_feedback_email(eap_registration_id: int):
     email_context = get_eap_email_context(instance)
     email_subject = (
         f"[DREF {instance.get_eap_type_display()} FEEDBACK] "
-        f"{instance.country} {instance.disaster_type} TO THE {instance.national_society}"
+        f"{instance.country} {instance.disaster_type} TO THE {instance.national_society.society_name}"
     )
     email_body = render_to_string("email/eap/feedback_to_national_society.html", email_context)
     email_type = "Feedback to the National Society"
@@ -303,7 +298,6 @@ def send_feedback_email(eap_registration_id: int):
 
 @shared_task
 def send_eap_resubmission_email(eap_registration_id: int):
-
     instance = EAPRegistration.objects.filter(id=eap_registration_id).first()
     if not instance:
         return None
@@ -312,14 +306,7 @@ def send_eap_resubmission_email(eap_registration_id: int):
     else:
         latest_eap = instance.latest_full_eap
 
-    if not latest_eap.diff_file:
-        generate_export_diff_pdf(
-            eap_registration_id=instance.id,
-            version=latest_eap.version,
-        )
-
     partner_ns_emails = list(latest_eap.partner_contacts.values_list("email", flat=True))
-
     regional_coordinator_emails: list[str] = get_coordinator_emails_by_region(instance.country.region)
 
     recipients = [
@@ -351,13 +338,11 @@ def send_eap_resubmission_email(eap_registration_id: int):
         mailtype=email_type,
         cc_recipients=cc_recipients,
     )
-
     return True
 
 
 @shared_task
 def send_feedback_email_for_resubmitted_eap(eap_registration_id: int):
-
     instance = EAPRegistration.objects.filter(id=eap_registration_id).first()
     if not instance:
         return None
@@ -388,7 +373,7 @@ def send_feedback_email_for_resubmitted_eap(eap_registration_id: int):
     email_context = get_eap_email_context(instance)
     email_subject = (
         f"[DREF {instance.get_eap_type_display()} FEEDBACK] "
-        f"{instance.country} {instance.disaster_type} version {latest_eap.version} TO {instance.national_society}"
+        f"{instance.country} {instance.disaster_type} version {latest_eap.version} TO {instance.national_society.society_name}"
     )
     email_body = render_to_string("email/eap/feedback_to_revised_eap.html", email_context)
     email_type = "Feedback to the National Society"
@@ -458,18 +443,6 @@ def send_pending_pfa_email(eap_registration_id: int):
     is_full_eap = instance.get_eap_type_enum == EAPType.FULL_EAP
 
     latest_eap = instance.latest_full_eap if is_full_eap else instance.latest_simplified_eap
-
-    if not latest_eap.diff_file:
-        generate_export_diff_pdf(
-            eap_registration_id=instance.id,
-            version=latest_eap.version,
-        )
-
-    if is_full_eap and not instance.summary_file:
-        generate_eap_summary_pdf(
-            eap_registration_id=instance.id,
-        )
-
     partner_ns_emails = list(latest_eap.partner_contacts.values_list("email", flat=True))
 
     regional_coordinator_emails: list[str] = get_coordinator_emails_by_region(instance.country.region)

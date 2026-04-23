@@ -5,6 +5,7 @@
     <tr>
         <td style="line-height:1.6;">
             <p style="font-weight: bold;">Dear colleagues,</p>
+            <br>
             <p>
                 <span style="text-transform: uppercase; font-weight: bold;">{{ national_society }}</span>
                 is hereby submitting the {{ latest_version }} version of {{ national_society }} {{ disaster_type }} EAP to the IFRC-DREF.
@@ -58,7 +59,9 @@
                         NS contact Person
                     </td>
                     <td style="border:1px solid #000000;">
-                        {{ ns_contact_name }} / {{ ns_contact_email }}
+                        {{ ns_contact_name }}
+                        {% if ns_contact_title %} / {{ ns_contact_title }}{% endif %}
+                        / {{ ns_contact_email }}
                     </td>
                 </tr>
                 {% if supporting_partners %}
@@ -81,30 +84,36 @@
                 Find attached the documents.
             </p>
 
+            <br>
             <p>Attachments:</p>
             <ul>
-            <li> <a href="{{ diff_file }}">
-                        Revised EAP PDF
-                    </a></li>
+                {% if diff_file %}
+                <li>
+                    <a href="{{ diff_file }}">
+                        Revised EAP PDF with modification in tracked changes
+                    </a>
+                </li>
+                {% endif %}
                 <li>
                     <a href="{{ budget_file }}">
                         Revised EAP budget
                     </a>
                 </li>
-            {% if updated_checklist_file %}
+                {% if updated_checklist_file %}
                 <li>
                     <a href="{{ updated_checklist_file }}">
                         Review checklist with National Society response to comments
                     </a>
                 </li>
-            {% endif %}
+                {% endif %}
             </ul>
             <!-- Signature -->
+            <br>
             <p style="margin-top:16px;">
                 Kind regards,<br>
                 {{ ns_contact_name }}<br>
                 {{ ns_contact_email }}<br>
-                {{ ns_contact_phone }}
+                {% if ns_contact_phone %}{{ ns_contact_phone }}{% endif %}
             </p>
 
         </td>

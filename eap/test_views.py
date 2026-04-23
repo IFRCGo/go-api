@@ -1790,28 +1790,22 @@ class EAPStatusTransitionTestCase(APITestCase):
         response = self.client.patch(url, update_data, format="json")
         self.assertEqual(response.status_code, 400, response.data)
 
-    @mock.patch("eap.serializers.generate_export_eap_pdf")
+    @mock.patch("eap.serializers.chain")
     @mock.patch("eap.serializers.group")
-    @mock.patch("eap.serializers.send_new_eap_submission_email")
     @mock.patch("eap.serializers.send_feedback_email")
-    @mock.patch("eap.serializers.send_eap_resubmission_email")
     @mock.patch("eap.serializers.send_technical_validation_email")
     @mock.patch("eap.serializers.send_feedback_email_for_resubmitted_eap")
-    @mock.patch("eap.serializers.send_pending_pfa_email")
     @mock.patch("eap.serializers.send_approved_email")
     def test_status_transitions_trigger_email(
         self,
         send_approved_email,
-        send_pending_pfa_email,
         send_feedback_email_for_resubmitted_eap,
         send_technical_validation_email,
-        send_eap_resubmission_email,
         send_feedback_email,
-        send_new_eap_submission_email,
         mock_group,
-        generate_export_eap_pdf,
+        mock_chain,
     ):
-
+        mock_chain.return_value.apply_async = mock.Mock()
         # Create permissions
         management.call_command("make_permissions")
 
@@ -1872,13 +1866,13 @@ class EAPStatusTransitionTestCase(APITestCase):
         with self.capture_on_commit_callbacks(execute=True):
             response = self.client.post(url, data, format="json")
         self.assert_200(response)
+
+        self.assertTrue(mock_chain.called)
+        self.assertTrue(mock_chain.return_value.apply_async.called)
+        mock_chain.reset_mock()
+
         eap_registration.refresh_from_db()
         self.assertEqual(response.data["status"], EAPStatus.UNDER_REVIEW)
-        generate_export_eap_pdf.delay.assert_called_once_with(
-            eap_registration_id=eap_registration.id, version=simplified_eap.version
-        )
-        send_new_eap_submission_email.delay.assert_called_once_with(eap_registration.id)
-        send_new_eap_submission_email.delay.reset_mock()
 
         # UNDER_REVIEW -> NS_ADDRESSING_COMMENTS
         data = {
@@ -1947,12 +1941,9 @@ class EAPStatusTransitionTestCase(APITestCase):
         eap_registration.refresh_from_db()
         self.assertEqual(response.data["status"], EAPStatus.UNDER_REVIEW)
 
-        # NOTE: Check that two signatures are created
-        mock_group.assert_called_once()
-        self.assertEqual(len(mock_group.call_args.args), 2)
-
-        send_eap_resubmission_email.delay.assert_called_once_with(eap_registration.id)
-        send_eap_resubmission_email.delay.reset_mock()
+        self.assertTrue(mock_chain.called)
+        self.assertTrue(mock_chain.return_value.apply_async.called)
+        mock_chain.reset_mock()
 
         # AGAIN NOTE: Transition to NS_ADDRESSING_COMMENTS
         # UNDER_REVIEW -> NS_ADDRESSING_COMMENTS
@@ -2017,9 +2008,10 @@ class EAPStatusTransitionTestCase(APITestCase):
         self.assert_200(response)
         eap_registration.refresh_from_db()
         self.assertEqual(response.data["status"], EAPStatus.UNDER_REVIEW)
-        self.assertTrue(mock_group.called)
-        send_eap_resubmission_email.delay.assert_called_once_with(eap_registration.id)
-        send_eap_resubmission_email.delay.reset_mock()
+
+        self.assertTrue(mock_chain.called)
+        self.assertTrue(mock_chain.return_value.apply_async.called)
+        mock_chain.reset_mock()
 
         # Transition UNDER_REVIEW -> TECHNICALLY_VALIDATED
         data = {"status": EAPStatus.TECHNICALLY_VALIDATED}
@@ -2096,9 +2088,10 @@ class EAPStatusTransitionTestCase(APITestCase):
         self.assert_200(response)
         eap_registration.refresh_from_db()
         self.assertEqual(response.data["status"], EAPStatus.UNDER_REVIEW)
-        self.assertTrue(mock_group.called)
-        send_eap_resubmission_email.delay.assert_called_once_with(eap_registration.id)
-        send_eap_resubmission_email.delay.reset_mock()
+
+        self.assertTrue(mock_chain.called)
+        self.assertTrue(mock_chain.return_value.apply_async.called)
+        mock_chain.reset_mock()
 
         # Again Transition UNDER_REVIEW -> TECHNICALLY_VALIDATED
         data = {"status": EAPStatus.TECHNICALLY_VALIDATED}
@@ -2132,7 +2125,16 @@ class EAPStatusTransitionTestCase(APITestCase):
         self.assert_200(response)
         self.assertEqual(response.data["status"], EAPStatus.PENDING_PFA)
         eap_registration.refresh_from_db()
-        send_pending_pfa_email.delay.assert_called_once_with(eap_registration.id)
+
+        self.assertTrue(mock_chain.called)
+        self.assertTrue(mock_group.called)
+        self.assertTrue(mock_chain.return_value.apply_async.called)
+
+        tasks = mock_group.call_args[0][0]
+        self.assertEqual(len(tasks), 1)
+
+        mock_chain.reset_mock()
+        mock_group.reset_mock()
 
         # Transition PENDING_PFA -> APPROVED
         data = {"status": EAPStatus.APPROVED}
