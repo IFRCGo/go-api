@@ -56,6 +56,7 @@ class EAPEmailPreview(APIView):
                 "disaster_type": "Flood",
                 "total_budget": "250,000 CHF",
                 "ns_contact_name": "Test Ns Contact name",
+                "ns_contact_title": "Programme Manager",
                 "ns_contact_email": "test.Ns@gmail.com",
                 "ns_contact_phone": "+977-9800000000",
             },

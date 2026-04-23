@@ -8,6 +8,7 @@
             <p>
                 Dear colleagues,
             </p>
+            <br>
             <p>
                 <span style="text-transform: uppercase; font-weight: bold;">{{ national_society }}</span>, wishes to inform the IFRC-DREF Team that has started to work on the development of an 
                 <span style="text-transform: uppercase; font-weight: bold;"> {{ eap_type_display|default:"EAP" }}</span>.
@@ -40,11 +41,12 @@
             </table>
 
             <!-- Signature -->
+            <br>
             <p style="margin-top:16px;">
                 Kind regards,<br>
                 {{ ns_contact_name }}<br>
                 {{ ns_contact_email }}<br>
-                {{ ns_contact_phone }}
+                {% if ns_contact_phone %}{{ ns_contact_phone }}{% endif %}
             </p>
         </td>
     </tr>

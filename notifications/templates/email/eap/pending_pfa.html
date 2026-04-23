@@ -10,6 +10,7 @@
             </p>
 
             <!-- Intro paragraph -->
+            <br>
             <p>
                 We are glad to inform you that the {{country_name}} {{disaster_type}} EAP has been <strong>approved by the DREF Appeal Manager</strong>. Congratulations!
             </p>
@@ -18,19 +19,19 @@
                 The IFRC Project should start the PFA process right away and upload the PFA in GO within the next 14 days.
             </p>
 
+            <br>
             <p>
                 If you have any questions on the process or the next steps, please don’t hesitate to reach out to 
                 <a href="mailto:DREF.anticipatorypillar@ifrc.org">DREF.anticipatorypillar@ifrc.org</a>.
             </p>
-            <p><strong>Attached documents:</strong></p>
-               <ul>
-                {% if validated_budget_file %}
-                    <li>
-                        <a href="{{ validated_budget_file }}">
-                            Validated Budget File
-                        </a>
-                    </li>
-                {% endif %}
+            <br>
+            <p>Attached documents:</p>
+            <ul>
+                <li>
+                    <a href="{{ validated_budget_file }}">
+                        Uploaded Validated Budget File
+                    </a>
+                </li>
                 {% if summary_file %}
                 <li>
                     <a href="{{ summary_file }}">
@@ -38,9 +39,9 @@
                     </a>
                 </li>
                  {% endif %}
-                {% if diff_file %}
+                {% if export_file %}
                 <li>
-                    <a href="{{ diff_file }}">
+                    <a href="{{ export_file }}">
                       Auto-generated PDF extract
                     </a>
                 </li>
