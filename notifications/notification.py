@@ -73,6 +73,10 @@ def construct_msg(cc_addresses, subject, html):
     return msg
 
 
+def clean_emails(emails):
+    return [e for e in emails if isinstance(e, str) and e.strip()]
+
+
 def send_notification(subject, recipients, html, mailtype="", cc_recipients=None, files=None):
     """Generic email sending method, handly only HTML emails currently"""
     cc_recipients = cc_recipients or []
@@ -84,9 +88,13 @@ def send_notification(subject, recipients, html, mailtype="", cc_recipients=None
             print("-" * 22, "EMAIL END -", "-" * 22)
         return
 
-    to_addresses = recipients if isinstance(recipients, list) else [recipients]
-    cc_addresses = cc_recipients if isinstance(cc_recipients, list) else [cc_recipients]
+    to_addresses = clean_emails(recipients)
+    cc_addresses = clean_emails(cc_recipients)
     addresses = to_addresses + cc_addresses
+
+    if not addresses:
+        logger.info("No valid email addresses provided for sending the notification.")
+        return
 
     if settings.DEBUG_EMAIL:
         print("-" * 22, "EMAIL START", "-" * 22)
