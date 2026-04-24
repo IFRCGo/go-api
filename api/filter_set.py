@@ -181,7 +181,7 @@ class EventFilter(filters.FilterSet):
     countries__in = ListFilter(field_name="countries__id")
     regions__in = ListFilter(field_name="regions__id")
     id = filters.NumberFilter(field_name="id", lookup_expr="exact")
-    source = filters.MultipleChoiceFilter(choices=Event.EventSources.choices, lookup_expr="exact")
+    source = filters.ChoiceFilter(choices=Event.EventSources.choices, lookup_expr="exact")
 
     is_subscribed = filters.BooleanFilter(label="is_subscribed", method="get_is_subcribed_event")
 
