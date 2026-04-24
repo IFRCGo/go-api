@@ -88,6 +88,9 @@ router.register(r"disaster_type", api_views.DisasterTypeViewset, basename="disas
 router.register(r"admin2", api_views.Admin2Viewset, basename="admin2")
 router.register(r"district", api_views.DistrictViewset, basename="district")
 router.register(r"district_rmd", api_views.DistrictRMDViewset, basename="district_rmd")
+
+router.register(r"emergency", api_views.EmergencyViewset, basename="emergency")
+
 router.register(r"domainwhitelist", registration_views.DomainWhitelistViewset)
 router.register(r"eru", deployment_views.ERUViewset, basename="eru")
 router.register(
