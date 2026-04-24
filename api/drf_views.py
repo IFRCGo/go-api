@@ -89,6 +89,7 @@ from .models import (
     Export,
     ExternalPartner,
     FieldReport,
+    KeyFigure,
     MainContact,
     Profile,
     Region,
@@ -123,6 +124,7 @@ from .serializers import (  # AppealSerializer,; Tableau Serializers; AppealTabl
     CountrySupportingPartnerSerializer,
     CountryTableauSerializer,
     DeploymentsByEventSerializer,
+    DetailEmergencySerializer,
     DetailEventSerializer,
     DisasterTypeSerializer,
     DistrictSerializer,
@@ -1560,11 +1562,12 @@ class CountrySupportingPartnerViewSet(viewsets.ModelViewSet):
         return CountrySupportingPartner.objects.select_related("country")
 
 
-class EmergencyViewset(viewsets.ReadOnlyModelViewSet):
+class EmergencyViewset(ReadOnlyVisibilityViewset):
     queryset = Event.objects.all()
     lookup_field = "id"
     serializer_class = DetailEmergencySerializer
     filterset_class = EventFilter
+    visibility_model_class = Event
 
     def get_queryset(self):
         return (
@@ -1582,9 +1585,21 @@ class EmergencyViewset(viewsets.ReadOnlyModelViewSet):
                 Prefetch("contacts", queryset=EventContact.objects.all()),
             )
             .annotate(
-                latest_field_report_id=Subquery(
-                    FieldReport.objects.filter(event=OuterRef("pk")).order_by("-created_at").values("id")[:1]
+                first_field_report_id=Subquery(
+                    FieldReport.objects.filter(event=OuterRef("pk"))
+                    .order_by(
+                        "fr_num",
+                        "updated_at",
+                    )
+                    .values("id")[:1]
                 ),
-                appeal_id=Subquery(Appeal.objects.filter(event=OuterRef("pk")).order_by("-created_at").values("id")[:1]),
+                latest_field_report_id=Subquery(
+                    FieldReport.objects.filter(event=OuterRef("pk"))
+                    .order_by(
+                        "-fr_num",
+                        "-updated_at",
+                    )
+                    .values("id")[:1]
+                ),
             )
         )

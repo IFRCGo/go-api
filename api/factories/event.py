@@ -12,6 +12,7 @@ from ..models import (
     AppealHistory,
     AppealType,
     Event,
+    EventContact,
     EventFeaturedDocument,
     EventLink,
 )
@@ -133,3 +134,9 @@ class AppealHistoryFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = AppealHistory
+
+
+class EventContactFactory(factory.django.DjangoModelFactory):
+
+    class Meta:
+        model = EventContact
