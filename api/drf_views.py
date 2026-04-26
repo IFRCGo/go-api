@@ -987,6 +987,10 @@ class AppealDocumentViewset(viewsets.ReadOnlyModelViewSet):
         "iso",
     ).prefetch_related(
         "appeal__event__countries_for_preview",
+        Prefetch(
+            "appeal__event__appeals",
+            queryset=Appeal.objects.order_by("-start_date", "-end_date"),
+        ),
     )
     ordering_fields = (
         "created_at",
