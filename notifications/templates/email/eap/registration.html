@@ -1,0 +1,55 @@
+{% include "design/head3.html" %}
+
+<table width="80%" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff">
+    <tr>
+        <td>
+
+            <!-- Intro paragraph -->
+            <p>
+                Dear colleagues,
+            </p>
+            <br>
+            <p>
+                <span style="text-transform: uppercase; font-weight: bold;">{{ national_society }}</span>, wishes to inform the IFRC-DREF Team that has started to work on the development of an 
+                <span style="text-transform: uppercase; font-weight: bold;"> {{ eap_type_display|default:"EAP" }}</span>.
+            </p>
+
+            <!-- Main data table -->
+            <table cellpadding="6" cellspacing="0" border="1" style="border-collapse: collapse; width: 100%; margin: 12px 0;">
+                <tr>
+                    <td style="font-weight: bold; width: 40%;">Country</td>
+                    <td>{{ country_name }}</td>
+                </tr>
+                <tr>
+                    <td style="font-weight: bold;">Type of EAP</td>
+                   <td> {{ eap_type_display|default:"Not Sure" }} </td>
+                </tr>
+                <tr>
+                    <td style="font-weight: bold;">Hazard</td>
+                    <td>{{ disaster_type }}</td>
+                </tr>
+                {% if supporting_partners %}
+                <tr>
+                    <td style="font-weight: bold;">Supporting Partner(s)</td>
+                    <td>
+                        {% for partner in supporting_partners %}
+                            {{ partner.society_name }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% endif %}
+            </table>
+
+            <!-- Signature -->
+            <br>
+            <p style="margin-top:16px;">
+                Kind regards,<br>
+                {{ ns_contact_name }}<br>
+                {{ ns_contact_email }}<br>
+                {% if ns_contact_phone %}{{ ns_contact_phone }}{% endif %}
+            </p>
+        </td>
+    </tr>
+</table>
+
+{% include "design/foot1.html" %}

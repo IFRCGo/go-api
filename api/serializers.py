@@ -11,10 +11,11 @@ from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 # from api.utils import pdf_exporter
-from api.tasks import generate_url
-from api.utils import CountryValidator, RegionValidator
+from api.tasks import generate_export_pdf
+from api.utils import CountryValidator, RegionValidator, generate_eap_export_url
 from deployments.models import EmergencyProject, Personnel, PersonnelDeployment
 from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
+from eap.models import EAPRegistration, FullEAP, SimplifiedEAP
 from lang.models import String
 from lang.serializers import ModelSerializer
 from local_units.models import DelegationOffice
@@ -371,12 +372,14 @@ class Admin2Serializer(GeoSerializerMixin, ModelSerializer):
     bbox = serializers.SerializerMethodField()
     centroid = serializers.SerializerMethodField()
     district_id = serializers.IntegerField(source="admin1.id", read_only=True)
+    district_name = serializers.CharField(source="admin1.name", read_only=True)
 
     class Meta:
         model = Admin2
         fields = (
             "id",
             "district_id",
+            "district_name",
             "name",
             "code",
             "bbox",
@@ -387,10 +390,11 @@ class Admin2Serializer(GeoSerializerMixin, ModelSerializer):
 
 class MiniAdmin2Serializer(ModelSerializer):
     district_id = serializers.IntegerField(source="admin1.id", read_only=True)
+    district_name = serializers.CharField(source="admin1.name", read_only=True)
 
     class Meta:
         model = Admin2
-        fields = ("id", "name", "code", "district_id")
+        fields = ("id", "name", "code", "district_id", "district_name")
 
 
 class MiniDistrictSerializer(ModelSerializer):
@@ -2545,6 +2549,13 @@ class ExportSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(source="get_status_display", read_only=True)
     # NOTE: is_pga is used to determine if the export contains PGA or not
     is_pga = serializers.BooleanField(default=False, required=False, write_only=True)
+    # NOTE: diff is used to determine if the export is requested for diff view or not
+    # Currently only used for EAP exports
+    diff = serializers.BooleanField(default=False, required=False, write_only=True, help_text="Only applicable for EAP exports")
+    # NOTE: Version of a EAP export being requested, only applicable for full and simplified EAP exports
+    version = serializers.IntegerField(required=False, write_only=True, help_text="Only applicable for EAP exports")
+    # NOTE: Only for FUll eap export
+    summary = serializers.BooleanField(default=False, required=False, write_only=True, help_text="Only applicable for FUll EAP")
 
     class Meta:
         model = Export
@@ -2556,10 +2567,12 @@ class ExportSerializer(serializers.ModelSerializer):
         return pdf_file
 
     def create(self, validated_data):
-        language = django_get_language()
         export_id = validated_data.get("export_id")
         export_type = validated_data.get("export_type")
         country_id = validated_data.get("per_country")
+        version = validated_data.pop("version", None)
+        diff = validated_data.pop("diff", False)
+        summary = validated_data.pop("summary", False)
         if export_type == Export.ExportType.DREF:
             title = Dref.objects.filter(id=export_id).first().title
         elif export_type == Export.ExportType.OPS_UPDATE:
@@ -2569,17 +2582,67 @@ class ExportSerializer(serializers.ModelSerializer):
         elif export_type == Export.ExportType.PER:
             overview = Overview.objects.filter(id=export_id).first()
             title = f"{overview.country.name}-preparedness-{overview.get_phase_display()}"
+        elif export_type == Export.ExportType.SIMPLIFIED_EAP:
+            if version:
+                simplified_eap = SimplifiedEAP.objects.filter(
+                    eap_registration=export_id,
+                    version=version,
+                ).first()
+                if not simplified_eap:
+                    raise serializers.ValidationError("No Simplified EAP found for the given EAP Registration ID and version")
+            else:
+                eap_registration = EAPRegistration.objects.filter(id=export_id).first()
+                if not eap_registration:
+                    raise serializers.ValidationError("No EAP Registration found for the given ID")
+
+                simplified_eap = eap_registration.latest_simplified_eap
+                if not simplified_eap:
+                    serializers.ValidationError("No Simplified EAP found for the given EAP Registration ID")
+
+            title = (
+                f"{simplified_eap.eap_registration.national_society.name}-{simplified_eap.eap_registration.disaster_type.name}"
+            )
+        elif export_type == Export.ExportType.FULL_EAP:
+            if version:
+                full_eap = FullEAP.objects.filter(
+                    eap_registration=export_id,
+                    version=version,
+                ).first()
+                if not full_eap:
+                    raise serializers.ValidationError("No Full EAP found for the given EAP Registration ID and version")
+            else:
+                eap_registration = EAPRegistration.objects.filter(id=export_id).first()
+                if not eap_registration:
+                    raise serializers.ValidationError("No EAP Registration found for the given ID")
+
+                full_eap = eap_registration.latest_full_eap
+                if not full_eap:
+                    serializers.ValidationError("No Full EAP found for the given EAP Registration ID")
+
+            title = f"{full_eap.eap_registration.national_society.name}-{full_eap.eap_registration.disaster_type.name}"
         else:
             title = "Export"
         user = self.context["request"].user
 
         if export_type == Export.ExportType.PER:
             validated_data["url"] = f"{settings.GO_WEB_INTERNAL_URL}/countries/{country_id}/{export_type}/{export_id}/export/"
+
+        elif export_type in [
+            Export.ExportType.SIMPLIFIED_EAP,
+            Export.ExportType.FULL_EAP,
+        ]:
+            validated_data["url"] = generate_eap_export_url(
+                registration_id=export_id,
+                version=version,
+                diff=diff,
+                summary=summary,
+            )
+
         else:
             validated_data["url"] = f"{settings.GO_WEB_INTERNAL_URL}/{export_type}/{export_id}/export/"
 
         # Adding is_pga to the url
-        is_pga = validated_data.pop("is_pga")
+        is_pga = validated_data.pop("is_pga", False)
         if is_pga:
             validated_data["url"] += "?is_pga=true"
         validated_data["requested_by"] = user
@@ -2589,7 +2652,8 @@ class ExportSerializer(serializers.ModelSerializer):
             export.requested_at = timezone.now()
             export.save(update_fields=["status", "requested_at"])
 
-            transaction.on_commit(lambda: generate_url.delay(export.url, export.id, user.id, title, language))
+            language = django_get_language()
+            transaction.on_commit(lambda: generate_export_pdf.delay(export.id, title, language))
         return export
 
     def update(self, instance, validated_data):

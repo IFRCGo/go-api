@@ -279,6 +279,8 @@ cronjobs:
   # https://github.com/jazzband/django-oauth-toolkit/blob/master/docs/management_commands.rst#cleartokens
   - command: 'oauth_cleartokens'
     schedule: '0 1 * * *'
+  - command: 'eap_submission_reminder'
+    schedule: '0 0 * * *'
 
 
 elasticsearch:
