@@ -1,4 +1,5 @@
-from datetime import datetime, timezone
+from datetime import datetime
+from datetime import timezone as datetime_timezone
 
 import requests
 from django.conf import settings
@@ -21,7 +22,7 @@ class Command(BaseCommand):
     @staticmethod
     def parse_date(date_string):
         timeformat = "%Y-%m-%dT%H:%M:%S"
-        return datetime.strptime(date_string[:18], timeformat).replace(tzinfo=timezone.utc)
+        return datetime.strptime(date_string[:18], timeformat).replace(tzinfo=datetime_timezone.utc)
 
     def load(self, url: str, is_fednet):
         codes = Appeal.objects.values_list("code", flat=True)

@@ -619,7 +619,7 @@ HPC_CREDENTIAL = env("HPC_CREDENTIAL")
 APPLICATION_INSIGHTS_INSTRUMENTATION_KEY = env("APPLICATION_INSIGHTS_INSTRUMENTATION_KEY")
 
 if not TESTING and APPLICATION_INSIGHTS_INSTRUMENTATION_KEY:
-    MIDDLEWARE.append("opencensus.ext.django.middleware.OpencensusMiddleware")
+    MIDDLEWARE.append("middlewares.middlewares.OpencensusMiddlewareCompat")
     OPENCENSUS = {
         "TRACE": {
             "SAMPLER": "opencensus.trace.samplers.ProbabilitySampler(rate=1)",

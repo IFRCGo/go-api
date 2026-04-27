@@ -1,5 +1,10 @@
 import threading
 
+try:
+    from opencensus.ext.django.middleware import OpencensusMiddleware
+except Exception:  # pragma: no cover - optional dependency for local/dev
+    OpencensusMiddleware = None
+
 from django.http import HttpResponse
 
 # from reversion.middleware import RevisionMiddleware
@@ -49,6 +54,18 @@ class RequestMiddleware:
 
         setattr(_threadlocal, "request", request)
         return self.get_response(request)
+
+
+class OpencensusMiddlewareCompat(OpencensusMiddleware):
+    """Compatibility wrapper for Django 5.2 middleware interface."""
+
+    async_capable = False
+    sync_capable = True
+
+    def __init__(self, get_response=None):
+        super().__init__(get_response)
+        # Django 5.2 expects this attribute on middleware instances.
+        self.async_mode = False
 
 
 # Without this class the 'request revision' still works fine.

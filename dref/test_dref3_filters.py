@@ -1,6 +1,7 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from rest_framework import status
 
 from api.models import Country, Region, RegionName
@@ -24,7 +25,7 @@ class Dref3FilterTests(APITestCase):
         self.region2 = Region.objects.create(name=RegionName.AMERICAS, label="Americas")
         self.country1 = Country.objects.create(name="Country1", iso3="C11", iso="C1", region=self.region1)
         self.country2 = Country.objects.create(name="Country2", iso3="C22", iso="C2", region=self.region2)
-        today = datetime.utcnow().date()
+        today = timezone.now().date()
         self.dref_a = DrefFactory.create(
             appeal_code="APPEAL_A",
             national_society=self.country1,
@@ -132,8 +133,8 @@ class Dref3FilterTests(APITestCase):
         resp = self.client.get(
             self.url,
             {
-                "start_date_of_operation": (datetime.utcnow().date() - timedelta(days=7)).isoformat(),
-                "end_date_of_operation": (datetime.utcnow().date() + timedelta(days=15)).isoformat(),
+                "start_date_of_operation": (timezone.now().date() - timedelta(days=7)).isoformat(),
+                "end_date_of_operation": (timezone.now().date() + timedelta(days=15)).isoformat(),
                 "stage": "application",
             },
         )
