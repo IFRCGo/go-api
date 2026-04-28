@@ -282,7 +282,6 @@ cronjobs:
   - command: 'eap_submission_reminder'
     schedule: '0 0 * * *'
 
-
 elasticsearch:
   enabled: true
   httpPort: 9200
