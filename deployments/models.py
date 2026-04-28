@@ -277,6 +277,156 @@ class Personnel(DeployedPerson):
 
 
 @reversion.register()
+class RrmsPersonSnapshot(models.Model):
+    person_id = models.BigIntegerField(primary_key=True)
+    person_status = models.CharField(max_length=32, null=True, blank=True)
+    sex = models.CharField(max_length=32, null=True, blank=True)
+    current_availability = models.CharField(max_length=64, null=True, blank=True)
+    outofscope = models.BooleanField(null=True, blank=True)
+    organization_id = models.BigIntegerField(null=True, blank=True)
+    organization_name = models.CharField(max_length=255, null=True, blank=True)
+    roles_json = JSONField(null=True, blank=True)
+    languages_json = JSONField(null=True, blank=True)
+    tags_json = JSONField(null=True, blank=True)
+    personnel = models.ForeignKey(
+        Personnel,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="rrms_person_snapshots",
+    )
+    source_updated_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = "rrms_person_snapshot"
+        indexes = [
+            models.Index(fields=["organization_id"], name="rrms_person_org_idx"),
+            models.Index(fields=["personnel"], name="rrms_personnel_idx"),
+        ]
+        verbose_name = _("RRMS Person Snapshot")
+        verbose_name_plural = _("RRMS Person Snapshots")
+
+    def __str__(self):
+        return "RRMS Person %s" % self.person_id
+
+
+@reversion.register()
+class MolnixAppraisal(models.Model):
+    molnix_id = models.BigIntegerField(unique=True)
+    target_id = models.BigIntegerField()
+    deployment_molnix_id = models.BigIntegerField(null=True, blank=True)
+    stage = models.CharField(max_length=64, null=True, blank=True)
+    appraisers_count = models.IntegerField(null=True, blank=True)
+    score = models.DecimalField(max_digits=7, decimal_places=3, null=True, blank=True)
+    deployment_country_id = models.IntegerField(null=True, blank=True)
+    deployment_start = models.DateTimeField(null=True, blank=True)
+    deployment_end = models.DateTimeField(null=True, blank=True)
+    deployment_title = models.CharField(max_length=255, null=True, blank=True)
+    sending_organization_id = models.BigIntegerField(null=True, blank=True)
+    receiving_organization_id = models.BigIntegerField(null=True, blank=True)
+    deployment_tags_json = JSONField(null=True, blank=True)
+    competencies_json = JSONField(null=True, blank=True)
+    personnel = models.ForeignKey(
+        Personnel,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="molnix_appraisals",
+    )
+    created_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["target_id"], name="molnix_app_target_idx"),
+            models.Index(fields=["personnel"], name="molnix_app_personnel_idx"),
+            models.Index(fields=["updated_at"], name="molnix_app_updated_idx"),
+        ]
+        verbose_name = _("Molnix Appraisal")
+        verbose_name_plural = _("Molnix Appraisals")
+
+    def __str__(self):
+        return "Molnix Appraisal %s" % self.molnix_id
+
+
+@reversion.register()
+class MolnixAppraiser(models.Model):
+    molnix_id = models.BigIntegerField(unique=True)
+    appraisal_molnix_id = models.BigIntegerField()
+    appraisal = models.ForeignKey(
+        MolnixAppraisal,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="appraisers",
+    )
+    appraiser_type = models.CharField(max_length=32, null=True, blank=True)
+    person_id = models.BigIntegerField(null=True, blank=True)
+    personnel = models.ForeignKey(
+        Personnel,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="molnix_appraisers",
+    )
+    required = models.BooleanField(null=True, blank=True)
+    notified_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["appraisal_molnix_id"], name="molnix_appr_mol_idx"),
+            models.Index(fields=["appraisal"], name="molnix_appr_idx"),
+            models.Index(fields=["person_id"], name="molnix_appr_person_idx"),
+            models.Index(fields=["personnel"], name="molnix_appr_personnel_idx"),
+        ]
+        verbose_name = _("Molnix Appraiser")
+        verbose_name_plural = _("Molnix Appraisers")
+
+    def __str__(self):
+        return "Molnix Appraiser %s" % self.molnix_id
+
+
+@reversion.register()
+class RrmsEventParticipation(models.Model):
+    event_id = models.BigIntegerField()
+    event_name = models.CharField(max_length=255, null=True, blank=True)
+    person_id = models.BigIntegerField()
+    event_person_role = models.CharField(max_length=128, null=True, blank=True)
+    event_type = models.CharField(max_length=128, null=True, blank=True)
+    event_scale_type = models.CharField(max_length=128, null=True, blank=True)
+    event_from = models.DateTimeField(null=True, blank=True)
+    event_to = models.DateTimeField(null=True, blank=True)
+    participant_start = models.DateTimeField(null=True, blank=True)
+    participant_end = models.DateTimeField(null=True, blank=True)
+    requested = models.BooleanField(null=True, blank=True)
+    event_organization_id = models.BigIntegerField(null=True, blank=True)
+    event_organization_name = models.CharField(max_length=255, null=True, blank=True)
+    venue = models.CharField(max_length=255, null=True, blank=True)
+    tags_json = JSONField(null=True, blank=True)
+
+    class Meta:
+        db_table = "rrms_event_participation"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["event_id", "person_id", "event_person_role"],
+                name="rrms_event_person_role_uniq",
+            )
+        ]
+        indexes = [
+            models.Index(fields=["event_id"], name="rrms_event_id_idx"),
+            models.Index(fields=["person_id"], name="rrms_event_person_idx"),
+        ]
+        verbose_name = _("RRMS Event Participation")
+        verbose_name_plural = _("RRMS Event Participation")
+
+    def __str__(self):
+        return "RRMS Event %s Person %s" % (self.event_id, self.person_id)
+
+
+@reversion.register()
 class PartnerSocietyActivities(models.Model):
     activity = models.CharField(verbose_name=_("activity"), max_length=50)
 
