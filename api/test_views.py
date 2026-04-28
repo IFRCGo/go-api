@@ -1080,12 +1080,26 @@ class EmergencyViewTestCase(APITestCase):
             parent_event=None,
         )
 
+        self.event3 = EventFactory.create(
+            dtype=self.disaster_type,
+            source=models.Event.EventSources.APPEAL_ADMIN,
+            slug="test3",
+            parent_event=None,
+        )
+        self.appeal2 = AppealFactory.create(
+            event=self.event3,
+            dtype=self.disaster_type,
+            num_beneficiaries=9000,
+            amount_requested=10000,
+            amount_funded=1899999,
+        )
+
         self.url = "/api/v2/emergency/"
 
     def test_get_emergency_list(self):
         response = self.client.get(self.url)
         self.assert_200(response)
-        self.assertEqual(response.data["count"], 2)
+        self.assertEqual(response.data["count"], 3)
 
     def test_retrive_emergency_detail(self):
         url = f"/api/v2/emergency/{self.event1.id}/"
@@ -1100,12 +1114,19 @@ class EmergencyViewTestCase(APITestCase):
         self.assertEqual(response.data["latest_field_report_id"], self.field_report2.id)
 
     # Filter Tests
-    def test_filter_by_source(self):
+    def test_filter_by_who_source(self):
         url = f"{self.url}?source=120"
         response = self.client.get(url)
         self.assert_200(response)
         self.assertEqual(response.data["count"], 1)
         self.assertEqual(response.data["results"][0]["source"], models.Event.EventSources.WHO)
+
+    def test_filter_by_appeal_source(self):
+        url = f"{self.url}?source=150"
+        response = self.client.get(url)
+        self.assert_200(response)
+        self.assertEqual(response.data["count"], 1)
+        self.assertEqual(response.data["results"][0]["source"], models.Event.EventSources.APPEAL_ADMIN)
 
     def test_filter_by_source_no_match(self):
         url = f"{self.url}?source=500"

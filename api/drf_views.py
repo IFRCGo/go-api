@@ -1572,5 +1572,6 @@ class EmergencyViewset(viewsets.ReadOnlyModelViewSet):
                 latest_field_report_id=Subquery(
                     FieldReport.objects.filter(event=OuterRef("pk")).order_by("-created_at").values("id")[:1]
                 ),
+                appeal_id=Subquery(Appeal.objects.filter(event=OuterRef("pk")).order_by("-created_at").values("id")[:1]),
             )
         )

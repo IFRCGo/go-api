@@ -2611,6 +2611,7 @@ class DetailEmergencySerializer(serializers.ModelSerializer):
     visibility_display = serializers.CharField(source="get_visibility_display", read_only=True)
     source_display = serializers.CharField(source="get_source_display", read_only=True)
     latest_field_report_id = serializers.IntegerField(read_only=True)
+    appeal_id = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Event
@@ -2647,4 +2648,5 @@ class DetailEmergencySerializer(serializers.ModelSerializer):
             "updated_at",
             "previous_update",
             "latest_field_report_id",
+            "appeal_id",
         )
