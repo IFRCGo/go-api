@@ -2613,6 +2613,7 @@ class DetailEmergencySerializer(serializers.ModelSerializer):
     # NOTE: Populated from Queryset using Annotate
     first_field_report_id = serializers.IntegerField(read_only=True)
     latest_field_report_id = serializers.IntegerField(read_only=True)
+    appeal_id = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Event
@@ -2650,4 +2651,5 @@ class DetailEmergencySerializer(serializers.ModelSerializer):
             "previous_update",
             "first_field_report_id",
             "latest_field_report_id",
+            "appeal_id",
         )

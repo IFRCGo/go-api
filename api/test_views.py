@@ -1103,7 +1103,7 @@ class EmergencyViewTestCase(APITestCase):
     def test_get_emergency_list(self):
         response = self.client.get(self.url)
         self.assert_200(response)
-        self.assertEqual(response.data["count"], 2)
+        self.assertEqual(response.data["count"], 3)
 
     def test_retrive_emergency_detail(self):
         url = f"/api/v2/emergency/{self.event1.id}/"
@@ -1120,7 +1120,7 @@ class EmergencyViewTestCase(APITestCase):
         self.assertEqual(response.data["latest_field_report_id"], self.field_report1.id)
 
     # Filter Tests
-    def test_filter_by_source(self):
+    def test_filter_by_who_source(self):
         url = f"{self.url}?source=120"
         response = self.client.get(url)
         self.assert_200(response)
