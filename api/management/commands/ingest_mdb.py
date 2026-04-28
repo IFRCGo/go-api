@@ -13,7 +13,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from api.event_sources import SOURCES
 from api.fixtures.dtype_map import PK_MAP
 from api.logger import logger
 from api.models import (
@@ -249,7 +248,7 @@ class Command(BaseCommand):
                 "dtype": report_dtype,
                 "disaster_start_date": datetime.utcnow().replace(tzinfo=timezone.utc),
                 "auto_generated": True,
-                "auto_generated_source": SOURCES["report_ingest"],
+                "source": Event.EventSources.REPORT_INGEST,
             }
             event = Event(**event_record)
             event.save()

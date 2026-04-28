@@ -3,7 +3,6 @@ import xmltodict
 from dateutil.parser import parse
 from django.core.management.base import BaseCommand
 
-from api.event_sources import SOURCES
 from api.logger import logger
 from api.models import Country, CronJob, CronJobStatus, DisasterType, Event, GDACSEvent
 
@@ -104,7 +103,7 @@ class Command(BaseCommand):
                         "summary": data["description"],
                         "disaster_start_date": data["publication_date"],
                         "auto_generated": True,
-                        "auto_generated_source": SOURCES["gdacs"],
+                        "source": Event.EventSources.GDACS,
                         "ifrc_severity_level": data["alert_level"],
                     }
                     event = Event.objects.create(**fields)
