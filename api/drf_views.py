@@ -1585,5 +1585,6 @@ class EmergencyViewset(ReadOnlyVisibilityViewset):
                     )
                     .values("id")[:1]
                 ),
+                appeal_id=Subquery(Appeal.objects.filter(event=OuterRef("pk")).order_by("-created_at").values("id")[:1]),
             )
         )
