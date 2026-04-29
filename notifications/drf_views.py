@@ -71,7 +71,22 @@ class SurgeAlertFilter(filters.FilterSet):
 
 class SurgeAlertViewset(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (TokenAuthentication,)
-    queryset = SurgeAlert.objects.prefetch_related("molnix_tags", "molnix_tags__groups").select_related("event", "country").all()
+    queryset = (
+        SurgeAlert.objects.select_related(
+            "event",
+            "event__dtype",
+            "event__parent_event",
+            "country",
+            "country__region",
+        )
+        .prefetch_related(
+            "molnix_tags",
+            "molnix_tags__groups",
+            "event__countries",
+            "event__appeals",
+        )
+        .all()
+    )
     filterset_class = SurgeAlertFilter
     ordering_fields = ("created_at", "atype", "category", "event", "molnix_status", "opens")
     search_fields = (
