@@ -1477,7 +1477,15 @@ class GoHistoricalViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_class = GoHistoricalFilter
 
     def get_queryset(self):
-        return Event.objects.filter(appeals__isnull=False).distinct()
+        return (
+            Event.objects.annotate(has_appeals=models.Exists(Appeal.objects.filter(event=OuterRef("pk"))))
+            .filter(has_appeals=True)
+            .select_related("dtype")
+            .prefetch_related(
+                Prefetch("countries", queryset=Country.objects.select_related("region")),
+                "appeals",
+            )
+        )
 
 
 class CountryOfFieldReportToReviewViewset(viewsets.ReadOnlyModelViewSet):
