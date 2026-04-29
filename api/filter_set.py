@@ -284,6 +284,17 @@ class AppealHistoryFilter(filters.FilterSet):
         label="admin2",
         method="get_country_admin2",
     )
+    needs_confirmation = filters.BooleanFilter(
+        field_name="needs_confirmation",
+        label="needs_confirmation",
+        lookup_expr="exact",
+    )
+    has_event = filters.BooleanFilter(
+        field_name="appeal__event",
+        lookup_expr="isnull",
+        label="has_event",
+        exclude=True,
+    )
 
     class Meta:
         model = AppealHistory
