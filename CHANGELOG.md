@@ -6,6 +6,65 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+### Added
+ - Fix sentry N+1 issues
+ - Use Don_Code for country identification in ingest_ns_directory job
+ - Skip for empty email on notification
+ - Update contents on email notifications
+ - Show year for no-date-in-name events on Admin
+ - Add additional attachments for full EAP
+ - Update revise workflow with locked feature
+ - Add EAP options endpoint
+ - Add new endpoint for revise and update EAP workflow
+ - Add APCode enums for sectors
+ - Skip country name and society_name from auto-translation
+ - No hardwired protocols to email templates
+ - Use smaller pods for jobs
+ - Make proposed actions activities partially required
+ - Translation duplicate creationg issue
+ - Use more form-specific css definitions for CrisisCategorisationByCountry
+ - Add new fields and remove status activated
+ - Add validation to prevent updates for approved dref resources
+ - Add OLD_FINAL_REPORT in export type list
+ - Avoid skipping notification-sending for new entities created in gap-time
+ - Use select_related also for DREF3 optimisation
+ - Search for GUID in Notification guids Admin
+ - Fix N+1 issues for dref3 endpoint
+ - Fix ingest_appeals – date interval narrowing
+ - Update existing filter logics
+ - Include client ip in gunicorn logs
+ - Apply ingest_appeals to AppGW
+ - Add created_at and updated_at to EventAdmin details
+ - Remove configuration-snippet rows from ingress.yaml
+ - Fix ingest_climate and ingest_hdr error handling
+ - Add SourceInformation for trigger Translation
+ - Apply ingest_ns_contact, directory, document, country_plan_file to AppGW
+ - Set temporary URL for appeal-related jobs
+ - Set new URL for appeal-related jobs
+ - Remove required fields and add feedbacks
+ - CrisisCategorisationByCountry final version
+ - Add a severity level tooltip
+ - Add a new action to EventAdmin: create FR from Event
+ - Remove title from triggering translation
+ - Send notification to Crisis Categorization Validator when needed in CC
+ - Extend DREF3 permissions
+ - Fix urban_considerations and migration_considerations in PerMapDataView
+ - Change an ssh pub key
+ - Ordering fix in Emergencies, missing PER api endpoint value fix
+ - Chromatic redirection, only for Staging
+ - A fix to PerMapDataView
+ - Security upgrades of some packages, e.g. celery and pillow
+ - Fix missing frontend_url in notifications
+ - Avoid error 500 when deleting a district
+ - Use ADMIN1_PCO instead of ADMIN01COD for admin1 data
+ - Refactor tilesets manager
+ - Add a default ordering for EventContacts
+ - Validation checks only on status transition
+ - Add diff PDF to pending-PFA email attachment
+ - Add share EAP functionality
+ - Cache excluded doc and convert the serializer to one pass to reduce SQL queries
+ - Crisis categorization history to appear on event Admin
+
 ## 1.1.509
 
 ### Added
