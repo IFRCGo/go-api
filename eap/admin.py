@@ -5,6 +5,7 @@ from eap.models import (
     EAPFile,
     EAPRegistration,
     EAPType,
+    EmailRecipient,
     FullEAP,
     KeyActor,
     SimplifiedEAP,
@@ -19,6 +20,26 @@ class EAPFileAdmin(admin.ModelAdmin):
         "created_by",
         "modified_by",
     )
+
+
+@admin.register(EmailRecipient)
+class EmailRecipientAdmin(admin.ModelAdmin):
+    list_select_related = True
+    search_fields = ("email",)
+    list_display = (
+        "type",
+        "title",
+        "region",
+        "email",
+    )
+    list_filter = (
+        "type",
+        "region",
+    )
+    autocomplete_fields = ("region",)
+
+    def has_module_permission(self, request):
+        return request.user.is_superuser
 
 
 @admin.register(EAPRegistration)

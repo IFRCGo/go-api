@@ -1,7 +1,6 @@
 from datetime import datetime
 
 from celery import shared_task
-from django.conf import settings
 from django.contrib.auth.models import User
 from django.template.loader import render_to_string
 from django.utils import timezone
@@ -10,11 +9,12 @@ from rest_framework.authtoken.models import Token
 from api.logger import logger
 from api.playwright import render_pdf_from_url
 from api.utils import generate_eap_export_url
-from eap.models import EAPRegistration, EAPType, FullEAP, SimplifiedEAP
+from eap.models import EAPRegistration, EAPType, EmailRecipient, FullEAP, SimplifiedEAP
 from eap.utils import (
-    get_coordinator_emails_by_region,
     get_eap_email_context,
     get_eap_registration_email_context,
+    get_emails_by_type,
+    get_regional_coordinator_emails,
 )
 from main.utils import logger_context
 from notifications.notification import send_notification
@@ -168,17 +168,17 @@ def send_new_eap_registration_email(eap_registration_id: int):
     if not instance:
         return None
 
-    regional_coordinator_emails: list[str] = get_coordinator_emails_by_region(instance.country.region)
+    regional_coordinator_emails: list[str] = get_regional_coordinator_emails(instance.country.region)
 
     recipients = [
-        settings.EMAIL_EAP_DREF_ANTICIPATORY_PILLAR,
+        *get_emails_by_type(EmailRecipient.EmailType.DREF_ANTICIPATORY),
         instance.ifrc_contact_email,
     ]
     cc_recipients = list(
         set(
             [
                 instance.national_society_contact_email,
-                *settings.EMAIL_EAP_DREF_AA_GLOBAL_TEAM,
+                *get_emails_by_type(EmailRecipient.EmailType.DREF_AA_GLOBAL_TEAM),
                 *regional_coordinator_emails,
             ]
         )
@@ -214,17 +214,17 @@ def send_new_eap_submission_email(eap_registration_id: int):
 
     partner_ns_emails = list(latest_eap.partner_contacts.values_list("email", flat=True))
 
-    regional_coordinator_emails: list[str] = get_coordinator_emails_by_region(instance.country.region)
+    regional_coordinator_emails: list[str] = get_regional_coordinator_emails(instance.country.region)
 
     recipients = [
-        settings.EMAIL_EAP_DREF_ANTICIPATORY_PILLAR,
+        *get_emails_by_type(EmailRecipient.EmailType.DREF_ANTICIPATORY),
         instance.ifrc_contact_email,
     ]
     cc_recipients = list(
         set(
             [
                 instance.national_society_contact_email,
-                *settings.EMAIL_EAP_DREF_AA_GLOBAL_TEAM,
+                *get_emails_by_type(EmailRecipient.EmailType.DREF_AA_GLOBAL_TEAM),
                 *regional_coordinator_emails,
                 *partner_ns_emails,
             ]
@@ -261,7 +261,7 @@ def send_feedback_email(eap_registration_id: int):
 
     partner_ns_emails = list(latest_eap.partner_contacts.values_list("email", flat=True))
 
-    regional_coordinator_emails: list[str] = get_coordinator_emails_by_region(instance.country.region)
+    regional_coordinator_emails: list[str] = get_regional_coordinator_emails(instance.country.region)
 
     recipient = [
         instance.national_society_contact_email,
@@ -271,8 +271,8 @@ def send_feedback_email(eap_registration_id: int):
         set(
             [
                 ifrc_delegation_focal_point_email,
-                settings.EMAIL_EAP_DREF_ANTICIPATORY_PILLAR,
-                *settings.EMAIL_EAP_DREF_AA_GLOBAL_TEAM,
+                *get_emails_by_type(EmailRecipient.EmailType.DREF_ANTICIPATORY),
+                *get_emails_by_type(EmailRecipient.EmailType.DREF_AA_GLOBAL_TEAM),
                 *regional_coordinator_emails,
                 *partner_ns_emails,
             ]
@@ -307,10 +307,10 @@ def send_eap_resubmission_email(eap_registration_id: int):
         latest_eap = instance.latest_full_eap
 
     partner_ns_emails = list(latest_eap.partner_contacts.values_list("email", flat=True))
-    regional_coordinator_emails: list[str] = get_coordinator_emails_by_region(instance.country.region)
+    regional_coordinator_emails: list[str] = get_regional_coordinator_emails(instance.country.region)
 
     recipients = [
-        settings.EMAIL_EAP_DREF_ANTICIPATORY_PILLAR,
+        *get_emails_by_type(EmailRecipient.EmailType.DREF_ANTICIPATORY),
         instance.ifrc_contact_email,
     ]
 
@@ -318,7 +318,7 @@ def send_eap_resubmission_email(eap_registration_id: int):
         set(
             [
                 instance.national_society_contact_email,
-                *settings.EMAIL_EAP_DREF_AA_GLOBAL_TEAM,
+                *get_emails_by_type(EmailRecipient.EmailType.DREF_AA_GLOBAL_TEAM),
                 *regional_coordinator_emails,
                 *partner_ns_emails,
             ]
@@ -354,7 +354,7 @@ def send_feedback_email_for_resubmitted_eap(eap_registration_id: int):
 
     partner_ns_emails = list(latest_eap.partner_contacts.values_list("email", flat=True))
 
-    regional_coordinator_emails: list[str] = get_coordinator_emails_by_region(instance.country.region)
+    regional_coordinator_emails: list[str] = get_regional_coordinator_emails(instance.country.region)
 
     recipients = [
         instance.national_society_contact_email,
@@ -363,8 +363,8 @@ def send_feedback_email_for_resubmitted_eap(eap_registration_id: int):
     cc_recipients = list(
         set(
             [
-                settings.EMAIL_EAP_DREF_ANTICIPATORY_PILLAR,
-                *settings.EMAIL_EAP_DREF_AA_GLOBAL_TEAM,
+                *get_emails_by_type(EmailRecipient.EmailType.DREF_ANTICIPATORY),
+                *get_emails_by_type(EmailRecipient.EmailType.DREF_AA_GLOBAL_TEAM),
                 *regional_coordinator_emails,
                 *partner_ns_emails,
             ]
@@ -403,7 +403,7 @@ def send_technical_validation_email(eap_registration_id: int):
 
     partner_ns_emails = list(partner_contacts.values_list("email", flat=True))
 
-    regional_coordinator_emails: list[str] = get_coordinator_emails_by_region(instance.country.region)
+    regional_coordinator_emails: list[str] = get_regional_coordinator_emails(instance.country.region)
 
     recipient = [
         instance.national_society_contact_email,
@@ -412,8 +412,8 @@ def send_technical_validation_email(eap_registration_id: int):
     cc_recipients = list(
         set(
             [
-                settings.EMAIL_EAP_DREF_ANTICIPATORY_PILLAR,
-                *settings.EMAIL_EAP_DREF_AA_GLOBAL_TEAM,
+                *get_emails_by_type(EmailRecipient.EmailType.DREF_ANTICIPATORY),
+                *get_emails_by_type(EmailRecipient.EmailType.DREF_AA_GLOBAL_TEAM),
                 *regional_coordinator_emails,
                 *partner_ns_emails,
             ]
@@ -445,7 +445,7 @@ def send_pending_pfa_email(eap_registration_id: int):
     latest_eap = instance.latest_full_eap if is_full_eap else instance.latest_simplified_eap
     partner_ns_emails = list(latest_eap.partner_contacts.values_list("email", flat=True))
 
-    regional_coordinator_emails: list[str] = get_coordinator_emails_by_region(instance.country.region)
+    regional_coordinator_emails: list[str] = get_regional_coordinator_emails(instance.country.region)
 
     recipient = [
         instance.national_society_contact_email,
@@ -454,8 +454,8 @@ def send_pending_pfa_email(eap_registration_id: int):
     cc_recipients = list(
         set(
             [
-                settings.EMAIL_EAP_DREF_ANTICIPATORY_PILLAR,
-                *settings.EMAIL_EAP_DREF_AA_GLOBAL_TEAM,
+                *get_emails_by_type(EmailRecipient.EmailType.DREF_ANTICIPATORY),
+                *get_emails_by_type(EmailRecipient.EmailType.DREF_AA_GLOBAL_TEAM),
                 *regional_coordinator_emails,
                 *partner_ns_emails,
             ]
@@ -489,7 +489,7 @@ def send_approved_email(eap_registration_id: int):
     )
 
     partner_ns_emails = list(partner_contacts.values_list("email", flat=True))
-    regional_coordinator_emails: list[str] = get_coordinator_emails_by_region(instance.country.region)
+    regional_coordinator_emails: list[str] = get_regional_coordinator_emails(instance.country.region)
 
     recipient = [
         instance.national_society_contact_email,
@@ -498,8 +498,8 @@ def send_approved_email(eap_registration_id: int):
     cc_recipients = list(
         set(
             [
-                settings.EMAIL_EAP_DREF_ANTICIPATORY_PILLAR,
-                *settings.EMAIL_EAP_DREF_AA_GLOBAL_TEAM,
+                *get_emails_by_type(EmailRecipient.EmailType.DREF_ANTICIPATORY),
+                *get_emails_by_type(EmailRecipient.EmailType.DREF_AA_GLOBAL_TEAM),
                 *regional_coordinator_emails,
                 *partner_ns_emails,
             ]
@@ -534,7 +534,7 @@ def send_deadline_reminder_email(eap_registration_id: int):
 
     partner_ns_emails = list(partner_contacts.values_list("email", flat=True))
 
-    regional_coordinator_emails: list[str] = get_coordinator_emails_by_region(instance.country.region)
+    regional_coordinator_emails: list[str] = get_regional_coordinator_emails(instance.country.region)
 
     recipient = [
         instance.national_society_contact_email,
@@ -543,8 +543,8 @@ def send_deadline_reminder_email(eap_registration_id: int):
     cc_recipients = list(
         set(
             [
-                settings.EMAIL_EAP_DREF_ANTICIPATORY_PILLAR,
-                *settings.EMAIL_EAP_DREF_AA_GLOBAL_TEAM,
+                *get_emails_by_type(EmailRecipient.EmailType.DREF_ANTICIPATORY),
+                *get_emails_by_type(EmailRecipient.EmailType.DREF_AA_GLOBAL_TEAM),
                 *regional_coordinator_emails,
                 *partner_ns_emails,
             ]

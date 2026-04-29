@@ -6,15 +6,19 @@ from unittest import mock
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
 from django.core import management
+from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 from django.utils.translation import get_language as django_get_language
 
 from api.factories.country import CountryFactory
 from api.factories.disaster_type import DisasterTypeFactory
+from api.factories.region import RegionFactory
 from api.models import Export
 from deployments.factories.user import UserFactory
 from eap.factories import (
     EAPFileFactory,
     EAPRegistrationFactory,
+    EmailRecipientFactory,
     EnablingApproachFactory,
     FullEAPFactory,
     KeyActorFactory,
@@ -27,6 +31,7 @@ from eap.models import (
     EAPFile,
     EAPStatus,
     EAPType,
+    EmailRecipient,
     EnablingApproach,
     MonthsTimeFrameChoices,
     PlannedOperation,
@@ -2916,3 +2921,85 @@ class EAPGlobalFileTestCase(APITestCase):
     def test_get_template_files_unauthenticated(self):
         response = self.client.get(f"{self.url}budget_template/")
         self.assert_401(response)
+
+
+class EmailRecipientModelTest(APITestCase):
+    def setUp(self):
+        self.region = RegionFactory.create(
+            name=2,
+            label="Asia Pacific Test",
+        )
+
+    def test_valid_dref_anticipatory_without_region(self):
+        obj = EmailRecipientFactory(
+            title="Test Recipient",
+            type=EmailRecipient.EmailType.DREF_ANTICIPATORY,
+            region=None,
+            email="test1@example.com",
+        )
+        obj.full_clean()  # should not raise
+
+    def test_invalid_dref_anticipatory_with_region(self):
+        obj = EmailRecipientFactory(
+            title="Test Recipient",
+            type=EmailRecipient.EmailType.DREF_ANTICIPATORY,
+            region=self.region,
+            email="test2@example.com",
+        )
+        with self.assertRaises(ValidationError):
+            obj.full_clean()
+
+    def test_valid_global_team_without_region(self):
+        obj = EmailRecipientFactory(
+            title="Test Recipient",
+            type=EmailRecipient.EmailType.DREF_AA_GLOBAL_TEAM,
+            region=None,
+            email="test3@example.com",
+        )
+        obj.full_clean()
+
+    def test_invalid_global_team_with_region(self):
+        obj = EmailRecipientFactory(
+            title="Test Recipient",
+            type=EmailRecipient.EmailType.DREF_AA_GLOBAL_TEAM,
+            region=self.region,
+            email="test4@example.com",
+        )
+        with self.assertRaises(ValidationError):
+            obj.full_clean()
+
+    def test_valid_regional_coordinator_with_region(self):
+        obj = EmailRecipientFactory(
+            title="Test Recipient",
+            type=EmailRecipient.EmailType.REGIONAL_COORDINATOR,
+            region=self.region,
+            email="test5@example.com",
+        )
+        obj.full_clean()
+
+    def test_invalid_regional_coordinator_without_region(self):
+        obj = EmailRecipientFactory.create(
+            title="Test Recipient",
+            type=EmailRecipient.EmailType.REGIONAL_COORDINATOR,
+            region=None,
+            email="test6@example.com",
+        )
+        with self.assertRaises(ValidationError):
+            obj.full_clean()
+
+    def test_unique_constraint(self):
+        EmailRecipientFactory.create(
+            title="Test Recipient",
+            type=EmailRecipient.EmailType.DREF_ANTICIPATORY,
+            email="duplicate@example.com",
+        )
+
+        duplicate = EmailRecipient(
+            title="Test Recipient 2",
+            type=EmailRecipient.EmailType.DREF_ANTICIPATORY,
+            email="duplicate@example.com",
+        )
+
+        # full_clean won't catch DB constraint, so test save
+        with self.assertRaises(IntegrityError):
+            duplicate.save()
