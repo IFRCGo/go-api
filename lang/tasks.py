@@ -39,23 +39,41 @@ class ModelTranslator:
         if not initial_value or not initial_lang:
             return
 
+        model = type(obj)
+        app_label = model._meta.app_label
+        model_name = model._meta.model_name
+        table_field = f"{app_label}:{model_name}:{field}"
+        pending_langs = []
+        for lang in AVAILABLE_LANGUAGES:
+            lang_field = build_localized_fieldname(field, lang)
+            if getattr(obj, lang_field, None):
+                continue
+            pending_langs.append(lang)
+
+        cached_translations = {}
+        if pending_langs:
+            cached_translations = self.translator.get_cached_translations(
+                initial_value,
+                pending_langs,
+                source_language=initial_lang,
+                table_field=table_field,
+            )
+
         for lang in AVAILABLE_LANGUAGES:
             lang_field = build_localized_fieldname(field, lang)
             value = getattr(obj, lang_field, None)
             if value:
                 continue
 
-            model = type(obj)
-            app_label = model._meta.app_label
-            model_name = model._meta.model_name
-            table_field = f"{app_label}:{model_name}:{field}"
-
-            new_value = self.translator.translate_text(
-                initial_value,
-                lang,
-                source_language=initial_lang,
-                table_field=table_field,
-            )
+            if lang in cached_translations:
+                new_value = cached_translations[lang]
+            else:
+                new_value = self.translator.translate_text(
+                    initial_value,
+                    lang,
+                    source_language=initial_lang,
+                    table_field=table_field,
+                )
 
             if new_value is None:
                 logger.warning(f"Translation failed for Model ({type(obj)}<{lang_field}>) pk: ({obj.pk})")

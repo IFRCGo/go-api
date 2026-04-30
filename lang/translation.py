@@ -27,6 +27,9 @@ def sha256_hash(text):
 
 
 class BaseTranslator:
+    def get_cached_translations(self, text, dest_languages, source_language=None, table_field=""):
+        return {}
+
     def _fake_translation(self, text, dest_language, source_language, table_field=""):
         """
         This is only used for test
@@ -199,6 +202,31 @@ class IfrcTranslator(BaseTranslator):
                         num_calls=F("num_calls") + 1,
                     )
             return translated + textTail
+
+    def get_cached_translations(self, text, dest_languages, source_language=None, table_field=""):
+        if not dest_languages or len(text) >= 300:
+            return {}
+
+        text_hash = sha256_hash(text)
+        source_language = source_language or ""
+        caches = TranslationCache.objects.filter(
+            text_hash=text_hash,
+            source_language=source_language,
+            dest_language__in=dest_languages,
+        )
+        if not caches:
+            return {}
+
+        cache_by_lang = {cache.dest_language: cache for cache in caches}
+        cache_ids = [cache.id for cache in cache_by_lang.values()]
+        TranslationCache.objects.filter(id__in=cache_ids).update(
+            last_used=timezone.now(),
+            num_calls=F("num_calls") + 1,
+        )
+        TranslationCache.objects.filter(id__in=cache_ids, other_fields=False).exclude(table_field=table_field).update(
+            other_fields=True,
+        )
+        return {lang: cache.translated_text for lang, cache in cache_by_lang.items()}
 
 
 def get_translator_class():
