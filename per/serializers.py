@@ -628,23 +628,37 @@ class PerProcessSerializer(serializers.ModelSerializer):
             "translation_module_skip_auto_translation",
         )
 
+    @staticmethod
+    def _get_latest_prefetched_id(obj, attr_name, model_cls, filter_kwargs) -> typing.Optional[int]:
+        prefetched = getattr(obj, attr_name, None)
+        if prefetched is not None:
+            return prefetched[0].id if prefetched else None
+        instance = model_cls.objects.filter(**filter_kwargs).order_by("-id").first()
+        return instance.id if instance else None
+
     def get_assessment(self, obj) -> typing.Optional[int]:
-        assessment = PerAssessment.objects.filter(overview=obj).last()
-        if assessment:
-            return assessment.id
-        return None
+        return self._get_latest_prefetched_id(
+            obj,
+            "latest_perassessments",
+            PerAssessment,
+            {"overview": obj},
+        )
 
     def get_prioritization(self, obj) -> typing.Optional[int]:
-        prioritization = FormPrioritization.objects.filter(overview=obj).last()
-        if prioritization:
-            return prioritization.id
-        return None
+        return self._get_latest_prefetched_id(
+            obj,
+            "latest_prioritizations",
+            FormPrioritization,
+            {"overview": obj},
+        )
 
     def get_workplan(self, obj) -> typing.Optional[int]:
-        workplan = PerWorkPlan.objects.filter(overview=obj).last()
-        if workplan:
-            return workplan.id
-        return None
+        return self._get_latest_prefetched_id(
+            obj,
+            "latest_workplans",
+            PerWorkPlan,
+            {"overview": obj},
+        )
 
 
 class PublicPerProcessSerializer(serializers.ModelSerializer):
@@ -677,23 +691,37 @@ class PublicPerProcessSerializer(serializers.ModelSerializer):
             "ns_focal_point_email",
         )
 
+    @staticmethod
+    def _get_latest_prefetched_id(obj, attr_name, model_cls, filter_kwargs) -> typing.Optional[int]:
+        prefetched = getattr(obj, attr_name, None)
+        if prefetched is not None:
+            return prefetched[0].id if prefetched else None
+        instance = model_cls.objects.filter(**filter_kwargs).order_by("-id").first()
+        return instance.id if instance else None
+
     def get_assessment(self, obj) -> typing.Optional[int]:
-        assessment = PerAssessment.objects.filter(overview=obj).last()
-        if assessment:
-            return assessment.id
-        return None
+        return self._get_latest_prefetched_id(
+            obj,
+            "latest_perassessments",
+            PerAssessment,
+            {"overview": obj},
+        )
 
     def get_prioritization(self, obj) -> typing.Optional[int]:
-        prioritization = FormPrioritization.objects.filter(overview=obj).last()
-        if prioritization:
-            return prioritization.id
-        return None
+        return self._get_latest_prefetched_id(
+            obj,
+            "latest_prioritizations",
+            FormPrioritization,
+            {"overview": obj},
+        )
 
     def get_workplan(self, obj) -> typing.Optional[int]:
-        workplan = PerWorkPlan.objects.filter(overview=obj).last()
-        if workplan:
-            return workplan.id
-        return None
+        return self._get_latest_prefetched_id(
+            obj,
+            "latest_workplans",
+            PerWorkPlan,
+            {"overview": obj},
+        )
 
 
 class QuestionResponsesSerializer(
