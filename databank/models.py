@@ -351,7 +351,7 @@ class CountryOverview(models.Model):
 
     @property
     def appeals(self):
-        return Appeal.objects.filter(country=self.country).all()
+        return Appeal.objects.filter(country=self.country).select_related("dtype", "event")
 
     @property
     def past_crises_events_count(self):
