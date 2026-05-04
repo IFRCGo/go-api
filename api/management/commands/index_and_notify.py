@@ -1035,7 +1035,7 @@ class Command(BaseCommand):
         condR = Q(real_data_update__gte=time_diff)  # instead of modified at
         cond2 = ~Q(previous_update__gte=time_diff_1_day)  # negate (~) no previous_update in the last day, so send once a day
         condF = Q(
-            auto_generated_source="New field report"
+            source=Event.EventSource.NEW_REPORT
         )  # exclude those events that were generated from field reports, to avoid 2x notif.
         condE = Q(status=CronJobStatus.ERRONEOUS)
 

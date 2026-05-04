@@ -11,7 +11,7 @@ class Command(BaseCommand):
     help = "Add new event (=emergency) entries from WHO API"
 
     def handle(self, *args, **options):
-        guids = [e.auto_generated_source for e in Event.objects.filter(auto_generated_source__startswith="www.who.int")]
+        guids = [e.source for e in Event.objects.filter(source=Event.EventSource.WHO)]
 
         logger.info("Querying WHO RSS feed for new emergency data")
         # get latest
@@ -131,7 +131,7 @@ class Command(BaseCommand):
                     "summary": summary,
                     "disaster_start_date": date,
                     "auto_generated": True,
-                    "auto_generated_source": data["guid"],
+                    "source": Event.EventSource.WHO,
                     "ifrc_severity_level": alert_level,
                 }
                 # TODO: fields['name'] sometimes exceeds 100 maxlength, so will need some altering if this will be used

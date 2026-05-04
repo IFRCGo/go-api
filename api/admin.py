@@ -26,7 +26,6 @@ from reversion_compare.admin import CompareVersionAdmin
 
 import api.models as models
 from api.admin_classes import RegionRestrictedAdmin
-from api.event_sources import SOURCES
 from api.management.commands.index_and_notify import Command as Notify
 from lang.admin import TranslationAdmin, TranslationInlineModelAdmin
 from notifications.models import RecordType, SubscriptionType
@@ -158,38 +157,6 @@ class IsFeaturedFilter(admin.SimpleListFilter):
             return queryset.filter(is_featured=False)
 
 
-class EventSourceFilter(admin.SimpleListFilter):
-    title = _("source")
-    parameter_name = "event_source"
-
-    def lookups(self, request, model_admin):
-        return (
-            ("input", _("Manual input")),
-            ("gdacs", _("GDACs scraper")),
-            ("who", _("WHO scraper")),
-            ("report_ingest", _("Field report ingest")),
-            ("report_admin", _("Field report admin")),
-            ("appeal_admin", _("Appeals admin")),
-            ("unknown", _("Unknown automated")),
-        )
-
-    def queryset(self, request, queryset):
-        if self.value() == "input":
-            return queryset.filter(auto_generated=False)
-        elif self.value() == "gdacs":
-            return queryset.filter(auto_generated_source=SOURCES["gdacs"])
-        elif self.value() == "who":
-            return queryset.filter(auto_generated_source__startswith="www.who.int")
-        elif self.value() == "report_ingest":
-            return queryset.filter(auto_generated_source=SOURCES["report_ingest"])
-        elif self.value() == "report_admin":
-            return queryset.filter(auto_generated_source=SOURCES["report_admin"])
-        elif self.value() == "appeal_admin":
-            return queryset.filter(auto_generated_source=SOURCES["appeal_admin"])
-        elif self.value() == "unknown":
-            return queryset.filter(auto_generated=True).filter(auto_generated_source__isnull=True)
-
-
 class DisasterTypeAdmin(CompareVersionAdmin, TranslationAdmin, admin.ModelAdmin):
     search_fields = ("name",)
 
@@ -246,9 +213,9 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
         "cc_status",
         "glide",
         "auto_generated",
-        "auto_generated_source",
+        "source",
     )
-    list_filter = [IsFeaturedFilter, EventSourceFilter]
+    list_filter = [IsFeaturedFilter, "source"]
     actions = ["create_field_reports"]
     search_fields = (
         "name",
@@ -369,7 +336,7 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
             self.readonly_fields = (
                 "appeals",
                 "field_reports",
-                "auto_generated_source",
+                "source",
                 "parent_event",
                 "created_at",
                 "updated_at",
@@ -378,7 +345,7 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
             self.readonly_fields = (
                 "appeals",
                 "field_reports",
-                "auto_generated_source",
+                "source",
                 "created_at",
                 "updated_at",
             )
@@ -651,7 +618,7 @@ class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAd
                 dtype=getattr(report, "dtype"),
                 disaster_start_date=getattr(report, "created_at"),
                 auto_generated=True,
-                auto_generated_source=SOURCES["report_admin"],
+                source=models.Event.EventSource.REPORT_ADMIN,
             )
             if getattr(report, "countries").exists():
                 for country in report.countries.all():
@@ -760,7 +727,7 @@ class AppealAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
                 dtype=getattr(appeal, "dtype"),
                 disaster_start_date=getattr(appeal, "start_date"),
                 auto_generated=True,
-                auto_generated_source=SOURCES["appeal_admin"],
+                source=models.Event.EventSource.APPEAL_ADMIN,
             )
             if appeal.country is not None:
                 event.countries.add(appeal.country)

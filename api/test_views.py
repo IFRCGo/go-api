@@ -1,6 +1,6 @@
 import re
 import uuid
-from datetime import timedelta
+from datetime import datetime, timedelta
 from unittest.mock import patch
 
 from django.contrib.auth.models import User
@@ -10,9 +10,11 @@ from django.urls import reverse
 from django.utils import timezone
 
 import api.models as models
+from api.factories.disaster_type import DisasterTypeFactory
 from api.factories.event import (
     AppealFactory,
     AppealType,
+    EventContactFactory,
     EventFactory,
     EventFeaturedDocumentFactory,
     EventLinkFactory,
@@ -1042,3 +1044,97 @@ class RegionSnippetVisibilityTest(APITestCase):
                 ]
             ),
         )
+
+
+class EmergencyViewTestCase(APITestCase):
+    def setUp(self):
+        super().setUp()
+        self.disaster_type = DisasterTypeFactory.create(
+            name="Flood",
+        )
+
+        self.event1 = EventFactory.create(
+            dtype=self.disaster_type,
+            source=models.Event.EventSource.GDACS,
+            slug="test1",
+            parent_event=None,
+        )
+        self.contact = EventContactFactory.create(
+            event=self.event1,
+        )
+
+        self.field_report1 = FieldReportFactory.create(
+            event=self.event1,
+            created_at=timezone.make_aware(datetime(2024, 1, 1)),
+            updated_at=timezone.make_aware(datetime(2026, 1, 1)),
+            fr_num=50,
+        )
+
+        self.field_report2 = FieldReportFactory.create(
+            event=self.event1,
+            created_at=timezone.make_aware(datetime(2024, 1, 1)),
+            updated_at=timezone.make_aware(datetime(2025, 1, 1)),
+            fr_num=20,
+        )
+
+        self.event2 = EventFactory.create(
+            dtype=self.disaster_type,
+            source=models.Event.EventSource.WHO,
+            slug="test2",
+            parent_event=None,
+        )
+
+        self.event3 = EventFactory.create(
+            dtype=self.disaster_type,
+            source=models.Event.EventSource.APPEAL_ADMIN,
+            slug="test3",
+            parent_event=None,
+        )
+        self.appeal2 = AppealFactory.create(
+            event=self.event3,
+            dtype=self.disaster_type,
+            num_beneficiaries=9000,
+            amount_requested=10000,
+            amount_funded=1899999,
+        )
+
+        self.url = "/api/v2/emergency/"
+
+    def test_get_emergency_list(self):
+        response = self.client.get(self.url)
+        self.assert_200(response)
+        self.assertEqual(response.data["count"], 3)
+
+    def test_retrive_emergency_detail(self):
+        url = f"/api/v2/emergency/{self.event1.id}/"
+        response = self.client.get(url)
+        self.assert_200(response)
+        self.assertEqual(response.data["id"], self.event1.id)
+        self.assertEqual(response.data["slug"], self.event1.slug)
+        self.assertEqual(response.data["name"], self.event1.name)
+        self.assertEqual(response.data["source"], models.Event.EventSource.GDACS)
+
+        # first field report id check
+        self.assertEqual(response.data["first_field_report_id"], self.field_report2.id)
+        # latest check field report
+        self.assertEqual(response.data["latest_field_report_id"], self.field_report1.id)
+
+    # Filter Tests
+    def test_filter_by_who_source(self):
+        url = f"{self.url}?source=120"
+        response = self.client.get(url)
+        self.assert_200(response)
+        self.assertEqual(response.data["count"], 1)
+        self.assertEqual(response.data["results"][0]["source"], models.Event.EventSource.WHO)
+
+    def test_filter_by_appeal_source(self):
+        url = f"{self.url}?source=150"
+        response = self.client.get(url)
+        self.assert_200(response)
+        self.assertEqual(response.data["count"], 1)
+        self.assertEqual(response.data["results"][0]["source"], models.Event.EventSource.APPEAL_ADMIN)
+
+    def test_filter_by_source_no_match(self):
+        url = f"{self.url}?source=500"
+        response = self.client.get(url)
+        self.assert_400(response)

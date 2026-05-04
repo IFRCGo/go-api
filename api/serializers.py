@@ -26,7 +26,6 @@ from notifications.models import Subscription
 from per.models import Overview
 from utils.file_check import validate_file_type
 
-from .event_sources import SOURCES
 from .models import (
     Action,
     ActionsTaken,
@@ -1065,7 +1064,7 @@ class ListMiniEventSerializer(ModelSerializer):
             "name",
             "slug",
             "dtype",
-            "auto_generated_source",
+            "source",
             "emergency_response_contact_email",
             "countries_for_preview",
         )
@@ -2197,7 +2196,7 @@ class FieldReportSerializer(
             summary=report.description or "",
             disaster_start_date=report.start_date,
             auto_generated=True,
-            auto_generated_source=SOURCES["new_report"],
+            source=Event.EventSource.NEW_REPORT,
             visibility=report.visibility,
             **{TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME: django_get_language()},
         )
@@ -2602,3 +2601,55 @@ class CountrySupportingPartnerSerializer(serializers.ModelSerializer):
     class Meta:
         model = CountrySupportingPartner
         fields = "__all__"
+
+
+class DetailEmergencySerializer(serializers.ModelSerializer):
+    contacts = EventContactSerializer(many=True, read_only=True)
+    key_figures = KeyFigureSerializer(many=True, read_only=True)
+    countries = MiniCountrySerializer(many=True, read_only=True)
+    ifrc_severity_level_display = serializers.CharField(source="get_ifrc_severity_level_display", read_only=True)
+    visibility_display = serializers.CharField(source="get_visibility_display", read_only=True)
+    source_display = serializers.CharField(source="get_source_display", read_only=True)
+    # NOTE: Populated from Queryset using Annotate
+    first_field_report_id = serializers.IntegerField(read_only=True)
+    latest_field_report_id = serializers.IntegerField(read_only=True)
+    appeal_id = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Event
+        fields = (
+            "name",
+            "dtype",
+            "countries",
+            "summary",
+            "disaster_start_date",
+            "auto_generated",
+            "source",
+            "source_display",
+            "key_figures",
+            "is_featured",
+            "is_featured_region",
+            "hide_attached_field_reports",
+            "hide_field_report_map",
+            "id",
+            "slug",
+            "ifrc_severity_level",
+            "ifrc_severity_level_display",
+            "ifrc_severity_level_update_date",
+            "parent_event",
+            "emergency_response_contact_email",
+            "visibility",
+            "visibility_display",
+            "contacts",
+            "num_injured",
+            "num_dead",
+            "num_missing",
+            "num_affected",
+            "num_displaced",
+            "created_at",
+            "updated_at",
+            "previous_update",
+            "first_field_report_id",
+            "latest_field_report_id",
+            "appeal_id",
+        )
