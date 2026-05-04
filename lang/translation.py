@@ -214,10 +214,9 @@ class IfrcTranslator(BaseTranslator):
             source_language=source_language,
             dest_language__in=dest_languages,
         )
-        if not caches:
-            return {}
-
         cache_by_lang = {cache.dest_language: cache for cache in caches}
+        if not cache_by_lang:
+            return {}
         cache_ids = [cache.id for cache in cache_by_lang.values()]
         TranslationCache.objects.filter(id__in=cache_ids).update(
             last_used=timezone.now(),
