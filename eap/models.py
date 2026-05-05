@@ -1,10 +1,12 @@
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
+from django.core.exceptions import ValidationError
 from django.db import models, transaction
+from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from api.models import Admin2, Country, DisasterType, District
+from api.models import Admin2, Country, DisasterType, District, Region
 from main.fields import SecureFileField
 
 
@@ -246,6 +248,64 @@ class EAPContact(models.Model):
 
     def __str__(self):
         return f"{self.name}"
+
+
+# NOTE: Managed through admin panel for now, used for email notification
+class EmailRecipient(models.Model):
+    class EmailType(models.IntegerChoices):
+        DREF_ANTICIPATORY = 10, "DREF Anticipatory Pillar"
+        DREF_AA_GLOBAL_TEAM = 20, "DREF AA Global Team"
+        REGIONAL_COORDINATOR = 30, "Regional Coordinator"
+
+    title = models.CharField(max_length=255, verbose_name=_("Title"))
+    type = models.IntegerField(choices=EmailType.choices, verbose_name=_("Email Type"))
+    region = models.ForeignKey(
+        Region,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        help_text=_("Only assign region for Regional Coordinator email type."),
+    )
+    email = models.EmailField()
+
+    # TYPING
+    id: int
+    region_id: int | None
+
+    class Meta:
+        verbose_name = _("Email Recipient")
+        verbose_name_plural = _("Email Recipients")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["type", "email"],
+                condition=Q(region__isnull=True),
+                name="unique_email_type_no_region",
+                violation_error_message=_("Email must be unique for the given type when no region is assigned."),
+            ),
+            models.UniqueConstraint(
+                fields=["type", "region", "email"],
+                condition=Q(region__isnull=False),
+                name="unique_email_type_region",
+                violation_error_message=_("Email must be unique for the given type and region."),
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.get_type_display()} - {self.email}"
+
+    def clean(self):
+        if (
+            self.type
+            in [
+                self.EmailType.DREF_ANTICIPATORY,
+                self.EmailType.DREF_AA_GLOBAL_TEAM,
+            ]
+            and self.region is not None
+        ):
+            raise ValidationError(f"{self.get_type_display()} should not have a region assigned.")
+
+        if self.type == self.EmailType.REGIONAL_COORDINATOR and self.region is None:
+            raise ValidationError("Regional coordinator must have a region.")
 
 
 class TimeFrame(models.IntegerChoices):

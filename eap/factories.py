@@ -10,6 +10,7 @@ from eap.models import (
     EAPRegistration,
     EAPStatus,
     EAPType,
+    EmailRecipient,
     EnablingApproach,
     FullEAP,
     KeyActor,
@@ -238,3 +239,12 @@ class FullEAPFactory(factory.django.DjangoModelFactory):
         if extracted:
             for actor in extracted:
                 self.key_actors.add(actor)
+
+
+class EmailRecipientFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = EmailRecipient
+
+    type = fuzzy.FuzzyChoice(EAPType)
+    email = factory.LazyAttribute(lambda obj: f"{obj.type.lower()}@example.com")
+    title = fuzzy.FuzzyText(length=10, prefix="Title-")

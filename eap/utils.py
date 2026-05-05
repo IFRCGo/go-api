@@ -9,31 +9,31 @@ from django.db.models.fields.related import ManyToManyField
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from api.models import Region, RegionName
-from eap.models import EAPType
-
-REGION_EMAIL_MAP: dict[RegionName, list[str]] = {
-    RegionName.AFRICA: settings.EMAIL_EAP_AFRICA_COORDINATORS,
-    RegionName.AMERICAS: settings.EMAIL_EAP_AMERICAS_COORDINATORS,
-    RegionName.ASIA_PACIFIC: settings.EMAIL_EAP_ASIA_PACIFIC_COORDINATORS,
-    RegionName.EUROPE: settings.EMAIL_EAP_EUROPE_COORDINATORS,
-    RegionName.MENA: settings.EMAIL_EAP_MENA_COORDINATORS,
-}
+from api.models import Region
+from eap.models import EAPType, EmailRecipient
 
 
-def get_coordinator_emails_by_region(region: Region | None) -> list[str]:
+def get_emails_by_type(email_type: EmailRecipient.EmailType) -> list[str]:
+    return list(EmailRecipient.objects.filter(type=email_type).values_list("email", flat=True))
+
+
+def get_regional_coordinator_emails(region: Region | None) -> list[str]:
     """
-    This function uses the REGION_EMAIL_MAP dictionary to map Region name to the corresponding list of email addresses.
+    This function retrieves the email addresses of regional coordinators for a given region.
     Args:
-        region: Region instance for which the coordinator emails are needed.
+        region: A Region instance for which to retrieve the regional coordinator emails.
     Returns:
-        List of email addresses corresponding to the region coordinators.
-        Returns an empty list if the region is None or not found in the mapping.
+        A list of email addresses of regional coordinators associated with the specified region.
     """
     if not region:
         return []
 
-    return REGION_EMAIL_MAP.get(region.name, [])
+    return list(
+        EmailRecipient.objects.filter(
+            type=EmailRecipient.EmailType.REGIONAL_COORDINATOR,
+            region=region,
+        ).values_list("email", flat=True)
+    )
 
 
 def get_file_url(file_obj):
