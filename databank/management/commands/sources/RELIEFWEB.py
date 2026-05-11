@@ -1,5 +1,6 @@
 import datetime
 import logging
+from urllib.parse import urlsplit, urlunsplit
 
 import requests
 from django.conf import settings
@@ -20,30 +21,38 @@ def parse_date(date):
     return datetime.datetime.strptime(date.split("T")[0], RELIEFWEB_DATETIME_FORMAT)
 
 
+def _fallback_reliefweb_url(url):
+    parts = urlsplit(url)
+    if parts.path.endswith("/"):
+        return urlunsplit((parts.scheme, parts.netloc, parts.path.rstrip("/"), parts.query, parts.fragment))
+    return url
+
+
+def _handle_reliefweb_gone(query_params, url, context, allow_fallback):
+    fallback_url = _fallback_reliefweb_url(url)
+    if allow_fallback and fallback_url != url:
+        logger.warning(
+            "ReliefWeb API returned 410 Gone for %s. Retrying with fallback URL: %s",
+            context,
+            fallback_url,
+        )
+        return _post_reliefweb(query_params, fallback_url, context, allow_fallback=False)
+    logger.warning(
+        "ReliefWeb API returned 410 Gone for %s. Skipping %s prefetch. URL: %s",
+        DISASTER_API,
+        context,
+        url,
+    )
+    return None
+
+
 def _post_reliefweb(query_params, url, context, *, allow_fallback=True):
     try:
         response = requests.post(url, json=query_params)
+        if response.status_code == 410:
+            return _handle_reliefweb_gone(query_params, url, context, allow_fallback)
         response.raise_for_status()
         return response.json()
-    except requests.HTTPError as exc:
-        status_code = exc.response.status_code if exc.response else None
-        if status_code == 410:
-            fallback_url = url.replace("/disasters/?", "/disasters?")
-            if allow_fallback and fallback_url != url:
-                logger.warning(
-                    "ReliefWeb API returned 410 Gone for %s. Retrying with fallback URL: %s",
-                    context,
-                    fallback_url,
-                )
-                return _post_reliefweb(query_params, fallback_url, context, allow_fallback=False)
-            logger.warning(
-                "ReliefWeb API returned 410 Gone for %s. Skipping %s prefetch. URL: %s",
-                DISASTER_API,
-                context,
-                url,
-            )
-            return None
-        raise
     except requests.RequestException:
         logger.exception("ReliefWeb API request failed for %s. URL: %s", context, url)
         raise
