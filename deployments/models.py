@@ -314,6 +314,7 @@ class RrmsPersonSnapshot(models.Model):
 class MolnixAppraisal(models.Model):
     molnix_id = models.BigIntegerField(unique=True)
     target_id = models.BigIntegerField()
+    appraised_person_id = models.BigIntegerField(null=True, blank=True)
     deployment_molnix_id = models.BigIntegerField(null=True, blank=True)
     stage = models.CharField(max_length=64, null=True, blank=True)
     appraisers_count = models.IntegerField(null=True, blank=True)
@@ -338,6 +339,7 @@ class MolnixAppraisal(models.Model):
 
     class Meta:
         indexes = [
+            models.Index(fields=["appraised_person_id"], name="molnix_appraised_person_idx"),
             models.Index(fields=["target_id"], name="molnix_app_target_idx"),
             models.Index(fields=["personnel"], name="molnix_app_personnel_idx"),
             models.Index(fields=["updated_at"], name="molnix_app_updated_idx"),
@@ -409,12 +411,6 @@ class RrmsEventParticipation(models.Model):
 
     class Meta:
         db_table = "rrms_event_participation"
-        constraints = [
-            models.UniqueConstraint(
-                fields=["event_id", "person_id", "event_person_role"],
-                name="rrms_event_person_role_uniq",
-            )
-        ]
         indexes = [
             models.Index(fields=["event_id"], name="rrms_event_id_idx"),
             models.Index(fields=["person_id"], name="rrms_event_person_idx"),

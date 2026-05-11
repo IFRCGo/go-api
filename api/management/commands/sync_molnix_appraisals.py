@@ -113,13 +113,14 @@ def write_record(record_type, data):
             if molnix_id is None:
                 return False
             personnel = None
-            target_id = data.get("target_id")
-            if target_id is not None:
-                personnel = Personnel.objects.filter(molnix_id=target_id).first()
+            appraised_person_id = data.get("appraised_person_id")
+            if appraised_person_id is not None:
+                personnel = Personnel.objects.filter(molnix_id=appraised_person_id).first()
             MolnixAppraisal.objects.update_or_create(
                 molnix_id=molnix_id,
                 defaults={
                     "target_id": data.get("target_id"),
+                    "appraised_person_id": data.get("appraised_person_id"),
                     "deployment_molnix_id": data.get("deployment_molnix_id"),
                     "stage": data.get("stage"),
                     "appraisers_count": data.get("appraisers_count"),
@@ -197,24 +198,22 @@ def write_record(record_type, data):
             event_person_role = data.get("event_person_role")
             if event_id is None or person_id is None:
                 return False
-            RrmsEventParticipation.objects.update_or_create(
+            RrmsEventParticipation.objects.create(
                 event_id=event_id,
                 person_id=person_id,
                 event_person_role=event_person_role,
-                defaults={
-                    "event_name": data.get("event_name"),
-                    "event_type": data.get("event_type"),
-                    "event_scale_type": data.get("event_scale_type"),
-                    "event_from": data.get("event_from"),
-                    "event_to": data.get("event_to"),
-                    "participant_start": data.get("participant_start"),
-                    "participant_end": data.get("participant_end"),
-                    "requested": data.get("requested"),
-                    "event_organization_id": data.get("event_organization_id"),
-                    "event_organization_name": data.get("event_organization_name"),
-                    "venue": data.get("venue"),
-                    "tags_json": data.get("tags_json"),
-                },
+                event_name=data.get("event_name"),
+                event_type=data.get("event_type"),
+                event_scale_type=data.get("event_scale_type"),
+                event_from=data.get("event_from"),
+                event_to=data.get("event_to"),
+                participant_start=data.get("participant_start"),
+                participant_end=data.get("participant_end"),
+                requested=data.get("requested"),
+                event_organization_id=data.get("event_organization_id"),
+                event_organization_name=data.get("event_organization_name"),
+                venue=data.get("venue"),
+                tags_json=data.get("tags_json"),
             )
             return True
     except Exception as ex:
@@ -380,6 +379,7 @@ def normalize_appraisal(appraisal, sending_org_id=None, receiving_org_id=None):
     return {
         "molnix_id": appraisal.get("id"),
         "target_id": appraisal.get("target_id"),
+        "appraised_person_id": deployment.get("person_id"),
         "deployment_molnix_id": deployment.get("id"),
         "stage": appraisal.get("stage"),
         "appraisers_count": appraisal.get("appraisers_count"),
@@ -397,12 +397,12 @@ def normalize_appraisal(appraisal, sending_org_id=None, receiving_org_id=None):
     }
 
 
-def normalize_appraiser(appraiser):
+def normalize_appraiser(appraiser, appraisal_molnix_id=None):
     if not isinstance(appraiser, dict):
         return {}
     return {
         "molnix_id": appraiser.get("id"),
-        "appraisal_molnix_id": appraiser.get("appraisal_id"),
+        "appraisal_molnix_id": appraiser.get("appraisal_id") or appraisal_molnix_id,
         "appraiser_type": appraiser.get("appraiser_type"),
         "person_id": appraiser.get("person_id"),
         "required": appraiser.get("required"),
@@ -415,18 +415,26 @@ def normalize_appraiser(appraiser):
 
 def normalize_event_participation(event, org_lookup, country_lookup):
     if not isinstance(event, dict):
-        return []
+        return [], 0, []
     org_id, org_name = normalize_org(event.get("organization"), org_lookup, country_lookup)
     people = event.get("person") if isinstance(event.get("person"), list) else []
     records = []
+    mismatch_count = 0
+    mismatch_samples = []
     for person in people:
         if not isinstance(person, dict):
             continue
         pivot = person.get("pivot") if isinstance(person.get("pivot"), dict) else {}
+        pivot_person_id = pivot.get("person_id")
+        person_id = person.get("id")
+        if pivot_person_id is not None and person_id is not None and pivot_person_id != person_id:
+            mismatch_count += 1
+            if len(mismatch_samples) < 25:
+                mismatch_samples.append((event.get("id"), person_id, pivot_person_id))
         record = {
             "event_id": event.get("id"),
             "event_name": event.get("name"),
-            "person_id": person.get("id"),
+            "person_id": person_id,
             "event_person_role": pivot.get("role"),
             "event_type": event.get("event_type"),
             "event_scale_type": event.get("type"),
@@ -441,17 +449,19 @@ def normalize_event_participation(event, org_lookup, country_lookup):
             "tags_json": event.get("tags"),
         }
         records.append(record)
-    return records
+    return records, mismatch_count, mismatch_samples
 
 
 def handle_person_ids(molnix, person_ids, org_lookup, country_lookup, stdout, db_write_counts):
     person_snapshot_cache = {}
+    saved_ids = set()
     for person_id in person_ids:
         cached_snapshot = person_snapshot_cache.get(person_id)
         if cached_snapshot is not None:
             output_record(stdout, {"record_type": "rrms_person_snapshot", "data": cached_snapshot})
             if write_record("rrms_person_snapshot", cached_snapshot):
                 db_write_counts["rrms_person_snapshot"] += 1
+                saved_ids.add(person_id)
             continue
         log_debug(1, "Fetching person_id %s" % person_id)
         person_data = safe_call_api(molnix, path="people/%s" % person_id, label="people/%s" % person_id)
@@ -477,6 +487,8 @@ def handle_person_ids(molnix, person_ids, org_lookup, country_lookup, stdout, db
         output_record(stdout, {"record_type": "rrms_person_snapshot", "data": filtered_person_data})
         if write_record("rrms_person_snapshot", filtered_person_data):
             db_write_counts["rrms_person_snapshot"] += 1
+            saved_ids.add(person_id)
+    return saved_ids
 
 
 class Command(BaseCommand):
@@ -505,6 +517,11 @@ class Command(BaseCommand):
         appraisals_stream_count = 0
         appraisers_stream_count = 0
         events_stream_count = 0
+        appraisal_ids = set()
+        appraisal_duplicate_count = 0
+        appraised_person_ids = set()
+        appraised_person_null_count = 0
+        appraiser_parent_ids = set()
         db_write_counts = {
             "molnix_appraisal": 0,
             "molnix_appraiser": 0,
@@ -542,7 +559,7 @@ class Command(BaseCommand):
             for appraisal in appraisals:
                 if not isinstance(appraisal, dict):
                     continue
-                appraisal_payload = appraisal.get("appraisal")
+                appraisal_payload = appraisal.get("appraisal") if isinstance(appraisal.get("appraisal"), dict) else None
                 deployment_id = appraisal_payload.get("deployment", {}).get("id") if isinstance(appraisal_payload, dict) else None
                 sending_org_id, receiving_org_id = fetch_deployment_org_ids(
                     molnix,
@@ -551,19 +568,50 @@ class Command(BaseCommand):
                     org_lookup,
                     country_lookup,
                 )
-                appraisal_data = normalize_appraisal(appraisal_payload, sending_org_id, receiving_org_id)
-                if appraisal_data:
-                    output_record(self.stdout, {"record_type": "molnix_appraisal", "data": appraisal_data})
-                    if write_record("molnix_appraisal", appraisal_data):
-                        db_write_counts["molnix_appraisal"] += 1
-                    appraisals_stream_count += 1
-                appraiser_data = normalize_appraiser(appraisal)
+            appraisal_data = normalize_appraisal(appraisal_payload, sending_org_id, receiving_org_id)
+            if appraisal_data:
+                appraisal_id = appraisal_data.get("molnix_id")
+                if appraisal_id is not None:
+                    if appraisal_id in appraisal_ids:
+                        appraisal_duplicate_count += 1
+                    appraisal_ids.add(appraisal_id)
+                appraised_person_id = appraisal_data.get("appraised_person_id")
+                if appraised_person_id is None:
+                    appraised_person_null_count += 1
+                else:
+                    appraised_person_ids.add(appraised_person_id)
+                output_record(self.stdout, {"record_type": "molnix_appraisal", "data": appraisal_data})
+                if write_record("molnix_appraisal", appraisal_data):
+                    db_write_counts["molnix_appraisal"] += 1
+                appraisals_stream_count += 1
+                if appraisal_data.get("appraised_person_id") is not None:
+                    person_ids.append(appraisal_data.get("appraised_person_id"))
+            appraiser_payloads = []
+            if isinstance(appraisal_payload, dict) and isinstance(appraisal_payload.get("appraisers"), list):
+                appraiser_payloads = appraisal_payload.get("appraisers")
+            if appraiser_payloads:
+                for appraiser_payload in appraiser_payloads:
+                    appraiser_data = normalize_appraiser(appraiser_payload, appraisal_data.get("molnix_id"))
+                    if appraiser_data:
+                        appraiser_parent_id = appraiser_data.get("appraisal_molnix_id")
+                        if appraiser_parent_id is not None:
+                            appraiser_parent_ids.add(appraiser_parent_id)
+                        output_record(self.stdout, {"record_type": "molnix_appraiser", "data": appraiser_data})
+                        if write_record("molnix_appraiser", appraiser_data):
+                            db_write_counts["molnix_appraiser"] += 1
+                        appraisers_stream_count += 1
+                        collect_person_ids([appraiser_data], person_ids)
+            else:
+                appraiser_data = normalize_appraiser(appraisal, appraisal_data.get("molnix_id"))
                 if appraiser_data:
+                    appraiser_parent_id = appraiser_data.get("appraisal_molnix_id")
+                    if appraiser_parent_id is not None:
+                        appraiser_parent_ids.add(appraiser_parent_id)
                     output_record(self.stdout, {"record_type": "molnix_appraiser", "data": appraiser_data})
                     if write_record("molnix_appraiser", appraiser_data):
                         db_write_counts["molnix_appraiser"] += 1
                     appraisers_stream_count += 1
-                collect_person_ids([appraiser_data], person_ids)
+                    collect_person_ids([appraiser_data], person_ids)
                 total += 1
             if not should_continue(data, appraisals):
                 log_debug(1, "Pagination indicates no more pages")
@@ -572,6 +620,10 @@ class Command(BaseCommand):
 
         event_page = 1
         seen_event_ids = set()
+        duplicate_event_keys = {}
+        duplicate_event_samples = []
+        event_person_mismatch_count = 0
+        event_person_mismatch_samples = []
         while True:
             log_debug(1, "Fetching events page %d" % event_page)
             events_payload = safe_call_api(
@@ -610,8 +662,23 @@ class Command(BaseCommand):
             else:
                 should_fetch_next = should_continue(events_payload, events)
             for event in events:
-                records = normalize_event_participation(event, org_lookup, country_lookup)
+                records, mismatch_count, mismatch_samples = normalize_event_participation(event, org_lookup, country_lookup)
+                event_person_mismatch_count += mismatch_count
+                if mismatch_samples and len(event_person_mismatch_samples) < 25:
+                    remaining = 25 - len(event_person_mismatch_samples)
+                    event_person_mismatch_samples.extend(mismatch_samples[:remaining])
                 for record in records:
+                    event_key = (
+                        record.get("event_id"),
+                        record.get("person_id"),
+                        record.get("event_person_role"),
+                    )
+                    if event_key in duplicate_event_keys:
+                        duplicate_event_keys[event_key] += 1
+                        if len(duplicate_event_samples) < 25:
+                            duplicate_event_samples.append(event_key)
+                    else:
+                        duplicate_event_keys[event_key] = 1
                     output_record(self.stdout, {"record_type": "rrms_event_participation", "data": record})
                     if write_record("rrms_event_participation", record):
                         db_write_counts["rrms_event_participation"] += 1
@@ -631,8 +698,12 @@ class Command(BaseCommand):
             "Collected %d appraisal person_id values and %d event person_id values"
             % (len(appraisal_person_ids), len(event_person_ids)),
         )
-        handle_person_ids(molnix, appraisal_person_ids, org_lookup, country_lookup, self.stdout, db_write_counts)
-        handle_person_ids(molnix, event_person_ids, org_lookup, country_lookup, self.stdout, db_write_counts)
+        saved_appraisal_person_ids = handle_person_ids(
+            molnix, appraisal_person_ids, org_lookup, country_lookup, self.stdout, db_write_counts
+        )
+        saved_event_person_ids = handle_person_ids(
+            molnix, event_person_ids, org_lookup, country_lookup, self.stdout, db_write_counts
+        )
         # log_debug(1, "Smoke test: response_capacity endpoint")
         # response_capacity_data = molnix.call_api(path="response_capacity")
         # self.stdout.write(json.dumps(response_capacity_data, indent=2, sort_keys=True))
@@ -657,6 +728,48 @@ class Command(BaseCommand):
                     db_write_counts["rrms_person_snapshot"],
                 )
             )
+            if appraisal_duplicate_count:
+                logger.warning("Duplicate appraisal molnix_id values observed: %d" % appraisal_duplicate_count)
+            if appraised_person_null_count:
+                logger.warning("Null appraisal appraised_person_id values observed: %d" % appraised_person_null_count)
+            orphan_appraiser_parents = appraiser_parent_ids.difference(appraisal_ids)
+            if orphan_appraiser_parents:
+                logger.warning("Appraiser parent appraisal ids missing in appraisals: %d" % len(orphan_appraiser_parents))
+            orphan_appraised_person_ids = appraised_person_ids.difference(saved_appraisal_person_ids)
+            if orphan_appraised_person_ids:
+                logger.warning("Appraised person ids missing after refresh: %d" % len(orphan_appraised_person_ids))
+            orphan_event_person_ids = set(event_person_ids).difference(saved_event_person_ids)
+            if orphan_event_person_ids:
+                logger.warning("Event person ids missing after refresh: %d" % len(orphan_event_person_ids))
+            if event_person_mismatch_count:
+                logger.warning("Event person id mismatch rows observed: %d" % event_person_mismatch_count)
+                if event_person_mismatch_samples:
+                    logger.warning("Event person id mismatch samples: %s" % (event_person_mismatch_samples,))
+            duplicate_event_rows = sum(count - 1 for count in duplicate_event_keys.values() if count > 1)
+            if duplicate_event_rows:
+                logger.warning(
+                    "RRMS event participation duplicates observed: %d duplicate rows across %d keys"
+                    % (duplicate_event_rows, len([count for count in duplicate_event_keys.values() if count > 1]))
+                )
+                if duplicate_event_samples:
+                    logger.warning("Duplicate event keys (sample): %s" % (duplicate_event_samples,))
+            try:
+                personnel_qs = Personnel.objects.filter(molnix_id__isnull=False)
+                personnel_total = personnel_qs.count()
+                personnel_molnix_ids = list(personnel_qs.values_list("molnix_id", flat=True).distinct())
+                resolved_personnel = (
+                    RrmsPersonSnapshot.objects.filter(person_id__in=personnel_molnix_ids)
+                    .values_list("person_id", flat=True)
+                    .distinct()
+                    .count()
+                )
+                unresolved_personnel = len(personnel_molnix_ids) - resolved_personnel
+                logger.info(
+                    "Personnel molnix_id bridge: total=%d distinct=%d resolved=%d unresolved=%d"
+                    % (personnel_total, len(personnel_molnix_ids), resolved_personnel, unresolved_personnel)
+                )
+            except Exception as ex:
+                logger.error("Failed to compute personnel molnix_id bridge stats: %s" % str(ex))
         if OUTPUT == 2:
             self.stdout.write("Completed DB-only run.")
         molnix.logout()
