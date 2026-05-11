@@ -1,4 +1,5 @@
-from datetime import datetime, timezone
+from datetime import datetime
+from datetime import timezone as datetime_timezone
 
 import requests
 
@@ -16,7 +17,7 @@ class Command(BaseCommand):
     def parse_date(self, date_string):
         # 21Dec2017
         timeformat = "%d%b%Y"
-        return datetime.strptime(date_string.strip(), timeformat).replace(tzinfo=timezone.utc)
+        return datetime.strptime(date_string.strip(), timeformat).replace(tzinfo=datetime_timezone.utc)
 
     def handle(self, *args, **options):
         logger.info("Starting Deployment ingest")

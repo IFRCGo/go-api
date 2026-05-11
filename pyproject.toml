@@ -4,20 +4,18 @@ version = "1.1.419"
 description = ""
 authors = [{ name = "GO Dev", email = "go-dev@ifrc.org" }]
 license = { text = "MIT License" }
-requires-python = ">=3.11"
+requires-python = "~=3.11.13"
 readme = "README.md"
 dependencies = [
-    "Django>=4.2,<5.0",
+    "Django>=5.2,<5.3",
     "Markdown==3.3.4",
     "Pillow==12.1.1",
     "PyPDF2==1.27.9",
     "pdf2image==1.16.0",
-    "beautifulsoup4==4.6.3",
+    "beautifulsoup4>=4.12.3,<5.0",
     "boto3>=1.34.0,<2.0.0",
-    "choicesenum==0.7.0",
-    "coreapi==2.3.3",
-    "coreschema==0.0.4",
-    "coverage==4.4.2",
+    "choicesenum>=0.7.0,<1.0",
+    "coverage>=7.4.0,<8.0",
     "cryptography==46.0.7",
     "django-admin-autocomplete-filter",
     "django-admin-list-filter-dropdown",
@@ -25,13 +23,13 @@ dependencies = [
     "django-coverage==1.2.4",
     "django-enumfield==2.0.2",
     "django-extensions==2.0.6",
-    "django-filter==2.4.0",
+    "django-filter>=23.5,<24.0",
     "django-guardian==2.4.0",
     "django-graphql-geojson==0.1.4",
     "django-modeltranslation==0.17.5",
     "django-read-only==1.12.0",
     "django-reversion-compare==0.16.2",
-    "django-reversion==5.0.12",
+    "django-reversion>=5.0.13,<6.0",
     "django-smart-selects>=1.7.2",
     "django-storages[s3,azure]==1.14.5",
     "django-tinymce==4.1.0",
