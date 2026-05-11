@@ -1,7 +1,8 @@
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 
 from django.core.management.base import BaseCommand
 from django.template.loader import render_to_string
+from django.utils import timezone
 from sentry_sdk.crons import monitor
 
 from api.models import Region, UserRegion
@@ -14,7 +15,7 @@ class Command(BaseCommand):
     help = "Send reminder about the pending registrations"
 
     def diff_3_day(self):
-        return datetime.utcnow().replace(tzinfo=timezone.utc) - timedelta(days=3)
+        return timezone.now() - timedelta(days=3)
 
     @monitor(monitor_slug=SentryMonitor.USER_REGISTRATION_REMINDER)
     def handle(self, *args, **options):

@@ -952,7 +952,7 @@ class CountryIsDeprecatedFilter1(IsDeprecatedFilter):
         return queryset
 
 
-class DistrictAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAdmin):
+class DistrictAdmin(geoadmin.GISModelAdmin, CompareVersionAdmin, RegionRestrictedAdmin):
 
     country_in = "country__pk__in"
     region_in = "country__region__in"
@@ -981,7 +981,7 @@ class CountrySupportingPartnerAdmin(admin.TabularInline):
     model = models.CountrySupportingPartner
 
 
-class CountryAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
+class CountryAdmin(geoadmin.GISModelAdmin, CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     country_in = "pk__in"
     list_filter = ("record_type", "in_search", "independent", "disputed")
     list_display = ("__str__", "record_type", "iso3")
@@ -1005,7 +1005,7 @@ class CountryAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAd
     exclude = ("key_priorities",)
 
 
-class RegionAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
+class RegionAdmin(geoadmin.GISModelAdmin, CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     country_in = None
     region_in = "pk__in"
     inlines = [
@@ -1041,7 +1041,7 @@ class CountryIsDeprecatedFilter2(IsDeprecatedFilter):
         return queryset
 
 
-class Admin2Admin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAdmin):
+class Admin2Admin(geoadmin.GISModelAdmin, CompareVersionAdmin, RegionRestrictedAdmin):
     search_fields = ("name", "admin1__country__name")
     list_filter = (IsDeprecatedFilter, Admin1IsDeprecatedFilter, CountryIsDeprecatedFilter2)
     modifiable = True

@@ -41,7 +41,7 @@ class LocalUnitLevelAdmin(admin.ModelAdmin):
 
 
 @admin.register(LocalUnit)
-class LocalUnitAdmin(CompareVersionAdmin, admin.OSMGeoAdmin):
+class LocalUnitAdmin(CompareVersionAdmin, admin.GISModelAdmin):
     search_fields = (
         "english_branch_name",
         "local_branch_name",
@@ -140,7 +140,7 @@ class LocalUnitChangeRequestAdmin(ReadOnlyMixin, admin.ModelAdmin):
 
 
 @admin.register(DelegationOffice)
-class DelegationOfficeAdmin(admin.OSMGeoAdmin):
+class DelegationOfficeAdmin(admin.GISModelAdmin):
     search_fields = ("name", "city", "country__name")
 
     autocomplete_fields = ("country",)
