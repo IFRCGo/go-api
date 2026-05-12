@@ -1065,15 +1065,15 @@ class EmergencyViewTestCase(APITestCase):
 
         self.field_report1 = FieldReportFactory.create(
             event=self.event1,
-            created_at=timezone.make_aware(datetime(2024, 1, 1)),
-            updated_at=timezone.make_aware(datetime(2026, 1, 1)),
+            created_at=datetime.datetime(2024, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc),
+            updated_at=datetime.datetime(2026, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc),
             fr_num=50,
         )
 
         self.field_report2 = FieldReportFactory.create(
             event=self.event1,
-            created_at=timezone.make_aware(datetime(2024, 1, 1)),
-            updated_at=timezone.make_aware(datetime(2025, 1, 1)),
+            created_at=datetime.datetime(2024, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc),
+            updated_at=datetime.datetime(2025, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc),
             fr_num=20,
         )
 
