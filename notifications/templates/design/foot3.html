@@ -13,7 +13,7 @@
 {% if not hide_preferences %}
 {% for record in records|slice:":1" %}
                           <td class="text-default pl-10" style="padding-left: 10px;font-style: normal;font-weight: 300;font-size: 12px;line-height: 18px">
-                            <a href="https://{{ record.frontend_url }}/account#notifications" target="_blank" class="link" style="font-family: Poppins, Arial, sans-serif;text-decoration: underline;color: #000;">Unsubscribe</a>
+                            <a href="{{ record.frontend_url }}/account#notifications" target="_blank" class="link" style="font-family: Poppins, Arial, sans-serif;text-decoration: underline;color: #000;">Unsubscribe</a>
                           </td>
 {% endfor %}
 {% endif %}
