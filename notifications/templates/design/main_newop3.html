@@ -22,7 +22,7 @@
                   {% if op.follow_url %}
                   <tr>
                     <td class="text-center pb-50" style="text-align: center;">
-                      <a href="https://{{ op.follow_url }}" target="_blank" class="link" 
+                      <a href="{{ op.follow_url }}" target="_blank" class="link"
                       ><img src="{{ 'images/email/FollowThisOperation.png' | static_full_path }}"></a>
                       </a>
                     </td>
@@ -123,7 +123,7 @@
                             <span style="font-weight: 300;font-size: 12px;line-height: 18px;color: #6F6F6F;">{{ fr.updated_at|date:'d-m-Y' }}
                           </td>
                           <td style="margin-top: 0.4rem; width: 10%">
-                            <a href="https://{{ op.frontend_url }}/reports/{{ fr.id }}" style="padding: 2px 16px;vertical-align: middle;"
+                            <a href="{{ op.frontend_url }}/reports/{{ fr.id }}" style="padding: 2px 16px;vertical-align: middle;"
                             ><img src="{{ 'images/email/ViewFullReport.png' | static_full_path }}"></a>
                             </a>
                           </td>
@@ -137,7 +137,7 @@
                   <tr>
                     <td class="text-default pt-40 pl-20" style="padding-top: 40px; padding-left: 20px;font-style: normal; font-weight: 300;font-size: 12px;line-height: 18px"
                        >You are receiving this update based on your selected preferences. &nbsp;
-                       <a href="https://{{ op.frontend_url }}/account#notifications" target="_blank" class="link" style="font-family: Poppins, Arial, sans-serif;text-decoration: underline;color: #000;"
+                       <a href="{{ op.frontend_url }}/account#notifications" target="_blank" class="link" style="font-family: Poppins, Arial, sans-serif;text-decoration: underline;color: #000;"
                        >Update your preferences
                       </a>
                     </td>
