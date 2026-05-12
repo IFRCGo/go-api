@@ -419,7 +419,7 @@
                               <tr>
 {% for record in records|slice:":1" %}
                                 <td class="text-header text-default text-right" style="display:block; text-align: right;">
-                                  <a href="https://{{ record.resource_uri }}" target="_blank" class="link"
+                                  <a href="{{ record.resource_uri }}" target="_blank" class="link"
                                   ><img
                                     src="{{ 'images/email/OpenInGO.png' | static_full_path }}"
                                     alt="Open in GO"
