@@ -67,7 +67,7 @@ dependencies = [
     "requests==2.33.0",
     "tabula-py==1.2.0",
     "typing==3.6.2",
-    "urllib3==2.6.3",
+    "urllib3==2.7.0",
     "xmltodict==0.11.0",
     "xhtml2pdf==0.2.17",
     "reportlab",  # XXX: Used by xhtml2pdf reportlab==3.6.7 breaks for now
