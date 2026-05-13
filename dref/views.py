@@ -36,6 +36,7 @@ from dref.serializers import (
     AddDrefUserSerializer,
     CompletedDrefOperationsSerializer,
     Dref3Serializer,
+    DrefApproveSerializer,
     DrefFileInputSerializer,
     DrefFileSerializer,
     DrefFinalReport3Serializer,
@@ -48,6 +49,7 @@ from dref.serializers import (
     MiniDrefSerializer,
 )
 from dref.tasks import process_dref_translation
+from dref.utils import create_event_from_dref
 from main.permissions import DenyGuestUserPermission
 
 logger = logging.getLogger(__name__)
@@ -88,23 +90,48 @@ class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
         )
         return filter_dref_queryset_by_user_access(user, queryset)
 
-    @extend_schema(request=None, responses=DrefSerializer)
+    @extend_schema(
+        request=DrefApproveSerializer,
+        responses=DrefSerializer,
+    )
     @action(
         detail=True,
         url_path="approve",
         methods=["post"],
-        permission_classes=[permissions.IsAuthenticated, ApproveDrefPermission, DenyGuestUserPermission],
+        permission_classes=[
+            permissions.IsAuthenticated,
+            ApproveDrefPermission,
+            DenyGuestUserPermission,
+        ],
     )
     def get_approved(self, request, pk=None, version=None):
-        dref = self.get_object()
+        dref: Dref = self.get_object()
+
         if dref.status == Dref.Status.APPROVED:
             raise serializers.ValidationError(gettext("This Dref has already been approved."))
+
         if dref.status != Dref.Status.FINALIZED:
             raise serializers.ValidationError(gettext("Must be finalized before it can be approved"))
+
+        serializer = DrefApproveSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        event = serializer.validated_data.get("event", None)
+
+        if dref.event and event and dref.event != event:
+            raise serializers.ValidationError({"event": gettext("This Dref is already attached to an event.")})
+
+        # NOTE: If the Dref is not attached to an event,
+        # attaching it to the provided event or create a new one if not provided.
+        if not dref.event:
+            if event:
+                dref.event = event
+            else:
+                dref.event = create_event_from_dref(dref)
         dref.status = Dref.Status.APPROVED
-        dref.save(update_fields=["status"])
-        serializer = DrefSerializer(dref, context={"request": request})
-        return response.Response(serializer.data)
+        dref.save(update_fields=["event", "status"])
+
+        return response.Response(DrefSerializer(dref, context={"request": request}).data)
 
     @extend_schema(request=None, responses=DrefSerializer)
     @action(
