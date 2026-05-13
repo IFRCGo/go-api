@@ -1,11 +1,12 @@
 FROM python:3.11-bullseye
-COPY --from=ghcr.io/astral-sh/uv:0.6.2 /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.11.3 /uv /uvx /bin/
 
 LABEL maintainer="GO Dev <go-dev@ifrc.org>"
 LABEL org.opencontainers.image.source="https://github.com/IFRCGo/go-api"
 
 ENV PYTHONUNBUFFERED=1
 
+ENV UV_SYSTEM_PYTHON=1
 ENV UV_COMPILE_BYTECODE=1
 ENV UV_LINK_MODE=copy
 ENV UV_PROJECT_ENVIRONMENT="/usr/local/"
@@ -31,7 +32,8 @@ WORKDIR $HOME
 RUN --mount=type=cache,target=$UV_CACHE_DIR \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv sync --frozen --no-install-project --all-groups
+    uv lock --locked --offline \
+        && uv sync --frozen --no-install-project --all-groups
 
 # To avoid some SyntaxWarnings ("is" with a literal), still needed on 20241024:
 ENV AZUREROOT=/usr/local/lib/python3.11/site-packages/azure/storage/

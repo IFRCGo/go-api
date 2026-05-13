@@ -1,6 +1,5 @@
-from datetime import datetime, timezone
-
 from django.contrib.auth.models import User
+from django.utils import timezone
 from django.utils.translation import gettext
 from rest_framework import serializers
 
@@ -384,7 +383,7 @@ class PersonnelCsvSerializerBase(ModelSerializer):
 
     @staticmethod
     def get_ongoing(obj):
-        today = datetime.utcnow().replace(tzinfo=timezone.utc)
+        today = timezone.now()
         start = obj.start_date if obj.start_date else today
         end = obj.end_date if obj.end_date else today
         return start <= today <= end

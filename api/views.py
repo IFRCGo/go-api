@@ -3,6 +3,7 @@ import json
 import os
 import secrets
 from datetime import datetime, timedelta
+from datetime import timezone as datetime_timezone
 from urllib.parse import urlparse
 
 import requests
@@ -757,14 +758,14 @@ class AggregateByTime(APIView):
             return bad_request("Must specify an `model_type` that is `heop`, `appeal`, `event`, or `fieldreport`")
 
         if start_date is None:
-            start_date = datetime(1980, 1, 1, tzinfo=timezone.utc)
+            start_date = datetime(1980, 1, 1, tzinfo=datetime_timezone.utc)
         else:
             try:
                 start_date = datetime.strptime(start_date, "%Y-%m-%d")
             except ValueError:
                 return bad_request("`start_date` must be YYYY-MM-DD format")
 
-            start_date = start_date.replace(tzinfo=timezone.utc)
+            start_date = start_date.replace(tzinfo=datetime_timezone.utc)
 
         model = models[mtype]
 
@@ -808,7 +809,7 @@ class AggregateByTime(APIView):
 
         aggregate = (
             model.objects.filter(**filter_obj)
-            .annotate(timespan=trunc_method(date_filter, tzinfo=timezone.utc))
+            .annotate(timespan=trunc_method(date_filter, tzinfo=datetime_timezone.utc))
             .values("timespan")
             .annotate(**annotation_funcs)
             .order_by("timespan")

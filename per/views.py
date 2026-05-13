@@ -1,8 +1,10 @@
 import logging
-from datetime import datetime, timezone
+from datetime import datetime
+from datetime import timezone as datetime_timezone
 
 from django.db import transaction
 from django.http import JsonResponse
+from django.utils import timezone
 from rest_framework import authentication, permissions
 from rest_framework.views import APIView
 
@@ -24,12 +26,12 @@ logger = logging.getLogger(__name__)
 
 
 def get_now_str():
-    return datetime.now(timezone.utc)
+    return timezone.now()
 
 
 def parse_date(date_string):
     dateformat = "%Y-%m-%d"
-    return datetime.strptime(date_string[:10], dateformat).replace(tzinfo=timezone.utc)
+    return datetime.strptime(date_string[:10], dateformat).replace(tzinfo=datetime_timezone.utc)
 
 
 class UpdatePerForm(APIView):
