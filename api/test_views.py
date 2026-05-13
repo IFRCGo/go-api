@@ -19,7 +19,7 @@ from api.factories.event import (
     EventLinkFactory,
 )
 from api.factories.field_report import FieldReportFactory
-from api.models import Profile, VisibilityChoices
+from api.models import EventStage, Profile, VisibilityChoices
 from deployments.factories.user import UserFactory
 from dref.models import DrefFile
 from main.test_case import APITestCase
@@ -1063,20 +1063,12 @@ class EmergencyViewTestCase(APITestCase):
             event=self.event1,
         )
 
-        self.field_report1 = FieldReportFactory.create(
+        self.field_report = FieldReportFactory.create(
             event=self.event1,
             created_at=datetime.datetime(2024, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc),
             updated_at=datetime.datetime(2026, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc),
             fr_num=50,
         )
-
-        self.field_report2 = FieldReportFactory.create(
-            event=self.event1,
-            created_at=datetime.datetime(2024, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc),
-            updated_at=datetime.datetime(2025, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc),
-            fr_num=20,
-        )
-
         self.event2 = EventFactory.create(
             dtype=self.disaster_type,
             source=models.Event.EventSource.WHO,
@@ -1098,13 +1090,6 @@ class EmergencyViewTestCase(APITestCase):
             amount_funded=1899999,
         )
 
-        self.url = "/api/v2/emergency/"
-
-    def test_get_emergency_list(self):
-        response = self.client.get(self.url)
-        self.assert_200(response)
-        self.assertEqual(response.data["count"], 3)
-
     def test_retrive_emergency_detail(self):
         url = f"/api/v2/emergency/{self.event1.id}/"
         response = self.client.get(url)
@@ -1114,27 +1099,6 @@ class EmergencyViewTestCase(APITestCase):
         self.assertEqual(response.data["name"], self.event1.name)
         self.assertEqual(response.data["source"], models.Event.EventSource.GDACS)
 
-        # first field report id check
-        self.assertEqual(response.data["first_field_report_id"], self.field_report2.id)
-        # latest check field report
-        self.assertEqual(response.data["latest_field_report_id"], self.field_report1.id)
-
-    # Filter Tests
-    def test_filter_by_who_source(self):
-        url = f"{self.url}?source=120"
-        response = self.client.get(url)
-        self.assert_200(response)
-        self.assertEqual(response.data["count"], 1)
-        self.assertEqual(response.data["results"][0]["source"], models.Event.EventSource.WHO)
-
-    def test_filter_by_appeal_source(self):
-        url = f"{self.url}?source=150"
-        response = self.client.get(url)
-        self.assert_200(response)
-        self.assertEqual(response.data["count"], 1)
-        self.assertEqual(response.data["results"][0]["source"], models.Event.EventSource.APPEAL_ADMIN)
-
-    def test_filter_by_source_no_match(self):
-        url = f"{self.url}?source=500"
-        response = self.client.get(url)
-        self.assert_400(response)
+        # Stage check
+        self.assertEqual(response.data["stage"], EventStage.FIELD_REPORT, response.data)
+        self.assertEqual(response.data["field_report"]["id"], self.field_report.id, response.data)
