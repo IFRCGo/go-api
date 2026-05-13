@@ -5,6 +5,7 @@ from typing import List, Union
 from django.conf import settings
 from django.contrib.auth.models import Permission, User
 from django.db import models, transaction
+from django.db.models.query import Prefetch
 from django.utils import timezone
 from django.utils.translation import get_language as django_get_language
 from drf_spectacular.utils import extend_schema_field
@@ -14,7 +15,12 @@ from rest_framework import serializers
 from api.tasks import generate_export_pdf
 from api.utils import CountryValidator, RegionValidator, generate_eap_export_url
 from deployments.models import EmergencyProject, Personnel, PersonnelDeployment
-from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
+from dref.models import (
+    Dref,
+    DrefFinalReport,
+    DrefOperationalUpdate,
+    PlannedIntervention,
+)
 from eap.models import EAPRegistration, FullEAP, SimplifiedEAP
 from lang.models import String
 from lang.serializers import ModelSerializer
@@ -52,6 +58,7 @@ from .models import (
     EventFeaturedDocument,
     EventLink,
     EventSeverityLevelHistory,
+    EventStage,
     Export,
     ExternalPartner,
     FieldReport,
@@ -2691,10 +2698,21 @@ class DetailEmergencySerializer(serializers.ModelSerializer):
     ifrc_severity_level_display = serializers.CharField(source="get_ifrc_severity_level_display", read_only=True)
     visibility_display = serializers.CharField(source="get_visibility_display", read_only=True)
     source_display = serializers.CharField(source="get_source_display", read_only=True)
+
     # NOTE: Populated from Queryset using Annotate
-    first_field_report_id = serializers.IntegerField(read_only=True)
-    latest_field_report_id = serializers.IntegerField(read_only=True)
-    appeal_id = serializers.IntegerField(read_only=True)
+
+    # Aggregated values
+    response_activity_count = serializers.IntegerField(read_only=True)
+    active_deployments_count = serializers.IntegerField(read_only=True)
+    surge_alerts_count = serializers.IntegerField(read_only=True)
+
+    # Stages
+    stage = serializers.IntegerField(read_only=True)
+    stage_display = serializers.SerializerMethodField()
+
+    field_report = serializers.SerializerMethodField()
+    appeal = serializers.SerializerMethodField()
+    dref = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
@@ -2730,7 +2748,126 @@ class DetailEmergencySerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
             "previous_update",
-            "first_field_report_id",
-            "latest_field_report_id",
-            "appeal_id",
+            # Aggregated values
+            "response_activity_count",
+            "active_deployments_count",
+            "surge_alerts_count",
+            # Stages
+            "stage",
+            "stage_display",
+            "field_report",
+            "appeal",
+            "dref",
         )
+
+    def _get_stage_instance(self, event):
+        if hasattr(self, "_stage_instance_cache"):
+            return self._stage_instance_cache
+
+        stage = getattr(event, "stage")
+        instance = None
+
+        if stage == EventStage.FIELD_REPORT and event.stage_field_report_id:
+            print("ayo ta", event.stage_field_report_id)
+            instance = (
+                FieldReport.objects.select_related("dtype", "event")
+                .prefetch_related(
+                    Prefetch("countries", queryset=Country.objects.select_related("region")),
+                    Prefetch("districts", queryset=District.objects.select_related("country")),
+                    Prefetch(
+                        "actions_taken",
+                        queryset=ActionsTaken.objects.prefetch_related("actions"),
+                    ),
+                    "contacts",
+                )
+                .get(pk=event.stage_field_report_id)
+            )
+
+        elif stage == EventStage.EMERGENCY_APPEAL and event.stage_appeal_id:
+            instance = Appeal.objects.select_related(
+                "country",
+                "country__region",
+                "dtype",
+                "region",
+            ).get(pk=event.stage_appeal_id)
+
+        elif stage == EventStage.DREF and event.stage_dref_id:
+            instance = (
+                Dref.objects.select_related(
+                    "country",
+                    "country__region",
+                    "disaster_type",
+                    "national_society",
+                )
+                .prefetch_related(
+                    Prefetch("district", queryset=District.objects.select_related("country")),
+                    Prefetch(
+                        "planned_interventions",
+                        queryset=PlannedIntervention.objects.prefetch_related("indicators"),
+                    ),
+                )
+                .get(pk=event.stage_dref_id)
+            )
+
+        elif stage == EventStage.DREF_OPERATIONAL_UPDATE and event.stage_ops_update_id:
+            instance = (
+                DrefOperationalUpdate.objects.select_related("country", "country__region", "disaster_type", "national_society")
+                .prefetch_related(
+                    Prefetch("district", queryset=District.objects.select_related("country")),
+                    Prefetch(
+                        "planned_interventions",
+                        queryset=PlannedIntervention.objects.prefetch_related("indicators"),
+                    ),
+                )
+                .get(pk=event.stage_ops_update_id)
+            )
+
+        elif stage == EventStage.DREF_FINAL_REPORT and event.stage_final_report_id:
+            instance = (
+                DrefFinalReport.objects.select_related("country", "country__region", "disaster_type", "national_society")
+                .prefetch_related(
+                    Prefetch("district", queryset=District.objects.select_related("country")),
+                    Prefetch(
+                        "planned_interventions",
+                        queryset=PlannedIntervention.objects.prefetch_related("indicators"),
+                    ),
+                )
+                .get(pk=event.stage_final_report_id)
+            )
+
+        self._stage_instance_cache = instance
+        return instance
+
+    def get_stage_display(self, event):
+        stage = getattr(event, "stage", None)
+        return EventStage(stage).label if stage is not None else None
+
+    def get_field_report(self, event):
+        if getattr(event, "stage", None) != EventStage.FIELD_REPORT:
+            return None
+        instance = self._get_stage_instance(event)
+        # TODO(susilnem): Create new serializer for the EmergencyPage
+        return DetailFieldReportSerializer(instance, context=self.context).data if instance else None
+
+    def get_appeal(self, event):
+        if getattr(event, "stage", None) != EventStage.EMERGENCY_APPEAL:
+            return None
+        instance = self._get_stage_instance(event)
+        # TODO(susilnem): Create new serializer for the EmergencyPage
+        return RelatedAppealSerializer(instance, context=self.context).data if instance else None
+
+    def get_dref(self, event):
+        if getattr(event, "stage", None) not in (
+            EventStage.DREF,
+            EventStage.DREF_OPERATIONAL_UPDATE,
+            EventStage.DREF_FINAL_REPORT,
+        ):
+            return None
+        instance = self._get_stage_instance(event)
+        if not instance:
+            return None
+
+        # TODO(susilnem): Create new serializer for the EmergencyPage
+        from dref.serializers import MiniDrefSerializer
+
+        return MiniDrefSerializer(instance, context=self.context).data
