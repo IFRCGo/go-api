@@ -761,6 +761,15 @@ def snippet_image_path(instance, filename):
     return "emergencies/%s/%s" % (instance.id, filename)
 
 
+# NOTE: Stage for the emergency timeline
+class EventStage(models.IntegerChoices):
+    EMERGENCY_APPEAL = 1, _("Emergency Appeal")
+    DREF = 2, _("DREF")
+    DREF_OPERATIONAL_UPDATE = 3, _("DREF Operational Update")
+    DREF_FINAL_REPORT = 4, _("DREF Final Report")
+    FIELD_REPORT = 5, _("Field Report")
+
+
 # NOTE: If ever in future we need to create an api to update the event table
 # we also need to make sure to add appropriate signal to create ifrc severity level event history
 @reversion.register()

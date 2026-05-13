@@ -11,7 +11,7 @@ from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-from api.models import Appeal
+from api.models import Appeal, Event
 from api.serializers import (
     DisasterTypeSerializer,
     MiniCountrySerializer,
@@ -378,6 +378,14 @@ class MiniDrefFinalReportSerializer(ModelSerializer):
             "status",
             "status_display",
         ]
+
+
+class DrefApproveSerializer(serializers.Serializer):
+    event = serializers.PrimaryKeyRelatedField(
+        queryset=Event.objects.all(),
+        required=False,
+        allow_null=True,
+    )
 
 
 class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
