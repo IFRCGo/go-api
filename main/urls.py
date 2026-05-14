@@ -261,6 +261,7 @@ urlpatterns = [
     url(r"^api/v2/per-options/", per_views.PerOptionsView.as_view()),
     url(r"^api/v2/export-per/(?P<pk>\d+)/", per_views.ExportPerView.as_view()),
     url(r"^api/v2/local-units-options/", local_units_views.LocalUnitOptionsView.as_view()),
+    # NOTE: This should be removed as DefaultRouter should cover this.
     url(r"^api/v2/event/(?P<pk>\d+)", api_views.EventViewset.as_view({"get": "retrieve"})),
     url(r"^api/v2/event/(?P<slug>[-\w]+)", api_views.EventViewset.as_view({"get": "retrieve"}, lookup_field="slug")),
     url(r"^api/v2/delegation-office/(?P<pk>\d+)", DelegationOfficeDetailAPIView.as_view()),
