@@ -59,7 +59,7 @@ from api.visibility_class import (
 )
 from country_plan.models import CountryPlan
 from databank.serializers import CountryOverviewSerializer
-from deployments.models import ERU, EmergencyProject, Personnel
+from deployments.models import ERU, Personnel
 from deployments.serializers import ListDeployedERUByEventSerializer
 from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
 from main.enums import GlobalEnumSerializer, get_enum_values
@@ -754,7 +754,8 @@ class EventViewset(ReadOnlyVisibilityViewset):
         qset = super().get_queryset()
         if self.action == "mini_events":
             # return Event.objects.filter(parent_event__isnull=True).select_related('dtype')
-            return qset.filter(parent_event__isnull=True).select_related("dtype")
+            return qset.filter(parent_event__isnull=True).select_related("dtype").prefetch_related("countries_for_preview")
+
         if self.action == "response_activity_events":
             return (
                 qset.filter(parent_event__isnull=True)
@@ -874,7 +875,11 @@ class EventViewset(ReadOnlyVisibilityViewset):
     )
     @action(methods=["get"], detail=False, url_path="mini")
     def mini_events(self, request):
-        queryset = self.filter_queryset(self.get_queryset())
+        queryset = self.filter_queryset(self.get_queryset()).annotate(
+            latest_field_report_id=Subquery(
+                FieldReport.objects.filter(event=OuterRef("pk")).order_by("-updated_at").values("id")[:1]
+            )
+        )
         serializer = ListMiniEventSerializer(queryset, many=True)
         page = self.paginate_queryset(queryset)
         if page is not None:
