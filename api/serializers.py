@@ -1067,6 +1067,8 @@ class MiniEventSerializer(ModelSerializer):
 class ListMiniEventSerializer(ModelSerializer):
     dtype = DisasterTypeSerializer(required=False)
     countries_for_preview = MiniCountrySerializer(many=True, read_only=True)
+    latest_field_report_id = serializers.IntegerField(read_only=True)
+    source_display = serializers.CharField(source="get_source_display", read_only=True)
 
     class Meta:
         model = Event
@@ -1076,8 +1078,10 @@ class ListMiniEventSerializer(ModelSerializer):
             "slug",
             "dtype",
             "source",
+            "source_display",
             "emergency_response_contact_email",
             "countries_for_preview",
+            "latest_field_report_id",
         )
 
 
