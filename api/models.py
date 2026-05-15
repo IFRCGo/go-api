@@ -764,7 +764,7 @@ def snippet_image_path(instance, filename):
 # NOTE: Stage for the emergency timeline
 class EventStage(models.IntegerChoices):
     EMERGENCY_APPEAL = 1, _("Emergency Appeal")
-    DREF = 2, _("DREF")
+    DREF_APPLICATION = 2, _("DREF Application")
     DREF_OPERATIONAL_UPDATE = 3, _("DREF Operational Update")
     DREF_FINAL_REPORT = 4, _("DREF Final Report")
     FIELD_REPORT = 5, _("Field Report")
@@ -778,7 +778,8 @@ class Event(models.Model):
 
     class EventSource(models.IntegerChoices):
 
-        Manual_Input = 100, _("Manual input")
+        # TODO(Susilnem): use upper case
+        MANUAL_INPUT = 100, _("Manual input")
         """MANUAL_INPUT: Event data manually entered by a user through the event administration interface."""
 
         GDACS = 110, _("GDACs scraper")
@@ -862,7 +863,7 @@ class Event(models.Model):
     previous_update = models.DateTimeField(verbose_name=_("previous update"), null=True, blank=True)
 
     auto_generated = models.BooleanField(verbose_name=_("auto generated"), default=False, editable=False)
-    source = models.IntegerField(choices=EventSource.choices, default=EventSource.Manual_Input, verbose_name=_("Event source"))
+    source = models.IntegerField(choices=EventSource.choices, default=EventSource.MANUAL_INPUT, verbose_name=_("Event source"))
 
     # Meant to give the organization a way of highlighting certain, important events.
     is_featured = models.BooleanField(default=False, verbose_name=_("is featured on home page"))

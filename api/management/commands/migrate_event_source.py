@@ -19,8 +19,8 @@ class Command(BaseCommand):
                 event.source = Event.EventSource.GDACS
                 self.stdout.write(self.style.NOTICE(f"Updating {event.name} source to {Event.EventSource.GDACS.label}"))
             else:
-                event.source = Event.EventSource.Manual_Input
-                self.stdout.write(self.style.NOTICE(f"Updating {event.name} source to {Event.EventSource.Manual_Input.label}"))
+                event.source = Event.EventSource.MANUAL_INPUT
+                self.stdout.write(self.style.NOTICE(f"Updating {event.name} source to {Event.EventSource.MANUAL_INPUT.label}"))
                 event.auto_generated = False
             to_update.append(event)
 
