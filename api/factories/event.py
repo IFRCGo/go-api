@@ -26,6 +26,7 @@ class EventFactory(factory.django.DjangoModelFactory):
     name = fuzzy.FuzzyText(length=50)
     slug = fuzzy.FuzzyText(length=50)
     dtype = factory.SubFactory(DisasterTypeFactory)
+    source = fuzzy.FuzzyChoice(Event.EventSource)
 
     @factory.post_generation
     def districts(self, create, extracted, **kwargs):

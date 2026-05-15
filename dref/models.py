@@ -1,5 +1,6 @@
 import copy
 import os
+from typing import Optional
 
 import reversion
 from django.conf import settings
@@ -748,6 +749,7 @@ class Dref(models.Model):
     # TYPING
     id: int
     pk: int
+    event_id: Optional[int]
 
     class Meta:
         verbose_name = _("dref")
