@@ -56,12 +56,14 @@ class SendMail(threading.Thread):
             CronJob.sync_cron(cron_rec)
 
 
-def construct_msg(subject, html, message_id=None, in_reply_to=None):
+def construct_msg(cc_addresses, subject, html, message_id=None, in_reply_to=None):
     msg = MIMEMultipart("alternative")
 
     msg["Subject"] = subject
     msg["From"] = settings.EMAIL_USER.upper()
     msg["To"] = "no-reply@ifrc.org"
+    if cc_addresses:
+        msg["Cc"] = ",".join(cc_addresses)
 
     if message_id:
         msg["Message-ID"] = message_id
@@ -78,7 +80,11 @@ def construct_msg(subject, html, message_id=None, in_reply_to=None):
     return msg
 
 
-def send_notification(subject, recipients, html, message_id=None, in_reply_to=None, mailtype="", files=None):
+def clean_emails(emails):
+    return [e for e in emails if isinstance(e, str) and e.strip()]
+
+
+def send_notification(subject, recipients, html, mailtype="", message_id=None, in_reply_to=None, cc_recipients=None, files=None):
     """Generic email sending method, handly only HTML emails currently"""
     cc_recipients = cc_recipients or []
     if not settings.EMAIL_USER or not settings.EMAIL_API_ENDPOINT:
@@ -105,12 +111,13 @@ def send_notification(subject, recipients, html, message_id=None, in_reply_to=No
     if settings.FORCE_USE_SMTP:
         logger.info("Forcing SMPT usage for sending emails.")
         msg = construct_msg(
-            subject=subject,
-            html=html,
+            cc_addresses,
+            subject,
+            html,
             message_id=message_id,
             in_reply_to=in_reply_to,
         )
-        SendMail(recipients, msg).start()
+        SendMail(addresses, msg).start()
         return
 
     if "?" not in settings.EMAIL_API_ENDPOINT:  # a.k.a dirty disabling email sending
@@ -196,10 +203,11 @@ def send_notification(subject, recipients, html, message_id=None, in_reply_to=No
         # Try sending with Python smtplib, if reaching the API fails
         logger.warning(f"Authorization/authentication failed ({res.status_code}) to the e-mail sender API.")
         msg = construct_msg(
-            subject=subject,
-            html=html,
+            cc_addresses,
+            subject,
+            html,
             message_id=message_id,
             in_reply_to=in_reply_to,
         )
-        SendMail(to_addresses, msg).start()
+        SendMail(addresses, msg).start()
     return res.text
