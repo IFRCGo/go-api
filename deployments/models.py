@@ -671,7 +671,10 @@ class EmergencyProject(models.Model):
         related_name="+",
     )
     event = models.ForeignKey(
-        Event, verbose_name=_("Event"), on_delete=models.CASCADE, related_name="+"
+        Event,
+        verbose_name=_("Event"),
+        on_delete=models.CASCADE,
+        related_name="emergency_projects",
     )  # this is the current operation
     districts = models.ManyToManyField(
         District,
