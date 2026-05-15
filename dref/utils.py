@@ -60,7 +60,7 @@ def create_event_from_dref(dref: Dref) -> Event:
     event = Event.objects.create(
         name=dref.title,
         dtype=dref.disaster_type,
-        summary=dref.event_description or "",
+        summary=dref.event_description or dref.event_scope or "",
         disaster_start_date=dref.event_date or dref.hazard_date,
         glide=dref.glide_code or "",
         auto_generated=True,
