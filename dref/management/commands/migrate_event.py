@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand
+from django.db.models import Case, IntegerField, Value, When
 
 from api.models import Appeal, AppealType
 from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
@@ -10,15 +11,6 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write(self.style.NOTICE("Starting migration of events to Dref..."))
 
-        appeal_map = dict(
-            Appeal.objects.filter(
-                atype=AppealType.DREF,
-                event__isnull=False,
-            )
-            .exclude(code__isnull=True)
-            .values_list("code", "id")
-        )
-
         appeal_event_map = dict(
             Appeal.objects.filter(
                 atype=AppealType.DREF,
@@ -28,71 +20,77 @@ class Command(BaseCommand):
             .values_list("code", "event_id")
         )
 
-        final_report_map = dict(DrefFinalReport.objects.exclude(appeal_code__isnull=True).values_list("appeal_code", "id"))
+        final_report_map = dict(
+            DrefFinalReport.objects.exclude(appeal_code__isnull=True)
+            .annotate(
+                approval_priority=Case(
+                    When(status=Dref.Status.APPROVED, then=Value(0)),
+                    default=Value(1),
+                    output_field=IntegerField(),
+                )
+            )
+            .order_by("dref_id", "approval_priority")
+            .distinct("dref_id")
+            .values_list("dref_id", "appeal_code")
+        )
 
         operational_update_map = dict(
-            DrefOperationalUpdate.objects.exclude(appeal_code__isnull=True).values_list("appeal_code", "id")
+            DrefOperationalUpdate.objects.exclude(appeal_code__isnull=True)
+            .annotate(
+                approval_priority=Case(
+                    When(status=Dref.Status.APPROVED, then=Value(0)),
+                    default=Value(1),
+                    output_field=IntegerField(),
+                )
+            )
+            .order_by("dref_id", "approval_priority", "-created_at")
+            .distinct("dref_id")
+            .values_list("dref_id", "appeal_code")
         )
 
         dref_queryset = Dref.objects.only("id", "title", "appeal_code", "event_id")
-
-        self.stdout.write(self.style.NOTICE(f"Found {dref_queryset.count()} Dref records"))
         self.stdout.write(self.style.NOTICE("\nMigrating Dref Event Mapping"))
 
         drefs_to_update = []
-
         for dref in dref_queryset.iterator():
-            code = dref.appeal_code
-
             self.stdout.write(self.style.NOTICE(f"\nDref: {dref.title} (id={dref.id})"))
 
-            new_event_id = None
+            appeal_code = None
             matched_with = None
 
-            appeal_id = None
-            final_id = None
-            op_id = None
-
-            self.stdout.write(self.style.NOTICE("\tChecking Appeal"))
-
-            if code:
-                appeal_id = appeal_map.get(code)
-                new_event_id = appeal_event_map.get(code)
-
-            if new_event_id:
-                matched_with = f"APPEAL (id:{appeal_id})"
-                self.stdout.write(self.style.SUCCESS(f"\t\tMatched with Appeal (id:{appeal_id})"))
+            self.stdout.write(self.style.NOTICE("\tChecking Final Report"))
+            if final_report_map.get(dref.id):
+                appeal_code = final_report_map[dref.id]
+                matched_with = "DREF FINAL REPORT"
+                self.stdout.write(self.style.SUCCESS(f"\t\tFound appeal_code from Final Report ({appeal_code})"))
             else:
-                self.stdout.write(self.style.WARNING("\t\tNo match in Appeal"))
+                self.stdout.write(self.style.WARNING("\t\tNo appeal_code in Final Report"))
 
-            if not new_event_id:
-                self.stdout.write(self.style.NOTICE("\tChecking Final Report"))
-
-                final_id = final_report_map.get(code)
-
-                if final_id:
-                    new_event_id = appeal_event_map.get(code)
-                    if new_event_id:
-                        matched_with = f"DREF FINAL REPORT (id:{final_id})"
-                        self.stdout.write(self.style.SUCCESS(f"\t\tMatched with Final Report (id:{final_id})"))
-                else:
-                    self.stdout.write(self.style.WARNING("\t\tNo match in Final Report"))
-
-            if not new_event_id:
+            if not appeal_code:
                 self.stdout.write(self.style.NOTICE("\tChecking Operational Update"))
-
-                op_id = operational_update_map.get(code)
-
-                if op_id:
-                    new_event_id = appeal_event_map.get(code)
-                    if new_event_id:
-                        matched_with = f"DREF OPERATIONAL UPDATE (id:{op_id})"
-                        self.stdout.write(self.style.SUCCESS(f"\t\tMatched with Operational Update (id:{op_id})"))
+                if operational_update_map.get(dref.id):
+                    appeal_code = operational_update_map[dref.id]
+                    matched_with = "DREF OPERATIONAL UPDATE"
+                    self.stdout.write(self.style.SUCCESS(f"\t\tFound appeal_code from Operational Update ({appeal_code})"))
                 else:
-                    self.stdout.write(self.style.WARNING("\t\tNo match in Operational Update"))
+                    self.stdout.write(self.style.WARNING("\t\tNo appeal_code in Operational Update"))
 
+            if not appeal_code:
+                self.stdout.write(self.style.NOTICE("\tChecking Dref"))
+                if dref.appeal_code:
+                    appeal_code = dref.appeal_code
+                    matched_with = "DREF"
+                    self.stdout.write(self.style.SUCCESS(f"\t\tFound appeal_code from Dref ({appeal_code})"))
+                else:
+                    self.stdout.write(self.style.WARNING("\t\tNo appeal_code in Dref"))
+
+            if not appeal_code:
+                self.stdout.write(self.style.WARNING("\tNo appeal_code found, skipping..."))
+                continue
+
+            new_event_id = appeal_event_map.get(appeal_code)
             if not new_event_id:
-                self.stdout.write(self.style.WARNING("\tNo matching event found"))
+                self.stdout.write(self.style.WARNING(f"\tNo matching Appeal found for appeal_code={appeal_code}, skipping..."))
                 continue
 
             if dref.event_id and dref.event_id != new_event_id:
@@ -103,9 +101,7 @@ class Command(BaseCommand):
 
             dref.event_id = new_event_id
             drefs_to_update.append(dref)
-
-            self.stdout.write(self.style.SUCCESS(f"\tUpdating event using {matched_with}"))
+            self.stdout.write(self.style.SUCCESS(f"\tUpdating event_id={new_event_id} using {matched_with}"))
 
         Dref.objects.bulk_update(drefs_to_update, ["event_id"])
-
         self.stdout.write(self.style.SUCCESS(f"\nSuccessfully updated {len(drefs_to_update)} Dref records\n"))
