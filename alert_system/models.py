@@ -280,8 +280,8 @@ class AlertEmailThread(models.Model):
         on_delete=models.CASCADE,
         related_name="alert_email_threads",
     )
-
-    parent_guid = models.CharField(
+    # NOTE: parent_event_id field is same field form the LoadItem model.
+    parent_event_id = models.CharField(
         help_text=_("Identifier linking related LoadItems into the same email thread."),
     )
 
@@ -304,13 +304,13 @@ class AlertEmailThread(models.Model):
         verbose_name = _("Email Thread")
         verbose_name_plural = _("Email Threads")
         ordering = ["-id"]
-        constraints = [models.UniqueConstraint(fields=["parent_guid", "user"], name="unique_user_guid")]
+        constraints = [models.UniqueConstraint(fields=["parent_event_id", "user"], name="unique_user_parent_event")]
         indexes = [
-            models.Index(fields=["parent_guid", "user"]),
+            models.Index(fields=["parent_event_id", "user"]),
         ]
 
     def __str__(self):
-        return f"Thread: {self.user.get_full_name()}-{self.parent_guid}"
+        return f"Thread: {self.user.get_full_name()}-{self.parent_event_id}"
 
 
 class AlertEmailLog(models.Model):

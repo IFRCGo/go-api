@@ -49,11 +49,11 @@ class LoadItemAdmin(admin.ModelAdmin):
 class AlertEmailThreadAdmin(admin.ModelAdmin):
     list_display = (
         "user",
-        "parent_guid",
+        "parent_event_id",
         "root_email_message_id",
     )
     search_fields = (
-        "parent_guid",
+        "parent_event_id",
         "root_email_message_id",
         "user__username",
     )
