@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from rest_framework import status
 
 from api.models import Country, Region, RegionName
@@ -145,14 +146,46 @@ class Dref3FilterTests(APITestCase):
         self.authenticate(self.superuser)
         full = self.client.get(self.url)
         self.assertEqual(full.status_code, status.HTTP_200_OK)
-        total = len(full.json())
+        all_rows = full.json()
+        total_codes = {row["appeal_id"] for row in all_rows}
         page1 = self.client.get(self.url, {"limit": 1, "offset": 0})
         self.assertEqual(page1.status_code, status.HTTP_200_OK)
-        assert len(page1.json()) == 1
-        if total > 1:
+        page1_rows = page1.json()
+        assert len({row["appeal_id"] for row in page1_rows}) == 1
+        if len(total_codes) > 1:
             page2 = self.client.get(self.url, {"limit": 1, "offset": 1})
             self.assertEqual(page2.status_code, status.HTTP_200_OK)
-            assert len(page2.json()) == 1
+            page2_rows = page2.json()
+            assert len({row["appeal_id"] for row in page2_rows}) == 1
+            assert {row["appeal_id"] for row in page2_rows} != {row["appeal_id"] for row in page1_rows}
+
+    def test_pagination_order_by_created_at(self):
+        self.authenticate(self.superuser)
+        now = timezone.now()
+        self.dref_a.created_at = now - timedelta(days=2)
+        self.dref_a.save(update_fields=["created_at"])
+        self.dref_b.created_at = now - timedelta(days=1)
+        self.dref_b.save(update_fields=["created_at"])
+
+        page1 = self.client.get(self.url, {"limit": 1, "offset": 0, "order_by": "created_at"})
+        self.assertEqual(page1.status_code, status.HTTP_200_OK)
+        page1_codes = {row["appeal_id"] for row in page1.json()}
+        assert page1_codes == {"APPEAL_A"}
+
+        page2 = self.client.get(self.url, {"limit": 1, "offset": 1, "order_by": "created_at"})
+        self.assertEqual(page2.status_code, status.HTTP_200_OK)
+        page2_codes = {row["appeal_id"] for row in page2.json()}
+        assert page2_codes == {"APPEAL_B"}
+
+        page1_desc = self.client.get(self.url, {"limit": 1, "offset": 0, "order_by": "-created_at"})
+        self.assertEqual(page1_desc.status_code, status.HTTP_200_OK)
+        page1_desc_codes = {row["appeal_id"] for row in page1_desc.json()}
+        assert page1_desc_codes == {"APPEAL_B"}
+
+        page2_desc = self.client.get(self.url, {"limit": 1, "offset": 1, "order_by": "-created_at"})
+        self.assertEqual(page2_desc.status_code, status.HTTP_200_OK)
+        page2_desc_codes = {row["appeal_id"] for row in page2_desc.json()}
+        assert page2_desc_codes == {"APPEAL_A"}
 
     def test_export_csv(self):
         self.authenticate(self.superuser)
