@@ -56,7 +56,7 @@ class SendMail(threading.Thread):
             CronJob.sync_cron(cron_rec)
 
 
-def construct_msg(cc_addresses, subject, html):
+def construct_msg(cc_addresses, subject, html, message_id=None, in_reply_to=None):
     msg = MIMEMultipart("alternative")
 
     msg["Subject"] = subject
@@ -64,6 +64,13 @@ def construct_msg(cc_addresses, subject, html):
     msg["To"] = "no-reply@ifrc.org"
     if cc_addresses:
         msg["Cc"] = ",".join(cc_addresses)
+
+    if message_id:
+        msg["Message-ID"] = message_id
+
+    if in_reply_to:
+        msg["In-Reply-To"] = in_reply_to
+
     text_body = MIMEText(strip_tags(html), "plain")
     html_body = MIMEText(html, "html")
 
@@ -77,7 +84,7 @@ def clean_emails(emails):
     return [e for e in emails if isinstance(e, str) and e.strip()]
 
 
-def send_notification(subject, recipients, html, mailtype="", cc_recipients=None, files=None):
+def send_notification(subject, recipients, html, mailtype="", message_id=None, in_reply_to=None, cc_recipients=None, files=None):
     """Generic email sending method, handly only HTML emails currently"""
     cc_recipients = cc_recipients or []
     if not settings.EMAIL_USER or not settings.EMAIL_API_ENDPOINT:
@@ -103,7 +110,13 @@ def send_notification(subject, recipients, html, mailtype="", cc_recipients=None
 
     if settings.FORCE_USE_SMTP:
         logger.info("Forcing SMPT usage for sending emails.")
-        msg = construct_msg(cc_addresses, subject, html)
+        msg = construct_msg(
+            cc_addresses,
+            subject,
+            html,
+            message_id=message_id,
+            in_reply_to=in_reply_to,
+        )
         SendMail(addresses, msg).start()
         return
 
@@ -153,6 +166,12 @@ def send_notification(subject, recipients, html, mailtype="", cc_recipients=None
         "TemplateName": "",
         "TemplateLanguage": "",
     }
+    if in_reply_to:
+        payload["ReplyToAsBase64"] = str(base64.b64encode(in_reply_to.encode("utf-8")), "utf-8")
+
+    if message_id:
+        payload["MessageIdAsBase64"] = str(base64.b64encode(message_id.encode("utf-8")), "utf-8")
+
     if len(to_addresses) == 1:
         payload["ToAsBase64"] = payload["BccAsBase64"]  # if 1 addressee, no BCC anonimization needed.
         payload["BccAsBase64"] = ""
@@ -183,6 +202,12 @@ def send_notification(subject, recipients, html, mailtype="", cc_recipients=None
         )
         # Try sending with Python smtplib, if reaching the API fails
         logger.warning(f"Authorization/authentication failed ({res.status_code}) to the e-mail sender API.")
-        msg = construct_msg(cc_addresses, subject, html)
+        msg = construct_msg(
+            cc_addresses,
+            subject,
+            html,
+            message_id=message_id,
+            in_reply_to=in_reply_to,
+        )
         SendMail(addresses, msg).start()
     return res.text
