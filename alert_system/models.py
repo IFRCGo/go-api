@@ -146,7 +146,7 @@ class ExtractionItem(BaseItem):
     """
 
     class CollectionType(models.TextChoices):
-        EVENT = "event", _("event")
+        EVENT = "event", _("Event")
         HAZARD = "hazard", _("Hazard")
         IMPACT = "impact", _("Impacts")
 

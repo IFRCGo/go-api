@@ -267,18 +267,22 @@ class PastEventExtractionClass:
         filters = []
 
         for data in impact_metadata or []:
+            category = data.get("category")
+            impact_type = data.get("type")
+            value = data.get("value")
+
             if (
-                data.get("category") == ImpactDetailsEnum.Category.PEOPLE
-                and data.get("type") == ImpactDetailsEnum.Type.AFFECTED_TOTAL  # TODO: Add other possible types here.
-                and data.get("value") is not None
+                category == ImpactDetailsEnum.Category.PEOPLE
+                and impact_type == ImpactDetailsEnum.Type.AFFECTED_TOTAL
+                and value is not None
+                and value > 0
             ):
-                value = data["value"]
                 lower_bound = 10 ** (math.floor(math.log10(value)) - 1)
                 upper_bound = 10 ** (math.floor(math.log10(value)) + 1)
 
                 filters.append(
-                    f"monty:impact_detail.category = '{data['category']}' AND "
-                    f"monty:impact_detail.type = '{data['type']}' AND "
+                    f"monty:impact_detail.category = '{category}' AND "
+                    f"monty:impact_detail.type = '{impact_type}' AND "
                     f"monty:impact_detail.value >= {lower_bound} AND "
                     f"monty:impact_detail.value <= {upper_bound}"
                 )
