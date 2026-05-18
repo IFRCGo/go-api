@@ -8,7 +8,7 @@ from django.db import models, transaction
 from django.http import HttpResponse
 from django.templatetags.static import static
 from django.utils.translation import gettext
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import (
     mixins,
     permissions,
@@ -464,6 +464,52 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):  # type: ignore[misc]
         name_map = {s.name.lower(): s.value for s in Dref.Status}
         return label_map.get(str(raw).lower()) or name_map.get(str(raw).lower())
 
+    def _order_codes(self, codes, request):
+        order_by = request.query_params.get("order_by")
+        if order_by not in ("created_at", "-created_at"):
+            return sorted(codes)
+
+        created_map = {
+            row["appeal_code"]: row["first_created_at"]
+            for row in Dref.objects.filter(appeal_code__in=codes)
+            .values("appeal_code")
+            .annotate(first_created_at=models.Min("created_at"))
+        }
+
+        present = [code for code in codes if created_map.get(code) is not None]
+        missing = sorted([code for code in codes if created_map.get(code) is None])
+        present_sorted = sorted(present, key=lambda code: (created_map.get(code), code), reverse=order_by == "-created_at")
+        return present_sorted + missing
+
+    def _paginate_codes(self, codes, request):
+        try:
+            limit = int(request.query_params.get("limit")) if request.query_params.get("limit") else None
+        except ValueError:
+            limit = None
+        try:
+            offset = int(request.query_params.get("offset")) if request.query_params.get("offset") else 0
+        except ValueError:
+            offset = 0
+
+        if not offset and limit is None:
+            return codes
+
+        end = offset + limit if limit is not None else None
+        return codes[offset:end]
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="order_by",
+                description=(
+                    "Ordering for paged appeal codes. Use 'created_at' or '-created_at' to sort by the first "
+                    "DREF application created_at per appeal_code; any other value defaults to appeal_code ordering."
+                ),
+                required=False,
+                type=str,
+            )
+        ]
+    )
     def list(self, request):
         # === First approach – would be nice to work like this, but recent definitons are more complex than that:
         # # Aggregate all appeal-codes from the three models
@@ -564,7 +610,7 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):  # type: ignore[misc]
             combined = set()
             for s in codes_sets:
                 combined.update([c for c in s if c])
-            codes = sorted(combined)
+            codes = list(combined)
 
         # Additional date range filters (applied to root Dref only where fields exist)
         date_range_fields = [
@@ -591,6 +637,9 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):  # type: ignore[misc]
             excluded_codes = self._excluded_codes()
             if excluded_codes:
                 codes = [c for c in codes if c and c.upper() not in excluded_codes]
+
+        codes = self._order_codes(codes, request)
+        codes = self._paginate_codes(codes, request)
 
         data = []
         old_kwargs = getattr(self, "kwargs", {}).copy()
@@ -630,20 +679,7 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):  # type: ignore[misc]
         if id_param:
             if wanted_ids := {i.strip() for i in str(id_param).split(",")}:
                 data = [row for row in data if row.get("id") in wanted_ids]
-        # pagination
-        try:
-            limit = int(request.query_params.get("limit")) if request.query_params.get("limit") else None
-        except ValueError:
-            limit = None
-        try:
-            offset = int(request.query_params.get("offset")) if request.query_params.get("offset") else 0
-        except ValueError:
-            offset = 0
-        if offset or limit is not None:
-            end = offset + limit if limit is not None else None
-            data_paginated = data[offset:end]
-        else:
-            data_paginated = data
+        data_paginated = data
 
         export_param = request.query_params.get("export")
         if export_param and export_param.lower() == "csv":
