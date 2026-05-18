@@ -48,10 +48,9 @@ def send_alert_email_notification(
 
         email_context = get_alert_email_context(load_item, user)
         email_body = render_to_string(template, email_context)
-
         send_notification(
             subject=subject,
-            recipients=user.email,
+            recipients=[user.email],
             message_id=message_id,
             in_reply_to=in_reply_to,
             html=email_body,
