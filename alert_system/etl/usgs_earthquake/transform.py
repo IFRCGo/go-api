@@ -77,10 +77,13 @@ class USGSTransformer(BaseTransformerClass):
 
     def process_event(self, event_item) -> BaseTransformerClass.EventType:
         properties = event_item.resp_data.get("properties", {})
+        urls = event_item.resp_data.get("links")
         return {
             "title": properties.get("title", ""),
             "description": properties.get("description", ""),
             "country": properties.get("monty:country_codes", ""),
-            "start_datetime": properties.get("datetime"),
+            "start_datetime": properties.get("start_datetime"),
             "end_datetime": properties.get("end_datetime"),
+            "episode_number": properties.get("monty:episode_number"),
+            "event_url": next(item["href"] for item in urls if item["rel"] == "self"),
         }
