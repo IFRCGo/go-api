@@ -630,7 +630,27 @@ class PerProcessStatusViewSet(viewsets.ReadOnlyModelViewSet):
     get_filtered_queryset = RegionRestrictedAdmin.get_filtered_queryset
 
     def get_queryset(self):
-        queryset = Overview.objects.order_by("country", "-assessment_number", "-date_of_assessment")
+        queryset = (
+            Overview.objects.order_by("country", "-assessment_number", "-date_of_assessment")
+            .select_related("country", "country__region", "type_of_assessment")
+            .prefetch_related(
+                Prefetch(
+                    "perassessment_set",
+                    queryset=PerAssessment.objects.order_by("-id").only("id", "overview_id"),
+                    to_attr="latest_perassessments",
+                ),
+                Prefetch(
+                    "formprioritization_set",
+                    queryset=FormPrioritization.objects.order_by("-id").only("id", "overview_id"),
+                    to_attr="latest_prioritizations",
+                ),
+                Prefetch(
+                    "perworkplan_set",
+                    queryset=PerWorkPlan.objects.order_by("-id").only("id", "overview_id"),
+                    to_attr="latest_workplans",
+                ),
+            )
+        )
         return self.get_filtered_queryset(self.request, queryset, dispatch=0)
 
 
@@ -640,7 +660,27 @@ class PublicPerProcessStatusViewSet(viewsets.ReadOnlyModelViewSet):
     ordering_fields = "__all__"
 
     def get_queryset(self):
-        return Overview.objects.order_by("country", "-assessment_number", "-date_of_assessment")
+        return (
+            Overview.objects.order_by("country", "-assessment_number", "-date_of_assessment")
+            .select_related("country", "country__region", "type_of_assessment")
+            .prefetch_related(
+                Prefetch(
+                    "perassessment_set",
+                    queryset=PerAssessment.objects.order_by("-id").only("id", "overview_id"),
+                    to_attr="latest_perassessments",
+                ),
+                Prefetch(
+                    "formprioritization_set",
+                    queryset=FormPrioritization.objects.order_by("-id").only("id", "overview_id"),
+                    to_attr="latest_prioritizations",
+                ),
+                Prefetch(
+                    "perworkplan_set",
+                    queryset=PerWorkPlan.objects.order_by("-id").only("id", "overview_id"),
+                    to_attr="latest_workplans",
+                ),
+            )
+        )
 
 
 class FormAssessmentViewSet(viewsets.ModelViewSet):
