@@ -687,9 +687,24 @@ class AggregatedERUAndRapidResponseViewSetTestCase(APITestCase):
             disaster_start_date=datetime.datetime(2025, 3, 1),
         )
 
-        self.country1 = country.CountryFactory(name="Test Country1")
-        self.country2 = country.CountryFactory(name="Test Country2")
-        self.country3 = country.CountryFactory(name="Test Country3")
+        self.country1 = country.CountryFactory.create(
+            name="Test Country1",
+            iso3="Ts1",
+            iso="T1",
+            society_name="Test Society",
+        )
+        self.country2 = country.CountryFactory.create(
+            name="Test Country2",
+            iso3="TS2",
+            iso="T2",
+            society_name="Test Society2",
+        )
+        self.country3 = country.CountryFactory.create(
+            name="Test Country3",
+            iso3="TS3",
+            iso="T3",
+            society_name="Test Society3",
+        )
 
         self.eru_owner = ERUOwnerFactory(
             national_society_country=self.country1,

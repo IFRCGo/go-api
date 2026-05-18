@@ -6,6 +6,7 @@ from django.db.models import (
     Avg,
     Case,
     Count,
+    Exists,
     ExpressionWrapper,
     F,
     OuterRef,
@@ -13,6 +14,7 @@ from django.db.models import (
     Q,
     Subquery,
     Sum,
+    Value,
     When,
 )
 from django.db.models.fields import IntegerField
@@ -59,6 +61,7 @@ from country_plan.models import CountryPlan
 from databank.serializers import CountryOverviewSerializer
 from deployments.models import ERU, Personnel
 from deployments.serializers import ListDeployedERUByEventSerializer
+from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
 from main.enums import GlobalEnumSerializer, get_enum_values
 from main.filters import NullsLastOrderingFilter
 from main.permissions import DenyGuestUserMutationPermission, DenyGuestUserPermission
@@ -73,6 +76,7 @@ from .models import (
     Appeal,
     AppealDocument,
     AppealHistory,
+    AppealStatus,
     AppealType,
     Country,
     CountryKeyDocument,
@@ -86,6 +90,7 @@ from .models import (
     EventContact,
     EventFeaturedDocument,
     EventSeverityLevelHistory,
+    EventStage,
     Export,
     ExternalPartner,
     FieldReport,
@@ -749,7 +754,8 @@ class EventViewset(ReadOnlyVisibilityViewset):
         qset = super().get_queryset()
         if self.action == "mini_events":
             # return Event.objects.filter(parent_event__isnull=True).select_related('dtype')
-            return qset.filter(parent_event__isnull=True).select_related("dtype")
+            return qset.filter(parent_event__isnull=True).select_related("dtype").prefetch_related("countries_for_preview")
+
         if self.action == "response_activity_events":
             return (
                 qset.filter(parent_event__isnull=True)
@@ -869,7 +875,11 @@ class EventViewset(ReadOnlyVisibilityViewset):
     )
     @action(methods=["get"], detail=False, url_path="mini")
     def mini_events(self, request):
-        queryset = self.filter_queryset(self.get_queryset())
+        queryset = self.filter_queryset(self.get_queryset()).annotate(
+            latest_field_report_id=Subquery(
+                FieldReport.objects.filter(event=OuterRef("pk")).order_by("-updated_at").values("id")[:1]
+            )
+        )
         serializer = ListMiniEventSerializer(queryset, many=True)
         page = self.paginate_queryset(queryset)
         if page is not None:
@@ -1559,45 +1569,181 @@ class CountrySupportingPartnerViewSet(viewsets.ModelViewSet):
         return CountrySupportingPartner.objects.select_related("country")
 
 
-class EmergencyViewset(ReadOnlyVisibilityViewset):
+class EmergencyViewset(
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet,
+    ReadOnlyVisibilityViewsetMixin,
+):
     queryset = Event.objects.all()
     lookup_field = "id"
     serializer_class = DetailEmergencySerializer
     filterset_class = EventFilter
-    visibility_model_class = Event
 
     def get_queryset(self):
+        today = timezone.now().date()
+
+        active_appeal_qs = Appeal.objects.filter(
+            event=OuterRef("pk"),
+            status=AppealStatus.ACTIVE,
+        )
+
+        active_dref_appeal_qs = active_appeal_qs.filter(
+            atype=AppealType.DREF,
+        )
+
+        active_emergency_appeal_qs = active_appeal_qs.filter(
+            atype=AppealType.APPEAL,
+        )
+
+        field_report_qs = FieldReport.objects.filter(event=OuterRef("pk"))
+
+        latest_appeal_qs = active_emergency_appeal_qs.order_by("-start_date")
+
+        approved_dref_qs = Dref.objects.filter(
+            event=OuterRef("pk"),
+            status=Dref.Status.APPROVED,
+        )
+
+        approved_ops_update_qs = DrefOperationalUpdate.objects.filter(
+            dref__event=OuterRef("pk"),
+            status=Dref.Status.APPROVED,
+        ).order_by("-created_at")
+
+        approved_final_report_qs = DrefFinalReport.objects.filter(
+            dref__event=OuterRef("pk"),
+            status=Dref.Status.APPROVED,
+        ).order_by("-created_at")
+
         return (
             super()
             .get_queryset()
-            .select_related(
-                "dtype",
-                "parent_event",
-            )
-            .prefetch_related(
-                "regions",
-                "countries",
-                "countries_for_preview",
-                Prefetch("key_figures", queryset=KeyFigure.objects.all()),
-                Prefetch("contacts", queryset=EventContact.objects.all()),
+            .annotate(
+                # Aggregated Values
+                response_activity_count=Count(
+                    "emergency_projects",
+                    distinct=True,
+                ),
+                active_deployments_count=Count(
+                    "personneldeployment__personnel",
+                    filter=Q(
+                        personneldeployment__personnel__type=Personnel.TypeChoices.RR,
+                        personneldeployment__personnel__start_date__date__lte=today,
+                        personneldeployment__personnel__end_date__date__gte=today,
+                        personneldeployment__personnel__is_active=True,
+                    ),
+                    distinct=True,
+                ),
+                surge_alerts_count=Count(
+                    "surgealert",
+                    distinct=True,
+                ),
+                # Stage
+                stage=Case(
+                    When(
+                        Exists(active_emergency_appeal_qs),
+                        then=Value(EventStage.EMERGENCY_APPEAL),
+                    ),
+                    When(
+                        Exists(approved_final_report_qs),
+                        then=Value(EventStage.DREF_FINAL_REPORT),
+                    ),
+                    When(
+                        Exists(approved_ops_update_qs),
+                        then=Value(EventStage.DREF_OPERATIONAL_UPDATE),
+                    ),
+                    When(
+                        Exists(approved_dref_qs),
+                        then=Value(EventStage.DREF_APPLICATION),
+                    ),
+                    # If there is an active appeal of DREF type, but no approved DREF yet,
+                    # we consider the emergency to be in the Emergency Appeal stage.
+                    # Reaches here only if no approved DREF/ops-update/final-report exists
+                    # So an active appeal type DREF appeal with no approved DREF = Emergency Appeal
+                    When(
+                        Exists(active_dref_appeal_qs),
+                        then=Value(EventStage.EMERGENCY_APPEAL),
+                    ),
+                    When(
+                        Exists(FieldReport.objects.filter(event=OuterRef("pk"))),
+                        then=Value(EventStage.FIELD_REPORT),
+                    ),
+                    default=Value(None),
+                    output_field=IntegerField(null=True),
+                ),
             )
             .annotate(
-                first_field_report_id=Subquery(
-                    FieldReport.objects.filter(event=OuterRef("pk"))
-                    .order_by(
-                        "fr_num",
-                        "updated_at",
-                    )
-                    .values("id")[:1]
+                # Passing values for the current stage's instance,
+                # to avoid extra queries in serializer.
+                stage_appeal_id=Case(
+                    When(
+                        stage=EventStage.EMERGENCY_APPEAL,
+                        then=Subquery(latest_appeal_qs.values("id")[:1]),
+                    ),
+                    default=Value(None),
+                    output_field=IntegerField(null=True),
                 ),
-                latest_field_report_id=Subquery(
-                    FieldReport.objects.filter(event=OuterRef("pk"))
-                    .order_by(
-                        "-fr_num",
-                        "-updated_at",
-                    )
-                    .values("id")[:1]
+                stage_dref_id=Case(
+                    When(
+                        stage__in=[
+                            EventStage.DREF_APPLICATION,
+                            EventStage.DREF_OPERATIONAL_UPDATE,
+                            EventStage.DREF_FINAL_REPORT,
+                        ],
+                        then=Subquery(approved_dref_qs.values("id")[:1]),
+                    ),
+                    default=Value(None),
+                    output_field=IntegerField(null=True),
                 ),
-                appeal_id=Subquery(Appeal.objects.filter(event=OuterRef("pk")).order_by("-created_at").values("id")[:1]),
+                stage_final_report_id=Case(
+                    When(
+                        stage=EventStage.DREF_FINAL_REPORT,
+                        then=Subquery(
+                            DrefFinalReport.objects.filter(
+                                dref__id=OuterRef("stage_dref_id"), status=Dref.Status.APPROVED
+                            ).values("id")[:1]
+                        ),
+                    ),
+                    default=Value(None),
+                    output_field=IntegerField(null=True),
+                ),
+                stage_ops_update_id=Case(
+                    When(
+                        stage=EventStage.DREF_OPERATIONAL_UPDATE,
+                        then=Subquery(
+                            DrefOperationalUpdate.objects.filter(
+                                dref__id=OuterRef("stage_dref_id"), status=Dref.Status.APPROVED
+                            ).values("id")[:1]
+                        ),
+                    ),
+                    default=Value(None),
+                    output_field=IntegerField(null=True),
+                ),
+                stage_field_report_id=Case(
+                    When(
+                        stage=EventStage.FIELD_REPORT,
+                        then=Subquery(field_report_qs.order_by("-updated_at", "-fr_num").values("id")[:1]),
+                    ),
+                    default=Value(None),
+                    output_field=IntegerField(null=True),
+                ),
+                first_field_report_created_at=Subquery(field_report_qs.order_by("created_at", "fr_num").values("created_at")[:1]),
+                latest_field_report_created_at=Subquery(
+                    field_report_qs.order_by("-created_at", "-fr_num").values("created_at")[:1]
+                ),
+            )
+            .select_related("dtype")
+            .prefetch_related(
+                Prefetch(
+                    "countries",
+                    queryset=Country.objects.select_related("region"),
+                ),
+                Prefetch(
+                    "key_figures",
+                    queryset=KeyFigure.objects.all(),
+                ),
+                Prefetch(
+                    "contacts",
+                    queryset=EventContact.objects.all(),
+                ),
             )
         )

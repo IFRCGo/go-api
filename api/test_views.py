@@ -7,8 +7,10 @@ from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
 from django.urls import reverse
+from django.utils.dateparse import parse_datetime
 
 import api.models as models
+from api.factories.country import CountryFactory
 from api.factories.disaster_type import DisasterTypeFactory
 from api.factories.event import (
     AppealFactory,
@@ -19,9 +21,14 @@ from api.factories.event import (
     EventLinkFactory,
 )
 from api.factories.field_report import FieldReportFactory
-from api.models import Profile, VisibilityChoices
+from api.models import AppealStatus, EventStage, Profile, VisibilityChoices
 from deployments.factories.user import UserFactory
-from dref.models import DrefFile
+from dref.factories.dref import (
+    DrefFactory,
+    DrefFinalReportFactory,
+    DrefOperationalUpdateFactory,
+)
+from dref.models import Dref, DrefFile
 from main.test_case import APITestCase
 from per.factories import OpsLearningFactory
 
@@ -1063,20 +1070,12 @@ class EmergencyViewTestCase(APITestCase):
             event=self.event1,
         )
 
-        self.field_report1 = FieldReportFactory.create(
+        self.field_report = FieldReportFactory.create(
             event=self.event1,
             created_at=datetime.datetime(2024, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc),
             updated_at=datetime.datetime(2026, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc),
             fr_num=50,
         )
-
-        self.field_report2 = FieldReportFactory.create(
-            event=self.event1,
-            created_at=datetime.datetime(2024, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc),
-            updated_at=datetime.datetime(2025, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc),
-            fr_num=20,
-        )
-
         self.event2 = EventFactory.create(
             dtype=self.disaster_type,
             source=models.Event.EventSource.WHO,
@@ -1098,13 +1097,6 @@ class EmergencyViewTestCase(APITestCase):
             amount_funded=1899999,
         )
 
-        self.url = "/api/v2/emergency/"
-
-    def test_get_emergency_list(self):
-        response = self.client.get(self.url)
-        self.assert_200(response)
-        self.assertEqual(response.data["count"], 3)
-
     def test_retrive_emergency_detail(self):
         url = f"/api/v2/emergency/{self.event1.id}/"
         response = self.client.get(url)
@@ -1114,27 +1106,363 @@ class EmergencyViewTestCase(APITestCase):
         self.assertEqual(response.data["name"], self.event1.name)
         self.assertEqual(response.data["source"], models.Event.EventSource.GDACS)
 
-        # first field report id check
-        self.assertEqual(response.data["first_field_report_id"], self.field_report2.id)
-        # latest check field report
-        self.assertEqual(response.data["latest_field_report_id"], self.field_report1.id)
+        # Stage check
+        self.assertEqual(response.data["stage"], EventStage.FIELD_REPORT, response.data)
+        self.assertEqual(response.data["field_report"]["id"], self.field_report.id, response.data)
 
-    # Filter Tests
-    def test_filter_by_who_source(self):
-        url = f"{self.url}?source=120"
-        response = self.client.get(url)
-        self.assert_200(response)
-        self.assertEqual(response.data["count"], 1)
-        self.assertEqual(response.data["results"][0]["source"], models.Event.EventSource.WHO)
 
-    def test_filter_by_appeal_source(self):
-        url = f"{self.url}?source=150"
-        response = self.client.get(url)
-        self.assert_200(response)
-        self.assertEqual(response.data["count"], 1)
-        self.assertEqual(response.data["results"][0]["source"], models.Event.EventSource.APPEAL_ADMIN)
+class EmergencyStageTestCase(APITestCase):
+    """
+    Tests for the stage annotation and stage-specific nested serializer
+    fields (field_report / appeal / dref) on GET /api/v2/emergency/<id>/
+    """
 
-    def test_filter_by_source_no_match(self):
-        url = f"{self.url}?source=500"
-        response = self.client.get(url)
-        self.assert_400(response)
+    def setUp(self):
+        super().setUp()
+        self.disaster_type = DisasterTypeFactory.create(name="Flood")
+        self.country = CountryFactory.create(name="country1", iso3="DEP", iso="DE")
+
+    def _url(self, event):
+        return f"/api/v2/emergency/{event.id}/"
+
+    def _get(self, event):
+        return self.client.get(self._url(event))
+
+    def _approved_dref(self, event):
+        return DrefFactory.create(
+            event=event,
+            status=Dref.Status.APPROVED,
+            disaster_type=self.disaster_type,
+            country=self.country,
+        )
+
+    def _approved_ops_update(self, dref):
+        return DrefOperationalUpdateFactory.create(
+            dref=dref,
+            status=Dref.Status.APPROVED,
+            disaster_type=self.disaster_type,
+            country=self.country,
+        )
+
+    def _approved_final_report(self, dref):
+        return DrefFinalReportFactory.create(
+            dref=dref,
+            status=Dref.Status.APPROVED,
+            disaster_type=self.disaster_type,
+            country=self.country,
+        )
+
+    def _active_emergency_appeal(self, event):
+        return AppealFactory.create(
+            event=event,
+            dtype=self.disaster_type,
+            status=AppealStatus.ACTIVE,
+            atype=AppealType.APPEAL,
+        )
+
+    def test_stage_is_none(self):
+        event = EventFactory.create(
+            dtype=self.disaster_type,
+            source=models.Event.EventSource.MANUAL_INPUT,
+        )
+
+        data = self._get(event).data
+
+        self.assertIsNone(data["stage"])
+        self.assertIsNone(data["stage_display"])
+        self.assertIsNone(data["field_report"])
+        self.assertIsNone(data["appeal"])
+        self.assertIsNone(data["dref"])
+
+    def test_stage_field_report(self):
+        event = EventFactory.create(dtype=self.disaster_type, source=models.Event.EventSource.MANUAL_INPUT)
+        field_report = FieldReportFactory.create(event=event)
+
+        data = self._get(event).data
+
+        self.assertEqual(data["stage"], EventStage.FIELD_REPORT)
+        self.assertEqual(data["stage_display"], EventStage(EventStage.FIELD_REPORT).label)
+        self.assertEqual(data["field_report"]["id"], field_report.id)
+        self.assertIsNone(data["appeal"])
+        self.assertIsNone(data["dref"])
+
+    def test_stage_field_report_returns_latest_by_updated_at_and_fr_num(self):
+        """
+        When multiple field reports exist, the one ordered by
+        (-updated_at, -fr_num) should be returned.
+        """
+        event = EventFactory.create(dtype=self.disaster_type)
+        first_fr = FieldReportFactory.create(
+            event=event,
+            dtype=self.disaster_type,
+            created_at=datetime.datetime(2024, 1, 1, tzinfo=datetime.UTC),
+            updated_at=datetime.datetime(2024, 6, 1, tzinfo=datetime.UTC),
+            fr_num=1,
+        )
+
+        latest_fr = FieldReportFactory.create(
+            event=event,
+            dtype=self.disaster_type,
+            created_at=datetime.datetime(2025, 1, 1, tzinfo=datetime.UTC),
+            updated_at=datetime.datetime(2026, 1, 1, tzinfo=datetime.UTC),
+            fr_num=2,
+        )
+
+        data = self._get(event).data
+
+        self.assertIsNotNone(data["field_report"], data)
+        self.assertEqual(data["field_report"]["id"], latest_fr.id)
+        self.assertEqual(data["stage"], EventStage.FIELD_REPORT)
+        self.assertEqual(parse_datetime(data["first_field_report_created_at"]), first_fr.created_at)
+        self.assertEqual(parse_datetime(data["latest_field_report_created_at"]), latest_fr.created_at)
+
+    def test_stage_dref_application(self):
+        event = EventFactory.create(dtype=self.disaster_type)
+        dref = self._approved_dref(event)
+        DrefOperationalUpdateFactory.create(
+            dref=dref,
+            status=Dref.Status.DRAFT,
+            disaster_type=self.disaster_type,
+            country=self.country,
+        )
+
+        data = self._get(event).data
+
+        self.assertEqual(
+            data["stage"],
+            EventStage.DREF_APPLICATION.value,
+        )
+
+        self.assertEqual(
+            data["stage_display"],
+            EventStage(EventStage.DREF_APPLICATION).label,
+        )
+
+        self.assertEqual(data["dref"]["id"], dref.id)
+        self.assertIsNone(data["dref"]["operational_update_details"])
+        self.assertIsNone(data["dref"]["final_report_details"])
+        self.assertIsNone(data["field_report"])
+        self.assertIsNone(data["appeal"])
+
+        # After Final report create
+        dref_final_report = DrefFinalReportFactory.create(
+            dref=dref,
+            status=Dref.Status.APPROVED,
+            disaster_type=self.disaster_type,
+            country=self.country,
+        )
+        data = self._get(event).data
+
+        self.assertEqual(
+            data["stage"],
+            EventStage.DREF_FINAL_REPORT.value,
+        )
+        self.assertEqual(
+            data["stage_display"],
+            EventStage(EventStage.DREF_FINAL_REPORT).label,
+        )
+        self.assertEqual(data["dref"]["id"], dref.id)
+        self.assertIsNone(data["dref"]["operational_update_details"])
+        self.assertIsNone(data["field_report"])
+        self.assertIsNone(data["appeal"])
+        self.assertIsNotNone(data["dref"]["final_report_details"])
+        self.assertEqual(data["dref"]["final_report_details"]["id"], dref_final_report.id)
+
+    def test_stage_dref_operational_update(self):
+        event = EventFactory.create(dtype=self.disaster_type)
+        dref = self._approved_dref(event)
+        ops_update = self._approved_ops_update(dref)
+
+        data = self._get(event).data
+
+        self.assertEqual(data["stage"], EventStage.DREF_OPERATIONAL_UPDATE)
+        self.assertEqual(data["dref"]["id"], dref.id)
+        self.assertEqual(data["dref"]["operational_update_details"]["id"], ops_update.id)
+        self.assertIsNone(data["field_report"])
+        self.assertIsNone(data["appeal"])
+
+    def test_stage_dref_final_report(self):
+        event = EventFactory.create(dtype=self.disaster_type)
+        dref = self._approved_dref(event)
+        final_report = self._approved_final_report(dref)
+
+        data = self._get(event).data
+
+        self.assertEqual(data["stage"], EventStage.DREF_FINAL_REPORT)
+        self.assertEqual(data["stage_display"], EventStage(EventStage.DREF_FINAL_REPORT).label)
+        self.assertEqual(data["dref"]["id"], dref.id)
+        self.assertEqual(data["dref"]["final_report_details"]["id"], final_report.id)
+        self.assertIsNone(data["field_report"])
+        self.assertIsNone(data["appeal"])
+
+    def test_stage_emergency_appeal(self):
+        event = EventFactory.create(
+            dtype=self.disaster_type,
+            source=models.Event.EventSource.MANUAL_INPUT,
+        )
+        appeal = self._active_emergency_appeal(event)
+
+        data = self._get(event).data
+
+        self.assertEqual(data["stage"], EventStage.EMERGENCY_APPEAL)
+        self.assertEqual(data["stage_display"], EventStage(EventStage.EMERGENCY_APPEAL).label)
+        self.assertEqual(data["appeal"]["id"], appeal.id)
+        self.assertIsNone(data["field_report"])
+        self.assertIsNone(data["dref"])
+
+        # If Field report is created
+        first_fr = FieldReportFactory.create(
+            event=event,
+            dtype=self.disaster_type,
+            created_at=datetime.datetime(2024, 1, 1, tzinfo=datetime.UTC),
+            updated_at=datetime.datetime(2024, 6, 1, tzinfo=datetime.UTC),
+            fr_num=1,
+        )
+        latest_fr = FieldReportFactory.create(
+            event=event,
+            dtype=self.disaster_type,
+            created_at=datetime.datetime(2025, 1, 1, tzinfo=datetime.UTC),
+            updated_at=datetime.datetime(2026, 1, 1, tzinfo=datetime.UTC),
+            fr_num=2,
+        )
+
+        data = self._get(event).data
+        # Emergency appeal stage should take priority over field report stage
+        # BUT Fields Report dates for latest and first should be present
+        self.assertEqual(data["stage"], EventStage.EMERGENCY_APPEAL)
+
+        self.assertEqual(parse_datetime(data["first_field_report_created_at"]), first_fr.created_at)
+        self.assertEqual(parse_datetime(data["latest_field_report_created_at"]), latest_fr.created_at)
+
+    def test_inactive_appeal_does_not_trigger_emergency_appeal_stage(self):
+        """An appeal that is not ACTIVE should not resolve to EMERGENCY_APPEAL."""
+        event = EventFactory.create(dtype=self.disaster_type)
+        AppealFactory.create(
+            event=event,
+            dtype=self.disaster_type,
+            status=AppealStatus.CLOSED,
+            atype=AppealType.APPEAL,
+        )
+
+        data = self._get(event).data
+        self.assertNotEqual(data["stage"], EventStage.EMERGENCY_APPEAL)
+
+    def test_emergency_appeal_takes_priority_over_entire_dref_chain(self):
+        event = EventFactory.create(dtype=self.disaster_type)
+        dref = self._approved_dref(event)
+        self._approved_ops_update(dref)
+        self._approved_final_report(dref)
+        self._active_emergency_appeal(event)
+
+        data = self._get(event).data
+
+        self.assertEqual(data["stage"], EventStage.EMERGENCY_APPEAL)
+
+    def test_dref_final_report_takes_priority_over_ops_update_and_application(self):
+        event = EventFactory.create(dtype=self.disaster_type)
+        dref = self._approved_dref(event)
+        self._approved_ops_update(dref)
+        self._approved_final_report(dref)
+
+        data = self._get(event).data
+
+        self.assertEqual(data["stage"], EventStage.DREF_FINAL_REPORT)
+
+    def test_dref_ops_update_takes_priority_over_dref_application(self):
+        event = EventFactory.create(dtype=self.disaster_type)
+        dref = self._approved_dref(event)
+        self._approved_ops_update(dref)
+
+        data = self._get(event).data
+
+        self.assertEqual(data["stage"], EventStage.DREF_OPERATIONAL_UPDATE)
+
+        # Create DRAFT Final report, stage should still be DREF_OPERATIONAL_UPDATE until Final report is APPROVED
+        DrefFinalReportFactory.create(
+            dref=dref,
+            status=Dref.Status.DRAFT,
+            disaster_type=self.disaster_type,
+            country=self.country,
+        )
+        data = self._get(event).data
+        self.assertEqual(data["stage"], EventStage.DREF_OPERATIONAL_UPDATE)
+        self.assertIsNone(data["appeal"])
+        self.assertIsNone(data["field_report"])
+        self.assertIsNone(data["dref"]["final_report_details"])
+
+    def test_dref_application_takes_priority_over_field_report(self):
+        event = EventFactory.create(dtype=self.disaster_type)
+        FieldReportFactory.create(event=event)
+        dref = self._approved_dref(event)
+
+        data = self._get(event).data
+
+        self.assertEqual(data["stage"], EventStage.DREF_APPLICATION)
+
+        # Create DRAFT ops update, stage should still be DREF Application until ops update is APPROVED
+        DrefOperationalUpdateFactory.create(
+            dref=dref,
+            status=Dref.Status.DRAFT,
+            disaster_type=self.disaster_type,
+            country=self.country,
+        )
+        data = self._get(event).data
+        self.assertEqual(data["stage"], EventStage.DREF_APPLICATION)
+        self.assertIsNone(data["appeal"])
+        self.assertIsNone(data["field_report"])
+
+        # Create DRAFT Final report, stage should still be DREF Aplication until Final report is APPROVED
+        DrefFinalReportFactory.create(
+            dref=dref,
+            status=Dref.Status.DRAFT,
+            disaster_type=self.disaster_type,
+            country=self.country,
+        )
+        data = self._get(event).data
+
+        self.assertEqual(data["stage"], EventStage.DREF_APPLICATION)
+        self.assertIsNone(data["appeal"])
+        self.assertIsNone(data["field_report"])
+        self.assertIsNone(data["dref"]["final_report_details"])
+
+    def fallback_to_appeal_for_no_approved_dref(self):
+        """
+        If no approved DREF application exists, but an ACTIVE appeal dref type exists, stage should resolve to EMERGENCY_APPEAL
+        and not DREF.
+        """
+        event = EventFactory.create(dtype=self.disaster_type)
+        AppealFactory.create(
+            event=event,
+            dtype=self.disaster_type,
+            status=AppealStatus.ACTIVE,
+            atype=AppealType.APPEAL,
+        )
+
+        data = self._get(event).data
+
+        self.assertEqual(data["stage"], EventStage.EMERGENCY_APPEAL)
+        self.assertIsNone(data["dref"])
+        self.assertIsNone(data["field_report"])
+        self.assertIsNotNone(data["appeal"])
+
+        # If Field report is created
+        first_fr = FieldReportFactory.create(
+            event=event,
+            dtype=self.disaster_type,
+            created_at=datetime.datetime(2024, 1, 1, tzinfo=datetime.UTC),
+            updated_at=datetime.datetime(2024, 6, 1, tzinfo=datetime.UTC),
+            fr_num=1,
+        )
+        latest_fr = FieldReportFactory.create(
+            event=event,
+            dtype=self.disaster_type,
+            created_at=datetime.datetime(2025, 1, 1, tzinfo=datetime.UTC),
+            updated_at=datetime.datetime(2026, 1, 1, tzinfo=datetime.UTC),
+            fr_num=2,
+        )
+
+        data = self._get(event).data
+        self.assertEqual(data["stage"], EventStage.EMERGENCY_APPEAL)
+
+        self.assertEqual(parse_datetime(data["first_field_report_created_at"]), first_fr.created_at)
+        self.assertEqual(parse_datetime(data["latest_field_report_created_at"]), latest_fr.created_at)
