@@ -14,15 +14,9 @@ class BaseLoaderClass(ABC):
     def filter_eligible_items(self, load_obj):
         raise NotImplementedError()
 
-    def extract_parent_guid(self, guid: str) -> str:
-        parts = guid.split("-")
-
-        BASE_PART_COUNT = 7
-
-        if len(parts) > BASE_PART_COUNT:
-            return "-".join(parts[:BASE_PART_COUNT])
-
-        return guid
+    def extract_event_id_without_episode(self, event_id: str) -> str:
+        parts = event_id.split("-")
+        return "-".join(parts[0 : len(parts) - 1])
 
     def load(self, transformed_data: Dict, connector: Connector, run_id: str, is_past_event: bool = False) -> LoadItem:
         """
@@ -35,16 +29,15 @@ class BaseLoaderClass(ABC):
         Returns:
             Created LoadItem object
         """
-        guid = transformed_data["guid"]
-        parent_guid = self.extract_parent_guid(guid)
+        event_id = transformed_data["event_id"]
+        parent_event_id = self.extract_event_id_without_episode(event_id)
         is_item_eligible = self.filter_eligible_items(transformed_data)
 
         load_obj, created = LoadItem.objects.update_or_create(
-            guid=guid,
+            event_id=event_id,
             defaults={
                 "connector": connector,
-                "parent_guid": parent_guid,
-                "correlation_id": transformed_data.get("correlation_id"),
+                "parent_event_id": parent_event_id,
                 "event_title": transformed_data.get("title"),
                 "event_description": transformed_data.get("description"),
                 "country_codes": transformed_data.get("country"),
@@ -59,10 +52,12 @@ class BaseLoaderClass(ABC):
                 "item_eligible": is_item_eligible,
                 "is_past_event": is_past_event,
                 "extraction_run_id": run_id,
+                "episode_number": transformed_data.get("episode_number"),
+                "event_url": transformed_data.get("event_url"),
             },
         )
 
         action = "Created" if created else "Updated"
-        logger.info(f"{action} Event for {guid=}")
+        logger.info(f"{action} Event for {event_id=}")
 
         return load_obj

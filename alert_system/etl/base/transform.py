@@ -26,6 +26,8 @@ class BaseTransformerClass(ABC):
         country: str
         start_datetime: datetime
         end_datetime: datetime
+        episode_number: int
+        event_url: str
 
     def __init__(
         self, event_obj: ExtractionItem, hazard_obj: Optional[ExtractionItem] = None, impact_obj: List[ExtractionItem] = []
@@ -33,8 +35,7 @@ class BaseTransformerClass(ABC):
         self.event_obj = event_obj
         self.hazard_obj = hazard_obj
         self.impact_obj = impact_obj
-        self.correlation_id = event_obj.correlation_id
-        self.guid = event_obj.guid
+        self.event_id = event_obj.stac_id
 
     @abstractmethod
     def process_hazard(self, hazard_item: ExtractionItem | None) -> HazardType:
@@ -55,7 +56,7 @@ class BaseTransformerClass(ABC):
         Fetches event, hazard and impact items separately, processes them,
         and returns processed data if available.
         """
-        logger.info(f"Starting transformer for correlation_id={self.correlation_id}")
+        logger.info(f"Starting transformer for event_id={self.event_id}")
         # Process event, hazard and impact.
 
         event_result = self.process_event(self.event_obj)
@@ -63,8 +64,7 @@ class BaseTransformerClass(ABC):
         impact_result = self.process_impact(self.impact_obj)
 
         return {
-            "guid": self.guid,
-            "correlation_id": self.correlation_id,
+            "event_id": self.event_id,
             **event_result,
             **hazard_result,
             **impact_result,
