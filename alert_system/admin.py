@@ -15,14 +15,10 @@ class EventAdmin(admin.ModelAdmin):
         "stac_id",
         "created_at",
         "collection",
-        "guid",
     )
     list_filter = ("connector", "collection")
     readonly_fields = ("connector",)
-    search_fields = (
-        "stac_id",
-        "correlation_id",
-    )
+    search_fields = ("stac_id",)
 
 
 @admin.register(LoadItem)
@@ -31,7 +27,7 @@ class LoadItemAdmin(admin.ModelAdmin):
         "id",
         "event_title",
         "created_at",
-        "guid",
+        "event_id",
         "item_eligible",
         "is_past_event",
     )
@@ -46,10 +42,7 @@ class LoadItemAdmin(admin.ModelAdmin):
         "related_montandon_events",
         "related_go_events",
     )
-    search_fields = (
-        "id",
-        "correlation_id",
-    )
+    search_fields = ("id",)
 
 
 @admin.register(AlertEmailThread)

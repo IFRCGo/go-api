@@ -5,7 +5,7 @@ from collections import defaultdict
 from celery import chain, group, shared_task
 from celery.exceptions import MaxRetriesExceededError
 from django.db import transaction
-from django.db.models import Max
+from django.db.models import Max, OuterRef, Subquery
 
 from alert_system.etl.base.extraction import PastEventExtractionClass
 from api.models import Event
@@ -42,7 +42,7 @@ def polling_task(self, connector_id):
         if self.request.retries >= self.max_retries:
             logger.error(f"[ETL] Max retries exceeded for connector {connector}", exc_info=True)
             connector.set_connector_status(Connector.Status.FAILED)
-            raise MaxRetriesExceededError(f"Task {self.request.id} exceeded max retries")
+            raise
         else:
             raise self.retry(exc=exc)
 
@@ -56,19 +56,28 @@ def fetch_past_events_from_monty(self, extraction_run_id):
     if not extraction_run_id:
         logger.warning("No extraction_run_id provided, skipping past events fetch")
         return
-
+    # NOTE: Group by event id latest, only run on those events
     try:
         eligible_items_qs = LoadItem.objects.filter(
             extraction_run_id=extraction_run_id,
             item_eligible=True,
             is_past_event=False,
         )
+        max_episode_sq = (
+            LoadItem.objects.filter(parent_event_id=OuterRef("parent_event_id"))
+            .values("parent_event_id")
+            .annotate(max_episode=Max("episode_number"))
+            .values("max_episode")[:1]
+        )
 
-        count = eligible_items_qs.count()
+        # Step 2: filter to only rows that match that max episode_id
+        filtered_qs = eligible_items_qs.filter(episode_number=Subquery(max_episode_sq))
+
+        count = filtered_qs.count()
 
         logger.info(f"[Past Events] Processing {count} items from run {extraction_run_id}")
 
-        first_item = eligible_items_qs.first()
+        first_item = filtered_qs.first()
         if not first_item:
             logger.info("No item found to extract related montandon events.")
             return
@@ -83,10 +92,10 @@ def fetch_past_events_from_monty(self, extraction_run_id):
         processed = 0
         failed = 0
 
-        for load_obj in eligible_items_qs.iterator():
+        for load_obj in filtered_qs.iterator():
             try:
                 with transaction.atomic():
-                    past_event_extraction_service.extract_past_events(load_obj=load_obj)
+                    past_event_extraction_service.extract_past_events(load_obj=load_obj, extraction_run_id=extraction_run_id)
                     processed += 1
             except Exception as e:
                 failed += 1
@@ -173,3 +182,7 @@ def process_connector_task(connector_id):
     return chain(
         polling_task.s(connector_id), group(fetch_past_events_from_go.s(connector_id), fetch_past_events_from_monty.s())
     ).apply_async()
+
+    # return chain(
+    #     polling_task.s(connector_id), group(fetch_past_events_from_go.s(connector_id))
+    # ).apply_async()

@@ -133,17 +133,6 @@ class BaseItem(models.Model):
         auto_now_add=True, verbose_name=_("Created At"), help_text=_("Timestamp when the record was created")
     )
 
-    correlation_id = models.CharField(
-        max_length=255,
-        verbose_name=_("Correlation ID"),
-        help_text=_("Correlation identifier linking all models"),
-    )
-
-    guid = models.CharField(
-        verbose_name=_("GUID"),
-        help_text=_("Globally unique ID for events"),
-    )
-
     id: int
 
     class Meta:
@@ -156,12 +145,12 @@ class ExtractionItem(BaseItem):
     Model for Extraction items.
     """
 
-    class CollectionType(models.IntegerChoices):
-        EVENT = 100, _("event")
-        HAZARD = 200, _("Hazard")
-        IMPACT = 300, _("Impacts")
+    class CollectionType(models.TextChoices):
+        EVENT = "event", _("event")
+        HAZARD = "hazard", _("Hazard")
+        IMPACT = "impact", _("Impacts")
 
-    collection = models.IntegerField(
+    collection = models.CharField(
         choices=CollectionType.choices,
         verbose_name=_("Collection"),
         help_text=_("Collection type of the item"),
@@ -188,9 +177,15 @@ class LoadItem(BaseItem):
     Model for Load items.
     """
 
-    parent_guid = models.CharField(
-        verbose_name=_("Parent GUID"),
-        help_text=_("GUID without the episode number."),
+    event_id = models.CharField(
+        verbose_name=_("Event ID"),
+        help_text=_("Event ID of the LoadItem."),
+        unique=True,
+    )
+
+    parent_event_id = models.CharField(
+        verbose_name=_("Parent event ID"),
+        help_text=_("Event ID without the episode number."),
     )
 
     # TODO:  New id to be used in the future.
@@ -231,6 +226,13 @@ class LoadItem(BaseItem):
         help_text=_("Human-readable severity value"),
     )
 
+    episode_number = models.IntegerField(
+        null=True,
+        blank=True,
+        verbose_name=_("Episode ID"),
+        help_text=_("Episode Id of the event"),
+    )
+
     total_people_exposed = models.IntegerField(
         null=True,
         verbose_name=_("Total People Exposed"),
@@ -262,15 +264,10 @@ class LoadItem(BaseItem):
 
     related_go_events = models.ManyToManyField(Event, verbose_name="Related GO Events", blank=True)
 
+    event_url = models.URLField(null=False, blank=False, unique=True)
+
     def __str__(self):
         return self.event_title
-
-    class Meta:
-        verbose_name = _("Eligible Item")
-        verbose_name_plural = _("Eligible Items")
-        constraints = [
-            models.UniqueConstraint(fields=["guid"], name="unique_guid")
-        ]  # NOTE: GUID should be unique in the load table.
 
 
 class AlertEmailThread(models.Model):
