@@ -66,14 +66,15 @@ def send_alert_email_notification(
         if not is_reply:
             thread = AlertEmailThread.objects.create(
                 user=user,
-                parent_guid=load_item.parent_guid,
+                parent_event_id=load_item.parent_event_id,
                 root_email_message_id=message_id,
                 root_message_sent_at=timezone.now(),
             )
             email_log.thread = thread
             email_log.save(update_fields=["thread"])
             logger.info(
-                f"Alert Email thread created for user [{user.get_full_name()}] " f"with parent_guid [{load_item.parent_guid}]"
+                f"Alert Email thread created for user [{user.get_full_name()}] "
+                f"with parent event [{load_item.parent_event_id}]"
             )
 
         logger.info(f"Alert email sent to [{user.get_full_name()}] for LoadItem ID [{load_item.id}]")
@@ -127,7 +128,7 @@ def process_email_alert(load_item_id: int) -> None:
     existing_threads = {
         thread.user_id: thread
         for thread in AlertEmailThread.objects.filter(
-            parent_guid=load_item.parent_guid,
+            parent_event_id=load_item.parent_event_id,
             user_id__in=user_ids,
         )
     }
