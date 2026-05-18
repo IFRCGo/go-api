@@ -6,7 +6,9 @@ from alert_system.models import AlertEmailLog, AlertEmailThread, Connector, Load
 
 
 class LoadItemFactory(factory.django.DjangoModelFactory):
-    guid = factory.LazyFunction(lambda: str(uuid4()))
+    parent_event_id = factory.LazyFunction(lambda: str(uuid4()))
+    event_id = factory.LazyFunction(lambda: str(uuid4()))
+    event_url = factory.Sequence(lambda n: f"https://test-events.com/event/{n}")
 
     class Meta:
         model = LoadItem

@@ -11,12 +11,26 @@ from notifications.models import AlertSubscription
 logger = logging.getLogger(__name__)
 
 
+def get_latest_episode_load_item(load_item: LoadItem) -> LoadItem:
+    """
+    Given a load_item, return the sibling LoadItem with the highest
+    episode_number for the same parent_event_id.
+    Falls back to the original load_item if no siblings exist.
+    """
+    latest = LoadItem.objects.filter(parent_event_id=load_item.parent_event_id).order_by("-episode_number").first()
+    return latest or load_item
+
+
 def get_alert_email_context(load_item: LoadItem, user: User):
 
     country_names = []
 
     if load_item.country_codes:
         country_names = list(Country.objects.filter(iso3__in=load_item.country_codes).values_list("name", flat=True))
+
+    # Fetch related_montandon_events from the latest episode
+    latest_episode_item = get_latest_episode_load_item(load_item)
+
     email_context = {
         "user_name": user.get_full_name(),
         "event_title": load_item.event_title,
@@ -26,7 +40,7 @@ def get_alert_email_context(load_item: LoadItem, user: User):
         "total_buildings_exposed": load_item.total_buildings_exposed,
         "hazard_types": load_item.connector.dtype,
         "related_go_events": load_item.related_go_events.all(),
-        "related_montandon_events": load_item.related_montandon_events.filter(item_eligible=True).order_by(
+        "related_montandon_events": latest_episode_item.related_montandon_events.filter(item_eligible=True).order_by(
             "-total_people_exposed"
         ),
         "frontend_url": settings.GO_WEB_URL,
