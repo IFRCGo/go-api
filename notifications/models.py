@@ -356,6 +356,7 @@ class AlertSubscription(models.Model):
         Country,
         related_name="alert_subscriptions_countries",
         verbose_name=_("Countries"),
+        blank=True,
     )
     regions = models.ManyToManyField(
         Region,
