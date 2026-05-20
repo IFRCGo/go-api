@@ -568,30 +568,41 @@ class Command(BaseCommand):
                     org_lookup,
                     country_lookup,
                 )
-            appraisal_data = normalize_appraisal(appraisal_payload, sending_org_id, receiving_org_id)
-            if appraisal_data:
-                appraisal_id = appraisal_data.get("molnix_id")
-                if appraisal_id is not None:
-                    if appraisal_id in appraisal_ids:
-                        appraisal_duplicate_count += 1
-                    appraisal_ids.add(appraisal_id)
-                appraised_person_id = appraisal_data.get("appraised_person_id")
-                if appraised_person_id is None:
-                    appraised_person_null_count += 1
+                appraisal_data = normalize_appraisal(appraisal_payload, sending_org_id, receiving_org_id)
+                if appraisal_data:
+                    appraisal_id = appraisal_data.get("molnix_id")
+                    if appraisal_id is not None:
+                        if appraisal_id in appraisal_ids:
+                            appraisal_duplicate_count += 1
+                        appraisal_ids.add(appraisal_id)
+                    appraised_person_id = appraisal_data.get("appraised_person_id")
+                    if appraised_person_id is None:
+                        appraised_person_null_count += 1
+                    else:
+                        appraised_person_ids.add(appraised_person_id)
+                    output_record(self.stdout, {"record_type": "molnix_appraisal", "data": appraisal_data})
+                    if write_record("molnix_appraisal", appraisal_data):
+                        db_write_counts["molnix_appraisal"] += 1
+                    appraisals_stream_count += 1
+                    if appraisal_data.get("appraised_person_id") is not None:
+                        person_ids.append(appraisal_data.get("appraised_person_id"))
+                appraiser_payloads = []
+                if isinstance(appraisal_payload, dict) and isinstance(appraisal_payload.get("appraisers"), list):
+                    appraiser_payloads = appraisal_payload.get("appraisers")
+                if appraiser_payloads:
+                    for appraiser_payload in appraiser_payloads:
+                        appraiser_data = normalize_appraiser(appraiser_payload, appraisal_data.get("molnix_id"))
+                        if appraiser_data:
+                            appraiser_parent_id = appraiser_data.get("appraisal_molnix_id")
+                            if appraiser_parent_id is not None:
+                                appraiser_parent_ids.add(appraiser_parent_id)
+                            output_record(self.stdout, {"record_type": "molnix_appraiser", "data": appraiser_data})
+                            if write_record("molnix_appraiser", appraiser_data):
+                                db_write_counts["molnix_appraiser"] += 1
+                            appraisers_stream_count += 1
+                            collect_person_ids([appraiser_data], person_ids)
                 else:
-                    appraised_person_ids.add(appraised_person_id)
-                output_record(self.stdout, {"record_type": "molnix_appraisal", "data": appraisal_data})
-                if write_record("molnix_appraisal", appraisal_data):
-                    db_write_counts["molnix_appraisal"] += 1
-                appraisals_stream_count += 1
-                if appraisal_data.get("appraised_person_id") is not None:
-                    person_ids.append(appraisal_data.get("appraised_person_id"))
-            appraiser_payloads = []
-            if isinstance(appraisal_payload, dict) and isinstance(appraisal_payload.get("appraisers"), list):
-                appraiser_payloads = appraisal_payload.get("appraisers")
-            if appraiser_payloads:
-                for appraiser_payload in appraiser_payloads:
-                    appraiser_data = normalize_appraiser(appraiser_payload, appraisal_data.get("molnix_id"))
+                    appraiser_data = normalize_appraiser(appraisal, appraisal_data.get("molnix_id"))
                     if appraiser_data:
                         appraiser_parent_id = appraiser_data.get("appraisal_molnix_id")
                         if appraiser_parent_id is not None:
@@ -601,17 +612,6 @@ class Command(BaseCommand):
                             db_write_counts["molnix_appraiser"] += 1
                         appraisers_stream_count += 1
                         collect_person_ids([appraiser_data], person_ids)
-            else:
-                appraiser_data = normalize_appraiser(appraisal, appraisal_data.get("molnix_id"))
-                if appraiser_data:
-                    appraiser_parent_id = appraiser_data.get("appraisal_molnix_id")
-                    if appraiser_parent_id is not None:
-                        appraiser_parent_ids.add(appraiser_parent_id)
-                    output_record(self.stdout, {"record_type": "molnix_appraiser", "data": appraiser_data})
-                    if write_record("molnix_appraiser", appraiser_data):
-                        db_write_counts["molnix_appraiser"] += 1
-                    appraisers_stream_count += 1
-                    collect_person_ids([appraiser_data], person_ids)
                 total += 1
             if not should_continue(data, appraisals):
                 log_debug(1, "Pagination indicates no more pages")

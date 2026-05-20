@@ -10,9 +10,13 @@ from .models import (
     EmergencyProjectActivitySector,
     ERUOwner,
     ERUType,
+    MolnixAppraisal,
+    MolnixAppraiser,
     OperationTypes,
     ProgrammeTypes,
     Project,
+    RrmsEventParticipation,
+    RrmsPersonSnapshot,
     Sector,
     SectorTag,
     Statuses,
@@ -161,3 +165,56 @@ class ERUOwnerFilter(filters.FilterSet):
         if available is not None:
             eru_qs = eru_qs.filter(available=available)
         return qs.filter(eru__in=eru_qs).distinct()
+
+
+class MolnixAppraisalFilter(filters.FilterSet):
+    appraised_person_id = filters.NumberFilter(field_name="appraised_person_id", lookup_expr="exact")
+    molnix_id = filters.NumberFilter(field_name="molnix_id", lookup_expr="exact")
+    deployment_molnix_id = filters.NumberFilter(field_name="deployment_molnix_id", lookup_expr="exact")
+    stage = filters.CharFilter(field_name="stage", lookup_expr="exact")
+
+    class Meta:
+        model = MolnixAppraisal
+        fields = {
+            "updated_at": ("exact", "gt", "gte", "lt", "lte"),
+            "created_at": ("exact", "gt", "gte", "lt", "lte"),
+        }
+
+
+class MolnixAppraiserFilter(filters.FilterSet):
+    appraisal_molnix_id = filters.NumberFilter(field_name="appraisal_molnix_id", lookup_expr="exact")
+    person_id = filters.NumberFilter(field_name="person_id", lookup_expr="exact")
+    appraiser_type = filters.CharFilter(field_name="appraiser_type", lookup_expr="exact")
+
+    class Meta:
+        model = MolnixAppraiser
+        fields = {
+            "updated_at": ("exact", "gt", "gte", "lt", "lte"),
+            "created_at": ("exact", "gt", "gte", "lt", "lte"),
+        }
+
+
+class RrmsPersonSnapshotFilter(filters.FilterSet):
+    person_id = filters.NumberFilter(field_name="person_id", lookup_expr="exact")
+    organization_id = filters.NumberFilter(field_name="organization_id", lookup_expr="exact")
+    person_status = filters.CharFilter(field_name="person_status", lookup_expr="exact")
+
+    class Meta:
+        model = RrmsPersonSnapshot
+        fields = {
+            "source_updated_at": ("exact", "gt", "gte", "lt", "lte"),
+        }
+
+
+class RrmsEventParticipationFilter(filters.FilterSet):
+    event_id = filters.NumberFilter(field_name="event_id", lookup_expr="exact")
+    person_id = filters.NumberFilter(field_name="person_id", lookup_expr="exact")
+    event_person_role = filters.CharFilter(field_name="event_person_role", lookup_expr="exact")
+    event_type = filters.CharFilter(field_name="event_type", lookup_expr="exact")
+
+    class Meta:
+        model = RrmsEventParticipation
+        fields = {
+            "event_from": ("exact", "gt", "gte", "lt", "lte"),
+            "event_to": ("exact", "gt", "gte", "lt", "lte"),
+        }

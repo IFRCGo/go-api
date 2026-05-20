@@ -15,7 +15,7 @@ from django_filters import rest_framework as filters
 from drf_spectacular.utils import extend_schema
 from openpyxl import Workbook
 from rest_framework import viewsets
-from rest_framework.authentication import TokenAuthentication
+from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -31,7 +31,15 @@ from main.permissions import DenyGuestUserPermission
 from main.serializers import CsvListMixin
 from main.utils import is_tableau
 
-from .filters import EmergencyProjectFilter, ERUOwnerFilter, ProjectFilter
+from .filters import (
+    EmergencyProjectFilter,
+    ERUOwnerFilter,
+    MolnixAppraisalFilter,
+    MolnixAppraiserFilter,
+    ProjectFilter,
+    RrmsEventParticipationFilter,
+    RrmsPersonSnapshotFilter,
+)
 from .models import (
     ERU,
     EmergencyProject,
@@ -41,6 +49,8 @@ from .models import (
     ERUReadiness,
     ERUReadinessType,
     ERUType,
+    MolnixAppraisal,
+    MolnixAppraiser,
     OperationTypes,
     PartnerSocietyDeployment,
     Personnel,
@@ -48,6 +58,8 @@ from .models import (
     ProgrammeTypes,
     Project,
     RegionalProject,
+    RrmsEventParticipation,
+    RrmsPersonSnapshot,
     Sector,
     Statuses,
 )
@@ -65,6 +77,8 @@ from .serializers import (
     GlobalProjectNSOngoingProjectsStatsSerializer,
     GlobalProjectOverviewSerializer,
     MiniERUReadinessTypeSerializer,
+    MolnixAppraisalSerializer,
+    MolnixAppraiserSerializer,
     PartnerDeploymentSerializer,
     PartnerDeploymentTableauSerializer,
     PersonnelCsvSerializer,
@@ -77,6 +91,8 @@ from .serializers import (
     ProjectRegionOverviewSerializer,
     ProjectSerializer,
     RegionalProjectSerializer,
+    RrmsEventParticipationSerializer,
+    RrmsPersonSnapshotSerializer,
 )
 from .utils import get_previous_months
 
@@ -408,6 +424,56 @@ class PersonnelViewset(viewsets.ReadOnlyModelViewSet):
         context["bom"] = True
 
         return context
+
+
+@extend_schema(
+    request=None,
+    responses=MolnixAppraisalSerializer(many=True),
+)
+class MolnixAppraisalViewset(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = (SessionAuthentication, TokenAuthentication)
+    permission_classes = (IsAuthenticated, DenyGuestUserPermission)
+    queryset = MolnixAppraisal.objects.all()
+    serializer_class = MolnixAppraisalSerializer
+    filterset_class = MolnixAppraisalFilter
+    ordering_fields = ("updated_at", "created_at", "molnix_id", "appraised_person_id")
+
+
+@extend_schema(
+    request=None,
+    responses=MolnixAppraiserSerializer(many=True),
+)
+class MolnixAppraiserViewset(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = (SessionAuthentication, TokenAuthentication)
+    permission_classes = (IsAuthenticated, DenyGuestUserPermission)
+    queryset = MolnixAppraiser.objects.all()
+    serializer_class = MolnixAppraiserSerializer
+    filterset_class = MolnixAppraiserFilter
+    ordering_fields = ("updated_at", "created_at", "molnix_id", "appraisal_molnix_id")
+
+
+@extend_schema(
+    request=None,
+    responses=RrmsPersonSnapshotSerializer(many=True),
+)
+class RrmsPersonSnapshotViewset(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = (SessionAuthentication, TokenAuthentication)
+    permission_classes = (IsAuthenticated, DenyGuestUserPermission)
+    queryset = RrmsPersonSnapshot.objects.all()
+    serializer_class = RrmsPersonSnapshotSerializer
+    filterset_class = RrmsPersonSnapshotFilter
+    ordering_fields = ("source_updated_at", "person_id")
+
+
+@extend_schema(
+    request=None,
+    responses=RrmsEventParticipationSerializer(many=True),
+)
+class RrmsEventParticipationViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = RrmsEventParticipation.objects.all()
+    serializer_class = RrmsEventParticipationSerializer
+    filterset_class = RrmsEventParticipationFilter
+    ordering_fields = ("event_from", "event_to", "event_id", "person_id")
 
 
 class AggregateDeployments(APIView):

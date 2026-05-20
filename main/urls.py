@@ -140,6 +140,14 @@ router.register(r"per-document-upload", per_views.PerDocumentUploadViewSet, base
 
 router.register(r"personnel_deployment", deployment_views.PersonnelDeploymentViewset, basename="personnel_deployment")
 router.register(r"personnel", deployment_views.PersonnelViewset, basename="personnel")
+router.register(r"molnix-appraisals", deployment_views.MolnixAppraisalViewset, basename="molnix_appraisals")
+router.register(r"molnix-appraisers", deployment_views.MolnixAppraiserViewset, basename="molnix_appraisers")
+router.register(r"rrms-person-snapshots", deployment_views.RrmsPersonSnapshotViewset, basename="rrms_person_snapshots")
+router.register(
+    r"rrms-event-participation",
+    deployment_views.RrmsEventParticipationViewset,
+    basename="rrms_event_participation",
+)
 router.register(r"personnel_by_event", api_views.DeploymentsByEventViewset, basename="personnel_by_event")
 router.register(r"profile", api_views.ProfileViewset, basename="profile")
 router.register(r"project", deployment_views.ProjectViewset, basename="project")
