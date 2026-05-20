@@ -277,7 +277,7 @@ class AlertSubscriptionTestCase(APITestCase):
         self.assert_200(response)
         self.assertEqual(response.data["user"], self.user1.id)
 
-    # Test create Subscription without country and region
+    # Test Create Subscription
     def test_create_subscription_without_country_and_region(self):
         data = {
             "title": "title-1-test",
@@ -291,7 +291,38 @@ class AlertSubscriptionTestCase(APITestCase):
         response = self.client.post(url, data=data, format="json")
         self.assert_400(response)
 
-    # Test Create Subscription
+    def test_create_subscription_without_country(self):
+        data = {
+            "title": "title-2-test",
+            "user": self.user1.id,
+            "hazard_types": [self.hazard_type1.id, self.hazard_type2.id],
+            "source": AlertSubscription.AlertSource.MONTANDON,
+            "regions": [self.region.id],
+        }
+        url = "/api/v2/alert-subscription/"
+        self.authenticate(self.user1)
+        response = self.client.post(url, data=data, format="json")
+        self.assert_201(response)
+        subscription = AlertSubscription.objects.get(id=response.data["id"])
+        self.assertEqual(subscription.user, self.user1)
+
+    def test_create_subscription_without_region(self):
+        data = {
+            "title": "title-2-test",
+            "user": self.user1.id,
+            "hazard_types": [self.hazard_type1.id, self.hazard_type2.id],
+            "source": AlertSubscription.AlertSource.MONTANDON,
+            "countries": [self.country.id, self.country_1.id],
+            "alert_per_day": AlertSubscription.AlertPerDay.FIFTY,
+        }
+        url = "/api/v2/alert-subscription/"
+        self.authenticate(self.user1)
+        response = self.client.post(url, data=data, format="json")
+        self.assert_201(response)
+        subscription = AlertSubscription.objects.get(id=response.data["id"])
+        self.assertEqual(subscription.user, self.user1)
+        self.assertEqual(subscription.alert_per_day, AlertSubscription.AlertPerDay.FIFTY)
+
     def test_create_subscription(self):
 
         data = {
@@ -328,3 +359,16 @@ class AlertSubscriptionTestCase(APITestCase):
         self.alert_subscription.refresh_from_db()
         self.assertEqual(self.alert_subscription.countries.first().id, self.country_1.id)
         self.assertEqual(self.alert_subscription.alert_per_day, AlertSubscription.AlertPerDay.TEN)
+
+    def test_delete_subscription(self):
+        self.alert_subscription = AlertSubscriptionFactory.create(
+            title="Test title",
+            user=self.user1,
+            countries=self.countries,
+            regions=[self.region],
+            hazard_types=[self.hazard_type1, self.hazard_type2],
+        )
+        self.authenticate(self.user1)
+        url = f"/api/v2/alert-subscription/{self.alert_subscription.id}/"
+        response = self.client.delete(url)
+        self.assert_204(response)
