@@ -198,24 +198,26 @@ def write_record(record_type, data):
             event_person_role = data.get("event_person_role")
             if event_id is None or person_id is None:
                 return False
-            RrmsEventParticipation.objects.create(
+            _event_participation, created = RrmsEventParticipation.objects.update_or_create(
                 event_id=event_id,
                 person_id=person_id,
                 event_person_role=event_person_role,
-                event_name=data.get("event_name"),
-                event_type=data.get("event_type"),
-                event_scale_type=data.get("event_scale_type"),
-                event_from=data.get("event_from"),
-                event_to=data.get("event_to"),
-                participant_start=data.get("participant_start"),
-                participant_end=data.get("participant_end"),
-                requested=data.get("requested"),
-                event_organization_id=data.get("event_organization_id"),
-                event_organization_name=data.get("event_organization_name"),
-                venue=data.get("venue"),
-                tags_json=data.get("tags_json"),
+                defaults={
+                    "event_name": data.get("event_name"),
+                    "event_type": data.get("event_type"),
+                    "event_scale_type": data.get("event_scale_type"),
+                    "event_from": data.get("event_from"),
+                    "event_to": data.get("event_to"),
+                    "participant_start": data.get("participant_start"),
+                    "participant_end": data.get("participant_end"),
+                    "requested": data.get("requested"),
+                    "event_organization_id": data.get("event_organization_id"),
+                    "event_organization_name": data.get("event_organization_name"),
+                    "venue": data.get("venue"),
+                    "tags_json": data.get("tags_json"),
+                },
             )
-            return True
+            return "created" if created else "updated"
     except Exception as ex:
         logger.error("Failed to write %s: %s" % (record_type, str(ex)))
     return False
@@ -522,6 +524,8 @@ class Command(BaseCommand):
         appraised_person_ids = set()
         appraised_person_null_count = 0
         appraiser_parent_ids = set()
+        event_participation_created = 0
+        event_participation_updated = 0
         db_write_counts = {
             "molnix_appraisal": 0,
             "molnix_appraiser": 0,
@@ -680,8 +684,13 @@ class Command(BaseCommand):
                     else:
                         duplicate_event_keys[event_key] = 1
                     output_record(self.stdout, {"record_type": "rrms_event_participation", "data": record})
-                    if write_record("rrms_event_participation", record):
+                    event_write_status = write_record("rrms_event_participation", record)
+                    if event_write_status:
                         db_write_counts["rrms_event_participation"] += 1
+                        if event_write_status == "created":
+                            event_participation_created += 1
+                        elif event_write_status == "updated":
+                            event_participation_updated += 1
                     events_stream_count += 1
                     if record.get("person_id") is not None:
                         event_person_ids.append(record.get("person_id"))
@@ -728,6 +737,11 @@ class Command(BaseCommand):
                     db_write_counts["rrms_person_snapshot"],
                 )
             )
+            if event_participation_created or event_participation_updated:
+                logger.info(
+                    "RRMS event participation upserts: created=%d updated=%d"
+                    % (event_participation_created, event_participation_updated)
+                )
             if appraisal_duplicate_count:
                 logger.warning("Duplicate appraisal molnix_id values observed: %d" % appraisal_duplicate_count)
             if appraised_person_null_count:
