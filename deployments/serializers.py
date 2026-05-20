@@ -37,6 +37,8 @@ from .models import (
     ERUReadiness,
     ERUReadinessType,
     Event,
+    MolnixAppraisal,
+    MolnixAppraiser,
     MolnixTag,
     OperationTypes,
     PartnerSocietyActivities,
@@ -47,6 +49,8 @@ from .models import (
     Project,
     Region,
     RegionalProject,
+    RrmsEventParticipation,
+    RrmsPersonSnapshot,
 )
 
 
@@ -288,6 +292,93 @@ class AggregatedERUAndRapidResponseSerializer(ModelSerializer):
             "deployments",
             "ifrc_severity_level",
             "ifrc_severity_level_display",
+        )
+
+
+class MolnixAppraisalSerializer(ModelSerializer):
+    class Meta:
+        model = MolnixAppraisal
+        fields = (
+            "id",
+            "molnix_id",
+            "target_id",
+            "appraised_person_id",
+            "deployment_molnix_id",
+            "stage",
+            "appraisers_count",
+            "score",
+            "deployment_country_id",
+            "deployment_start",
+            "deployment_end",
+            "deployment_title",
+            "sending_organization_id",
+            "receiving_organization_id",
+            "deployment_tags_json",
+            "competencies_json",
+            "personnel",
+            "created_at",
+            "updated_at",
+        )
+
+
+class MolnixAppraiserSerializer(ModelSerializer):
+    class Meta:
+        model = MolnixAppraiser
+        fields = (
+            "id",
+            "molnix_id",
+            "appraisal_molnix_id",
+            "appraisal",
+            "appraiser_type",
+            "person_id",
+            "personnel",
+            "required",
+            "notified_at",
+            "completed_at",
+            "created_at",
+            "updated_at",
+        )
+
+
+class RrmsPersonSnapshotSerializer(ModelSerializer):
+    class Meta:
+        model = RrmsPersonSnapshot
+        fields = (
+            "person_id",
+            "person_status",
+            "sex",
+            "current_availability",
+            "outofscope",
+            "organization_id",
+            "organization_name",
+            "roles_json",
+            "languages_json",
+            "tags_json",
+            "personnel",
+            "source_updated_at",
+        )
+
+
+class RrmsEventParticipationSerializer(ModelSerializer):
+    class Meta:
+        model = RrmsEventParticipation
+        fields = (
+            "id",
+            "event_id",
+            "event_name",
+            "person_id",
+            "event_person_role",
+            "event_type",
+            "event_scale_type",
+            "event_from",
+            "event_to",
+            "participant_start",
+            "participant_end",
+            "requested",
+            "event_organization_id",
+            "event_organization_name",
+            "venue",
+            "tags_json",
         )
 
 
