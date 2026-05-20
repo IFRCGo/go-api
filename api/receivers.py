@@ -214,7 +214,7 @@ def add_update_appeal_history(sender, instance, created, **kwargs):
         if field.name not in ["id", "appeal", "valid_from", "valid_to", "aid", "amount_funded"]
     ]
     now = timezone.now()
-    changed = False
+    changed = getattr(instance, "force_history_save", False)
 
     if created:  # Appeal Insert
         AppealHistory.objects.create(
