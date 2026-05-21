@@ -1425,9 +1425,9 @@ class EmergencyStageTestCase(APITestCase):
         self.assertIsNone(data["field_report"])
         self.assertIsNone(data["dref"]["final_report_details"])
 
-    def fallback_to_appeal_for_no_approved_dref(self):
+    def fallback_to_dref_appeal_for_no_approved_dref(self):
         """
-        If no approved DREF application exists, but an ACTIVE appeal dref type exists, stage should resolve to EMERGENCY_APPEAL
+        If no approved DREF application exists, but an ACTIVE appeal dref type exists, stage should resolve to DREF_APPEAL_ONLY
         and not DREF.
         """
         event = EventFactory.create(dtype=self.disaster_type)
@@ -1435,7 +1435,7 @@ class EmergencyStageTestCase(APITestCase):
             event=event,
             dtype=self.disaster_type,
             status=AppealStatus.ACTIVE,
-            atype=AppealType.APPEAL,
+            atype=AppealType.DREF,
         )
 
         data = self._get(event).data
@@ -1462,7 +1462,7 @@ class EmergencyStageTestCase(APITestCase):
         )
 
         data = self._get(event).data
-        self.assertEqual(data["stage"], EventStage.EMERGENCY_APPEAL)
+        self.assertEqual(data["stage"], EventStage.DREF_APPEAL_ONLY)
 
         self.assertEqual(parse_datetime(data["first_field_report_created_at"]), first_fr.created_at)
         self.assertEqual(parse_datetime(data["latest_field_report_created_at"]), latest_fr.created_at)
