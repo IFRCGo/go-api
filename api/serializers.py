@@ -2147,9 +2147,12 @@ class EmergencyFieldReportSerializer(
 ):
     actions_taken = ActionsTakenSerializer(many=True)
     status_display = serializers.CharField(source="get_status_display", read_only=True)
+    appeal_display = serializers.CharField(source="get_appeal_display", read_only=True)
+    bulletin_display = serializers.CharField(source="get_bulletin_display", read_only=True)
     dtype = DisasterTypeSerializer(read_only=True)
     dref_display = serializers.CharField(source="get_dref_display", read_only=True)
     visibility_display = serializers.CharField(source="get_visibility_display", read_only=True)
+    imminent_dref_display = serializers.CharField(source="get_imminent_dref_display", read_only=True)
     contacts = FieldReportContactSerializer(many=True)
     countries = MiniCountrySerializer(many=True)
     districts = MiniDistrictSerializer(many=True)
@@ -2166,6 +2169,12 @@ class EmergencyFieldReportSerializer(
             "districts",
             "status",
             "status_display",
+            "appeal",
+            "appeal_display",
+            "bulletin",
+            "bulletin_display",
+            "imminent_dref",
+            "imminent_dref_display",
             "visibility",
             "visibility_display",
             "dref",
@@ -2307,7 +2316,7 @@ class FieldReportSerializer(
             summary=report.description or "",
             disaster_start_date=report.start_date,
             auto_generated=True,
-            source=Event.EventSource.NEW_REPORT,
+            source=Event.EventSource.NEW_FIELD_REPORT,
             visibility=report.visibility,
             **{TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME: django_get_language()},
         )
@@ -2774,7 +2783,7 @@ class CountrySupportingPartnerSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class DetailEmergencySerializer(serializers.ModelSerializer):
+class DetailEmergencySerializer(ModelSerializer):
     from dref.serializers import EmergencyDrefSerializer
 
     contacts = EventContactSerializer(many=True, read_only=True)
@@ -2783,6 +2792,9 @@ class DetailEmergencySerializer(serializers.ModelSerializer):
     ifrc_severity_level_display = serializers.CharField(source="get_ifrc_severity_level_display", read_only=True)
     visibility_display = serializers.CharField(source="get_visibility_display", read_only=True)
     source_display = serializers.CharField(source="get_source_display", read_only=True)
+    links = EventLinkSerializer(many=True, read_only=True)
+    districts = MiniDistrictSerializer(many=True)
+    featured_documents = EventFeaturedDocumentSerializer(many=True, read_only=True)
 
     # NOTE: Populated from Queryset using Annotate
 
@@ -2806,8 +2818,11 @@ class DetailEmergencySerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = (
+            "id",
+            "slug",
             "name",
             "dtype",
+            "glide",
             "countries",
             "summary",
             "disaster_start_date",
@@ -2817,10 +2832,11 @@ class DetailEmergencySerializer(serializers.ModelSerializer):
             "key_figures",
             "is_featured",
             "is_featured_region",
+            "tab_one_title",
+            "tab_two_title",
+            "tab_three_title",
             "hide_attached_field_reports",
             "hide_field_report_map",
-            "id",
-            "slug",
             "ifrc_severity_level",
             "ifrc_severity_level_display",
             "ifrc_severity_level_update_date",
@@ -2829,6 +2845,9 @@ class DetailEmergencySerializer(serializers.ModelSerializer):
             "visibility",
             "visibility_display",
             "contacts",
+            "links",
+            "districts",
+            "featured_documents",
             "num_injured",
             "num_dead",
             "num_missing",
@@ -2883,7 +2902,14 @@ class DetailEmergencySerializer(serializers.ModelSerializer):
                 .get(pk=event.stage_field_report_id)
             )
 
-        elif stage == EventStage.EMERGENCY_APPEAL and event.stage_appeal_id:
+        elif (
+            stage
+            in [
+                EventStage.EMERGENCY_APPEAL,
+                EventStage.DREF_APPEAL_ONLY,
+            ]
+            and event.stage_appeal_id
+        ):
             instance = Appeal.objects.get(pk=event.stage_appeal_id)
         elif (
             stage
@@ -2940,7 +2966,10 @@ class DetailEmergencySerializer(serializers.ModelSerializer):
 
     @extend_schema_field(RelatedAppealSerializer())
     def get_appeal(self, event):
-        if getattr(event, "stage", None) != EventStage.EMERGENCY_APPEAL:
+        if getattr(event, "stage", None) not in (
+            EventStage.EMERGENCY_APPEAL,
+            EventStage.DREF_APPEAL_ONLY,
+        ):
             return None
         instance = self._get_stage_instance(event)
         return RelatedAppealSerializer(instance, context=self.context).data if instance else None
