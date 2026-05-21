@@ -89,6 +89,7 @@ from .models import (
     Event,
     EventContact,
     EventFeaturedDocument,
+    EventLink,
     EventSeverityLevelHistory,
     EventStage,
     Export,
@@ -760,7 +761,7 @@ class EventViewset(ReadOnlyVisibilityViewset):
         if self.action == "response_activity_events":
             return (
                 qset.filter(parent_event__isnull=True)
-                .filter(Q(auto_generated=False) | Q(source=Event.EventSource.NEW_REPORT))
+                .filter(Q(auto_generated=False) | Q(source=Event.EventSource.NEW_FIELD_REPORT))
                 .select_related("dtype")
             )
         return (
@@ -1364,7 +1365,7 @@ class SupportedActivityViewset(viewsets.ReadOnlyModelViewSet):
 #             summary=report.description or "",
 #             disaster_start_date=report.start_date,
 #             auto_generated=True,
-#             source=Event.EventSource.NEW_REPORT,
+#             source=Event.EventSource.NEW_FIELD_REPORT,
 #             visibility=report.visibility,
 #             **{TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME: django_get_language()},
 #         )
@@ -1661,10 +1662,10 @@ class EmergencyViewset(
                     # If there is an active appeal of DREF type, but no approved DREF yet,
                     # we consider the emergency to be in the Emergency Appeal stage.
                     # Reaches here only if no approved DREF/ops-update/final-report exists
-                    # So an active appeal type DREF appeal with no approved DREF = Emergency Appeal
+                    # So an active appeal type DREF appeal with no approved DREF = DREF_APPEAL_ONLY stage.
                     When(
                         Exists(active_dref_appeal_qs),
-                        then=Value(EventStage.EMERGENCY_APPEAL),
+                        then=Value(EventStage.DREF_APPEAL_ONLY),
                     ),
                     When(
                         Exists(FieldReport.objects.filter(event=OuterRef("pk"))),
@@ -1679,7 +1680,10 @@ class EmergencyViewset(
                 # to avoid extra queries in serializer.
                 stage_appeal_id=Case(
                     When(
-                        stage=EventStage.EMERGENCY_APPEAL,
+                        stage__in=[
+                            EventStage.EMERGENCY_APPEAL,
+                            EventStage.DREF_APPEAL_ONLY,
+                        ],
                         then=Subquery(latest_appeal_qs.values("id")[:1]),
                     ),
                     default=Value(None),
@@ -1741,12 +1745,24 @@ class EmergencyViewset(
                     queryset=Country.objects.select_related("region"),
                 ),
                 Prefetch(
+                    "districts",
+                    queryset=District.objects.select_related("country"),
+                ),
+                Prefetch(
                     "key_figures",
                     queryset=KeyFigure.objects.all(),
                 ),
                 Prefetch(
                     "contacts",
                     queryset=EventContact.objects.all(),
+                ),
+                Prefetch(
+                    "links",
+                    queryset=EventLink.objects.all(),
+                ),
+                Prefetch(
+                    "featured_documents",
+                    queryset=EventFeaturedDocument.objects.order_by("-id"),
                 ),
             )
         )

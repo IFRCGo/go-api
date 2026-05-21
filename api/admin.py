@@ -643,7 +643,7 @@ class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAd
                 dtype=getattr(report, "dtype"),
                 disaster_start_date=getattr(report, "created_at"),
                 auto_generated=True,
-                source=models.Event.EventSource.REPORT_ADMIN,
+                source=models.Event.EventSource.FIELD_REPORT_ADMIN,
             )
             if getattr(report, "countries").exists():
                 for country in report.countries.all():
