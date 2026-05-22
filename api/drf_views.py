@@ -1586,22 +1586,30 @@ class EmergencyViewset(
     def get_queryset(self):
         today = timezone.now().date()
 
-        active_appeal_qs = Appeal.objects.filter(
-            event=OuterRef("pk"),
-            status=AppealStatus.ACTIVE,
+        appeal_priority_qs = (
+            Appeal.objects.filter(
+                event=OuterRef("pk"),
+                status__in=[AppealStatus.ACTIVE, AppealStatus.CLOSED],
+            )
+            .annotate(
+                priority=Case(
+                    When(status=AppealStatus.ACTIVE, then=Value(1)),
+                    When(status=AppealStatus.CLOSED, then=Value(2)),
+                    output_field=IntegerField(),
+                )
+            )
+            .order_by("priority", "-start_date")
         )
 
-        active_dref_appeal_qs = active_appeal_qs.filter(
+        active_dref_appeal_qs = appeal_priority_qs.filter(
             atype=AppealType.DREF,
         )
 
-        active_emergency_appeal_qs = active_appeal_qs.filter(
+        active_emergency_appeal_qs = appeal_priority_qs.filter(
             atype=AppealType.APPEAL,
         )
 
         field_report_qs = FieldReport.objects.filter(event=OuterRef("pk"))
-
-        latest_appeal_qs = active_emergency_appeal_qs.order_by("-start_date")
 
         approved_dref_qs = Dref.objects.filter(
             event=OuterRef("pk"),
@@ -1660,7 +1668,7 @@ class EmergencyViewset(
                         then=Value(EventStage.DREF_APPLICATION),
                     ),
                     # If there is an active appeal of DREF type, but no approved DREF yet,
-                    # we consider the emergency to be in the Emergency Appeal stage.
+                    # we consider the emergency to be in the Dref Appeal only stage.
                     # Reaches here only if no approved DREF/ops-update/final-report exists
                     # So an active appeal type DREF appeal with no approved DREF = DREF_APPEAL_ONLY stage.
                     When(
@@ -1680,11 +1688,12 @@ class EmergencyViewset(
                 # to avoid extra queries in serializer.
                 stage_appeal_id=Case(
                     When(
-                        stage__in=[
-                            EventStage.EMERGENCY_APPEAL,
-                            EventStage.DREF_APPEAL_ONLY,
-                        ],
-                        then=Subquery(latest_appeal_qs.values("id")[:1]),
+                        stage=EventStage.EMERGENCY_APPEAL,
+                        then=Subquery(active_emergency_appeal_qs.values("id")[:1]),
+                    ),
+                    When(
+                        stage=EventStage.DREF_APPEAL_ONLY,
+                        then=Subquery(active_dref_appeal_qs.values("id")[:1]),
                     ),
                     default=Value(None),
                     output_field=IntegerField(null=True),
@@ -1715,7 +1724,10 @@ class EmergencyViewset(
                 ),
                 stage_ops_update_id=Case(
                     When(
-                        stage=EventStage.DREF_OPERATIONAL_UPDATE,
+                        stage__in=[
+                            EventStage.DREF_OPERATIONAL_UPDATE,
+                            EventStage.DREF_FINAL_REPORT,
+                        ],
                         then=Subquery(
                             DrefOperationalUpdate.objects.filter(
                                 dref__id=OuterRef("stage_dref_id"), status=Dref.Status.APPROVED

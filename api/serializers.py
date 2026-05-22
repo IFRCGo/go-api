@@ -2163,6 +2163,22 @@ class ListFieldReportCsvSerializer(FieldReportEnumDisplayMixin, ModelSerializer)
 
 # NOTE: Using this specific serializer for emergency page schema
 # Contains information from latest field report mostly and some fields from first field report
+class EmergencyPreviousFieldReportSerializer(
+    serializers.ModelSerializer,
+):
+    class Meta:
+        model = FieldReport
+        fields = (
+            "id",
+            "event_id",
+            "fr_num",
+            "start_date",
+            "report_date",
+            "created_at",
+            "updated_at",
+        )
+
+
 class EmergencyFieldReportSerializer(
     serializers.ModelSerializer,
 ):
@@ -2804,6 +2820,17 @@ class CountrySupportingPartnerSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class TimelineEmergencyFieldReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FieldReport
+        fields = (
+            "id",
+            "report_date",
+            "fr_num",
+            "start_date",
+        )
+
+
 class DetailEmergencySerializer(ModelSerializer):
     from dref.serializers import EmergencyDrefSerializer
 
@@ -2835,6 +2862,8 @@ class DetailEmergencySerializer(ModelSerializer):
     # Operational timeframe
     first_field_report_created_at = serializers.DateTimeField(read_only=True)
     latest_field_report_created_at = serializers.DateTimeField(read_only=True)
+
+    timeline_field_reports = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
@@ -2889,15 +2918,29 @@ class DetailEmergencySerializer(ModelSerializer):
             "dref",
             "first_field_report_created_at",
             "latest_field_report_created_at",
+            "timeline_field_reports",
         )
 
+    @extend_schema_field(TimelineEmergencyFieldReportSerializer(many=True))
+    def get_timeline_field_reports(self, event):
+        field_reports = (
+            FieldReport.objects.filter(event=event)
+            .order_by(
+                "-updated_at",
+                "-fr_num",
+            )
+            .values(
+                "id",
+                "report_date",
+                "fr_num",
+                "start_date",
+            )
+        )
+        serializer = TimelineEmergencyFieldReportSerializer(field_reports, many=True)
+        return serializer.data
+
     def _get_stage_instance(self, event):
-        if hasattr(self, "_stage_instance_cache"):
-            return self._stage_instance_cache
-
         stage = getattr(event, "stage")
-        instance = None
-
         if stage == EventStage.FIELD_REPORT and event.stage_field_report_id:
             _first_field_report_queryset = FieldReport.objects.filter(event_id=OuterRef("event_id")).order_by(
                 "created_at", "fr_num"
@@ -2912,16 +2955,17 @@ class DetailEmergencySerializer(ModelSerializer):
                     first_fr_request_assistance=Subquery(_first_field_report_queryset.values("request_assistance")[:1]),
                 )
                 .prefetch_related(
-                    Prefetch("countries", queryset=Country.objects.select_related("region")),
-                    Prefetch("districts", queryset=District.objects.select_related("country")),
+                    "contacts",
+                    "countries",
+                    "districts",
                     Prefetch(
                         "actions_taken",
                         queryset=ActionsTaken.objects.prefetch_related("actions"),
                     ),
-                    "contacts",
                 )
                 .get(pk=event.stage_field_report_id)
             )
+            return instance
 
         elif (
             stage
@@ -2932,6 +2976,7 @@ class DetailEmergencySerializer(ModelSerializer):
             and event.stage_appeal_id
         ):
             instance = Appeal.objects.get(pk=event.stage_appeal_id)
+            return instance
         elif (
             stage
             in [
@@ -2959,7 +3004,7 @@ class DetailEmergencySerializer(ModelSerializer):
                     ),
                 )
                 .prefetch_related(
-                    Prefetch("district", queryset=District.objects.select_related("country")),
+                    "district",
                     Prefetch(
                         "planned_interventions",
                         queryset=PlannedIntervention.objects.prefetch_related("indicators"),
@@ -2971,8 +3016,7 @@ class DetailEmergencySerializer(ModelSerializer):
                 )
                 .get(pk=event.stage_dref_id)
             )
-        self._stage_instance_cache = instance
-        return instance
+            return instance
 
     def get_stage_display(self, event):
         stage = getattr(event, "stage", None)
