@@ -257,13 +257,13 @@ def add_tags_to_obj(obj, tags):
 
 
 def sync_deployments(molnix_deployments, molnix_api, countries):
-    molnix_ids = [d["id"] for d in molnix_deployments]
+    molnix_ids = [d["id"] for d in molnix_deployments]  # XXX: LOOP 1
     warnings = []
     messages = []
     successful_creates = 0
     successful_updates = 0
     # Ensure there are PersonnelDeployment instances for every unique emergency
-    events = [get_go_event(d["tags"]) for d in molnix_deployments]
+    events = [get_go_event(d["tags"]) for d in molnix_deployments]  # XXX: LOOP 2
     event_ids = [ev.id for ev in events if ev]
     unique_event_ids = list(set(event_ids))
     for event_id in unique_event_ids:
@@ -292,10 +292,10 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
             p.save()
 
     # Create Personnel objects
-    for md in molnix_deployments:  # LOOP1
+    for md in molnix_deployments:  # XXX: LOOP 3
         if "position_id" not in md:  # changed structure §
             md2 = molnix_api.get_deployment(md["id"])
-            md |= md2["deployment"]
+            md |= md2["deployment"]  # XXX: Potential issue due to mutation?
         if skip_this(md["tags"]):
             warning = "Deployment id %d skipped due to No-GO" % md["id"]
             logger.warning(warning)
@@ -459,13 +459,13 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
 
 
 def sync_open_positions(molnix_positions, molnix_api, countries):
-    molnix_ids = [p["id"] for p in molnix_positions]
+    molnix_ids = [p["id"] for p in molnix_positions]  # XXX: Loop 1
     warnings = []
     messages = []
     successful_creates = 0
     successful_updates = 0
 
-    for position in molnix_positions:  # LOOP2
+    for position in molnix_positions:  # XXX: LOOP 2
         logger.warning("× " + str(position["id"]))
         if skip_this(position["tags"]):
             warning = "Position id %d skipped due to No-GO" % position["id"]
