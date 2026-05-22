@@ -1331,6 +1331,9 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
             models.UniqueConstraint(
                 fields=["eap_registration", "version"],
                 name="unique_simplified_eap_version",
+                violation_error_message=_(
+                    "A Simplified EAP for this EAP Registration with this version already exists.",
+                ),
             )
         ]
 
@@ -1880,6 +1883,9 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
             models.UniqueConstraint(
                 fields=["eap_registration", "version"],
                 name="unique_full_eap_version",
+                violation_error_message=_(
+                    "A Full EAP for this EAP Registration with this version already exists.",
+                ),
             )
         ]
 
