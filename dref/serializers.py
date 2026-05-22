@@ -2304,6 +2304,7 @@ class EmergencyDrefFinalReportSerializer(serializers.ModelSerializer):
             "operation_end_date",
             "total_dref_allocation",
             "government_requested_assistance",
+            "num_assisted",
             "number_of_people_targeted",
             "number_of_people_affected",
             "total_targeted_population",
@@ -2311,6 +2312,30 @@ class EmergencyDrefFinalReportSerializer(serializers.ModelSerializer):
             "estimated_number_of_affected_female",
             "estimated_number_of_affected_girls_under_18",
             "estimated_number_of_affected_boys_under_18",
+            "assisted_num_of_boys_under_18",
+            "assisted_num_of_girls_under_18",
+            "assisted_num_of_men",
+            "assisted_num_of_women",
+            "women",
+            "men",
+            "boys",
+            "people_assisted",
+            "date_of_approval",
+            "created_at",
+            "modified_at",
+        )
+
+
+class TimelineEmergencyDrefOperationalUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DrefOperationalUpdate
+        fields = (
+            "id",
+            "summary_of_change",
+            "date_of_approval",
+            "operational_update_number",
+            "total_targeted_population",
+            "total_dref_allocation",
         )
 
 
@@ -2333,6 +2358,7 @@ class EmergencyDrefOperationalUpdateSerializer(serializers.ModelSerializer):
             "status_display",
             "event_scope",
             "event_description",
+            "operational_update_number",
             "event_date",
             "appeal_code",
             "glide_code",
@@ -2344,6 +2370,10 @@ class EmergencyDrefOperationalUpdateSerializer(serializers.ModelSerializer):
             "new_operational_end_date",
             "total_dref_allocation",
             "government_requested_assistance",
+            "women",
+            "men",
+            "boys",
+            "people_assisted",
             "number_of_people_targeted",
             "number_of_people_affected",
             "total_targeted_population",
@@ -2362,17 +2392,23 @@ class EmergencyDrefSerializer(serializers.ModelSerializer):
     proposed_action = ProposedActionSerializer(many=True, read_only=True)
     cover_image_file = DrefFileSerializer(source="cover_image", required=False, allow_null=True)
     disaster_type_details = DisasterTypeSerializer(source="disaster_type", read_only=True)
+    type_of_dref_display = serializers.CharField(source="get_type_of_dref_display", read_only=True)
 
     # Dref operational update
     operational_update_details = serializers.SerializerMethodField()
     # Dref Final report
     final_report_details = serializers.SerializerMethodField()
 
+    # Timeline of operational updates
+    timeline_operational_updates = serializers.SerializerMethodField()
+
     class Meta:
         model = Dref
         fields = (
             "id",
             "title",
+            "type_of_dref",
+            "type_of_dref_display",
             "disaster_type_details",
             "cover_image_file",
             "event_description",
@@ -2394,19 +2430,36 @@ class EmergencyDrefSerializer(serializers.ModelSerializer):
             # Key Figures
             "num_affected",
             "num_assisted",
+            "women",
+            "men",
+            "boys",
             "hazard_date_and_location",
             "amount_requested",
+            "total_cost",
             "total_targeted_population",
             "estimated_number_of_affected_male",
             "estimated_number_of_affected_female",
             "estimated_number_of_affected_girls_under_18",
             "estimated_number_of_affected_boys_under_18",
+            "people_assisted",
             # Operational timeframe date
             "hazard_date",
             "end_date",
+            "total_cost",
+            "date_of_approval",
             # For Response Type
             "event_date",
+            "timeline_operational_updates",
         )
+
+    @extend_schema_field(TimelineEmergencyDrefOperationalUpdateSerializer(many=True))
+    def get_timeline_operational_updates(self, obj):
+        ops_updates = DrefOperationalUpdate.objects.filter(dref=obj).order_by("operational_update_number")
+        serializer = TimelineEmergencyDrefOperationalUpdateSerializer(
+            ops_updates,
+            many=True,
+        )
+        return serializer.data
 
     @extend_schema_field(EmergencyDrefOperationalUpdateSerializer())
     def get_operational_update_details(self, obj):
