@@ -46,7 +46,7 @@ def migrate_sources(apps, _):
                 source = 160 # NEW_FIELD_REPORT
             else:
                 # Using title for backward compatibility, as some events have auto_generated_source empty but title containing "GDACS"
-                if obj.title and obj.title.lower().startswith("gdacs"):
+                if obj.name and obj.name.lower().startswith("gdacs"):
                     source = 110  # GDACS
                 else:
                     source = 100  # MANUAL_INPUT

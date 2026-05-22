@@ -1340,12 +1340,30 @@ class EmergencyStageTestCase(APITestCase):
         AppealFactory.create(
             event=event,
             dtype=self.disaster_type,
-            status=AppealStatus.CLOSED,
+            status=AppealStatus.ARCHIVED,
             atype=AppealType.APPEAL,
         )
 
         data = self._get(event).data
         self.assertNotEqual(data["stage"], EventStage.EMERGENCY_APPEAL)
+
+        # CLOSED one also considered but ACTIVE takes over
+        AppealFactory.create(
+            event=event,
+            dtype=self.disaster_type,
+            status=AppealStatus.CLOSED,
+            atype=AppealType.APPEAL,
+        )
+        data = self._get(event).data
+        self.assertEqual(data["stage"], EventStage.EMERGENCY_APPEAL)
+        self.assertEqual(data["appeal"]["status"], AppealStatus.CLOSED)
+
+        self._active_emergency_appeal(event)
+        data = self._get(event).data
+        self.assertEqual(data["stage"], EventStage.EMERGENCY_APPEAL)
+
+        # Active should take priority over closed and archived
+        self.assertEqual(data["appeal"]["status"], AppealStatus.ACTIVE)
 
     def test_emergency_appeal_takes_priority_over_entire_dref_chain(self):
         event = EventFactory.create(dtype=self.disaster_type)
@@ -1466,3 +1484,47 @@ class EmergencyStageTestCase(APITestCase):
 
         self.assertEqual(parse_datetime(data["first_field_report_created_at"]), first_fr.created_at)
         self.assertEqual(parse_datetime(data["latest_field_report_created_at"]), latest_fr.created_at)
+
+    def test_field_report_with_timeline_field_reports(self):
+        event = EventFactory.create(dtype=self.disaster_type)
+        FieldReportFactory.create_batch(
+            3,
+            event=event,
+            dtype=self.disaster_type,
+        )
+        data = self._get(event).data
+        self.assertEqual(data["stage"], EventStage.FIELD_REPORT, data)
+        self.assertIsNotNone(data["field_report"], data)
+        self.assertEqual(len(data["timeline_field_reports"]), 3)
+
+    def test_dref_operational_update_with_timeline_ops_updates(self):
+        event = EventFactory.create(dtype=self.disaster_type)
+        dref = self._approved_dref(event)
+        DrefOperationalUpdateFactory.create_batch(
+            3,
+            dref=dref,
+            status=Dref.Status.APPROVED,
+            disaster_type=self.disaster_type,
+            country=self.country,
+        )
+        data = self._get(event).data
+        self.assertEqual(data["stage"], EventStage.DREF_OPERATIONAL_UPDATE, data)
+
+        dref_data = data.get("dref")
+        self.assertIsNotNone(dref_data, data)
+
+        self.assertEqual(len(dref_data["timeline_operational_updates"]), 3)
+
+        # NOTE: if Final report is created, stage should be DREF_FINAL_REPORT and previous operational updates should also show
+        DrefFinalReportFactory.create(
+            dref=dref,
+            status=Dref.Status.APPROVED,
+            disaster_type=self.disaster_type,
+            country=self.country,
+        )
+        data = self._get(event).data
+        self.assertEqual(data["stage"], EventStage.DREF_FINAL_REPORT)
+        dref_data = data.get("dref")
+        self.assertIsNotNone(dref_data)
+        self.assertIsNotNone(dref_data["final_report_details"])
+        self.assertEqual(len(dref_data["timeline_operational_updates"]), 3)
