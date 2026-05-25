@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db import models
 
+from api.models import Event
 from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
 
 
@@ -53,3 +54,19 @@ def get_dref_users():
             )
         )
     return dref_users_list
+
+
+def create_event_from_dref(dref: Dref) -> Event:
+    event = Event.objects.create(
+        name=dref.title,
+        dtype=dref.disaster_type,
+        summary=dref.event_description or dref.event_scope or "",
+        disaster_start_date=dref.event_date or dref.hazard_date,
+        glide=dref.glide_code or "",
+        auto_generated=True,
+        source=Event.EventSource.DREF,
+    )
+
+    event.countries.add(dref.country)
+    event.districts.add(*dref.district.all())
+    return event
