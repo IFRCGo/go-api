@@ -4,7 +4,10 @@ from typing import List, Union
 
 from django.conf import settings
 from django.contrib.auth.models import Permission, User
+from django.contrib.gis.db.models import OuterRef, Subquery, Value
 from django.db import models, transaction
+from django.db.models.fields import IntegerField
+from django.db.models.query import Prefetch
 from django.utils import timezone
 from django.utils.translation import get_language as django_get_language
 from drf_spectacular.utils import extend_schema_field
@@ -14,7 +17,13 @@ from rest_framework import serializers
 from api.tasks import generate_export_pdf
 from api.utils import CountryValidator, RegionValidator, generate_eap_export_url
 from deployments.models import EmergencyProject, Personnel, PersonnelDeployment
-from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
+from dref.models import (
+    Dref,
+    DrefFinalReport,
+    DrefOperationalUpdate,
+    PlannedIntervention,
+    ProposedAction,
+)
 from eap.models import EAPRegistration, FullEAP, SimplifiedEAP
 from lang.models import String
 from lang.serializers import ModelSerializer
@@ -52,6 +61,7 @@ from .models import (
     EventFeaturedDocument,
     EventLink,
     EventSeverityLevelHistory,
+    EventStage,
     Export,
     ExternalPartner,
     FieldReport,
@@ -1060,6 +1070,8 @@ class MiniEventSerializer(ModelSerializer):
 class ListMiniEventSerializer(ModelSerializer):
     dtype = DisasterTypeSerializer(required=False)
     countries_for_preview = MiniCountrySerializer(many=True, read_only=True)
+    latest_field_report_id = serializers.IntegerField(read_only=True)
+    source_display = serializers.CharField(source="get_source_display", read_only=True)
 
     class Meta:
         model = Event
@@ -1069,8 +1081,10 @@ class ListMiniEventSerializer(ModelSerializer):
             "slug",
             "dtype",
             "source",
+            "source_display",
             "emergency_response_contact_email",
             "countries_for_preview",
+            "latest_field_report_id",
         )
 
 
@@ -2126,6 +2140,107 @@ class ListFieldReportCsvSerializer(FieldReportEnumDisplayMixin, ModelSerializer)
         fields = "__all__"
 
 
+# NOTE: Using this specific serializer for emergency page schema
+# Contains information from latest field report mostly and some fields from first field report
+class EmergencyPreviousFieldReportSerializer(
+    serializers.ModelSerializer,
+):
+    class Meta:
+        model = FieldReport
+        fields = (
+            "id",
+            "event_id",
+            "fr_num",
+            "start_date",
+            "report_date",
+            "created_at",
+            "updated_at",
+        )
+
+
+class EmergencyFieldReportSerializer(
+    serializers.ModelSerializer,
+):
+    actions_taken = ActionsTakenSerializer(many=True)
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+    appeal_display = serializers.CharField(source="get_appeal_display", read_only=True)
+    bulletin_display = serializers.CharField(source="get_bulletin_display", read_only=True)
+    dtype = DisasterTypeSerializer(read_only=True)
+    dref_display = serializers.CharField(source="get_dref_display", read_only=True)
+    visibility_display = serializers.CharField(source="get_visibility_display", read_only=True)
+    imminent_dref_display = serializers.CharField(source="get_imminent_dref_display", read_only=True)
+    contacts = FieldReportContactSerializer(many=True)
+    countries = MiniCountrySerializer(many=True)
+    districts = MiniDistrictSerializer(many=True)
+
+    first_fr_ns_request_assistance = serializers.BooleanField(read_only=True)
+    first_fr_request_assistance = serializers.BooleanField(read_only=True)
+
+    class Meta:
+        model = FieldReport
+        fields = (
+            "id",
+            "summary",
+            "countries",
+            "districts",
+            "status",
+            "status_display",
+            "appeal",
+            "appeal_display",
+            "bulletin",
+            "bulletin_display",
+            "imminent_dref",
+            "imminent_dref_display",
+            "visibility",
+            "visibility_display",
+            "dref",
+            "dref_display",
+            "description",
+            "dtype",
+            "contacts",
+            # Key Figures
+            # IFRC figures
+            "num_injured",
+            "num_dead",
+            "num_missing",
+            "num_affected",
+            "num_displaced",
+            "epi_num_dead",
+            "num_assisted",
+            "num_localstaff",
+            "num_volunteers",
+            "num_expats_delegates",
+            "num_highest_risk",
+            "num_potentially_affected",
+            # Government figures
+            "gov_num_injured",
+            "gov_num_dead",
+            "gov_num_missing",
+            "gov_num_affected",
+            "gov_num_displaced",
+            "gov_num_assisted",
+            "gov_num_highest_risk",
+            "gov_num_potentially_affected",
+            # Other figures
+            "other_num_injured",
+            "other_num_dead",
+            "other_num_missing",
+            "other_num_affected",
+            "other_num_displaced",
+            "other_num_assisted",
+            "other_num_highest_risk",
+            "other_num_potentially_affected",
+            "start_date",
+            "report_date",
+            "created_at",
+            "updated_at",
+            "actions_taken",
+            # First field report related fields, annotate
+            "first_fr_ns_request_assistance",
+            "first_fr_request_assistance",
+        )
+
+
 class DetailFieldReportSerializer(FieldReportEnumDisplayMixin, ModelSerializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -2217,7 +2332,7 @@ class FieldReportSerializer(
             summary=report.description or "",
             disaster_start_date=report.start_date,
             auto_generated=True,
-            source=Event.EventSource.NEW_REPORT,
+            source=Event.EventSource.NEW_FIELD_REPORT,
             visibility=report.visibility,
             **{TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME: django_get_language()},
         )
@@ -2684,23 +2799,59 @@ class CountrySupportingPartnerSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class DetailEmergencySerializer(serializers.ModelSerializer):
+class TimelineEmergencyFieldReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FieldReport
+        fields = (
+            "id",
+            "report_date",
+            "fr_num",
+            "start_date",
+        )
+
+
+class DetailEmergencySerializer(ModelSerializer):
+    from dref.serializers import EmergencyDrefSerializer
+
     contacts = EventContactSerializer(many=True, read_only=True)
     key_figures = KeyFigureSerializer(many=True, read_only=True)
     countries = MiniCountrySerializer(many=True, read_only=True)
     ifrc_severity_level_display = serializers.CharField(source="get_ifrc_severity_level_display", read_only=True)
     visibility_display = serializers.CharField(source="get_visibility_display", read_only=True)
     source_display = serializers.CharField(source="get_source_display", read_only=True)
+    links = EventLinkSerializer(many=True, read_only=True)
+    districts = MiniDistrictSerializer(many=True)
+    featured_documents = EventFeaturedDocumentSerializer(many=True, read_only=True)
+
     # NOTE: Populated from Queryset using Annotate
-    first_field_report_id = serializers.IntegerField(read_only=True)
-    latest_field_report_id = serializers.IntegerField(read_only=True)
-    appeal_id = serializers.IntegerField(read_only=True)
+
+    # Aggregated values
+    response_activity_count = serializers.IntegerField(read_only=True)
+    active_deployments_count = serializers.IntegerField(read_only=True)
+    surge_alerts_count = serializers.IntegerField(read_only=True)
+
+    # Stages
+    stage = serializers.IntegerField(read_only=True)
+    stage_display = serializers.SerializerMethodField()
+
+    field_report = serializers.SerializerMethodField()
+    appeal = serializers.SerializerMethodField()
+    dref = serializers.SerializerMethodField()
+
+    # Operational timeframe
+    first_field_report_created_at = serializers.DateTimeField(read_only=True)
+    latest_field_report_created_at = serializers.DateTimeField(read_only=True)
+
+    timeline_field_reports = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
         fields = (
+            "id",
+            "slug",
             "name",
             "dtype",
+            "glide",
             "countries",
             "summary",
             "disaster_start_date",
@@ -2710,10 +2861,11 @@ class DetailEmergencySerializer(serializers.ModelSerializer):
             "key_figures",
             "is_featured",
             "is_featured_region",
+            "tab_one_title",
+            "tab_two_title",
+            "tab_three_title",
             "hide_attached_field_reports",
             "hide_field_report_map",
-            "id",
-            "slug",
             "ifrc_severity_level",
             "ifrc_severity_level_display",
             "ifrc_severity_level_update_date",
@@ -2722,6 +2874,9 @@ class DetailEmergencySerializer(serializers.ModelSerializer):
             "visibility",
             "visibility_display",
             "contacts",
+            "links",
+            "districts",
+            "featured_documents",
             "num_injured",
             "num_dead",
             "num_missing",
@@ -2730,7 +2885,151 @@ class DetailEmergencySerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
             "previous_update",
-            "first_field_report_id",
-            "latest_field_report_id",
-            "appeal_id",
+            # Aggregated values
+            "response_activity_count",
+            "active_deployments_count",
+            "surge_alerts_count",
+            # Stages
+            "stage",
+            "stage_display",
+            "field_report",
+            "appeal",
+            "dref",
+            "first_field_report_created_at",
+            "latest_field_report_created_at",
+            "timeline_field_reports",
         )
+
+    @extend_schema_field(TimelineEmergencyFieldReportSerializer(many=True))
+    def get_timeline_field_reports(self, event):
+        field_reports = (
+            FieldReport.objects.filter(event=event)
+            .order_by(
+                "-updated_at",
+                "-fr_num",
+            )
+            .values(
+                "id",
+                "report_date",
+                "fr_num",
+                "start_date",
+            )
+        )
+        serializer = TimelineEmergencyFieldReportSerializer(field_reports, many=True)
+        return serializer.data
+
+    def _get_stage_instance(self, event):
+        stage = getattr(event, "stage")
+        if stage == EventStage.FIELD_REPORT and event.stage_field_report_id:
+            _first_field_report_queryset = FieldReport.objects.filter(event_id=OuterRef("event_id")).order_by(
+                "created_at", "fr_num"
+            )
+            instance = (
+                FieldReport.objects.select_related(
+                    "dtype",
+                    "event",
+                )
+                .annotate(
+                    first_fr_ns_request_assistance=Subquery(_first_field_report_queryset.values("ns_request_assistance")[:1]),
+                    first_fr_request_assistance=Subquery(_first_field_report_queryset.values("request_assistance")[:1]),
+                )
+                .prefetch_related(
+                    "contacts",
+                    "countries",
+                    "districts",
+                    Prefetch(
+                        "actions_taken",
+                        queryset=ActionsTaken.objects.prefetch_related("actions"),
+                    ),
+                )
+                .get(pk=event.stage_field_report_id)
+            )
+            return instance
+
+        elif (
+            stage
+            in [
+                EventStage.EMERGENCY_APPEAL,
+                EventStage.DREF_APPEAL_ONLY,
+            ]
+            and event.stage_appeal_id
+        ):
+            instance = Appeal.objects.get(pk=event.stage_appeal_id)
+            return instance
+        elif (
+            stage
+            in [
+                EventStage.DREF_APPLICATION,
+                EventStage.DREF_OPERATIONAL_UPDATE,
+                EventStage.DREF_FINAL_REPORT,
+            ]
+            and event.stage_dref_id
+        ):
+            instance = (
+                Dref.objects.select_related(
+                    "country",
+                    "disaster_type",
+                    "cover_image",
+                    "cover_image__created_by",
+                )
+                .annotate(
+                    operational_update_id=Value(
+                        event.stage_ops_update_id,
+                        output_field=IntegerField(null=True),
+                    ),
+                    final_report_id=Value(
+                        event.stage_final_report_id,
+                        output_field=IntegerField(null=True),
+                    ),
+                )
+                .prefetch_related(
+                    "district",
+                    Prefetch(
+                        "planned_interventions",
+                        queryset=PlannedIntervention.objects.prefetch_related("indicators"),
+                    ),
+                    Prefetch(
+                        "proposed_action",
+                        queryset=ProposedAction.objects.prefetch_related("activities"),
+                    ),
+                )
+                .get(pk=event.stage_dref_id)
+            )
+            return instance
+
+    def get_stage_display(self, event):
+        stage = getattr(event, "stage", None)
+        return EventStage(stage).label if stage is not None else None
+
+    @extend_schema_field(EmergencyFieldReportSerializer())
+    def get_field_report(self, event):
+        if getattr(event, "stage", None) != EventStage.FIELD_REPORT:
+            return None
+        instance = self._get_stage_instance(event)
+        return EmergencyFieldReportSerializer(instance, context=self.context).data if instance else None
+
+    @extend_schema_field(RelatedAppealSerializer())
+    def get_appeal(self, event):
+        if getattr(event, "stage", None) not in (
+            EventStage.EMERGENCY_APPEAL,
+            EventStage.DREF_APPEAL_ONLY,
+        ):
+            return None
+        instance = self._get_stage_instance(event)
+        return RelatedAppealSerializer(instance, context=self.context).data if instance else None
+
+    @extend_schema_field(EmergencyDrefSerializer())
+    def get_dref(self, event):
+        if getattr(event, "stage", None) not in (
+            EventStage.DREF_APPLICATION,
+            EventStage.DREF_OPERATIONAL_UPDATE,
+            EventStage.DREF_FINAL_REPORT,
+        ):
+            return None
+        instance = self._get_stage_instance(event)
+        if not instance:
+            return None
+
+        from dref.serializers import EmergencyDrefSerializer
+
+        return EmergencyDrefSerializer(instance, context=self.context).data
