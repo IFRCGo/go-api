@@ -761,6 +761,16 @@ def snippet_image_path(instance, filename):
     return "emergencies/%s/%s" % (instance.id, filename)
 
 
+# NOTE: Stage for the emergency timeline
+class EventStage(models.IntegerChoices):
+    EMERGENCY_APPEAL = 1, _("Emergency Appeal")
+    DREF_APPLICATION = 2, _("DREF Application")
+    DREF_OPERATIONAL_UPDATE = 3, _("DREF Operational Update")
+    DREF_FINAL_REPORT = 4, _("DREF Final Report")
+    FIELD_REPORT = 5, _("Field Report")
+    DREF_APPEAL_ONLY = 6, _("DREF")
+
+
 # NOTE: If ever in future we need to create an api to update the event table
 # we also need to make sure to add appropriate signal to create ifrc severity level event history
 @reversion.register()
@@ -769,7 +779,7 @@ class Event(models.Model):
 
     class EventSource(models.IntegerChoices):
 
-        Manual_Input = 100, _("Manual input")
+        MANUAL_INPUT = 100, _("Manual input")
         """MANUAL_INPUT: Event data manually entered by a user through the event administration interface."""
 
         GDACS = 110, _("GDACs scraper")
@@ -778,17 +788,17 @@ class Event(models.Model):
         WHO = 120, _("WHO scraper")
         """WHO: Event data automatically ingested from the (WHO) scraper."""
 
-        REPORT_INGEST = 130, _("Field report DMIS ingest")
-        """REPORT_INGEST: Event data imported through the DMIS field report."""
+        FIELD_REPORT_DMIS_INGEST = 130, _("Field report DMIS ingest")
+        """FIELD_REPORT_DMIS_INGEST: Event data imported through the DMIS field report."""
 
-        REPORT_ADMIN = 140, _("Field report admin")
-        """REPORT_ADMIN: Event data created or modified via the field report administration interface."""
+        FIELD_REPORT_ADMIN = 140, _("Field report admin")
+        """FIELD_REPORT_ADMIN: Event data created or modified via the field report administration interface."""
 
         APPEAL_ADMIN = 150, _("Appeal admin")
         """APPEAL_ADMIN: Event data created or managed through the appeal administration interface."""
 
-        NEW_REPORT = 160, _("New field report")
-        """NEW_REPORT: Event data originating from newly created field reports."""
+        NEW_FIELD_REPORT = 160, _("New field report")
+        """NEW_FIELD_REPORT: Event data originating from newly created field reports."""
 
         DREF = 170, _("DREF")
         """DREF: Event originating records."""
@@ -853,7 +863,7 @@ class Event(models.Model):
     previous_update = models.DateTimeField(verbose_name=_("previous update"), null=True, blank=True)
 
     auto_generated = models.BooleanField(verbose_name=_("auto generated"), default=False, editable=False)
-    source = models.IntegerField(choices=EventSource.choices, default=EventSource.Manual_Input, verbose_name=_("Event source"))
+    source = models.IntegerField(choices=EventSource.choices, default=EventSource.MANUAL_INPUT, verbose_name=_("Event source"))
 
     # Meant to give the organization a way of highlighting certain, important events.
     is_featured = models.BooleanField(default=False, verbose_name=_("is featured on home page"))
