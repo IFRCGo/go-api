@@ -149,7 +149,7 @@ class DrefAdmin(CompareVersionAdmin, TranslationAdmin, admin.ModelAdmin):
         "images",
         "cover_image",
         "users",
-        "field_report",
+        "event",
         "supporting_document",
         "national_society_actions",
         "needs_identified",
@@ -177,7 +177,7 @@ class DrefAdmin(CompareVersionAdmin, TranslationAdmin, admin.ModelAdmin):
                 "event_map",
                 "cover_image",
                 "country",
-                "field_report",
+                "event",
                 "supporting_document",
             )
             .prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users", "risk_security")

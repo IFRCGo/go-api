@@ -248,7 +248,7 @@ class Command(BaseCommand):
                 "dtype": report_dtype,
                 "disaster_start_date": timezone.now(),
                 "auto_generated": True,
-                "source": Event.EventSource.REPORT_INGEST,
+                "source": Event.EventSource.FIELD_REPORT_DMIS_INGEST,
             }
             event = Event(**event_record)
             event.save()
