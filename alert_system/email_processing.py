@@ -14,6 +14,8 @@ from notifications.notification import send_notification
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_ALERT_PER_DAY = 100
+
 
 def send_alert_email_notification(
     load_item: LoadItem,
@@ -56,26 +58,33 @@ def send_alert_email_notification(
             html=email_body,
             mailtype=email_type,
         )
-
+        # Create thread for initial emails
         email_log.status = AlertEmailLog.Status.SENT
         email_log.email_sent_at = timezone.now()
-        email_log.save(update_fields=["status", "email_sent_at"])
 
-        # Create thread for initial emails
         if not is_reply:
-            thread = AlertEmailThread.objects.create(
+            thread, created = AlertEmailThread.objects.get_or_create(
                 user=user,
                 parent_event_id=load_item.parent_event_id,
-                root_email_message_id=message_id,
-                root_message_sent_at=timezone.now(),
+                defaults={
+                    "root_email_message_id": message_id,
+                    "root_message_sent_at": timezone.now(),
+                },
             )
             email_log.thread = thread
-            email_log.save(update_fields=["thread"])
-            logger.info(
-                f"Alert Email thread created for user [{user.get_full_name()}] "
-                f"with parent event [{load_item.parent_event_id}]"
-            )
+            email_log.save(update_fields=["status", "email_sent_at", "thread"])
 
+            if created:
+                logger.info(
+                    f"Alert Email thread created for user [{user.get_full_name()}] "
+                    f"with parent event [{load_item.parent_event_id}]"
+                )
+            else:
+                logger.info(
+                    f"Existing thread found for user [{user.get_full_name()}] " f"with parent event [{load_item.parent_event_id}]"
+                )
+        else:
+            email_log.save(update_fields=["status", "email_sent_at"])
         logger.info(f"Alert email sent to [{user.get_full_name()}] for LoadItem ID [{load_item.id}]")
 
     except Exception:
@@ -141,15 +150,16 @@ def process_email_alert(load_item_id: int) -> None:
         thread = existing_threads.get(user_id)
         is_reply: bool = thread is not None
 
-        # Skip if daily alert limit reached
-        sent_today: int = daily_count_map.get((user_id, subscription_id), 0)
-        if subscription.alert_per_day and sent_today >= subscription.alert_per_day:
-            logger.info(f"Daily alert limit reached for user [{user.get_full_name()}]")
-            continue
-
         # Skip duplicate emails for same item
         if (user_id, subscription_id) in already_sent:
-            logger.info(f"Duplicate alert skipped for user [{user.get_full_name()}] " f"with LoadItem ID [{subscription_id}]")
+            logger.info(f"Duplicate alert skipped for user [{user.get_full_name()}] " f"with LoadItem ID [{load_item_id}]")
+            continue
+
+        # Skip if daily alert limit reached
+        sent_today: int = daily_count_map.get((user_id, subscription_id), 0)
+        effective_limit = subscription.alert_per_day or DEFAULT_ALERT_PER_DAY
+        if sent_today >= effective_limit:
+            logger.info(f"Daily alert limit reached for user [{user.get_full_name()}]")
             continue
 
         send_alert_email_notification(load_item=load_item, user=user, subscription=subscription, thread=thread, is_reply=is_reply)

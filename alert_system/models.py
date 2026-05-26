@@ -304,7 +304,6 @@ class AlertEmailThread(models.Model):
         verbose_name = _("Email Thread")
         verbose_name_plural = _("Email Threads")
         ordering = ["-id"]
-        constraints = [models.UniqueConstraint(fields=["parent_event_id", "user"], name="unique_user_parent_event")]
         indexes = [
             models.Index(fields=["parent_event_id", "user"]),
         ]
