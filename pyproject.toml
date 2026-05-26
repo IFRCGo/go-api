@@ -79,11 +79,12 @@ dependencies = [
     "pyjwt",
     "shapely",
     "colorlog",
-    "azure-identity",  # Required by django-storages[azure] if used
+    "azure-identity", # Required by django-storages[azure] if used
     "mapbox-tilesets",
     "ipython",
     "tiktoken",
     "openai",
+    "httpx>=0.28.1",
 ]
 
 [dependency-groups]
