@@ -491,6 +491,7 @@ class TestERUReadinessAPI(APITestCase):
             "equipment_readiness": ERUReadinessType.ReadinessStatus.READY,
             "people_readiness": ERUReadinessType.ReadinessStatus.READY,
             "funding_readiness": ERUReadinessType.ReadinessStatus.READY,
+            "ns_contribution": ERUReadinessType.NationalSocietyContribution.HOLDS,
         }
         eru_readiness_type_1, eru_readiness_type_2 = ERUReadinessTypeFactory.create_batch(
             2,
@@ -531,6 +532,7 @@ class TestERUReadinessAPI(APITestCase):
             "equipment_readiness": ERUReadinessType.ReadinessStatus.READY,
             "people_readiness": ERUReadinessType.ReadinessStatus.READY,
             "funding_readiness": ERUReadinessType.ReadinessStatus.READY,
+            "ns_contribution": ERUReadinessType.NationalSocietyContribution.SUPPORTS,
         }
         eru_readiness_type_1 = ERUReadinessTypeFactory.create(
             type=ERUType.OSH,
@@ -549,12 +551,14 @@ class TestERUReadinessAPI(APITestCase):
                     "equipment_readiness": eru_readiness_type_1.equipment_readiness,
                     "people_readiness": eru_readiness_type_1.people_readiness,
                     "funding_readiness": eru_readiness_type_1.funding_readiness,
+                    "ns_contribution": eru_readiness_type_1.ns_contribution,
                 },
                 {
                     "type": eru_readiness_type_2.type,
                     "equipment_readiness": eru_readiness_type_2.equipment_readiness,
                     "people_readiness": eru_readiness_type_2.people_readiness,
                     "funding_readiness": eru_readiness_type_2.funding_readiness,
+                    "ns_contribution": eru_readiness_type_2.ns_contribution,
                 },
             ],
         }
@@ -571,6 +575,7 @@ class TestERUReadinessAPI(APITestCase):
             "equipment_readiness": ERUReadinessType.ReadinessStatus.READY,
             "people_readiness": ERUReadinessType.ReadinessStatus.READY,
             "funding_readiness": ERUReadinessType.ReadinessStatus.READY,
+            "ns_contribution": ERUReadinessType.NationalSocietyContribution.HOLDS,
         }
         eru_readiness_type_1 = ERUReadinessTypeFactory.create(
             type=ERUType.OSH,
@@ -598,6 +603,7 @@ class TestERUReadinessAPI(APITestCase):
                     "equipment_readiness": ERUReadinessType.ReadinessStatus.NO_CAPACITY,
                     "people_readiness": ERUReadinessType.ReadinessStatus.NO_CAPACITY,
                     "funding_readiness": ERUReadinessType.ReadinessStatus.NO_CAPACITY,
+                    "ns_contribution": ERUReadinessType.NationalSocietyContribution.SUPPORTS,
                 },
                 {
                     "id": eru_readiness_type_2.id,
@@ -605,6 +611,7 @@ class TestERUReadinessAPI(APITestCase):
                     "equipment_readiness": ERUReadinessType.ReadinessStatus.READY,
                     "people_readiness": ERUReadinessType.ReadinessStatus.READY,
                     "funding_readiness": ERUReadinessType.ReadinessStatus.READY,
+                    "ns_contribution": ERUReadinessType.NationalSocietyContribution.SUPPORTS,
                 },
                 # Add new ERU type
                 {
@@ -612,6 +619,7 @@ class TestERUReadinessAPI(APITestCase):
                     "equipment_readiness": ERUReadinessType.ReadinessStatus.PARTIAL_CAPACITY,
                     "people_readiness": ERUReadinessType.ReadinessStatus.PARTIAL_CAPACITY,
                     "funding_readiness": ERUReadinessType.ReadinessStatus.PARTIAL_CAPACITY,
+                    "ns_contribution": ERUReadinessType.NationalSocietyContribution.HOLDS,
                 },
             ],
         }
@@ -640,23 +648,29 @@ class TestERUReadinessAPI(APITestCase):
                 response.data["eru_types"][0]["equipment_readiness"],
                 response.data["eru_types"][0]["people_readiness"],
                 response.data["eru_types"][0]["funding_readiness"],
+                response.data["eru_types"][0]["ns_contribution"],
                 response.data["eru_types"][1]["equipment_readiness"],
                 response.data["eru_types"][1]["people_readiness"],
                 response.data["eru_types"][1]["funding_readiness"],
+                response.data["eru_types"][1]["ns_contribution"],
                 response.data["eru_types"][2]["equipment_readiness"],
                 response.data["eru_types"][2]["people_readiness"],
                 response.data["eru_types"][2]["funding_readiness"],
+                response.data["eru_types"][2]["ns_contribution"],
             },
             {
                 ERUReadinessType.ReadinessStatus.NO_CAPACITY,
                 ERUReadinessType.ReadinessStatus.NO_CAPACITY,
                 ERUReadinessType.ReadinessStatus.NO_CAPACITY,
+                ERUReadinessType.NationalSocietyContribution.SUPPORTS,
                 ERUReadinessType.ReadinessStatus.READY,
                 ERUReadinessType.ReadinessStatus.READY,
                 ERUReadinessType.ReadinessStatus.READY,
+                ERUReadinessType.NationalSocietyContribution.SUPPORTS,
                 ERUReadinessType.ReadinessStatus.PARTIAL_CAPACITY,
                 ERUReadinessType.ReadinessStatus.PARTIAL_CAPACITY,
                 ERUReadinessType.ReadinessStatus.PARTIAL_CAPACITY,
+                ERUReadinessType.NationalSocietyContribution.HOLDS,
             },
         )
 

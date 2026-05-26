@@ -1051,12 +1051,13 @@ class FieldReportViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ModelViewSet):
     ordering_fields = ("summary", "event", "dtype", "created_at", "updated_at")
     filterset_class = FieldReportFilter
     permission_classes = [DenyGuestUserMutationPermission]
-    queryset = FieldReport.objects.select_related("dtype", "event").prefetch_related(
+    queryset = FieldReport.objects.select_related("dtype", "event", "event__dtype").prefetch_related(
         "actions_taken",
         "actions_taken__actions",
         "contacts",
         "countries",
         "districts",
+        "event__countries_for_preview",
         # Unusable – in serializer: wired-in get_merged_items_by_fields():
         # "event__countries",
         "external_partners",
@@ -1476,7 +1477,15 @@ class GoHistoricalViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_class = GoHistoricalFilter
 
     def get_queryset(self):
-        return Event.objects.filter(appeals__isnull=False).distinct()
+        return (
+            Event.objects.annotate(has_appeals=models.Exists(Appeal.objects.filter(event=OuterRef("pk"))))
+            .filter(has_appeals=True)
+            .select_related("dtype")
+            .prefetch_related(
+                Prefetch("countries", queryset=Country.objects.select_related("region")),
+                "appeals",
+            )
+        )
 
 
 class CountryOfFieldReportToReviewViewset(viewsets.ReadOnlyModelViewSet):

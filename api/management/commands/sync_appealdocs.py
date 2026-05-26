@@ -48,12 +48,12 @@ class Command(BaseCommand):
             print("Doing a full scan of all Appeals")
             qset = Appeal.objects.all()
         else:
-            # By default, only check appeals for the past 6 months where Appeal Documents is 0
+            # By default, only check appeals modified in the past 6 months where Appeal Documents is 0
             now = datetime.now().replace(tzinfo=timezone.utc)
             six_months_ago = now - relativedelta(months=6)
             # This was the original qset, but it wouldn't get newer docs for the same Appeals
             # qset = Appeal.objects.filter(appealdocument__isnull=True).filter(end_date__gt=six_months_ago)
-            qset = Appeal.objects.filter(end_date__gt=six_months_ago)
+            qset = Appeal.objects.filter(modified_at__gt=six_months_ago)
 
         # qset = Appeal.objects.filter(code='Something')  # could help debug
         # First get all Appeal Codes

@@ -39,34 +39,56 @@ class ModelTranslator:
         if not initial_value or not initial_lang:
             return
 
-        for lang in AVAILABLE_LANGUAGES:
-            lang_field = build_localized_fieldname(field, lang)
-            value = getattr(obj, lang_field, None)
-            if value:
+        model = type(obj)
+        table_field = f"{model._meta.app_label}:{model._meta.model_name}:{field}"
+        field_max_length = model._meta.get_field(field).max_length
+
+        pending_langs = {
+            lang: build_localized_fieldname(field, lang)
+            for lang in AVAILABLE_LANGUAGES
+            if not getattr(obj, build_localized_fieldname(field, lang), None)
+        }
+        if not pending_langs:
+            return
+
+        cached = self.translator.get_cached_translations(
+            initial_value,
+            list(pending_langs.keys()),
+            source_language=initial_lang,
+            table_field=table_field,
+        )
+
+        for lang, lang_field in pending_langs.items():
+            if lang in cached:
+                translated = cached[lang]
+            else:
+                translated = self.translator.translate_text(
+                    initial_value,
+                    lang,
+                    source_language=initial_lang,
+                    table_field=table_field,
+                )
+
+            if translated is None:
+                logger.warning(
+                    "Translation failed for %s.%s pk=%s",
+                    model.__name__,
+                    lang_field,
+                    obj.pk,
+                )
                 continue
 
-            model = type(obj)
-            app_label = model._meta.app_label
-            model_name = model._meta.model_name
-            table_field = f"{app_label}:{model_name}:{field}"
+            if field_max_length and len(translated) > field_max_length:
+                logger.warning(
+                    "Translation exceeds max_length (%d) for %s.%s pk=%s",
+                    field_max_length,
+                    model.__name__,
+                    lang_field,
+                    obj.pk,
+                )
+                translated = translated[:field_max_length]
 
-            new_value = self.translator.translate_text(
-                initial_value,
-                lang,
-                source_language=initial_lang,
-                table_field=table_field,
-            )
-
-            if new_value is None:
-                logger.warning(f"Translation failed for Model ({type(obj)}<{lang_field}>) pk: ({obj.pk})")
-                continue
-
-            field_max_length = model._meta.get_field(field).max_length
-            if field_max_length and len(new_value) > field_max_length:
-                logger.warning(f"Greater then max_length found for Model ({type(obj)}<{lang_field}>) pk: ({obj.pk})")
-                new_value = new_value[:field_max_length]
-
-            setattr(obj, lang_field, new_value)
+            setattr(obj, lang_field, translated)
             yield lang_field
 
     @staticmethod

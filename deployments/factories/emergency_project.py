@@ -116,3 +116,4 @@ class ERUReadinessTypeFactory(factory.django.DjangoModelFactory):
     people_readiness = fuzzy.FuzzyChoice(ERUReadinessType.ReadinessStatus)
     funding_readiness = fuzzy.FuzzyChoice(ERUReadinessType.ReadinessStatus)
     comment = fuzzy.FuzzyText(length=10, prefix="comment-")
+    ns_contribution = fuzzy.FuzzyChoice(ERUReadinessType.NationalSocietyContribution)

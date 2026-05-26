@@ -1,0 +1,89 @@
+{% include "design/head3.html" %}
+
+<table width="80%" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff">
+    <tr>
+        <td style="line-height:1.6;">
+            <p style="font-weight: bold;">Dear colleagues,</p>
+            <br>
+            <p>
+                <span style="text-transform: uppercase; font-weight: bold;">{{ national_society }}</span> is hereby submiting the following {{ eap_type_display|default:"Not Sure" }}
+                to the IFRC-DREF for technical review and approval:
+            </p>
+
+            <!-- Data table  -->
+            <table cellpadding="6" cellspacing="0"
+                   style="margin:12px auto;
+                          border-collapse:collapse;
+                          border:1px solid #000000;">
+                <tr>
+                    <td style="border:1px solid #000000; width:40%; font-weight: bold;">Country</td>
+                    <td style="border:1px solid #000000;">{{ country_name }}</td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid #000000; width:40%; font-weight: bold;">Type of EAP</td>
+                    <td style="border:1px solid #000000;">{{ eap_type_display }}</td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid #000000; width:40%; font-weight: bold;">Hazard</td>
+                    <td style="border:1px solid #000000;">{{ disaster_type }}</td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid #000000; width:40%; font-weight: bold;">People targeted</td>
+                    <td style="border:1px solid #000000;">{{ people_targeted }}</td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid #000000; width:40%; font-weight: bold;">Total Budget</td>
+                    <td style="border:1px solid #000000;">{{ total_budget }}</td>
+                </tr>
+                <tr>
+                    <td style="border:1px solid #000000; width:40%; font-weight: bold;">NS contact Person</td>
+                    <td style="border:1px solid #000000;">
+                        {{ ns_contact_name }}
+                        {% if ns_contact_title %} / {{ ns_contact_title }}{% endif %}
+                        / {{ ns_contact_email }}
+                    </td>
+                </tr>
+                {% if supporting_partners %}
+                <tr>
+                    <td style="border:1px solid #000000; width:40%; font-weight: bold;">Supporting Partner(s)</td>
+                    <td style="border:1px solid #000000;">
+                        {% for partner in supporting_partners %}
+                            {{ partner.society_name }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% endif %}
+            </table>
+
+            <p>
+                Please proceed by sharing the attached narrative and budget for comments with the IFRC Delegation,
+                Regional Office and with the Validation Committee.
+            </p>
+            <br>
+            <p>Attached documents:</p><br>
+            <ul>
+                <li>
+                    <a href="{{ export_file }}">
+                            Export PDF
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ budget_file }}">
+                            Budget file
+                        </a>
+                    </li>
+            </ul>
+
+            <!-- Signature -->
+            <br>
+            <p style="margin-top:16px;">
+                Kind regards,<br>
+                {{ ns_contact_name }}<br>
+                {{ ns_contact_email }}<br>
+                {% if ns_contact_phone %}{{ ns_contact_phone }}{% endif %}
+            </p>
+        </td>
+    </tr>
+</table>
+
+{% include "design/foot1.html" %}

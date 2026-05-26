@@ -1,0 +1,21 @@
+{% include "design/head3.html" %}
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff">
+  <tr>
+    <td align="center" class="pb-30" style="padding-bottom:10px; font-family: Arial, sans-serif;">
+
+      You have been added to an EAP Application:
+
+      {% if eap_type %}
+        <a href="{{ frontend_url }}/eap/{{ registration_id }}/{{ eap_type }}">
+          {{ country_name }}: {{ disaster_type }} of type {{ eap_type_display }}
+        </a>
+      {% else %}
+        <strong>{{ country_name }}: {{ disaster_type }}</strong>
+      {% endif %}
+
+    </td>
+  </tr>
+</table>
+
+{% include "design/foot1.html" %}

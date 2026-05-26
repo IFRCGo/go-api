@@ -162,6 +162,7 @@ class Admin2Filter(filters.FilterSet):
         model = Admin2
         fields = {
             "id": ("exact", "in"),
+            "code": ("exact", "in"),
             "admin1": ("exact", "in"),
             "admin1__country": ("exact", "in"),
             "admin1__country__iso3": ("exact", "in"),
@@ -282,6 +283,17 @@ class AppealHistoryFilter(filters.FilterSet):
         queryset=Admin2.objects.all(),
         label="admin2",
         method="get_country_admin2",
+    )
+    needs_confirmation = filters.BooleanFilter(
+        field_name="needs_confirmation",
+        label="needs_confirmation",
+        lookup_expr="exact",
+    )
+    has_event = filters.BooleanFilter(
+        field_name="appeal__event",
+        lookup_expr="isnull",
+        label="has_event",
+        exclude=True,
     )
 
     class Meta:

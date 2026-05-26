@@ -156,4 +156,4 @@ class CountryOverviewSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def get_founded_date(self, object):
-        return Country.objects.filter(countryoverview=object).values_list("founded_date", flat=True).first()
+        return getattr(object.country, "founded_date", None)

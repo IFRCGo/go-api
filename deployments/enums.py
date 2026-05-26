@@ -11,4 +11,5 @@ enum_register = {
     "emergency_project_status": models.EmergencyProject.ActivityStatus,
     "emergency_project_activity_people_households": models.EmergencyProjectActivity.PeopleHouseholds,
     "eru_readiness_status": models.ERUReadinessType.ReadinessStatus,
+    "eru_readiness_ns_contribution": models.ERUReadinessType.NationalSocietyContribution,
 }

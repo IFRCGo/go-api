@@ -1,6 +1,6 @@
 import datetime
-import json
 import logging
+from urllib.parse import urlsplit, urlunsplit
 
 import requests
 from django.conf import settings
@@ -11,7 +11,7 @@ from .utils import catch_error, get_country_by_iso3
 
 logger = logging.getLogger(__name__)
 
-DISASTER_API = f"https://api.reliefweb.int/v1/disasters/?appname={settings.RELIEF_WEB_APP_NAME}"
+DISASTER_API = f"https://api.reliefweb.int/v1/disasters?appname={settings.RELIEF_WEB_APP_NAME}"
 RELIEFWEB_DATETIME_FORMAT = "%Y-%m-%d"
 
 
@@ -21,22 +21,38 @@ def parse_date(date):
     return datetime.datetime.strptime(date.split("T")[0], RELIEFWEB_DATETIME_FORMAT)
 
 
-def _post_reliefweb(query_params, url, context):
+def _fallback_reliefweb_url(url):
+    parts = urlsplit(url)
+    if parts.path.endswith("/"):
+        return urlunsplit((parts.scheme, parts.netloc, parts.path.rstrip("/"), parts.query, parts.fragment))
+    return url
+
+
+def _handle_reliefweb_gone(query_params, url, context, allow_fallback):
+    fallback_url = _fallback_reliefweb_url(url)
+    if allow_fallback and fallback_url != url:
+        logger.warning(
+            "ReliefWeb API returned 410 Gone for %s. Retrying with fallback URL: %s",
+            context,
+            fallback_url,
+        )
+        return _post_reliefweb(query_params, fallback_url, context, allow_fallback=False)
+    logger.warning(
+        "ReliefWeb API returned 410 Gone for %s. Skipping %s prefetch. URL: %s",
+        DISASTER_API,
+        context,
+        url,
+    )
+    return None
+
+
+def _post_reliefweb(query_params, url, context, *, allow_fallback=True):
     try:
-        response = requests.post(url, data=query_params)
+        response = requests.post(url, json=query_params)
+        if response.status_code == 410:
+            return _handle_reliefweb_gone(query_params, url, context, allow_fallback)
         response.raise_for_status()
         return response.json()
-    except requests.HTTPError as exc:
-        status_code = exc.response.status_code if exc.response else None
-        if status_code == 410:
-            logger.warning(
-                "ReliefWeb API returned 410 Gone for %s. Skipping %s prefetch. URL: %s",
-                DISASTER_API,
-                context,
-                url,
-            )
-            return None
-        raise
     except requests.RequestException:
         logger.exception("ReliefWeb API request failed for %s. URL: %s", context, url)
         raise
@@ -46,22 +62,20 @@ def _post_reliefweb(query_params, url, context):
 
 
 def _crises_event_prefetch():
-    query_params = json.dumps(
-        {
-            "limit": 1000,
-            "filter": {
-                "operator": "AND",
-                "conditions": [
-                    {
-                        "field": "primary_type.code",
-                        "value": [type_code for type_code, _ in PastCrisesEvent.CHOICES],
-                        "operator": "OR",
-                    }
-                ],
-            },
-            "fields": {"include": ["date.created", "primary_country.iso3", "primary_type.code"]},
-        }
-    )
+    query_params = {
+        "limit": 1000,
+        "filter": {
+            "operator": "AND",
+            "conditions": [
+                {
+                    "field": "primary_type.code",
+                    "value": [type_code for type_code, _ in PastCrisesEvent.CHOICES],
+                    "operator": "OR",
+                }
+            ],
+        },
+        "fields": {"include": ["date.created", "primary_country.iso3", "primary_type.code"]},
+    }
 
     url = DISASTER_API
     data = {}
@@ -95,21 +109,19 @@ def _crises_event_prefetch():
 
 
 def _epidemics_prefetch():
-    query_params = json.dumps(
-        {
-            "limit": 1000,
-            "filter": {
-                "operator": "AND",
-                "conditions": [
-                    {
-                        "field": "primary_type.code",
-                        "value": ["EP"],
-                    },
-                ],
-            },
-            "fields": {"include": ["name", "date.created", "primary_country.iso3"]},
-        }
-    )
+    query_params = {
+        "limit": 1000,
+        "filter": {
+            "operator": "AND",
+            "conditions": [
+                {
+                    "field": "primary_type.code",
+                    "value": ["EP"],
+                },
+            ],
+        },
+        "fields": {"include": ["name", "date.created", "primary_country.iso3"]},
+    }
 
     url = DISASTER_API
     data = {}
