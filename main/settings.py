@@ -29,7 +29,9 @@ env = environ.Env(
     DJANGO_STATIC_URL=(str, "/static/"),
     DJANGO_ADDITIONAL_ALLOWED_HOSTS=(list, []),  # Eg: api.go.ifrc.org, goadmin.ifrc.org, dsgocdnapi.azureedge.net
     GO_ENVIRONMENT=(str, "development"),  # staging, production
-    #
+    SESSION_COOKIE_DOMAIN=str,
+    CSRF_COOKIE_DOMAIN=str,
+    ADDITIONAL_TRUSTED_ORIGINS=(list, []),
     API_FQDN=str,  # https://goadmin.ifrc.org
     FRONTEND_URL=str,  # https://go.ifrc.org
     GO_WEB_INTERNAL_URL=(str, None),  # http://host.docker.internal
@@ -179,8 +181,8 @@ GO_WEB_URL = parse_domain("FRONTEND_URL")
 # NOTE: Used in local development to point to the frontend service from within go-api container
 #  Default to GO_WEB_URL if GO_WEB_INTERNAL_URL is not provided
 GO_WEB_INTERNAL_URL = parse_domain("GO_WEB_INTERNAL_URL", "FRONTEND_URL")
-FRONTEND_URL = urlparse(GO_WEB_URL).hostname  # FIXME: Deprecated. Slowly remove this from codebase
 
+FRONTEND_URL = urlparse(GO_WEB_URL).hostname  # FIXME: Deprecated. Slowly remove this from codebase
 PLAYWRIGHT_SERVER_URL = env("PLAYWRIGHT_SERVER_URL")
 
 INTERNAL_IPS = ["127.0.0.1"]
@@ -471,10 +473,39 @@ AUTO_TRANSLATION_TRANSLATOR = env("AUTO_TRANSLATION_TRANSLATOR")
 IFRC_TRANSLATION_DOMAIN = env("IFRC_TRANSLATION_DOMAIN")
 IFRC_TRANSLATION_HEADER_API_KEY = env("IFRC_TRANSLATION_HEADER_API_KEY")
 
-# Needed to generate correct https links when running behind a reverse proxy
-# when SSL is terminated at the proxy
-USE_X_FORWARDED_HOST = True
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_SCHEME", "https")
+
+# -- Security Headers --
+GO_TRUSTED_ORIGINS = [
+    GO_WEB_URL,
+    GO_API_URL,
+    *env("ADDITIONAL_TRUSTED_ORIGINS"),
+]
+
+SESSION_COOKIE_NAME = f"GO-{GO_ENVIRONMENT}-SESSIONID"
+CSRF_COOKIE_NAME = f"GO-{GO_ENVIRONMENT}-CSRFTOKEN"
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = "DENY"
+CSP_DEFAULT_SRC = ["'self'"]
+SECURE_REFERRER_POLICY = "same-origin"
+
+if urlparse(GO_API_URL).scheme == "https":
+    SESSION_COOKIE_NAME = f"__Secure-{SESSION_COOKIE_NAME}"
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 30  # TODO: Increase this slowly
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+CSRF_TRUSTED_ORIGINS = GO_TRUSTED_ORIGINS
+
+# https://docs.djangoproject.com/en/4.2/ref/settings/#std:setting-SESSION_COOKIE_DOMAIN
+SESSION_COOKIE_DOMAIN = env("SESSION_COOKIE_DOMAIN")
+# https://docs.djangoproject.com/en/4.2/ref/settings/#csrf-cookie-domain
+CSRF_COOKIE_DOMAIN = env("CSRF_COOKIE_DOMAIN")
+
 
 # Storage
 MEDIA_URL = env("DJANGO_MEDIA_URL")
