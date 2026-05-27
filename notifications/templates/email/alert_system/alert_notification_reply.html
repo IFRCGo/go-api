@@ -1,0 +1,25 @@
+{% include "design/head3.html" %}
+
+<table width="80%" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff"
+       style="padding: 20px; font-family: Arial, sans-serif;">
+    <tr>
+        <td>               
+            <p>
+                A new update has been detected for the ongoing alert  <strong>{{ event_title }}</strong> affecting
+                {% for country in country_name %}
+                    {{ country }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+                {% if start_datetime %}
+                    at {{ start_datetime }}
+                {% endif %}.
+            </p>
+            <h4>Updated Key Figures</h4>
+            <ul>
+                <li>Total People Exposed: {{ total_people_exposed }}</li>
+                <li>Total Buildings Exposed: {{ total_buildings_exposed }}</li>
+            </ul>
+        </td>
+    </tr>
+</table>
+
+{% include "design/foot2.html" %}
