@@ -69,4 +69,5 @@ def create_event_from_dref(dref: Dref) -> Event:
 
     event.countries.add(dref.country)
     event.districts.add(*dref.district.all())
+    event.regions.add(dref.country.region)
     return event
