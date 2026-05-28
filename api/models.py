@@ -886,6 +886,11 @@ class Event(models.Model):
         verbose_name=_("emergency response contact email"), null=True, blank=True, max_length=255
     )
 
+    # TYPING
+
+    id: int
+    pk: int
+
     class Meta:
         ordering = (
             "-disaster_start_date",

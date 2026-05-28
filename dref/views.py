@@ -50,6 +50,7 @@ from dref.serializers import (
 )
 from dref.tasks import process_dref_translation
 from dref.utils import create_event_from_dref
+from lang.serializers import TranslatedModelSerializerMixin
 from main.permissions import DenyGuestUserPermission
 
 logger = logging.getLogger(__name__)
@@ -127,7 +128,11 @@ class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
             if event:
                 dref.event = event
             else:
-                dref.event = create_event_from_dref(dref)
+                event = create_event_from_dref(dref)
+                dref.event = event
+                # Translate the emergency instance
+                TranslatedModelSerializerMixin.trigger_field_translation(event)
+
         dref.status = Dref.Status.APPROVED
         dref.save(update_fields=["event", "status"])
 
