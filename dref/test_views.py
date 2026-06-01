@@ -10,7 +10,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core import management
 from rest_framework import status
 
-from api.models import Country, DisasterType, District, Region, RegionName
+from api.models import Country, DisasterType, District, Event, Region, RegionName
 from api.utils import get_model_name
 from deployments.factories.project import SectorFactory
 from deployments.factories.user import UserFactory
@@ -30,6 +30,7 @@ from dref.models import (
     ProposedAction,
 )
 from dref.tasks import send_dref_email
+from lang.serializers import TranslatedModelSerializerMixin
 from main.test_case import APITestCase
 
 
@@ -2663,6 +2664,79 @@ class DrefTestCase(APITestCase):
         response = self.client.post(finalize_url)
         self.assert_200(response)
         self.assertEqual(response.data["status"], Dref.Status.FINALIZED)
+
+    @patch.object(
+        TranslatedModelSerializerMixin,
+        "trigger_field_translation",
+    )
+    def test_create_event_from_dref(self, mock_trigger_translation):
+        region = Region.objects.create(name=RegionName.ASIA_PACIFIC)
+        country = Country.objects.create(name="Test countrynpl", region=region)
+        district = District.objects.create(name="test district", country=country)
+        disaster_type = DisasterType.objects.create(name="test disaster")
+        dref = DrefFactory.create(
+            title="Test Title",
+            disaster_type=disaster_type,
+            event_description="Test event description",
+            event_date="2021-10-10",
+            glide_code="GLIDE123",
+            created_by=self.user,
+            country=country,
+            status=Dref.Status.FINALIZED,
+            type_of_dref=Dref.DrefType.ASSESSMENT,
+        )
+        dref.district.set([district])
+        url = f"/api/v2/dref/{dref.id}/approve/"
+        self.authenticate(self.root_user)
+        response = self.client.post(url)
+        self.assert_200(response)
+
+        dref.refresh_from_db()
+
+        dref_event_id = response.data["event"]
+        event_instance = Event.objects.get(id=dref_event_id)
+
+        # Translation triggered
+        mock_trigger_translation.assert_called_once()
+
+        translated_event = mock_trigger_translation.call_args.args[0]
+
+        self.assertEqual(
+            translated_event.pk,
+            event_instance.pk,
+        )
+
+        self.assertEqual(
+            {
+                event_instance.name,
+                event_instance.dtype.id,
+                event_instance.summary,
+                event_instance.disaster_start_date.date(),
+                event_instance.glide,
+                event_instance.source,
+            },
+            {
+                dref.title,
+                dref.disaster_type.id,
+                dref.event_description,
+                dref.event_date,
+                dref.glide_code,
+                Event.EventSource.DREF,
+            },
+        )
+        self.assertEqual(
+            list(event_instance.regions.values_list("id", flat=True)),
+            [dref.country.region.id],
+        )
+        self.assertEqual(
+            list(event_instance.countries.values_list("id", flat=True)),
+            [dref.country.id],
+        )
+        self.assertEqual(
+            list(event_instance.districts.values_list("id", flat=True)),
+            [district.id],
+        )
+        self.assertTrue(event_instance.auto_generated)
 
 
 User = get_user_model()
