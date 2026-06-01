@@ -638,6 +638,11 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):  # type: ignore[misc]
             if excluded_codes:
                 codes = [c for c in codes if c and c.upper() not in excluded_codes]
 
+        # NOTE: Ordering and pagination are applied to the appeal codes, not the response objects.
+        # As a result, the number of response items may vary. This is expected behavior.
+        # This is a temporary limitation. In the future, we plan to apply standard
+        # ordering and pagination to the response objects table once an optimized
+        # layer is available to support it.
         codes = self._order_codes(codes, request)
         codes = self._paginate_codes(codes, request)
 
