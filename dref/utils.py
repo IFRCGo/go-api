@@ -67,7 +67,12 @@ def create_event_from_dref(dref: Dref) -> Event:
         source=Event.EventSource.DREF,
     )
 
-    event.countries.add(dref.country)
+    country = getattr(dref, "country", None)
+    if country:
+        event.countries.add(dref.country)
+
     event.districts.add(*dref.district.all())
-    event.regions.add(dref.country.region)
+    region = getattr(country, "region", None)
+    if region:
+        event.regions.add(region)
     return event
