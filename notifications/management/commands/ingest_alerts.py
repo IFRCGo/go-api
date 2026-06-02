@@ -1,4 +1,5 @@
-from datetime import datetime, timezone
+from datetime import datetime
+from datetime import timezone as datetime_timezone
 
 import requests
 from django.core.management.base import BaseCommand
@@ -59,7 +60,7 @@ class Command(BaseCommand):
                 "created_at": datetime.strptime(
                     "%s:%s" % (alert[4].strip(), alert[5].strip()),
                     timeformat,
-                ).replace(tzinfo=timezone.utc),
+                ).replace(tzinfo=datetime_timezone.utc),
             }
             surge_alert = SurgeAlert(**fields)
             surge_alert.save()

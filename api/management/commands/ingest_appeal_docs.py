@@ -1,10 +1,12 @@
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import datetime
+from datetime import timezone as datetime_timezone
 
 from bs4 import BeautifulSoup
 from dateutil.relativedelta import relativedelta
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.management.base import BaseCommand
+from django.utils import timezone
 from urllib3 import PoolManager
 
 from api.logger import logger
@@ -46,7 +48,7 @@ class Command(BaseCommand):
     def parse_date(self, date_string):
         # 21 Dec 2017
         timeformat = "%d %b %Y"
-        return datetime.strptime(date_string.strip(), timeformat).replace(tzinfo=timezone.utc)
+        return datetime.strptime(date_string.strip(), timeformat).replace(tzinfo=datetime_timezone.utc)
 
     def handle(self, *args, **options):
         logger.info("Starting appeal document ingest")
@@ -80,7 +82,7 @@ class Command(BaseCommand):
             qset = Appeal.objects.all()
         else:
             # By default, only check appeals for the past 3 months where Appeal Documents is 0
-            now = datetime.now().replace(tzinfo=timezone.utc)
+            now = timezone.now()
             six_months_ago = now - relativedelta(months=6)
             # This was the original qset, but it wouldn't get newer docs for the same Appeals
             # qset = Appeal.objects.filter(appealdocument__isnull=True).filter(end_date__gt=six_months_ago)
