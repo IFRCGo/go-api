@@ -354,3 +354,50 @@ class OpsLearningStatsTestCase(APITestCase):
         ops_learning.refresh_from_db()
         self.assertEqual(ops_learning.per_component.count(), 2)
         self.assertEqual(ops_learning.per_component_validated.count(), 2)
+
+
+class OpsLearningCoverageTestCase(APITestCase):
+
+    def setUp(self):
+        super().setUp()
+        country = CountryFactory.create()
+        self.appeal1 = AppealFactory.create(code="APP-COV-1", country=country)
+        self.appeal2 = AppealFactory.create(code="APP-COV-2", country=country)
+        self.ops_learning1 = OpsLearningFactory.create(is_validated=True, appeal_code=self.appeal1)
+        self.ops_learning2 = OpsLearningFactory.create(is_validated=False, appeal_code=self.appeal2)
+
+    def test_ops_learning_coverage_list(self):
+        url = "/api/v2/ops-learning-coverage/"
+        response = self.client.get(url)
+
+        self.assert_200(response)
+        results = response.data["results"]
+        self.assertEqual(len(results), 1)
+
+        result_keys = set(results[0].keys())
+        self.assertEqual(result_keys, {"appeal_code", "is_validated"})
+
+        appeal_codes = {item["appeal_code"] for item in results}
+        self.assertEqual(appeal_codes, {self.appeal1.code})
+
+    def test_ops_learning_coverage_list_admin(self):
+        url = "/api/v2/ops-learning-coverage/"
+        self.authenticate(self.ifrc_user)
+        response = self.client.get(url)
+
+        self.assert_200(response)
+        results = response.data["results"]
+        self.assertEqual(len(results), 2)
+
+        appeal_codes = {item["appeal_code"] for item in results}
+        self.assertEqual(appeal_codes, {self.appeal1.code, self.appeal2.code})
+
+    def test_ops_learning_coverage_filter_validated(self):
+        url = "/api/v2/ops-learning-coverage/"
+        response = self.client.get(url, {"is_validated": "true"})
+
+        self.assert_200(response)
+        results = response.data["results"]
+        self.assertEqual(len(results), 1)
+        self.assertTrue(results[0]["is_validated"])
+        self.assertEqual(results[0]["appeal_code"], self.appeal1.code)
