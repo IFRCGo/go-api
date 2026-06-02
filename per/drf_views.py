@@ -78,6 +78,7 @@ from .serializers import (
     LatestCountryOverviewSerializer,
     ListNiceDocSerializer,
     NiceDocumentSerializer,
+    OpsLearningCoverageSerializer,
     OpsLearningCSVSerializer,
     OpsLearningInSerializer,
     OpsLearningOrganizationTypeSerializer,
@@ -1493,6 +1494,21 @@ class OpsLearningViewset(viewsets.ModelViewSet):
             "learning_by_country": learning_by_country_qs,
         }
         return response.Response(OpsLearningStatSerializer(data).data)
+
+
+class OpsLearningCoverageViewset(viewsets.ReadOnlyModelViewSet):
+    """Public OpsLearning coverage with minimal fields."""
+
+    queryset = OpsLearning.objects.all()
+    permission_classes = [permissions.AllowAny]
+    serializer_class = OpsLearningCoverageSerializer
+    filterset_class = OpsLearningFilter
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if OpsLearning.is_user_admin(self.request.user):
+            return qs
+        return qs.filter(is_validated=True)
 
 
 class PerDocumentUploadViewSet(viewsets.ModelViewSet):

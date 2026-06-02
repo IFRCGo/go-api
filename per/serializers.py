@@ -1139,6 +1139,15 @@ class PublicOpsLearningSerializer(serializers.ModelSerializer):
             return document.name
 
 
+class OpsLearningCoverageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OpsLearning
+        fields = (
+            "appeal_code",
+            "is_validated",
+        )
+
+
 class PerDocumentUploadSerializer(serializers.ModelSerializer):
     MAX_NUMBER_OF_DOCUMENTS = 10
 
