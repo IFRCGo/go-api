@@ -1,5 +1,5 @@
 {% include "design/head3.html" %}
-
+{% load humanize %}
 <table width="80%" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff" style="padding: 20px; font-family: Arial, sans-serif;">
     <tr>
         <td>
@@ -15,8 +15,8 @@
             </p>
             <h4>Key Figures</h4>
             <ul>
-               <li>Total People Exposed: {{ total_people_exposed }}</li>
-               <li>Total Buildings Exposed: {{ total_buildings_exposed }}</li>
+               <li>Total People Exposed: {{ total_people_exposed|intcomma }}</li>
+               <li>Total Buildings Exposed: {{ total_buildings_exposed|intcomma }}</li>
                 <li>Hazard Type: {{ hazard_types }}</li>
             </ul>
 
@@ -27,8 +27,8 @@
                     <li>
                         <strong>{{ event.event_title }}</strong>
                         <ul>
-                            <li>Total People Exposed: {{ event.total_people_exposed }}</li>
-                            <li>Total Buildings Exposed: {{ event.total_buildings_exposed }}</li>
+                            <li>Total People Exposed: {{ event.total_people_exposed|intcomma }}</li>
+                            <li>Total Buildings Exposed: {{ event.total_buildings_exposed|intcomma }}</li>
                             <li>Start Date Time: {{ event.start_datetime|default:"N/A" }}</li>
                             <li>End Date Time: {{ event.end_datetime|default:"N/A" }}</li>
                         </ul>

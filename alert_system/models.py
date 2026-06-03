@@ -288,10 +288,14 @@ class AlertEmailThread(models.Model):
     root_email_message_id = models.CharField(
         max_length=255,
         unique=True,
+        null=True,
+        blank=True,
         help_text=_("Message-ID of the first email in this thread."),
     )
 
     root_message_sent_at = models.DateTimeField(
+        null=True,
+        blank=True,
         help_text=_("Timestamp when the root email was sent."),
     )
 
