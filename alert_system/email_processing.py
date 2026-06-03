@@ -1,8 +1,8 @@
 import logging
 import uuid
-from typing import Optional
 
 from django.contrib.auth.models import User
+from django.db import transaction
 from django.db.models import Count
 from django.template.loader import render_to_string
 from django.utils import timezone
@@ -21,7 +21,7 @@ def send_alert_email_notification(
     load_item: LoadItem,
     user: User,
     subscription: AlertSubscription,
-    thread: Optional[AlertEmailThread],
+    thread: AlertEmailThread,
     is_reply: bool = False,
 ) -> None:
     """Helper function to send email and create log entry"""
@@ -38,12 +38,12 @@ def send_alert_email_notification(
 
     try:
         if is_reply:
-            subject = f"Re: Hazard Alert: {load_item.event_title}"
+            subject = f"Re:Hazard Alert: {load_item.event_title}"
             template = "email/alert_system/alert_notification_reply.html"
             email_type = "Alert Email Notification Reply"
             in_reply_to = thread.root_email_message_id
         else:
-            subject = f"New Hazard Alert: {load_item.event_title}"
+            subject = f"Hazard Alert: {load_item.event_title}"
             template = "email/alert_system/alert_notification.html"
             email_type = "Alert Email Notification"
             in_reply_to = None
@@ -58,39 +58,30 @@ def send_alert_email_notification(
             html=email_body,
             mailtype=email_type,
         )
-        # Create thread for initial emails
+
         email_log.status = AlertEmailLog.Status.SENT
         email_log.email_sent_at = timezone.now()
 
         if not is_reply:
-            thread, created = AlertEmailThread.objects.get_or_create(
-                user=user,
-                parent_event_id=load_item.parent_event_id,
-                defaults={
-                    "root_email_message_id": message_id,
-                    "root_message_sent_at": timezone.now(),
-                },
-            )
-            email_log.thread = thread
-            email_log.save(update_fields=["status", "email_sent_at", "thread"])
+            thread.root_email_message_id = message_id
+            thread.root_message_sent_at = timezone.now()
+            thread.save(update_fields=["root_email_message_id", "root_message_sent_at"])
 
-            if created:
-                logger.info(
-                    f"Alert Email thread created for user [{user.get_full_name()}] "
-                    f"with parent event [{load_item.parent_event_id}]"
-                )
-            else:
-                logger.info(
-                    f"Existing thread found for user [{user.get_full_name()}] " f"with parent event [{load_item.parent_event_id}]"
-                )
-        else:
-            email_log.save(update_fields=["status", "email_sent_at"])
+            logger.info(
+                f"Alert email thread updated for user [{user.get_full_name()}] "
+                f"with parent event [{load_item.parent_event_id}]"
+            )
+
+        email_log.save(update_fields=["status", "email_sent_at", "thread"])
         logger.info(f"Alert email sent to [{user.get_full_name()}] for LoadItem ID [{load_item.id}]")
 
     except Exception:
         email_log.status = AlertEmailLog.Status.FAILED
         email_log.save(update_fields=["status"])
-        logger.warning(f"Alert email failed for [{user.get_full_name()}] LoadItem ID [{load_item.id}]", exc_info=True)
+        logger.warning(
+            f"Alert email failed for [{user.get_full_name()}] LoadItem ID [{load_item.id}]",
+            exc_info=True,
+        )
 
 
 def process_email_alert(load_item_id: int) -> None:
@@ -122,33 +113,23 @@ def process_email_alert(load_item_id: int) -> None:
     )
     daily_count_map = {(item["user_id"], item["subscription_id"]): item["sent_count"] for item in daily_counts}
 
-    # Emails already sent for this item (per user)
+    # NOTE: Include PROCESSING status to block concurrent duplicate sends.
     already_sent = set(
         AlertEmailLog.objects.filter(
             user_id__in=user_ids,
             subscription_id__in=subscription_ids,
             item_id=load_item_id,
-            status=AlertEmailLog.Status.SENT,
+            status__in=[
+                AlertEmailLog.Status.SENT,
+                AlertEmailLog.Status.PROCESSING,
+            ],
         ).values_list("user_id", "subscription_id")
     )
-
-    # Existing threads for this correlation_id
-    existing_threads = {
-        thread.user_id: thread
-        for thread in AlertEmailThread.objects.filter(
-            parent_event_id=load_item.parent_event_id,
-            user_id__in=user_ids,
-        )
-    }
 
     for subscription in subscriptions:
         user = subscription.user
         user_id: int = user.id
         subscription_id: int = subscription.id
-
-        # Reply if this specific user has an existing thread
-        thread = existing_threads.get(user_id)
-        is_reply: bool = thread is not None
 
         # Skip duplicate emails for same item
         if (user_id, subscription_id) in already_sent:
@@ -162,4 +143,23 @@ def process_email_alert(load_item_id: int) -> None:
             logger.info(f"Daily alert limit reached for user [{user.get_full_name()}]")
             continue
 
-        send_alert_email_notification(load_item=load_item, user=user, subscription=subscription, thread=thread, is_reply=is_reply)
+        # NOTE: root_email_message_id is None until the first email is sent successfully.
+        with transaction.atomic():
+            thread, _ = AlertEmailThread.objects.select_for_update().get_or_create(
+                user=user,
+                parent_event_id=load_item.parent_event_id,
+                defaults={
+                    "root_email_message_id": None,
+                    "root_message_sent_at": None,
+                },
+            )
+
+        is_reply: bool = thread.root_email_message_id is not None
+
+        send_alert_email_notification(
+            load_item=load_item,
+            user=user,
+            subscription=subscription,
+            thread=thread,
+            is_reply=is_reply,
+        )

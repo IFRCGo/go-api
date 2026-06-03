@@ -1,5 +1,5 @@
 {% include "design/head3.html" %}
-
+{% load humanize %}
 <table width="80%" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff"
        style="padding: 20px; font-family: Arial, sans-serif;">
     <tr>
@@ -15,8 +15,8 @@
             </p>
             <h4>Updated Key Figures</h4>
             <ul>
-                <li>Total People Exposed: {{ total_people_exposed }}</li>
-                <li>Total Buildings Exposed: {{ total_buildings_exposed }}</li>
+                <li>Total People Exposed: {{ total_people_exposed|intcomma }}</li>
+                <li>Total Buildings Exposed: {{ total_buildings_exposed|intcomma }}</li>
             </ul>
         </td>
     </tr>
