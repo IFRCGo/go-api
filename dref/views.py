@@ -5,6 +5,7 @@ from collections import defaultdict
 import django.utils.timezone as timezone
 from django.contrib.auth.models import Permission
 from django.db import models, transaction
+from django.db.models import Prefetch
 from django.http import HttpResponse
 from django.templatetags.static import static
 from django.utils.translation import gettext
@@ -345,7 +346,23 @@ class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
     filterset_class = ActiveDrefFilterSet
     queryset = (
-        Dref.objects.prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
+        Dref.objects.select_related("country")
+        .prefetch_related(
+            "planned_interventions",
+            "needs_identified",
+            "national_society_actions",
+            "users",
+            Prefetch(
+                "dreffinalreport",
+                queryset=DrefFinalReport.objects.all(),
+                to_attr="prefetched_final_report",
+            ),
+            Prefetch(
+                "drefoperationalupdate_set",
+                queryset=DrefOperationalUpdate.objects.order_by("-created_at"),
+                to_attr="prefetched_operational_updates",
+            ),
+        )
         .order_by("-created_at")
         .filter(is_active=True)
         .distinct()

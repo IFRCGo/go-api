@@ -252,24 +252,41 @@ class MiniDrefSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(MiniOperationalUpdateActiveSerializer(many=True))
     def get_operational_update_details(self, obj):
-        queryset = DrefOperationalUpdate.objects.filter(dref_id=obj.id).order_by("-created_at")
+        prefetched = getattr(obj, "prefetched_operational_updates", None)
+        queryset = prefetched if prefetched is not None else obj.drefoperationalupdate_set.order_by("-created_at")
         return MiniOperationalUpdateActiveSerializer(queryset, many=True).data
 
     @extend_schema_field(MiniDrefFinalReportActiveSerializer)
     def get_final_report_details(self, obj):
-        queryset = DrefFinalReport.objects.filter(dref_id=obj.id).first()
-        return MiniDrefFinalReportActiveSerializer(queryset).data
+        prefetched = getattr(obj, "prefetched_final_report", None)
+        if prefetched is not None:
+            if isinstance(prefetched, list):
+                final_report = prefetched[0] if prefetched else None
+            else:
+                final_report = prefetched
+        else:
+            try:
+                final_report = obj.dreffinalreport
+            except DrefFinalReport.DoesNotExist:
+                final_report = None
+        if final_report is None:
+            return None
+        return MiniDrefFinalReportActiveSerializer(final_report).data
 
     def get_has_ops_update(self, obj) -> bool:
-        op_count_count = obj.drefoperationalupdate_set.count()
-        if op_count_count > 0:
-            return True
-        return False
+        prefetched = getattr(obj, "prefetched_operational_updates", None)
+        if prefetched is not None:
+            return len(prefetched) > 0
+        return obj.drefoperationalupdate_set.exists()
 
     def get_has_final_report(self, obj) -> bool:
-        if hasattr(obj, "dreffinalreport"):
-            return True
-        return False
+        prefetched = getattr(obj, "prefetched_final_report", None)
+        if prefetched is not None:
+            return bool(prefetched)
+        try:
+            return obj.dreffinalreport is not None
+        except DrefFinalReport.DoesNotExist:
+            return False
 
     def get_application_type(self, obj) -> str:
         return "DREF"
@@ -278,10 +295,28 @@ class MiniDrefSerializer(serializers.ModelSerializer):
         return gettext("DREF application")
 
     def get_unpublished_op_update_count(self, obj) -> int:
+        prefetched = getattr(obj, "prefetched_operational_updates", None)
+        if prefetched is not None:
+            return sum(1 for op in prefetched if op.status != Dref.Status.APPROVED)
         return DrefOperationalUpdate.objects.filter(dref_id=obj.id).exclude(status=Dref.Status.APPROVED).count()
 
     def get_unpublished_final_report_count(self, obj) -> int:
-        return DrefFinalReport.objects.filter(dref_id=obj.id).exclude(status=Dref.Status.APPROVED).count()
+        prefetched = getattr(obj, "prefetched_final_report", None)
+        if prefetched is not None:
+            if isinstance(prefetched, list):
+                if not prefetched:
+                    return 0
+                final_report = prefetched[0]
+            else:
+                final_report = prefetched
+                if final_report is None:
+                    return 0
+            return 0 if final_report.status == Dref.Status.APPROVED else 1
+        try:
+            final_report = obj.dreffinalreport
+        except DrefFinalReport.DoesNotExist:
+            return 0
+        return 0 if final_report.status == Dref.Status.APPROVED else 1
 
 
 class PlannedInterventionSerializer(
