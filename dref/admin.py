@@ -76,6 +76,7 @@ class DrefAdmin(CompareVersionAdmin, TranslationAdmin, admin.ModelAdmin):
         "disaster_type",
         "ns_request_date",
         "submission_to_geneva",
+        "appeal_code",
         "status",
     )
     autocomplete_fields = (
@@ -121,7 +122,7 @@ class DrefAdmin(CompareVersionAdmin, TranslationAdmin, admin.ModelAdmin):
 
 @admin.register(DrefOperationalUpdate)
 class DrefOperationalUpdateAdmin(CompareVersionAdmin, TranslationAdmin, admin.ModelAdmin):
-    list_display = ("title", "national_society", "disaster_type")
+    list_display = ("title", "national_society", "appeal_code", "disaster_type")
     search_fields = ("title", "national_society__name", "appeal_code")
     autocomplete_fields = (
         "national_society",
@@ -178,7 +179,7 @@ class DrefOperationalUpdateAdmin(CompareVersionAdmin, TranslationAdmin, admin.Mo
 
 @admin.register(DrefFinalReport)
 class DrefFinalReportAdmin(CompareVersionAdmin, TranslationAdmin, admin.ModelAdmin):
-    list_display = ("title", "national_society", "disaster_type")
+    list_display = ("title", "national_society", "appeal_code", "disaster_type")
     autocomplete_fields = (
         "national_society",
         "disaster_type",
