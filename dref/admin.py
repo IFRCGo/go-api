@@ -59,7 +59,65 @@ class PlannedInterventionAdmin(ReadOnlyMixin, admin.ModelAdmin):
 
 @admin.register(DrefFile)
 class DrefFileAdmin(admin.ModelAdmin):
+    list_display = ("id", "file", "appeal_code")
     search_fields = ("file",)
+
+    def get_queryset(self, request):
+        return (
+            super()
+            .get_queryset(request)
+            .prefetch_related(
+                "event_map_dref",
+                "image_dref",
+                "budget_file_dref",
+                "dref_assessment_report",
+                "dref_supporting_document",
+                "cover_image_dref",
+                "dref_scenario_supporting_document",
+                "dref_contingency_plans_supporting_document",
+                "event_map_dref_operational_update",
+                "image_dref_operational_update",
+                "cover_image_dref_operational_update",
+                "budget_file_dref_operational_update",
+                "dref_operational_update_assessment_report",
+                "photos_dref_operational_update",
+                "event_map_dref_final_report",
+                "photos_dref_final_report",
+                "dref_final_report_assessment_report",
+                "image_dref_final_report",
+                "cover_image_dref_final_report",
+            )
+        )
+
+    @admin.display(description="Appeal Code")
+    def appeal_code(self, obj):
+        related_codes = set()
+        related_objects = (
+            obj.event_map_dref.all(),
+            obj.image_dref.all(),
+            obj.budget_file_dref.all(),
+            obj.dref_assessment_report.all(),
+            obj.dref_supporting_document.all(),
+            obj.cover_image_dref.all(),
+            obj.dref_scenario_supporting_document.all(),
+            obj.dref_contingency_plans_supporting_document.all(),
+            obj.event_map_dref_operational_update.all(),
+            obj.image_dref_operational_update.all(),
+            obj.cover_image_dref_operational_update.all(),
+            obj.budget_file_dref_operational_update.all(),
+            obj.dref_operational_update_assessment_report.all(),
+            obj.photos_dref_operational_update.all(),
+            obj.event_map_dref_final_report.all(),
+            obj.photos_dref_final_report.all(),
+            obj.dref_final_report_assessment_report.all(),
+            obj.image_dref_final_report.all(),
+            obj.cover_image_dref_final_report.all(),
+        )
+
+        for related_set in related_objects:
+            related_codes.update(code for code in (related_obj.appeal_code for related_obj in related_set) if code)
+
+        return ", ".join(sorted(related_codes))
 
 
 @admin.register(SourceInformation)
