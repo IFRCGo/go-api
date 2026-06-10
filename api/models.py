@@ -828,7 +828,22 @@ class Event(models.Model):
     auto_generated_source = models.CharField(
         verbose_name=_("auto generated source"), max_length=50, null=True, blank=True, editable=False
     )
-
+    # External system or source from which the event data originated
+    auto_generated_external_source = models.CharField(
+        verbose_name=_("external source"),
+        max_length=100,
+        null=True,
+        blank=True,
+        help_text=_("External source or system from which the original event data originated."),
+    )
+    # Identifier of the originating event record in the external system
+    auto_generated_external_source_id = models.CharField(
+        verbose_name=_("external source ID"),
+        max_length=100,
+        null=True,
+        blank=True,
+        help_text=_("Unique identifier of the event record in the external source system."),
+    )
     # Meant to give the organization a way of highlighting certain, important events.
     is_featured = models.BooleanField(default=False, verbose_name=_("is featured on home page"))
 
@@ -2473,7 +2488,22 @@ class FieldReport(models.Model):
         default=0,
         help_text='<a target="_blank" href="/api/v2/recentaffected">Key/value pairs</a>',
     )
-
+    # External system from which this Field Report created.
+    external_source = models.CharField(
+        verbose_name=_("external source"),
+        max_length=100,
+        null=True,
+        blank=True,
+        help_text=_("External source system from which this field report created."),
+    )
+    # Identifier of the report in the external system.
+    external_source_id = models.CharField(
+        verbose_name=_("external source ID"),
+        max_length=100,
+        null=True,
+        blank=True,
+        help_text=_("Unique identifier of this field report in the external source system."),
+    )
     # start_date is now what the user explicitly sets while filling the Field Report form.
     start_date = models.DateTimeField(verbose_name=_("start date"), blank=True, null=True)
 

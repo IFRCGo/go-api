@@ -12,6 +12,8 @@ from django.urls import reverse
 from django.utils import timezone
 
 import api.models as models
+from api.factories.country import CountryFactory
+from api.factories.disaster_type import DisasterTypeFactory
 from api.factories.event import (
     AppealFactory,
     AppealType,
@@ -20,6 +22,7 @@ from api.factories.event import (
     EventLinkFactory,
 )
 from api.factories.field_report import FieldReportFactory
+from api.factories.region import RegionFactory
 from api.models import Profile, VisibilityChoices
 from deployments.factories.user import UserFactory
 from dref.models import DrefFile
@@ -540,6 +543,88 @@ class FieldReportTest(APITestCase):
         #         response.json()['summary'],
         #         self.aws_translator._fake_translation(body['summary'], lang, 'en') if lang != 'en' else body['summary'],
         #     )
+
+
+class FieldReportEventCreationTest(APITestCase):
+
+    def setUp(self):
+        self.user = UserFactory()
+        self.region = RegionFactory.create(name=1)
+        self.country1 = CountryFactory(name="test abc", region=self.region)
+        self.country2 = CountryFactory(name="test xyz", region=self.region)
+        self.disaster_type = DisasterTypeFactory.create(name="disaster 1")
+        self.url = "/api/v2/field-report/"
+
+    # Test 1 without external source
+    def test_event_creation(self):
+        data = {
+            "countries": [self.country1.id, self.country2.id],
+            "dtype": self.disaster_type.id,
+            "summary": "test",
+            "description": "this is a test description",
+            "num_assisted": 100,
+            "visibility": 2,
+        }
+        self.client.force_authenticate(self.user)
+        response = self.client.post(
+            self.url,
+            data=data,
+            format="json",
+        )
+        self.assert_201(response)
+        field_report_id = response.data["id"]
+
+        field_report = models.FieldReport.objects.get(id=field_report_id)
+        self.assertIsNotNone(field_report.event)
+
+        event = field_report.event
+        self.assertEqual(event.name, field_report.summary)
+        self.assertEqual(event.dtype, field_report.dtype)
+        self.assertTrue(event.auto_generated)
+
+        self.assertIn(self.country1, event.countries.all())
+        self.assertIn(self.country2, event.countries.all())
+        self.assertIn(self.region, event.regions.all())
+
+        self.assertIsNone(event.auto_generated_external_source)
+        self.assertIsNone(event.auto_generated_external_source_id)
+
+    # Test with external source
+    def test_event_creation_with_external_source(self):
+
+        external_source_id = str(uuid.uuid4())
+        data = {
+            "countries": [self.country1.id, self.country2.id],
+            "dtype": self.disaster_type.id,
+            "summary": "test",
+            "description": "this is a test description",
+            "num_assisted": 100,
+            "visibility": 2,
+            "external_source": "mrcs",
+            "external_source_id": external_source_id,
+        }
+        self.client.force_authenticate(self.user)
+        response = self.client.post(
+            self.url,
+            data=data,
+            format="json",
+        )
+        self.assert_201(response)
+        field_report_id = response.data["id"]
+        field_report = models.FieldReport.objects.get(id=field_report_id)
+
+        self.assertIsNotNone(field_report.event)
+
+        event = field_report.event
+        self.assertEqual(event.name, field_report.summary)
+        self.assertTrue(event.auto_generated)
+
+        self.assertEqual(event.auto_generated_external_source, "mrcs")
+        self.assertEqual(event.auto_generated_external_source_id, external_source_id)
+
+        self.assertIn(self.country1, event.countries.all())
+        self.assertIn(self.country2, event.countries.all())
+        self.assertIn(self.region, event.regions.all())
 
 
 class VisibilityTest(APITestCase):

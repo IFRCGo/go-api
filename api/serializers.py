@@ -2219,6 +2219,8 @@ class FieldReportSerializer(
             disaster_start_date=report.start_date,
             auto_generated=True,
             auto_generated_source=SOURCES["new_report"],
+            auto_generated_external_source=report.external_source or None,
+            auto_generated_external_source_id=report.external_source_id or None,
             visibility=report.visibility,
             **{TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME: django_get_language()},
         )
