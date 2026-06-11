@@ -208,15 +208,25 @@ class MiniDrefSerializer(serializers.ModelSerializer):
     type_of_dref_display = serializers.CharField(source="get_type_of_dref_display", read_only=True)
     status_display = serializers.CharField(source="get_status_display", read_only=True)
     country_details = MiniCountrySerializer(source="country", read_only=True)
-    has_ops_update = serializers.SerializerMethodField()
-    has_final_report = serializers.SerializerMethodField()
+    starting_language = serializers.CharField(read_only=True)
+    # Manually added fields
     application_type = serializers.SerializerMethodField()
     application_type_display = serializers.SerializerMethodField()
-    unpublished_op_update_count = serializers.SerializerMethodField()
-    unpublished_final_report_count = serializers.SerializerMethodField()
-    operational_update_details = serializers.SerializerMethodField()
-    final_report_details = serializers.SerializerMethodField()
-    starting_language = serializers.CharField(read_only=True)
+    # Annotate values from queryset
+    has_ops_update = serializers.BooleanField(read_only=True)
+    has_final_report = serializers.BooleanField(read_only=True)
+    unpublished_op_update_count = serializers.IntegerField(read_only=True)
+    unpublished_final_report_count = serializers.IntegerField(read_only=True)
+    # Prefetched data
+    operational_update_details = MiniOperationalUpdateActiveSerializer(
+        source="prefetched_operational_updates",
+        many=True,
+        read_only=True,
+    )
+    final_report_details = MiniDrefFinalReportActiveSerializer(
+        source="dreffinalreport",
+        read_only=True,
+    )
 
     class Meta:
         model = Dref
@@ -250,38 +260,13 @@ class MiniDrefSerializer(serializers.ModelSerializer):
             "starting_language",
         ]
 
-    @extend_schema_field(MiniOperationalUpdateActiveSerializer(many=True))
-    def get_operational_update_details(self, obj):
-        queryset = DrefOperationalUpdate.objects.filter(dref_id=obj.id).order_by("-created_at")
-        return MiniOperationalUpdateActiveSerializer(queryset, many=True).data
-
-    @extend_schema_field(MiniDrefFinalReportActiveSerializer)
-    def get_final_report_details(self, obj):
-        queryset = DrefFinalReport.objects.filter(dref_id=obj.id).first()
-        return MiniDrefFinalReportActiveSerializer(queryset).data
-
-    def get_has_ops_update(self, obj) -> bool:
-        op_count_count = obj.drefoperationalupdate_set.count()
-        if op_count_count > 0:
-            return True
-        return False
-
-    def get_has_final_report(self, obj) -> bool:
-        if hasattr(obj, "dreffinalreport"):
-            return True
-        return False
-
-    def get_application_type(self, obj) -> str:
+    @extend_schema_field(serializers.CharField())
+    def get_application_type(self, _) -> str:
         return "DREF"
 
-    def get_application_type_display(self, obj) -> str:
+    @extend_schema_field(serializers.CharField())
+    def get_application_type_display(self, _) -> str:
         return gettext("DREF application")
-
-    def get_unpublished_op_update_count(self, obj) -> int:
-        return DrefOperationalUpdate.objects.filter(dref_id=obj.id).exclude(status=Dref.Status.APPROVED).count()
-
-    def get_unpublished_final_report_count(self, obj) -> int:
-        return DrefFinalReport.objects.filter(dref_id=obj.id).exclude(status=Dref.Status.APPROVED).count()
 
 
 class PlannedInterventionSerializer(
