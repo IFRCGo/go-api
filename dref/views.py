@@ -4,7 +4,9 @@ from collections import defaultdict
 
 import django.utils.timezone as timezone
 from django.contrib.auth.models import Permission
+from django.contrib.gis.db.models import Count, Exists, OuterRef, Q
 from django.db import models, transaction
+from django.db.models.query import Prefetch
 from django.http import HttpResponse
 from django.templatetags.static import static
 from django.utils.translation import gettext
@@ -53,7 +55,7 @@ from main.permissions import DenyGuestUserPermission
 logger = logging.getLogger(__name__)
 
 
-def filter_dref_queryset_by_user_access(user, queryset):
+def filter_dref_queryset_by_user_access(user, queryset: models.QuerySet) -> models.QuerySet[Dref]:
     if user.is_superuser:
         return queryset
     # Check if regional admin
@@ -344,16 +346,43 @@ class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = MiniDrefSerializer
     permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
     filterset_class = ActiveDrefFilterSet
+
     queryset = (
-        Dref.objects.prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
+        Dref.objects.select_related(
+            "country",
+        )
+        .prefetch_related(
+            Prefetch(
+                "drefoperationalupdate_set",
+                queryset=DrefOperationalUpdate.objects.select_related("country").order_by("-created_at"),
+                to_attr="prefetched_operational_updates",
+            ),
+            "dreffinalreport__country",
+        )
         .order_by("-created_at")
         .filter(is_active=True)
-        .distinct()
     )
 
     def get_queryset(self):
-        # user = self.request.user
-        return filter_dref_queryset_by_user_access(self.request.user, super().get_queryset()).order_by("-created_at")
+        return filter_dref_queryset_by_user_access(
+            self.request.user,
+            super().get_queryset(),
+        ).annotate(
+            has_ops_update=Exists(
+                DrefOperationalUpdate.objects.filter(dref=OuterRef("pk")),
+            ),
+            unpublished_op_update_count=Count(
+                "drefoperationalupdate",
+                filter=~Q(drefoperationalupdate__status=Dref.Status.APPROVED),
+            ),
+            has_final_report=Exists(
+                DrefFinalReport.objects.filter(dref=OuterRef("pk")),
+            ),
+            unpublished_final_report_count=Count(
+                "dreffinalreport",
+                filter=~Q(dreffinalreport__status=Dref.Status.APPROVED),
+            ),
+        )
 
 
 class DrefShareView(views.APIView):
