@@ -82,7 +82,7 @@ class USGSTransformer(BaseTransformerClass):
             "title": properties.get("title", ""),
             "description": properties.get("description", ""),
             "country": properties.get("monty:country_codes", ""),
-            "start_datetime": properties.get("start_datetime"),
+            "start_datetime": properties.get("datetime"),
             "end_datetime": properties.get("end_datetime"),
             "episode_number": properties.get("monty:episode_number"),
             "event_url": next(item["href"] for item in urls if item["rel"] == "self"),
