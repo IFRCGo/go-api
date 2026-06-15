@@ -690,7 +690,22 @@ class FormAssessmentViewSet(viewsets.ModelViewSet):
     ordering_fields = "__all__"
 
     def get_queryset(self):
-        return PerAssessment.objects.select_related("overview")
+        return PerAssessment.objects.select_related("overview", "overview__country").prefetch_related(
+            Prefetch(
+                "area_responses",
+                queryset=AreaResponse.objects.select_related("area").prefetch_related(
+                    Prefetch(
+                        "component_response",
+                        queryset=FormComponentResponse.objects.select_related("component", "rating").prefetch_related(
+                            Prefetch(
+                                "question_responses",
+                                queryset=FormComponentQuestionAndAnswer.objects.select_related("question"),
+                            )
+                        ),
+                    )
+                ),
+            )
+        )
 
 
 class PublicFormAssessmentViewSet(viewsets.ReadOnlyModelViewSet):
@@ -698,7 +713,22 @@ class PublicFormAssessmentViewSet(viewsets.ReadOnlyModelViewSet):
     ordering_fields = "__all__"
 
     def get_queryset(self):
-        return PerAssessment.objects.select_related("overview")
+        return PerAssessment.objects.select_related("overview", "overview__country").prefetch_related(
+            Prefetch(
+                "area_responses",
+                queryset=AreaResponse.objects.select_related("area").prefetch_related(
+                    Prefetch(
+                        "component_response",
+                        queryset=FormComponentResponse.objects.select_related("component", "rating").prefetch_related(
+                            Prefetch(
+                                "question_responses",
+                                queryset=FormComponentQuestionAndAnswer.objects.select_related("question"),
+                            )
+                        ),
+                    )
+                ),
+            )
+        )
 
 
 # Consolidated public endpoints (map-data, assessments-processed, dashboard-data)

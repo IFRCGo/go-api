@@ -811,6 +811,13 @@ class PerAssessmentSerializer(
 ):
     area_responses = AreaResponseSerializer(many=True, required=False)
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        overview_field = self.fields.get("overview")
+        if overview_field is not None and hasattr(overview_field, "queryset"):
+            # Avoid N+1 in overview choice labels, since Overview.__str__ touches country.
+            overview_field.queryset = Overview.objects.select_related("country")
+
     class Meta:
         model = PerAssessment
         fields = "__all__"
