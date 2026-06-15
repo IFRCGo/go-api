@@ -117,6 +117,7 @@ env = environ.Env(
     # Sentry
     SENTRY_DSN=(str, None),
     SENTRY_SAMPLE_RATE=(float, 0.2),
+    SENTRY_RELEASE=(str, None),
     # Maintenance mode
     DJANGO_READ_ONLY=(bool, False),
     # Misc
@@ -761,18 +762,30 @@ APPEALS_USER = env("APPEALS_USER")
 APPEALS_PASS = env("APPEALS_PASS")
 
 # Handmade Git Command
-LAST_GIT_TAG = max(os.listdir(os.path.join(BASE_DIR, ".git", "refs", "tags")), default=0)
+try:
+    LAST_GIT_TAG = max(os.listdir(os.path.join(BASE_DIR, ".git", "refs", "tags")), default=0)
+except OSError:
+    # .git is missing, or is a gitfile pointer (submodule/worktree checkout)
+    LAST_GIT_TAG = 0
 
 # Sentry Config
 SENTRY_DSN = env("SENTRY_DSN")
 SENTRY_SAMPLE_RATE = env("SENTRY_SAMPLE_RATE")
+
+SENTRY_RELEASE = env("SENTRY_RELEASE")
+if not SENTRY_RELEASE:
+    try:
+        SENTRY_RELEASE = sentry.fetch_git_sha(BASE_DIR)
+    except (sentry.InvalidGitRepository, OSError):
+        # .git is missing, unreadable, or a gitfile pointer (submodule/worktree checkout)
+        SENTRY_RELEASE = "unknown"
 
 SENTRY_CONFIG = {
     "dsn": SENTRY_DSN,
     "send_default_pii": True,
     "traces_sample_rate": SENTRY_SAMPLE_RATE,
     "enable_tracing": True,
-    "release": sentry.fetch_git_sha(BASE_DIR),
+    "release": SENTRY_RELEASE,
     "environment": GO_ENVIRONMENT,
     "debug": DEBUG,
     "tags": {

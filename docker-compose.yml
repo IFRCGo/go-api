@@ -59,7 +59,10 @@ x-server: &base_server_setup
   extra_hosts:
     - "host.docker.internal:host-gateway"
   env_file:
-    - .env
+    # Path is resolved from the project directory (the first compose file's
+    # directory when stacking via COMPOSE_FILE)
+    - path: ${BACKEND_ENV_FILE:-.env}
+      required: false
   volumes:
     - ".:/home/ifrc/go-api"
   depends_on:
