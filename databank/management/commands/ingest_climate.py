@@ -25,10 +25,11 @@ class Command(BaseCommand):
         )
 
         for overview in overview_qs.all():
-            country_iso3 = overview.country_iso3
+            country_iso3 = getattr(overview, "country_iso3", None)
             if not country_iso3:
                 continue
 
+            response = None
             try:
                 response = requests.get(
                     f"https://climateknowledgeportal.worldbank.org/api/v1/cru-x0.5_climatology_tasmin,tas,tasmax,pr_climatology_monthly_1991-2020_mean_historical_cru_ts4.07_mean/{country_iso3}?_format=json",  # noqa: E501
@@ -39,9 +40,10 @@ class Command(BaseCommand):
                 status_code = getattr(getattr(exc, "response", None), "status_code", None)
                 if status_code is None:
                     status_code = getattr(response, "status_code", None)
-                if status_code == 404 or "404" in str(exc):
+                if status_code in {403, 404} or "404" in str(exc):
                     logger.warning(
-                        "Climate API returned 404 for %s; skipping. url=%s",
+                        "Climate API returned %s for %s; skipping. url=%s",
+                        status_code,
                         country_iso3,
                         getattr(response, "url", None),
                     )
