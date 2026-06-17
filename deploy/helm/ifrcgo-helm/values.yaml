@@ -215,10 +215,10 @@ argoHooks:
 cronjobsDefaultResources:
   requests:
     cpu: 0.1
-    memory: 4Gi
+    memory: 1Gi
   limits:
     cpu: 4
-    memory: 5Gi
+    memory: 2Gi
 
 cronjobs:
   - command: 'index_and_notify'
