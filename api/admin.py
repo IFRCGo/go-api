@@ -381,6 +381,8 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
                 "auto_generated_source",
                 "created_at",
                 "updated_at",
+                "auto_generated_external_source",
+                "auto_generated_external_source_id",
             )
 
         # Set severity level from GET parameter
@@ -634,7 +636,15 @@ class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAd
         "districts",
     )
 
-    readonly_fields = ("report_date", "created_at", "updated_at", "summary", "fr_num")
+    readonly_fields = (
+        "report_date",
+        "created_at",
+        "updated_at",
+        "summary",
+        "fr_num",
+        "external_source",
+        "external_source_id",
+    )
     list_filter = [MembershipFilter, "ns_request_assistance"]
     actions = [
         "create_events",
