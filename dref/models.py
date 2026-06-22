@@ -1700,3 +1700,55 @@ class DrefFinalReport(models.Model):
         if status == Dref.Status.APPROVED:
             return queryset.filter(status=Dref.Status.APPROVED)
         return queryset
+
+
+class DrefSummary(models.Model):
+
+    class SummaryStatus(models.IntegerChoices):
+        PENDING = 100, _("Pending")
+        SUCCESS = 200, _("Success")
+        FAILED = 300, _("Failed")
+
+    dref = models.OneToOneField(
+        Dref,
+        on_delete=models.CASCADE,
+        related_name="summary",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    hash = models.CharField(
+        max_length=64,
+        unique=True,
+    )
+
+    situational_overview = models.TextField(
+        blank=True,
+        null=True,
+    )
+
+    operational_strategy = models.TextField(
+        blank=True,
+        null=True,
+    )
+
+    people_centered_approach = models.TextField(
+        blank=True,
+        null=True,
+    )
+
+    challenges_identified = models.TextField(
+        blank=True,
+        null=True,
+    )
+
+    lessons_learned = models.TextField(
+        blank=True,
+        null=True,
+    )
+
+    status = models.IntegerField(
+        choices=SummaryStatus.choices,
+        default=SummaryStatus.PENDING,
+    )
