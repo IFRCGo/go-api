@@ -1706,8 +1706,9 @@ class DrefSummary(models.Model):
 
     class SummaryStatus(models.IntegerChoices):
         PENDING = 100, _("Pending")
-        SUCCESS = 200, _("Success")
-        FAILED = 300, _("Failed")
+        PROCESSING = 200, _("Processing")
+        SUCCESS = 300, _("Success")
+        FAILED = 400, _("Failed")
 
     dref = models.OneToOneField(
         Dref,
@@ -1718,7 +1719,7 @@ class DrefSummary(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    hash = models.CharField(
+    prompt_hash = models.CharField(
         max_length=64,
         unique=True,
     )

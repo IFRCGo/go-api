@@ -31,8 +31,9 @@ from dref.factories.dref import (
     DrefFactory,
     DrefFinalReportFactory,
     DrefOperationalUpdateFactory,
+    DrefSummaryFactory,
 )
-from dref.models import Dref, DrefFile
+from dref.models import Dref, DrefFile, DrefSummary
 from main.test_case import APITestCase
 from per.factories import OpsLearningFactory
 
@@ -1535,3 +1536,37 @@ class EmergencyStageTestCase(APITestCase):
         self.assertIsNotNone(dref_data)
         self.assertIsNotNone(dref_data["final_report_details"])
         self.assertEqual(len(dref_data["timeline_operational_updates"]), 3)
+
+    def test_dref_summary_fields_present_when_summary_exists(self):
+        event = EventFactory.create(dtype=self.disaster_type)
+        dref = self._approved_dref(event)
+        DrefSummaryFactory.create(
+            dref=dref,
+            status=DrefSummary.SummaryStatus.SUCCESS,
+            situational_overview="overview text",
+            operational_strategy="strategy text",
+            people_centered_approach="approach text",
+            challenges_identified="challenges text",
+            lessons_learned="lessons text",
+        )
+
+        data = self._get(event).data
+
+        self.assertEqual(data["stage"], EventStage.DREF_APPLICATION)
+        summary = data["dref"]["summary"]
+        self.assertIsNotNone(summary)
+        self.assertEqual(summary["status"], DrefSummary.SummaryStatus.SUCCESS)
+        self.assertEqual(summary["situational_overview"], "overview text")
+        self.assertEqual(summary["operational_strategy"], "strategy text")
+        self.assertEqual(summary["people_centered_approach"], "approach text")
+        self.assertEqual(summary["challenges_identified"], "challenges text")
+        self.assertEqual(summary["lessons_learned"], "lessons text")
+
+    def test_dref_summary_is_none_when_no_summary_exists(self):
+        event = EventFactory.create(dtype=self.disaster_type)
+        self._approved_dref(event)
+
+        data = self._get(event).data
+
+        self.assertEqual(data["stage"], EventStage.DREF_APPLICATION)
+        self.assertIsNone(data["dref"]["summary"])
