@@ -1,13 +1,14 @@
 from django.contrib import admin
 from reversion_compare.admin import CompareVersionAdmin
 
-from lang.admin import TranslationAdmin
+from lang.admin import TranslationAdmin, TranslationInlineModelAdmin
 
 from .models import (
     Dref,
     DrefFile,
     DrefFinalReport,
     DrefOperationalUpdate,
+    DrefSummary,
     IdentifiedNeed,
     NationalSocietyAction,
     PlannedIntervention,
@@ -125,8 +126,31 @@ class SourceInformationAdmin(admin.ModelAdmin):
     search_fields = ("source_name",)
 
 
+class DrefSummaryInline(admin.StackedInline, TranslationInlineModelAdmin):
+    model = DrefSummary
+    extra = 0
+    readonly_fields = (
+        "status",
+        "hash",
+        "created_at",
+        "updated_at",
+    )
+    fields = (
+        "status",
+        "hash",
+        "situational_overview",
+        "operational_strategy",
+        "people_centered_approach",
+        "challenges_identified",
+        "lessons_learned",
+        "created_at",
+        "updated_at",
+    )
+
+
 @admin.register(Dref)
 class DrefAdmin(CompareVersionAdmin, TranslationAdmin, admin.ModelAdmin):
+    inlines = [DrefSummaryInline]
     search_fields = ("title", "appeal_code")
     list_display = (
         "title",
@@ -301,3 +325,24 @@ class DrefFinalReportAdmin(CompareVersionAdmin, TranslationAdmin, admin.ModelAdm
 @admin.register(ProposedAction)
 class ProposedActionAdmin(ReadOnlyMixin, admin.ModelAdmin):
     search_fields = ["action"]
+
+
+@admin.register(DrefSummary)
+class DrefSummaryAdmin(TranslationAdmin, admin.ModelAdmin):
+    list_display = ("dref", "status", "created_at", "updated_at")
+    list_filter = ("status",)
+    search_fields = ("dref__title", "dref__appeal_code")
+    readonly_fields = ("hash", "created_at", "updated_at")
+    autocomplete_fields = ("dref",)
+    fields = (
+        "dref",
+        "status",
+        "hash",
+        "situational_overview",
+        "operational_strategy",
+        "people_centered_approach",
+        "challenges_identified",
+        "lessons_learned",
+        "created_at",
+        "updated_at",
+    )
