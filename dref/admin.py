@@ -131,13 +131,13 @@ class DrefSummaryInline(admin.StackedInline, TranslationInlineModelAdmin):
     extra = 0
     readonly_fields = (
         "status",
-        "hash",
+        "prompt_hash",
         "created_at",
         "updated_at",
     )
     fields = (
         "status",
-        "hash",
+        "prompt_hash",
         "situational_overview",
         "operational_strategy",
         "people_centered_approach",
@@ -332,12 +332,12 @@ class DrefSummaryAdmin(TranslationAdmin, admin.ModelAdmin):
     list_display = ("dref", "status", "created_at", "updated_at")
     list_filter = ("status",)
     search_fields = ("dref__title", "dref__appeal_code")
-    readonly_fields = ("hash", "created_at", "updated_at")
+    readonly_fields = ("prompt_hash", "created_at", "updated_at")
     autocomplete_fields = ("dref",)
     fields = (
         "dref",
         "status",
-        "hash",
+        "prompt_hash",
         "situational_overview",
         "operational_strategy",
         "people_centered_approach",
