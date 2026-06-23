@@ -141,6 +141,30 @@ class AppealTypeFilter(admin.SimpleListFilter):
             return queryset.filter(atype=self.value())
 
 
+class FieldReportStatusFilter(admin.SimpleListFilter):
+    title = _("status")
+    parameter_name = "status"
+    excluded_status_values = {
+        models.FieldReport.Status.TWO,
+        models.FieldReport.Status.THREE,
+        models.FieldReport.Status.TEN,
+    }
+
+    def lookups(self, request, model_admin):
+        return [
+            (str(value), label) for value, label in models.FieldReport.Status.choices if value not in self.excluded_status_values
+        ]
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value is not None:
+            try:
+                return queryset.filter(status=int(value))
+            except (TypeError, ValueError):
+                return queryset
+        return queryset
+
+
 class IsFeaturedFilter(admin.SimpleListFilter):
     title = _("featured")
     parameter_name = "featured"
@@ -635,7 +659,7 @@ class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAd
     )
 
     readonly_fields = ("report_date", "created_at", "updated_at", "summary", "fr_num")
-    list_filter = [MembershipFilter, "ns_request_assistance"]
+    list_filter = [MembershipFilter, FieldReportStatusFilter, "ns_request_assistance"]
     actions = [
         "create_events",
         "export_field_reports",
