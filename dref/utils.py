@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db import models
+from django.utils import timezone
 
 from api.models import Event
 from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
@@ -57,7 +58,7 @@ def get_dref_users():
 
 
 def create_event_from_dref(dref: Dref) -> Event:
-    event = Event.objects.create(
+    create_kwargs = dict(
         name=dref.title,
         dtype=dref.disaster_type,
         summary=dref.event_description or dref.event_scope or "",
@@ -66,6 +67,14 @@ def create_event_from_dref(dref: Dref) -> Event:
         auto_generated=True,
         source=Event.EventSource.DREF,
     )
+
+    # Dref.DisasterCategory and api.AlertLevel share the same 0/1/2 indices, so
+    # the value maps directly with no remap.
+    if dref.disaster_category is not None:
+        create_kwargs["ifrc_severity_level"] = dref.disaster_category
+        create_kwargs["ifrc_severity_level_update_date"] = dref.date_of_approval or timezone.now()
+
+    event = Event.objects.create(**create_kwargs)
 
     country = getattr(dref, "country", None)
     if country:
