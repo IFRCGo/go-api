@@ -2252,6 +2252,48 @@ class DrefFinalReport3Serializer(BaseDref3Serializer):
         model = DrefFinalReport
 
 
+# Flatten the DREF's scalar contact fields into an api.EventContact-shaped list
+# for the emergency page. Integrity contact is intentionally excluded.
+DREF_EMERGENCY_CONTACT_GROUPS = (
+    ("national_society_contact", "National Society Contact"),
+    ("ifrc_appeal_manager", "IFRC Appeal Manager"),
+    ("ifrc_project_manager", "IFRC Project Manager"),
+    ("ifrc_emergency", "IFRC Emergency"),
+    ("media_contact", "Media Contact"),
+)
+
+
+def get_dref_emergency_contacts(obj):
+    contacts = []
+    for prefix, ctype in DREF_EMERGENCY_CONTACT_GROUPS:
+        name = getattr(obj, f"{prefix}_name", None)
+        title = getattr(obj, f"{prefix}_title", None)
+        email = getattr(obj, f"{prefix}_email", None)
+        phone = getattr(obj, f"{prefix}_phone_number", None)
+        if not any([name, title, email, phone]):
+            continue
+        contacts.append(
+            {
+                "id": f"{obj.id}-{prefix}",
+                "ctype": ctype,
+                "name": name or "",
+                "title": title or "",
+                "email": email or "",
+                "phone": phone or "",
+            }
+        )
+    return contacts
+
+
+class EmergencyDrefContactSerializer(serializers.Serializer):
+    id = serializers.CharField()
+    ctype = serializers.CharField()
+    name = serializers.CharField()
+    title = serializers.CharField()
+    email = serializers.CharField()
+    phone = serializers.CharField()
+
+
 # NOTE: This serializer is only used for the emergency page in GO,
 # which has a very specific and limited use case.
 # It is not intended to be a general-purpose serializer for DREF objects,
@@ -2265,6 +2307,7 @@ class EmergencyDrefFinalReportSerializer(serializers.ModelSerializer):
     cover_image_file = DrefFileSerializer(source="cover_image", read_only=True)
     proposed_action = ProposedActionSerializer(many=True, required=False)
     disaster_type_details = DisasterTypeSerializer(source="disaster_type", read_only=True)
+    dref_contacts = serializers.SerializerMethodField()
 
     class Meta:
         model = DrefFinalReport
@@ -2293,6 +2336,7 @@ class EmergencyDrefFinalReportSerializer(serializers.ModelSerializer):
             "number_of_people_targeted",
             "number_of_people_affected",
             "total_targeted_population",
+            "people_targeted_with_early_actions",
             "estimated_number_of_affected_male",
             "estimated_number_of_affected_female",
             "estimated_number_of_affected_girls_under_18",
@@ -2308,7 +2352,12 @@ class EmergencyDrefFinalReportSerializer(serializers.ModelSerializer):
             "date_of_approval",
             "created_at",
             "modified_at",
+            "dref_contacts",
         )
+
+    @extend_schema_field(EmergencyDrefContactSerializer(many=True))
+    def get_dref_contacts(self, obj):
+        return get_dref_emergency_contacts(obj)
 
 
 class TimelineEmergencyDrefOperationalUpdateSerializer(serializers.ModelSerializer):
@@ -2318,6 +2367,8 @@ class TimelineEmergencyDrefOperationalUpdateSerializer(serializers.ModelSerializ
             "id",
             "summary_of_change",
             "date_of_approval",
+            # fallback timeline date when date_of_approval is unset
+            "modified_at",
             "operational_update_number",
             "total_targeted_population",
             "total_dref_allocation",
@@ -2331,6 +2382,7 @@ class EmergencyDrefOperationalUpdateSerializer(serializers.ModelSerializer):
     planned_interventions = PlannedInterventionSerializer(many=True, read_only=True)
     cover_image_file = DrefFileSerializer(source="cover_image", required=False, allow_null=True)
     disaster_type_details = DisasterTypeSerializer(source="disaster_type", read_only=True)
+    dref_contacts = serializers.SerializerMethodField()
 
     class Meta:
         model = DrefOperationalUpdate
@@ -2362,11 +2414,17 @@ class EmergencyDrefOperationalUpdateSerializer(serializers.ModelSerializer):
             "number_of_people_targeted",
             "number_of_people_affected",
             "total_targeted_population",
+            "people_targeted_with_early_actions",
             "estimated_number_of_affected_male",
             "estimated_number_of_affected_female",
             "estimated_number_of_affected_girls_under_18",
             "estimated_number_of_affected_boys_under_18",
+            "dref_contacts",
         )
+
+    @extend_schema_field(EmergencyDrefContactSerializer(many=True))
+    def get_dref_contacts(self, obj):
+        return get_dref_emergency_contacts(obj)
 
 
 class EmergencyDrefSerializer(serializers.ModelSerializer):
@@ -2386,6 +2444,8 @@ class EmergencyDrefSerializer(serializers.ModelSerializer):
 
     # Timeline of operational updates
     timeline_operational_updates = serializers.SerializerMethodField()
+
+    dref_contacts = serializers.SerializerMethodField()
 
     class Meta:
         model = Dref
@@ -2422,6 +2482,7 @@ class EmergencyDrefSerializer(serializers.ModelSerializer):
             "amount_requested",
             "total_cost",
             "total_targeted_population",
+            "people_targeted_with_early_actions",
             "estimated_number_of_affected_male",
             "estimated_number_of_affected_female",
             "estimated_number_of_affected_girls_under_18",
@@ -2435,16 +2496,25 @@ class EmergencyDrefSerializer(serializers.ModelSerializer):
             # For Response Type
             "event_date",
             "timeline_operational_updates",
+            # Contacts
+            "dref_contacts",
         )
 
     @extend_schema_field(TimelineEmergencyDrefOperationalUpdateSerializer(many=True))
     def get_timeline_operational_updates(self, obj):
-        ops_updates = DrefOperationalUpdate.objects.filter(dref=obj).order_by("operational_update_number")
+        ops_updates = DrefOperationalUpdate.objects.filter(
+            dref=obj,
+            status=Dref.Status.APPROVED,
+        ).order_by("operational_update_number")
         serializer = TimelineEmergencyDrefOperationalUpdateSerializer(
             ops_updates,
             many=True,
         )
         return serializer.data
+
+    @extend_schema_field(EmergencyDrefContactSerializer(many=True))
+    def get_dref_contacts(self, obj):
+        return get_dref_emergency_contacts(obj)
 
     @extend_schema_field(EmergencyDrefOperationalUpdateSerializer())
     def get_operational_update_details(self, obj):
