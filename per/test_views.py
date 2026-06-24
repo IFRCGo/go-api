@@ -372,13 +372,18 @@ class OpsLearningCoverageTestCase(APITestCase):
 
         self.assert_200(response)
         results = response.data["results"]
-        self.assertEqual(len(results), 1)
+        self.assertEqual(len(results), 2)
 
         result_keys = set(results[0].keys())
-        self.assertEqual(result_keys, {"appeal_code", "is_validated"})
+        self.assertEqual(result_keys, {"appeal_code", "operation", "counts"})
 
         appeal_codes = {item["appeal_code"] for item in results}
-        self.assertEqual(appeal_codes, {self.appeal1.code})
+        self.assertEqual(appeal_codes, {self.appeal1.code, self.appeal2.code})
+        result_by_appeal = {item["appeal_code"]: item for item in results}
+        self.assertEqual(result_by_appeal[self.appeal1.code]["operation"], "completed")
+        self.assertEqual(result_by_appeal[self.appeal2.code]["operation"], "not_started")
+        self.assertEqual(result_by_appeal[self.appeal1.code]["counts"], 1)
+        self.assertEqual(result_by_appeal[self.appeal2.code]["counts"], 1)
 
     def test_ops_learning_coverage_list_admin(self):
         url = "/api/v2/ops-learning-coverage/"
@@ -391,13 +396,33 @@ class OpsLearningCoverageTestCase(APITestCase):
 
         appeal_codes = {item["appeal_code"] for item in results}
         self.assertEqual(appeal_codes, {self.appeal1.code, self.appeal2.code})
+        result_by_appeal = {item["appeal_code"]: item for item in results}
+        self.assertEqual(result_by_appeal[self.appeal1.code]["operation"], "completed")
+        self.assertEqual(result_by_appeal[self.appeal2.code]["operation"], "not_started")
+        self.assertEqual(result_by_appeal[self.appeal1.code]["counts"], 1)
+        self.assertEqual(result_by_appeal[self.appeal2.code]["counts"], 1)
 
-    def test_ops_learning_coverage_filter_validated(self):
+    def test_ops_learning_coverage_filter_validated_is_ignored(self):
         url = "/api/v2/ops-learning-coverage/"
         response = self.client.get(url, {"is_validated": "true"})
 
         self.assert_200(response)
         results = response.data["results"]
-        self.assertEqual(len(results), 1)
-        self.assertTrue(results[0]["is_validated"])
-        self.assertEqual(results[0]["appeal_code"], self.appeal1.code)
+        self.assertEqual(len(results), 2)
+        result_by_appeal = {item["appeal_code"]: item for item in results}
+        self.assertEqual(result_by_appeal[self.appeal1.code]["operation"], "completed")
+        self.assertEqual(result_by_appeal[self.appeal2.code]["operation"], "not_started")
+
+    def test_ops_learning_coverage_aggregates_duplicate_appeal(self):
+        OpsLearningFactory.create(is_validated=False, appeal_code=self.appeal1)
+
+        url = "/api/v2/ops-learning-coverage/"
+        self.authenticate(self.ifrc_user)
+        response = self.client.get(url)
+
+        self.assert_200(response)
+        results = response.data["results"]
+        result_by_appeal = {item["appeal_code"]: item for item in results}
+
+        self.assertEqual(result_by_appeal[self.appeal1.code]["counts"], 2)
+        self.assertEqual(result_by_appeal[self.appeal1.code]["operation"], "in_progress")

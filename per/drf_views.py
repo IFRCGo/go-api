@@ -1534,11 +1534,26 @@ class OpsLearningCoverageViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = OpsLearningCoverageSerializer
     filterset_class = OpsLearningFilter
 
+    def filter_queryset(self, queryset):
+        if self.filterset_class is None:
+            return queryset
+
+        data = self.request.query_params.copy()
+        data.pop("is_validated", None)
+
+        filterset = self.filterset_class(data=data, queryset=queryset, request=self.request)
+        return filterset.qs
+
     def get_queryset(self):
         qs = super().get_queryset()
-        if OpsLearning.is_user_admin(self.request.user):
-            return qs
-        return qs.filter(is_validated=True)
+        return (
+            qs.values("appeal_code")
+            .annotate(
+                counts=Count("id", distinct=True),
+                validated_count=Count("id", filter=Q(is_validated=True), distinct=True),
+            )
+            .order_by("appeal_code")
+        )
 
 
 class PerDocumentUploadViewSet(viewsets.ModelViewSet):

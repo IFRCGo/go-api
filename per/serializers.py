@@ -1146,13 +1146,20 @@ class PublicOpsLearningSerializer(serializers.ModelSerializer):
             return document.name
 
 
-class OpsLearningCoverageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = OpsLearning
-        fields = (
-            "appeal_code",
-            "is_validated",
-        )
+class OpsLearningCoverageSerializer(serializers.Serializer):
+    appeal_code = serializers.CharField(allow_null=True)
+    operation = serializers.SerializerMethodField()
+    counts = serializers.IntegerField()
+
+    def get_operation(self, obj):
+        validated_count = obj.get("validated_count", 0)
+        counts = obj.get("counts", 0)
+
+        if validated_count == 0:
+            return "not_started"
+        if validated_count == counts:
+            return "completed"
+        return "in_progress"
 
 
 class PerDocumentUploadSerializer(serializers.ModelSerializer):
