@@ -2502,10 +2502,13 @@ class EmergencyDrefSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(TimelineEmergencyDrefOperationalUpdateSerializer(many=True))
     def get_timeline_operational_updates(self, obj):
-        ops_updates = DrefOperationalUpdate.objects.filter(
-            dref=obj,
-            status=Dref.Status.APPROVED,
-        ).order_by("operational_update_number")
+        ops_updates = getattr(obj, "prefetched_timeline_ops_updates", None)
+        if ops_updates is None:
+            ops_updates = DrefOperationalUpdate.objects.filter(
+                dref=obj,
+                status=Dref.Status.APPROVED,
+            ).order_by("operational_update_number")
+
         serializer = TimelineEmergencyDrefOperationalUpdateSerializer(
             ops_updates,
             many=True,

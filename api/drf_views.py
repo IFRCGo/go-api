@@ -1598,13 +1598,17 @@ class EmergencyViewset(
             .order_by("priority", "-start_date")
         )
 
-        active_dref_appeal_qs = appeal_priority_qs.filter(
-            atype=AppealType.DREF,
+        active_dref_appeal_qs = appeal_priority_qs.filter(atype=AppealType.DREF)
+        active_emergency_appeal_qs = appeal_priority_qs.filter(atype=AppealType.APPEAL)
+
+        appeal_exists_base_qs = Appeal.objects.filter(
+            event=OuterRef("pk"),
+            status__in=[AppealStatus.ACTIVE, AppealStatus.CLOSED],
         )
 
-        active_emergency_appeal_qs = appeal_priority_qs.filter(
-            atype=AppealType.APPEAL,
-        )
+        # Unordered: used only in Exists() checks
+        active_dref_appeal_exists_qs = appeal_exists_base_qs.filter(atype=AppealType.DREF)
+        active_emergency_appeal_exists_qs = appeal_exists_base_qs.filter(atype=AppealType.APPEAL)
 
         field_report_qs = FieldReport.objects.filter(event=OuterRef("pk"))
 
@@ -1622,6 +1626,16 @@ class EmergencyViewset(
             dref__event=OuterRef("pk"),
             status=Dref.Status.APPROVED,
         ).order_by("-created_at")
+
+        # Unordered: used only in Exists() checks
+        approved_ops_update_exists_qs = DrefOperationalUpdate.objects.filter(
+            dref__event=OuterRef("pk"),
+            status=Dref.Status.APPROVED,
+        )
+        approved_final_report_exists_qs = DrefFinalReport.objects.filter(
+            dref__event=OuterRef("pk"),
+            status=Dref.Status.APPROVED,
+        )
 
         return (
             super()
@@ -1649,15 +1663,15 @@ class EmergencyViewset(
                 # Stage
                 stage=Case(
                     When(
-                        Exists(active_emergency_appeal_qs),
+                        Exists(active_emergency_appeal_exists_qs),
                         then=Value(EventStage.EMERGENCY_APPEAL),
                     ),
                     When(
-                        Exists(approved_final_report_qs),
+                        Exists(approved_final_report_exists_qs),
                         then=Value(EventStage.DREF_FINAL_REPORT),
                     ),
                     When(
-                        Exists(approved_ops_update_qs),
+                        Exists(approved_ops_update_exists_qs),
                         then=Value(EventStage.DREF_OPERATIONAL_UPDATE),
                     ),
                     When(
@@ -1669,11 +1683,11 @@ class EmergencyViewset(
                     # Reaches here only if no approved DREF/ops-update/final-report exists
                     # So an active appeal type DREF appeal with no approved DREF = DREF_APPEAL_ONLY stage.
                     When(
-                        Exists(active_dref_appeal_qs),
+                        Exists(active_dref_appeal_exists_qs),
                         then=Value(EventStage.DREF_APPEAL_ONLY),
                     ),
                     When(
-                        Exists(FieldReport.objects.filter(event=OuterRef("pk"))),
+                        Exists(field_report_qs),
                         then=Value(EventStage.FIELD_REPORT),
                     ),
                     default=Value(None),
@@ -1702,7 +1716,7 @@ class EmergencyViewset(
                             EventStage.DREF_OPERATIONAL_UPDATE,
                             EventStage.DREF_FINAL_REPORT,
                         ],
-                        then=Subquery(approved_dref_qs.values("id")[:1]),
+                        then=Subquery(approved_dref_qs.order_by("-created_at").values("id")[:1]),
                     ),
                     default=Value(None),
                     output_field=IntegerField(null=True),
@@ -1710,11 +1724,7 @@ class EmergencyViewset(
                 stage_final_report_id=Case(
                     When(
                         stage=EventStage.DREF_FINAL_REPORT,
-                        then=Subquery(
-                            DrefFinalReport.objects.filter(
-                                dref__id=OuterRef("stage_dref_id"), status=Dref.Status.APPROVED
-                            ).values("id")[:1]
-                        ),
+                        then=Subquery(approved_final_report_qs.values("id")[:1]),
                     ),
                     default=Value(None),
                     output_field=IntegerField(null=True),
@@ -1725,11 +1735,7 @@ class EmergencyViewset(
                             EventStage.DREF_OPERATIONAL_UPDATE,
                             EventStage.DREF_FINAL_REPORT,
                         ],
-                        then=Subquery(
-                            DrefOperationalUpdate.objects.filter(
-                                dref__id=OuterRef("stage_dref_id"), status=Dref.Status.APPROVED
-                            ).values("id")[:1]
-                        ),
+                        then=Subquery(approved_ops_update_qs.values("id")[:1]),
                     ),
                     default=Value(None),
                     output_field=IntegerField(null=True),
@@ -1772,6 +1778,11 @@ class EmergencyViewset(
                 Prefetch(
                     "featured_documents",
                     queryset=EventFeaturedDocument.objects.order_by("-id"),
+                ),
+                Prefetch(
+                    "field_reports",
+                    queryset=FieldReport.objects.order_by("-updated_at", "-fr_num"),
+                    to_attr="prefetched_timeline_field_reports",
                 ),
             )
         )
