@@ -339,7 +339,38 @@ class CompletedDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        return filter_dref_queryset_by_user_access(user, super().get_queryset())
+        dref_qs = (
+            Dref.objects.select_related("country")
+            .prefetch_related(
+                Prefetch(
+                    "drefoperationalupdate_set",
+                    queryset=DrefOperationalUpdate.objects.select_related("country").order_by("-created_at"),
+                    to_attr="prefetched_operational_updates",
+                ),
+                "dreffinalreport__country",
+            )
+            .annotate(
+                has_ops_update=Exists(DrefOperationalUpdate.objects.filter(dref=OuterRef("pk"))),
+                unpublished_op_update_count=Count(
+                    "drefoperationalupdate",
+                    filter=~Q(drefoperationalupdate__status=Dref.Status.APPROVED),
+                ),
+                has_final_report=Exists(DrefFinalReport.objects.filter(dref=OuterRef("pk"))),
+                unpublished_final_report_count=Count(
+                    "dreffinalreport",
+                    filter=~Q(dreffinalreport__status=Dref.Status.APPROVED),
+                ),
+            )
+        )
+        qs = (
+            super()
+            .get_queryset()
+            .select_related("country")
+            .prefetch_related(
+                Prefetch("dref", queryset=dref_qs),
+            )
+        )
+        return filter_dref_queryset_by_user_access(user, qs)
 
 
 class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
