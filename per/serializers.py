@@ -1148,10 +1148,10 @@ class PublicOpsLearningSerializer(serializers.ModelSerializer):
 
 class OpsLearningCoverageSerializer(serializers.Serializer):
     appeal_code = serializers.CharField(allow_null=True)
-    operation = serializers.SerializerMethodField()
+    tagging_status = serializers.SerializerMethodField()
     counts = serializers.IntegerField()
 
-    def get_operation(self, obj):
+    def get_tagging_status(self, obj):
         validated_count = obj.get("validated_count", 0)
         counts = obj.get("counts", 0)
 

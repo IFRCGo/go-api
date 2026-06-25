@@ -375,13 +375,13 @@ class OpsLearningCoverageTestCase(APITestCase):
         self.assertEqual(len(results), 2)
 
         result_keys = set(results[0].keys())
-        self.assertEqual(result_keys, {"appeal_code", "operation", "counts"})
+        self.assertEqual(result_keys, {"appeal_code", "tagging_status", "counts"})
 
         appeal_codes = {item["appeal_code"] for item in results}
         self.assertEqual(appeal_codes, {self.appeal1.code, self.appeal2.code})
         result_by_appeal = {item["appeal_code"]: item for item in results}
-        self.assertEqual(result_by_appeal[self.appeal1.code]["operation"], "completed")
-        self.assertEqual(result_by_appeal[self.appeal2.code]["operation"], "not_started")
+        self.assertEqual(result_by_appeal[self.appeal1.code]["tagging_status"], "completed")
+        self.assertEqual(result_by_appeal[self.appeal2.code]["tagging_status"], "not_started")
         self.assertEqual(result_by_appeal[self.appeal1.code]["counts"], 1)
         self.assertEqual(result_by_appeal[self.appeal2.code]["counts"], 1)
 
@@ -397,8 +397,8 @@ class OpsLearningCoverageTestCase(APITestCase):
         appeal_codes = {item["appeal_code"] for item in results}
         self.assertEqual(appeal_codes, {self.appeal1.code, self.appeal2.code})
         result_by_appeal = {item["appeal_code"]: item for item in results}
-        self.assertEqual(result_by_appeal[self.appeal1.code]["operation"], "completed")
-        self.assertEqual(result_by_appeal[self.appeal2.code]["operation"], "not_started")
+        self.assertEqual(result_by_appeal[self.appeal1.code]["tagging_status"], "completed")
+        self.assertEqual(result_by_appeal[self.appeal2.code]["tagging_status"], "not_started")
         self.assertEqual(result_by_appeal[self.appeal1.code]["counts"], 1)
         self.assertEqual(result_by_appeal[self.appeal2.code]["counts"], 1)
 
@@ -410,8 +410,8 @@ class OpsLearningCoverageTestCase(APITestCase):
         results = response.data["results"]
         self.assertEqual(len(results), 2)
         result_by_appeal = {item["appeal_code"]: item for item in results}
-        self.assertEqual(result_by_appeal[self.appeal1.code]["operation"], "completed")
-        self.assertEqual(result_by_appeal[self.appeal2.code]["operation"], "not_started")
+        self.assertEqual(result_by_appeal[self.appeal1.code]["tagging_status"], "completed")
+        self.assertEqual(result_by_appeal[self.appeal2.code]["tagging_status"], "not_started")
 
     def test_ops_learning_coverage_aggregates_duplicate_appeal(self):
         OpsLearningFactory.create(is_validated=False, appeal_code=self.appeal1)
@@ -425,4 +425,4 @@ class OpsLearningCoverageTestCase(APITestCase):
         result_by_appeal = {item["appeal_code"]: item for item in results}
 
         self.assertEqual(result_by_appeal[self.appeal1.code]["counts"], 2)
-        self.assertEqual(result_by_appeal[self.appeal1.code]["operation"], "in_progress")
+        self.assertEqual(result_by_appeal[self.appeal1.code]["tagging_status"], "in_progress")
