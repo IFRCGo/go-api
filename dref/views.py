@@ -232,7 +232,8 @@ class DrefOperationalUpdateViewSet(RevisionMixin, viewsets.ModelViewSet):
             raise serializers.ValidationError(gettext("Must be finalized before it can be approved."))
 
         operational_update.status = Dref.Status.APPROVED
-        operational_update.save(update_fields=["status"])
+        operational_update.date_of_approval = timezone.now().date()
+        operational_update.save(update_fields=["status", "date_of_approval"])
         serializer = DrefOperationalUpdateSerializer(operational_update, context={"request": request})
         return response.Response(serializer.data)
 
@@ -367,7 +368,22 @@ class CompletedDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
         DenyGuestUserPermission,
     ]
     filterset_class = CompletedDrefOperationsFilterSet
-    queryset = DrefFinalReport.objects.filter(status=Dref.Status.APPROVED).order_by("-created_at").distinct()
+    queryset = (
+        DrefFinalReport.objects.filter(status=Dref.Status.APPROVED)
+        .select_related("country", "dref", "dref__country")
+        .prefetch_related(
+            # MiniDrefSerializer.operational_update_details reads this prefetched
+            # attr; without it DRF silently drops the field.
+            Prefetch(
+                "dref__drefoperationalupdate_set",
+                queryset=DrefOperationalUpdate.objects.select_related("country").order_by("-created_at"),
+                to_attr="prefetched_operational_updates",
+            ),
+            "dref__dreffinalreport__country",
+        )
+        .order_by("-created_at")
+        .distinct()
+    )
 
     def get_queryset(self):
         user = self.request.user
