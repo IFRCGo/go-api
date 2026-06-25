@@ -210,7 +210,15 @@ class Command(BaseCommand):
                 countries, regions = self.gather_countries_and_regions(records)
 
             if rtype_of_subscr == RecordType.SURGE_ALERT:
-                dtypes = list(set(["d%s" % record.event.dtype.id for record in records if record.event.dtype is not None]))
+                dtypes = list(
+                    set(
+                        [
+                            "d%s" % record.event.dtype.id
+                            for record in records
+                            if record.event is not None and record.event.dtype is not None
+                        ]
+                    )
+                )
             elif rtype_of_subscr == RecordType.SURGE_DEPLOYMENT_MESSAGES:
                 dtypes = list(set(["d%s" % rec.event_deployed_to.dtype.id for rec in records if rec.event_deployed_to.dtype]))
             else:
