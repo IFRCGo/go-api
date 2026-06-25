@@ -2923,19 +2923,9 @@ class DetailEmergencySerializer(ModelSerializer):
 
     @extend_schema_field(TimelineEmergencyFieldReportSerializer(many=True))
     def get_timeline_field_reports(self, event):
-        field_reports = (
-            FieldReport.objects.filter(event=event)
-            .order_by(
-                "-updated_at",
-                "-fr_num",
-            )
-            .values(
-                "id",
-                "report_date",
-                "fr_num",
-                "start_date",
-            )
-        )
+        field_reports = getattr(event, "prefetched_timeline_field_reports", None)
+        if field_reports is None:
+            field_reports = FieldReport.objects.filter(event=event).order_by("-updated_at", "-fr_num")
         serializer = TimelineEmergencyFieldReportSerializer(field_reports, many=True)
         return serializer.data
 
@@ -3012,6 +3002,13 @@ class DetailEmergencySerializer(ModelSerializer):
                     Prefetch(
                         "proposed_action",
                         queryset=ProposedAction.objects.prefetch_related("activities"),
+                    ),
+                    Prefetch(
+                        "drefoperationalupdate_set",
+                        queryset=DrefOperationalUpdate.objects.filter(
+                            status=Dref.Status.APPROVED,
+                        ).order_by("operational_update_number"),
+                        to_attr="prefetched_timeline_ops_updates",
                     ),
                 )
                 .get(pk=event.stage_dref_id)
