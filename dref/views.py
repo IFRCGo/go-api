@@ -32,7 +32,13 @@ from dref.filter_set import (
     DrefOperationalUpdateFilter,
     DrefShareUserFilterSet,
 )
-from dref.models import Dref, DrefFile, DrefFinalReport, DrefOperationalUpdate
+from dref.models import (
+    Dref,
+    DrefFile,
+    DrefFinalReport,
+    DrefOperationalUpdate,
+    DrefSummary,
+)
 from dref.permissions import ApproveDrefPermission
 from dref.serializers import (
     AddDrefUserSerializer,
@@ -137,7 +143,10 @@ class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
 
         dref.status = Dref.Status.APPROVED
         dref.save(update_fields=["event", "status"])
-        transaction.on_commit(lambda: generate_dref_summary.delay(dref.id))
+        _dref_id = dref.id
+        transaction.on_commit(
+            lambda: generate_dref_summary.delay(source_model_name=DrefSummary.SourceModel.DREF, source_id=_dref_id)
+        )
 
         return response.Response(DrefSerializer(dref, context={"request": request}).data)
 
@@ -236,11 +245,9 @@ class DrefOperationalUpdateViewSet(RevisionMixin, viewsets.ModelViewSet):
         operational_update.date_of_approval = timezone.now().date()
         operational_update.save(update_fields=["status", "date_of_approval"])
         _ops_update_id = operational_update.pk
-        _dref_id = operational_update.dref_id
         transaction.on_commit(
             lambda: generate_dref_summary.delay(
-                _dref_id,
-                source_model_name=get_model_name(DrefOperationalUpdate),
+                source_model_name=DrefSummary.SourceModel.DREF_OPERATIONAL_UPDATE,
                 source_id=_ops_update_id,
                 overwrite=True,
             )
@@ -314,11 +321,9 @@ class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
         final_report.date_of_approval = timezone.now().date()
         final_report.dref.save(update_fields=["is_active", "date_of_approval"])
         _final_report_id = final_report.pk
-        _dref_id = final_report.dref_id
         transaction.on_commit(
             lambda: generate_dref_summary.delay(
-                _dref_id,
-                source_model_name=get_model_name(DrefFinalReport),
+                source_model_name=DrefSummary.SourceModel.DREF_FINAL_REPORT,
                 source_id=_final_report_id,
                 overwrite=True,
             )

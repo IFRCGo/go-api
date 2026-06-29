@@ -206,7 +206,9 @@ class DrefSummaryFactory(factory.django.DjangoModelFactory):
         model = DrefSummary
 
     dref = factory.SubFactory(DrefFactory)
-    prompt_hash = factory.Sequence(lambda n: f"{n:064d}")
+    source_hash = factory.Sequence(lambda n: f"{n:064d}")
+    source_model_name = DrefSummary.SourceModel.DREF
+    source_id = factory.SelfAttribute("dref.id")
     status = DrefSummary.SummaryStatus.SUCCESS
     situational_overview = fuzzy.FuzzyText(length=100)
     operational_strategy = fuzzy.FuzzyText(length=100)
