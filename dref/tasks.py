@@ -12,6 +12,7 @@ from notifications.notification import send_notification
 from .models import (
     Dref,
     DrefFile,
+    DrefSummary,
     IdentifiedNeed,
     NationalSocietyAction,
     PlannedIntervention,
@@ -21,6 +22,7 @@ from .models import (
     RiskSecurity,
     SourceInformation,
 )
+from .summary import DrefSummaryGenerator
 from .utils import get_email_context
 
 logger = logging.getLogger(__name__)
@@ -55,6 +57,72 @@ TRANSLATABLE_RELATED_MODELS = [
     PlannedInterventionIndicators,
     SourceInformation,
 ]
+
+
+@shared_task
+def generate_dref_summary(dref_id, source_model_name=None, source_id=None, overwrite=False):
+    """Generate and store the AI-assisted summaries for a DREF."""
+    dref = Dref.objects.filter(id=dref_id).first()
+    if not dref:
+        logger.error(f"DREF not found for summary generation: ({dref_id})")
+        return False
+
+    if source_model_name and source_id:
+        try:
+            source_model = apps.get_model(source_model_name)
+            source_doc = source_model.objects.filter(id=source_id).first()
+        except Exception:
+            logger.error(
+                f"Could not resolve source model ({source_model_name}) for DREF ({dref_id}) summary",
+                exc_info=True,
+            )
+            return False
+        if not source_doc:
+            logger.error(f"Source document ({source_model_name}) ({source_id}) not found for DREF ({dref_id}) summary")
+            return False
+    else:
+        source_doc = dref
+
+    # Normalise the source identity so it is always stored, even when the task
+    # is called with just a dref_id (source_doc is the Dref itself).
+    source_model_name = get_model_name(type(source_doc))
+    source_id = source_doc.id
+
+    generator = DrefSummaryGenerator()
+    source_hash = generator.compute_source_hash(source_doc)
+
+    summary_instance = DrefSummary.objects.filter(dref=dref).first()
+    if (
+        summary_instance
+        and not overwrite
+        and summary_instance.hash == source_hash
+        and summary_instance.status == DrefSummary.SummaryStatus.SUCCESS
+    ):
+        logger.info(f"DREF summary up to date for DREF ({dref_id}); skipping generation.")
+        return True
+
+    if summary_instance is None:
+        summary_instance = DrefSummary(dref=dref)
+    summary_instance.hash = source_hash
+    summary_instance.source_model_name = source_model_name
+    summary_instance.source_id = source_id
+
+    try:
+        logger.info(
+            f"Generating DREF summaries for DREF ({dref_id}) from ({source_model_name or 'dref.Dref'}) ({source_id or dref_id})"
+        )
+        results = generator.generate_all(source_doc)
+        for field_name, value in results.items():
+            setattr(summary_instance, field_name, value)
+        summary_instance.status = DrefSummary.SummaryStatus.SUCCESS
+        summary_instance.save()
+        logger.info(f"Successfully generated DREF summaries for DREF ({dref_id})")
+        return True
+    except Exception:
+        summary_instance.status = DrefSummary.SummaryStatus.FAILED
+        summary_instance.save()
+        logger.warning(f"DREF summary generation failed for DREF ({dref_id})", exc_info=True)
+        return False
 
 
 @shared_task
