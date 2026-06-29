@@ -1710,6 +1710,11 @@ class DrefSummary(models.Model):
         SUCCESS = 300, _("Success")
         FAILED = 400, _("Failed")
 
+    class SourceModel(models.IntegerChoices):
+        DREF = 100, _("Dref")
+        DREF_OPERATIONAL_UPDATE = 200, _("Dref Operational Update")
+        DREF_FINAL_REPORT = 300, _("Dref Final Report")
+
     dref = models.OneToOneField(
         Dref,
         on_delete=models.CASCADE,
@@ -1722,19 +1727,15 @@ class DrefSummary(models.Model):
     # The source document the summary was last generated from. Stored so a
     # retrigger (e.g. from the admin) can replay the same source instead of
     # re-resolving the latest approved document.
-    source_model_name = models.CharField(
-        max_length=255,
+    source_model_name = models.IntegerField(
         verbose_name=_("source model name"),
-        blank=True,
-        null=True,
+        choices=SourceModel.choices,
     )
     source_id = models.PositiveBigIntegerField(
         verbose_name=_("source id"),
-        blank=True,
-        null=True,
     )
 
-    hash = models.CharField(
+    source_hash = models.CharField(
         max_length=64,
         unique=True,
     )

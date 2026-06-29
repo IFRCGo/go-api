@@ -12,6 +12,7 @@ from django.conf import settings
 from django.utils.functional import cached_property
 from openai import AzureOpenAI
 
+from api.utils import get_model_name
 from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
 
 logger = logging.getLogger(__name__)
@@ -186,10 +187,6 @@ class DrefSummaryGenerator:
     def __init__(self, client: Optional[DrefSummaryLLMClient] = None):
         self.client = client or DrefSummaryLLMClient()
 
-    @classmethod
-    def _model_label(cls, source_doc) -> str:
-        return f"{source_doc._meta.app_label}.{type(source_doc).__name__}"
-
     # Shared helpers — called by multiple extractors
 
     @staticmethod
@@ -323,7 +320,7 @@ class DrefSummaryGenerator:
     @classmethod
     def compute_source_hash(cls, source_doc) -> str:
         """Hash of all source content feeding the summary, for change detection."""
-        model_label = cls._model_label(source_doc)
+        model_label = get_model_name(type(source_doc))
         payload = {"model": model_label, "id": source_doc.id, "source": cls._get_section_kwargs(source_doc)}
         content = json.dumps(payload, sort_keys=True, ensure_ascii=False, default=str)
         return hashlib.sha256(content.encode("utf-8")).hexdigest()
