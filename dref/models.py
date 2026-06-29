@@ -1719,7 +1719,22 @@ class DrefSummary(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    prompt_hash = models.CharField(
+    # The source document the summary was last generated from. Stored so a
+    # retrigger (e.g. from the admin) can replay the same source instead of
+    # re-resolving the latest approved document.
+    source_model_name = models.CharField(
+        max_length=255,
+        verbose_name=_("source model name"),
+        blank=True,
+        null=True,
+    )
+    source_id = models.PositiveBigIntegerField(
+        verbose_name=_("source id"),
+        blank=True,
+        null=True,
+    )
+
+    hash = models.CharField(
         max_length=64,
         unique=True,
     )
