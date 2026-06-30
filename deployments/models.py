@@ -46,6 +46,9 @@ class ERUType(models.IntegerChoices):
     OPD = 17, _("Outpatient Department (OPD) Module")
     MHPSS = 18, _("MHPSS")
     OSH = 19, _("Operations Support HUB")
+    PUBLIC_HEALTH = 20, _("Public Health")
+    PUBLIC_HEALTH_IPC = 21, _("Public Health IPC - Infection Prevention and Control")
+    CLINICAL_ADVANCES_TEAM = 22, _("Clinical Advances Team")
 
 
 @reversion.register()
