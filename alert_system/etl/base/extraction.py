@@ -229,11 +229,10 @@ class BaseExtractionClass(ABC):
             logger.warning(f"Failed to fetch events: {e}")
             raise
 
-        first_event_item = next(event_items, None)
-        if not first_event_item:
-            msg = f"No event items found for extraction_run_id={extraction_run_id}"
-            logger.warning(msg)
-            raise ValueError(msg)
+        event_items = list(event_items)
+        if not event_items:
+            logger.warning(f"No event items found for extraction_run_id={extraction_run_id}")
+            return
 
         for event_item in event_items:
             self.process_event_item(event_item=event_item, extraction_run_id=extraction_run_id, is_past_event=is_past_event)

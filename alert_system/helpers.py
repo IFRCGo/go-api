@@ -1,7 +1,32 @@
 # Helper functions to build search params.
 from typing import Dict, Generator, Optional
+from urllib.parse import urlsplit, urlunsplit
 
 import httpx
+from django.conf import settings
+
+
+def _remap_stac_url(url: str) -> str:
+    """
+    Rewrite a STAC URL to point at the internal cluster service.
+    """
+    external_base = getattr(settings, "EOAPI_STAC_EXTERNAL_URL", None)
+    internal_base = getattr(settings, "EOAPI_STAC_INTERNAL_URL", None)
+    if not external_base or not internal_base:
+        return url
+
+    ext = urlsplit(external_base.rstrip("/"))
+    internal = urlsplit(internal_base.rstrip("/"))
+    parsed = urlsplit(url)
+
+    if parsed.netloc not in (ext.netloc, internal.netloc):
+        return url
+
+    path = parsed.path
+    if ext.path and path.startswith(ext.path):
+        path = path[len(ext.path) :]
+
+    return urlunsplit((internal.scheme, internal.netloc, internal.path + path, parsed.query, parsed.fragment))
 
 
 def build_search_params(
@@ -57,7 +82,7 @@ def build_stac_search(
 
 
 def fetch_stac_data(url: str, payload: dict | None = None, timeout: int | None = 60):
-    response = httpx.get(url=url, params=payload, timeout=timeout)
+    response = httpx.get(url=_remap_stac_url(url), params=payload, timeout=timeout)
     response.raise_for_status()
     return response.json()
 
