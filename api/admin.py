@@ -1175,6 +1175,14 @@ class CronJobAdmin(CompareVersionAdmin):
     list_filter = ("status", "name")
     actions = [acknowledge]
 
+    def response_change(self, request, obj):
+        if "_acknowledge" in request.POST and obj.status == models.CronJobStatus.ERRONEOUS:
+            obj.status = models.CronJobStatus.ACKNOWLEDGED
+            obj.save(update_fields=["status"])
+            self.message_user(request, _("Status set to Acknowledged."))
+            return self.response_post_save_change(request, obj)
+        return super().response_change(request, obj)
+
     def message_display(self, obj):
         style_class = {
             models.CronJobStatus.WARNED: "warning",
