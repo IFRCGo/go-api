@@ -2,16 +2,21 @@ import logging
 
 from celery import shared_task
 from django.apps import apps
+from django.db import transaction
 from django.template.loader import render_to_string
 
 from api.utils import get_model_name
 from lang.tasks import translate_model_fields
 from main.translation import TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME
+from main.utils import logger_context
 from notifications.notification import send_notification
 
 from .models import (
     Dref,
     DrefFile,
+    DrefFinalReport,
+    DrefOperationalUpdate,
+    DrefSummary,
     IdentifiedNeed,
     NationalSocietyAction,
     PlannedIntervention,
@@ -21,6 +26,7 @@ from .models import (
     RiskSecurity,
     SourceInformation,
 )
+from .summary import DrefSummaryGenerator
 from .utils import get_email_context
 
 logger = logging.getLogger(__name__)
@@ -55,6 +61,90 @@ TRANSLATABLE_RELATED_MODELS = [
     PlannedInterventionIndicators,
     SourceInformation,
 ]
+
+
+def _resolve_source_model(source_model_name):
+    """Map a ``DrefSummary.SourceModel`` choice to its model class."""
+    if source_model_name == DrefSummary.SourceModel.DREF:
+        return Dref
+    elif source_model_name == DrefSummary.SourceModel.DREF_OPERATIONAL_UPDATE:
+        return DrefOperationalUpdate
+    elif source_model_name == DrefSummary.SourceModel.DREF_FINAL_REPORT:
+        return DrefFinalReport
+    return None
+
+
+@shared_task
+def generate_dref_summary(source_model_name, source_id, overwrite=False):
+    """Generate and store the AI-assisted summaries for a DREF.
+
+    The DREF is derived from the source document, so the source (a Dref,
+    DrefOperationalUpdate or DrefFinalReport) is the single source of truth for
+    what the summary is built from.
+    """
+    source_model = _resolve_source_model(source_model_name)
+    if source_model is None:
+        logger.error(
+            "Could not resolve source model for DREF summary",
+            extra=logger_context({"source_model_name": source_model_name, "source_id": source_id}),
+        )
+        return False
+    source_doc = source_model.objects.filter(id=source_id).first()
+    if not source_doc:
+        logger.error(
+            "Source document not found for DREF summary",
+            extra=logger_context({"source_model_name": source_model_name, "source_id": source_id}),
+        )
+        return False
+
+    # Derive the DREF from the source: the Dref is its own source, while
+    # DrefOperationalUpdate and DrefFinalReport both point back via ``dref``.
+    dref = source_doc if isinstance(source_doc, Dref) else source_doc.dref
+    if not dref:
+        logger.error(
+            "DREF not found for summary generation",
+            extra=logger_context({"source_model_name": source_model_name, "source_id": source_id}),
+        )
+        return False
+    dref_id = dref.id
+    source_id = source_doc.id
+
+    generator = DrefSummaryGenerator()
+    source_hash = generator.compute_source_hash(source_doc)
+
+    summary_instance = DrefSummary.objects.filter(dref=dref).first()
+    if (
+        summary_instance
+        and not overwrite
+        and summary_instance.source_hash == source_hash
+        and summary_instance.status == DrefSummary.SummaryStatus.SUCCESS
+    ):
+        logger.info(f"DREF summary up to date for DREF ({dref_id}); skipping generation.")
+        return True
+
+    if summary_instance is None:
+        summary_instance = DrefSummary(dref=dref)
+    summary_instance.source_hash = source_hash
+    summary_instance.source_model_name = source_model_name
+    summary_instance.source_id = source_id
+    summary_instance.status = DrefSummary.SummaryStatus.PROCESSING
+    summary_instance.save()
+
+    try:
+        logger.info(f"Generating DREF summaries for DREF ({dref_id}) from ({source_model_name}) ({source_id})")
+        results = generator.generate_all(source_doc)
+        for field_name, value in results.items():
+            setattr(summary_instance, field_name, value)
+        summary_instance.status = DrefSummary.SummaryStatus.SUCCESS
+        summary_instance.save()
+        logger.info(f"Successfully generated DREF summaries for DREF ({dref_id})")
+        transaction.on_commit(lambda: translate_model_fields.delay(get_model_name(DrefSummary), summary_instance.pk))
+        return True
+    except Exception:
+        summary_instance.status = DrefSummary.SummaryStatus.FAILED
+        summary_instance.save()
+        logger.warning(f"DREF summary generation failed for DREF ({dref_id})", exc_info=True)
+        return False
 
 
 @shared_task

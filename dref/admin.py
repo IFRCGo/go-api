@@ -1,4 +1,4 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from reversion_compare.admin import CompareVersionAdmin
 
 from lang.admin import TranslationAdmin, TranslationInlineModelAdmin
@@ -16,6 +16,7 @@ from .models import (
     RiskSecurity,
     SourceInformation,
 )
+from .tasks import generate_dref_summary
 
 
 class ReadOnlyMixin:
@@ -131,13 +132,13 @@ class DrefSummaryInline(admin.StackedInline, TranslationInlineModelAdmin):
     extra = 0
     readonly_fields = (
         "status",
-        "prompt_hash",
+        "source_hash",
         "created_at",
         "updated_at",
     )
     fields = (
         "status",
-        "prompt_hash",
+        "source_hash",
         "situational_overview",
         "operational_strategy",
         "people_centered_approach",
@@ -337,15 +338,16 @@ class ProposedActionAdmin(ReadOnlyMixin, admin.ModelAdmin):
 
 @admin.register(DrefSummary)
 class DrefSummaryAdmin(TranslationAdmin, admin.ModelAdmin):
-    list_display = ("dref", "status", "created_at", "updated_at")
+    list_display = ("dref", "status", "source_model_name", "source_id", "created_at", "updated_at")
     list_filter = ("status",)
     search_fields = ("dref__title", "dref__appeal_code")
-    readonly_fields = ("prompt_hash", "created_at", "updated_at")
+    readonly_fields = ("source_hash", "created_at", "updated_at")
     autocomplete_fields = ("dref",)
+    actions = ["regenerate_summary"]
     fields = (
         "dref",
         "status",
-        "prompt_hash",
+        "source_hash",
         "situational_overview",
         "operational_strategy",
         "people_centered_approach",
@@ -354,3 +356,20 @@ class DrefSummaryAdmin(TranslationAdmin, admin.ModelAdmin):
         "created_at",
         "updated_at",
     )
+
+    @admin.action(description="Regenerate summary for selected DREFs")
+    def regenerate_summary(self, request, queryset):
+        """Re-trigger summary generation, replaying the source the summary was last built from."""
+        for summary in queryset:
+            generate_dref_summary.delay(
+                # Fall back to the Dref itself for rows generated before the
+                # source was tracked.
+                source_model_name=summary.source_model_name or DrefSummary.SourceModel.DREF,
+                source_id=summary.source_id or summary.dref_id,
+                overwrite=True,
+            )
+        self.message_user(
+            request,
+            f"Queued summary regeneration for {queryset.count()} DREF(s).",
+            messages.SUCCESS,
+        )
