@@ -1233,6 +1233,10 @@ class DrefOperationalUpdate(models.Model):
     source_information = models.ManyToManyField(SourceInformation, blank=True, verbose_name=_("Source Information"))
     __budget_file_id = None
 
+    # TYPING
+    id: int
+    budget_file_id: int | None
+
     class Meta:
         verbose_name = _("Dref Operational Update")
         verbose_name_plural = _("Dref Operational Updates")
@@ -1710,6 +1714,11 @@ class DrefSummary(models.Model):
         SUCCESS = 300, _("Success")
         FAILED = 400, _("Failed")
 
+    class SourceModel(models.IntegerChoices):
+        DREF = 100, _("Dref")
+        DREF_OPERATIONAL_UPDATE = 200, _("Dref Operational Update")
+        DREF_FINAL_REPORT = 300, _("Dref Final Report")
+
     dref = models.OneToOneField(
         Dref,
         on_delete=models.CASCADE,
@@ -1719,7 +1728,18 @@ class DrefSummary(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    prompt_hash = models.CharField(
+    # The source document the summary was last generated from. Stored so a
+    # retrigger (e.g. from the admin) can replay the same source instead of
+    # re-resolving the latest approved document.
+    source_model_name = models.IntegerField(
+        verbose_name=_("source model name"),
+        choices=SourceModel.choices,
+    )
+    source_id = models.PositiveBigIntegerField(
+        verbose_name=_("source id"),
+    )
+
+    source_hash = models.CharField(
         max_length=64,
         unique=True,
     )
