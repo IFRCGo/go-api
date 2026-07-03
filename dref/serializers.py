@@ -2429,16 +2429,21 @@ class EmergencyDrefOperationalUpdateSerializer(serializers.ModelSerializer):
 
 
 class DrefSummarySerializer(ModelSerializer):
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+
     class Meta:
         model = DrefSummary
         fields = (
             "id",
             "status",
+            "status_display",
             "situational_overview",
             "operational_strategy",
             "people_centered_approach",
             "challenges_identified",
             "lessons_learned",
+            "created_at",
+            "updated_at",
         )
 
 
