@@ -1233,6 +1233,10 @@ class DrefOperationalUpdate(models.Model):
     source_information = models.ManyToManyField(SourceInformation, blank=True, verbose_name=_("Source Information"))
     __budget_file_id = None
 
+    # TYPING
+    id: int
+    budget_file_id: int | None
+
     class Meta:
         verbose_name = _("Dref Operational Update")
         verbose_name_plural = _("Dref Operational Updates")
