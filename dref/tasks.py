@@ -2,6 +2,7 @@ import logging
 
 from celery import shared_task
 from django.apps import apps
+from django.db import transaction
 from django.template.loader import render_to_string
 
 from api.utils import get_model_name
@@ -126,6 +127,8 @@ def generate_dref_summary(source_model_name, source_id, overwrite=False):
     summary_instance.source_hash = source_hash
     summary_instance.source_model_name = source_model_name
     summary_instance.source_id = source_id
+    summary_instance.status = DrefSummary.SummaryStatus.PROCESSING
+    summary_instance.save()
 
     try:
         logger.info(f"Generating DREF summaries for DREF ({dref_id}) from ({source_model_name}) ({source_id})")
@@ -133,12 +136,9 @@ def generate_dref_summary(source_model_name, source_id, overwrite=False):
         for field_name, value in results.items():
             setattr(summary_instance, field_name, value)
         summary_instance.status = DrefSummary.SummaryStatus.SUCCESS
-        # Generated summaries are always English; set the source language explicitly.
-        summary_instance.translation_module_original_language = "en"
         summary_instance.save()
         logger.info(f"Successfully generated DREF summaries for DREF ({dref_id})")
-        # Trigger translation eagerly since the summary is not saved through a serializer.
-        translate_model_fields.delay(get_model_name(DrefSummary), summary_instance.pk)
+        transaction.on_commit(lambda: translate_model_fields.delay(get_model_name(DrefSummary), summary_instance.pk))
         return True
     except Exception:
         summary_instance.status = DrefSummary.SummaryStatus.FAILED
