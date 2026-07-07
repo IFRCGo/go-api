@@ -293,9 +293,15 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
 
     # Create Personnel objects
     for md in molnix_deployments:  # XXX: LOOP 3
-        if "position_id" not in md:  # changed structure §
+        person = md.get("person") or {}
+
+        # The deployment list payload usually has person.fullname but not person.sex.
+        # Fetch full deployment detail when person.sex is missing.
+        if "position_id" not in md or "sex" not in person:  # changed structure §
             md2 = molnix_api.get_deployment(md["id"])
-            md |= md2["deployment"]  # XXX: Potential issue due to mutation?
+            md.update(md2.get("deployment") or {})
+
+        person = md.get("person") or {}
         if skip_this(md["tags"]):
             warning = "Deployment id %d skipped due to No-GO" % md["id"]
             logger.warning(warning)
@@ -343,15 +349,7 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
 
         appraisal_received = "appraisals" in md and bool(len(md["appraisals"]))
 
-        gender = None
-        try:
-            if md["person"] and "sex" in md["person"]:
-                gender = md["person"]["sex"]
-        except Exception:
-            warning = "Did not find gender info in %d" % md["id"]
-            logger.warning(warning)
-            warnings.append(warning)
-            continue
+        gender = person.get("sex") or None
 
         location = None
         try:
@@ -380,7 +378,7 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
         personnel.type = Personnel.TypeChoices.RR
         personnel.start_date = get_datetime(md["start"])
         personnel.end_date = get_datetime(md["end"])
-        personnel.name = md["person"]["fullname"]
+        personnel.name = person.get("fullname")
         personnel.role = md["title"]
         country_to = get_go_country(countries, md["country_id"])
         if not country_to:
