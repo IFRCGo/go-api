@@ -5,15 +5,14 @@ DREF AI summary generation.
 import hashlib
 import json
 import logging
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, Union
 
 import tiktoken
-from django.conf import settings
-from django.utils.functional import cached_property
-from openai import AzureOpenAI
+from django.db.models import F
 
 from api.utils import get_model_name
-from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
+from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate, DrefSummary
+from main.llm import get_dref_summary_llm_client
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +20,16 @@ ENCODING_NAME = "cl100k_base"
 
 MAX_OUTPUT_CHARS_PER_FIELD = 1500
 MAX_INPUT_TOKENS = 10000
+
+
+# The models a DrefSummary can be generated from.
+DrefSummarySource = Union[Dref, DrefOperationalUpdate, DrefFinalReport]
+
+SOURCE_BY_MODEL: Dict[type, DrefSummary.SourceModel] = {
+    Dref: DrefSummary.SourceModel.DREF,
+    DrefOperationalUpdate: DrefSummary.SourceModel.DREF_OPERATIONAL_UPDATE,
+    DrefFinalReport: DrefSummary.SourceModel.DREF_FINAL_REPORT,
+}
 
 # DrefSummary fields — order is the iteration order for prompt assembly.
 SUMMARY_FIELDS: List[str] = [
@@ -121,28 +130,6 @@ GLOBAL_PROMPT = (
 )
 
 
-class DrefSummaryLLMClient:
-    @cached_property
-    def client(self):
-        return AzureOpenAI(
-            azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-            api_key=settings.AZURE_OPENAI_KEY,
-            api_version="2023-05-15",
-        )
-
-    def get_response(self, messages) -> Optional[str]:
-        try:
-            response = self.client.chat.completions.create(
-                model=settings.AZURE_OPENAI_DEPLOYMENT_NAME,
-                messages=messages,
-                temperature=0.5,
-            )
-            return response.choices[0].message.content
-        except Exception as e:
-            logger.error(f"Error while generating DREF summary response: {e}", exc_info=True)
-            return None
-
-
 def count_tokens(text: str) -> int:
     try:
         return len(tiktoken.get_encoding(ENCODING_NAME).encode(text))
@@ -184,8 +171,8 @@ DEMOGRAPHIC_FIELDS: List[str] = ["women", "men", "girls", "boys"]
 class DrefSummaryGenerator:
     """Assembles per-section prompts from a source document and produces all summaries."""
 
-    def __init__(self, client: Optional[DrefSummaryLLMClient] = None):
-        self.client = client or DrefSummaryLLMClient()
+    def __init__(self):
+        self.client = get_dref_summary_llm_client()
 
     # Shared helpers — called by multiple extractors
 
@@ -302,8 +289,13 @@ class DrefSummaryGenerator:
         return kwargs
 
     @classmethod
-    def _get_section_kwargs(cls, source_doc) -> Dict[str, dict]:
-        """Dispatch to the model-specific extractor."""
+    def get_section_kwargs(cls, source_doc: DrefSummarySource) -> Dict[str, dict]:
+        """Dispatch to the model-specific extractor.
+
+        Public so callers that need both the hash and the generated summary
+        for the same ``source_doc`` (see ``compute_source_hash``/``generate_all``)
+        can compute this once and pass it to both instead of extracting twice.
+        """
         if isinstance(source_doc, Dref):
             return cls._extract_dref_kwargs(source_doc)
         if isinstance(source_doc, DrefOperationalUpdate):
@@ -312,16 +304,47 @@ class DrefSummaryGenerator:
             return cls._extract_dref_final_kwargs(source_doc)
         return {}
 
-    @classmethod
-    def build_source_text(cls, source_doc) -> str:
-        """JSON representation of all section kwargs for inspection and debugging."""
-        return json.dumps(cls._get_section_kwargs(source_doc), indent=2, ensure_ascii=False, default=str)
+    @staticmethod
+    def get_latest_approved_source(dref: Dref) -> Optional[tuple[DrefSummary.SourceModel, DrefSummarySource]]:
+        """Most authoritative (source, source object) pair for ``dref``.
+
+        Priority: Final Report > latest Operational Update > Dref itself.
+        """
+        final_report = (
+            DrefFinalReport.objects.select_related("country", "disaster_type")
+            .filter(dref=dref, status=Dref.Status.APPROVED)
+            .order_by("-created_at")
+            .first()
+        )
+        if final_report:
+            return SOURCE_BY_MODEL[DrefFinalReport], final_report
+
+        latest_ops_update = (
+            DrefOperationalUpdate.objects.select_related("country", "disaster_type")
+            .filter(dref=dref, status=Dref.Status.APPROVED)
+            .order_by(F("operational_update_number").desc(nulls_last=True), "-created_at")
+            .first()
+        )
+        if latest_ops_update:
+            return SOURCE_BY_MODEL[DrefOperationalUpdate], latest_ops_update
+
+        if dref.status == Dref.Status.APPROVED:
+            return SOURCE_BY_MODEL[Dref], dref
+
+        return None
 
     @classmethod
-    def compute_source_hash(cls, source_doc) -> str:
+    def build_source_text(cls, source_doc: DrefSummarySource) -> str:
+        """JSON representation of all section kwargs for inspection and debugging."""
+        return json.dumps(cls.get_section_kwargs(source_doc), indent=2, ensure_ascii=False, default=str)
+
+    @classmethod
+    def compute_source_hash(cls, source_doc: DrefSummarySource, section_kwargs: Optional[Dict[str, dict]] = None) -> str:
         """Hash of all source content feeding the summary, for change detection."""
         model_label = get_model_name(type(source_doc))
-        payload = {"model": model_label, "id": source_doc.id, "source": cls._get_section_kwargs(source_doc)}
+        if section_kwargs is None:
+            section_kwargs = cls.get_section_kwargs(source_doc)
+        payload = {"model": model_label, "id": source_doc.id, "source": section_kwargs}
         content = json.dumps(payload, sort_keys=True, ensure_ascii=False, default=str)
         return hashlib.sha256(content.encode("utf-8")).hexdigest()
 
@@ -337,16 +360,19 @@ class DrefSummaryGenerator:
             raise ValueError("Expected a JSON object of summary fields")
         return data
 
-    def generate_all(self, source_doc) -> Dict[str, str]:
+    def generate_all(self, source_doc: DrefSummarySource, section_kwargs: Optional[Dict[str, dict]] = None) -> Dict[str, str]:
         """Generate every summary for ``source_doc`` in a single LLM call.
 
         Always returns a value for every ``SUMMARY_FIELDS`` key (empty string
         when a section has no content), so callers overwrite stale values
-        instead of leaving them in place on regeneration.
+        instead of leaving them in place on regeneration. ``section_kwargs``
+        can be passed in by a caller that already computed it (e.g. via
+        ``compute_source_hash``) to avoid re-extracting it from ``source_doc``.
         """
         empty_results: Dict[str, str] = {field_name: "" for field_name in SUMMARY_FIELDS}
 
-        section_kwargs = self._get_section_kwargs(source_doc)
+        if section_kwargs is None:
+            section_kwargs = self.get_section_kwargs(source_doc)
         if not section_kwargs:
             logger.info(f"No source content for ({type(source_doc).__name__}) ({source_doc.id}) summary; skipping generation.")
             return empty_results

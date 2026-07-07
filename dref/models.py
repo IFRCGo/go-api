@@ -1661,6 +1661,9 @@ class DrefFinalReport(models.Model):
     )
     __financial_report_id = None
 
+    # TYPING
+    id: int
+
     class Meta:
         verbose_name = _("Dref Final Report")
         verbose_name_plural = _("Dref Final Reports")
@@ -1728,11 +1731,9 @@ class DrefSummary(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    # The source document the summary was last generated from. Stored so a
-    # retrigger (e.g. from the admin) can replay the same source instead of
-    # re-resolving the latest approved document.
-    source_model_name = models.IntegerField(
-        verbose_name=_("source model name"),
+    source = models.IntegerField(
+        verbose_name=_("source"),
+        help_text=_("The model this summary was generated from."),
         choices=SourceModel.choices,
     )
     source_id = models.PositiveBigIntegerField(
