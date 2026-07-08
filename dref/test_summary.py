@@ -29,7 +29,7 @@ class DrefSummaryLLMClientTest(TestCase):
         TESTING=False,
         USE_DUMMY_LLM_CLIENT=False,
         AZURE_OPENAI_ENDPOINT="https://example.com",
-        AZURE_OPENAI_KEY="fake-key",
+        AZURE_OPENAI_API_KEY="fake-key",
         AZURE_OPENAI_DEPLOYMENT_NAME="fake-deployment",
     )
     def test_uses_real_client_when_flag_off_and_not_testing(self):
