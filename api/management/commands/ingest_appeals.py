@@ -131,7 +131,7 @@ class Command(BaseCommand):
 
             # get latest APPEALS
             logger.info("Querying appeals API for new appeals data")
-            url = "https://go-api.ifrc.org/api/appeals"  # DEBUG: can append filter &app_code=MDRDJ003
+            url = "https://go-api.ifrc.org/api/appealsD365"  # DEBUG: can append filter &app_code=MDRDJ003
             params = {"App_startDate": "2023-07-01|2100-01-01"}
             # try 3 times to reach the API
             try:
