@@ -164,23 +164,27 @@ def generate_dref_summary(dref_id: int, overwrite: bool = False) -> DrefSummaryG
     try:
         logger.info(f"Generating DREF summaries for DREF ({dref_id}) from ({source_type.label}) ({source_obj.id})")
         results = DrefSummaryGenerator().generate_all(source_obj, section_kwargs=section_kwargs)
-        updated = DrefSummary.objects.filter(**own_marker).update(
-            status=DrefSummary.SummaryStatus.SUCCESS, updated_at=timezone.now(), **results
-        )
-        if not updated:
-            logger.warning(f"DREF summary run for DREF ({dref_id}) was superseded by a newer trigger; discarding result.")
-            return DrefSummaryGenerationResult.SUPERSEDED
+        with transaction.atomic():
+            latest_summary_instance = DrefSummary.objects.select_for_update().filter(**own_marker).first()
+            if latest_summary_instance is None:
+                logger.warning(f"DREF summary run for DREF ({dref_id}) was superseded by a newer trigger; discarding result.")
+                return DrefSummaryGenerationResult.SUPERSEDED
+            for field_name, value in results.items():
+                setattr(latest_summary_instance, field_name, value)
+            latest_summary_instance.status = DrefSummary.SummaryStatus.SUCCESS
+            latest_summary_instance.save()
         logger.info(f"Successfully generated DREF summaries for DREF ({dref_id})")
-        transaction.on_commit(lambda: translate_model_fields.delay(get_model_name(DrefSummary), summary_instance.pk))
+        transaction.on_commit(lambda: translate_model_fields.delay(get_model_name(DrefSummary), latest_summary_instance.pk))
         return DrefSummaryGenerationResult.SUCCESS
     except Exception:
-        updated = DrefSummary.objects.filter(**own_marker).update(
-            status=DrefSummary.SummaryStatus.FAILED, updated_at=timezone.now()
-        )
-        if not updated:
-            logger.warning(f"DREF summary run for DREF ({dref_id}) failed but was already superseded; leaving it as is.")
-        else:
-            logger.warning(f"DREF summary generation failed for DREF ({dref_id})", exc_info=True)
+        with transaction.atomic():
+            latest_summary_instance = DrefSummary.objects.select_for_update().filter(**own_marker).first()
+            if latest_summary_instance is None:
+                logger.warning(f"DREF summary run for DREF ({dref_id}) failed but was already superseded; leaving it as is.")
+            else:
+                latest_summary_instance.status = DrefSummary.SummaryStatus.FAILED
+                latest_summary_instance.save()
+                logger.warning(f"DREF summary generation failed for DREF ({dref_id})", exc_info=True)
         return DrefSummaryGenerationResult.FAILED
 
 
