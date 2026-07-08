@@ -47,14 +47,14 @@ class AzureOpenAiChat(BaseLLMClient):
             # Tests never hit Azure, so a missing/placeholder config shouldn't fail construction.
             return
 
-        if not settings.AZURE_OPENAI_ENDPOINT or not settings.AZURE_OPENAI_KEY or not settings.AZURE_OPENAI_DEPLOYMENT_NAME:
+        if not settings.AZURE_OPENAI_ENDPOINT or not settings.AZURE_OPENAI_API_KEY or not settings.AZURE_OPENAI_DEPLOYMENT_NAME:
             raise Exception("Azure OpenAI configuration missing")
 
     @cached_property
     def client(self):
         return AzureOpenAI(
             azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-            api_key=settings.AZURE_OPENAI_KEY,
+            api_key=settings.AZURE_OPENAI_API_KEY,
             api_version="2023-05-15",
         )
 
