@@ -5,17 +5,15 @@ from itertools import chain, zip_longest
 
 import pandas as pd
 import tiktoken
-from django.conf import settings
 from django.db import transaction
 from django.db.models import F
-from django.utils.functional import cached_property
-from openai import AzureOpenAI
 
 from api.logger import logger
 from api.models import Country
 from api.utils import get_model_name
 from deployments.models import SectorTag
 from lang.tasks import translate_model_fields
+from main.llm import get_ops_learning_llm_client
 from per.cache import OpslearningSummaryCacheHelper
 from per.models import (
     FormComponent,
@@ -27,24 +25,6 @@ from per.models import (
     OpsLearningSectorCacheResponse,
     Overview,
 )
-
-
-class AzureOpenAiChat:
-
-    @cached_property
-    def client(self):
-        return AzureOpenAI(
-            azure_endpoint=settings.AZURE_OPENAI_ENDPOINT, api_key=settings.AZURE_OPENAI_KEY, api_version="2023-05-15"
-        )
-
-    def get_response(self, message):
-        try:
-            response = self.client.chat.completions.create(
-                model=settings.AZURE_OPENAI_DEPLOYMENT_NAME, messages=message, temperature=0.7
-            )
-            return response.choices[0].message.content
-        except Exception as e:
-            logger.error(f"Error while generating response: {e}", exc_info=True)
 
 
 class OpsLearningSummaryTask:
@@ -815,9 +795,9 @@ class OpsLearningSummaryTask:
                 logger.warning("The length of the prompt might be too long.")
                 return "{}"
 
-            # Using Azure OpenAI to summarize the prompt
-            client = AzureOpenAiChat()
-            response = client.get_response(message=messages)
+            # Using Azure OpenAI (or the dummy, per settings.USE_DUMMY_LLM_CLIENT) to summarize the prompt
+            client = get_ops_learning_llm_client()
+            response = client.get_response(messages)
             return response
 
         def _validate_format(summary, MAX_RETRIES=3):

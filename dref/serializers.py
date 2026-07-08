@@ -25,6 +25,7 @@ from dref.models import (
     DrefFile,
     DrefFinalReport,
     DrefOperationalUpdate,
+    DrefSummary,
     IdentifiedNeed,
     NationalSocietyAction,
     PlannedIntervention,
@@ -2427,6 +2428,25 @@ class EmergencyDrefOperationalUpdateSerializer(serializers.ModelSerializer):
         return get_dref_emergency_contacts(obj)
 
 
+class DrefSummarySerializer(ModelSerializer):
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+
+    class Meta:
+        model = DrefSummary
+        fields = (
+            "id",
+            "status",
+            "status_display",
+            "situational_overview",
+            "operational_strategy",
+            "people_centered_approach",
+            "challenges_identified",
+            "lessons_learned",
+            "created_at",
+            "updated_at",
+        )
+
+
 class EmergencyDrefSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(source="get_status_display", read_only=True)
     country_details = MiniCountrySerializer(source="country", read_only=True)
@@ -2436,6 +2456,7 @@ class EmergencyDrefSerializer(serializers.ModelSerializer):
     cover_image_file = DrefFileSerializer(source="cover_image", required=False, allow_null=True)
     disaster_type_details = DisasterTypeSerializer(source="disaster_type", read_only=True)
     type_of_dref_display = serializers.CharField(source="get_type_of_dref_display", read_only=True)
+    summary = DrefSummarySerializer(read_only=True)
 
     # Dref operational update
     operational_update_details = serializers.SerializerMethodField()
@@ -2498,6 +2519,8 @@ class EmergencyDrefSerializer(serializers.ModelSerializer):
             "timeline_operational_updates",
             # Contacts
             "dref_contacts",
+            # Summary
+            "summary",
         )
 
     @extend_schema_field(TimelineEmergencyDrefOperationalUpdateSerializer(many=True))

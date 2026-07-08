@@ -1,13 +1,14 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from reversion_compare.admin import CompareVersionAdmin
 
-from lang.admin import TranslationAdmin
+from lang.admin import TranslationAdmin, TranslationInlineModelAdmin
 
 from .models import (
     Dref,
     DrefFile,
     DrefFinalReport,
     DrefOperationalUpdate,
+    DrefSummary,
     IdentifiedNeed,
     NationalSocietyAction,
     PlannedIntervention,
@@ -15,6 +16,7 @@ from .models import (
     RiskSecurity,
     SourceInformation,
 )
+from .tasks import generate_dref_summary
 
 
 class ReadOnlyMixin:
@@ -125,8 +127,31 @@ class SourceInformationAdmin(admin.ModelAdmin):
     search_fields = ("source_name",)
 
 
+class DrefSummaryInline(admin.StackedInline, TranslationInlineModelAdmin):
+    model = DrefSummary
+    extra = 0
+    readonly_fields = (
+        "status",
+        "source_hash",
+        "created_at",
+        "updated_at",
+    )
+    fields = (
+        "status",
+        "source_hash",
+        "situational_overview",
+        "operational_strategy",
+        "people_centered_approach",
+        "challenges_identified",
+        "lessons_learned",
+        "created_at",
+        "updated_at",
+    )
+
+
 @admin.register(Dref)
 class DrefAdmin(CompareVersionAdmin, TranslationAdmin, admin.ModelAdmin):
+    inlines = [DrefSummaryInline]
     search_fields = ("title", "appeal_code")
     list_display = (
         "title",
@@ -301,3 +326,37 @@ class DrefFinalReportAdmin(CompareVersionAdmin, TranslationAdmin, admin.ModelAdm
 @admin.register(ProposedAction)
 class ProposedActionAdmin(ReadOnlyMixin, admin.ModelAdmin):
     search_fields = ["action"]
+
+
+@admin.register(DrefSummary)
+class DrefSummaryAdmin(TranslationAdmin, admin.ModelAdmin):
+    list_display = ("dref", "status", "source", "source_id", "created_at", "updated_at")
+    list_filter = ("status",)
+    search_fields = ("dref__title", "dref__appeal_code")
+    readonly_fields = ("source_hash", "created_at", "updated_at")
+    autocomplete_fields = ("dref",)
+    actions = ["regenerate_summary"]
+    fields = (
+        "dref",
+        "status",
+        "source_hash",
+        "situational_overview",
+        "operational_strategy",
+        "people_centered_approach",
+        "challenges_identified",
+        "lessons_learned",
+        "created_at",
+        "updated_at",
+    )
+
+    @admin.action(description="Regenerate summary for selected DREFs")
+    def regenerate_summary(self, request, queryset):
+        """Re-trigger summary generation from the DREF's current latest approved source."""
+        queryset.filter(status=DrefSummary.SummaryStatus.PROCESSING).update(status=DrefSummary.SummaryStatus.FAILED)
+        for summary in queryset:
+            generate_dref_summary.delay(dref_id=summary.dref_id, overwrite=True)
+        self.message_user(
+            request,
+            f"Queued summary regeneration for {queryset.count()} DREF(s).",
+            messages.SUCCESS,
+        )
