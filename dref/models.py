@@ -1233,6 +1233,10 @@ class DrefOperationalUpdate(models.Model):
     source_information = models.ManyToManyField(SourceInformation, blank=True, verbose_name=_("Source Information"))
     __budget_file_id = None
 
+    # TYPING
+    id: int
+    budget_file_id: int | None
+
     class Meta:
         verbose_name = _("Dref Operational Update")
         verbose_name_plural = _("Dref Operational Updates")
@@ -1657,6 +1661,9 @@ class DrefFinalReport(models.Model):
     )
     __financial_report_id = None
 
+    # TYPING
+    id: int
+
     class Meta:
         verbose_name = _("Dref Final Report")
         verbose_name_plural = _("Dref Final Reports")
@@ -1700,3 +1707,70 @@ class DrefFinalReport(models.Model):
         if status == Dref.Status.APPROVED:
             return queryset.filter(status=Dref.Status.APPROVED)
         return queryset
+
+
+class DrefSummary(models.Model):
+
+    class SummaryStatus(models.IntegerChoices):
+        PENDING = 100, _("Pending")
+        PROCESSING = 200, _("Processing")
+        SUCCESS = 300, _("Success")
+        FAILED = 400, _("Failed")
+
+    class SourceModel(models.IntegerChoices):
+        DREF = 100, _("Dref")
+        DREF_OPERATIONAL_UPDATE = 200, _("Dref Operational Update")
+        DREF_FINAL_REPORT = 300, _("Dref Final Report")
+
+    dref = models.OneToOneField(
+        Dref,
+        on_delete=models.CASCADE,
+        related_name="summary",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    source = models.IntegerField(
+        verbose_name=_("source"),
+        help_text=_("The model this summary was generated from."),
+        choices=SourceModel.choices,
+    )
+    source_id = models.PositiveBigIntegerField(
+        verbose_name=_("source id"),
+    )
+
+    source_hash = models.CharField(
+        max_length=64,
+        unique=True,
+    )
+
+    situational_overview = models.TextField(
+        blank=True,
+        null=True,
+    )
+
+    operational_strategy = models.TextField(
+        blank=True,
+        null=True,
+    )
+
+    people_centered_approach = models.TextField(
+        blank=True,
+        null=True,
+    )
+
+    challenges_identified = models.TextField(
+        blank=True,
+        null=True,
+    )
+
+    lessons_learned = models.TextField(
+        blank=True,
+        null=True,
+    )
+
+    status = models.IntegerField(
+        choices=SummaryStatus.choices,
+        default=SummaryStatus.PENDING,
+    )

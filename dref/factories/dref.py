@@ -9,6 +9,7 @@ from dref.models import (
     DrefFile,
     DrefFinalReport,
     DrefOperationalUpdate,
+    DrefSummary,
     IdentifiedNeed,
     NationalSocietyAction,
     PlannedIntervention,
@@ -198,3 +199,19 @@ class ProposedActionFactory(factory.django.DjangoModelFactory):
         model = ProposedAction
 
     proposed_type = fuzzy.FuzzyChoice(ProposedAction.Action)
+
+
+class DrefSummaryFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = DrefSummary
+
+    dref = factory.SubFactory(DrefFactory)
+    source_hash = factory.Sequence(lambda n: f"{n:064d}")
+    source = DrefSummary.SourceModel.DREF
+    source_id = factory.SelfAttribute("dref.id")
+    status = DrefSummary.SummaryStatus.SUCCESS
+    situational_overview = fuzzy.FuzzyText(length=100)
+    operational_strategy = fuzzy.FuzzyText(length=100)
+    people_centered_approach = fuzzy.FuzzyText(length=100)
+    challenges_identified = fuzzy.FuzzyText(length=100)
+    lessons_learned = fuzzy.FuzzyText(length=100)
