@@ -32,13 +32,7 @@ from dref.filter_set import (
     DrefOperationalUpdateFilter,
     DrefShareUserFilterSet,
 )
-from dref.models import (
-    Dref,
-    DrefFile,
-    DrefFinalReport,
-    DrefOperationalUpdate,
-    DrefSummary,
-)
+from dref.models import Dref, DrefFile, DrefFinalReport, DrefOperationalUpdate
 from dref.permissions import ApproveDrefPermission
 from dref.serializers import (
     AddDrefUserSerializer,
@@ -143,11 +137,7 @@ class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
 
         dref.status = Dref.Status.APPROVED
         dref.save(update_fields=["event", "status"])
-        _dref_id = dref.id
-        transaction.on_commit(
-            lambda: generate_dref_summary.delay(source_model_name=DrefSummary.SourceModel.DREF, source_id=_dref_id)
-        )
-
+        transaction.on_commit(lambda: generate_dref_summary.delay(dref_id=dref.id))
         return response.Response(DrefSerializer(dref, context={"request": request}).data)
 
     @extend_schema(request=None, responses=DrefSerializer)
@@ -244,14 +234,7 @@ class DrefOperationalUpdateViewSet(RevisionMixin, viewsets.ModelViewSet):
         operational_update.status = Dref.Status.APPROVED
         operational_update.date_of_approval = timezone.now().date()
         operational_update.save(update_fields=["status", "date_of_approval"])
-        _ops_update_id = operational_update.pk
-        transaction.on_commit(
-            lambda: generate_dref_summary.delay(
-                source_model_name=DrefSummary.SourceModel.DREF_OPERATIONAL_UPDATE,
-                source_id=_ops_update_id,
-                overwrite=True,
-            )
-        )
+        transaction.on_commit(lambda: generate_dref_summary.delay(dref_id=operational_update.dref_id))
         serializer = DrefOperationalUpdateSerializer(operational_update, context={"request": request})
         return response.Response(serializer.data)
 
@@ -320,14 +303,7 @@ class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
         final_report.dref.is_active = False
         final_report.date_of_approval = timezone.now().date()
         final_report.dref.save(update_fields=["is_active", "date_of_approval"])
-        _final_report_id = final_report.pk
-        transaction.on_commit(
-            lambda: generate_dref_summary.delay(
-                source_model_name=DrefSummary.SourceModel.DREF_FINAL_REPORT,
-                source_id=_final_report_id,
-                overwrite=True,
-            )
-        )
+        transaction.on_commit(lambda: generate_dref_summary.delay(dref_id=final_report.dref_id))
         serializer = DrefFinalReportSerializer(final_report, context={"request": request})
         return response.Response(serializer.data)
 

@@ -338,7 +338,7 @@ class ProposedActionAdmin(ReadOnlyMixin, admin.ModelAdmin):
 
 @admin.register(DrefSummary)
 class DrefSummaryAdmin(TranslationAdmin, admin.ModelAdmin):
-    list_display = ("dref", "status", "source_model_name", "source_id", "created_at", "updated_at")
+    list_display = ("dref", "status", "source", "source_id", "created_at", "updated_at")
     list_filter = ("status",)
     search_fields = ("dref__title", "dref__appeal_code")
     readonly_fields = ("source_hash", "created_at", "updated_at")
@@ -359,15 +359,10 @@ class DrefSummaryAdmin(TranslationAdmin, admin.ModelAdmin):
 
     @admin.action(description="Regenerate summary for selected DREFs")
     def regenerate_summary(self, request, queryset):
-        """Re-trigger summary generation, replaying the source the summary was last built from."""
+        """Re-trigger summary generation from the DREF's current latest approved source."""
+        queryset.filter(status=DrefSummary.SummaryStatus.PROCESSING).update(status=DrefSummary.SummaryStatus.FAILED)
         for summary in queryset:
-            generate_dref_summary.delay(
-                # Fall back to the Dref itself for rows generated before the
-                # source was tracked.
-                source_model_name=summary.source_model_name or DrefSummary.SourceModel.DREF,
-                source_id=summary.source_id or summary.dref_id,
-                overwrite=True,
-            )
+            generate_dref_summary.delay(dref_id=summary.dref_id, overwrite=True)
         self.message_user(
             request,
             f"Queued summary regeneration for {queryset.count()} DREF(s).",

@@ -705,6 +705,9 @@ class OpsLearning(models.Model):
     modified_at = models.DateTimeField(verbose_name=_("modified_at"), auto_now=True)
     created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
 
+    # TYPING
+    id: int
+
     class Meta:
         ordering = ("learning",)
         verbose_name = _("Operational Learning")

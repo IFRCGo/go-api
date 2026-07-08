@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('source_model_name', models.IntegerField(choices=[(100, 'Dref'), (200, 'Dref Operational Update'), (300, 'Dref Final Report')], verbose_name='source model name')),
+                ('source', models.IntegerField(choices=[(100, 'Dref'), (200, 'Dref Operational Update'), (300, 'Dref Final Report')], help_text='The model this summary was generated from.', verbose_name='source')),
                 ('source_id', models.PositiveBigIntegerField(verbose_name='source id')),
                 ('source_hash', models.CharField(max_length=64, unique=True)),
                 ('situational_overview', models.TextField(blank=True, null=True)),
