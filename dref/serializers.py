@@ -2326,6 +2326,7 @@ class EmergencyDrefContactSerializer(serializers.Serializer):
 # It is designed to provide the necessary data for the emergency page in a format that is easy to consume and display.
 class EmergencyDrefFinalReportSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(source="get_status_display", read_only=True)
+    disaster_category_display = serializers.CharField(source="get_disaster_category_display", read_only=True)
     country_details = MiniCountrySerializer(source="country", read_only=True)
     district_details = MiniDistrictSerializer(source="district", read_only=True, many=True)
     planned_interventions = PlannedInterventionSerializer(many=True, read_only=True)
@@ -2343,6 +2344,8 @@ class EmergencyDrefFinalReportSerializer(serializers.ModelSerializer):
             "cover_image_file",
             "status",
             "status_display",
+            "disaster_category",
+            "disaster_category_display",
             "event_scope",
             "event_description",
             "event_date",
@@ -2402,6 +2405,7 @@ class TimelineEmergencyDrefOperationalUpdateSerializer(serializers.ModelSerializ
 
 class EmergencyDrefOperationalUpdateSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(source="get_status_display", read_only=True)
+    disaster_category_display = serializers.CharField(source="get_disaster_category_display", read_only=True)
     country_details = MiniCountrySerializer(source="country", read_only=True)
     district_details = MiniDistrictSerializer(source="district", read_only=True, many=True)
     planned_interventions = PlannedInterventionSerializer(many=True, read_only=True)
@@ -2418,6 +2422,8 @@ class EmergencyDrefOperationalUpdateSerializer(serializers.ModelSerializer):
             "cover_image_file",
             "status",
             "status_display",
+            "disaster_category",
+            "disaster_category_display",
             "event_scope",
             "event_description",
             "operational_update_number",
@@ -2473,6 +2479,7 @@ class DrefSummarySerializer(ModelSerializer):
 
 class EmergencyDrefSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(source="get_status_display", read_only=True)
+    disaster_category_display = serializers.CharField(source="get_disaster_category_display", read_only=True)
     country_details = MiniCountrySerializer(source="country", read_only=True)
     district_details = MiniDistrictSerializer(source="district", read_only=True, many=True)
     planned_interventions = PlannedInterventionSerializer(many=True, read_only=True)
@@ -2499,6 +2506,8 @@ class EmergencyDrefSerializer(serializers.ModelSerializer):
             "title",
             "type_of_dref",
             "type_of_dref_display",
+            "disaster_category",
+            "disaster_category_display",
             "disaster_type_details",
             "cover_image_file",
             "event_description",
