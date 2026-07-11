@@ -456,6 +456,27 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
     return messages, warnings, successful_creates
 
 
+def apply_molnix_position_to_surge_alert(go_alert, position, country=None, event=None):
+    """
+    Sync SurgeAlert fields from a Molnix position (#2454).
+    Updates status even when GO event mapping fails, to avoid stale OPEN alerts.
+    """
+    if event is not None:
+        go_alert.event = event
+    go_alert.atype = SurgeAlertType.RAPID_RESPONSE
+    go_alert.category = SurgeAlertCategory.ALERT
+    go_alert.molnix_id = position["id"]
+    go_alert.message = position["name"]
+    go_alert.molnix_status = SurgeAlert.parse_molnix_status(position["status"])
+    go_alert.country = country
+    go_alert.opens = get_datetime(position["opens"])
+    go_alert.closes = get_datetime(position["closes"])
+    go_alert.start = get_datetime(position["start"])
+    go_alert.end = get_datetime(position["end"])
+    go_alert.save()
+    add_tags_to_obj(go_alert, position["tags"])
+
+
 def sync_open_positions(molnix_positions, molnix_api, countries):
     molnix_ids = [p["id"] for p in molnix_positions]  # XXX: Loop 1
     warnings = []
@@ -470,7 +491,6 @@ def sync_open_positions(molnix_positions, molnix_api, countries):
             logger.warning(warning)
             warnings.append(warning)
             continue
-        event = get_go_event(position["tags"])
         country = get_go_country(countries, position["country_id"])
         if not country:
             warning = "Position id %d does not have a valid Country, we import it with an empty one" % position["id"]
@@ -479,31 +499,14 @@ def sync_open_positions(molnix_positions, molnix_api, countries):
             # Do not skip these countryless positions, remove "continue" from code.
         go_alert, created = SurgeAlert.objects.get_or_create(molnix_id=position["id"])
         event = get_go_event(position["tags"])
-        if event:
-            go_alert.event = event
-            # When no Emergency (= event) found, we do not overwrite the previously (maybe) existing one
-        else:
-            if created:
-                # If no valid GO Emergency tag is found, skip Position – in case of a NEW Position.
-                warning = "Position id %d does not have a valid Emergency tag." % position["id"]
-                prt("Position does not have a valid Emergency tag", 0, position["id"])
-                logger.warning(warning)
-                warnings.append(warning)
-                continue
-        # We set all Alerts coming from Molnix to RR / Alert
-        go_alert.atype = SurgeAlertType.RAPID_RESPONSE
-        go_alert.category = SurgeAlertCategory.ALERT
-        # print(json.dumps(position, indent=2))
-        go_alert.molnix_id = position["id"]
-        go_alert.message = position["name"]
-        go_alert.molnix_status = SurgeAlert.parse_molnix_status(position["status"])
-        go_alert.country = country
-        go_alert.opens = get_datetime(position["opens"])
-        go_alert.closes = get_datetime(position["closes"])
-        go_alert.start = get_datetime(position["start"])
-        go_alert.end = get_datetime(position["end"])
-        go_alert.save()
-        add_tags_to_obj(go_alert, position["tags"])
+        if not event and created:
+            warning = "Position id %d does not have a valid Emergency tag." % position["id"]
+            prt("Position does not have a valid Emergency tag", 0, position["id"])
+            logger.warning(warning)
+            warnings.append(warning)
+            apply_molnix_position_to_surge_alert(go_alert, position, country=country, event=None)
+            continue
+        apply_molnix_position_to_surge_alert(go_alert, position, country=country, event=event)
         if created:
             successful_creates += 1
         else:
