@@ -13,6 +13,9 @@ class NarrowCSVRenderer(PaginatedCSVRenderer):
     Instead of this we would like to show these in different rows.
     Maybe there is an easier way also to achieve this.
     See also: admin.py::export_selected_records()
+
+    Used when exporting ops-learning CSV with ``?format=csv&csv_layout=narrow`` (default).
+    Use ``csv_layout=grouped`` for the standard wide/flattened CSV layout.
     """
 
     def render(self, data, *args, **kwargs):

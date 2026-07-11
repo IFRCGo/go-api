@@ -1283,6 +1283,11 @@ class OpsLearningViewset(viewsets.ModelViewSet):
     def get_renderers(self):
         serializer = self.get_serializer()
         if isinstance(serializer, OpsLearningCSVSerializer):
+            layout = self.request.GET.get("csv_layout", "narrow").lower()
+            if layout == "grouped":
+                from rest_framework_csv.renderers import PaginatedCSVRenderer
+
+                return [PaginatedCSVRenderer()]
             return [NarrowCSVRenderer()]
         return [renderer() for renderer in tuple(api_settings.DEFAULT_RENDERER_CLASSES)]
 
