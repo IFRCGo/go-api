@@ -968,16 +968,23 @@ class LocalUnitBulkUploadDetailSerializer(serializers.ModelSerializer):
     def validate(self, validated_data):
 
         if not validated_data.get("local_branch_name") and not validated_data.get("english_branch_name"):
-            raise serializers.ValidationError(gettext("Branch Name Combination is required."))
+            message = gettext("Branch Name Combination is required.")
+            raise serializers.ValidationError(
+                {
+                    "local_branch_name": message,
+                    "english_branch_name": message,
+                }
+            )
 
         # Country location validation
         latitude = validated_data.pop("latitude")
         longitude = validated_data.pop("longitude")
         if not latitude or not longitude:
-            raise serializers.ValidationError(gettext("Latitude and Longitude are required."))
+            message = gettext("Latitude and Longitude are required.")
+            raise serializers.ValidationError({"latitude": message, "longitude": message})
         country = validated_data.get("country")
         if not country:
-            raise serializers.ValidationError(gettext("Country is required."))
+            raise serializers.ValidationError({"non_field_errors": gettext("Country is required.")})
 
         input_point = Point(longitude, latitude)
         if country.bbox:
