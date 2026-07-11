@@ -28,3 +28,12 @@ repos:
     rev: 7.0.0
     hooks:
       - id: flake8
+
+  - repo: local
+    hooks:
+      - id: lint-django-migrations
+        name: Lint Django migrations
+        entry: python manage.py lint_migrations
+        language: system
+        pass_filenames: false
+        files: migrations/.*\.py$
