@@ -67,9 +67,23 @@ class AmazonTranslator(BaseTranslator):
         if settings.TESTING:
             # NOTE: Mocking for test purpose
             return self._fake_translation(text, dest_language, source_language)
-        return self._translator.translate_text(Text=text, SourceLanguageCode=source_language, TargetLanguageCode=dest_language)[
-            "TranslatedText"
-        ]
+        try:
+            return self._translator.translate_text(Text=text, SourceLanguageCode=source_language, TargetLanguageCode=dest_language)[
+                "TranslatedText"
+            ]
+        except Exception:
+            logger.warning(
+                "Amazon translation API error for %s>%s",
+                source_language,
+                dest_language,
+                extra={
+                    "text_length": len(text),
+                    "dest_language": dest_language,
+                    "source_language": source_language,
+                },
+                exc_info=True,
+            )
+            return None
 
 
 class IfrcTranslator(BaseTranslator):
@@ -110,98 +124,142 @@ class IfrcTranslator(BaseTranslator):
             truncate_here += len(tag)
         return truncate_here
 
-    def translate_text(self, text, dest_language, source_language=None, table_field=""):
-        if settings.TESTING:
-            # NOTE: Mocking for test purpose
-            return self._fake_translation(text, dest_language, source_language)
+    @classmethod
+    def split_text_for_translation(cls, text, limit):
+        """Split at HTML boundaries when possible; hard-split as last resort."""
+        if len(text) <= limit:
+            return text, ""
 
-        global IFRC_TRANSLATION_CALL_COUNT
+        truncate_here = cls.find_last_slashtable(text, limit)
+        if truncate_here == -1:
+            truncate_here = cls.find_last_slashp(text, limit)
+        if truncate_here == -1:
+            truncate_here = limit
 
-        # A workaround to handle oversized HTML+CSS texts, usually tables:
-        textTail = ""
-        if len(text) > settings.AZURE_TRANSL_LIMIT:
-            truncate_here = self.find_last_slashtable(text, settings.AZURE_TRANSL_LIMIT)
-            if truncate_here != -1:
-                textTail = text[truncate_here:]
-                text = text[:truncate_here]
-            else:
-                truncate_here = self.find_last_slashp(text, settings.AZURE_TRANSL_LIMIT)
-                if truncate_here != -1:
-                    textTail = text[truncate_here:]
-                    text = text[:truncate_here]
-                else:
-                    textTail = text[settings.AZURE_TRANSL_LIMIT :]
-                    text = text[: settings.AZURE_TRANSL_LIMIT]
+        return text[:truncate_here], text[truncate_here:]
 
+    def _call_ifrc_api(self, text, dest_language, source_language, table_field):
         payload = {
             "text": text,
             "from": source_language,
             "to": dest_language,
         }
         if self.is_text_html(text):
-            # NOTE: Sending 'text' throws 500 from IFRC translation endpoint
-            # So only sending if html
             payload["textType"] = "html"
 
-        # Try cache at first (for shorter texts)
-        use_cache = len(text) < 300
-
-        if use_cache:
-            text_hash = sha256_hash(text)
-            cache = TranslationCache.objects.filter(
-                text_hash=text_hash,
-                source_language=source_language or "",  # source_language can be "detected"
-                dest_language=dest_language,
-            ).first()
-            if cache:
-                cache_other_fields = cache.table_field != table_field
-                TranslationCache.objects.filter(id=cache.pk).update(
-                    last_used=timezone.now(),
-                    num_calls=F("num_calls") + 1,
-                    other_fields=Case(
-                        When(other_fields=True, then=Value(True)),
-                        default=Value(cache_other_fields),
-                        output_field=BooleanField(),
-                    ),
-                )
-                logger.info(
-                    f"Translation cache hit, {source_language}>{dest_language} {table_field} – {cache.num_calls}: {text[:30]}... "
-                )
-                return cache.translated_text
-
         with IFRC_TRANSLATION_CALL_LOCK:
+            global IFRC_TRANSLATION_CALL_COUNT
             IFRC_TRANSLATION_CALL_COUNT += 1
             logger.info(f"IFRC translation API call count: {IFRC_TRANSLATION_CALL_COUNT}")
-        logger.info(f"IFRC translation API call – {source_language}>{dest_language} – {table_field}: {text[:30]}... ")
+        logger.info(
+            "IFRC translation API call – %s>%s – %s (len=%d): %s...",
+            source_language,
+            dest_language,
+            table_field,
+            len(text),
+            text[:30],
+        )
         response = requests.post(
             self.url,
             headers=self.headers,
             json=payload,
         )
 
-        # Not using == 200 – it would break tests with MagicMock name=requests.post() results
-        if response.status_code != 500:
-            translated = response.json()[0]["translations"][0]["text"]
+        if response.status_code >= 400:
+            logger.warning(
+                "IFRC translation API error for %s>%s %s",
+                source_language,
+                dest_language,
+                table_field,
+                extra={
+                    "status_code": response.status_code,
+                    "text_length": len(text),
+                    "dest_language": dest_language,
+                    "source_language": source_language,
+                    "table_field": table_field,
+                },
+            )
+            return None
 
-            # Cache the translation if original text was short enough
-            if use_cache:
-                obj, created = TranslationCache.objects.get_or_create(
-                    text=text,
-                    text_hash=text_hash,
-                    source_language=source_language or "",  # source_language can be "detected"
-                    dest_language=dest_language,
-                    defaults={
-                        "translated_text": translated,
-                        "table_field": table_field or "",
-                        "last_used": timezone.now(),
-                    },
-                )
-                if not created:
-                    TranslationCache.objects.filter(pk=obj.pk).update(
-                        last_used=timezone.now(),
-                        num_calls=F("num_calls") + 1,
-                    )
-            return translated + textTail
+        return response.json()[0]["translations"][0]["text"]
+
+    def _translate_with_cache(self, text, dest_language, source_language, table_field):
+        use_cache = len(text) < 300
+        if not use_cache:
+            return self._call_ifrc_api(text, dest_language, source_language, table_field)
+
+        text_hash = sha256_hash(text)
+        cache = TranslationCache.objects.filter(
+            text_hash=text_hash,
+            source_language=source_language or "",
+            dest_language=dest_language,
+        ).first()
+        if cache:
+            cache_other_fields = cache.table_field != table_field
+            TranslationCache.objects.filter(id=cache.pk).update(
+                last_used=timezone.now(),
+                num_calls=F("num_calls") + 1,
+                other_fields=Case(
+                    When(other_fields=True, then=Value(True)),
+                    default=Value(cache_other_fields),
+                    output_field=BooleanField(),
+                ),
+            )
+            logger.info(
+                f"Translation cache hit, {source_language}>{dest_language} {table_field} – {cache.num_calls}: {text[:30]}... "
+            )
+            return cache.translated_text
+
+        translated = self._call_ifrc_api(text, dest_language, source_language, table_field)
+        if translated is None:
+            return None
+
+        obj, created = TranslationCache.objects.get_or_create(
+            text=text,
+            text_hash=text_hash,
+            source_language=source_language or "",
+            dest_language=dest_language,
+            defaults={
+                "translated_text": translated,
+                "table_field": table_field or "",
+                "last_used": timezone.now(),
+            },
+        )
+        if not created:
+            TranslationCache.objects.filter(pk=obj.pk).update(
+                last_used=timezone.now(),
+                num_calls=F("num_calls") + 1,
+            )
+        return translated
+
+    def translate_text(self, text, dest_language, source_language=None, table_field=""):
+        if settings.TESTING:
+            return self._fake_translation(text, dest_language, source_language)
+
+        if not text:
+            return text
+
+        original_length = len(text)
+        head, tail = self.split_text_for_translation(text, settings.AZURE_TRANSL_LIMIT)
+        translated_head = self._translate_with_cache(head, dest_language, source_language, table_field)
+        if translated_head is None:
+            return None
+
+        if not tail:
+            return translated_head
+
+        translated_tail = self.translate_text(tail, dest_language, source_language, table_field)
+        if translated_tail is None:
+            logger.warning(
+                "IFRC translation stopped after partial chunk for %s>%s %s",
+                source_language,
+                dest_language,
+                table_field,
+                extra={"original_text_length": original_length, "translated_head_length": len(translated_head)},
+            )
+            return None
+
+        return translated_head + translated_tail
 
     def get_cached_translations(self, text, dest_languages, source_language=None, table_field=""):
         if not dest_languages or len(text) >= 300:
@@ -218,11 +276,11 @@ class IfrcTranslator(BaseTranslator):
         if not cache_by_lang:
             return {}
         cache_ids = [cache.id for cache in cache_by_lang.values()]
-        TranslationCache.objects.filter(id__in=cache_ids).update(
+        TranslationCache.objects.filter(id=cache_ids).update(
             last_used=timezone.now(),
             num_calls=F("num_calls") + 1,
         )
-        TranslationCache.objects.filter(id__in=cache_ids, other_fields=False).exclude(table_field=table_field).update(
+        TranslationCache.objects.filter(id=cache_ids, other_fields=False).exclude(table_field=table_field).update(
             other_fields=True,
         )
         return {lang: cache.translated_text for lang, cache in cache_by_lang.items()}
