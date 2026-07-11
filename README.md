@@ -110,6 +110,10 @@ python manage.py translate_model
 
 Please read [TESTING.md](./TESTING.md) for guidance on writing and executing tests.
 
+## Contributing
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for setup, code style, pre-commit, tests, and pull request guidelines.
+
 ## Documentation
 
 Identify the function/class to modify from [main/urls.py](main/urls.py).
