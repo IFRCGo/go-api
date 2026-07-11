@@ -426,3 +426,38 @@ class OpsLearningCoverageTestCase(APITestCase):
 
         self.assertEqual(result_by_appeal[self.appeal1.code]["counts"], 2)
         self.assertEqual(result_by_appeal[self.appeal1.code]["tagging_status"], "in_progress")
+
+
+class OpsLearningValidationTestCase(APITestCase):
+    def setUp(self):
+        super().setUp()
+        management.call_command("make_permissions")
+        self.sector = SectorTagFactory.create()
+
+    def test_rejects_validated_fields_when_not_validated(self):
+        self.authenticate(self.ifrc_user)
+        response = self.client.post(
+            "/api/v2/ops-learning/",
+            {
+                "learning": "Draft lesson",
+                "is_validated": False,
+                "sector_validated": [self.sector.id],
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("sector_validated", response.data)
+
+    def test_allows_validated_fields_when_is_validated(self):
+        self.authenticate(self.ifrc_user)
+        response = self.client.post(
+            "/api/v2/ops-learning/",
+            {
+                "learning": "Validated lesson",
+                "learning_validated": "Validated lesson",
+                "is_validated": True,
+                "sector_validated": [self.sector.id],
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, 201)
