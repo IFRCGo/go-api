@@ -73,6 +73,8 @@ uv run pre-commit run --all-files
 
 CI runs the same hooks in the **Pre-Commit checks** job.
 
+> **Maintainer note (#810):** A repo-wide formatting rollout may still land after open PRs are cleared (see [PR #2128](https://github.com/IFRCGo/go-api/pull/2128) and [alert-hub-backend CI/pre-commit](https://github.com/IFRCGo/alert-hub-backend/blob/develop/.pre-commit-config.yaml)). This guide documents **current** CI expectations; rebase and run `pre-commit run --all-files` after that pass merges to avoid conflicts.
+
 ## Tests
 
 - **Preferred:** `docker-compose run --rm test` (pytest).
