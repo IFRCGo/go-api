@@ -67,9 +67,23 @@ class AmazonTranslator(BaseTranslator):
         if settings.TESTING:
             # NOTE: Mocking for test purpose
             return self._fake_translation(text, dest_language, source_language)
-        return self._translator.translate_text(Text=text, SourceLanguageCode=source_language, TargetLanguageCode=dest_language)[
-            "TranslatedText"
-        ]
+        try:
+            return self._translator.translate_text(Text=text, SourceLanguageCode=source_language, TargetLanguageCode=dest_language)[
+                "TranslatedText"
+            ]
+        except Exception:
+            logger.warning(
+                "Amazon translation API error for %s>%s",
+                source_language,
+                dest_language,
+                extra={
+                    "text_length": len(text),
+                    "dest_language": dest_language,
+                    "source_language": source_language,
+                },
+                exc_info=True,
+            )
+            return None
 
 
 class IfrcTranslator(BaseTranslator):
@@ -179,29 +193,43 @@ class IfrcTranslator(BaseTranslator):
             json=payload,
         )
 
-        # Not using == 200 – it would break tests with MagicMock name=requests.post() results
-        if response.status_code != 500:
-            translated = response.json()[0]["translations"][0]["text"]
+        if response.status_code >= 400:
+            logger.warning(
+                "IFRC translation API error for %s>%s %s",
+                source_language,
+                dest_language,
+                table_field,
+                extra={
+                    "status_code": response.status_code,
+                    "text_length": len(text),
+                    "dest_language": dest_language,
+                    "source_language": source_language,
+                    "table_field": table_field,
+                },
+            )
+            return None
 
-            # Cache the translation if original text was short enough
-            if use_cache:
-                obj, created = TranslationCache.objects.get_or_create(
-                    text=text,
-                    text_hash=text_hash,
-                    source_language=source_language or "",  # source_language can be "detected"
-                    dest_language=dest_language,
-                    defaults={
-                        "translated_text": translated,
-                        "table_field": table_field or "",
-                        "last_used": timezone.now(),
-                    },
+        translated = response.json()[0]["translations"][0]["text"]
+
+        # Cache the translation if original text was short enough
+        if use_cache:
+            obj, created = TranslationCache.objects.get_or_create(
+                text=text,
+                text_hash=text_hash,
+                source_language=source_language or "",  # source_language can be "detected"
+                dest_language=dest_language,
+                defaults={
+                    "translated_text": translated,
+                    "table_field": table_field or "",
+                    "last_used": timezone.now(),
+                },
+            )
+            if not created:
+                TranslationCache.objects.filter(pk=obj.pk).update(
+                    last_used=timezone.now(),
+                    num_calls=F("num_calls") + 1,
                 )
-                if not created:
-                    TranslationCache.objects.filter(pk=obj.pk).update(
-                        last_used=timezone.now(),
-                        num_calls=F("num_calls") + 1,
-                    )
-            return translated + textTail
+        return translated + textTail
 
     def get_cached_translations(self, text, dest_languages, source_language=None, table_field=""):
         if not dest_languages or len(text) >= 300:

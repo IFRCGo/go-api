@@ -266,6 +266,23 @@ class TranslatorMockTest(unittest.TestCase):
             with override_settings(TESTING=False):
                 assert ifrc_translator.translate_text("hello", "es") == "Hola"
 
+    @pytest.mark.django_db
+    @mock.patch("lang.translation.requests")
+    def test_ifrc_translator_server_error_returns_none(self, requests_mock):
+        response_mock = mock.Mock()
+        response_mock.status_code = 500
+        requests_mock.post.return_value = response_mock
+
+        with override_settings(
+            AUTO_TRANSLATION_TRANSLATOR="lang.translation.IfrcTranslator",
+            IFRC_TRANSLATION_DOMAIN="http://example.org",
+            IFRC_TRANSLATION_HEADER_API_KEY="dummy-api-header-key",
+            TESTING=False,
+        ):
+            ifrc_translator = IfrcTranslator()
+            result = ifrc_translator.translate_text("hello world", "es", source_language="en", table_field="test:model:name")
+            assert result is None
+
     def test_ifrc_translator_detect_text_content_type(self):
         valid_htmls = [
             # Defined using the behaviour of aws.
