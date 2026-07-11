@@ -820,3 +820,14 @@ class ExportERUReadinessViewTest(APITestCase):
 
             row2 = list(ws.iter_rows(min_row=4))[0]
             self.assertEqual(row2[0].value, "India")
+
+
+class ParseCsvIntegerTest(APITestCase):
+    def test_rounds_decimal_strings(self):
+        from deployments.forms import parse_csv_integer
+
+        self.assertEqual(parse_csv_integer("353873.10"), 353873)
+        self.assertEqual(parse_csv_integer("353873.60"), 353874)
+        self.assertEqual(parse_csv_integer("1000"), 1000)
+        self.assertEqual(parse_csv_integer(""), None)
+        self.assertEqual(parse_csv_integer("not-a-number"), None)
