@@ -30,6 +30,8 @@ env = environ.Env(
     DJANGO_ADDITIONAL_ALLOWED_HOSTS=(list, []),  # Eg: api.go.ifrc.org, goadmin.ifrc.org, dsgocdnapi.azureedge.net
     GO_ENVIRONMENT=(str, "development"),  # staging, production
     SESSION_COOKIE_DOMAIN=str,
+    SESSION_COOKIE_AGE=(int, 60 * 60 * 24 * 28),  # 28 days (Django allows up to ~4 weeks)
+    SESSION_SAVE_EVERY_REQUEST=(bool, True),
     CSRF_COOKIE_DOMAIN=str,
     ADDITIONAL_TRUSTED_ORIGINS=(list, []),
     API_FQDN=str,  # https://goadmin.ifrc.org
@@ -503,6 +505,9 @@ CSRF_TRUSTED_ORIGINS = GO_TRUSTED_ORIGINS
 
 # https://docs.djangoproject.com/en/4.2/ref/settings/#std:setting-SESSION_COOKIE_DOMAIN
 SESSION_COOKIE_DOMAIN = env("SESSION_COOKIE_DOMAIN")
+SESSION_COOKIE_AGE = env("SESSION_COOKIE_AGE")
+# Extend admin session on each request so active users are not prompted to re-login prematurely
+SESSION_SAVE_EVERY_REQUEST = env("SESSION_SAVE_EVERY_REQUEST")
 # https://docs.djangoproject.com/en/4.2/ref/settings/#csrf-cookie-domain
 CSRF_COOKIE_DOMAIN = env("CSRF_COOKIE_DOMAIN")
 
