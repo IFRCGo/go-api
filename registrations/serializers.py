@@ -183,3 +183,9 @@ class UserExternalTokenSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         raise serializers.ValidationError("Update is not allowed")
+
+
+class UserExternalTokenVerifySerializer(serializers.Serializer):
+    """Input serializer for the external-token verify endpoint."""
+
+    jti = serializers.UUIDField()

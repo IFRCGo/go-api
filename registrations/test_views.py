@@ -6,6 +6,8 @@
 # 6. Use the admin token and new user username to query views.ValidateUser
 # 7. Confirm that a user without an official email is activated.
 
+import uuid
+from datetime import timedelta
 from unittest import mock
 
 from cryptography.hazmat.backends import default_backend
@@ -13,12 +15,13 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from django.contrib.auth.models import User
 from django.test import override_settings
+from django.utils import timezone
 from rest_framework.test import APITestCase
 
 from api.models import Country, Profile
 from main.test_case import APITestCase as GoAPITestCase
 
-from .models import Pending
+from .models import Pending, UserExternalToken
 
 
 class TwoGatekeepersTest(APITestCase):
@@ -215,4 +218,56 @@ class UserExternalTokenTest(GoAPITestCase):
     def test_external_token_with_no_keys(self):
         self.client.force_authenticate(self.user)
         response = self.client.post("/api/v2/external-token/")
+        self.assertEqual(response.status_code, 400)
+
+    def test_verify_active_token(self):
+        token = UserExternalToken.objects.create(
+            title="active",
+            user=self.user,
+            expire_timestamp=timezone.now() + timedelta(days=1),
+        )
+        # NOTE: verify is unauthenticated (server-to-server introspection)
+        response = self.client.post("/api/v2/external-token/verify/", {"jti": str(token.jti)}, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"active": True})
+
+    def test_verify_disabled_token(self):
+        token = UserExternalToken.objects.create(
+            title="disabled",
+            user=self.user,
+            expire_timestamp=timezone.now() + timedelta(days=1),
+            is_disabled=True,
+        )
+        response = self.client.post("/api/v2/external-token/verify/", {"jti": str(token.jti)}, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"active": False})
+
+    def test_verify_expired_token(self):
+        token = UserExternalToken.objects.create(
+            title="expired",
+            user=self.user,
+            expire_timestamp=timezone.now() - timedelta(days=1),
+        )
+        response = self.client.post("/api/v2/external-token/verify/", {"jti": str(token.jti)}, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"active": False})
+
+    def test_verify_old_token(self):
+        token = UserExternalToken.objects.create(
+            title="old",
+            user=self.user,
+            expire_timestamp=timezone.now() + timedelta(days=1),
+            is_old_token=True,
+        )
+        response = self.client.post("/api/v2/external-token/verify/", {"jti": str(token.jti)}, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"active": False})
+
+    def test_verify_unknown_jti(self):
+        response = self.client.post("/api/v2/external-token/verify/", {"jti": str(uuid.uuid4())}, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"active": False})
+
+    def test_verify_invalid_jti(self):
+        response = self.client.post("/api/v2/external-token/verify/", {"jti": "not-a-uuid"}, format="json")
         self.assertEqual(response.status_code, 400)

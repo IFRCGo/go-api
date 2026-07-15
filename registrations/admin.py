@@ -177,6 +177,25 @@ class DomainWhitelistAdmin(CompareVersionAdmin):
     ordering = ("domain_name",)
 
 
+class UserExternalTokenAdmin(CompareVersionAdmin):
+    list_display = ("title", "user", "created_at", "expire_timestamp", "is_disabled", "is_old_token")
+    list_filter = ("is_disabled", "is_old_token")
+    search_fields = ("title", "user__username", "user__email", "jti")
+    readonly_fields = ("jti", "created_at")
+    autocomplete_fields = ("user",)
+    actions = ("disable_tokens", "enable_tokens")
+
+    @admin.action(description="Disable selected tokens")
+    def disable_tokens(self, request, queryset):
+        updated = queryset.update(is_disabled=True)
+        self.message_user(request, f"{updated} token(s) disabled.")
+
+    @admin.action(description="Enable selected tokens")
+    def enable_tokens(self, request, queryset):
+        updated = queryset.update(is_disabled=False)
+        self.message_user(request, f"{updated} token(s) enabled.")
+
+
 admin.site.register(models.Pending, PendingAdmin)
 admin.site.register(models.DomainWhitelist, DomainWhitelistAdmin)
-admin.site.register(models.UserExternalToken)
+admin.site.register(models.UserExternalToken, UserExternalTokenAdmin)
