@@ -6,6 +6,7 @@ from django.db.models import Q
 from django.http import HttpResponse
 from django.template.loader import render_to_string
 from django.utils import timezone
+from drf_spectacular.utils import extend_schema
 from rest_framework import permissions, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -15,6 +16,7 @@ from api.views import bad_http_request, bad_request
 from notifications.notification import send_notification
 from registrations.serializers import (
     UserExternalTokenSerializer,
+    UserExternalTokenVerifyResponseSerializer,
     UserExternalTokenVerifySerializer,
 )
 
@@ -166,6 +168,24 @@ class UserExternalTokenViewset(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         return bad_request("Delete method not allowed")
 
+    @extend_schema(request=None, responses=UserExternalTokenSerializer)
+    @action(
+        detail=True,
+        methods=["post"],
+        # NOTE: Allows a user to self-revoke one of their own tokens. get_object() is scoped to
+        # get_queryset (user=request.user), so other users' tokens resolve to 404. Revoking an
+        # already-revoked token is a client error (400).
+        url_path="revoke",
+    )
+    def revoke(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.is_disabled:
+            return bad_request("Token is already revoked")
+        instance.is_disabled = True
+        instance.save(update_fields=["is_disabled"])
+        return Response(self.get_serializer(instance).data)
+
+    @extend_schema(responses=UserExternalTokenVerifyResponseSerializer)
     @action(
         detail=False,
         methods=["post"],

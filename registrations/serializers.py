@@ -147,13 +147,21 @@ class RegistrationSerializer(serializers.Serializer):
 
 
 class UserExternalTokenSerializer(serializers.ModelSerializer):
-    token = serializers.CharField(read_only=True)
+    token = serializers.SerializerMethodField()
     expire_timestamp = serializers.DateTimeField(required=False)
     is_old_token = serializers.BooleanField(read_only=True)
+    is_disabled = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = UserExternalToken
-        fields = ["title", "token", "expire_timestamp", "created_at", "is_old_token"]
+        fields = ["title", "token", "expire_timestamp", "created_at", "is_old_token", "is_disabled"]
+
+    def get_token(self, obj) -> str | None:
+        # NOTE: The JWT token only exists on the creation path, where create() returns a dict
+        # containing "token". For stored model instances (list/retrieve/revoke) there is no token.
+        if isinstance(obj, dict):
+            return obj.get("token")
+        return None
 
     def validate_expire_timestamp(self, date):
         now = timezone.now()
@@ -189,3 +197,9 @@ class UserExternalTokenVerifySerializer(serializers.Serializer):
     """Input serializer for the external-token verify endpoint."""
 
     jti = serializers.UUIDField()
+
+
+class UserExternalTokenVerifyResponseSerializer(serializers.Serializer):
+    """Output serializer for the external-token verify endpoint."""
+
+    active = serializers.BooleanField()
