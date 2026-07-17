@@ -32,6 +32,7 @@ from dref.factories.dref import (
     DrefFinalReportFactory,
     DrefOperationalUpdateFactory,
     DrefSummaryFactory,
+    IdentifiedNeedFactory,
 )
 from dref.models import Dref, DrefFile, DrefSummary
 from main.test_case import APITestCase
@@ -404,6 +405,37 @@ class EventApiTest(APITestCase):
         resp = self.client.get(f"/api/v2/event/{event.id}/")
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(len(resp.json()["links"]), 5)
+
+
+class EventOrderingTestCase(APITestCase):
+    """
+    /api/v2/event/ must return a deterministic order even when the requested
+    ordering column is empty or duplicated across rows.
+    """
+
+    def test_requested_ordering_falls_back_to_disaster_start_date_and_id_on_ties(self):
+        # All 3 share num_affected=None, so the requested ordering alone can't
+        # disambiguate them; the (-disaster_start_date, id) fallback should.
+        e1 = EventFactory.create(num_affected=None, disaster_start_date="2024-01-01", parent_event=None)
+        e2 = EventFactory.create(num_affected=None, disaster_start_date="2024-03-01", parent_event=None)
+        e3 = EventFactory.create(num_affected=None, disaster_start_date="2024-02-01", parent_event=None)
+
+        response = self.client.get("/api/v2/event/?ordering=num_affected&limit=10")
+        self.assertEqual(response.status_code, 200)
+
+        ids = [item["id"] for item in response.data["results"]]
+        relevant_ids = [i for i in ids if i in {e1.id, e2.id, e3.id}]
+        self.assertEqual(relevant_ids, [e2.id, e3.id, e1.id])
+
+    def test_ordering_is_deterministic_without_an_explicit_ordering_param(self):
+        e1 = EventFactory.create(disaster_start_date="2024-01-01", parent_event=None)
+        e2 = EventFactory.create(disaster_start_date="2024-03-01", parent_event=None)
+
+        response = self.client.get("/api/v2/event/?limit=10")
+        self.assertEqual(response.status_code, 200)
+
+        ids = [item["id"] for item in response.data["results"]]
+        self.assertLess(ids.index(e2.id), ids.index(e1.id))
 
 
 class SituationReportTypeTest(APITestCase):
@@ -1303,6 +1335,36 @@ class EmergencyStageTestCase(APITestCase):
         self.assertIsNone(data["field_report"])
         self.assertIsNone(data["appeal"])
 
+    def test_dref_needs_identified_is_exposed_on_application_and_final_report(self):
+        event = EventFactory.create(dtype=self.disaster_type)
+        need = IdentifiedNeedFactory.create()
+        dref = DrefFactory.create(
+            event=event,
+            status=Dref.Status.APPROVED,
+            disaster_type=self.disaster_type,
+            country=self.country,
+            needs_identified=[need],
+        )
+
+        data = self._get(event).data
+        self.assertEqual([n["id"] for n in data["dref"]["needs_identified"]], [need.id])
+
+        final_report_need = IdentifiedNeedFactory.create()
+        final_report = DrefFinalReportFactory.create(
+            dref=dref,
+            status=Dref.Status.APPROVED,
+            disaster_type=self.disaster_type,
+            country=self.country,
+            needs_identified=[final_report_need],
+        )
+
+        data = self._get(event).data
+        self.assertEqual(data["dref"]["final_report_details"]["id"], final_report.id)
+        self.assertEqual(
+            [n["id"] for n in data["dref"]["final_report_details"]["needs_identified"]],
+            [final_report_need.id],
+        )
+
     def test_stage_emergency_appeal(self):
         event = EventFactory.create(
             dtype=self.disaster_type,
@@ -1561,6 +1623,9 @@ class EmergencyStageTestCase(APITestCase):
         self.assertEqual(summary["people_centered_approach"], "approach text")
         self.assertEqual(summary["challenges_identified"], "challenges text")
         self.assertEqual(summary["lessons_learned"], "lessons text")
+        self.assertEqual(summary["source"], DrefSummary.SourceModel.DREF)
+        self.assertEqual(summary["source_display"], DrefSummary.SourceModel.DREF.label)
+        self.assertEqual(summary["source_id"], dref.id)
 
     def test_dref_summary_is_none_when_no_summary_exists(self):
         event = EventFactory.create(dtype=self.disaster_type)

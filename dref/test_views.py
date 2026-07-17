@@ -10,6 +10,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core import management
 from rest_framework import status
 
+from api.factories.event import EventFactory
 from api.models import Country, DisasterType, District, Event, Region, RegionName
 from api.utils import get_model_name
 from deployments.factories.project import SectorFactory
@@ -1084,6 +1085,60 @@ class DrefTestCase(APITestCase):
         patch_url = f"/api/v2/dref-final-report/{final_report2.id}/"
         response = self.client.patch(patch_url, data)
         self.assert_400(response)
+
+    def test_final_report_approve_syncs_event_glide(self):
+        country = Country.objects.create(name="country-final-report-glide")
+        event = EventFactory.create(glide="OLD-GLIDE")
+        dref = DrefFactory.create(
+            title="Test Title",
+            created_by=self.root_user,
+            country=country,
+            event=event,
+            glide_code="OLD-GLIDE",
+            status=Dref.Status.APPROVED,
+        )
+        final_report = DrefFinalReportFactory.create(
+            title="Test final report",
+            dref=dref,
+            country=country,
+            glide_code="NEW-GLIDE",
+            status=Dref.Status.FINALIZED,
+        )
+
+        self.client.force_authenticate(self.root_user)
+        approve_url = f"/api/v2/dref-final-report/{final_report.id}/approve/"
+        response = self.client.post(approve_url, {})
+        self.assert_200(response)
+
+        event.refresh_from_db()
+        self.assertEqual(event.glide, "NEW-GLIDE")
+
+    def test_operational_update_approve_syncs_event_glide(self):
+        country = Country.objects.create(name="country-ops-update-glide")
+        event = EventFactory.create(glide="OLD-GLIDE")
+        dref = DrefFactory.create(
+            title="Test Title",
+            created_by=self.root_user,
+            country=country,
+            event=event,
+            glide_code="OLD-GLIDE",
+            status=Dref.Status.APPROVED,
+        )
+        operational_update = DrefOperationalUpdateFactory.create(
+            title="Test operational update",
+            dref=dref,
+            country=country,
+            glide_code="UPDATED-GLIDE",
+            status=Dref.Status.FINALIZED,
+        )
+
+        self.client.force_authenticate(self.root_user)
+        approve_url = f"/api/v2/dref-op-update/{operational_update.id}/approve/"
+        response = self.client.post(approve_url, {})
+        self.assert_200(response)
+
+        event.refresh_from_db()
+        self.assertEqual(event.glide, "UPDATED-GLIDE")
 
     def test_dref_for_assessment_report(self):
         old_count = Dref.objects.count()

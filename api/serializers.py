@@ -3003,6 +3003,7 @@ class DetailEmergencySerializer(ModelSerializer):
                         "proposed_action",
                         queryset=ProposedAction.objects.prefetch_related("activities"),
                     ),
+                    "needs_identified",
                     Prefetch(
                         "drefoperationalupdate_set",
                         queryset=DrefOperationalUpdate.objects.filter(
@@ -3019,14 +3020,14 @@ class DetailEmergencySerializer(ModelSerializer):
         stage = getattr(event, "stage", None)
         return EventStage(stage).label if stage is not None else None
 
-    @extend_schema_field(EmergencyFieldReportSerializer())
+    @extend_schema_field(EmergencyFieldReportSerializer(allow_null=True))
     def get_field_report(self, event):
         if getattr(event, "stage", None) != EventStage.FIELD_REPORT:
             return None
         instance = self._get_stage_instance(event)
         return EmergencyFieldReportSerializer(instance, context=self.context).data if instance else None
 
-    @extend_schema_field(RelatedAppealSerializer())
+    @extend_schema_field(RelatedAppealSerializer(allow_null=True))
     def get_appeal(self, event):
         if getattr(event, "stage", None) not in (
             EventStage.EMERGENCY_APPEAL,
@@ -3036,7 +3037,7 @@ class DetailEmergencySerializer(ModelSerializer):
         instance = self._get_stage_instance(event)
         return RelatedAppealSerializer(instance, context=self.context).data if instance else None
 
-    @extend_schema_field(EmergencyDrefSerializer())
+    @extend_schema_field(EmergencyDrefSerializer(allow_null=True))
     def get_dref(self, event):
         if getattr(event, "stage", None) not in (
             EventStage.DREF_APPLICATION,
