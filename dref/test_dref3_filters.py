@@ -70,8 +70,12 @@ class Dref3FilterTests(APITestCase):
             dref=self.dref_a,
         )
 
+    def _rows(self, response):
+        # Standard DRF envelope: {count, next, previous, results}
+        return response.json()["results"]
+
     def _get_codes(self, response):
-        return {row["appeal_id"] for row in response.json()}
+        return {row["appeal_id"] for row in self._rows(response)}
 
     def test_region_filter(self):
         self.authenticate(self.superuser)
@@ -107,19 +111,19 @@ class Dref3FilterTests(APITestCase):
         self.authenticate(self.superuser)
         resp = self.client.get(self.url, {"stage": "application"})
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        assert all(row["stage"] == "Application" for row in resp.json())
+        assert all(row["stage"] == "Application" for row in self._rows(resp))
 
     def test_stage_operational_update(self):
         self.authenticate(self.superuser)
         resp = self.client.get(self.url, {"stage": "operational_update"})
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        assert all(row["stage"].startswith("Operational Update") for row in resp.json())
+        assert all(row["stage"].startswith("Operational Update") for row in self._rows(resp))
 
     def test_stage_final_report(self):
         self.authenticate(self.superuser)
         resp = self.client.get(self.url, {"stage": "final_report"})
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        assert all(row["stage"] == "Final Report" for row in resp.json())
+        assert all(row["stage"] == "Final Report" for row in self._rows(resp))
 
     def test_filter_by_appeal_id(self):
         self.authenticate(self.superuser)
@@ -143,21 +147,26 @@ class Dref3FilterTests(APITestCase):
         assert codes == {"APPEAL_A"}
 
     def test_pagination(self):
+        # Per-row limit/offset pagination with a standard DRF envelope.
         self.authenticate(self.superuser)
         full = self.client.get(self.url)
         self.assertEqual(full.status_code, status.HTTP_200_OK)
-        all_rows = full.json()
-        total_codes = {row["appeal_id"] for row in all_rows}
+        body = full.json()
+        all_rows = body["results"]
+        self.assertEqual(body["count"], len(all_rows))  # small dataset, one page
         page1 = self.client.get(self.url, {"limit": 1, "offset": 0})
         self.assertEqual(page1.status_code, status.HTTP_200_OK)
-        page1_rows = page1.json()
-        assert len({row["appeal_id"] for row in page1_rows}) == 1
-        if len(total_codes) > 1:
-            page2 = self.client.get(self.url, {"limit": 1, "offset": 1})
-            self.assertEqual(page2.status_code, status.HTTP_200_OK)
-            page2_rows = page2.json()
-            assert len({row["appeal_id"] for row in page2_rows}) == 1
-            assert {row["appeal_id"] for row in page2_rows} != {row["appeal_id"] for row in page1_rows}
+        page1_body = page1.json()
+        self.assertEqual(page1_body["count"], len(all_rows))
+        self.assertEqual(len(page1_body["results"]), 1)
+        self.assertEqual(page1_body["results"][0]["id"], all_rows[0]["id"])
+        self.assertIsNotNone(page1_body["next"])
+        page2 = self.client.get(self.url, {"limit": 1, "offset": 1})
+        self.assertEqual(page2.status_code, status.HTTP_200_OK)
+        page2_body = page2.json()
+        self.assertEqual(len(page2_body["results"]), 1)
+        self.assertEqual(page2_body["results"][0]["id"], all_rows[1]["id"])
+        self.assertNotEqual(page1_body["results"][0]["id"], page2_body["results"][0]["id"])
 
     def test_pagination_order_by_created_at(self):
         self.authenticate(self.superuser)
@@ -167,25 +176,26 @@ class Dref3FilterTests(APITestCase):
         self.dref_b.created_at = now - timedelta(days=1)
         self.dref_b.save(update_fields=["created_at"])
 
+        # Rows of one appeal_code stay contiguous; groups are ordered by the
+        # first application created_at. Group A: app+op+final (3 rows),
+        # group B: app+op (2 rows).
+        asc = self.client.get(self.url, {"order_by": "created_at"})
+        self.assertEqual(asc.status_code, status.HTTP_200_OK)
+        asc_codes = [row["appeal_id"] for row in self._rows(asc)]
+        self.assertEqual(asc_codes, ["APPEAL_A"] * 3 + ["APPEAL_B"] * 2)
+
+        desc = self.client.get(self.url, {"order_by": "-created_at"})
+        self.assertEqual(desc.status_code, status.HTTP_200_OK)
+        desc_codes = [row["appeal_id"] for row in self._rows(desc)]
+        self.assertEqual(desc_codes, ["APPEAL_B"] * 2 + ["APPEAL_A"] * 3)
+
+        # Per-row pagination respects the group ordering
         page1 = self.client.get(self.url, {"limit": 1, "offset": 0, "order_by": "created_at"})
         self.assertEqual(page1.status_code, status.HTTP_200_OK)
-        page1_codes = {row["appeal_id"] for row in page1.json()}
-        assert page1_codes == {"APPEAL_A"}
-
-        page2 = self.client.get(self.url, {"limit": 1, "offset": 1, "order_by": "created_at"})
-        self.assertEqual(page2.status_code, status.HTTP_200_OK)
-        page2_codes = {row["appeal_id"] for row in page2.json()}
-        assert page2_codes == {"APPEAL_B"}
-
+        assert {row["appeal_id"] for row in self._rows(page1)} == {"APPEAL_A"}
         page1_desc = self.client.get(self.url, {"limit": 1, "offset": 0, "order_by": "-created_at"})
         self.assertEqual(page1_desc.status_code, status.HTTP_200_OK)
-        page1_desc_codes = {row["appeal_id"] for row in page1_desc.json()}
-        assert page1_desc_codes == {"APPEAL_B"}
-
-        page2_desc = self.client.get(self.url, {"limit": 1, "offset": 1, "order_by": "-created_at"})
-        self.assertEqual(page2_desc.status_code, status.HTTP_200_OK)
-        page2_desc_codes = {row["appeal_id"] for row in page2_desc.json()}
-        assert page2_desc_codes == {"APPEAL_A"}
+        assert {row["appeal_id"] for row in self._rows(page1_desc)} == {"APPEAL_B"}
 
     def test_export_csv(self):
         self.authenticate(self.superuser)
@@ -198,12 +208,12 @@ class Dref3FilterTests(APITestCase):
         self.authenticate(self.superuser)
         full_resp = self.client.get(self.url)
         self.assertEqual(full_resp.status_code, status.HTTP_200_OK)
-        records = full_resp.json()
+        records = self._rows(full_resp)
         self.assertGreater(len(records), 0)
         target_id = records[0]["id"]
         resp = self.client.get(self.url, {"id": str(target_id)})
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        filtered = resp.json()
+        filtered = self._rows(resp)
         assert len(filtered) == 1
         assert filtered[0]["id"] == target_id
 
@@ -211,13 +221,13 @@ class Dref3FilterTests(APITestCase):
         self.authenticate(self.superuser)
         full_resp = self.client.get(self.url)
         self.assertEqual(full_resp.status_code, status.HTTP_200_OK)
-        records = full_resp.json()
+        records = self._rows(full_resp)
         ids = [r["id"] for r in records][:2]
         if len(ids) < 2:
             self.skipTest("Need at least two records for multi-id filter test")
         resp = self.client.get(self.url, {"id": ",".join(str(i) for i in ids)})
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        filtered = resp.json()
+        filtered = self._rows(resp)
         returned_ids = {r["id"] for r in filtered}
         assert returned_ids == set(ids)
 
@@ -232,7 +242,7 @@ class Dref3FilterTests(APITestCase):
         # Leave final report as Draft -> "Draft"
         resp = self.client.get(self.url)
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        rows = resp.json()
+        rows = self._rows(resp)
         # Collect status_display values for appeal A
         appeal_a_statuses = {r["status_display"] for r in rows if r["appeal_id"] == "APPEAL_A"}
         # Expected labels

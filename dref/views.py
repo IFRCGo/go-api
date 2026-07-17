@@ -1,13 +1,10 @@
-import csv
 import logging
-from collections import defaultdict
 
 import django.utils.timezone as timezone
 from django.contrib.auth.models import Permission
 from django.contrib.gis.db.models import Count, Exists, OuterRef, Q
 from django.db import models, transaction
 from django.db.models.query import Prefetch
-from django.http import HttpResponse
 from django.templatetags.static import static
 from django.utils.translation import gettext
 from drf_spectacular.utils import OpenApiParameter, extend_schema
@@ -23,8 +20,9 @@ from rest_framework import (
 from rest_framework.decorators import action
 from reversion.views import RevisionMixin
 
-from api.models import Appeal, AppealFilter
 from api.utils import get_model_name
+from dref.dref3_common import Dref3PageHydrator, EmptyResult, dref3_csv_response
+from dref.dref3_query import build_union_queryset, empty_union_queryset
 from dref.filter_set import (
     ActiveDrefFilterSet,
     CompletedDrefOperationsFilterSet,
@@ -445,483 +443,67 @@ class DrefShareUserViewSet(viewsets.ReadOnlyModelViewSet):
         )
 
 
-class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):  # type: ignore[misc]
-    # Allow unauthenticated access; we'll filter published-only for anonymous users below
+class Dref3ViewSet(viewsets.GenericViewSet):
+    """Read-only listing of all DREF stages (application / operational
+    updates / final report) as flat rows, backed by a single UNION ALL
+    queryset across the three stage models: standard filters, ordering and
+    limit/offset pagination.
+    """
+
+    # Allow unauthenticated access; anonymous users only see approved rows
     permission_classes = [permissions.AllowAny]
-    # Previous: [permissions.IsAuthenticated, DenyGuestUserPermission, UseBySuperAdminOnly]
     lookup_field = "appeal_code"
+    lookup_value_regex = r"[^/]+"
+    filter_backends = []  # all filtering happens (pre-union) in build_union_queryset
 
-    def _excluded_codes(self):
-        if not hasattr(self, "_excluded_codes_cache"):
-            self._excluded_codes_cache = self.get_nonsuperusers_excluded_codes()
-        return self._excluded_codes_cache
-
-    def _has_full_access(self, user):
-        if not user:
-            return False
-        if getattr(user, "is_superuser", False):
-            return True
-        return user.groups.filter(name="DREF3 Admins").exists()
-
-    def get_queryset(self):  # type: ignore[override]
-        # just to give something to rest_framework/generics.py:63 – not used in retrieve
+    def get_queryset(self):
+        # For schema generation only; list/retrieve build their own querysets
         return Dref.objects.none()
 
-    def get_nonsuperusers_excluded_codes(self):
-        """Return a set of appeal_codes that should be hidden from non-superusers.
-        Accepts CSV values in AppealFilter.value like "MDRXX019,MDRYY036".
-        """
-        try:
-            if AppealFilter.objects.values_list("value", flat=True).filter(name="ingestAppealFilter").count() > 0:
-                codes_exc = AppealFilter.objects.values_list("value", flat=True).filter(name="ingestAppealFilter")[0].split(",")
-            else:
-                codes_exc = []
-        except Exception:
-            # If model/app not available, fail open (no extra exclusions)
-            return set()
-        excluded = set()
-        for code in codes_exc:
-            c = code.strip().upper()
-            if c:
-                excluded.add(c)
-        return excluded
+    def get_serializer_class(self):
+        # For schema generation only
+        return Dref3Serializer
 
-    def _parse_stage_filter(self, raw):
-        """Return canonical stage names (application, operational_update, final_report) from input string.
-        Accepts comma-separated values; case-insensitive; supports short forms: app, op, final.
-        """
-        if not raw:
-            return None
-        mapping = {
-            "application": "application",
-            "app": "application",
-            "dref": "application",
-            "operational_update": "operational_update",
-            "operationalupdate": "operational_update",
-            "op_update": "operational_update",
-            "op": "operational_update",
-            "update": "operational_update",
-            "final_report": "final_report",
-            "finalreport": "final_report",
-            "final": "final_report",
-            "report": "final_report",
-        }
-        stages = set()
-        for part in str(raw).split(","):
-            key = part.strip().lower()
-            if key in mapping:
-                stages.add(mapping[key])
-        return stages or None
-
-    def _status_to_int(self, raw):
-        if raw is None or raw == "":
-            return None
-        try:
-            return int(raw)
-        except ValueError:
-            pass
-        label_map = {s.label.lower(): s.value for s in Dref.Status}
-        name_map = {s.name.lower(): s.value for s in Dref.Status}
-        return label_map.get(str(raw).lower()) or name_map.get(str(raw).lower())
-
-    def _order_codes(self, codes, request):
-        order_by = request.query_params.get("order_by")
-        if order_by not in ("created_at", "-created_at"):
-            return sorted(codes)
-
-        created_map = {
-            row["appeal_code"]: row["first_created_at"]
-            for row in Dref.objects.filter(appeal_code__in=codes)
-            .values("appeal_code")
-            .annotate(first_created_at=models.Min("created_at"))
-        }
-
-        present = [code for code in codes if created_map.get(code) is not None]
-        missing = sorted([code for code in codes if created_map.get(code) is None])
-        present_sorted = sorted(present, key=lambda code: (created_map.get(code), code), reverse=order_by == "-created_at")
-        return present_sorted + missing
-
-    def _paginate_codes(self, codes, request):
-        try:
-            limit = int(request.query_params.get("limit")) if request.query_params.get("limit") else None
-        except ValueError:
-            limit = None
-        try:
-            offset = int(request.query_params.get("offset")) if request.query_params.get("offset") else 0
-        except ValueError:
-            offset = 0
-
-        if not offset and limit is None:
-            return codes
-
-        end = offset + limit if limit is not None else None
-        return codes[offset:end]
+    def _row_identities(self, rows):
+        return [(row["stage"], row["id"], row["appeal_code"]) for row in rows]
 
     @extend_schema(
         parameters=[
             OpenApiParameter(
                 name="order_by",
                 description=(
-                    "Ordering for paged appeal codes. Use 'created_at' or '-created_at' to sort by the first "
-                    "DREF application created_at per appeal_code; any other value defaults to appeal_code ordering."
+                    "Use 'created_at' or '-created_at' to order row groups by the first DREF application "
+                    "created_at per appeal_code; any other value defaults to appeal_code ordering. "
+                    "Rows of one appeal_code always stay contiguous (stage-major, then created_at)."
                 ),
                 required=False,
                 type=str,
             )
         ]
     )
-    def list(self, request):
-        # === First approach – would be nice to work like this, but recent definitons are more complex than that:
-        # # Aggregate all appeal-codes from the three models
-        # drefs = Dref.objects.all()
-        # ops = DrefOperationalUpdate.objects.all()
-        # finals = DrefFinalReport.objects.all()
-        # data = Dref3Serializer(list(drefs) + list(ops) + list(finals), many=True).data
-        # return response.Response(data)
+    def list(self, request, version=None):
+        try:
+            queryset = build_union_queryset(request.user, request.query_params)
+        except EmptyResult:
+            queryset = empty_union_queryset()
 
-        # === Second approach:
-        # Get appeal_codes – then self.retrieve
-
-        stage_filter = self._parse_stage_filter(request.query_params.get("stage"))
-        codes_qs_dref = Dref.objects.exclude(appeal_code="").values_list("appeal_code", flat=True).distinct()
-        codes_qs_op = DrefOperationalUpdate.objects.exclude(appeal_code="").values_list("appeal_code", flat=True).distinct()
-        codes_qs_final = DrefFinalReport.objects.exclude(appeal_code="").values_list("appeal_code", flat=True).distinct()
-
-        # Filtering by appeal_code prefix
-        appeal_code_prefix = request.query_params.get("appeal_code_prefix")
-        if appeal_code_prefix:
-            codes_qs_dref = codes_qs_dref.filter(appeal_code__startswith=appeal_code_prefix)
-            codes_qs_op = codes_qs_op.filter(appeal_code__startswith=appeal_code_prefix)
-            codes_qs_final = codes_qs_final.filter(appeal_code__startswith=appeal_code_prefix)
-
-        # region filter
-        region_param = request.query_params.get("region")
-        if region_param:
-            try:
-                region_id = int(region_param)
-            except ValueError:
-                region_id = None
-            if region_id:
-                codes_qs_dref = codes_qs_dref.filter(national_society__region_id=region_id)
-                codes_qs_op = codes_qs_op.filter(national_society__region_id=region_id)
-                codes_qs_final = codes_qs_final.filter(national_society__region_id=region_id)
-
-        # country iso3
-        iso3_param = request.query_params.get("country_iso3")
-        if iso3_param:
-            iso3 = iso3_param.strip().upper()
-            codes_qs_dref = codes_qs_dref.filter(national_society__iso3__iexact=iso3)
-            codes_qs_op = codes_qs_op.filter(national_society__iso3__iexact=iso3)
-            codes_qs_final = codes_qs_final.filter(national_society__iso3__iexact=iso3)
-
-        # appeal_type => type_of_dref
-        appeal_type_param = request.query_params.get("appeal_type")
-        if appeal_type_param:
-            try:
-                appeal_type_int = int(appeal_type_param)
-                codes_qs_dref = codes_qs_dref.filter(type_of_dref=appeal_type_int)
-                codes_qs_op = codes_qs_op.filter(dref__type_of_dref=appeal_type_int)
-                codes_qs_final = codes_qs_final.filter(dref__type_of_dref=appeal_type_int)
-            except ValueError:
-                pass
-
-        # operation_status => status
-        op_status_int = self._status_to_int(request.query_params.get("operation_status"))
-        if op_status_int is not None:
-            codes_qs_dref = codes_qs_dref.filter(status=op_status_int)
-            codes_qs_op = codes_qs_op.filter(status=op_status_int)
-            codes_qs_final = codes_qs_final.filter(status=op_status_int)
-
-        # start/end date of operation
-        start_date_param = request.query_params.get("start_date_of_operation")
-        if start_date_param:
-            # Dref has no operation_start_date; approximate with date_of_approval for application stage records.
-            codes_qs_dref = codes_qs_dref.filter(date_of_approval__gte=start_date_param)
-            codes_qs_op = codes_qs_op.filter(new_operational_start_date__gte=start_date_param)
-            codes_qs_final = codes_qs_final.filter(operation_start_date__gte=start_date_param)
-        end_date_param = request.query_params.get("end_date_of_operation")
-        if end_date_param:
-            codes_qs_dref = codes_qs_dref.filter(end_date__lte=end_date_param)
-            codes_qs_op = codes_qs_op.filter(new_operational_end_date__lte=end_date_param)
-            codes_qs_final = codes_qs_final.filter(operation_end_date__lte=end_date_param)
-
-        # appeal_id direct (DB primary key)
-        appeal_id_param = request.query_params.get("appeal_id")
-        if appeal_id_param:
-            try:
-                pk_val = int(appeal_id_param)
-            except ValueError:
-                pk_val = None
-            codes = []
-            if pk_val:
-                for model in (Dref, DrefOperationalUpdate, DrefFinalReport):
-                    obj = model.objects.filter(pk=pk_val).only("appeal_code").first()
-                    if obj and obj.appeal_code:
-                        codes = [obj.appeal_code]
-                        break
-        else:
-            codes_sets = []
-            if not stage_filter or "application" in stage_filter:
-                codes_sets.append(set(codes_qs_dref))
-            if not stage_filter or "operational_update" in stage_filter:
-                codes_sets.append(set(codes_qs_op))
-            if not stage_filter or "final_report" in stage_filter:
-                codes_sets.append(set(codes_qs_final))
-            combined = set()
-            for s in codes_sets:
-                combined.update([c for c in s if c])
-            codes = list(combined)
-
-        # Additional date range filters (applied to root Dref only where fields exist)
-        date_range_fields = [
-            "event_date",
-            "ns_respond_date",
-            "government_requested_assistance_date",
-            "ns_request_date",
-            "submission_to_geneva",
-            "date_of_approval",
-            "publishing_date",
-            "hazard_date_and_location",
-            "end_date",
-        ]
-        for field in date_range_fields:
-            from_param = request.query_params.get(f"{field}_from")
-            to_param = request.query_params.get(f"{field}_to")
-            if from_param:
-                codes_qs_dref = codes_qs_dref.filter(**{f"{field}__gte": from_param})
-            if to_param:
-                codes_qs_dref = codes_qs_dref.filter(**{f"{field}__lte": to_param})
-
-        # Exclude codes for non-superusers
-        if not self._has_full_access(self.request.user):
-            excluded_codes = self._excluded_codes()
-            if excluded_codes:
-                codes = [c for c in codes if c and c.upper() not in excluded_codes]
-
-        # NOTE: Ordering and pagination are applied to the appeal codes, not the response objects.
-        # As a result, the number of response items may vary. This is expected behavior.
-        # This is a temporary limitation. In the future, we plan to apply standard
-        # ordering and pagination to the response objects table once an optimized
-        # layer is available to support it.
-        codes = self._order_codes(codes, request)
-        codes = self._paginate_codes(codes, request)
-
-        data = []
-        old_kwargs = getattr(self, "kwargs", {}).copy()
-        self.kwargs = {self.lookup_field: codes}
-        resp = self.retrieve(request)
-
-        if resp.status_code == 200:
-            for item in resp.data if isinstance(resp.data, list) else [resp.data]:
-                if stage_filter:
-                    stage_val = None
-                    if isinstance(item, dict):
-                        stage_val = item.get("stage") or item.get("Stage")
-                    if stage_val:
-                        normalized_stage = stage_val.lower()
-                        if normalized_stage.startswith("operational update"):
-                            normalized_stage = "operational_update"
-                        elif normalized_stage == "final report":
-                            normalized_stage = "final_report"
-                        elif normalized_stage == "application":
-                            normalized_stage = "application"
-
-                        if normalized_stage not in stage_filter:
-                            continue
-                    else:
-                        # If stage filter present and we cannot determine stage, skip
-                        continue
-                data.append(item)
-        self.kwargs = old_kwargs  # Restore old kwargs
-
-        silents = self._excluded_codes()
-        # TODO: Is this required, isn't this already done?
-        for row in data:
-            row["public"] = row["appeal_id"] not in silents
-
-        # numeric id filter (?id=3 or ?id=3,7)
-        id_param = request.query_params.get("id")
-        if id_param:
-            if wanted_ids := {i.strip() for i in str(id_param).split(",")}:
-                data = [row for row in data if row.get("id") in wanted_ids]
-        data_paginated = data
+        hydrator = Dref3PageHydrator(request.user)
 
         export_param = request.query_params.get("export")
         if export_param and export_param.lower() == "csv":
-            header = []
-            seen = set()
-            for row in data_paginated:
-                for k in row.keys():
-                    if k not in seen:
-                        seen.add(k)
-                        header.append(k)
-            resp = HttpResponse(content_type="text/csv")
-            resp["Content-Disposition"] = 'attachment; filename="dref3_export.csv"'
-            writer = csv.writer(resp)
-            writer.writerow(header)
-            for row in data_paginated:
-                writer.writerow([row.get(k, "") for k in header])
-            return resp
+            # CSV export intentionally bypasses pagination (full filtered set)
+            return dref3_csv_response(hydrator.hydrate(self._row_identities(queryset)))
 
-        return response.Response(data_paginated)
-
-    def get_serializer_class(self):  # type: ignore[override]
-        # just to give something to rest_framework/generics.py:122 – not used in retrieve
-        return Dref3Serializer
-
-    #    def get_renderers(self):
-    #        return [renderer() for renderer in tuple(api_settings.DEFAULT_RENDERER_CLASSES)]
-
-    def get_objects_by_appeal_code(self, appeal_codes):
-        user = self.request.user
-
-        select_related_fields = (
-            # FK
-            "country",
-        )
-        prefetch_related_fields = (
-            # M2M
-            "planned_interventions",
-            "district",
-            # FK – these fields are not included to select_related, because that way run time just increases
-            "country__region",
-            "disaster_type",
-        )
-
-        # Strong users: allow more access
-        global_filters = {
-            "appeal_code__in": appeal_codes,
-        }
-        if not self._has_full_access(user):
-            # Light users: only published records are visible
-            global_filters["status"] = Dref.Status.APPROVED
-
-            # If code is in the excluded list, return no results for anonymous users
-            excluded_codes = self._excluded_codes()
-            global_filters["appeal_code__in"] = [
-                appeal_code for appeal_code in appeal_codes if appeal_code.upper() not in excluded_codes
-            ]
-            if not global_filters["appeal_code__in"]:
-                return {}
-
-        drefs = (
-            Dref.objects.filter(**global_filters)
-            .select_related(*select_related_fields)
-            .prefetch_related(*prefetch_related_fields)
-            .order_by("created_at")
-        )
-
-        operational_updates = (
-            DrefOperationalUpdate.objects.filter(**global_filters)
-            .select_related(*select_related_fields)
-            .prefetch_related(*prefetch_related_fields)
-            .order_by("created_at")
-        )
-
-        final_reports = (
-            DrefFinalReport.objects.filter(**global_filters)
-            .select_related(*select_related_fields)
-            .prefetch_related(*prefetch_related_fields)
-            .order_by("created_at")
-        )
-
-        if self._has_full_access(user):
-            drefs = filter_dref_queryset_by_user_access(user, drefs)
-            operational_updates = filter_dref_queryset_by_user_access(user, operational_updates)
-            final_reports = filter_dref_queryset_by_user_access(user, final_reports)
-
-        results_by_appeal_code = defaultdict(list)
-        for items_list in [drefs, operational_updates, final_reports]:
-            for item in items_list:
-                results_by_appeal_code[item.appeal_code].append(item)
-
-        return results_by_appeal_code
-
-    def handle_retrieve(self, code, instances, prefetched_appeal_by_code):
-        serialized_data = []
-        ops_update_count = 0
-        allocation_count = 1  # Dref Application is always the first allocation
-        public = code not in self._excluded_codes()
-        a = ["First", "Second", "Third", "Fourth", "Fifth", "Sixth", "Seventh", "Eighth", "Ninth", "Tenth"]
-
-        # is_latest_stage: the last APPROVED-status instance and next instance either absent or not APPROVED
-        latest_index = None
-        for i, inst in enumerate(instances):
-            if getattr(inst, "status", None) == Dref.Status.APPROVED:
-                next_inst = instances[i + 1] if i + 1 < len(instances) else None
-                if next_inst is None or getattr(next_inst, "status", None) != Dref.Status.APPROVED:
-                    latest_index = i
-
-        # Build serialized rows with flag
-        for i, instance in enumerate(instances):
-            is_latest_stage = i == latest_index
-            if isinstance(instance, Dref):
-                serializer = Dref3Serializer(
-                    instance,
-                    context={
-                        "stage": "Application",
-                        "allocation": a[0],
-                        "public": public,
-                        "is_latest_stage": is_latest_stage,
-                        "prefetched_appeal_by_code": prefetched_appeal_by_code,
-                    },
-                )
-            elif isinstance(instance, DrefOperationalUpdate):
-                ops_update_count += 1
-                if instance.additional_allocation and len(a) > allocation_count:
-                    allocation = a[allocation_count]
-                    allocation_count += 1
-                else:
-                    allocation = "No allocation"
-                serializer = DrefOperationalUpdate3Serializer(
-                    instance,
-                    context={
-                        "stage": f"Operational Update {ops_update_count}",
-                        "allocation": allocation,
-                        "public": public,
-                        "is_latest_stage": is_latest_stage,
-                        "prefetched_appeal_by_code": prefetched_appeal_by_code,
-                    },
-                )
-            elif isinstance(instance, DrefFinalReport):
-                serializer = DrefFinalReport3Serializer(
-                    instance,
-                    context={
-                        "stage": "Final Report",
-                        "allocation": "No allocation",
-                        "public": public,
-                        "is_latest_stage": is_latest_stage,
-                        "prefetched_appeal_by_code": prefetched_appeal_by_code,
-                    },
-                )
-            else:
-                continue
-            serialized_data.append(serializer.data)
-
-        return serialized_data
+        page = self.paginate_queryset(queryset)
+        return self.get_paginated_response(hydrator.hydrate(self._row_identities(page)))
 
     def retrieve(self, request, *args, **kwargs):
-        codes = self.kwargs.get(self.lookup_field)
-        if isinstance(codes, str):
-            codes = [codes]
-
-        instances_by_appeal_code = self.get_objects_by_appeal_code(codes)
-
-        if not instances_by_appeal_code:
-            logger.warning("No Dref, Operational Update, or Final Report found with codes '%s'.", codes)
-            return response.Response([])
-
-        prefetched_appeal_by_code = {
-            appeal.code: appeal for appeal in Appeal.objects.only("code", "event_id").filter(code__in=codes).all()
-        }
-
-        return response.Response(
-            [
-                item
-                for code, instances in instances_by_appeal_code.items()
-                for item in self.handle_retrieve(code, instances, prefetched_appeal_by_code)
-            ]
-        )
+        code = kwargs.get(self.lookup_field)
+        hydrator = Dref3PageHydrator(request.user)
+        data = hydrator.hydrate_codes([code])
+        if not data:
+            logger.warning("No Dref, Operational Update, or Final Report found with code '%s'.", code)
+        return response.Response(data)
 
     def get_renderer_context(self):
         context = super().get_renderer_context()
