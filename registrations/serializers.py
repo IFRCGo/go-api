@@ -154,7 +154,7 @@ class UserExternalTokenSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserExternalToken
-        fields = ["title", "token", "expire_timestamp", "created_at", "is_old_token", "is_disabled"]
+        fields = ["id", "title", "token", "expire_timestamp", "created_at", "is_old_token", "is_disabled"]
 
     def get_token(self, obj) -> str | None:
         # NOTE: The JWT token only exists on the creation path, where create() returns a dict
@@ -185,6 +185,7 @@ class UserExternalTokenSerializer(serializers.ModelSerializer):
         if not (settings.OIDC_RSA_PRIVATE_KEY and settings.OIDC_RSA_PUBLIC_KEY):
             raise serializers.ValidationError("Please contact system adminstrators to configurate private and public key.")
         instance = super().create(validated_data)
+        validated_data["id"] = instance.id
         validated_data["created_at"] = instance.created_at
         validated_data["token"] = jwt_encode_handler(instance.get_payload())
         return validated_data

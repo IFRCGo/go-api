@@ -219,6 +219,8 @@ class UserExternalTokenTest(GoAPITestCase):
         body = response.json()
         self.assertTrue(body["token"])
         self.assertEqual(body["token"].count("."), 2)
+        # id is returned so clients can later revoke the token
+        self.assertEqual(body["id"], UserExternalToken.objects.get().id)
 
     def test_external_token_with_no_keys(self):
         self.client.force_authenticate(self.user)
