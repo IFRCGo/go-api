@@ -8,7 +8,6 @@ from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import Permission, User
 from django.contrib.gis import admin as geoadmin
-from django.core.exceptions import ValidationError
 from django.db.models import OuterRef, Subquery, Value
 from django.db.models.functions import Concat
 from django.http import HttpResponse, HttpResponseRedirect
@@ -185,7 +184,55 @@ class EventLinkInline(admin.TabularInline, TranslationInlineModelAdmin):
     model = models.EventLink
 
 
+class EventAdminForm(forms.ModelForm):
+    class Meta:
+        model = models.Event
+        fields = "__all__"
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if self.instance.pk is None:
+            return cleaned_data
+
+        new_severity = cleaned_data.get("ifrc_severity_level")
+        new_update_date = cleaned_data.get("ifrc_severity_level_update_date")
+        original_severity = self.instance.ifrc_severity_level
+        original_update_date = self.instance.ifrc_severity_level_update_date
+
+        if original_update_date is not None and new_update_date is None:
+            self.add_error(
+                "ifrc_severity_level_update_date",
+                "This field cannot be cleared once it has been set.",
+            )
+            return cleaned_data
+
+        severity_changed = original_severity != new_severity
+        update_date_changed = original_update_date != new_update_date
+
+        if severity_changed and not update_date_changed:
+            self.add_error(
+                "ifrc_severity_level_update_date",
+                "You must update this field when changing the severity level.",
+            )
+            return cleaned_data
+
+        if (
+            severity_changed
+            and update_date_changed
+            and original_update_date is not None
+            and new_update_date is not None
+            and original_update_date > new_update_date
+        ):
+            self.add_error(
+                "ifrc_severity_level_update_date",
+                "This date can not be earlier than the previous one.",
+            )
+
+        return cleaned_data
+
+
 class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
+    form = EventAdminForm
 
     @admin.display(ordering="ifrc_severity_level_update_date")
     def level_updated_at(self, obj):
@@ -405,19 +452,8 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
             severity_changed = original.ifrc_severity_level != obj.ifrc_severity_level
             update_date_changed = original.ifrc_severity_level_update_date != obj.ifrc_severity_level_update_date
 
-            if severity_changed and not update_date_changed:
-                messages.error(
-                    request, "You must update the 'IFRC Severity Level Update Date/Time' when changing the severity level."
-                )
-                raise ValidationError("Cannot change severity level without updating the update date/time.")
-
+            # Validation for these fields is handled in EventAdminForm.clean().
             if severity_changed and update_date_changed:
-                if (
-                    original.ifrc_severity_level_update_date is not None
-                    and original.ifrc_severity_level_update_date > obj.ifrc_severity_level_update_date
-                ):
-                    messages.error(request, "A severity level update date can not be earlier than the previous one.")
-                    raise ValidationError("A severity level update date can not be earlier than the previous one.")
                 models.EventSeverityLevelHistory.objects.create(
                     event=obj,
                     ifrc_severity_level=original.ifrc_severity_level,
