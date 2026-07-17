@@ -2151,13 +2151,16 @@ class BaseDref3Serializer(serializers.ModelSerializer):
         if code in cache:
             appeal = cache[code]
         else:
-            try:
-                appeal = self.context.get("prefetched_appeal_by_code", {}).get(code)
-                if appeal is None:
-                    # XXX: N+1
+            prefetched = self.context.get("prefetched_appeal_by_code")
+            if prefetched is not None:
+                # Prefetched for the whole page: a miss means no Appeal exists,
+                # so don't fall back to a per-row query (N+1).
+                appeal = prefetched.get(code)
+            else:
+                try:
                     appeal = Appeal.objects.only("event_id").get(code=code)
-            except Appeal.DoesNotExist:
-                appeal = None
+                except Appeal.DoesNotExist:
+                    appeal = None
             cache[code] = appeal
 
         if not appeal or not getattr(appeal, "event_id", None):
