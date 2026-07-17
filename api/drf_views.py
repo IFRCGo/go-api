@@ -730,6 +730,33 @@ class Admin2Viewset(viewsets.ReadOnlyModelViewSet):
         )
 
 
+class EventOrderingFilter(NullsLastOrderingFilter):
+    """
+    Appends a deterministic (-disaster_start_date, id) fallback to whatever ordering was
+    requested, so paginated /api/v2/event/ results stay stable even when the requested
+    column is empty or duplicated across rows.
+    """
+
+    fallback_ordering_fields = ("-disaster_start_date", "id")
+
+    def get_ordering(self, request, queryset, view):
+        # Bypass NullsLastOrderingFilter.get_ordering to get the raw field names, so the
+        # fallback fields can be appended before nulls-last is applied to all of them.
+        ordering = filters.OrderingFilter.get_ordering(self, request, queryset, view)
+        ordering = list(ordering) if ordering else []
+
+        existing_fields = {field.lstrip("-") for field in ordering}
+        ordering += [field for field in self.fallback_ordering_fields if field.lstrip("-") not in existing_fields]
+
+        nulls_last_ordering = []
+        for field in ordering:
+            if field.startswith("-"):
+                nulls_last_ordering.append(F(field[1:]).desc(nulls_last=True))
+            else:
+                nulls_last_ordering.append(F(field).asc(nulls_last=True))
+        return nulls_last_ordering
+
+
 class EventViewset(ReadOnlyVisibilityViewset):
     ordering_fields = (
         "disaster_start_date",
@@ -741,6 +768,7 @@ class EventViewset(ReadOnlyVisibilityViewset):
         "glide",
         "ifrc_severity_level",
     )
+    filter_backends = (EventOrderingFilter, rest_filters.DjangoFilterBackend, filters.SearchFilter)
     filterset_class = EventFilter
     visibility_model_class = Event
     search_fields = (

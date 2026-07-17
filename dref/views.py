@@ -51,7 +51,7 @@ from dref.serializers import (
     MiniDrefSerializer,
 )
 from dref.tasks import generate_dref_summary, process_dref_translation
-from dref.utils import create_event_from_dref
+from dref.utils import create_event_from_dref, sync_event_glide
 from lang.serializers import TranslatedModelSerializerMixin
 from main.permissions import DenyGuestUserPermission
 
@@ -234,6 +234,7 @@ class DrefOperationalUpdateViewSet(RevisionMixin, viewsets.ModelViewSet):
         operational_update.status = Dref.Status.APPROVED
         operational_update.date_of_approval = timezone.now().date()
         operational_update.save(update_fields=["status", "date_of_approval"])
+        sync_event_glide(operational_update.dref.event, operational_update.glide_code)
         transaction.on_commit(lambda: generate_dref_summary.delay(dref_id=operational_update.dref_id))
         serializer = DrefOperationalUpdateSerializer(operational_update, context={"request": request})
         return response.Response(serializer.data)
@@ -299,10 +300,11 @@ class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
             raise serializers.ValidationError(gettext("Must be finalized before it can be approved."))
 
         final_report.status = Dref.Status.APPROVED
-        final_report.save(update_fields=["status"])
-        final_report.dref.is_active = False
         final_report.date_of_approval = timezone.now().date()
-        final_report.dref.save(update_fields=["is_active", "date_of_approval"])
+        final_report.save(update_fields=["status", "date_of_approval"])
+        final_report.dref.is_active = False
+        final_report.dref.save(update_fields=["is_active"])
+        sync_event_glide(final_report.dref.event, final_report.glide_code)
         transaction.on_commit(lambda: generate_dref_summary.delay(dref_id=final_report.dref_id))
         serializer = DrefFinalReportSerializer(final_report, context={"request": request})
         return response.Response(serializer.data)
