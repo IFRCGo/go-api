@@ -22,6 +22,7 @@ from oauth2_provider import urls as oauth2_urls
 from rest_framework import routers
 
 from alert_system.dev_views import AlertEmailPreview
+from analytics import views as analytics_views
 from api import drf_views as api_views
 from api.admin_reports import UsersPerPermissionViewSet
 from api.views import (
@@ -213,6 +214,9 @@ router.register(r"full-eap", eap_views.FullEAPViewSet, basename="full_eap")
 router.register(r"eap-file", eap_views.EAPFileViewSet, basename="eap_file")
 router.register(r"eap/global-files", eap_views.EAPGlobalFilesViewSet, basename="eap_global_files")
 router.register(r"eap-share-users", eap_views.EAPShareUserViewSet, basename="eap_share_users")
+
+# Analytics
+router.register(r"document-download-log", analytics_views.DocumentDownloadLogViewSet, basename="document_download_log")
 
 admin.site.site_header = "IFRC Go administration"
 admin.site.site_title = "IFRC Go admin"

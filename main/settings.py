@@ -245,6 +245,7 @@ GO_APPS = [
     "country_plan",
     "local_units",
     "alert_system",
+    "analytics",
 ]
 
 INSTALLED_APPS = [
