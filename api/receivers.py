@@ -1,4 +1,5 @@
 import json
+import re
 from datetime import datetime
 from datetime import timezone as datetime_timezone
 
@@ -61,6 +62,11 @@ MODEL_TYPES = {
     "per.workplan": "PER Work Plan",
     "registrations.pending": "Pending registration",
 }
+
+
+def get_codes_skip():
+    value = AppealFilter.objects.filter(name="ingestAppealFilter").values_list("value", flat=True).first()
+    return re.findall(r"[^\s,]+", value or "")
 
 
 def create_global_reversion_log(versions, revision):
@@ -279,14 +285,14 @@ def add_update_appeal_history(sender, instance, created, **kwargs):
 
 
 @receiver(post_delete, sender=Appeal)
-def remove_appeal_filter(sender, instance, using, **kwargs):
-    appealFilter = AppealFilter.objects.get(name="ingestAppealFilter")
-    lstCodesToSkip = appealFilter.value.split(",")
-    if instance.code not in lstCodesToSkip:
-        lstCodesToSkip.append(instance.code)
+def increase_appeal_filter(sender, instance, using, **kwargs):
+    appeal_filter = AppealFilter.objects.get(name="ingestAppealFilter")
+    codes_to_skip = get_codes_skip()
+    if instance.code not in codes_to_skip:
+        codes_to_skip.append(instance.code)
 
-    appealFilter.value = ",".join(lstCodesToSkip)
-    appealFilter.save()
+    appeal_filter.value = ",".join(codes_to_skip)
+    appeal_filter.save()
 
 
 @receiver(m2m_changed, sender=FieldReport.countries.through)
