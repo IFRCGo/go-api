@@ -20,7 +20,6 @@ from eap.models import (
     EAPType,
     EnablingApproach,
     FullEAP,
-    KeyActor,
     PlannedOperation,
     SimplifiedEAP,
 )
@@ -66,7 +65,7 @@ class ActiveEAPViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
         return (
             super()
             .get_queryset()
-            .filter(status=EAPStatus.APPROVED)
+            .filter(status=EAPStatus.PROJECT_AGREEMENT_SIGNED)
             .select_related("disaster_type", "country")
             .annotate(
                 requirement_cost=Case(
@@ -275,15 +274,15 @@ class SimplifiedEAPViewSet(EAPModelViewSet):
                     ),
                 ),
                 Prefetch(
-                    "hazard_impact_images",
+                    "hazard_impact_files",
                     queryset=EAPFile.objects.select_related("created_by", "modified_by"),
                 ),
                 Prefetch(
-                    "risk_selected_protocols_images",
+                    "risk_selected_protocols_files",
                     queryset=EAPFile.objects.select_related("created_by", "modified_by"),
                 ),
                 Prefetch(
-                    "selected_early_actions_images",
+                    "selected_early_actions_files",
                     queryset=EAPFile.objects.select_related("created_by", "modified_by"),
                 ),
             )
@@ -369,27 +368,24 @@ class FullEAPViewSet(EAPModelViewSet):
                 "evidence_base_source_of_information",
                 "activation_process_source_of_information",
                 # Files
-                "hazard_selection_images",
+                "hazard_selection_files",
                 "theory_of_change_table_file",
-                "exposed_element_and_vulnerability_factor_images",
-                "prioritized_impact_images",
+                "exposed_element_and_vulnerability_factor_files",
+                "prioritized_impact_files",
                 "risk_analysis_relevant_files",
-                "forecast_selection_images",
-                "definition_and_justification_impact_level_images",
-                "identification_of_the_intervention_area_images",
+                "forecast_selection_files",
+                "definition_and_justification_impact_level_files",
+                "identification_of_the_intervention_area_files",
                 "trigger_model_relevant_files",
-                "early_action_selection_process_images",
+                "early_action_selection_process_files",
                 "evidence_base_relevant_files",
-                "early_action_implementation_images",
-                "trigger_activation_system_images",
+                "early_action_implementation_files",
+                "trigger_activation_system_files",
                 "activation_process_relevant_files",
                 "meal_relevant_files",
                 "capacity_relevant_files",
                 "forecast_table_file",
-                Prefetch(
-                    "key_actors",
-                    queryset=KeyActor.objects.select_related("national_society"),
-                ),
+                "key_actors",
                 Prefetch(
                     "planned_operations",
                     queryset=PlannedOperation.objects.prefetch_related(

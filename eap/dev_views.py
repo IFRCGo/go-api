@@ -17,8 +17,8 @@ class EAPEmailPreview(APIView):
             "resubmission_of_revised_eap": "email/eap/re-submission.html",
             "feedback_for_revised_eap": "email/eap/feedback_to_revised_eap.html",
             "technically_validated_eap": "email/eap/technically_validated_eap.html",
-            "pending_pfa": "email/eap/pending_pfa.html",
             "approved_eap": "email/eap/approved.html",
+            "project_agreement_signed": "email/eap/project_agreement_signed.html",
             "reminder": "email/eap/reminder.html",
             "share_eap": "email/eap/share_eap.html",
         }

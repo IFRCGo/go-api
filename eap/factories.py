@@ -62,6 +62,7 @@ class EAPRegistrationFactory(factory.django.DjangoModelFactory):
     status = fuzzy.FuzzyChoice(EAPStatus)
     eap_type = fuzzy.FuzzyChoice(EAPType)
     national_society_contact_name = fuzzy.FuzzyText(length=10, prefix="NS-")
+    national_society_contact_title = fuzzy.FuzzyText(length=10, prefix="NS-Title-")
     national_society_contact_email = factory.LazyAttribute(lambda obj: f"{obj.national_society_contact_name.lower()}@example.com")
 
     @factory.post_generation
@@ -83,18 +84,13 @@ class SimplifiedEAPFactory(factory.django.DjangoModelFactory):
     readiness_budget = fuzzy.FuzzyInteger(1000, 1000000)
     pre_positioning_budget = fuzzy.FuzzyInteger(1000, 1000000)
     early_action_budget = fuzzy.FuzzyInteger(1000, 1000000)
-    people_targeted = fuzzy.FuzzyInteger(2001, 100000)
+    total_people_targeted = fuzzy.FuzzyInteger(2001, 100000)
     seap_lead_timeframe_unit = fuzzy.FuzzyInteger(TimeFrame.MONTHS)
     seap_lead_time = fuzzy.FuzzyInteger(1, 12)
-    operational_timeframe = fuzzy.FuzzyInteger(1, 12)
+    activation_timeframe = fuzzy.FuzzyInteger(1, 12)
     national_society_contact_name = fuzzy.FuzzyText(length=10, prefix="NS-")
+    national_society_contact_title = fuzzy.FuzzyText(length=10, prefix="NS-Title-")
     national_society_contact_email = factory.LazyAttribute(lambda obj: f"{obj.national_society_contact_name.lower()}@example.com")
-    ifrc_delegation_focal_point_name = fuzzy.FuzzyText(length=10, prefix="IFRC-")
-    ifrc_delegation_focal_point_email = factory.LazyAttribute(
-        lambda obj: f"{obj.ifrc_delegation_focal_point_name.lower()}@example.com"
-    )
-    ifrc_head_of_delegation_name = fuzzy.FuzzyText(length=10, prefix="ifrc-head-")
-    ifrc_head_of_delegation_email = factory.LazyAttribute(lambda obj: f"{obj.ifrc_head_of_delegation_name.lower()}@example.com")
     prioritized_hazard_and_impact = fuzzy.FuzzyText(length=50, prefix="prioritized-hazard")
     risks_selected_protocols = fuzzy.FuzzyText(length=50, prefix="risks-selected-")
     selected_early_actions = fuzzy.FuzzyText(length=50, prefix="selected-early-")
@@ -208,6 +204,7 @@ class KeyActorFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = KeyActor
 
+    partner = fuzzy.FuzzyText(length=10, prefix="Partner-")
     description = fuzzy.FuzzyText(length=5, prefix="KeyActor-")
 
 
@@ -216,20 +213,16 @@ class FullEAPFactory(factory.django.DjangoModelFactory):
         model = FullEAP
 
     expected_submission_time = fuzzy.FuzzyDateTime(datetime(2025, 1, 1, tzinfo=pytz.utc))
-    lead_time = fuzzy.FuzzyInteger(1, 100)
+    lead_timeframe_unit = fuzzy.FuzzyInteger(TimeFrame.MONTHS)
+    lead_time = fuzzy.FuzzyInteger(1, 12)
     total_budget = fuzzy.FuzzyInteger(1000, 1000000)
     readiness_budget = fuzzy.FuzzyInteger(1000, 1000000)
     pre_positioning_budget = fuzzy.FuzzyInteger(1000, 1000000)
     early_action_budget = fuzzy.FuzzyInteger(1000, 1000000)
-    people_targeted = fuzzy.FuzzyInteger(10001, 10000000)
+    total_people_targeted = fuzzy.FuzzyInteger(10001, 10000000)
     national_society_contact_name = fuzzy.FuzzyText(length=10, prefix="NS-")
+    national_society_contact_title = fuzzy.FuzzyText(length=10, prefix="NS-Title-")
     national_society_contact_email = factory.LazyAttribute(lambda obj: f"{obj.national_society_contact_name.lower()}@example.com")
-    ifrc_delegation_focal_point_name = fuzzy.FuzzyText(length=10, prefix="IFRC-")
-    ifrc_delegation_focal_point_email = factory.LazyAttribute(
-        lambda obj: f"{obj.ifrc_delegation_focal_point_name.lower()}@example.com"
-    )
-    ifrc_head_of_delegation_name = fuzzy.FuzzyText(length=10, prefix="ifrc-head-")
-    ifrc_head_of_delegation_email = factory.LazyAttribute(lambda obj: f"{obj.ifrc_head_of_delegation_name.lower()}@example.com")
 
     @factory.post_generation
     def key_actors(self, create, extracted, **kwargs):
