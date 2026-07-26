@@ -2430,6 +2430,8 @@ class EmergencyDrefOperationalUpdateSerializer(serializers.ModelSerializer):
             "event_scope",
             "event_description",
             "operational_update_number",
+            "update_date",
+            "summary_of_change",
             "needs_identified",
             "event_date",
             "appeal_code",
