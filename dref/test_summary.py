@@ -85,13 +85,14 @@ class DrefSummaryGeneratorTest(TestCase):
         kwargs = DrefSummaryGenerator.get_section_kwargs(dref)
 
         self.assertEqual(set(kwargs.keys()), {"situational_overview", "operational_strategy", "people_centered_approach"})
-        self.assertEqual(kwargs["situational_overview"]["title"], "Test Dref")
+        # Only the mapped (Figma) fields feed each section — no title/demographics/budget metadata.
         self.assertEqual(kwargs["situational_overview"]["event_description"], "Severe flooding")
         self.assertEqual(kwargs["situational_overview"]["event_scope"], "Affected 3 districts")
+        self.assertNotIn("title", kwargs["situational_overview"])
         self.assertEqual(kwargs["operational_strategy"]["operation_objective"], "Provide shelter")
         self.assertEqual(kwargs["operational_strategy"]["response_strategy"], "Cash and shelter support")
-        self.assertEqual(kwargs["operational_strategy"]["total_targeted_population"], 5000)
-        self.assertEqual(kwargs["operational_strategy"]["people_in_need"], 8000)
+        self.assertNotIn("total_targeted_population", kwargs["operational_strategy"])
+        self.assertNotIn("people_in_need", kwargs["operational_strategy"])
         self.assertEqual(kwargs["people_centered_approach"]["people_assisted"], "5000 people")
         self.assertEqual(kwargs["people_centered_approach"]["selection_criteria"], "Most vulnerable households")
         self.assertNotIn("women", kwargs["people_centered_approach"])
@@ -117,17 +118,15 @@ class DrefSummaryGeneratorTest(TestCase):
         kwargs = DrefSummaryGenerator.get_section_kwargs(ops_update)
 
         self.assertEqual(set(kwargs.keys()), {"situational_overview", "operational_strategy", "people_centered_approach"})
-        self.assertEqual(kwargs["situational_overview"]["title"], "Test Ops Update")
         self.assertEqual(kwargs["situational_overview"]["event_description"], "Flooding continues")
         self.assertEqual(kwargs["operational_strategy"]["operation_objective"], "Extend shelter support")
-        self.assertEqual(kwargs["operational_strategy"]["total_dref_allocation"], 100000)
-        self.assertEqual(kwargs["operational_strategy"]["operation_end_date"], date(2025, 6, 1))
-        self.assertEqual(kwargs["operational_strategy"]["operation_timeframe"], 6)
+        self.assertEqual(kwargs["operational_strategy"]["response_strategy"], "Extended cash support")
+        # Non-mapped metadata (allocation, timeframe, demographics) is no longer included.
+        self.assertNotIn("total_dref_allocation", kwargs["operational_strategy"])
+        self.assertNotIn("operation_timeframe", kwargs["operational_strategy"])
         self.assertEqual(kwargs["people_centered_approach"]["people_assisted"], "6000 people")
-        self.assertEqual(kwargs["people_centered_approach"]["women"], 1000)
-        self.assertEqual(kwargs["people_centered_approach"]["men"], 900)
-        self.assertEqual(kwargs["people_centered_approach"]["girls"], 500)
-        self.assertEqual(kwargs["people_centered_approach"]["boys"], 600)
+        self.assertEqual(kwargs["people_centered_approach"]["selection_criteria"], "Vulnerable households")
+        self.assertNotIn("women", kwargs["people_centered_approach"])
 
     def test_get_section_kwargs_for_dref_final_report(self):
         planned_intervention = PlannedInterventionFactory.create(
@@ -161,9 +160,10 @@ class DrefSummaryGeneratorTest(TestCase):
                 "lessons_learned",
             },
         )
-        self.assertEqual(kwargs["situational_overview"]["title"], "Test Final Report")
-        self.assertEqual(kwargs["operational_strategy"]["total_dref_allocation"], 150000)
-        self.assertEqual(kwargs["people_centered_approach"]["women"], 1200)
+        self.assertEqual(kwargs["situational_overview"]["event_description"], "Response concluded")
+        self.assertEqual(kwargs["operational_strategy"]["operation_objective"], "Deliver relief items")
+        self.assertNotIn("total_dref_allocation", kwargs["operational_strategy"])
+        self.assertNotIn("women", kwargs["people_centered_approach"])
 
         challenges = kwargs["challenges_identified"]["planned_interventions"]
         self.assertEqual(len(challenges), 1)
@@ -173,22 +173,36 @@ class DrefSummaryGeneratorTest(TestCase):
         self.assertEqual(len(lessons), 1)
         self.assertEqual(lessons[0]["lessons_learnt"], "Earlier pre-positioning of stock helps")
 
-    def test_get_section_kwargs_excludes_event_scope_for_imminent_dref(self):
-        imminent_dref = DrefFactory.create(type_of_dref=Dref.DrefType.IMMINENT, event_scope="scope text")
-        self.assertNotIn("event_scope", DrefSummaryGenerator.get_section_kwargs(imminent_dref)["situational_overview"])
+    def test_get_section_kwargs_drops_empty_event_scope(self):
+        # event_scope is dropped only when empty (e.g. an Imminent DREF Application
+        # where the scope is not yet known); a populated value always feeds the summary.
+        empty_scope_dref = DrefFactory.create(type_of_dref=Dref.DrefType.IMMINENT, event_scope="")
+        self.assertNotIn("event_scope", DrefSummaryGenerator.get_section_kwargs(empty_scope_dref)["situational_overview"])
 
         response_dref = DrefFactory.create(type_of_dref=Dref.DrefType.RESPONSE, event_scope="scope text")
         self.assertIn("event_scope", DrefSummaryGenerator.get_section_kwargs(response_dref)["situational_overview"])
 
+    def test_get_section_kwargs_keeps_event_scope_for_imminent_final_report(self):
+        # By the Final Report stage an Imminent event has materialized, so event_scope
+        # (the "events impact") is real data and must feed the summary — unlike the
+        # Application stage where it is not yet known.
+        imminent_final = DrefFinalReportFactory.create(
+            type_of_dref=Dref.DrefType.IMMINENT,
+            event_scope="Two districts flooded, 5000 people displaced",
+        )
+        situational = DrefSummaryGenerator.get_section_kwargs(imminent_final)["situational_overview"]
+        self.assertEqual(situational["event_scope"], "Two districts flooded, 5000 people displaced")
+
     def test_compute_source_hash_changes_with_content_and_is_deterministic(self):
-        dref = DrefFactory.create(title="Original Title", type_of_dref=Dref.DrefType.RESPONSE)
+        dref = DrefFactory.create(event_description="Original description", type_of_dref=Dref.DrefType.RESPONSE)
 
         hash_a = DrefSummaryGenerator.compute_source_hash(dref)
         hash_b = DrefSummaryGenerator.compute_source_hash(dref)
         self.assertEqual(hash_a, hash_b)
 
-        dref.title = "Changed Title"
-        dref.save(update_fields=["title"])
+        # The hash tracks the mapped source fields, so changing one must change it.
+        dref.event_description = "Changed description"
+        dref.save(update_fields=["event_description"])
         hash_c = DrefSummaryGenerator.compute_source_hash(dref)
         self.assertNotEqual(hash_a, hash_c)
 
