@@ -2308,6 +2308,7 @@ class EmergencyDrefFinalReportSerializer(serializers.ModelSerializer):
     planned_interventions = PlannedInterventionSerializer(many=True, read_only=True)
     cover_image_file = DrefFileSerializer(source="cover_image", read_only=True)
     proposed_action = ProposedActionSerializer(many=True, required=False)
+    needs_identified = IdentifiedNeedSerializer(many=True, read_only=True)
     disaster_type_details = DisasterTypeSerializer(source="disaster_type", read_only=True)
     dref_contacts = serializers.SerializerMethodField()
 
@@ -2331,6 +2332,7 @@ class EmergencyDrefFinalReportSerializer(serializers.ModelSerializer):
             "district_details",
             "planned_interventions",
             "proposed_action",
+            "needs_identified",
             # Timeframe of operation
             "operation_start_date",
             "operation_end_date",
@@ -2387,6 +2389,7 @@ class EmergencyDrefOperationalUpdateSerializer(serializers.ModelSerializer):
     planned_interventions = PlannedInterventionSerializer(many=True, read_only=True)
     cover_image_file = DrefFileSerializer(source="cover_image", required=False, allow_null=True)
     disaster_type_details = DisasterTypeSerializer(source="disaster_type", read_only=True)
+    needs_identified = IdentifiedNeedSerializer(many=True, read_only=True)
     dref_contacts = serializers.SerializerMethodField()
 
     class Meta:
@@ -2403,6 +2406,9 @@ class EmergencyDrefOperationalUpdateSerializer(serializers.ModelSerializer):
             "event_scope",
             "event_description",
             "operational_update_number",
+            "update_date",
+            "summary_of_change",
+            "needs_identified",
             "event_date",
             "appeal_code",
             "glide_code",
@@ -2436,6 +2442,7 @@ class EmergencyDrefOperationalUpdateSerializer(serializers.ModelSerializer):
 
 class DrefSummarySerializer(ModelSerializer):
     status_display = serializers.CharField(source="get_status_display", read_only=True)
+    source_display = serializers.CharField(source="get_source_display", read_only=True)
 
     class Meta:
         model = DrefSummary
@@ -2443,6 +2450,9 @@ class DrefSummarySerializer(ModelSerializer):
             "id",
             "status",
             "status_display",
+            "source",
+            "source_display",
+            "source_id",
             "situational_overview",
             "operational_strategy",
             "people_centered_approach",
@@ -2460,6 +2470,7 @@ class EmergencyDrefSerializer(serializers.ModelSerializer):
     district_details = MiniDistrictSerializer(source="district", read_only=True, many=True)
     planned_interventions = PlannedInterventionSerializer(many=True, read_only=True)
     proposed_action = ProposedActionSerializer(many=True, read_only=True)
+    needs_identified = IdentifiedNeedSerializer(many=True, read_only=True)
     cover_image_file = DrefFileSerializer(source="cover_image", required=False, allow_null=True)
     disaster_type_details = DisasterTypeSerializer(source="disaster_type", read_only=True)
     type_of_dref_display = serializers.CharField(source="get_type_of_dref_display", read_only=True)
@@ -2496,6 +2507,7 @@ class EmergencyDrefSerializer(serializers.ModelSerializer):
             "district_details",
             "planned_interventions",
             "proposed_action",
+            "needs_identified",
             "emergency_appeal_planned",
             "government_requested_assistance",
             "did_ns_request_fund",
@@ -2509,6 +2521,7 @@ class EmergencyDrefSerializer(serializers.ModelSerializer):
             "men",
             "boys",
             "hazard_date_and_location",
+            "hazard_vulnerabilities_and_risks",
             "amount_requested",
             "total_cost",
             "total_targeted_population",

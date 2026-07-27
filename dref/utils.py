@@ -85,3 +85,11 @@ def create_event_from_dref(dref: Dref) -> Event:
     if region:
         event.regions.add(region)
     return event
+
+
+def sync_event_glide(event: Event, glide_code: str) -> None:
+    """Propagate a revision's (ops-update/final-report) glide code back to its event."""
+    if not event or not glide_code or event.glide == glide_code:
+        return
+    event.glide = glide_code
+    event.save(update_fields=["glide"])
