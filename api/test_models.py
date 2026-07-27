@@ -1,13 +1,15 @@
+from datetime import timedelta
 from unittest.mock import patch
 
 from django.contrib.admin.sites import AdminSite
 from django.contrib.auth.models import User
+from django.forms.models import model_to_dict
 from django.test import RequestFactory, TestCase
 from django.utils import timezone
 from rest_framework.test import APITestCase
 
 import api.models as models
-from api.admin import EventAdmin
+from api.admin import EventAdmin, EventAdminForm
 from api.factories import country as countryFactory
 from api.factories import event as eventFactory
 from api.factories import field_report as fieldReportFactory
@@ -178,3 +180,79 @@ class EventSeverityLevelHistoryTest(TestCase):
 
         history = models.EventSeverityLevelHistory.objects.filter(event=self.event)
         self.assertEqual(history.count(), 0)
+
+
+class EventAdminFormValidationTest(TestCase):
+    fixtures = ["DisasterTypes"]
+
+    def setUp(self):
+        self.dtype = models.DisasterType.objects.get(pk=1)
+        self.event = eventFactory.EventFactory.create(
+            dtype=self.dtype,
+            ifrc_severity_level=models.AlertLevel.YELLOW,
+            ifrc_severity_level_update_date=timezone.now(),
+        )
+
+    def _form_data(self, **overrides):
+        data = model_to_dict(self.event)
+        data.update(overrides)
+        return data
+
+    def test_severity_change_without_update_date_change_is_rejected(self):
+        form = EventAdminForm(
+            data=self._form_data(ifrc_severity_level=models.AlertLevel.RED),
+            instance=self.event,
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            "You must update this field when changing the severity level.",
+            form.errors.get("ifrc_severity_level_update_date", []),
+        )
+
+    def test_clearing_an_already_set_update_date_is_rejected(self):
+        form = EventAdminForm(
+            data=self._form_data(ifrc_severity_level_update_date=""),
+            instance=self.event,
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            "This field cannot be cleared once it has been set.",
+            form.errors.get("ifrc_severity_level_update_date", []),
+        )
+
+    def test_severity_change_with_earlier_update_date_is_rejected(self):
+        earlier_date = self.event.ifrc_severity_level_update_date - timedelta(days=1)
+        form = EventAdminForm(
+            data=self._form_data(
+                ifrc_severity_level=models.AlertLevel.RED,
+                ifrc_severity_level_update_date=earlier_date,
+            ),
+            instance=self.event,
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            "This date can not be earlier than the previous one.",
+            form.errors.get("ifrc_severity_level_update_date", []),
+        )
+
+    def test_severity_change_with_valid_later_update_date_is_accepted(self):
+        new_date = self.event.ifrc_severity_level_update_date + timedelta(days=1)
+        form = EventAdminForm(
+            data=self._form_data(
+                ifrc_severity_level=models.AlertLevel.RED,
+                ifrc_severity_level_update_date=new_date,
+            ),
+            instance=self.event,
+        )
+
+        form.is_valid()
+        self.assertNotIn("ifrc_severity_level_update_date", form.errors)
+
+    def test_severity_unchanged_does_not_require_update_date(self):
+        form = EventAdminForm(data=self._form_data(), instance=self.event)
+
+        form.is_valid()
+        self.assertNotIn("ifrc_severity_level_update_date", form.errors)
