@@ -10,8 +10,8 @@ def _remap_stac_url(url: str) -> str:
     """
     Rewrite a STAC URL to point at the internal cluster service.
     """
-    external_base = getattr(settings, "EOAPI_STAC_EXTERNAL_URL", None)
-    internal_base = getattr(settings, "EOAPI_STAC_INTERNAL_URL", None)
+    external_base = settings.EOAPI_STAC_EXTERNAL_URL
+    internal_base = settings.EOAPI_STAC_INTERNAL_URL
     if not external_base or not internal_base:
         return url
 
@@ -23,7 +23,7 @@ def _remap_stac_url(url: str) -> str:
         return url
 
     path = parsed.path
-    if ext.path and path.startswith(ext.path):
+    if ext.path and (path == ext.path or path.startswith(ext.path + "/")):
         path = path[len(ext.path) :]
 
     return urlunsplit((internal.scheme, internal.netloc, internal.path + path, parsed.query, parsed.fragment))
