@@ -1,3 +1,4 @@
+from admin_auto_filters.filters import AutocompleteFilterFactory
 from django import forms
 from django.conf import settings
 from django.contrib import admin, messages
@@ -200,7 +201,7 @@ class UserExternalTokenAdminForm(forms.ModelForm):
 class UserExternalTokenAdmin(CompareVersionAdmin):
     form = UserExternalTokenAdminForm
     list_display = ("title", "user", "created_at", "expire_timestamp", "is_disabled", "is_old_token")
-    list_filter = ("is_disabled", "is_old_token")
+    list_filter = (AutocompleteFilterFactory("User", "user"), "is_disabled", "is_old_token")
     search_fields = ("title", "user__username", "user__email", "jti")
     readonly_fields = ("jti", "created_at")
     autocomplete_fields = ("user",)
@@ -209,8 +210,9 @@ class UserExternalTokenAdmin(CompareVersionAdmin):
     def get_readonly_fields(self, request, obj=None):
         readonly_fields = super().get_readonly_fields(request, obj)
         if obj is not None:
-            # Expiry is fixed at creation time and is baked into the already issued JWT
-            return readonly_fields + ("expire_timestamp",)
+            # Owner/expiry are baked into the already issued JWT, and is_old_token is a
+            # migration marker, so none of them should be editable after creation
+            return readonly_fields + ("user", "expire_timestamp", "is_old_token")
         return readonly_fields
 
     @admin.action(description="Disable selected tokens")
