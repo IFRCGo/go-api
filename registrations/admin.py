@@ -1,5 +1,6 @@
+from django import forms
 from django.conf import settings
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.http import HttpResponseRedirect
 from django.template.loader import render_to_string
 from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
@@ -177,13 +178,40 @@ class DomainWhitelistAdmin(CompareVersionAdmin):
     ordering = ("domain_name",)
 
 
+# NOTE: External systems (eg. Montandon eoAPI) cache the revocation list, so re-enabling a
+# disabled token is not applied instantly downstream.
+RE_ENABLE_PROPAGATION_HINT = (
+    "Re-enabling a disabled token may take some time to take effect: "
+    "external systems (eg. Montandon eoAPI) can keep it in their revoke list until their cache expires."
+)
+
+
+class UserExternalTokenAdminForm(forms.ModelForm):
+    class Meta:
+        model = models.UserExternalToken
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if "is_disabled" in self.fields:
+            self.fields["is_disabled"].help_text = RE_ENABLE_PROPAGATION_HINT
+
+
 class UserExternalTokenAdmin(CompareVersionAdmin):
+    form = UserExternalTokenAdminForm
     list_display = ("title", "user", "created_at", "expire_timestamp", "is_disabled", "is_old_token")
     list_filter = ("is_disabled", "is_old_token")
     search_fields = ("title", "user__username", "user__email", "jti")
     readonly_fields = ("jti", "created_at")
     autocomplete_fields = ("user",)
     actions = ("disable_tokens", "enable_tokens")
+
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = super().get_readonly_fields(request, obj)
+        if obj is not None:
+            # Expiry is fixed at creation time and is baked into the already issued JWT
+            return readonly_fields + ("expire_timestamp",)
+        return readonly_fields
 
     @admin.action(description="Disable selected tokens")
     def disable_tokens(self, request, queryset):
@@ -193,7 +221,7 @@ class UserExternalTokenAdmin(CompareVersionAdmin):
     @admin.action(description="Enable selected tokens")
     def enable_tokens(self, request, queryset):
         updated = queryset.update(is_disabled=False)
-        self.message_user(request, f"{updated} token(s) enabled.")
+        self.message_user(request, f"{updated} token(s) enabled. {RE_ENABLE_PROPAGATION_HINT}", messages.WARNING)
 
 
 admin.site.register(models.Pending, PendingAdmin)
