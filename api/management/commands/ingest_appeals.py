@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from datetime import datetime, timedelta
 from datetime import timezone as datetime_timezone
 
@@ -39,7 +40,7 @@ class Command(BaseCommand):
 
     def get_codes_skip(self):
         value = AppealFilter.objects.filter(name="ingestAppealFilter").values_list("value", flat=True).first()
-        return (value or "").casefold()
+        return re.findall(r"[^\s,]+", value or "")
 
     def parse_date(self, date_string):
         timeformat = "%Y-%m-%dT%H:%M:%S"
@@ -74,7 +75,7 @@ class Command(BaseCommand):
 
                 for r in records:
                     # Temporary filtering, the manual version should be kept:
-                    if r["APP_code"].casefold() in codes_skip:  # 'MDR65002, MDR00001, MDR00004'
+                    if r["APP_code"] in codes_skip:  # ['MDR65002', 'MDR00001', 'MDR00004']:
                         continue
                     if r["APP_code"] not in codes:
                         new.append(r)
@@ -160,7 +161,7 @@ class Command(BaseCommand):
 
             for r in records:
                 # Temporary filtering, the manual version should be kept:
-                if r["APP_code"].casefold() in codes_skip:  # 'MDR65002, MDR00001, MDR00004'
+                if r["APP_code"] in codes_skip:  # ['MDR65002', 'MDR00001', 'MDR00004']:
                     continue
                 # if r['APP_code'] != 'DEBUG_this': continue
                 if r["APP_code"] not in codes:
