@@ -97,13 +97,13 @@ class EAPEmailPreview(APIView):
                 "national_society": "Test National Society",
                 "disaster_type": "Flood",
             },
-            "pending_pfa": {
+            "approved_eap": {
                 "eap_type_display": "FULL EAP",
                 "country_name": "Test Country",
                 "national_society": "Test National Society",
                 "disaster_type": "Flood",
             },
-            "approved_eap": {
+            "project_agreement_signed": {
                 "eap_type_display": "FULL EAP",
                 "country_name": "Test Country",
                 "national_society": "Test National Society",
