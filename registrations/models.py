@@ -98,8 +98,12 @@ class UserExternalToken(models.Model):
         default=False,
         help_text=_("Marks whether this is an old Montandon token"),
     )
-    # @Note: Currently not used, but could be utilized for a blacklist feature.
-    # is_disabled = models.BooleanField(verbose_name=_('is disabled?'), default=False)
+    # @Note: Used as a blacklist/revocation flag. Disabled tokens are treated as inactive.
+    is_disabled = models.BooleanField(
+        verbose_name=_("is disabled?"),
+        default=False,
+        help_text=_("Marks whether this token has been disabled/revoked"),
+    )
 
     class Meta:
         verbose_name = _("User External Token")
@@ -112,6 +116,7 @@ class UserExternalToken(models.Model):
         return {
             "jti": str(self.jti),
             "userId": self.user_id,
+            "iat": self.created_at,
             "exp": self.expire_timestamp,
             "inMovement": True,
         }
