@@ -17,7 +17,7 @@ from django.db.models import (
 )
 from django.db.models.functions import Upper
 
-from dref.dref3_common import (
+from dref.dref3.common import (
     Dref3AccessFilter,
     Dref3Stage,
     build_branch_filters,
@@ -92,7 +92,7 @@ def empty_union_queryset(include_group_first: bool = True):
 def build_union_queryset(user, query_params, access: Dref3AccessFilter | None = None):
     """Single filtered+ordered UNION ALL queryset for the requesting user.
 
-    Raises dref3_common.EmptyResult when params provably match nothing.
+    Raises dref.dref3.common.EmptyResult when params provably match nothing.
     Pass the same `access` instance to Dref3PageHydrator to compute the
     user-access narrowing once per request instead of twice.
     """

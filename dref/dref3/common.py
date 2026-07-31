@@ -1,15 +1,11 @@
 """Shared building blocks for the /api/v2/dref3/ endpoint.
 
-This module is intentionally identical in the `dref3-umbrella` and
-`dref3-union` branches so the two implementations only differ in how the
-single row-queryset is produced (denormalized table vs UNION query).
-
 A "row" is one instance of Dref / DrefOperationalUpdate / DrefFinalReport,
-identified by (stage, pk, appeal_code). The queryset layer (approach
-specific) is responsible for filtering / ordering / pagination over row
-identities; the `Dref3PageHydrator` here turns a page of row identities back
-into the exact response payloads the legacy endpoint produced, by fetching
-the full appeal-code groups and reusing the existing Dref3 serializers.
+identified by (stage, pk, appeal_code). `query.py` is responsible for
+filtering / ordering / pagination over row identities; the
+`Dref3PageHydrator` here turns a page of row identities back into the exact
+response payloads the legacy endpoint produced, by fetching the full
+appeal-code groups and reusing the Dref3 serializers.
 """
 
 import csv
@@ -22,8 +18,8 @@ from django.db.models import F, Q
 from django.db.models.functions import Upper
 from django.http import StreamingHttpResponse
 
-# NOTE: dref.models imports Dref3Stage from this module, so all dref/api model
-# imports here must stay function-local to avoid an import cycle.
+# Model and serializer imports are function-local throughout this module, so
+# importing it never pulls in the app registry at import time.
 
 logger = logging.getLogger(__name__)
 
@@ -149,8 +145,8 @@ def resolve_appeal_id(raw) -> str | None:
 
 # -- Declarative filter mapping ----------------------------------------------
 # param -> (coerce, per-stage source-model lookups). A `None` lookup means the
-# filter does not constrain that stage's rows. Approach A translates these to
-# Dref3Row columns/joins; approach B applies them per union branch.
+# filter does not constrain that stage's rows. `query.py` applies these per
+# union branch, before the union.
 
 
 def _coerce_int(raw):
@@ -425,12 +421,12 @@ class Dref3PageHydrator:
 
     def serialize_group(self, code, instances, prefetched_appeal_by_code) -> list[tuple[tuple[int, int], dict]]:
         # Local imports to avoid import cycles at app loading time.
-        from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
-        from dref.serializers import (
+        from dref.dref3.serializers import (
             Dref3Serializer,
             DrefFinalReport3Serializer,
             DrefOperationalUpdate3Serializer,
         )
+        from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
 
         ops_update_count = 0
         allocation_count = 1  # Dref Application is always the first allocation
@@ -550,7 +546,7 @@ def dref3_csv_header() -> list[str]:
     same header the previous implementation derived by unioning the keys of
     every serialized row - without needing every row in memory first.
     """
-    from dref.serializers import Dref3Serializer
+    from dref.dref3.serializers import Dref3Serializer
 
     return list(Dref3Serializer.Meta.fields)
 
