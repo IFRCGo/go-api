@@ -12,7 +12,7 @@ from django.contrib.auth.models import Group
 from rest_framework import status
 
 from api.models import Appeal, AppealFilter, AppealType, Country, Region, RegionName
-from dref.dref3_common import Dref3PageHydrator, dref3_csv_header
+from dref.dref3.common import Dref3PageHydrator, dref3_csv_header
 from dref.factories.dref import (
     DrefFactory,
     DrefFinalReportFactory,

@@ -1,7 +1,7 @@
 from django.test import TestCase
 
-from dref.dref3_common import Dref3AccessFilter, Dref3Stage, build_branch_filters
-from dref.dref3_query import (
+from dref.dref3.common import Dref3AccessFilter, Dref3Stage, build_branch_filters
+from dref.dref3.query import (
     BASE_UNION_COLUMNS,
     GROUP_FIRST_COLUMN,
     UNION_COLUMNS,
