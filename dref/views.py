@@ -21,14 +21,15 @@ from rest_framework.decorators import action
 from reversion.views import RevisionMixin
 
 from api.utils import get_model_name
-from dref.dref3_common import (
+from dref.dref3.common import (
     DREF3_CSV_CHUNK_SIZE,
     Dref3AccessFilter,
     Dref3PageHydrator,
     EmptyResult,
     dref3_csv_streaming_response,
 )
-from dref.dref3_query import build_union_queryset, empty_union_queryset
+from dref.dref3.query import build_union_queryset, empty_union_queryset
+from dref.dref3.serializers import Dref3Serializer
 from dref.filter_set import (
     ActiveDrefFilterSet,
     CompletedDrefOperationsFilterSet,
@@ -41,7 +42,6 @@ from dref.permissions import ApproveDrefPermission
 from dref.serializers import (
     AddDrefUserSerializer,
     CompletedDrefOperationsSerializer,
-    Dref3Serializer,
     DrefFileInputSerializer,
     DrefFileSerializer,
     DrefFinalReportSerializer,
