@@ -21,7 +21,13 @@ from rest_framework.decorators import action
 from reversion.views import RevisionMixin
 
 from api.utils import get_model_name
-from dref.dref3_common import Dref3PageHydrator, EmptyResult, dref3_csv_response
+from dref.dref3_common import (
+    DREF3_CSV_CHUNK_SIZE,
+    Dref3AccessFilter,
+    Dref3PageHydrator,
+    EmptyResult,
+    dref3_csv_streaming_response,
+)
 from dref.dref3_query import build_union_queryset, empty_union_queryset
 from dref.filter_set import (
     ActiveDrefFilterSet,
@@ -38,10 +44,8 @@ from dref.serializers import (
     Dref3Serializer,
     DrefFileInputSerializer,
     DrefFileSerializer,
-    DrefFinalReport3Serializer,
     DrefFinalReportSerializer,
     DrefGlobalFilesSerializer,
-    DrefOperationalUpdate3Serializer,
     DrefOperationalUpdateSerializer,
     DrefSerializer,
     DrefShareUserSerializer,
@@ -453,7 +457,9 @@ class Dref3ViewSet(viewsets.GenericViewSet):
     # Allow unauthenticated access; anonymous users only see approved rows
     permission_classes = [permissions.AllowAny]
     lookup_field = "appeal_code"
-    lookup_value_regex = r"[^/]+"
+    # Keep DRF's default lookup_value_regex ([^/.]+): appeal codes contain no
+    # dots, and widening it to [^/]+ makes the detail route swallow the
+    # `.json` / `.csv` format suffix that format_suffix_patterns appends.
     filter_backends = []  # all filtering happens (pre-union) in build_union_queryset
 
     def get_queryset(self):
@@ -466,6 +472,11 @@ class Dref3ViewSet(viewsets.GenericViewSet):
 
     def _row_identities(self, rows):
         return [(row["stage"], row["id"], row["appeal_code"]) for row in rows]
+
+    def _row_identities_iter(self, rows):
+        """Lazy variant for the export, so no full row list is materialized."""
+        for row in rows:
+            yield (row["stage"], row["id"], row["appeal_code"])
 
     @extend_schema(
         parameters=[
@@ -482,17 +493,24 @@ class Dref3ViewSet(viewsets.GenericViewSet):
         ]
     )
     def list(self, request, version=None):
+        # One access filter shared by the queryset and the hydrator, so the
+        # per-model user-access narrowing is computed once per request.
+        access = Dref3AccessFilter(request.user)
         try:
-            queryset = build_union_queryset(request.user, request.query_params)
+            queryset = build_union_queryset(request.user, request.query_params, access=access)
         except EmptyResult:
             queryset = empty_union_queryset()
 
-        hydrator = Dref3PageHydrator(request.user)
+        hydrator = Dref3PageHydrator(request.user, access=access)
 
         export_param = request.query_params.get("export")
         if export_param and export_param.lower() == "csv":
-            # CSV export intentionally bypasses pagination (full filtered set)
-            return dref3_csv_response(hydrator.hydrate(self._row_identities(queryset)))
+            # CSV export intentionally bypasses pagination (full filtered set),
+            # so it is streamed in chunks rather than serialized all at once.
+            return dref3_csv_streaming_response(
+                self._row_identities_iter(queryset.iterator(chunk_size=DREF3_CSV_CHUNK_SIZE)),
+                hydrator.hydrate,
+            )
 
         page = self.paginate_queryset(queryset)
         return self.get_paginated_response(hydrator.hydrate(self._row_identities(page)))
@@ -509,8 +527,3 @@ class Dref3ViewSet(viewsets.GenericViewSet):
         context = super().get_renderer_context()
         context["header"] = Dref3Serializer.Meta.fields
         return context
-
-    def dispatch(self, request, *args, **kwargs):
-        if request.method in ("GET", "HEAD"):
-            return super().dispatch(request, *args, **kwargs)
-        return response.Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
