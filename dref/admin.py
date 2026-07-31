@@ -156,6 +156,12 @@ class DrefAdmin(CompareVersionAdmin, TranslationAdmin, admin.ModelAdmin):
         "planned_interventions",
         "risk_security",
         "proposed_action",
+        "source_information",
+        "disaster_category_analysis",
+        "targeting_strategy_support_file",
+        "budget_file",
+        "scenario_analysis_supporting_document",
+        "contingency_plans_supporting_document",
     )
     readonly_fields = ("starting_language",)
 
@@ -202,6 +208,7 @@ class DrefOperationalUpdateAdmin(CompareVersionAdmin, TranslationAdmin, admin.Mo
         "country",
         "district",
         "risk_security",
+        "source_information",
     )
     readonly_fields = ("starting_language",)
     list_filter = ["dref"]
@@ -259,6 +266,7 @@ class DrefFinalReportAdmin(CompareVersionAdmin, TranslationAdmin, admin.ModelAdm
         "users",
         "national_society_actions",
         "source_information",
+        "proposed_action",
     )
     readonly_fields = ("starting_language",)
     list_filter = ["dref"]
