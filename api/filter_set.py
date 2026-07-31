@@ -194,6 +194,7 @@ class EventFilter(filters.FilterSet):
         fields = {
             "disaster_start_date": ("exact", "gt", "gte", "lt", "lte"),
             "created_at": ("exact", "gt", "gte", "lt", "lte"),
+            "updated_at": ("exact", "gt", "gte", "lt", "lte"),
         }
 
     def get_is_subcribed_event(self, qs, name, value):
