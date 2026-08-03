@@ -18,9 +18,7 @@ logger = logging.getLogger(__name__)
 
 ENCODING_NAME = "cl100k_base"
 
-MAX_OUTPUT_CHARS_PER_FIELD = 1500
 MAX_INPUT_TOKENS = 10000
-
 
 # The models a DrefSummary can be generated from.
 DrefSummarySource = Union[Dref, DrefOperationalUpdate, DrefFinalReport]
@@ -44,7 +42,8 @@ SYSTEM_MESSAGE = (
     "You are an IFRC expert analyst specializing in DREF (Disaster Response Emergency Fund) "
     "operations. Analyze the provided DREF data and produce clear, professional humanitarian "
     "summaries suitable for IFRC staff and National Society personnel. Use only the information "
-    "provided in the data; do not invent facts, figures, or details."
+    "provided in the data; do not invent facts, figures, or details. Where supporting information "
+    "for a section is absent, return an empty string for that section rather than speculating."
 )
 
 # Section prompt builders
@@ -90,7 +89,7 @@ SECTION_PROMPT_BUILDERS: Dict[str, Callable[..., str]] = {
 }
 
 GLOBAL_PROMPT = (
-    "The DREF data above is organised by summary section. Using ONLY that data, write five concise "
+    "The DREF data above is organised by summary section. Using ONLY that data, write five "
     "summary sections. Return a single JSON object (and nothing else) with exactly these keys, each "
     "summarising the block of the same name:\n"
     "\n"
@@ -109,8 +108,15 @@ GLOBAL_PROMPT = (
     "- Summarise only what each section's data actually contains; do not add topics or details it "
     "does not mention.\n"
     "- Preserve every specific figure, location and timeframe from the source; never fabricate them.\n"
-    "- Each value must be plain text (no markdown, no bullet lists, no nested JSON): one "
-    "well-structured paragraph in professional humanitarian language.\n"
+    "- If a section's data block is empty or holds no usable content, set that key to an empty "
+    "string. Never write a sentence stating that data is missing, not provided or not recorded.\n"
+    "- Scale each section's length to how much its source data actually contains: a brief source "
+    "yields a single short paragraph; a detailed source yields two to three full paragraphs. Never "
+    "pad a thin section to reach a length, and never compress a detailed one into a single "
+    "paragraph — a long source deserves a correspondingly long summary.\n"
+    "- Each value must be plain text (no markdown, no bullet lists, no nested JSON): one or more "
+    "well-structured paragraphs in professional humanitarian language, separated by a blank line, "
+    "or an empty string when that section has no data.\n"
     "- Return ONLY the JSON object, with no surrounding prose or code fences."
 )
 
@@ -138,6 +144,9 @@ def _extract_fields(obj, field_names: List[str]) -> dict:
 
 SITUATIONAL_COMMON_FIELDS: List[str] = ["event_description", "event_scope"]
 
+# Imminent DREF applications created on the v2 use hazard_date_and_location.
+IMMINENT_SITUATIONAL_FIELDS: List[str] = ["hazard_date_and_location"]
+
 OPERATIONAL_COMMON_FIELDS: List[str] = ["operation_objective", "response_strategy"]
 
 PEOPLE_COMMON_FIELDS: List[str] = ["people_assisted", "selection_criteria"]
@@ -151,14 +160,10 @@ class DrefSummaryGenerator:
 
     @staticmethod
     def _situational_overview_kwargs(source_doc) -> dict:
-        """Build situational_overview kwargs — common across all document types.
-
-        ``event_scope`` is one of the common fields; when it is empty (e.g. an
-        Imminent DREF Application where the scope is not yet known)
-        ``_extract_fields`` drops it automatically, while by the Final Report
-        stage the event has materialized and the field feeds the summary.
-        """
-        return _extract_fields(source_doc, SITUATIONAL_COMMON_FIELDS)
+        """Imminent v2 applications describe the situation in the scenario analysis fields; others use the common ones."""
+        if isinstance(source_doc, Dref) and source_doc.type_of_dref == Dref.DrefType.IMMINENT and source_doc.is_dref_imminent_v2:
+            return _extract_fields(source_doc, IMMINENT_SITUATIONAL_FIELDS)
+        return _extract_fields(source_doc, SITUATIONAL_COMMON_FIELDS)  # event_scope is empty for Assessment; dropped
 
     @staticmethod
     def _challenges_and_lessons_kwargs(source_doc) -> Dict[str, dict]:
@@ -345,8 +350,5 @@ class DrefSummaryGenerator:
             value = parsed.get(field_name)
             if not isinstance(value, str):
                 continue
-            summary = value.strip()
-            if len(summary) > MAX_OUTPUT_CHARS_PER_FIELD:
-                summary = summary[:MAX_OUTPUT_CHARS_PER_FIELD].rstrip()
-            results[field_name] = summary
+            results[field_name] = value.strip()
         return results
