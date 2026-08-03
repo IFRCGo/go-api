@@ -55,7 +55,7 @@ class AzureOpenAiChat(BaseLLMClient):
         return AzureOpenAI(
             azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
             api_key=settings.AZURE_OPENAI_API_KEY,
-            api_version="2023-05-15",
+            api_version=settings.AZURE_OPENAI_API_VERSION,
         )
 
     def get_response(self, messages: Messages) -> Optional[str]:
