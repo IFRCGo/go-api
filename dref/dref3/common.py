@@ -430,7 +430,11 @@ class Dref3PageHydrator:
 
         ops_update_count = 0
         allocation_count = 1  # Dref Application is always the first allocation
-        public = code not in self.excluded_codes
+        # `excluded_codes` is uppercased, and the row-visibility filters above
+        # compare against it uppercased too - so this must as well, or a
+        # mixed-case appeal_code would be hidden from light users while still
+        # being reported as public to the admins who can see it.
+        public = (code or "").upper() not in self.excluded_codes
 
         # is_latest_stage: last APPROVED instance with no APPROVED successor
         latest_index = None
