@@ -631,8 +631,6 @@ class EAPSimplifiedTestCase(APITestCase):
                         {
                             "activity": "early action activity",
                             "timeframe": TimeFrame.YEARS,
-                            "activation_one": True,
-                            "activation_two": False,
                             "time_value": [
                                 YearsTimeFrameChoices.ONE_YEAR,
                                 YearsTimeFrameChoices.TWO_YEARS,
@@ -643,8 +641,6 @@ class EAPSimplifiedTestCase(APITestCase):
                         {
                             "activity": "prepositioning activity",
                             "timeframe": TimeFrame.YEARS,
-                            "activation_one": True,
-                            "activation_two": False,
                             "time_value": [
                                 YearsTimeFrameChoices.TWO_YEARS,
                                 YearsTimeFrameChoices.THREE_YEARS,
@@ -678,8 +674,6 @@ class EAPSimplifiedTestCase(APITestCase):
                         {
                             "activity": "early action activity",
                             "timeframe": TimeFrame.YEARS,
-                            "activation_one": True,
-                            "activation_two": False,
                             "time_value": [
                                 YearsTimeFrameChoices.TWO_YEARS,
                                 YearsTimeFrameChoices.THREE_YEARS,
@@ -690,8 +684,6 @@ class EAPSimplifiedTestCase(APITestCase):
                         {
                             "activity": "prepositioning activity",
                             "timeframe": TimeFrame.YEARS,
-                            "activation_one": True,
-                            "activation_two": False,
                             "time_value": [YearsTimeFrameChoices.THREE_YEARS],
                         }
                     ],
@@ -902,8 +894,6 @@ class EAPSimplifiedTestCase(APITestCase):
                             "id": enabling_approach_prepositioning_operation_activity_1.id,
                             "activity": "Updated Enabling Approach Prepositioning Activity 1",
                             "timeframe": TimeFrame.MONTHS,
-                            "activation_one": True,
-                            "activation_two": False,
                             "time_value": [MonthsTimeFrameChoices.FOUR_MONTHS],
                         }
                     ],
@@ -912,8 +902,6 @@ class EAPSimplifiedTestCase(APITestCase):
                             "id": enabling_approach_early_action_operation_activity_1.id,
                             "activity": "Updated Enabling Approach Early Action Activity 1",
                             "timeframe": TimeFrame.DAYS,
-                            "activation_one": True,
-                            "activation_two": False,
                             "time_value": [DaysTimeFrameChoices.TEN_DAYS],
                         }
                     ],
@@ -936,8 +924,6 @@ class EAPSimplifiedTestCase(APITestCase):
                         {
                             "activity": "New Enabling Approach Prepositioning Activity",
                             "timeframe": TimeFrame.MONTHS,
-                            "activation_one": True,
-                            "activation_two": False,
                             "time_value": [
                                 MonthsTimeFrameChoices.SIX_MONTHS,
                                 MonthsTimeFrameChoices.NINE_MONTHS,
@@ -948,8 +934,6 @@ class EAPSimplifiedTestCase(APITestCase):
                         {
                             "activity": "New Enabling Approach Early Action Activity",
                             "timeframe": TimeFrame.DAYS,
-                            "activation_one": True,
-                            "activation_two": False,
                             "time_value": [
                                 DaysTimeFrameChoices.EIGHT_DAYS,
                                 DaysTimeFrameChoices.SIXTEEN_DAYS,
@@ -990,8 +974,6 @@ class EAPSimplifiedTestCase(APITestCase):
                             "id": planned_operation_prepositioning_operation_activity_1.id,
                             "activity": "Updated Planned Operation Prepositioning Activity 1",
                             "timeframe": TimeFrame.MONTHS,
-                            "activation_one": True,
-                            "activation_two": False,
                             "time_value": [
                                 MonthsTimeFrameChoices.THREE_MONTHS,
                                 MonthsTimeFrameChoices.SIX_MONTHS,
@@ -1003,8 +985,6 @@ class EAPSimplifiedTestCase(APITestCase):
                             "id": planned_operation_early_action_operation_activity_1.id,
                             "activity": "Updated Planned Operation Early Action Activity 1",
                             "timeframe": TimeFrame.DAYS,
-                            "activation_one": True,
-                            "activation_two": False,
                             "time_value": [
                                 DaysTimeFrameChoices.EIGHT_DAYS,
                                 DaysTimeFrameChoices.SIXTEEN_DAYS,
@@ -1031,8 +1011,6 @@ class EAPSimplifiedTestCase(APITestCase):
                         {
                             "activity": "New Planned Operation Prepositioning Activity",
                             "timeframe": TimeFrame.MONTHS,
-                            "activation_one": True,
-                            "activation_two": False,
                             "time_value": [
                                 MonthsTimeFrameChoices.TWO_MONTHS,
                                 MonthsTimeFrameChoices.FIVE_MONTHS,
@@ -1043,8 +1021,6 @@ class EAPSimplifiedTestCase(APITestCase):
                         {
                             "activity": "New Planned Operation Early Action Activity",
                             "timeframe": TimeFrame.DAYS,
-                            "activation_one": True,
-                            "activation_two": False,
                             "time_value": [
                                 MonthsTimeFrameChoices.FIVE_MONTHS,
                                 MonthsTimeFrameChoices.TWELVE_MONTHS,
@@ -1104,24 +1080,16 @@ class EAPSimplifiedTestCase(APITestCase):
                 response.data["enabling_approaches"][0]["prepositioning_activities"][0]["id"],
                 response.data["enabling_approaches"][0]["prepositioning_activities"][0]["activity"],
                 response.data["enabling_approaches"][0]["prepositioning_activities"][0]["timeframe"],
-                response.data["enabling_approaches"][0]["prepositioning_activities"][0]["activation_one"],
-                response.data["enabling_approaches"][0]["prepositioning_activities"][0]["activation_two"],
                 # NEW PREPOSITIONING ACTIVITY
                 response.data["enabling_approaches"][1]["prepositioning_activities"][0]["activity"],
                 response.data["enabling_approaches"][1]["prepositioning_activities"][0]["timeframe"],
-                response.data["enabling_approaches"][1]["prepositioning_activities"][0]["activation_one"],
-                response.data["enabling_approaches"][1]["prepositioning_activities"][0]["activation_two"],
                 # EARLY ACTION ACTIVITY
                 response.data["enabling_approaches"][0]["early_action_activities"][0]["id"],
                 response.data["enabling_approaches"][0]["early_action_activities"][0]["activity"],
                 response.data["enabling_approaches"][0]["early_action_activities"][0]["timeframe"],
-                response.data["enabling_approaches"][0]["early_action_activities"][0]["activation_one"],
-                response.data["enabling_approaches"][0]["early_action_activities"][0]["activation_two"],
                 # NEW EARLY ACTION ACTIVITY
                 response.data["enabling_approaches"][1]["early_action_activities"][0]["activity"],
                 response.data["enabling_approaches"][1]["early_action_activities"][0]["timeframe"],
-                response.data["enabling_approaches"][1]["early_action_activities"][0]["activation_one"],
-                response.data["enabling_approaches"][1]["early_action_activities"][0]["activation_two"],
             },
             {
                 # READINESS ACTIVITY
@@ -1135,24 +1103,16 @@ class EAPSimplifiedTestCase(APITestCase):
                 enabling_approach_prepositioning_operation_activity_1.id,
                 data["enabling_approaches"][0]["prepositioning_activities"][0]["activity"],
                 data["enabling_approaches"][0]["prepositioning_activities"][0]["timeframe"],
-                data["enabling_approaches"][0]["prepositioning_activities"][0]["activation_one"],
-                data["enabling_approaches"][0]["prepositioning_activities"][0]["activation_two"],
                 # NEW PREPOSITIONING Activity
                 data["enabling_approaches"][1]["prepositioning_activities"][0]["activity"],
                 data["enabling_approaches"][1]["prepositioning_activities"][0]["timeframe"],
-                data["enabling_approaches"][1]["prepositioning_activities"][0]["activation_one"],
-                data["enabling_approaches"][1]["prepositioning_activities"][0]["activation_two"],
                 # EARLY ACTION ACTIVITY
                 enabling_approach_early_action_operation_activity_1.id,
                 data["enabling_approaches"][0]["early_action_activities"][0]["activity"],
                 data["enabling_approaches"][0]["early_action_activities"][0]["timeframe"],
-                data["enabling_approaches"][0]["early_action_activities"][0]["activation_one"],
-                data["enabling_approaches"][0]["early_action_activities"][0]["activation_two"],
                 # NEW EARLY ACTION ACTIVITY
                 data["enabling_approaches"][1]["early_action_activities"][0]["activity"],
                 data["enabling_approaches"][1]["early_action_activities"][0]["timeframe"],
-                data["enabling_approaches"][1]["early_action_activities"][0]["activation_one"],
-                data["enabling_approaches"][1]["early_action_activities"][0]["activation_two"],
             },
         )
 
@@ -1194,24 +1154,16 @@ class EAPSimplifiedTestCase(APITestCase):
                 response.data["planned_operations"][0]["prepositioning_activities"][0]["id"],
                 response.data["planned_operations"][0]["prepositioning_activities"][0]["activity"],
                 response.data["planned_operations"][0]["prepositioning_activities"][0]["timeframe"],
-                response.data["planned_operations"][0]["prepositioning_activities"][0]["activation_one"],
-                response.data["planned_operations"][0]["prepositioning_activities"][0]["activation_two"],
                 # NEW PREPOSITIONING ACTIVITY
                 response.data["planned_operations"][1]["prepositioning_activities"][0]["activity"],
                 response.data["planned_operations"][1]["prepositioning_activities"][0]["timeframe"],
-                response.data["planned_operations"][1]["prepositioning_activities"][0]["activation_one"],
-                response.data["planned_operations"][1]["prepositioning_activities"][0]["activation_two"],
                 # EARLY ACTION ACTIVITY
                 response.data["planned_operations"][0]["early_action_activities"][0]["id"],
                 response.data["planned_operations"][0]["early_action_activities"][0]["activity"],
                 response.data["planned_operations"][0]["early_action_activities"][0]["timeframe"],
-                response.data["planned_operations"][0]["early_action_activities"][0]["activation_one"],
-                response.data["planned_operations"][0]["early_action_activities"][0]["activation_two"],
                 # NEW EARLY ACTION ACTIVITY
                 response.data["planned_operations"][1]["early_action_activities"][0]["activity"],
                 response.data["planned_operations"][1]["early_action_activities"][0]["timeframe"],
-                response.data["planned_operations"][1]["early_action_activities"][0]["activation_one"],
-                response.data["planned_operations"][1]["early_action_activities"][0]["activation_two"],
             },
             {
                 # READINESS ACTIVITY
@@ -1225,24 +1177,16 @@ class EAPSimplifiedTestCase(APITestCase):
                 planned_operation_prepositioning_operation_activity_1.id,
                 data["planned_operations"][0]["prepositioning_activities"][0]["activity"],
                 data["planned_operations"][0]["prepositioning_activities"][0]["timeframe"],
-                data["planned_operations"][0]["prepositioning_activities"][0]["activation_one"],
-                data["planned_operations"][0]["prepositioning_activities"][0]["activation_two"],
                 # NEW PREPOSITIONING ACTIVITY
                 data["planned_operations"][1]["prepositioning_activities"][0]["activity"],
                 data["planned_operations"][1]["prepositioning_activities"][0]["timeframe"],
-                data["planned_operations"][1]["prepositioning_activities"][0]["activation_one"],
-                data["planned_operations"][1]["prepositioning_activities"][0]["activation_two"],
                 # EARLY ACTION Activity
                 planned_operation_early_action_operation_activity_1.id,
                 data["planned_operations"][0]["early_action_activities"][0]["activity"],
                 data["planned_operations"][0]["early_action_activities"][0]["timeframe"],
-                data["planned_operations"][0]["early_action_activities"][0]["activation_one"],
-                data["planned_operations"][0]["early_action_activities"][0]["activation_two"],
                 # NEW EARLY ACTION Activity
                 data["planned_operations"][1]["early_action_activities"][0]["activity"],
                 data["planned_operations"][1]["early_action_activities"][0]["timeframe"],
-                data["planned_operations"][1]["early_action_activities"][0]["activation_one"],
-                data["planned_operations"][1]["early_action_activities"][0]["activation_two"],
             },
         )
 
@@ -2632,13 +2576,8 @@ class EAPFullTestCase(APITestCase):
                     "prepositioning_activities": [
                         {
                             "activity": "prepositioning activity",
-                            "timeframe": TimeFrame.YEARS,
                             "activation_one": True,
                             "activation_two": False,
-                            "time_value": [
-                                YearsTimeFrameChoices.TWO_YEARS,
-                                YearsTimeFrameChoices.THREE_YEARS,
-                            ],
                         }
                     ],
                     "readiness_activities": [
@@ -2679,10 +2618,8 @@ class EAPFullTestCase(APITestCase):
                     "prepositioning_activities": [
                         {
                             "activity": "prepositioning activity",
-                            "timeframe": TimeFrame.YEARS,
                             "activation_one": True,
                             "activation_two": False,
-                            "time_value": [YearsTimeFrameChoices.THREE_YEARS],
                         }
                     ],
                     "readiness_activities": [

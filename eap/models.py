@@ -385,12 +385,19 @@ class OperationActivity(models.Model):
     # NOTE: `timeframe` and `time_value` together represent the time span for an activity.
     # Make sure to keep them in sync.
     activity = models.CharField(max_length=255, verbose_name=_("Activity"))
-    timeframe = models.IntegerField(choices=TimeFrame.choices, verbose_name=_("Timeframe"))
     activation_one = models.BooleanField(verbose_name=_("Activation 1"), null=True, blank=True)
     activation_two = models.BooleanField(verbose_name=_("Activation 2"), null=True, blank=True)
+    timeframe = models.IntegerField(
+        choices=TimeFrame.choices,
+        verbose_name=_("Timeframe"),
+        null=True,
+        blank=True,
+    )
     time_value = ArrayField(
         base_field=models.IntegerField(),
         verbose_name=_("Activity time span"),
+        null=True,
+        blank=True,
     )
     previous_id = models.PositiveIntegerField(verbose_name=_("Previous ID"), null=True, blank=True)
 
@@ -1481,7 +1488,6 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         blank=True,
     )
 
-    # NOTE: In days
     lead_time = models.IntegerField(
         verbose_name=_("Lead Time"),
         null=True,

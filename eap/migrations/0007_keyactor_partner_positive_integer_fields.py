@@ -1,4 +1,7 @@
+import django.contrib.postgres.fields
 from django.db import migrations, models
+
+from eap.models import TimeFrame
 
 
 class Migration(migrations.Migration):
@@ -417,5 +420,17 @@ class Migration(migrations.Migration):
             model_name="fulleap",
             name="total_people_targeted",
             field=models.PositiveIntegerField(blank=True, null=True, verbose_name="Total People Targeted."),
+        ),
+        migrations.AlterField(
+            model_name="operationactivity",
+            name="timeframe",
+            field=models.IntegerField(blank=True, choices=TimeFrame.choices, null=True, verbose_name="Timeframe"),
+        ),
+        migrations.AlterField(
+            model_name="operationactivity",
+            name="time_value",
+            field=django.contrib.postgres.fields.ArrayField(
+                base_field=models.IntegerField(), blank=True, null=True, size=None, verbose_name="Activity time span"
+            ),
         ),
     ]

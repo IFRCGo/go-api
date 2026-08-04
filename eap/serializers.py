@@ -360,6 +360,9 @@ class OperationActivitySerializer(
         child=serializers.IntegerField(required=True),
         required=True,
     )
+    # NOTE: Not applicable here; stays null. Full EAP prepositioning/early_action override this to be required.
+    activation_one = serializers.BooleanField(read_only=True)
+    activation_two = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = OperationActivity
@@ -368,8 +371,8 @@ class OperationActivitySerializer(
     # NOTE: Custom validation for `timeframe` and `time_value`
     # Make sure time_value is within the allowed range for the selected timeframe
     def validate(self, validated_data: dict[str, typing.Any]) -> dict[str, typing.Any]:
-        timeframe = validated_data["timeframe"]
-        time_value = validated_data["time_value"]
+        timeframe = validated_data.get("timeframe")
+        time_value = validated_data.get("time_value")
 
         if time_value is None or len(time_value) == 0:
             raise serializers.ValidationError({"time_value": gettext("time_value is required and cannot be empty.")})
@@ -385,6 +388,38 @@ class OperationActivitySerializer(
                 }
             )
         return validated_data
+
+
+class PrepositioningOperationActivitySerializer(OperationActivitySerializer):
+    """Full EAP prepositioning_activities: timeframe/time_value optional, activation_one/two required."""
+
+    timeframe = serializers.ChoiceField(
+        choices=TimeFrame.choices,
+        required=False,
+        allow_null=True,
+    )
+    time_value = serializers.ListField(
+        child=serializers.IntegerField(required=True),
+        required=False,
+        allow_null=True,
+    )
+    activation_one = serializers.BooleanField(required=False, default=False)
+    activation_two = serializers.BooleanField(required=False, default=False)
+
+    def validate(self, validated_data: dict[str, typing.Any]) -> dict[str, typing.Any]:
+        timeframe = validated_data.get("timeframe")
+        time_value = validated_data.get("time_value")
+
+        if timeframe is None and not time_value:
+            return validated_data
+        return super().validate(validated_data)
+
+
+class EarlyActionOperationActivitySerializer(OperationActivitySerializer):
+    """Full EAP early_action_activities: timeframe/time_value required, activation_one/two also required."""
+
+    activation_one = serializers.BooleanField(required=False, default=False)
+    activation_two = serializers.BooleanField(required=False, default=False)
 
 
 class IndicatorSerializer(
@@ -409,14 +444,21 @@ class PlannedOperationSerializer(
     sector_display = serializers.CharField(source="get_sector_display", read_only=True)
     indicators = IndicatorSerializer(many=True, required=True)
 
-    # activities
+    # activities (Full EAP: prepositioning has no timeframe/time_value but needs activation_one/two)
     readiness_activities = OperationActivitySerializer(many=True, required=True)
-    prepositioning_activities = OperationActivitySerializer(many=True, required=True)
-    early_action_activities = OperationActivitySerializer(many=True, required=True)
+    prepositioning_activities = PrepositioningOperationActivitySerializer(many=True, required=True)
+    early_action_activities = EarlyActionOperationActivitySerializer(many=True, required=True)
 
     class Meta:
         model = PlannedOperation
         fields = "__all__"
+
+
+class SimplifiedPlannedOperationSerializer(PlannedOperationSerializer):
+    """Simplified EAP: all activities need timeframe/time_value, none need activation_one/two."""
+
+    prepositioning_activities = OperationActivitySerializer(many=True, required=True)
+    early_action_activities = OperationActivitySerializer(many=True, required=True)
 
 
 class EnablingApproachSerializer(
@@ -430,14 +472,21 @@ class EnablingApproachSerializer(
     approach_display = serializers.CharField(source="get_approach_display", read_only=True)
     indicators = IndicatorSerializer(many=True, required=True)
 
-    # activities
+    # activities (Full EAP: prepositioning has no timeframe/time_value but needs activation_one/two)
     readiness_activities = OperationActivitySerializer(many=True, required=True)
-    prepositioning_activities = OperationActivitySerializer(many=True, required=True)
-    early_action_activities = OperationActivitySerializer(many=True, required=True)
+    prepositioning_activities = PrepositioningOperationActivitySerializer(many=True, required=True)
+    early_action_activities = EarlyActionOperationActivitySerializer(many=True, required=True)
 
     class Meta:
         model = EnablingApproach
         fields = "__all__"
+
+
+class SimplifiedEnablingApproachSerializer(EnablingApproachSerializer):
+    """Simplified EAP: all activities need timeframe/time_value, none need activation_one/two."""
+
+    prepositioning_activities = OperationActivitySerializer(many=True, required=True)
+    early_action_activities = OperationActivitySerializer(many=True, required=True)
 
 
 class EAPSourceInformationSerializer(
@@ -491,6 +540,8 @@ class EAPContactSerializer(serializers.ModelSerializer):
 
 class CommonEAPFieldsSerializer(serializers.ModelSerializer):
     MAX_NUMBER_OF_FILES = 5
+    planned_operation_serializer_class = PlannedOperationSerializer
+    enabling_approach_serializer_class = EnablingApproachSerializer
 
     def get_fields(self):
         fields = super().get_fields()
@@ -498,8 +549,8 @@ class CommonEAPFieldsSerializer(serializers.ModelSerializer):
         # TODO(susilnem): Make admin2 required once we verify the data!
         fields["admin2_details"] = Admin2Serializer(source="admin2", many=True, read_only=True)
         fields["cover_image_file"] = EAPFileUpdateSerializer(source="cover_image", required=False, allow_null=True)
-        fields["planned_operations"] = PlannedOperationSerializer(many=True, required=False)
-        fields["enabling_approaches"] = EnablingApproachSerializer(many=True, required=False)
+        fields["planned_operations"] = self.planned_operation_serializer_class(many=True, required=False)
+        fields["enabling_approaches"] = self.enabling_approach_serializer_class(many=True, required=False)
         fields["budget_file"] = serializers.PrimaryKeyRelatedField(
             queryset=EAPFile.objects.all(), required=False, allow_null=True
         )
@@ -553,6 +604,8 @@ class SimplifiedEAPSerializer(
     BaseEAPSerializer,
     CommonEAPFieldsSerializer,
 ):
+    planned_operation_serializer_class = SimplifiedPlannedOperationSerializer
+    enabling_approach_serializer_class = SimplifiedEnablingApproachSerializer
 
     # FILES
     version = serializers.IntegerField(default=1, read_only=True)
