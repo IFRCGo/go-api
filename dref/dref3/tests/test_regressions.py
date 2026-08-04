@@ -86,6 +86,35 @@ class Dref3LightUserVisibilityTests(APITestCase):
         self.assertNotIn("APPROVED_CODE", {row["appeal_id"] for row in rows})
         self.assertEqual(count, len(rows))
 
+    def test_mixed_case_excluded_code_is_hidden_and_not_reported_public(self):
+        """The embargo list is uppercased and matched with SQL upper(), so a
+        mixed-case appeal_code is embargoed too. The `public` flag is computed
+        in Python from the same set and must agree: an admin who can see the
+        row must not be told it is public.
+        """
+        DrefFactory.create(
+            appeal_code="mdrZz009",
+            national_society=self.country,
+            status=Dref.Status.APPROVED,
+        )
+        AppealFilter.objects.create(name="ingestAppealFilter", value="MDRZZ009")
+
+        # Light user: the row is not visible at all.
+        resp = self.client.get(self.url, {"limit": 100000})
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        rows, count = self._payload(resp)
+        self.assertNotIn("mdrZz009", {row["appeal_id"] for row in rows})
+        self.assertEqual(count, len(rows))
+
+        # Full-access user: the row is visible, and flagged non-public.
+        self.authenticate(self.root_user)
+        resp = self.client.get(self.url, {"appeal_code_prefix": "mdrZz", "limit": 100000})
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        rows, _ = self._payload(resp)
+        self.assertTrue(rows, "embargoed row should still be visible to full-access users")
+        for row in rows:
+            self.assertFalse(row["public"], "embargoed mixed-case code reported as public")
+
 
 class Dref3AdminUserAccessTests(APITestCase):
     """Non-superuser member of "DREF3 Admins" with no dref_region_admin_*
