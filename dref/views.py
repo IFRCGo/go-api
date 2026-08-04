@@ -7,7 +7,7 @@ from django.db import models, transaction
 from django.db.models.query import Prefetch
 from django.templatetags.static import static
 from django.utils.translation import gettext
-from drf_spectacular.utils import OpenApiParameter, extend_schema
+from drf_spectacular.utils import extend_schema
 from rest_framework import (
     mixins,
     permissions,
@@ -29,6 +29,7 @@ from dref.dref3.common import (
     dref3_csv_streaming_response,
 )
 from dref.dref3.query import build_union_queryset, empty_union_queryset
+from dref.dref3.schema import DREF3_LIST_PARAMETERS
 from dref.dref3.serializers import Dref3Serializer
 from dref.filter_set import (
     ActiveDrefFilterSet,
@@ -478,20 +479,7 @@ class Dref3ViewSet(viewsets.GenericViewSet):
         for row in rows:
             yield (row["stage"], row["id"], row["appeal_code"])
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name="order_by",
-                description=(
-                    "Use 'created_at' or '-created_at' to order row groups by the first DREF application "
-                    "created_at per appeal_code; any other value defaults to appeal_code ordering. "
-                    "Rows of one appeal_code always stay contiguous (stage-major, then created_at)."
-                ),
-                required=False,
-                type=str,
-            )
-        ]
-    )
+    @extend_schema(parameters=DREF3_LIST_PARAMETERS)
     def list(self, request, version=None):
         # One access filter shared by the queryset and the hydrator, so the
         # per-model user-access narrowing is computed once per request.
