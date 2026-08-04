@@ -12,7 +12,8 @@ from django.contrib.auth.models import Group
 from rest_framework import status
 
 from api.models import Appeal, AppealFilter, AppealType, Country, Region, RegionName
-from dref.dref3.common import Dref3PageHydrator, dref3_csv_header
+from dref.dref3.common import DREF3_FILTERS, Dref3PageHydrator, dref3_csv_header
+from dref.dref3.schema import DREF3_LIST_PARAMETERS
 from dref.factories.dref import (
     DrefFactory,
     DrefFinalReportFactory,
@@ -260,6 +261,39 @@ class Dref3RoutingTests(APITestCase):
                 resp = self.client.get(suffixed_url)
                 self.assertEqual(resp.status_code, status.HTTP_200_OK)
                 self.assertEqual(resp.json(), plain.json())
+
+
+class Dref3SchemaParameterTests(APITestCase):
+    """The documented parameters must stay tied to what the code honours.
+
+    An earlier hand-written `appeal_type` description listed the wrong label
+    for three of the four ids and was published in the OpenAPI schema, so
+    these assert the enum-derived text against the model rather than a copy.
+    """
+
+    def test_every_filter_is_documented(self):
+        documented = {p.name for p in DREF3_LIST_PARAMETERS}
+        missing = set(DREF3_FILTERS) - documented
+        self.assertEqual(missing, set(), f"filters applied but not documented: {sorted(missing)}")
+
+    def test_appeal_type_enum_matches_model(self):
+        param = next(p for p in DREF3_LIST_PARAMETERS if p.name == "appeal_type")
+        self.assertEqual(list(param.enum), [choice.value for choice in Dref.DrefType])
+        for choice in Dref.DrefType:
+            self.assertIn(f"`{choice.value}` {choice.label}", param.description)
+
+    def test_operation_status_lists_every_model_status(self):
+        param = next(p for p in DREF3_LIST_PARAMETERS if p.name == "operation_status")
+        for choice in Dref.Status:
+            self.assertIn(f"`{choice.value}` {choice.label}", param.description)
+        # It accepts labels and names too, so it must not claim a closed id set
+        self.assertIsNone(param.enum)
+
+    def test_stage_scoped_filters_say_so(self):
+        """Date-range filters constrain application rows only; the schema must
+        state that, since it surprises callers who expect whole groups."""
+        param = next(p for p in DREF3_LIST_PARAMETERS if p.name == "event_date_from")
+        self.assertIn("Application", param.description)
 
 
 class Dref3CsvExportTests(APITestCase):

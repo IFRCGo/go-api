@@ -149,18 +149,18 @@ def resolve_appeal_id(raw) -> str | None:
 # union branch, before the union.
 
 
-def _coerce_int(raw):
+def coerce_int(raw):
     try:
         return int(raw)
     except (TypeError, ValueError):
         return None
 
 
-def _coerce_iso3(raw):
+def coerce_iso3(raw):
     return raw.strip().upper() if raw else None
 
 
-def _coerce_date_str(raw):
+def coerce_date_str(raw):
     """Validate a YYYY-MM-DD date param, returning the original string.
 
     The value is passed through unchanged (not as a `date`) so the generated
@@ -208,15 +208,15 @@ DREF3_FILTERS = {
         ("appeal_code__startswith", "appeal_code__startswith", "appeal_code__startswith"),
     ),
     "region": (
-        _coerce_int,
+        coerce_int,
         ("national_society__region_id", "national_society__region_id", "national_society__region_id"),
     ),
     "country_iso3": (
-        _coerce_iso3,
+        coerce_iso3,
         ("national_society__iso3__iexact", "national_society__iso3__iexact", "national_society__iso3__iexact"),
     ),
     "appeal_type": (
-        _coerce_int,
+        coerce_int,
         ("type_of_dref", "dref__type_of_dref", "dref__type_of_dref"),
     ),
     "operation_status": (
@@ -224,18 +224,18 @@ DREF3_FILTERS = {
         ("status", "status", "status"),
     ),
     "start_date_of_operation": (
-        _coerce_date_str,
+        coerce_date_str,
         ("date_of_approval__gte", "new_operational_start_date__gte", "operation_start_date__gte"),
     ),
     "end_date_of_operation": (
-        _coerce_date_str,
+        coerce_date_str,
         ("end_date__lte", "new_operational_end_date__lte", "operation_end_date__lte"),
     ),
     **{
         f"{field}_{suffix}": (
             # hazard_date_and_location is a TextField compared lexicographically,
             # so it must not be restricted to parseable dates.
-            str if field == "hazard_date_and_location" else _coerce_date_str,
+            str if field == "hazard_date_and_location" else coerce_date_str,
             (f"{field}__{op}", None, None),
         )
         for field in DREF3_APPLICATION_RANGE_FIELDS
