@@ -419,13 +419,36 @@ class Dref3PageHydrator:
                 groups.setdefault(item.appeal_code, []).append(item)
         return groups
 
+    def _stage_serializers(self):
+        """One serializer per stage, reused for every row of the page.
+
+        DRF deep-copies all declared fields on each serializer instance's first
+        `.fields` access, so instantiating one per row costs ~95
+        Field.__deepcopy__ calls per row - the dominant cost of this endpoint.
+        The fields are identical for every row, so build them once and vary only
+        the context and the instance passed to `to_representation`.
+
+        Cached on the hydrator (one per request), deliberately not module-level:
+        `_context` is mutable per-row state, so a shared instance would let
+        concurrent requests interleave one row's group context into another's.
+        """
+        if not hasattr(self, "_stage_serializer_cache"):
+            # Local imports to avoid import cycles at app loading time.
+            from dref.dref3.serializers import (
+                Dref3Serializer,
+                DrefFinalReport3Serializer,
+                DrefOperationalUpdate3Serializer,
+            )
+
+            self._stage_serializer_cache = {
+                Dref3Stage.APPLICATION: Dref3Serializer(),
+                Dref3Stage.OPERATIONAL_UPDATE: DrefOperationalUpdate3Serializer(),
+                Dref3Stage.FINAL_REPORT: DrefFinalReport3Serializer(),
+            }
+        return self._stage_serializer_cache
+
     def serialize_group(self, code, instances, prefetched_appeal_by_code) -> list[tuple[tuple[int, int], dict]]:
         # Local imports to avoid import cycles at app loading time.
-        from dref.dref3.serializers import (
-            Dref3Serializer,
-            DrefFinalReport3Serializer,
-            DrefOperationalUpdate3Serializer,
-        )
         from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
 
         ops_update_count = 0
@@ -444,6 +467,7 @@ class Dref3PageHydrator:
                 if next_inst is None or getattr(next_inst, "status", None) != Dref.Status.APPROVED:
                     latest_index = i
 
+        serializers_by_stage = self._stage_serializers()
         rows = []
         for i, instance in enumerate(instances):
             context = {
@@ -453,10 +477,7 @@ class Dref3PageHydrator:
             }
             if isinstance(instance, Dref):
                 stage = Dref3Stage.APPLICATION
-                serializer = Dref3Serializer(
-                    instance,
-                    context={**context, "stage": "Application", "allocation": _ALLOCATION_ORDINALS[0]},
-                )
+                context.update(stage="Application", allocation=_ALLOCATION_ORDINALS[0])
             elif isinstance(instance, DrefOperationalUpdate):
                 stage = Dref3Stage.OPERATIONAL_UPDATE
                 ops_update_count += 1
@@ -465,19 +486,19 @@ class Dref3PageHydrator:
                     allocation_count += 1
                 else:
                     allocation = "No allocation"
-                serializer = DrefOperationalUpdate3Serializer(
-                    instance,
-                    context={**context, "stage": f"Operational Update {ops_update_count}", "allocation": allocation},
-                )
+                context.update(stage=f"Operational Update {ops_update_count}", allocation=allocation)
             elif isinstance(instance, DrefFinalReport):
                 stage = Dref3Stage.FINAL_REPORT
-                serializer = DrefFinalReport3Serializer(
-                    instance,
-                    context={**context, "stage": "Final Report", "allocation": "No allocation"},
-                )
+                context.update(stage="Final Report", allocation="No allocation")
             else:
                 continue
-            rows.append(((stage.value, instance.pk), serializer.data))
+            serializer = serializers_by_stage[stage]
+            # DRF resolves Field.context through self.root._context, so
+            # reassigning it re-points the shared serializer at this row.
+            serializer._context = context
+            # `.data` memoizes into `_data`, which on a reused serializer would
+            # pin the first row's output onto every later row.
+            rows.append(((stage.value, instance.pk), serializer.to_representation(instance)))
         return rows
 
     def _appeal_map(self, groups) -> dict:
