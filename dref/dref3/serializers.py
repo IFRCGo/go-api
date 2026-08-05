@@ -57,45 +57,59 @@ class BaseDref3Serializer(serializers.ModelSerializer):
     sector_shelter_and_basic_household_items = serializers.SerializerMethodField()
     sector_shelter_and_basic_household_items_budget = serializers.SerializerMethodField()
     sector_shelter_and_basic_household_items_people_targeted = serializers.SerializerMethodField()
+    sector_shelter_and_basic_household_items_people_assisted = serializers.SerializerMethodField()
     sector_livelihoods = serializers.SerializerMethodField()
     sector_livelihoods_budget = serializers.SerializerMethodField()
     sector_livelihoods_people_targeted = serializers.SerializerMethodField()
+    sector_livelihoods_people_assisted = serializers.SerializerMethodField()
     sector_multi_purpose_cash_grants = serializers.SerializerMethodField()
     sector_multi_purpose_cash_grants_budget = serializers.SerializerMethodField()
     sector_multi_purpose_cash_grants_people_targeted = serializers.SerializerMethodField()
+    sector_multi_purpose_cash_grants_people_assisted = serializers.SerializerMethodField()
     sector_health = serializers.SerializerMethodField()
     sector_health_budget = serializers.SerializerMethodField()
     sector_health_people_targeted = serializers.SerializerMethodField()
+    sector_health_people_assisted = serializers.SerializerMethodField()
     sector_water_sanitation_and_hygiene = serializers.SerializerMethodField()
     sector_water_sanitation_and_hygiene_budget = serializers.SerializerMethodField()
     sector_water_sanitation_and_hygiene_people_targeted = serializers.SerializerMethodField()
+    sector_water_sanitation_and_hygiene_people_assisted = serializers.SerializerMethodField()
     sector_protection_gender_and_inclusion = serializers.SerializerMethodField()
     sector_protection_gender_and_inclusion_budget = serializers.SerializerMethodField()
     sector_protection_gender_and_inclusion_people_targeted = serializers.SerializerMethodField()
+    sector_protection_gender_and_inclusion_people_assisted = serializers.SerializerMethodField()
     sector_education = serializers.SerializerMethodField()
     sector_education_budget = serializers.SerializerMethodField()
     sector_education_people_targeted = serializers.SerializerMethodField()
+    sector_education_people_assisted = serializers.SerializerMethodField()
     sector_migration_and_displacement = serializers.SerializerMethodField()
     sector_migration_and_displacement_budget = serializers.SerializerMethodField()
     sector_migration_and_displacement_people_targeted = serializers.SerializerMethodField()
+    sector_migration_and_displacement_people_assisted = serializers.SerializerMethodField()
     sector_risk_reduction_climate_adaptation_and_recovery = serializers.SerializerMethodField()
     sector_risk_reduction_climate_adaptation_and_recovery_budget = serializers.SerializerMethodField()
     sector_risk_reduction_climate_adaptation_and_recovery_people_targeted = serializers.SerializerMethodField()
+    sector_risk_reduction_climate_adaptation_and_recovery_people_assisted = serializers.SerializerMethodField()
     sector_community_engagement_and_accountability = serializers.SerializerMethodField()
     sector_community_engagement_and_accountability_budget = serializers.SerializerMethodField()
     sector_community_engagement_and_accountability_people_targeted = serializers.SerializerMethodField()
+    sector_community_engagement_and_accountability_people_assisted = serializers.SerializerMethodField()
     sector_environmental_sustainability = serializers.SerializerMethodField()
     sector_environmental_sustainability_budget = serializers.SerializerMethodField()
     sector_environmental_sustainability_people_targeted = serializers.SerializerMethodField()
+    sector_environmental_sustainability_people_assisted = serializers.SerializerMethodField()
     sector_coordination_and_partnerships = serializers.SerializerMethodField()
     sector_coordination_and_partnerships_budget = serializers.SerializerMethodField()
     sector_coordination_and_partnerships_people_targeted = serializers.SerializerMethodField()
+    sector_coordination_and_partnerships_people_assisted = serializers.SerializerMethodField()
     sector_secretariat_services = serializers.SerializerMethodField()
     sector_secretariat_services_budget = serializers.SerializerMethodField()
     sector_secretariat_services_people_targeted = serializers.SerializerMethodField()
+    sector_secretariat_services_people_assisted = serializers.SerializerMethodField()
     sector_national_society_strengthening = serializers.SerializerMethodField()
     sector_national_society_strengthening_budget = serializers.SerializerMethodField()
     sector_national_society_strengthening_people_targeted = serializers.SerializerMethodField()
+    sector_national_society_strengthening_people_assisted = serializers.SerializerMethodField()
 
     public = serializers.SerializerMethodField(read_only=True)
     is_latest_stage = serializers.SerializerMethodField(read_only=True)
@@ -126,7 +140,7 @@ class BaseDref3Serializer(serializers.ModelSerializer):
     def _sector_index(self, obj):
         """
         One pass per object.
-        PlannedIntervention.title -> {"any": bool, "budget": number, "people": number}
+        PlannedIntervention.title -> {"any": bool, "budget": number, "people_targeted": number, "people_assisted": number}
         """
         cache_attr = "_sector_index_cache"
         if hasattr(obj, cache_attr):
@@ -135,10 +149,19 @@ class BaseDref3Serializer(serializers.ModelSerializer):
         idx = {}
         for p in self._planned_interventions(obj):
             t = p.title
-            rec = idx.setdefault(t, {"any": False, "budget": 0, "people": 0})
+            rec = idx.setdefault(t, {"any": False, "budget": 0, "people_targeted": 0, "people_assisted": 0})
             rec["any"] = True
             rec["budget"] += p.budget or 0
-            rec["people"] += p.person_targeted or 0
+            rec["people_targeted"] += p.person_targeted or 0
+            # FIXME: a declared sector with no recorded number serializes as 0, not null (the
+            # `or 0` above), so "not reported" is indistinguishable from "genuinely zero". Kept
+            # for consistency with budget/people_targeted, but it bites people_assisted hardest:
+            # PlannedIntervention.person_assisted is only ever filled in at final-report stage,
+            # so every application row and nearly every operational-update row reports 0 people
+            # assisted rather than null. Confirm with the data consumer whether these should be
+            # null before final-report stage; if so, seed these keys None and add with
+            # `(rec[key] or 0) + (value or 0)`.
+            rec["people_assisted"] += p.person_assisted or 0
 
         setattr(obj, cache_attr, idx)
         return idx
@@ -149,8 +172,11 @@ class BaseDref3Serializer(serializers.ModelSerializer):
     def _sector_budget(self, obj, topic):
         return self._sector_index(obj).get(topic, {}).get("budget", None)
 
-    def _sector_people(self, obj, topic):
-        return self._sector_index(obj).get(topic, {}).get("people", None)
+    def _sector_people_targeted(self, obj, topic):
+        return self._sector_index(obj).get(topic, {}).get("people_targeted", None)
+
+    def _sector_people_assisted(self, obj, topic):
+        return self._sector_index(obj).get(topic, {}).get("people_assisted", None)
 
     def _appeal_cache(self):
         if not hasattr(self, "_appeal_by_code"):
@@ -348,7 +374,10 @@ class BaseDref3Serializer(serializers.ModelSerializer):
         return self._sector_budget(obj, PlannedIntervention.Title.SHELTER_HOUSING_AND_SETTLEMENTS)
 
     def get_sector_shelter_and_basic_household_items_people_targeted(self, obj):
-        return self._sector_people(obj, PlannedIntervention.Title.SHELTER_HOUSING_AND_SETTLEMENTS)
+        return self._sector_people_targeted(obj, PlannedIntervention.Title.SHELTER_HOUSING_AND_SETTLEMENTS)
+
+    def get_sector_shelter_and_basic_household_items_people_assisted(self, obj):
+        return self._sector_people_assisted(obj, PlannedIntervention.Title.SHELTER_HOUSING_AND_SETTLEMENTS)
 
     def get_sector_livelihoods(self, obj):
         return self._sector_any(obj, PlannedIntervention.Title.LIVELIHOODS_AND_BASIC_NEEDS)
@@ -357,7 +386,10 @@ class BaseDref3Serializer(serializers.ModelSerializer):
         return self._sector_budget(obj, PlannedIntervention.Title.LIVELIHOODS_AND_BASIC_NEEDS)
 
     def get_sector_livelihoods_people_targeted(self, obj):
-        return self._sector_people(obj, PlannedIntervention.Title.LIVELIHOODS_AND_BASIC_NEEDS)
+        return self._sector_people_targeted(obj, PlannedIntervention.Title.LIVELIHOODS_AND_BASIC_NEEDS)
+
+    def get_sector_livelihoods_people_assisted(self, obj):
+        return self._sector_people_assisted(obj, PlannedIntervention.Title.LIVELIHOODS_AND_BASIC_NEEDS)
 
     def get_sector_multi_purpose_cash_grants(self, obj):
         return self._sector_any(obj, PlannedIntervention.Title.MULTI_PURPOSE_CASH)
@@ -366,7 +398,10 @@ class BaseDref3Serializer(serializers.ModelSerializer):
         return self._sector_budget(obj, PlannedIntervention.Title.MULTI_PURPOSE_CASH)
 
     def get_sector_multi_purpose_cash_grants_people_targeted(self, obj):
-        return self._sector_people(obj, PlannedIntervention.Title.MULTI_PURPOSE_CASH)
+        return self._sector_people_targeted(obj, PlannedIntervention.Title.MULTI_PURPOSE_CASH)
+
+    def get_sector_multi_purpose_cash_grants_people_assisted(self, obj):
+        return self._sector_people_assisted(obj, PlannedIntervention.Title.MULTI_PURPOSE_CASH)
 
     def get_sector_health(self, obj):
         return self._sector_any(obj, PlannedIntervention.Title.HEALTH)
@@ -375,7 +410,10 @@ class BaseDref3Serializer(serializers.ModelSerializer):
         return self._sector_budget(obj, PlannedIntervention.Title.HEALTH)
 
     def get_sector_health_people_targeted(self, obj):
-        return self._sector_people(obj, PlannedIntervention.Title.HEALTH)
+        return self._sector_people_targeted(obj, PlannedIntervention.Title.HEALTH)
+
+    def get_sector_health_people_assisted(self, obj):
+        return self._sector_people_assisted(obj, PlannedIntervention.Title.HEALTH)
 
     def get_sector_water_sanitation_and_hygiene(self, obj):
         return self._sector_any(obj, PlannedIntervention.Title.WATER_SANITATION_AND_HYGIENE)
@@ -384,7 +422,10 @@ class BaseDref3Serializer(serializers.ModelSerializer):
         return self._sector_budget(obj, PlannedIntervention.Title.WATER_SANITATION_AND_HYGIENE)
 
     def get_sector_water_sanitation_and_hygiene_people_targeted(self, obj):
-        return self._sector_people(obj, PlannedIntervention.Title.WATER_SANITATION_AND_HYGIENE)
+        return self._sector_people_targeted(obj, PlannedIntervention.Title.WATER_SANITATION_AND_HYGIENE)
+
+    def get_sector_water_sanitation_and_hygiene_people_assisted(self, obj):
+        return self._sector_people_assisted(obj, PlannedIntervention.Title.WATER_SANITATION_AND_HYGIENE)
 
     def get_sector_protection_gender_and_inclusion(self, obj):
         return self._sector_any(obj, PlannedIntervention.Title.PROTECTION_GENDER_AND_INCLUSION)
@@ -393,7 +434,10 @@ class BaseDref3Serializer(serializers.ModelSerializer):
         return self._sector_budget(obj, PlannedIntervention.Title.PROTECTION_GENDER_AND_INCLUSION)
 
     def get_sector_protection_gender_and_inclusion_people_targeted(self, obj):
-        return self._sector_people(obj, PlannedIntervention.Title.PROTECTION_GENDER_AND_INCLUSION)
+        return self._sector_people_targeted(obj, PlannedIntervention.Title.PROTECTION_GENDER_AND_INCLUSION)
+
+    def get_sector_protection_gender_and_inclusion_people_assisted(self, obj):
+        return self._sector_people_assisted(obj, PlannedIntervention.Title.PROTECTION_GENDER_AND_INCLUSION)
 
     def get_sector_education(self, obj):
         return self._sector_any(obj, PlannedIntervention.Title.EDUCATION)
@@ -402,7 +446,10 @@ class BaseDref3Serializer(serializers.ModelSerializer):
         return self._sector_budget(obj, PlannedIntervention.Title.EDUCATION)
 
     def get_sector_education_people_targeted(self, obj):
-        return self._sector_people(obj, PlannedIntervention.Title.EDUCATION)
+        return self._sector_people_targeted(obj, PlannedIntervention.Title.EDUCATION)
+
+    def get_sector_education_people_assisted(self, obj):
+        return self._sector_people_assisted(obj, PlannedIntervention.Title.EDUCATION)
 
     def get_sector_migration_and_displacement(self, obj):
         return self._sector_any(obj, PlannedIntervention.Title.MIGRATION_AND_DISPLACEMENT)
@@ -411,7 +458,10 @@ class BaseDref3Serializer(serializers.ModelSerializer):
         return self._sector_budget(obj, PlannedIntervention.Title.MIGRATION_AND_DISPLACEMENT)
 
     def get_sector_migration_and_displacement_people_targeted(self, obj):
-        return self._sector_people(obj, PlannedIntervention.Title.MIGRATION_AND_DISPLACEMENT)
+        return self._sector_people_targeted(obj, PlannedIntervention.Title.MIGRATION_AND_DISPLACEMENT)
+
+    def get_sector_migration_and_displacement_people_assisted(self, obj):
+        return self._sector_people_assisted(obj, PlannedIntervention.Title.MIGRATION_AND_DISPLACEMENT)
 
     def get_sector_risk_reduction_climate_adaptation_and_recovery(self, obj):
         return self._sector_any(obj, PlannedIntervention.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY)
@@ -420,7 +470,10 @@ class BaseDref3Serializer(serializers.ModelSerializer):
         return self._sector_budget(obj, PlannedIntervention.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY)
 
     def get_sector_risk_reduction_climate_adaptation_and_recovery_people_targeted(self, obj):
-        return self._sector_people(obj, PlannedIntervention.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY)
+        return self._sector_people_targeted(obj, PlannedIntervention.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY)
+
+    def get_sector_risk_reduction_climate_adaptation_and_recovery_people_assisted(self, obj):
+        return self._sector_people_assisted(obj, PlannedIntervention.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY)
 
     def get_sector_community_engagement_and_accountability(self, obj):
         return self._sector_any(obj, PlannedIntervention.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY)
@@ -429,7 +482,10 @@ class BaseDref3Serializer(serializers.ModelSerializer):
         return self._sector_budget(obj, PlannedIntervention.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY)
 
     def get_sector_community_engagement_and_accountability_people_targeted(self, obj):
-        return self._sector_people(obj, PlannedIntervention.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY)
+        return self._sector_people_targeted(obj, PlannedIntervention.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY)
+
+    def get_sector_community_engagement_and_accountability_people_assisted(self, obj):
+        return self._sector_people_assisted(obj, PlannedIntervention.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY)
 
     def get_sector_environmental_sustainability(self, obj):
         return self._sector_any(obj, PlannedIntervention.Title.ENVIRONMENTAL_SUSTAINABILITY)
@@ -438,7 +494,10 @@ class BaseDref3Serializer(serializers.ModelSerializer):
         return self._sector_budget(obj, PlannedIntervention.Title.ENVIRONMENTAL_SUSTAINABILITY)
 
     def get_sector_environmental_sustainability_people_targeted(self, obj):
-        return self._sector_people(obj, PlannedIntervention.Title.ENVIRONMENTAL_SUSTAINABILITY)
+        return self._sector_people_targeted(obj, PlannedIntervention.Title.ENVIRONMENTAL_SUSTAINABILITY)
+
+    def get_sector_environmental_sustainability_people_assisted(self, obj):
+        return self._sector_people_assisted(obj, PlannedIntervention.Title.ENVIRONMENTAL_SUSTAINABILITY)
 
     def get_sector_coordination_and_partnerships(self, obj):
         return self._sector_any(obj, PlannedIntervention.Title.COORDINATION_AND_PARTNERSHIPS)
@@ -447,7 +506,10 @@ class BaseDref3Serializer(serializers.ModelSerializer):
         return self._sector_budget(obj, PlannedIntervention.Title.COORDINATION_AND_PARTNERSHIPS)
 
     def get_sector_coordination_and_partnerships_people_targeted(self, obj):
-        return self._sector_people(obj, PlannedIntervention.Title.COORDINATION_AND_PARTNERSHIPS)
+        return self._sector_people_targeted(obj, PlannedIntervention.Title.COORDINATION_AND_PARTNERSHIPS)
+
+    def get_sector_coordination_and_partnerships_people_assisted(self, obj):
+        return self._sector_people_assisted(obj, PlannedIntervention.Title.COORDINATION_AND_PARTNERSHIPS)
 
     def get_sector_secretariat_services(self, obj):
         return self._sector_any(obj, PlannedIntervention.Title.SECRETARIAT_SERVICES)
@@ -456,7 +518,10 @@ class BaseDref3Serializer(serializers.ModelSerializer):
         return self._sector_budget(obj, PlannedIntervention.Title.SECRETARIAT_SERVICES)
 
     def get_sector_secretariat_services_people_targeted(self, obj):
-        return self._sector_people(obj, PlannedIntervention.Title.SECRETARIAT_SERVICES)
+        return self._sector_people_targeted(obj, PlannedIntervention.Title.SECRETARIAT_SERVICES)
+
+    def get_sector_secretariat_services_people_assisted(self, obj):
+        return self._sector_people_assisted(obj, PlannedIntervention.Title.SECRETARIAT_SERVICES)
 
     def get_sector_national_society_strengthening(self, obj):
         return self._sector_any(obj, PlannedIntervention.Title.NATIONAL_SOCIETY_STRENGTHENING)
@@ -465,7 +530,10 @@ class BaseDref3Serializer(serializers.ModelSerializer):
         return self._sector_budget(obj, PlannedIntervention.Title.NATIONAL_SOCIETY_STRENGTHENING)
 
     def get_sector_national_society_strengthening_people_targeted(self, obj):
-        return self._sector_people(obj, PlannedIntervention.Title.NATIONAL_SOCIETY_STRENGTHENING)
+        return self._sector_people_targeted(obj, PlannedIntervention.Title.NATIONAL_SOCIETY_STRENGTHENING)
+
+    def get_sector_national_society_strengthening_people_assisted(self, obj):
+        return self._sector_people_assisted(obj, PlannedIntervention.Title.NATIONAL_SOCIETY_STRENGTHENING)
 
     # -----------------------------
     # Other method fields
@@ -539,45 +607,59 @@ class BaseDref3Serializer(serializers.ModelSerializer):
             "sector_shelter_and_basic_household_items",
             "sector_shelter_and_basic_household_items_budget",
             "sector_shelter_and_basic_household_items_people_targeted",
+            "sector_shelter_and_basic_household_items_people_assisted",
             "sector_livelihoods",
             "sector_livelihoods_budget",
             "sector_livelihoods_people_targeted",
+            "sector_livelihoods_people_assisted",
             "sector_multi_purpose_cash_grants",
             "sector_multi_purpose_cash_grants_budget",
             "sector_multi_purpose_cash_grants_people_targeted",
+            "sector_multi_purpose_cash_grants_people_assisted",
             "sector_health",
             "sector_health_budget",
             "sector_health_people_targeted",
+            "sector_health_people_assisted",
             "sector_water_sanitation_and_hygiene",
             "sector_water_sanitation_and_hygiene_budget",
             "sector_water_sanitation_and_hygiene_people_targeted",
+            "sector_water_sanitation_and_hygiene_people_assisted",
             "sector_protection_gender_and_inclusion",
             "sector_protection_gender_and_inclusion_budget",
             "sector_protection_gender_and_inclusion_people_targeted",
+            "sector_protection_gender_and_inclusion_people_assisted",
             "sector_education",
             "sector_education_budget",
             "sector_education_people_targeted",
+            "sector_education_people_assisted",
             "sector_migration_and_displacement",
             "sector_migration_and_displacement_budget",
             "sector_migration_and_displacement_people_targeted",
+            "sector_migration_and_displacement_people_assisted",
             "sector_risk_reduction_climate_adaptation_and_recovery",
             "sector_risk_reduction_climate_adaptation_and_recovery_budget",
             "sector_risk_reduction_climate_adaptation_and_recovery_people_targeted",
+            "sector_risk_reduction_climate_adaptation_and_recovery_people_assisted",
             "sector_community_engagement_and_accountability",
             "sector_community_engagement_and_accountability_budget",
             "sector_community_engagement_and_accountability_people_targeted",
+            "sector_community_engagement_and_accountability_people_assisted",
             "sector_environmental_sustainability",
             "sector_environmental_sustainability_budget",
             "sector_environmental_sustainability_people_targeted",
+            "sector_environmental_sustainability_people_assisted",
             "sector_coordination_and_partnerships",
             "sector_coordination_and_partnerships_budget",
             "sector_coordination_and_partnerships_people_targeted",
+            "sector_coordination_and_partnerships_people_assisted",
             "sector_secretariat_services",
             "sector_secretariat_services_budget",
             "sector_secretariat_services_people_targeted",
+            "sector_secretariat_services_people_assisted",
             "sector_national_society_strengthening",
             "sector_national_society_strengthening_budget",
             "sector_national_society_strengthening_people_targeted",
+            "sector_national_society_strengthening_people_assisted",
             "public",
             "is_latest_stage",
             "status",
