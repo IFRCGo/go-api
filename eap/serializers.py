@@ -617,7 +617,7 @@ class SimplifiedEAPSerializer(
     seap_lead_timeframe_unit_display = serializers.CharField(source="get_seap_lead_timeframe_unit_display", read_only=True)
     activation_timeframe_unit_display = serializers.CharField(source="get_activation_timeframe_unit_display", read_only=True)
 
-    total_people_targeted = serializers.IntegerField(min_value=2000, required=False, allow_null=True)
+    total_people_targeted = serializers.IntegerField(min_value=2000, max_value=10000000, required=False, allow_null=True)
     # FILES
 
     # NOTE: When adding new file fields, include their names in FILE_FIELDS below
@@ -754,7 +754,7 @@ class FullEAPSerializer(
     early_actions = EAPActionSerializer(many=True, required=True)
     prioritized_impacts = ImpactSerializer(many=True, required=True)
 
-    total_people_targeted = serializers.IntegerField(min_value=10000, required=False, allow_null=True)
+    total_people_targeted = serializers.IntegerField(min_value=10000, max_value=10000000, required=False, allow_null=True)
 
     # SOURCE OF INFORMATIONS
     risk_analysis_source_of_information = EAPSourceInformationSerializer(many=True, required=False, allow_null=True)
@@ -875,13 +875,18 @@ class FullEAPSerializer(
 
         if lead_unit is not None and lead_time_value is not None:
             allowed_units = [
+                TimeFrame.YEARS,
                 TimeFrame.MONTHS,
                 TimeFrame.DAYS,
                 TimeFrame.HOURS,
             ]
             if lead_unit not in allowed_units:
                 raise serializers.ValidationError(
-                    {"lead_timeframe_unit": gettext("lead timeframe unit must be one of the following: Months, Days, or Hours.")}
+                    {
+                        "lead_timeframe_unit": gettext(
+                            "lead timeframe unit must be one of the following: Years, Months, Days, or Hours."
+                        )
+                    }
                 )
 
     def validate(self, data: dict[str, typing.Any]) -> dict[str, typing.Any]:

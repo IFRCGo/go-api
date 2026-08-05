@@ -422,6 +422,11 @@ class Migration(migrations.Migration):
             field=models.PositiveIntegerField(blank=True, null=True, verbose_name="Total People Targeted."),
         ),
         migrations.AlterField(
+            model_name="fulleap",
+            name="lead_time",
+            field=models.CharField(blank=True, max_length=255, null=True, verbose_name="Lead Time"),
+        ),
+        migrations.AlterField(
             model_name="operationactivity",
             name="timeframe",
             field=models.IntegerField(blank=True, choices=TimeFrame.choices, null=True, verbose_name="Timeframe"),

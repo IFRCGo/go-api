@@ -1488,8 +1488,9 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         blank=True,
     )
 
-    lead_time = models.IntegerField(
+    lead_time = models.CharField(
         verbose_name=_("Lead Time"),
+        max_length=255,
         null=True,
         blank=True,
     )
