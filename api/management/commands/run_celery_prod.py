@@ -9,12 +9,17 @@ from main.celery import Queues
 
 all_queues = ",".join([q for q in Queues.DEV_QUEUES])
 
+# NOTE: Use a fixed concurrency to prevent the pod from being OOMKilled,
+# as Celery defaults to one worker per available CPU.
+
 
 def get_celery_cmd(
     queues: str,
+    concurrency: int,
     celery_args: typing.Union[None, typing.List[str]] = None,
 ):
-    cmd = f"celery -A main worker -Q {queues} -l info"
+    cmd = f"celery -A main worker " f"-Q {queues} " f"-l info " f"--concurrency={concurrency}"
+
     if celery_args:
         cmd = f"{cmd} {' '.join(celery_args)}"
     return cmd
@@ -36,10 +41,23 @@ class Command(BaseCommand):
             nargs=argparse.REMAINDER,
             default=None,
         )
+        parser.add_argument(
+            "--concurrency",
+            type=int,
+            default=4,
+            help=("Number of Celery worker processes. Defaults to 4 to avoid OOMKilled."),
+        )
 
     def handle(self, *_, **options):
         queues = options["queues"]
+        concurrency = options["concurrency"]
         celery_args = options["celery_args"]
-        cmd = get_celery_cmd(queues, celery_args)
+
+        cmd = get_celery_cmd(
+            queues=queues,
+            concurrency=concurrency,
+            celery_args=celery_args,
+        )
+
         self.stdout.write(f"Starting celery worker... {cmd}")
         subprocess.call(shlex.split(cmd))
