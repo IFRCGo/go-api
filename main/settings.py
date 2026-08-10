@@ -153,6 +153,9 @@ env = environ.Env(
     # PowerBI
     POWERBI_WORKSPACE_ID=(str, None),
     POWERBI_DATASET_IDS=(str, None),
+    # Alert system - remap external STAC related-item URLs to internal cluster URLs
+    EOAPI_STAC_EXTERNAL_URL=(str, None),  # e.g. https://montandon-eoapi.ifrc.org/stac
+    EOAPI_STAC_INTERNAL_URL=(str, None),  # e.g. http://montandon-eoapi-stac.montandon-eoapi.svc.cluster.local:8080
 )
 
 
@@ -175,6 +178,9 @@ def parse_domain(*env_keys: str) -> str:
         logger.warning(f"Provided {env_key}: {raw_domain} is missing schema.. Adding https -> {domain}")
     return domain.strip("/")
 
+
+EOAPI_STAC_EXTERNAL_URL = env("EOAPI_STAC_EXTERNAL_URL")
+EOAPI_STAC_INTERNAL_URL = env("EOAPI_STAC_INTERNAL_URL")
 
 GO_API_URL = parse_domain("API_FQDN")
 GO_WEB_URL = parse_domain("FRONTEND_URL")

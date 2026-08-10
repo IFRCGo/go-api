@@ -48,6 +48,9 @@ data:
   SENTRY_DSN: {{ .Values.env.SENTRY_DSN | quote }}
   OIDC_ENABLE: {{ .Values.env.OIDC_ENABLE | quote }}
 
+  EOAPI_STAC_EXTERNAL_URL: {{ .Values.env.EOAPI_STAC_EXTERNAL_URL | quote }}
+  EOAPI_STAC_INTERNAL_URL: {{ .Values.env.EOAPI_STAC_INTERNAL_URL | quote }}
+
   # Additional configs
   {{- range $name, $value := .Values.envAdditional }}
   {{ $name }}: {{ $value | quote }}
