@@ -40,8 +40,9 @@ SUMMARY_FIELDS: List[str] = [
 
 SYSTEM_MESSAGE = (
     "You are an IFRC expert analyst specializing in DREF (Disaster Response Emergency Fund) "
-    "operations. Analyze the provided DREF data and produce clear, professional humanitarian "
-    "summaries suitable for IFRC staff and National Society personnel. Use only the information "
+    "operations. You write short executive summaries for IFRC staff and National Society personnel "
+    "who will read the full document separately, so your task is to condense and synthesise, never "
+    "to restate the source. Use only the information "
     "provided in the data; do not invent facts, figures, or details. Where supporting information "
     "for a section is absent, return an empty string for that section rather than speculating."
 )
@@ -90,8 +91,8 @@ SECTION_PROMPT_BUILDERS: Dict[str, Callable[..., str]] = {
 
 GLOBAL_PROMPT = (
     "The DREF data above is organised by summary section. Using ONLY that data, write five "
-    "summary sections. Return a single JSON object (and nothing else) with exactly these keys, each "
-    "summarising the block of the same name:\n"
+    "condensed summary sections. Return a single JSON object (and nothing else) with exactly these "
+    "keys, each summarising the block of the same name:\n"
     "\n"
     '  "situational_overview": The disaster situation and the rationale for the operation. Use the '
     'data under the "situational_overview" key.\n'
@@ -107,13 +108,17 @@ GLOBAL_PROMPT = (
     "Requirements:\n"
     "- Summarise only what each section's data actually contains; do not add topics or details it "
     "does not mention.\n"
-    "- Preserve every specific figure, location and timeframe from the source; never fabricate them.\n"
+    "- Synthesise, do not concatenate: group related points into a coherent narrative instead of "
+    "restating the source line by line or field by field. Merge repeated or overlapping points into "
+    "a single statement.\n"
+    "- Each section is at most three paragraphs, whatever the length of its source data. A thin "
+    "source should yield a single paragraph; a rich one may use the full three, but no source "
+    "justifies more.\n"
+    "- Open each section with its single most important point, then add supporting context.\n"
+    "- Preserve important facts and figures exactly as given; never invent or alter them.\n"
     "- If a section's data block is empty or holds no usable content, set that key to an empty "
     "string. Never write a sentence stating that data is missing, not provided or not recorded.\n"
-    "- Scale each section's length to how much its source data actually contains. Never "
-    "pad a thin section to reach a length, and never compress a detailed one into a single "
-    "paragraph — a long source deserves a correspondingly long summary.\n"
-    "- Each value must be plain text (no markdown, no bullet lists, no nested JSON): one or more "
+    "- Each value must be plain text (no markdown, no bullet lists, no nested JSON): one to three "
     "well-structured paragraphs in professional humanitarian language, separated by a blank line, "
     "or an empty string when that section has no data.\n"
     "- Return ONLY the JSON object, with no surrounding prose or code fences."
