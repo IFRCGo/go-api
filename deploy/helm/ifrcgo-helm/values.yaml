@@ -71,6 +71,8 @@ env:
   RELIEF_WEB_APP_NAME: ''
   POWERBI_WORKSPACE_ID: ''
   POWERBI_DATASET_IDS: ''
+  EOAPI_STAC_EXTERNAL_URL: ''
+  EOAPI_STAC_INTERNAL_URL: ''
 
 # NOTE: Used to pass additional configs to api/worker containers
 # NOTE: Not used by azure vault
