@@ -1670,6 +1670,27 @@ class AppealHistorySerializer(ModelSerializer):
         )
 
 
+_EVENT_DETAILS_EMPTY = {
+    "id": None,
+    "name": None,
+    "ifrc_severity_level": None,
+    "ifrc_severity_level_display": None,
+    "ifrc_severity_level_update_date": None,
+    "updated_at": None,
+}
+
+
+class AppealHistoryCsvSerializer(AppealHistorySerializer):
+    event_details = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_event_details(obj):
+        event = obj.appeal.event
+        if event is None:
+            return _EVENT_DETAILS_EMPTY
+        return EventDetailsSerializer(event).data
+
+
 class AppealDocumentTableauSerializer(serializers.ModelSerializer):
     appeal = MiniAppealSerializer()
 

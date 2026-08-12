@@ -106,6 +106,7 @@ from .serializers import (  # AppealSerializer,; Tableau Serializers; AppealTabl
     Admin2Serializer,
     AppealDocumentSerializer,
     AppealDocumentTableauSerializer,
+    AppealHistoryCsvSerializer,
     AppealHistorySerializer,
     AppealHistoryTableauSerializer,
     CountryDisasterTypeCountSerializer,
@@ -942,6 +943,8 @@ class AppealViewset(mixins.ListModelMixin, viewsets.GenericViewSet):
     def get_serializer_class(self):
         if is_tableau(self.request) is True:
             return AppealHistoryTableauSerializer
+        if self.request.GET.get("format") == "csv":
+            return AppealHistoryCsvSerializer
         return AppealHistorySerializer
 
     def remove_unconfirmed_event(self, obj):
