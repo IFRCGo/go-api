@@ -1271,12 +1271,12 @@ class EAPStatusSerializer(BaseEAPSerializer):
             EAPRegistration.Status.TECHNICALLY_VALIDATED,
             EAPRegistration.Status.APPROVED,
         ):
-            # NOTE: Generating diff pdf and summary pdf (for full eap) and sending email to IFRC after approval.
+            # NOTE: Generating Export pdf and summary pdf (for full eap) and sending email to IFRC after approval.
             is_full_eap = instance.get_eap_type_enum == EAPType.FULL_EAP
             version = instance.latest_simplified_eap.version if not is_full_eap else instance.latest_full_eap.version
 
             tasks = [
-                generate_export_diff_pdf.s(eap_registration_id, version),
+                generate_export_eap_pdf.s(eap_registration_id, version),
             ]
 
             if is_full_eap:

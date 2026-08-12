@@ -57,13 +57,17 @@ class DevelopmentRegistrationEAPAdmin(admin.ModelAdmin):
         "country",
         "eap_type",
         "disaster_type",
+        "status",
     )
     autocomplete_fields = (
         "national_society",
         "disaster_type",
         "partners",
+        "users",
         "created_by",
         "modified_by",
+        "latest_simplified_eap",
+        "latest_full_eap",
     )
     actions = [
         "regenerate_full_eap_summary",
@@ -97,9 +101,12 @@ class DevelopmentRegistrationEAPAdmin(admin.ModelAdmin):
                 "disaster_type",
                 "created_by",
                 "modified_by",
+                "latest_simplified_eap",
+                "latest_full_eap",
             )
             .prefetch_related(
                 "partners",
+                "users",
             )
         )
 
