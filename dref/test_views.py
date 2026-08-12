@@ -480,6 +480,59 @@ class DrefTestCase(APITestCase):
             },
         )
 
+    def _get_dref_response_data(self, country, disaster_type, type_of_dref=None):
+        return {
+            "title": "Dref test title",
+            "type_of_onset": Dref.OnsetType.SLOW.value,
+            "disaster_category": Dref.DisasterCategory.YELLOW.value,
+            "status": Dref.Status.DRAFT.value,
+            "national_society": country.id,
+            "country": country.id,
+            "disaster_type": disaster_type.id,
+            "type_of_dref": type_of_dref if type_of_dref is not None else Dref.DrefType.RESPONSE.value,
+            "amount_requested": 127771111,
+            "emergency_appeal_planned": False,
+            "operation_timeframe": 4,
+            "appeal_code": "J7876",
+            "glide_code": "ER878",
+        }
+
+    @mock.patch("django.utils.timezone.now")
+    def test_post_dref_duplicate_creation(self, mock_now):
+        mock_now.return_value = datetime.now()
+        country = Country.objects.create(name="xzz")
+        disaster_type = DisasterType.objects.create(name="abc")
+        data = self._get_dref_response_data(country, disaster_type)
+        url = "/api/v2/dref/"
+        self.client.force_authenticate(self.user)
+
+        # First submission succeeds
+        response = self.client.post(url, data, format="json")
+        self.assert_201(response)
+
+        # Re-submitting the same data right away (eg: a network-error retry) is rejected
+        response = self.client.post(url, data, format="json")
+        self.assert_400(response)
+
+        # NOTE:  Changing only country is not considered a duplicate
+        other_country = Country.objects.create(name="xyz")
+        response = self.client.post(url, {**data, "country": other_country.id}, format="json")
+        self.assert_201(response)
+
+        # NOTE: Changing only disaster_type is not considered a duplicate
+        other_disaster_type = DisasterType.objects.create(name="def")
+        response = self.client.post(url, {**data, "disaster_type": other_disaster_type.id}, format="json")
+        self.assert_201(response)
+
+        # NOTE: Changing only type_of_dref is not considered a duplicate
+        response = self.client.post(url, {**data, "type_of_dref": Dref.DrefType.ASSESSMENT.value}, format="json")
+        self.assert_201(response)
+
+        # After an hour has passed, the same original data is no longer considered a duplicate
+        mock_now.return_value = datetime.now() + timedelta(hours=1, seconds=1)
+        response = self.client.post(url, data, format="json")
+        self.assert_201(response)
+
     def test_event_date_in_dref(self):
         """
         Test for the event date based on type_of_onset
