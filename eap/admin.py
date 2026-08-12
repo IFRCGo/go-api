@@ -57,13 +57,17 @@ class DevelopmentRegistrationEAPAdmin(admin.ModelAdmin):
         "country",
         "eap_type",
         "disaster_type",
+        "status",
     )
     autocomplete_fields = (
         "national_society",
         "disaster_type",
         "partners",
+        "users",
         "created_by",
         "modified_by",
+        "latest_simplified_eap",
+        "latest_full_eap",
     )
     actions = [
         "regenerate_full_eap_summary",
@@ -97,9 +101,12 @@ class DevelopmentRegistrationEAPAdmin(admin.ModelAdmin):
                 "disaster_type",
                 "created_by",
                 "modified_by",
+                "latest_simplified_eap",
+                "latest_full_eap",
             )
             .prefetch_related(
                 "partners",
+                "users",
             )
         )
 
@@ -122,9 +129,9 @@ class SimplifiedEAPAdmin(admin.ModelAdmin):
     readonly_fields = (
         "cover_image",
         "partner_contacts",
-        "hazard_impact_images",
-        "risk_selected_protocols_images",
-        "selected_early_actions_images",
+        "hazard_impact_files",
+        "risk_selected_protocols_files",
+        "selected_early_actions_files",
         "planned_operations",
         "enabling_approaches",
         "parent",
@@ -194,7 +201,7 @@ class SimplifiedEAPAdmin(admin.ModelAdmin):
 
 @admin.register(KeyActor)
 class KeyActorAdmin(admin.ModelAdmin):
-    list_display = ("national_society",)
+    list_display = ("partner",)
 
 
 @admin.register(FullEAP)
@@ -218,19 +225,19 @@ class FullEAPAdmin(admin.ModelAdmin):
         "planned_operations",
         "enabling_approaches",
         "planned_operations",
-        "hazard_selection_images",
+        "hazard_selection_files",
         "theory_of_change_table_file",
-        "exposed_element_and_vulnerability_factor_images",
-        "prioritized_impact_images",
+        "exposed_element_and_vulnerability_factor_files",
+        "prioritized_impact_files",
         "risk_analysis_relevant_files",
-        "forecast_selection_images",
-        "definition_and_justification_impact_level_images",
-        "identification_of_the_intervention_area_images",
+        "forecast_selection_files",
+        "definition_and_justification_impact_level_files",
+        "identification_of_the_intervention_area_files",
         "trigger_model_relevant_files",
-        "early_action_selection_process_images",
+        "early_action_selection_process_files",
         "evidence_base_relevant_files",
-        "early_action_implementation_images",
-        "trigger_activation_system_images",
+        "early_action_implementation_files",
+        "trigger_activation_system_files",
         "activation_process_relevant_files",
         "meal_relevant_files",
         "capacity_relevant_files",

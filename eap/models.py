@@ -385,10 +385,19 @@ class OperationActivity(models.Model):
     # NOTE: `timeframe` and `time_value` together represent the time span for an activity.
     # Make sure to keep them in sync.
     activity = models.CharField(max_length=255, verbose_name=_("Activity"))
-    timeframe = models.IntegerField(choices=TimeFrame.choices, verbose_name=_("Timeframe"))
+    activation_one = models.BooleanField(verbose_name=_("Activation 1"), null=True, blank=True)
+    activation_two = models.BooleanField(verbose_name=_("Activation 2"), null=True, blank=True)
+    timeframe = models.IntegerField(
+        choices=TimeFrame.choices,
+        verbose_name=_("Timeframe"),
+        null=True,
+        blank=True,
+    )
     time_value = ArrayField(
         base_field=models.IntegerField(),
         verbose_name=_("Activity time span"),
+        null=True,
+        blank=True,
     )
     previous_id = models.PositiveIntegerField(verbose_name=_("Previous ID"), null=True, blank=True)
 
@@ -468,8 +477,8 @@ class PlannedOperation(models.Model):
             }
 
     sector = models.IntegerField(choices=Sector.choices, verbose_name=_("sector"))
-    people_targeted = models.IntegerField(verbose_name=_("People Targeted"))
-    budget_per_sector = models.IntegerField(verbose_name=_("Budget per sector (CHF)"))
+    people_targeted = models.PositiveIntegerField(verbose_name=_("People Targeted"))
+    budget_per_sector = models.PositiveIntegerField(verbose_name=_("Budget per sector (CHF)"))
     previous_id = models.PositiveIntegerField(verbose_name=_("Previous ID"), null=True, blank=True)
 
     indicators = models.ManyToManyField(
@@ -592,12 +601,10 @@ class SourceInformation(models.Model):
 
 
 class KeyActor(models.Model):
-    national_society = models.ForeignKey(
-        Country,
-        on_delete=models.CASCADE,
-        verbose_name=_("EAP Actors"),
-        help_text=_("Select the National Society involved in the EAP development."),
-        related_name="eap_key_actors",
+    partner = models.CharField(
+        verbose_name=_("Partner"),
+        max_length=255,
+        help_text=_("Name of the partner organization or entity."),
     )
 
     description = models.TextField(
@@ -637,16 +644,16 @@ class EAPStatus(models.IntegerChoices):
     EAP can be changed to UNDER_REVIEW once comments have been addressed.
     """
 
-    TECHNICALLY_VALIDATED = 40, _("Technically Validated")
+    TECHNICALLY_VALIDATED = 40, _("Technically validated by VC")
     """EAP has been technically validated by IFRC and/or technical partners.
-    IFRC can change status to NS_ADDRESSING_COMMENTS or PENDING_PFA.
+    IFRC can change status to NS_ADDRESSING_COMMENTS or APPROVED.
     """
 
-    PENDING_PFA = 50, _("Approved(Pending PFA)")
-    """EAP is in the process of signing the PFA between IFRC and NS.
+    APPROVED = 50, _("Approved")
+    """EAP has been approved by IFRC and/or technical partners.
     """
 
-    APPROVED = 60, _("Approved")
+    PROJECT_AGREEMENT_SIGNED = 60, _("Project Agreement Signed")
     """IFRC has to upload validated budget file.
     Cannot be changed back to previous statuses.
     """
@@ -681,6 +688,14 @@ class EAPRegistration(EAPBaseModel):
         on_delete=models.PROTECT,
         help_text=_("Select the disaster type for which the EAP is needed"),
     )
+
+    disaster_sub_type = models.CharField(
+        max_length=255,
+        verbose_name=_("Disaster Sub Type"),
+        blank=True,
+        null=True,
+    )
+
     eap_type = models.IntegerField(
         choices=EAPType.choices,
         verbose_name=_("EAP Type"),
@@ -762,9 +777,7 @@ class EAPRegistration(EAPBaseModel):
         verbose_name=_("national society contact name"),
         max_length=255,
     )
-    national_society_contact_title = models.CharField(
-        verbose_name=_("national society contact title"), max_length=255, null=True, blank=True
-    )
+    national_society_contact_title = models.CharField(verbose_name=_("national society contact title"), max_length=255)
     national_society_contact_email = models.CharField(
         verbose_name=_("national society contact email"),
         max_length=255,
@@ -802,11 +815,11 @@ class EAPRegistration(EAPBaseModel):
         verbose_name=_("approved at"),
         help_text=_("Timestamp when the EAP was approved."),
     )
-    pending_pfa_at = models.DateTimeField(
+    project_agreement_signed_at = models.DateTimeField(
         null=True,
         blank=True,
-        verbose_name=_("pending pfa at"),
-        help_text=_("Timestamp when the EAP was marked as pending PFA."),
+        verbose_name=_("project agreement signed at"),
+        help_text=_("Timestamp when the project agreement was signed."),
     )
 
     # EAP submission deadline
@@ -896,8 +909,14 @@ class CommonEAPFields(models.Model):
         blank=True,
     )
 
-    people_targeted = models.IntegerField(
-        verbose_name=_("People Targeted."),
+    include_rcrc_climate_center = models.BooleanField(
+        verbose_name=_("Include RCRC Climate Center."),
+        default=False,
+    )
+
+    # TOTAL PEOPLE TARGETED
+    total_people_targeted = models.PositiveIntegerField(
+        verbose_name=_("Total People Targeted."),
         blank=True,
         null=True,
     )
@@ -908,9 +927,7 @@ class CommonEAPFields(models.Model):
         verbose_name=_("national society contact name"),
         max_length=255,
     )
-    national_society_contact_title = models.CharField(
-        verbose_name=_("national society contact title"), max_length=255, null=True, blank=True
-    )
+    national_society_contact_title = models.CharField(verbose_name=_("national society contact title"), max_length=255)
     national_society_contact_email = models.CharField(
         verbose_name=_("national society contact email"),
         max_length=255,
@@ -924,57 +941,6 @@ class CommonEAPFields(models.Model):
         EAPContact,
         verbose_name=_("Partner NS Contacts"),
         related_name="+",
-        blank=True,
-    )
-
-    # Delegations
-    ifrc_delegation_focal_point_name = models.CharField(
-        verbose_name=_("IFRC delegation focal point name"),
-        max_length=255,
-        null=True,
-        blank=True,
-    )
-    ifrc_delegation_focal_point_email = models.CharField(
-        verbose_name=_("IFRC delegation focal point email"),
-        max_length=255,
-        null=True,
-        blank=True,
-    )
-    ifrc_delegation_focal_point_title = models.CharField(
-        verbose_name=_("IFRC delegation focal point title"),
-        max_length=255,
-        null=True,
-        blank=True,
-    )
-    ifrc_delegation_focal_point_phone_number = models.CharField(
-        verbose_name=_("IFRC delegation focal point phone number"),
-        max_length=100,
-        null=True,
-        blank=True,
-    )
-
-    ifrc_head_of_delegation_name = models.CharField(
-        verbose_name=_("IFRC head of delegation name"),
-        max_length=255,
-        null=True,
-        blank=True,
-    )
-    ifrc_head_of_delegation_email = models.CharField(
-        verbose_name=_("IFRC head of delegation email"),
-        max_length=255,
-        null=True,
-        blank=True,
-    )
-    ifrc_head_of_delegation_title = models.CharField(
-        verbose_name=_("IFRC head of delegation title"),
-        max_length=255,
-        null=True,
-        blank=True,
-    )
-    ifrc_head_of_delegation_phone_number = models.CharField(
-        verbose_name=_("IFRC head of delegation phone number"),
-        max_length=100,
-        null=True,
         blank=True,
     )
 
@@ -1047,20 +1013,6 @@ class CommonEAPFields(models.Model):
         verbose_name=_("IFRC regional head of DCC phone number"), max_length=100, null=True, blank=True
     )
 
-    # Global Ops Manager
-    ifrc_global_ops_coordinator_name = models.CharField(
-        verbose_name=_("IFRC global ops coordinator name"), max_length=255, null=True, blank=True
-    )
-    ifrc_global_ops_coordinator_email = models.CharField(
-        verbose_name=_("IFRC global ops coordinator email"), max_length=255, null=True, blank=True
-    )
-    ifrc_global_ops_coordinator_title = models.CharField(
-        verbose_name=_("IFRC global ops coordinator title"), max_length=255, null=True, blank=True
-    )
-    ifrc_global_ops_coordinator_phone_number = models.CharField(
-        verbose_name=_("IFRC global ops coordinator phone number"), max_length=100, null=True, blank=True
-    )
-
     # NOTE: Export files for EAPs,
     export_file = SecureFileField(
         verbose_name=_("EAP Export File"),
@@ -1104,22 +1056,22 @@ class CommonEAPFields(models.Model):
         blank=True,
     )
 
-    total_budget = models.IntegerField(
+    total_budget = models.PositiveIntegerField(
         verbose_name=_("Total Budget (CHF)"),
         null=True,
         blank=True,
     )
-    readiness_budget = models.IntegerField(
+    readiness_budget = models.PositiveIntegerField(
         verbose_name=_("Readiness Budget (CHF)"),
         null=True,
         blank=True,
     )
-    pre_positioning_budget = models.IntegerField(
+    pre_positioning_budget = models.PositiveIntegerField(
         verbose_name=_("Pre-positioning Budget (CHF)"),
         null=True,
         blank=True,
     )
-    early_action_budget = models.IntegerField(
+    early_action_budget = models.PositiveIntegerField(
         verbose_name=_("Early Actions Budget (CHF)"),
         null=True,
         blank=True,
@@ -1160,10 +1112,10 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
         null=True,
         blank=True,
     )
-    hazard_impact_images = models.ManyToManyField(
+    hazard_impact_files = models.ManyToManyField(
         EAPFile,
-        verbose_name=_("Hazard Impact Images"),
-        related_name="simplified_eap_hazard_impact_images",
+        verbose_name=_("Hazard Impact Files"),
+        related_name="simplified_eap_hazard_impact_files",
         blank=True,
     )
 
@@ -1173,10 +1125,10 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
         blank=True,
     )
 
-    risk_selected_protocols_images = models.ManyToManyField(
+    risk_selected_protocols_files = models.ManyToManyField(
         EAPFile,
-        verbose_name=_("Risk Selected Protocols Images"),
-        related_name="simplified_eap_risk_selected_protocols_images",
+        verbose_name=_("Risk Selected Protocols Files"),
+        related_name="simplified_eap_risk_selected_protocols_files",
         blank=True,
     )
 
@@ -1186,10 +1138,10 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
         null=True,
         blank=True,
     )
-    selected_early_actions_images = models.ManyToManyField(
+    selected_early_actions_files = models.ManyToManyField(
         EAPFile,
-        verbose_name=_("Selected Early Actions Images"),
-        related_name="simplified_eap_selected_early_actions_images",
+        verbose_name=_("Selected Early Actions Files"),
+        related_name="simplified_eap_selected_early_actions_files",
         blank=True,
     )
 
@@ -1238,17 +1190,17 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
         blank=True,
     )
 
-    # NOTE: operational_timeframe_unit and operational_time are atomic
-    # operational_timeframe is set default to Months
-    operational_timeframe_unit = models.IntegerField(
+    # NOTE: activation_timeframe_unit and activation_timeframe are atomic
+    # activation_timeframe_unit is set default to Months
+    activation_timeframe_unit = models.IntegerField(
         choices=TimeFrame.choices,
         default=TimeFrame.MONTHS,
-        verbose_name=_("Operational Timeframe Unit"),
+        verbose_name=_("Activation Timeframe Unit"),
         null=True,
         blank=True,
     )
-    operational_timeframe = models.IntegerField(
-        verbose_name=_("Operational Time"),
+    activation_timeframe = models.IntegerField(
+        verbose_name=_("Activation Timeframe"),
         null=True,
         blank=True,
     )
@@ -1366,9 +1318,9 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
                     "admin2",
                     "partners",
                     "cover_image",
-                    "hazard_impact_images",
-                    "risk_selected_protocols_images",
-                    "selected_early_actions_images",
+                    "hazard_impact_files",
+                    "risk_selected_protocols_files",
+                    "selected_early_actions_files",
                 },
             )
 
@@ -1385,10 +1337,6 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
         "readiness_budget",
         "pre_positioning_budget",
         "early_action_budget",
-        "ifrc_delegation_focal_point_name",
-        "ifrc_delegation_focal_point_email",
-        "ifrc_head_of_delegation_name",
-        "ifrc_head_of_delegation_email",
         "budget_file",
         "prioritized_hazard_and_impact",
         "risks_selected_protocols",
@@ -1398,10 +1346,9 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
         "assisted_through_operation",
         "seap_lead_timeframe_unit",
         "seap_lead_time",
-        "operational_timeframe_unit",
-        "operational_timeframe",
+        "activation_timeframe_unit",
+        "activation_timeframe",
         "trigger_threshold_justification",
-        "next_step_towards_full_eap",
         "early_action_capability",
         "rcrc_movement_involvement",
     ]
@@ -1478,10 +1425,10 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         blank=True,
     )
 
-    hazard_selection_images = models.ManyToManyField(
+    hazard_selection_files = models.ManyToManyField(
         EAPFile,
-        verbose_name=_("Hazard images"),
-        related_name="full_eap_hazard_selection_images",
+        verbose_name=_("Hazard Files"),
+        related_name="full_eap_hazard_selection_files",
         blank=True,
     )
 
@@ -1492,10 +1439,10 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         blank=True,
     )
 
-    exposed_element_and_vulnerability_factor_images = models.ManyToManyField(
+    exposed_element_and_vulnerability_factor_files = models.ManyToManyField(
         EAPFile,
-        verbose_name=_("Exposed elements and vulnerability factors images"),
-        related_name="full_eap_vulnerability_factor_images",
+        verbose_name=_("Exposed elements and vulnerability factors files"),
+        related_name="full_eap_vulnerability_factor_files",
         blank=True,
     )
 
@@ -1512,10 +1459,10 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         related_name="full_eap_prioritized_impacts",
     )
 
-    prioritized_impact_images = models.ManyToManyField(
+    prioritized_impact_files = models.ManyToManyField(
         EAPFile,
-        verbose_name=_("Prioritized impact images"),
-        related_name="full_eap_prioritized_impact_images",
+        verbose_name=_("Prioritized impact files"),
+        related_name="full_eap_prioritized_impact_files",
         blank=True,
     )
 
@@ -1541,9 +1488,9 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         blank=True,
     )
 
-    # NOTE: In days
-    lead_time = models.IntegerField(
+    lead_time = models.CharField(
         verbose_name=_("Lead Time"),
+        max_length=255,
         null=True,
         blank=True,
     )
@@ -1578,9 +1525,9 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         related_name="forecast_table_file",
     )
 
-    forecast_selection_images = models.ManyToManyField(
+    forecast_selection_files = models.ManyToManyField(
         EAPFile,
-        verbose_name=_("Forecast Selection Images"),
+        verbose_name=_("Forecast Selection Files"),
         related_name="+",
         blank=True,
     )
@@ -1591,9 +1538,9 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         blank=True,
     )
 
-    definition_and_justification_impact_level_images = models.ManyToManyField(
+    definition_and_justification_impact_level_files = models.ManyToManyField(
         EAPFile,
-        verbose_name=_("Definition and Justification Impact Level Images"),
+        verbose_name=_("Definition and Justification Impact Level Files"),
         related_name="+",
         blank=True,
     )
@@ -1604,9 +1551,9 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         blank=True,
     )
 
-    identification_of_the_intervention_area_images = models.ManyToManyField(
+    identification_of_the_intervention_area_files = models.ManyToManyField(
         EAPFile,
-        verbose_name=_("Intervention Area Images"),
+        verbose_name=_("Intervention Area Files"),
         related_name="+",
         blank=True,
     )
@@ -1639,11 +1586,11 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         blank=True,
     )
 
-    early_action_selection_process_images = models.ManyToManyField(
+    early_action_selection_process_files = models.ManyToManyField(
         EAPFile,
         blank=True,
-        verbose_name=_("Early action selection process images"),
-        related_name="early_action_selection_process_images",
+        verbose_name=_("Early action selection process files"),
+        related_name="early_action_selection_process_files",
     )
     theory_of_change_table_file = models.ForeignKey[EAPFile | None, EAPFile | None](
         EAPFile,
@@ -1712,11 +1659,11 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         blank=True,
     )
 
-    early_action_implementation_images = models.ManyToManyField(
+    early_action_implementation_files = models.ManyToManyField(
         EAPFile,
         blank=True,
-        verbose_name=_("Early Action Implementation Images"),
-        related_name="early_action_implementation_images",
+        verbose_name=_("Early Action Implementation Files"),
+        related_name="early_action_implementation_files",
     )
 
     trigger_activation_system = models.TextField(
@@ -1726,11 +1673,11 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         blank=True,
     )
 
-    trigger_activation_system_images = models.ManyToManyField(
+    trigger_activation_system_files = models.ManyToManyField(
         EAPFile,
         blank=True,
-        verbose_name=_("Trigger Activation System Images"),
-        related_name="trigger_activation_system_images",
+        verbose_name=_("Trigger Activation System Files"),
+        related_name="trigger_activation_system_files",
     )
 
     selection_of_target_population = models.TextField(
@@ -1918,19 +1865,19 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
                     "partners",
                     "cover_image",
                     # Files
-                    "hazard_selection_images",
+                    "hazard_selection_files",
                     "theory_of_change_table_file",
-                    "exposed_element_and_vulnerability_factor_images",
-                    "prioritized_impact_images",
+                    "exposed_element_and_vulnerability_factor_files",
+                    "prioritized_impact_files",
                     "risk_analysis_relevant_files",
-                    "forecast_selection_images",
-                    "definition_and_justification_impact_level_images",
-                    "identification_of_the_intervention_area_images",
+                    "forecast_selection_files",
+                    "definition_and_justification_impact_level_files",
+                    "identification_of_the_intervention_area_files",
                     "trigger_model_relevant_files",
-                    "early_action_selection_process_images",
+                    "early_action_selection_process_files",
                     "evidence_base_relevant_files",
-                    "early_action_implementation_images",
-                    "trigger_activation_system_images",
+                    "early_action_implementation_files",
+                    "trigger_activation_system_files",
                     "activation_process_relevant_files",
                     "meal_relevant_files",
                     "capacity_relevant_files",
@@ -1950,10 +1897,6 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         "readiness_budget",
         "pre_positioning_budget",
         "early_action_budget",
-        "ifrc_delegation_focal_point_name",
-        "ifrc_delegation_focal_point_email",
-        "ifrc_head_of_delegation_name",
-        "ifrc_head_of_delegation_email",
         "budget_file",
         "key_actors",
         "hazard_selection",

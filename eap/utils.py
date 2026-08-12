@@ -11,6 +11,7 @@ from rest_framework import serializers
 
 from api.models import Region
 from eap.models import EAPType, EmailRecipient
+from utils.file_check import validate_file_type
 
 
 def get_emails_by_type(email_type: EmailRecipient.EmailType) -> list[str]:
@@ -124,7 +125,7 @@ def get_eap_email_context(instance):
     email_context.update(
         {
             "latest_eap_id": latest_eap_data.id,
-            "people_targeted": latest_eap_data.people_targeted,
+            "people_targeted": latest_eap_data.total_people_targeted,
             "total_budget": latest_eap_data.total_budget,
             "latest_version": latest_eap_data.version,
             "export_file": latest_eap_data.export_file.url if latest_eap_data.export_file else None,
@@ -176,6 +177,14 @@ def validate_file_extention(filename: str, allowed_extensions: list[str]):
     extension = os.path.splitext(filename)[1].replace(".", "")
     if extension.lower() not in allowed_extensions:
         raise ValidationError(f"Invalid uploaded file extension: {extension}, Supported only {allowed_extensions} Files")
+
+
+def validate_file_object(file):
+    validate_file_type(file)
+    if file.size > settings.DATA_UPLOAD_MAX_MEMORY_SIZE:
+        max_size_mb = settings.DATA_UPLOAD_MAX_MEMORY_SIZE // (1024 * 1024)
+        raise ValidationError(f"File size should not exceed {max_size_mb}MB.")
+    return file
 
 
 T = TypeVar("T", bound=models.Model)
