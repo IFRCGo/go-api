@@ -474,6 +474,30 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
     #     return data
 
     def validate(self, data):
+        # NOTE: To prevent duplicate DREF creation with same country, disaster type and DREF type within 1 hour.
+        if not self.instance:
+            country = data.get("country")
+            disaster_type = data.get("disaster_type")
+            type_of_dref = data.get("type_of_dref")
+            request_user = self.context["request"].user
+            if (
+                country
+                and disaster_type
+                and Dref.objects.filter(
+                    country=country,
+                    disaster_type=disaster_type,
+                    created_by=request_user,
+                    type_of_dref=type_of_dref,
+                    created_at__gte=timezone.now() - datetime.timedelta(hours=1),
+                ).exists()
+            ):
+                raise serializers.ValidationError(
+                    gettext(
+                        "You cannot create a duplicate DREF for this country and disaster type "
+                        "within one hour of your last submission. Please check your recent submissions or try again later."
+                    )
+                )
+
         event_date = data.get("event_date")
         operation_timeframe = data.get("operation_timeframe")
         if self.instance and self.instance.status == Dref.Status.FINALIZING:
