@@ -57,7 +57,10 @@ def _section_data_json(kwargs: dict) -> str:
 
 def _build_situational_overview_prompt(**kwargs) -> str:
     data_json = _section_data_json(kwargs)
-    return f'Data for "situational_overview" — the disaster situation and rationale for the operation:\n{data_json}'
+    return (
+        f'Data for "situational_overview" — the disaster situation and rationale for the operation, '
+        f"and the scale and effects of the event:\n{data_json}"
+    )
 
 
 def _build_operational_strategy_prompt(**kwargs) -> str:
@@ -94,8 +97,8 @@ GLOBAL_PROMPT = (
     "condensed summary sections. Return a single JSON object (and nothing else) with exactly these "
     "keys, each summarising the block of the same name:\n"
     "\n"
-    '  "situational_overview": The disaster situation and the rationale for the operation. Use the '
-    'data under the "situational_overview" key.\n'
+    '  "situational_overview": The disaster situation and the rationale for the operation, and the '
+    'scale and effects of the event. Use the data under the "situational_overview" key.\n'
     '  "operational_strategy": The overall objective and strategic approach of the response. Use the '
     'data under the "operational_strategy" key.\n'
     '  "people_centered_approach": Who is targeted and how they are selected and engaged. Use the '
