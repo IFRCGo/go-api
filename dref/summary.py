@@ -40,7 +40,7 @@ SUMMARY_FIELDS: List[str] = [
 
 SYSTEM_MESSAGE = (
     "You are an IFRC expert analyst specializing in DREF (Disaster Response Emergency Fund) "
-    "operations. You write short executive summaries for IFRC staff and National Society personnel "
+    "operations. You write executive summaries for IFRC staff and National Society personnel "
     "who will read the full document separately, so your task is to condense and synthesise, never "
     "to restate the source. Use only the information "
     "provided in the data; do not invent facts, figures, or details. Where supporting information "
@@ -57,10 +57,7 @@ def _section_data_json(kwargs: dict) -> str:
 
 def _build_situational_overview_prompt(**kwargs) -> str:
     data_json = _section_data_json(kwargs)
-    return (
-        f'Data for "situational_overview" — the disaster situation and rationale for the operation, '
-        f"and the scale and effects of the event:\n{data_json}"
-    )
+    return f'Data for "situational_overview" — the disaster situation and rationale for the operation:\n{data_json}'
 
 
 def _build_operational_strategy_prompt(**kwargs) -> str:
@@ -94,11 +91,11 @@ SECTION_PROMPT_BUILDERS: Dict[str, Callable[..., str]] = {
 
 GLOBAL_PROMPT = (
     "The DREF data above is organised by summary section. Using ONLY that data, write five "
-    "condensed summary sections. Return a single JSON object (and nothing else) with exactly these "
+    "summary sections. Return a single JSON object (and nothing else) with exactly these "
     "keys, each summarising the block of the same name:\n"
     "\n"
-    '  "situational_overview": The disaster situation and the rationale for the operation, and the '
-    'scale and effects of the event. Use the data under the "situational_overview" key.\n'
+    '  "situational_overview": The disaster situation and the rationale for the operation. Use the '
+    'data under the "situational_overview" key.\n'
     '  "operational_strategy": The overall objective and strategic approach of the response. Use the '
     'data under the "operational_strategy" key.\n'
     '  "people_centered_approach": Who is targeted and how they are selected and engaged. Use the '
@@ -114,14 +111,15 @@ GLOBAL_PROMPT = (
     "- Synthesise, do not concatenate: group related points into a coherent narrative instead of "
     "restating the source line by line or field by field. Merge repeated or overlapping points into "
     "a single statement.\n"
-    "- Each section is at most three paragraphs, whatever the length of its source data. A thin "
-    "source should yield a single paragraph; a rich one may use the full three, but no source "
-    "justifies more.\n"
+    "- Let each section's length follow its source: a thin source yields a single short paragraph, "
+    "a substantial one several. Never pad a thin section to reach a length.\n"
+    "- Give proportionate treatment to every field in the section's data block. Do not spend the "
+    "section on the first field and leave later fields unaddressed.\n"
     "- Open each section with its single most important point, then add supporting context.\n"
     "- Preserve important facts and figures exactly as given; never invent or alter them.\n"
     "- If a section's data block is empty or holds no usable content, set that key to an empty "
     "string. Never write a sentence stating that data is missing, not provided or not recorded.\n"
-    "- Each value must be plain text (no markdown, no bullet lists, no nested JSON): one to three "
+    "- Each value must be plain text (no markdown, no bullet lists, no nested JSON): one or more "
     "well-structured paragraphs in professional humanitarian language, separated by a blank line, "
     "or an empty string when that section has no data.\n"
     "- Return ONLY the JSON object, with no surrounding prose or code fences."
