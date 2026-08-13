@@ -148,6 +148,9 @@ env = environ.Env(
     AZURE_OPENAI_ENDPOINT=(str, None),
     AZURE_OPENAI_API_KEY=(str, None),
     AZURE_OPENAI_DEPLOYMENT_NAME=(str, None),
+    # Azure OpenAI REST api-version. Keep this on a GA (non-preview) release; a
+    # deployment can be pinned back to an older one without a code change.
+    AZURE_OPENAI_API_VERSION=(str, "2024-10-21"),
     # Use a fake LLM client instead of calling Azure OpenAI
     USE_DUMMY_LLM_CLIENT=(bool, False),
     # ReliefWeb appname
@@ -907,6 +910,7 @@ JWT_EXPIRE_TIMESTAMP_DAYS = env("JWT_EXPIRE_TIMESTAMP_DAYS")
 AZURE_OPENAI_ENDPOINT = env("AZURE_OPENAI_ENDPOINT")
 AZURE_OPENAI_API_KEY = env("AZURE_OPENAI_API_KEY")
 AZURE_OPENAI_DEPLOYMENT_NAME = env("AZURE_OPENAI_DEPLOYMENT_NAME")
+AZURE_OPENAI_API_VERSION = env("AZURE_OPENAI_API_VERSION")
 USE_DUMMY_LLM_CLIENT = env("USE_DUMMY_LLM_CLIENT")
 
 OIDC_ENABLE = env("OIDC_ENABLE")
