@@ -6,9 +6,10 @@ from dref.factories.dref import (
     DrefFactory,
     DrefFinalReportFactory,
     DrefOperationalUpdateFactory,
+    IdentifiedNeedFactory,
     PlannedInterventionFactory,
 )
-from dref.models import Dref, DrefSummary
+from dref.models import Dref, DrefSummary, IdentifiedNeed
 from dref.summary import SUMMARY_FIELDS, DrefSummaryGenerator
 from dref.tasks import DrefSummaryGenerationResult, generate_dref_summary
 from main.llm import (
@@ -80,11 +81,21 @@ class DrefSummaryGeneratorTest(TestCase):
             people_in_need=8000,
             people_assisted="5000 people",
             selection_criteria="Most vulnerable households",
+            identified_gaps="No data for the eastern districts",
+            needs_identified=[
+                IdentifiedNeedFactory.create(
+                    title=IdentifiedNeed.Title.SHELTER_HOUSING_AND_SETTLEMENTS,
+                    description="2000 households need emergency shelter",
+                )
+            ],
         )
 
         kwargs = DrefSummaryGenerator.get_section_kwargs(dref)
 
-        self.assertEqual(set(kwargs.keys()), {"situational_overview", "operational_strategy", "people_centered_approach"})
+        self.assertEqual(
+            set(kwargs.keys()),
+            {"situational_overview", "needs_identified", "operational_strategy", "people_centered_approach"},
+        )
         # Only the mapped (Figma) fields feed each section — no title/demographics/budget metadata.
         self.assertEqual(kwargs["situational_overview"]["event_description"], "Severe flooding")
         self.assertEqual(kwargs["situational_overview"]["event_scope"], "Affected 3 districts")
@@ -96,6 +107,31 @@ class DrefSummaryGeneratorTest(TestCase):
         self.assertEqual(kwargs["people_centered_approach"]["people_assisted"], "5000 people")
         self.assertEqual(kwargs["people_centered_approach"]["selection_criteria"], "Most vulnerable households")
         self.assertNotIn("women", kwargs["people_centered_approach"])
+
+        needs = kwargs["needs_identified"]["needs_identified"]
+        self.assertEqual(len(needs), 1)
+        self.assertEqual(needs[0]["title"], "Shelter Housing And Settlements")
+        self.assertEqual(needs[0]["description"], "2000 households need emergency shelter")
+        self.assertEqual(kwargs["needs_identified"]["identified_gaps"], "No data for the eastern districts")
+
+    def test_get_section_kwargs_keeps_needs_without_description_and_drops_missing_gaps(self):
+        # A need with no description still names the sector where a need exists, so it
+        # is kept; identified_gaps is absent on the Final Report model entirely.
+        dref = DrefFactory.create(
+            type_of_dref=Dref.DrefType.RESPONSE,
+            identified_gaps="",
+            needs_identified=[IdentifiedNeedFactory.create(title=IdentifiedNeed.Title.HEALTH, description="")],
+        )
+        needs_section = DrefSummaryGenerator.get_section_kwargs(dref)["needs_identified"]
+        self.assertEqual(needs_section["needs_identified"], [{"title": "Health"}])
+        self.assertIsNone(needs_section["identified_gaps"])
+
+        final_report = DrefFinalReportFactory.create(
+            needs_identified=[IdentifiedNeedFactory.create(title=IdentifiedNeed.Title.EDUCATION, description="Schools closed")]
+        )
+        final_needs_section = DrefSummaryGenerator.get_section_kwargs(final_report)["needs_identified"]
+        self.assertEqual(final_needs_section["needs_identified"], [{"title": "Education", "description": "Schools closed"}])
+        self.assertIsNone(final_needs_section["identified_gaps"])
 
     def test_get_section_kwargs_for_dref_operational_update(self):
         ops_update = DrefOperationalUpdateFactory.create(
@@ -113,11 +149,23 @@ class DrefSummaryGeneratorTest(TestCase):
             boys=600,
             new_operational_end_date=date(2025, 6, 1),
             total_operation_timeframe=6,
+            identified_gaps="Assessment pending in two districts",
+            needs_identified=[
+                IdentifiedNeedFactory.create(
+                    title=IdentifiedNeed.Title.HEALTH,
+                    description="Mobile clinics still required",
+                )
+            ],
         )
 
         kwargs = DrefSummaryGenerator.get_section_kwargs(ops_update)
 
-        self.assertEqual(set(kwargs.keys()), {"situational_overview", "operational_strategy", "people_centered_approach"})
+        self.assertEqual(
+            set(kwargs.keys()),
+            {"situational_overview", "needs_identified", "operational_strategy", "people_centered_approach"},
+        )
+        self.assertEqual(kwargs["needs_identified"]["needs_identified"][0]["description"], "Mobile clinics still required")
+        self.assertEqual(kwargs["needs_identified"]["identified_gaps"], "Assessment pending in two districts")
         self.assertEqual(kwargs["situational_overview"]["event_description"], "Flooding continues")
         self.assertEqual(kwargs["operational_strategy"]["operation_objective"], "Extend shelter support")
         self.assertEqual(kwargs["operational_strategy"]["response_strategy"], "Extended cash support")
@@ -154,6 +202,7 @@ class DrefSummaryGeneratorTest(TestCase):
             set(kwargs.keys()),
             {
                 "situational_overview",
+                "needs_identified",
                 "operational_strategy",
                 "people_centered_approach",
                 "challenges_identified",
@@ -192,6 +241,52 @@ class DrefSummaryGeneratorTest(TestCase):
         )
         situational = DrefSummaryGenerator.get_section_kwargs(imminent_final)["situational_overview"]
         self.assertEqual(situational["event_scope"], "Two districts flooded, 5000 people displaced")
+
+    def test_get_section_kwargs_uses_scenario_analysis_for_imminent_v2_application(self):
+        # An imminent v2 application has no event yet: the situation is described in
+        # hazard_date_and_location, not event_description/event_scope.
+        imminent_v2 = DrefFactory.create(
+            type_of_dref=Dref.DrefType.IMMINENT,
+            is_dref_imminent_v2=True,
+            hazard_date_and_location="Cyclone landfall expected 12-14 March in Sofala province",
+            event_description="Should not be used",
+            event_scope="Should not be used",
+        )
+        situational = DrefSummaryGenerator.get_section_kwargs(imminent_v2)["situational_overview"]
+        self.assertEqual(
+            situational,
+            {"hazard_date_and_location": "Cyclone landfall expected 12-14 March in Sofala province"},
+        )
+
+        # The flag alone does not switch fields — an imminent DREF that is not v2, and
+        # a v2 flag on any other type, both keep the common fields.
+        old_imminent = DrefFactory.create(
+            type_of_dref=Dref.DrefType.IMMINENT,
+            hazard_date_and_location="Ignored here",
+            event_description="Cyclone approaching",
+        )
+        self.assertEqual(
+            DrefSummaryGenerator.get_section_kwargs(old_imminent)["situational_overview"]["event_description"],
+            "Cyclone approaching",
+        )
+
+    def test_get_section_kwargs_for_imminent_v2_follow_up_uses_common_fields(self):
+        # hazard_date_and_location lives on Dref alone, so a follow-up document of an
+        # imminent v2 DREF has nothing to read it from and uses the common fields.
+        dref = DrefFactory.create(
+            type_of_dref=Dref.DrefType.IMMINENT,
+            is_dref_imminent_v2=True,
+            hazard_date_and_location="Cyclone landfall expected 12-14 March",
+        )
+        ops_update = DrefOperationalUpdateFactory.create(
+            dref=dref,
+            type_of_dref=Dref.DrefType.IMMINENT,
+            event_description="Cyclone made landfall on 13 March",
+        )
+
+        situational = DrefSummaryGenerator.get_section_kwargs(ops_update)["situational_overview"]
+        self.assertEqual(situational["event_description"], "Cyclone made landfall on 13 March")
+        self.assertNotIn("hazard_date_and_location", situational)
 
     def test_compute_source_hash_changes_with_content_and_is_deterministic(self):
         dref = DrefFactory.create(event_description="Original description", type_of_dref=Dref.DrefType.RESPONSE)

@@ -1750,6 +1750,11 @@ class DrefSummary(models.Model):
         null=True,
     )
 
+    needs_identified = models.TextField(
+        blank=True,
+        null=True,
+    )
+
     operational_strategy = models.TextField(
         blank=True,
         null=True,
