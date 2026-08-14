@@ -113,7 +113,7 @@
                 {% if user.has_usable_password %}
                 <a style="color: #7999BA" href="{% url 'admin:password_change' %}">{% trans 'Change password' %}</a> /
                 {% endif %}
-                <a style="color: #5080A1" href="{% url 'admin:logout' %}">{% trans 'Log out' %}</a>
+                <form id="logout-form" method="post" action="{% url 'admin:logout' %}" style="display:inline">{% csrf_token %}<button type="submit" style="background:none;border:none;padding:0;color:#5080A1;cursor:pointer;font-size:inherit">{% trans 'Log out' %}</button></form>
             {% endblock %}
         </div>
         {% endif %}
