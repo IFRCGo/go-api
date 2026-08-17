@@ -190,9 +190,14 @@ For updating the index
 ```(bash)
 docker-compose exec serve bash python manage.py update_index
 ```
+## Cronjobs
+
+For more info checkout [Cronjobs](./docs/cronjobs.md)
+
 ## Sentry
 
-For updating the cron monitored tasks
+For updating the cron monitored tasks (legacy k8s CronJobs only — celery beat
+cronjobs are registered automatically)
 ```(bash)
 docker-compose exec serve bash ./manage.py cron_job_monitor
 ```

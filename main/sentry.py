@@ -1,3 +1,4 @@
+import dataclasses
 import logging
 import os
 import typing
@@ -82,21 +83,48 @@ def fetch_git_sha(path, head=None):
         return str(fh.read()).strip()
 
 
-def init_sentry(app_type, tags={}, **config):
-    integrations = [
-        CeleryIntegration(),
-        DjangoIntegration(),
-        RedisIntegration(),
-    ]
-    sentry_sdk.init(
-        **config,
-        ignore_errors=IGNORED_ERRORS,
-        integrations=integrations,
-    )
-    with sentry_sdk.configure_scope() as scope:
-        scope.set_tag("app_type", app_type)
-        for tag, value in tags.items():
-            scope.set_tag(tag, value)
+@dataclasses.dataclass
+class SentryConfig:
+    """Typed sentry options.
+
+    Every option is passed to sentry_sdk.init() by name, so a config key it does
+    not recognise can no longer reach it. Use dataclasses.replace() to vary a
+    field per process (see main/celery.py).
+    """
+
+    dsn: str
+    release: str | None
+    environment: str
+    send_default_pii: bool
+    traces_sample_rate: float
+    enable_tracing: bool
+    debug: bool
+    # Custom configs
+    monitor_celery_beat_tasks: bool
+    app_type: str
+    tags: dict[str, str]
+
+    def init_sentry(self):
+        integrations = [
+            DjangoIntegration(),
+            RedisIntegration(),
+            CeleryIntegration(monitor_beat_tasks=self.monitor_celery_beat_tasks),
+        ]
+        sentry_sdk.init(
+            ignore_errors=IGNORED_ERRORS,
+            integrations=integrations,
+            dsn=self.dsn,
+            release=self.release,
+            environment=self.environment,
+            send_default_pii=self.send_default_pii,
+            traces_sample_rate=self.traces_sample_rate,
+            enable_tracing=self.enable_tracing,
+            debug=self.debug,
+        )
+        with sentry_sdk.configure_scope() as scope:
+            scope.set_tag("app_type", self.app_type)
+            for tag, value in self.tags.items():
+                scope.set_tag(tag, value)
 
 
 class SentryMonitor(models.TextChoices):
