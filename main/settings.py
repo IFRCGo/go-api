@@ -124,19 +124,14 @@ env = environ.Env(
     DJANGO_READ_ONLY=(bool, False),
     # Misc
     DISABLE_API_CACHE=(bool, False),
-    # jwt private and public key (NOTE: Used algorithm ES256)
-    # FIXME: Deprecated configuration. Remove this and it references
-    JWT_PRIVATE_KEY_BASE64_ENCODED=(str, None),
-    JWT_PUBLIC_KEY_BASE64_ENCODED=(str, None),
-    JWT_PRIVATE_KEY=(str, None),
-    JWT_PUBLIC_KEY=(str, None),
-    JWT_EXPIRE_TIMESTAMP_DAYS=(int, 365),
     # OIDC
     OIDC_ENABLE=(bool, False),
     OIDC_RSA_PRIVATE_KEY_BASE64_ENCODED=(str, None),
     OIDC_RSA_PRIVATE_KEY=(str, None),
     OIDC_RSA_PUBLIC_KEY_BASE64_ENCODED=(str, None),
     OIDC_RSA_PUBLIC_KEY=(str, None),
+    # -- User External Token
+    JWT_EXPIRE_TIMESTAMP_DAYS=(int, 365),
     # Country page
     NS_CONTACT_USERNAME=(str, None),
     NS_CONTACT_PASSWORD=(str, None),
@@ -900,8 +895,6 @@ def decode_base64(env_key, fallback_env_key):
     return env(fallback_env_key)
 
 
-JWT_PRIVATE_KEY = decode_base64("JWT_PRIVATE_KEY_BASE64_ENCODED", "JWT_PRIVATE_KEY")
-JWT_PUBLIC_KEY = decode_base64("JWT_PUBLIC_KEY_BASE64_ENCODED", "JWT_PUBLIC_KEY")
 JWT_EXPIRE_TIMESTAMP_DAYS = env("JWT_EXPIRE_TIMESTAMP_DAYS")
 
 AZURE_OPENAI_ENDPOINT = env("AZURE_OPENAI_ENDPOINT")
