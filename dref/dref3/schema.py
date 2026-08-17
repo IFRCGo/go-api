@@ -20,6 +20,7 @@ from dref.dref3.common import (
     coerce_date_str,
     coerce_int,
     coerce_iso3,
+    coerce_search_term,
     status_to_int,
 )
 from dref.models import Dref
@@ -30,6 +31,7 @@ _TYPE_BY_COERCER = {
     coerce_int: OpenApiTypes.INT,
     coerce_iso3: OpenApiTypes.STR,
     coerce_date_str: OpenApiTypes.DATE,
+    coerce_search_term: OpenApiTypes.STR,
     status_to_int: OpenApiTypes.STR,
     str: OpenApiTypes.STR,
 }
@@ -54,6 +56,11 @@ _DESCRIPTIONS = {
         f"Status as an id, label or name ({_choice_list(Dref.Status)}), e.g. `4` or `Approved`. "
         "Unrecognised values are ignored."
     ),
+    "hazard_date_and_location": (
+        "Case-insensitive substring match on `hazard_date_and_location`, the free-text answer to "
+        '"when and where is the hazard expected to happen?". Searches the field in the request\'s '
+        "active language. A blank term is ignored."
+    ),
     "start_date_of_operation": (
         "Lower bound (inclusive) on each stage's own start date: `date_of_approval` for applications, "
         "`new_operational_start_date` for operational updates, `operation_start_date` for final reports."
@@ -75,9 +82,6 @@ _ENUMS = {
 def _range_description(param: str) -> str:
     field, _, bound = param.rpartition("_")
     edge = "Lower" if bound == "from" else "Upper"
-    if field == "hazard_date_and_location":
-        # TextField: compared lexicographically, not as a date.
-        return f"{edge} bound on `{field}`, compared as text rather than as a date."
     return f"{edge} bound (inclusive) on `{field}`."
 
 

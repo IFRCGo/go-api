@@ -13,6 +13,7 @@ from rest_framework import status
 
 from api.models import Appeal, AppealFilter, AppealType, Country, Region, RegionName
 from dref.dref3.common import DREF3_FILTERS, Dref3PageHydrator, dref3_csv_header
+from dref.dref3.query import build_union_queryset
 from dref.dref3.schema import DREF3_LIST_PARAMETERS
 from dref.factories.dref import (
     DrefFactory,
@@ -251,6 +252,165 @@ class Dref3MalformedParamTests(APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         codes = {row["appeal_id"] for row in resp.json()["results"]}
         self.assertNotIn("APPEAL_A", codes, "a valid date bound must still constrain application rows")
+
+
+class Dref3HazardTextSearchTests(APITestCase):
+    """`hazard_date_and_location` is free prose ("when and where is the hazard
+    expected to happen?"), so it is filtered by substring rather than bounded:
+    ordering prose against a date bound selects an arbitrary set of rows.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.url = "/api/v2/dref3/"
+        self.region = Region.objects.create(name=RegionName.AFRICA, label="Africa")
+        self.country = Country.objects.create(name="C1", iso3="AAA", iso="AA", region=self.region)
+        self.superuser = User.objects.create_superuser("admin", "admin@example.com", "password")
+        self.dref = DrefFactory.create(
+            appeal_code="APPEAL_A",
+            national_society=self.country,
+            status=Dref.Status.APPROVED,
+            hazard_date_and_location="Forecast window 15-22 December 2025, Elbasan and Tirana",
+        )
+        self.other = DrefFactory.create(
+            appeal_code="APPEAL_B",
+            national_society=self.country,
+            status=Dref.Status.APPROVED,
+            hazard_date_and_location="Cyclone landfall expected on the northern coast",
+        )
+        self.blank = DrefFactory.create(
+            appeal_code="APPEAL_BLANK",
+            national_society=self.country,
+            status=Dref.Status.APPROVED,
+            hazard_date_and_location="",
+        )
+
+    def _codes(self, params, stage="application"):
+        self.authenticate(self.superuser)
+        query = {"limit": 100000, **params}
+        if stage:
+            query["stage"] = stage
+        resp = self.client.get(self.url, query)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        return {row["appeal_id"] for row in resp.json()["results"]}
+
+    def test_matches_a_substring_anywhere_in_the_value(self):
+        self.assertEqual(self._codes({"hazard_date_and_location": "Elbasan"}), {"APPEAL_A"})
+        self.assertEqual(self._codes({"hazard_date_and_location": "northern coast"}), {"APPEAL_B"})
+
+    def test_match_is_case_insensitive(self):
+        self.assertEqual(self._codes({"hazard_date_and_location": "elbasan"}), {"APPEAL_A"})
+        self.assertEqual(self._codes({"hazard_date_and_location": "CYCLONE"}), {"APPEAL_B"})
+
+    def test_a_term_matching_nothing_returns_no_rows(self):
+        self.assertEqual(self._codes({"hazard_date_and_location": "Reykjavik"}), set())
+
+    def test_blank_and_whitespace_terms_are_ignored(self):
+        """A blank term must not become `icontains=""`, which matches every row
+        with a value and so would silently drop only the rows without one."""
+        for term in ("", "   "):
+            with self.subTest(term=term):
+                self.assertEqual(
+                    self._codes({"hazard_date_and_location": term}),
+                    {"APPEAL_A", "APPEAL_B", "APPEAL_BLANK"},
+                )
+
+    def test_rows_without_a_value_are_never_matched(self):
+        DrefFactory.create(
+            appeal_code="APPEAL_NULL",
+            national_society=self.country,
+            status=Dref.Status.APPROVED,
+            hazard_date_and_location=None,
+        )
+        codes = self._codes({"hazard_date_and_location": "December"})
+        self.assertNotIn("APPEAL_NULL", codes)
+        self.assertNotIn("APPEAL_BLANK", codes)
+
+    def test_only_application_rows_are_constrained(self):
+        """The field exists on the application stage only, so operational update
+        and final report rows pass the filter rather than being dropped."""
+        DrefOperationalUpdateFactory.create(
+            appeal_code="APPEAL_A",
+            national_society=self.country,
+            status=Dref.Status.APPROVED,
+            dref=self.dref,
+        )
+        DrefFinalReportFactory.create(
+            appeal_code="APPEAL_B",
+            national_society=self.country,
+            status=Dref.Status.APPROVED,
+            dref=self.other,
+        )
+        codes = self._codes({"hazard_date_and_location": "Elbasan"}, stage=None)
+        self.assertEqual(codes, {"APPEAL_A", "APPEAL_B"})
+
+    def test_the_range_bound_params_are_not_exposed(self):
+        """Bounding this field is not a supported operation, so the two params
+        appear in neither the filter mapping nor the published schema."""
+        for param in ("hazard_date_and_location_from", "hazard_date_and_location_to"):
+            with self.subTest(param=param):
+                self.assertNotIn(param, DREF3_FILTERS)
+                self.assertNotIn(param, {p.name for p in DREF3_LIST_PARAMETERS})
+
+    def test_searches_the_active_language_column(self):
+        """The field is registered with modeltranslation, so the lookup is
+        rewritten onto the active language's column - the column a value written
+        through the API lands in. The untranslated base column only holds values
+        stored before the translated columns existed."""
+        queryset = build_union_queryset(self.superuser, {"stage": "application", "hazard_date_and_location": "Elbasan"})
+        sql, params = queryset.query.sql_with_params()
+        self.assertIn("hazard_date_and_location_en", sql)
+        self.assertIn("LIKE UPPER", sql)
+        self.assertIn("%Elbasan%", params)
+
+
+class Dref3HazardDateRangeTests(APITestCase):
+    """`hazard_date` is the DateField behind "when is the hazard expected to
+    happen?", so it is what a caller bounding a hazard date wants. It is a
+    range filter alongside the other eight application dates."""
+
+    def setUp(self):
+        super().setUp()
+        self.url = "/api/v2/dref3/"
+        self.region = Region.objects.create(name=RegionName.AFRICA, label="Africa")
+        self.country = Country.objects.create(name="C1", iso3="AAA", iso="AA", region=self.region)
+        self.superuser = User.objects.create_superuser("admin", "admin@example.com", "password")
+        for code, hazard_date in (("APPEAL_EARLY", "2025-03-01"), ("APPEAL_LATE", "2026-09-15")):
+            DrefFactory.create(
+                appeal_code=code,
+                national_society=self.country,
+                status=Dref.Status.APPROVED,
+                hazard_date=hazard_date,
+            )
+        self.undated = DrefFactory.create(
+            appeal_code="APPEAL_NONE",
+            national_society=self.country,
+            status=Dref.Status.APPROVED,
+            hazard_date=None,
+        )
+
+    def _codes(self, params):
+        self.authenticate(self.superuser)
+        resp = self.client.get(self.url, {"stage": "application", "limit": 100000, **params})
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        return {row["appeal_id"] for row in resp.json()["results"]}
+
+    def test_bounds_select_by_date(self):
+        self.assertEqual(self._codes({"hazard_date_from": "2026-01-01"}), {"APPEAL_LATE"})
+        self.assertEqual(self._codes({"hazard_date_to": "2026-01-01"}), {"APPEAL_EARLY"})
+        self.assertEqual(
+            self._codes({"hazard_date_from": "2025-01-01", "hazard_date_to": "2026-12-31"}),
+            {"APPEAL_EARLY", "APPEAL_LATE"},
+        )
+
+    def test_rows_without_a_hazard_date_are_never_matched(self):
+        for param in ("hazard_date_from", "hazard_date_to"):
+            with self.subTest(param=param):
+                self.assertNotIn("APPEAL_NONE", self._codes({param: "2025-01-01"}))
+
+    def test_unparseable_bound_is_ignored_like_the_other_dates(self):
+        codes = self._codes({"hazard_date_from": "not-a-date"})
+        self.assertEqual(codes, {"APPEAL_EARLY", "APPEAL_LATE", "APPEAL_NONE"})
 
 
 class Dref3RoutingTests(APITestCase):
