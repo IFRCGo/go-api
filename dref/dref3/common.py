@@ -186,10 +186,24 @@ def coerce_date_str(raw):
     return text
 
 
-# Date-range filters that were dead code in the legacy endpoint, now applied
-# for real. They constrain application-stage rows only (other stages pass).
-# NOTE: hazard_date_and_location is a TextField; __gte/__lte compare
-# lexicographically, mirroring what the legacy code intended to do.
+def coerce_search_term(raw):
+    """A non-blank search term, or None so the filter is ignored.
+
+    A blank term would reach `__icontains` as the empty string, which every row
+    with a value matches - a filter that silently narrows nothing. A missing
+    value is dropped here rather than by the caller, because `str(None)` is the
+    non-blank "None", which would otherwise be searched for verbatim.
+    """
+    if raw is None:
+        return None
+    text = str(raw).strip()
+    return text or None
+
+
+# Date-range filters, exposed as `<field>_from` / `<field>_to`. They constrain
+# application-stage rows only (other stages pass). Every field here is a
+# DateField: `hazard_date` answers "when is the hazard expected to happen?",
+# which the free-text `hazard_date_and_location` only describes in prose.
 DREF3_APPLICATION_RANGE_FIELDS = (
     "event_date",
     "ns_respond_date",
@@ -198,7 +212,7 @@ DREF3_APPLICATION_RANGE_FIELDS = (
     "submission_to_geneva",
     "date_of_approval",
     "publishing_date",
-    "hazard_date_and_location",
+    "hazard_date",
     "end_date",
 )
 
@@ -223,6 +237,12 @@ DREF3_FILTERS = {
         status_to_int,
         ("status", "status", "status"),
     ),
+    # Free text ("when and where is the hazard expected to happen?"), so it is
+    # searched for a substring. Only the application stage has the field.
+    "hazard_date_and_location": (
+        coerce_search_term,
+        ("hazard_date_and_location__icontains", None, None),
+    ),
     "start_date_of_operation": (
         coerce_date_str,
         ("date_of_approval__gte", "new_operational_start_date__gte", "operation_start_date__gte"),
@@ -233,9 +253,7 @@ DREF3_FILTERS = {
     ),
     **{
         f"{field}_{suffix}": (
-            # hazard_date_and_location is a TextField compared lexicographically,
-            # so it must not be restricted to parseable dates.
-            str if field == "hazard_date_and_location" else coerce_date_str,
+            coerce_date_str,
             (f"{field}__{op}", None, None),
         )
         for field in DREF3_APPLICATION_RANGE_FIELDS
