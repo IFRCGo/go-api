@@ -7,6 +7,9 @@ on:
       - develop
       - master
       - project/*
+      # TODO: remove before merge — temporary trigger to test the publish pipeline
+      # (docker + helm push) on this feature branch prior to opening the PR.
+      - feature/banjo-stack
     tags:
       - "v*.*.*"
 
