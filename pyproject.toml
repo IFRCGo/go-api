@@ -1,6 +1,6 @@
 [project]
 name = "go-api"
-version = "1.1.419"
+version = "1.1.419"  # managed by release.sh
 description = ""
 authors = [{ name = "GO Dev", email = "go-dev@ifrc.org" }]
 license = { text = "MIT License" }
