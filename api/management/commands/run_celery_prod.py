@@ -5,9 +5,9 @@ import typing
 
 from django.core.management.base import BaseCommand
 
-from main.celery import Queues
+from main.cronjobs import CeleryQueue
 
-all_queues = ",".join([q for q in Queues.DEV_QUEUES])
+all_queues = ",".join([q.name for q in CeleryQueue.ALL_QUEUE])
 
 # NOTE: Use a fixed concurrency to prevent the pod from being OOMKilled,
 # as Celery defaults to one worker per available CPU.
