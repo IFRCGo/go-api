@@ -121,6 +121,7 @@ class DrefOperationalUpdateTO(TranslationOptions):
 class DrefSummaryTO(TranslationOptions):
     fields = (
         "situational_overview",
+        "needs_identified",
         "operational_strategy",
         "people_centered_approach",
         "challenges_identified",
