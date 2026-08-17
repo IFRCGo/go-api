@@ -12,7 +12,7 @@ from modeltranslation import settings as mt_settings
 from modeltranslation.translator import translator
 from modeltranslation.utils import build_localized_fieldname
 
-from main.celery import Queues
+from main.cronjobs import CeleryQueue
 from main.lock import RedisLockKey, redis_lock
 from main.translation import (
     TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME,
@@ -217,7 +217,7 @@ class ModelTranslator:
                 index += 1
 
 
-@shared_task(queue=Queues.CRONJOB)
+@shared_task(queue=CeleryQueue.cronjob.name)
 def translate_remaining_models_fields():
     # Disabled in DEBUG/Development
     if settings.DEBUG:
@@ -226,7 +226,7 @@ def translate_remaining_models_fields():
     ModelTranslator().run(batch_size=100)
 
 
-@shared_task(queue=Queues.DEFAULT)
+@shared_task(queue=CeleryQueue.default.name)
 def translate_model_fields(model_name, pk):
     model = django_apps.get_model(model_name)
     obj = model.objects.get(pk=pk)
@@ -239,7 +239,7 @@ def translate_model_fields(model_name, pk):
         logger.info(f"Translation success for {model_name} with pk={pk}.")
 
 
-@shared_task(queue=Queues.HEAVY)
+@shared_task(queue=CeleryQueue.heavy.name)
 def translate_model_fields_in_bulk(model_name, pks):
     model = django_apps.get_model(model_name)
     qs = model.objects.filter(

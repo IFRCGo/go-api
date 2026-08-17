@@ -143,7 +143,19 @@ services:
   # For development only
   celery:
     <<: *base_server_setup
-    command: python manage.py run_celery_dev
+    restart: unless-stopped
+    command: ./misc/dev/run_worker.sh
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A main inspect ping -d celery@$$HOSTNAME || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  celery-beat:
+    <<: *base_server_setup
+    restart: unless-stopped
+    command: ./misc/dev/run_worker_beat.sh
 
   # ------------------ Helper CLI Commands
   # Usage: `docker compose run --rm <service-name>`

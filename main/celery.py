@@ -1,18 +1,16 @@
+import dataclasses
 import os
 
 import celery
 from django.conf import settings
 
-from main import sentry
+from main.cronjobs import BEAT_SCHEDULES, CeleryQueue
 
 
 class CustomCeleryApp(celery.Celery):
     def on_configure(self):
         if settings.SENTRY_DSN:
-            sentry.init_sentry(
-                app_type="WORKER",
-                **settings.SENTRY_CONFIG,
-            )
+            dataclasses.replace(settings.SENTRY_CONFIG, app_type="WORKER").init_sentry()
 
 
 # set the default Django settings module for the 'celery' program.
@@ -30,19 +28,12 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks()
 
 
-class Queues:
-    DEFAULT = "default"
-    HEAVY = "heavy"
-    CRONJOB = "cronjob"
+app.conf.task_default_queue = CeleryQueue.default.name
+app.conf.task_queues = CeleryQueue.ALL_QUEUE
 
-    DEV_QUEUES = (
-        DEFAULT,
-        HEAVY,
-        CRONJOB,
-    )
-
-
-app.conf.task_default_queue = Queues.DEFAULT
+# Cronjobs scheduled through celery beat. See main/cronjobs.py -- note that this
+# is separate from the legacy k8s CronJob resources in values.yaml:cronjobs.
+app.conf.beat_schedule = BEAT_SCHEDULES
 
 
 @app.task(bind=True)
