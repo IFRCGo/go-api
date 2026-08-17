@@ -45,7 +45,9 @@ data:
   AUTO_TRANSLATION_TRANSLATOR: {{ .Values.env.AUTO_TRANSLATION_TRANSLATOR | quote }}
   DJANGO_READ_ONLY: {{ .Values.env.DJANGO_READ_ONLY | quote }}
   SENTRY_SAMPLE_RATE: {{ .Values.env.SENTRY_SAMPLE_RATE | quote }}
+  SENTRY_DEBUG: {{ .Values.env.SENTRY_DEBUG | quote }}
   SENTRY_DSN: {{ .Values.env.SENTRY_DSN | quote }}
+  SENTRY_MONITOR_CELERY_BEAT_TASKS: {{ .Values.env.SENTRY_MONITOR_CELERY_BEAT_TASKS | quote }}
   OIDC_ENABLE: {{ .Values.env.OIDC_ENABLE | quote }}
 
   EOAPI_STAC_EXTERNAL_URL: {{ .Values.env.EOAPI_STAC_EXTERNAL_URL | quote }}

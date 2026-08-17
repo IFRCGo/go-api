@@ -1,3 +1,4 @@
+# type: ignore[reportAttributeAccessIssue]
 import base64
 import logging
 import os
@@ -117,9 +118,12 @@ env = environ.Env(
     APPEALS_USER=(str, None),
     APPEALS_PASS=(str, None),
     # Sentry
+    SENTRY_DEBUG=(bool, False),
     SENTRY_DSN=(str, None),
     SENTRY_SAMPLE_RATE=(float, 0.2),
     SENTRY_RELEASE=(str, None),
+    # Sentry cron monitors for celery beat tasks only; legacy k8s CronJobs use SentryMonitor.
+    SENTRY_MONITOR_CELERY_BEAT_TASKS=(bool, True),
     # Maintenance mode
     DJANGO_READ_ONLY=(bool, False),
     # Misc
@@ -276,6 +280,7 @@ INSTALLED_APPS = [
     # GO Apps
     *GO_APPS,
     # Utils Apps
+    "django_celery_beat",
     "oauth2_provider",
     "tinymce",
     "admin_auto_filters",
@@ -759,6 +764,8 @@ CELERY_BROKER_URL = CELERY_REDIS_URL
 CELERY_RESULT_BACKEND = CELERY_REDIS_URL
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_ACKS_LATE = True
+# Schedules come from main/cronjobs.py, synced into PeriodicTask rows on beat startup.
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
 RETRY_STRATEGY = Retry(total=3, status_forcelist=[429, 500, 502, 503, 504], allowed_methods=["HEAD", "GET", "OPTIONS"])
 
@@ -806,8 +813,11 @@ except OSError:
     LAST_GIT_TAG = 0
 
 # Sentry Config
+SENTRY_DEBUG = env("SENTRY_DEBUG")
 SENTRY_DSN = env("SENTRY_DSN")
 SENTRY_SAMPLE_RATE = env("SENTRY_SAMPLE_RATE")
+
+SENTRY_MONITOR_CELERY_BEAT_TASKS = env("SENTRY_MONITOR_CELERY_BEAT_TASKS")
 
 SENTRY_RELEASE = env("SENTRY_RELEASE")
 if not SENTRY_RELEASE:
@@ -817,23 +827,26 @@ if not SENTRY_RELEASE:
         # .git is missing, unreadable, or a gitfile pointer (submodule/worktree checkout)
         SENTRY_RELEASE = "unknown"
 
-SENTRY_CONFIG = {
-    "dsn": SENTRY_DSN,
-    "send_default_pii": True,
-    "traces_sample_rate": SENTRY_SAMPLE_RATE,
-    "enable_tracing": True,
-    "release": SENTRY_RELEASE,
-    "environment": GO_ENVIRONMENT,
-    "debug": DEBUG,
-    "tags": {
+SENTRY_CONFIG = sentry.SentryConfig(
+    dsn=SENTRY_DSN,
+    release=SENTRY_RELEASE,
+    environment=GO_ENVIRONMENT,
+    send_default_pii=True,
+    traces_sample_rate=SENTRY_SAMPLE_RATE,
+    enable_tracing=True,
+    debug=SENTRY_DEBUG,
+    # Custom configs
+    monitor_celery_beat_tasks=SENTRY_MONITOR_CELERY_BEAT_TASKS,
+    # TODO: changes it to env!
+    app_type="API",
+    tags={
         "site": GO_API_URL,
     },
-}
+)
+
 if SENTRY_DSN:
-    sentry.init_sentry(
-        app_type="API",
-        **SENTRY_CONFIG,
-    )
+    SENTRY_CONFIG.init_sentry()
+
 # Required for Django HayStack
 HAYSTACK_CONNECTIONS = {
     "default": {
