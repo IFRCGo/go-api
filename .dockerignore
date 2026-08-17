@@ -1,5 +1,8 @@
 .db/
 deploy/
+# ...but keep the container web entrypoint (the rest of deploy/ is helm/configs
+# not needed at runtime).
+!deploy/run_web.sh
 .mypy_cache/
 .pytest_cache/
 go-logs/
