@@ -1,0 +1,22 @@
+app:
+  api:
+    ingress:
+      className: traefik
+      # Attach the go-api-body-size Middleware to the api router. Traefik references
+      # CRD middlewares as `<namespace>-<name>@kubernetescrd`; the namespace is
+      # resolved via tpl (needs banjo-helm >= 0.4.1) so it stays namespace-agnostic.
+      # NOTE: the previous nginx ingress also set 360s proxy connect/read/send
+      # timeouts; long-running requests should be tuned on the traefik
+      # entrypoint/serversTransport at deploy time (no direct annotation).
+      annotations:
+        traefik.ingress.kubernetes.io/router.middlewares: "{{ $.Release.Namespace }}-go-api-body-size@kubernetescrd"
+
+  extraManifests:
+    traefik-body-size-middleware:
+      apiVersion: traefik.io/v1alpha1
+      kind: Middleware
+      metadata:
+        name: go-api-body-size
+      spec:
+        buffering:
+          maxRequestBodyBytes: 314572800   # 300 MiB (replaces nginx proxy-body-size "300m")

@@ -7,8 +7,7 @@ from urllib.parse import urlparse
 
 import environ
 import pytz
-
-# from azure.identity import DefaultAzureCredential
+from azure.identity import DefaultAzureCredential
 from banjo_utils.health import (
     is_health_probe_path,
     make_sentry_traces_sampler_with_health_probe_ignore,
@@ -54,6 +53,8 @@ env = environ.Env(
     AZURE_STORAGE_KEY=(str, None),
     AZURE_STORAGE_TOKEN_CREDENTIAL=(str, None),
     AZURE_STORAGE_MANAGED_IDENTITY=(bool, False),
+    AZURE_STORAGE_STATIC_CONTAINER=(str, "static"),  # must be a different container, readable anonymously
+    AZURE_STORAGE_MEDIA_CONTAINER=(str, "api"),
     # -- S3 storage
     AWS_S3_ENABLED=(bool, False),
     AWS_S3_ENDPOINT_URL=(str, None),
@@ -586,26 +587,27 @@ if env("AZURE_STORAGE_ENABLED"):
             }
         )
 
-        # if env("AZURE_STORAGE_MANAGED_IDENTITY"):
-        #     AZURE_STORAGE_CONFIG_OPTIONS["token_credential"] = DefaultAzureCredential()
+        if env("AZURE_STORAGE_MANAGED_IDENTITY"):
+            AZURE_STORAGE_CONFIG_OPTIONS["token_credential"] = DefaultAzureCredential()
 
+    # Media and static go to separate containers: media is uploaded by the running
+    # app and never overwritten, static is replaced wholesale by collectstatic on
+    # every deployment.
     STORAGES = {
         "default": {
             "BACKEND": "storages.backends.azure_storage.AzureStorage",
             "OPTIONS": {
                 **AZURE_STORAGE_CONFIG_OPTIONS,
-                "azure_container": "api",
+                "azure_container": env("AZURE_STORAGE_MEDIA_CONTAINER"),
             },
         },
         "staticfiles": {
-            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
-            # FIXME: Use this instead of nginx for staticfiles
-            # "BACKEND": "storages.backends.azure_storage.AzureStorage",
-            # "OPTIONS": {
-            #     **AZURE_STORAGE_CONFIG_OPTIONS,
-            #     "azure_container": env("AZURE_STORAGE_STATIC_CONTAINER"),
-            #     "overwrite_files": True,
-            # },
+            "BACKEND": "storages.backends.azure_storage.AzureStorage",
+            "OPTIONS": {
+                **AZURE_STORAGE_CONFIG_OPTIONS,
+                "azure_container": env("AZURE_STORAGE_STATIC_CONTAINER"),
+                "overwrite_files": True,
+            },
         },
     }
 

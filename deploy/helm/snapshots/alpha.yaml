@@ -1,0 +1,2319 @@
+---
+# Source: ifrcgo-helm/charts/app/templates/config/secret.yaml
+kind: Secret
+apiVersion: v1
+metadata:
+  name: go-api-secret
+  labels:
+    app: go-api
+    environment: ALPHA
+    release: release-name
+type: Opaque
+stringData:
+  # secrets
+  AZURE_STORAGE_KEY: "XXXXXXXXXXXXXXXXXXXXXXXX"
+  DJANGO_DB_HOST: "go-api-pg.example.com"
+  DJANGO_DB_NAME: "go"
+  DJANGO_DB_PASS: "XXXXXXXXXXXXXXXXXXXXXXXX"
+  DJANGO_DB_PORT: "5432"
+  DJANGO_DB_USER: "go"
+  DJANGO_SECRET_KEY: "SECURE_DJANGO_SECRET_KEY"
+  SENTRY_DSN: "https://xyz@sentry.example.com/14"
+
+---
+# Source: ifrcgo-helm/charts/app/templates/config/configmap.yaml
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: go-api-env-name
+  labels:
+    app: go-api
+    environment: ALPHA
+    release: release-name
+data:
+  # Configs
+  ADDITIONAL_TRUSTED_ORIGINS: "https://go.alpha.example.com"
+  API_FQDN: "https://go-api.alpha.example.com"
+  AZURE_STORAGE_ACCOUNT: "exampleaccount"
+  AZURE_STORAGE_ENABLED: "true"
+  CSRF_COOKIE_DOMAIN: ".example.com"
+  DJANGO_ADDITIONAL_ALLOWED_HOSTS: "go-api.alpha.example.com"
+  DJANGO_DEBUG: "false"
+  ELASTIC_SEARCH_HOST: "http://go-api-elasticsearch.example.com:9200"
+  FRONTEND_URL: "https://go.alpha.example.com"
+  GO_ENVIRONMENT: "ALPHA"
+  SENTRY_SAMPLE_RATE: "0.2"
+  SESSION_COOKIE_DOMAIN: ".example.com"
+
+---
+# Source: ifrcgo-helm/charts/app/templates/api/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: go-api-api
+  labels:
+    app: go-api
+    component: api
+    environment: ALPHA
+    release: release-name
+spec:
+  type: ClusterIP
+  selector:
+    app: go-api
+    component: api
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+
+---
+# Source: ifrcgo-helm/templates/playwright.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: go-api-playwright
+  labels:
+    app.kubernetes.io/name: go-api-playwright
+    app.kubernetes.io/component: playwright
+    app.kubernetes.io/part-of: release-name
+spec:
+  selector:
+    app.kubernetes.io/name: go-api-playwright
+  ports:
+    - port: 3000
+      targetPort: 3000
+
+---
+# Source: ifrcgo-helm/charts/app/templates/api/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-api-api
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+    reloader.stakater.com/auto: "true"
+  labels:
+    app: go-api
+    component: api
+    environment: ALPHA
+    release: release-name
+spec:
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: go-api
+      component: api
+  template:
+    metadata:
+      annotations:
+        checksum/secret: dd5e71c25a35366086506b396869b06a501d1ec22e83806a15738e9f3ac3a03d
+        checksum/configmap: 0313dd0020b57c2897db8d61fed2b2611c7bcb7840d7dbc1f37fe90f32881f92
+      labels:
+        app: go-api
+        component: api
+    spec:
+      terminationGracePeriodSeconds: 38
+      containers:
+        - name: api
+          image: "local.example.com/ifrcgo/go-api:develop.xxxxxxxx"
+          imagePullPolicy: IfNotPresent
+          command:
+            - ./deploy/run_web.sh
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            failureThreshold: 6
+            httpGet:
+              path: /healthz/live/
+              port: http
+            periodSeconds: 20
+            timeoutSeconds: 2
+          readinessProbe:
+            failureThreshold: 6
+            httpGet:
+              path: /healthz/ready/
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 2
+          startupProbe:
+            failureThreshold: 30
+            httpGet:
+              path: /healthz/ready/
+              port: http
+            periodSeconds: 5
+          resources:
+            limits:
+              memory: 4Gi
+            requests:
+              cpu: "1"
+              memory: 2Gi
+          envFrom:
+            - secretRef:
+                name: go-api-secret
+            - configMapRef:
+                name: go-api-env-name
+          env:
+            - name: DJANGO_APP_TYPE
+              value: "web"
+            - name: CACHE_REDIS_URL
+              value: redis://go-api-dragonfly:6379/1
+            - name: CELERY_REDIS_URL
+              value: redis://go-api-dragonfly:6379/0
+            - name: PLAYWRIGHT_SERVER_URL
+              value: ws://go-api-playwright:3000/
+            
+          lifecycle:
+            preStop:
+              sleep:
+                seconds: 8
+
+---
+# Source: ifrcgo-helm/charts/app/templates/worker/deployment.yaml
+# Queue: default
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-api-worker-default
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+    reloader.stakater.com/auto: "true"
+  labels:
+    app: go-api
+    component: worker
+    queue: default
+    environment: ALPHA
+    release: release-name
+spec:
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: go-api
+      component: worker
+      queue: default
+  template:
+    metadata:
+      annotations:
+        checksum/secret: dd5e71c25a35366086506b396869b06a501d1ec22e83806a15738e9f3ac3a03d
+        checksum/configmap: 0313dd0020b57c2897db8d61fed2b2611c7bcb7840d7dbc1f37fe90f32881f92
+      labels:
+        app: go-api
+        component: worker
+        queue: default
+    spec:
+      volumes:
+        - emptyDir:
+            medium: Memory
+            sizeLimit: 1Mi
+          name: celery-heartbeat
+      containers:
+        - name: worker
+          command:
+            - celery
+            - -A
+            - main
+            - worker
+            - -l
+            - INFO
+            - -Q
+            - default,heavy,cronjob
+            - --concurrency
+            - "2"
+          image: "local.example.com/ifrcgo/go-api:develop.xxxxxxxx"
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            exec:
+              command:
+              - banjo-celery-probe
+            failureThreshold: 6
+            periodSeconds: 20
+            timeoutSeconds: 5
+          startupProbe:
+            exec:
+              command:
+              - banjo-celery-probe
+            failureThreshold: 30
+            periodSeconds: 5
+          resources:
+            limits:
+              memory: 4Gi
+            requests:
+              cpu: "0.5"
+              memory: 0.5Gi
+          envFrom:
+            - secretRef:
+                name: go-api-secret
+            - configMapRef:
+                name: go-api-env-name
+          env:
+            - name: DJANGO_APP_TYPE
+              value: "worker"
+            - name: CACHE_REDIS_URL
+              value: redis://go-api-dragonfly:6379/1
+            - name: CELERY_REDIS_URL
+              value: redis://go-api-dragonfly:6379/0
+            - name: PLAYWRIGHT_SERVER_URL
+              value: ws://go-api-playwright:3000/
+            
+            - name: BANJO_CELERY_HEARTBEAT_FILE
+              value: "/var/run/celery/worker_heartbeat"
+          volumeMounts:
+            - mountPath: /var/run/celery
+              name: celery-heartbeat
+
+---
+# Source: ifrcgo-helm/templates/playwright.yaml
+# Headless-browser server used by the screenshot / PDF-export Celery tasks.
+# Exposes a Playwright server over ws://<name>:<port>/; the app reaches it via
+# PLAYWRIGHT_SERVER_URL (see app.extraEnvVars in values.yaml).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-api-playwright
+  labels:
+    app.kubernetes.io/name: go-api-playwright
+    app.kubernetes.io/component: playwright
+    app.kubernetes.io/part-of: release-name
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: go-api-playwright
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: go-api-playwright
+    spec:
+      containers:
+        - name: playwright
+          image: "mcr.microsoft.com/playwright:v1.50.0-noble"
+          workingDir: /home/pwuser
+          command:
+            - bash
+            - -xc
+            - |
+              PLAYWRIGHT_VERSION=$(grep -oP '"driverVersion": "\K[^"]+' /ms-playwright/.docker-info)
+              npx -y playwright@$PLAYWRIGHT_VERSION run-server --host 0.0.0.0 --port 3000
+          ports:
+            - containerPort: 3000
+          resources:
+            limits:
+              cpu: "2"
+              memory: 2Gi
+            requests:
+              cpu: "0.1"
+              memory: 1Gi
+---
+# Source: ifrcgo-helm/charts/app/templates/hooks/job.yaml
+# Hook: collect-static
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: go-api-collect-static
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "20"
+  labels:
+    app: go-api
+    component: hook
+    hookName: collect-static
+    environment: ALPHA
+    release: release-name
+spec:
+  template:
+    metadata:
+      annotations:
+        checksum/secret: dd5e71c25a35366086506b396869b06a501d1ec22e83806a15738e9f3ac3a03d
+        checksum/configmap: 0313dd0020b57c2897db8d61fed2b2611c7bcb7840d7dbc1f37fe90f32881f92
+      labels:
+        app: go-api
+        component: hook
+        hookName: collect-static
+    spec:
+      restartPolicy: "Never"
+      containers:
+        - name: collect-static
+          image: "local.example.com/ifrcgo/go-api:develop.xxxxxxxx"
+          imagePullPolicy: IfNotPresent
+          command: 
+            - ./manage.py
+            - collectstatic
+            - --noinput
+          resources:
+            limits:
+              memory: 2Gi
+            requests:
+              cpu: "0.1"
+              memory: 1Gi
+          envFrom:
+            - secretRef:
+                name: go-api-secret
+            - configMapRef:
+                name: go-api-env-name
+          env:
+            - name: DJANGO_APP_TYPE
+              value: "hook"
+            - name: CACHE_REDIS_URL
+              value: redis://go-api-dragonfly:6379/1
+            - name: CELERY_REDIS_URL
+              value: redis://go-api-dragonfly:6379/0
+            - name: PLAYWRIGHT_SERVER_URL
+              value: ws://go-api-playwright:3000/
+---
+# Source: ifrcgo-helm/charts/app/templates/hooks/job.yaml
+# Hook: db-migrate
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: go-api-db-migrate-
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/sync-wave: "20"
+  labels:
+    app: go-api
+    component: hook
+    hookName: db-migrate
+    environment: ALPHA
+    release: release-name
+spec:
+  activeDeadlineSeconds: 3600
+  ttlSecondsAfterFinished: 604800
+  template:
+    metadata:
+      annotations:
+        checksum/secret: dd5e71c25a35366086506b396869b06a501d1ec22e83806a15738e9f3ac3a03d
+        checksum/configmap: 0313dd0020b57c2897db8d61fed2b2611c7bcb7840d7dbc1f37fe90f32881f92
+      labels:
+        app: go-api
+        component: hook
+        hookName: db-migrate
+    spec:
+      restartPolicy: "Never"
+      containers:
+        - name: db-migrate
+          image: "local.example.com/ifrcgo/go-api:develop.xxxxxxxx"
+          imagePullPolicy: IfNotPresent
+          command: 
+            - ./manage.py
+            - migrate
+          resources:
+            limits:
+              memory: 2Gi
+            requests:
+              cpu: "0.1"
+              memory: 1Gi
+          envFrom:
+            - secretRef:
+                name: go-api-secret
+            - configMapRef:
+                name: go-api-env-name
+          env:
+            - name: DJANGO_APP_TYPE
+              value: "hook"
+            - name: CACHE_REDIS_URL
+              value: redis://go-api-dragonfly:6379/1
+            - name: CELERY_REDIS_URL
+              value: redis://go-api-dragonfly:6379/0
+            - name: PLAYWRIGHT_SERVER_URL
+              value: ws://go-api-playwright:3000/
+---
+# Source: ifrcgo-helm/charts/app/templates/hooks/job.yaml
+# Hook: wait-for-resources
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: go-api-wait-for-resources
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+    argocd.argoproj.io/sync-wave: "10"
+  labels:
+    app: go-api
+    component: hook
+    hookName: wait-for-resources
+    environment: ALPHA
+    release: release-name
+spec:
+  template:
+    metadata:
+      annotations:
+        checksum/secret: dd5e71c25a35366086506b396869b06a501d1ec22e83806a15738e9f3ac3a03d
+        checksum/configmap: 0313dd0020b57c2897db8d61fed2b2611c7bcb7840d7dbc1f37fe90f32881f92
+      labels:
+        app: go-api
+        component: hook
+        hookName: wait-for-resources
+    spec:
+      restartPolicy: "Never"
+      containers:
+        - name: wait-for-resources
+          image: "local.example.com/ifrcgo/go-api:develop.xxxxxxxx"
+          imagePullPolicy: IfNotPresent
+          command: 
+            - ./manage.py
+            - wait_for_resources
+            - --db
+            - --cache
+            - --celery-broker
+          resources:
+            limits:
+              memory: 2Gi
+            requests:
+              cpu: "0.1"
+              memory: 1Gi
+          envFrom:
+            - secretRef:
+                name: go-api-secret
+            - configMapRef:
+                name: go-api-env-name
+          env:
+            - name: DJANGO_APP_TYPE
+              value: "hook"
+            - name: CACHE_REDIS_URL
+              value: redis://go-api-dragonfly:6379/1
+            - name: CELERY_REDIS_URL
+              value: redis://go-api-dragonfly:6379/0
+            - name: PLAYWRIGHT_SERVER_URL
+              value: ws://go-api-playwright:3000/
+            
+
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: FDRS_INCOME
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-fdrs-income
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: FDRS_INCOME
+    environment: ALPHA
+    release: release-name
+spec:
+  schedule: "0 0 * * 0"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+        spec:
+          restartPolicy: "Never"
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - FDRS_INCOME
+              image: "local.example.com/ifrcgo/go-api:develop.xxxxxxxx"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: alert_notification
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-alert-notification
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: alert_notification
+    environment: ALPHA
+    release: release-name
+spec:
+  schedule: "0 */2 * * *"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+        spec:
+          restartPolicy: "Never"
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - alert_notification
+              image: "local.example.com/ifrcgo/go-api:develop.xxxxxxxx"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: eap_submission_reminder
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-eap-submission-reminder
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: eap_submission_reminder
+    environment: ALPHA
+    release: release-name
+spec:
+  schedule: "0 0 * * *"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+        spec:
+          restartPolicy: "Never"
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - eap_submission_reminder
+              image: "local.example.com/ifrcgo/go-api:develop.xxxxxxxx"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: fdrs_annual_income
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-fdrs-annual-income
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: fdrs_annual_income
+    environment: ALPHA
+    release: release-name
+spec:
+  schedule: "0 0 * * 0"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+        spec:
+          restartPolicy: "Never"
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - fdrs_annual_income
+              image: "local.example.com/ifrcgo/go-api:develop.xxxxxxxx"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: index_and_notify
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-index-and-notify
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: index_and_notify
+    environment: ALPHA
+    release: release-name
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+        spec:
+          restartPolicy: "Never"
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - index_and_notify
+              image: "local.example.com/ifrcgo/go-api:develop.xxxxxxxx"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: ingest_acaps
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-ingest-acaps
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: ingest_acaps
+    environment: ALPHA
+    release: release-name
+spec:
+  schedule: "0 1 * * 0"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+        spec:
+          restartPolicy: "Never"
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - ingest_acaps
+              image: "local.example.com/ifrcgo/go-api:develop.xxxxxxxx"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: ingest_appeals
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-ingest-appeals
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: ingest_appeals
+    environment: ALPHA
+    release: release-name
+spec:
+  schedule: "*/30 * * * *"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+        spec:
+          restartPolicy: "Never"
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - ingest_appeals
+              image: "local.example.com/ifrcgo/go-api:develop.xxxxxxxx"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: ingest_climate
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-ingest-climate
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: ingest_climate
+    environment: ALPHA
+    release: release-name
+spec:
+  schedule: "0 0 * * 0"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+        spec:
+          restartPolicy: "Never"
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - ingest_climate
+              image: "local.example.com/ifrcgo/go-api:develop.xxxxxxxx"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: ingest_country_plan_file
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-ingest-country-plan-file
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: ingest_country_plan_file
+    environment: ALPHA
+    release: release-name
+spec:
+  schedule: "1 0 * * *"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+        spec:
+          restartPolicy: "Never"
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - ingest_country_plan_file
+              image: "local.example.com/ifrcgo/go-api:develop.xxxxxxxx"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: ingest_databank
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-ingest-databank
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: ingest_databank
+    environment: ALPHA
+    release: release-name
+spec:
+  schedule: "0 0 * * 0"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+        spec:
+          restartPolicy: "Never"
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - ingest_databank
+              image: "local.example.com/ifrcgo/go-api:develop.xxxxxxxx"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: ingest_disaster_law
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-ingest-disaster-law
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: ingest_disaster_law
+    environment: ALPHA
+    release: release-name
+spec:
+  schedule: "0 0 * * 0"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+        spec:
+          restartPolicy: "Never"
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - ingest_disaster_law
+              image: "local.example.com/ifrcgo/go-api:develop.xxxxxxxx"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: ingest_hdr
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-ingest-hdr
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: ingest_hdr
+    environment: ALPHA
+    release: release-name
+spec:
+  schedule: "0 0 * * 0"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+        spec:
+          restartPolicy: "Never"
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - ingest_hdr
+              image: "local.example.com/ifrcgo/go-api:develop.xxxxxxxx"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: ingest_icrc
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-ingest-icrc
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: ingest_icrc
+    environment: ALPHA
+    release: release-name
+spec:
+  schedule: "0 3 * * 0"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+        spec:
+          restartPolicy: "Never"
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - ingest_icrc
+              image: "local.example.com/ifrcgo/go-api:develop.xxxxxxxx"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: ingest_ns_capacity
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-ingest-ns-capacity
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: ingest_ns_capacity
+    environment: ALPHA
+    release: release-name
+spec:
+  schedule: "0 0 * * 0"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+        spec:
+          restartPolicy: "Never"
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - ingest_ns_capacity
+              image: "local.example.com/ifrcgo/go-api:develop.xxxxxxxx"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: ingest_ns_contact
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-ingest-ns-contact
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: ingest_ns_contact
+    environment: ALPHA
+    release: release-name
+spec:
+  schedule: "0 0 * * 0"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+        spec:
+          restartPolicy: "Never"
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - ingest_ns_contact
+              image: "local.example.com/ifrcgo/go-api:develop.xxxxxxxx"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: ingest_ns_directory
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-ingest-ns-directory
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: ingest_ns_directory
+    environment: ALPHA
+    release: release-name
+spec:
+  schedule: "0 0 * * 0"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+        spec:
+          restartPolicy: "Never"
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - ingest_ns_directory
+              image: "local.example.com/ifrcgo/go-api:develop.xxxxxxxx"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: ingest_ns_document
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-ingest-ns-document
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: ingest_ns_document
+    environment: ALPHA
+    release: release-name
+spec:
+  schedule: "0 0 * * 0"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+        spec:
+          restartPolicy: "Never"
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - ingest_ns_document
+              image: "local.example.com/ifrcgo/go-api:develop.xxxxxxxx"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: ingest_ns_initiatives
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-ingest-ns-initiatives
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: ingest_ns_initiatives
+    environment: ALPHA
+    release: release-name
+spec:
+  schedule: "0 0 * * 0"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+        spec:
+          restartPolicy: "Never"
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - ingest_ns_initiatives
+              image: "local.example.com/ifrcgo/go-api:develop.xxxxxxxx"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: ingest_unicef
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-ingest-unicef
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: ingest_unicef
+    environment: ALPHA
+    release: release-name
+spec:
+  schedule: "0 0 * * 0"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+        spec:
+          restartPolicy: "Never"
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - ingest_unicef
+              image: "local.example.com/ifrcgo/go-api:develop.xxxxxxxx"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: ingest_worldbank
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-ingest-worldbank
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: ingest_worldbank
+    environment: ALPHA
+    release: release-name
+spec:
+  schedule: "0 2 * * 0"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+        spec:
+          restartPolicy: "Never"
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - ingest_worldbank
+              image: "local.example.com/ifrcgo/go-api:develop.xxxxxxxx"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: notify_validators
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-notify-validators
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: notify_validators
+    environment: ALPHA
+    release: release-name
+spec:
+  schedule: "0 0 * * *"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+        spec:
+          restartPolicy: "Never"
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - notify_validators
+              image: "local.example.com/ifrcgo/go-api:develop.xxxxxxxx"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: oauth_cleartokens
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-oauth-cleartokens
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: oauth_cleartokens
+    environment: ALPHA
+    release: release-name
+spec:
+  schedule: "0 1 * * *"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+        spec:
+          restartPolicy: "Never"
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - oauth_cleartokens
+              image: "local.example.com/ifrcgo/go-api:develop.xxxxxxxx"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: poll_gdacs_cyclone
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-poll-gdacs-cyclone
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: poll_gdacs_cyclone
+    environment: ALPHA
+    release: release-name
+spec:
+  schedule: "0 11 * * 0"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+        spec:
+          restartPolicy: "Never"
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - poll_gdacs_cyclone
+              image: "local.example.com/ifrcgo/go-api:develop.xxxxxxxx"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: poll_gdacs_flood
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-poll-gdacs-flood
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: poll_gdacs_flood
+    environment: ALPHA
+    release: release-name
+spec:
+  schedule: "0 11 * * *"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+        spec:
+          restartPolicy: "Never"
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - poll_gdacs_flood
+              image: "local.example.com/ifrcgo/go-api:develop.xxxxxxxx"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: poll_usgs_earthquake
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-poll-usgs-earthquake
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: poll_usgs_earthquake
+    environment: ALPHA
+    release: release-name
+spec:
+  schedule: "0 18 * * 0"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+        spec:
+          restartPolicy: "Never"
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - poll_usgs_earthquake
+              image: "local.example.com/ifrcgo/go-api:develop.xxxxxxxx"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: revoke_staff_status
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-revoke-staff-status
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: revoke_staff_status
+    environment: ALPHA
+    release: release-name
+spec:
+  schedule: "51 * * * *"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+        spec:
+          restartPolicy: "Never"
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - revoke_staff_status
+              image: "local.example.com/ifrcgo/go-api:develop.xxxxxxxx"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: sync_appealdocs
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-sync-appealdocs
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: sync_appealdocs
+    environment: ALPHA
+    release: release-name
+spec:
+  schedule: "15 * * * *"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+        spec:
+          restartPolicy: "Never"
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - sync_appealdocs
+              image: "local.example.com/ifrcgo/go-api:develop.xxxxxxxx"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: sync_molnix
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-sync-molnix
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: sync_molnix
+    environment: ALPHA
+    release: release-name
+spec:
+  schedule: "10 */2 * * *"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+        spec:
+          restartPolicy: "Never"
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - sync_molnix
+              image: "local.example.com/ifrcgo/go-api:develop.xxxxxxxx"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: update_project_status
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-update-project-status
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: update_project_status
+    environment: ALPHA
+    release: release-name
+spec:
+  schedule: "1 3 * * *"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+        spec:
+          restartPolicy: "Never"
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - update_project_status
+              image: "local.example.com/ifrcgo/go-api:develop.xxxxxxxx"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: user_registration_reminder
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-user-registration-reminder
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: user_registration_reminder
+    environment: ALPHA
+    release: release-name
+spec:
+  schedule: "0 9 * * *"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+        spec:
+          restartPolicy: "Never"
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - user_registration_reminder
+              image: "local.example.com/ifrcgo/go-api:develop.xxxxxxxx"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+                
+
+---
+# Source: ifrcgo-helm/charts/app/templates/api/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: go-api-api
+  labels:
+    app: go-api
+    component: api
+    environment: ALPHA
+    release: release-name
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+    traefik.ingress.kubernetes.io/router.middlewares: default-go-api-body-size@kubernetescrd
+spec:
+  ingressClassName: "traefik"
+  rules:
+    - host: "go-api.alpha.example.com"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: go-api-api
+                port:
+                  number: 80
+
+---
+# Source: ifrcgo-helm/charts/app/templates/extraManifests.yaml
+# Manifest: dragonflydb-cluster
+apiVersion: dragonflydb.io/v1alpha1
+kind: Dragonfly
+metadata:
+  labels:
+    app.kubernetes.io/name: dragonfly
+  name: go-api-dragonfly
+spec:
+  args:
+  - --dbfilename=mainSnapshot
+  replicas: 1
+  resources:
+    limits:
+      cpu: "1"
+      memory: 750Mi
+    requests:
+      cpu: "0.1"
+      memory: 500Mi
+  snapshot:
+    cron: '*/5 * * * *'
+    persistentVolumeClaimSpec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+---
+# Source: ifrcgo-helm/charts/app/templates/extraManifests.yaml
+# Manifest: traefik-body-size-middleware
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: go-api-body-size
+spec:
+  buffering:
+    maxRequestBodyBytes: 314572800

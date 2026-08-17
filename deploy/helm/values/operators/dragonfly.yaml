@@ -1,0 +1,33 @@
+app:
+  # Redis (broker + cache), served by the Dragonfly operator CR below
+  # https://github.com/IFRCGo/go-deploy/blob/develop/base-infrastructure/terraform/resources/helm-dragonfly-operator.tf
+
+  extraEnvVars:
+    CELERY_REDIS_URL: { value: "redis://go-api-dragonfly:6379/0" }
+    CACHE_REDIS_URL:  { value: "redis://go-api-dragonfly:6379/1" }
+
+  extraManifests:
+    dragonflydb-cluster:
+      apiVersion: dragonflydb.io/v1alpha1
+      kind: Dragonfly
+      metadata:
+        labels:
+          app.kubernetes.io/name: dragonfly
+        name: go-api-dragonfly   # NOTE: this becomes the service name
+      spec:
+        replicas: 1
+        args: ["--dbfilename=mainSnapshot"]   # keep only the last snapshot
+        resources:
+          requests:
+            cpu: "0.1"
+            memory: 500Mi
+          limits:
+            cpu: "1"
+            memory: 750Mi
+        snapshot:
+          cron: "*/5 * * * *"
+          persistentVolumeClaimSpec:
+            accessModes: [ReadWriteOnce]
+            resources:
+              requests:
+                storage: 1Gi
