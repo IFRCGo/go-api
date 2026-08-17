@@ -1,0 +1,52 @@
+{{- if .Values.playwright.enabled }}
+# Headless-browser server used by the screenshot / PDF-export Celery tasks.
+# Exposes a Playwright server over ws://<name>:<port>/; the app reaches it via
+# PLAYWRIGHT_SERVER_URL (see app.extraEnvVars in values.yaml).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.playwright.name }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.playwright.name }}
+    app.kubernetes.io/component: playwright
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.playwright.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.playwright.name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Values.playwright.name }}
+    spec:
+      containers:
+        - name: playwright
+          image: {{ .Values.playwright.image | quote }}
+          workingDir: /home/pwuser
+          command:
+            - bash
+            - -xc
+            - |
+              PLAYWRIGHT_VERSION=$(grep -oP '"driverVersion": "\K[^"]+' /ms-playwright/.docker-info)
+              npx -y playwright@$PLAYWRIGHT_VERSION run-server --host 0.0.0.0 --port {{ .Values.playwright.port }}
+          ports:
+            - containerPort: {{ .Values.playwright.port }}
+          resources:
+            {{- toYaml .Values.playwright.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.playwright.name }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.playwright.name }}
+    app.kubernetes.io/component: playwright
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+spec:
+  selector:
+    app.kubernetes.io/name: {{ .Values.playwright.name }}
+  ports:
+    - port: {{ .Values.playwright.port }}
+      targetPort: {{ .Values.playwright.port }}
+{{- end }}
