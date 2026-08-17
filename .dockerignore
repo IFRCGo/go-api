@@ -6,6 +6,7 @@ deploy/
 .mypy_cache/
 .pytest_cache/
 go-logs/
+ci-share/
 media/
 go.log
 .venv

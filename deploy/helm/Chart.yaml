@@ -2,7 +2,7 @@ apiVersion: v2
 name: ifrcgo-helm
 description: "Helm Chart to deploy the IFRC GO API"
 type: application
-version: 0.0.2-SET-BY-CICD
+version: 0.0.2-SET-BY-CICD  # managed by release.sh
 sources:
   - https://github.com/IFRCGo/go-api
 
