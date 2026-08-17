@@ -221,6 +221,9 @@ admin.site.site_header = "IFRC Go administration"
 admin.site.site_title = "IFRC Go admin"
 
 urlpatterns = [
+    # Outward-facing health endpoint for the external monitor (django-health-check).
+    # Distinct from the pod-internal /healthz/{live,ready} probes served by banjo middleware.
+    path("health-check/", include("health_check.urls")),
     # url(r"^api/v1/es_search/", EsPageSearch.as_view()),
     url(r"^api/v1/search/", HayStackSearch.as_view()),
     url(r"^api/v1/es_health/", EsPageHealth.as_view()),

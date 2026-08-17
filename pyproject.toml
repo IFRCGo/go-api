@@ -26,6 +26,9 @@ dependencies = [
     "django-filter>=23.5,<24.0",
     "django-guardian==2.4.0",
     "django-graphql-geojson==0.1.4",
+    # NOTE: pinned to the latest 3.x; 4.x is a breaking async rewrite that drops the
+    # disk check and the HEALTH_CHECK settings this project uses.
+    "django-health-check==3.24.0",
     "django-modeltranslation==0.17.5",
     "django-read-only==1.12.0",
     "django-reversion-compare==0.16.2",
@@ -53,6 +56,7 @@ dependencies = [
     "pdfminer.six==20251230",
     "pytidylib==0.3.2",
     "polib==1.1.0",
+    "psutil==7.2.2",
     "psycopg2-binary",
     "pycountry==19.8.18",
     "pydash==8.0.4",
@@ -83,6 +87,7 @@ dependencies = [
     "tiktoken",
     "openai",
     "httpx>=0.28.1",
+    "banjo-utils",
 ]
 
 [dependency-groups]
@@ -98,6 +103,9 @@ dev = [
 celery = [
   "playwright==1.50.0"  # NOTE: Make sure this matches with root docker-compose and helm
 ]
+
+[tool.uv.sources]
+banjo-utils = { git = "https://github.com/toggle-corp/banjo-utils", tag = "v0.2.0" }
 
 [tool.pyright]
 extraPaths = ["apps"]
