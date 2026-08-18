@@ -381,6 +381,15 @@ _HYDRATE_PREFETCH_RELATED = (
     "country__region",
     "disaster_type",
 )
+# Imminent-v2 rows take their sector breakdown from proposed actions instead of planned
+# interventions. DrefOperationalUpdate has no such relation.
+_HYDRATE_PROPOSED_ACTION_PREFETCH = ("proposed_action__activities",)
+
+
+def _hydrate_prefetch_related(model):
+    if hasattr(model, "proposed_action"):
+        return _HYDRATE_PREFETCH_RELATED + _HYDRATE_PROPOSED_ACTION_PREFETCH
+    return _HYDRATE_PREFETCH_RELATED
 
 
 class Dref3PageHydrator:
@@ -413,7 +422,7 @@ class Dref3PageHydrator:
         querysets = [
             model.objects.filter(appeal_code__in=codes)
             .select_related(*_HYDRATE_SELECT_RELATED)
-            .prefetch_related(*_HYDRATE_PREFETCH_RELATED)
+            .prefetch_related(*_hydrate_prefetch_related(model))
             .order_by("created_at")
             for model in stage_models().values()
         ]
