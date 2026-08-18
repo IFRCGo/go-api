@@ -12,15 +12,21 @@ from django.contrib.auth.models import Group
 from rest_framework import status
 
 from api.models import Appeal, AppealFilter, AppealType, Country, Region, RegionName
+from deployments.factories.project import SectorFactory
+from deployments.models import Sector
 from dref.dref3.common import DREF3_FILTERS, Dref3PageHydrator, dref3_csv_header
 from dref.dref3.query import build_union_queryset
 from dref.dref3.schema import DREF3_LIST_PARAMETERS
+from dref.dref3.serializers import DrefOperationalUpdate3Serializer
 from dref.factories.dref import (
     DrefFactory,
     DrefFinalReportFactory,
     DrefOperationalUpdateFactory,
+    PlannedInterventionFactory,
+    ProposedActionActivitiesFactory,
+    ProposedActionFactory,
 )
-from dref.models import Dref
+from dref.models import Dref, PlannedIntervention, ProposedAction
 from main.test_case import APITestCase
 
 User = get_user_model()
@@ -527,3 +533,203 @@ class Dref3CsvExportTests(APITestCase):
         body = b"".join(resp.streaming_content).decode()
         lines = [line for line in body.splitlines() if line.strip()]
         self.assertEqual(len(lines), 1, "only the header should remain")
+
+
+class Dref3ImminentV2SectorTests(APITestCase):
+    """Imminent-v2 DREFs record no planned interventions, so their sector columns
+    have to come from the proposed actions instead - which carry a sector tag per
+    activity but no per-sector budget or people numbers.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.url = "/api/v2/dref3/"
+        self.region = Region.objects.create(name=RegionName.AFRICA, label="Africa")
+        self.country = Country.objects.create(name="C1", iso3="AAA", iso="AA", region=self.region)
+        # Seeded by deployments/migrations/0073_auto_20230301_1606.py
+        self.wash = Sector.objects.get(pk=0)
+        self.education = Sector.objects.get(pk=8)
+
+    def _proposed_action(self, *sectors):
+        action = ProposedActionFactory.create(proposed_type=ProposedAction.Action.EARLY_ACTION, total_budget=1000)
+        action.activities.add(*[ProposedActionActivitiesFactory.create(sector=sector) for sector in sectors])
+        return action
+
+    def _planned_intervention(self, title):
+        return PlannedInterventionFactory.create(title=title, budget=500, person_targeted=20, person_assisted=10)
+
+    def _row(self, code, stage="Application"):
+        resp = self.client.get(f"{self.url}{code}/")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        rows = [row for row in resp.json() if row["stage"] == stage]
+        self.assertEqual(len(rows), 1, rows)
+        return rows[0]
+
+    def _flagged(self, row):
+        return {
+            key
+            for key, value in row.items()
+            if key.startswith("sector_") and not key.endswith(("_budget", "_people_targeted", "_people_assisted")) and value
+        }
+
+    def test_sectors_come_from_proposed_actions(self):
+        dref = DrefFactory.create(
+            appeal_code="MDRAA001",
+            national_society=self.country,
+            status=Dref.Status.APPROVED,
+            type_of_dref=Dref.DrefType.IMMINENT,
+            is_dref_imminent_v2=True,
+        )
+        dref.proposed_action.add(self._proposed_action(self.wash, self.education))
+
+        row = self._row("MDRAA001")
+        self.assertEqual(row["pillar"], "Anticipatory")
+        self.assertEqual(
+            self._flagged(row),
+            {"sector_water_sanitation_and_hygiene", "sector_education"},
+        )
+
+    def test_proposed_action_sectors_report_no_budget_or_people(self):
+        dref = DrefFactory.create(
+            appeal_code="MDRAA001",
+            national_society=self.country,
+            status=Dref.Status.APPROVED,
+            type_of_dref=Dref.DrefType.IMMINENT,
+            is_dref_imminent_v2=True,
+        )
+        dref.proposed_action.add(self._proposed_action(self.wash))
+
+        row = self._row("MDRAA001")
+        self.assertTrue(row["sector_water_sanitation_and_hygiene"])
+        for suffix in ("_budget", "_people_targeted", "_people_assisted"):
+            self.assertIsNone(row[f"sector_water_sanitation_and_hygiene{suffix}"])
+
+    def test_planned_interventions_are_ignored_for_imminent_v2(self):
+        dref = DrefFactory.create(
+            appeal_code="MDRAA001",
+            national_society=self.country,
+            status=Dref.Status.APPROVED,
+            type_of_dref=Dref.DrefType.IMMINENT,
+            is_dref_imminent_v2=True,
+        )
+        dref.proposed_action.add(self._proposed_action(self.wash))
+        dref.planned_interventions.add(self._planned_intervention(PlannedIntervention.Title.EDUCATION))
+
+        row = self._row("MDRAA001")
+        self.assertEqual(self._flagged(row), {"sector_water_sanitation_and_hygiene"})
+        self.assertIsNone(row["sector_education_budget"])
+
+    def test_sector_without_an_intervention_counterpart_is_skipped(self):
+        """`Sector` rows outside the ten mapped ones have no exported column."""
+        dref = DrefFactory.create(
+            appeal_code="MDRAA001",
+            national_society=self.country,
+            status=Dref.Status.APPROVED,
+            type_of_dref=Dref.DrefType.IMMINENT,
+            is_dref_imminent_v2=True,
+        )
+        dref.proposed_action.add(self._proposed_action(SectorFactory.create(), self.wash))
+
+        row = self._row("MDRAA001")
+        self.assertEqual(self._flagged(row), {"sector_water_sanitation_and_hygiene"})
+
+    def test_final_report_of_an_imminent_v2_dref_uses_proposed_actions(self):
+        final_report = DrefFinalReportFactory.create(
+            appeal_code="MDRAA001",
+            national_society=self.country,
+            status=Dref.Status.APPROVED,
+            type_of_dref=Dref.DrefType.IMMINENT,
+            is_dref_imminent_v2=True,
+        )
+        final_report.proposed_action.add(self._proposed_action(self.education))
+
+        row = self._row("MDRAA001", stage="Final Report")
+        self.assertEqual(self._flagged(row), {"sector_education"})
+
+    def test_older_imminent_drefs_still_read_planned_interventions(self):
+        dref = DrefFactory.create(
+            appeal_code="MDRAA001",
+            national_society=self.country,
+            status=Dref.Status.APPROVED,
+            type_of_dref=Dref.DrefType.IMMINENT,
+            is_dref_imminent_v2=False,
+        )
+        dref.planned_interventions.add(self._planned_intervention(PlannedIntervention.Title.EDUCATION))
+
+        row = self._row("MDRAA001")
+        self.assertEqual(row["pillar"], "Anticipatory")
+        self.assertEqual(self._flagged(row), {"sector_education"})
+        self.assertEqual(row["sector_education_budget"], 500)
+        self.assertEqual(row["sector_education_people_targeted"], 20)
+
+    def test_response_drefs_still_read_planned_interventions(self):
+        dref = DrefFactory.create(
+            appeal_code="MDRAA001",
+            national_society=self.country,
+            status=Dref.Status.APPROVED,
+            type_of_dref=Dref.DrefType.RESPONSE,
+            is_dref_imminent_v2=False,
+        )
+        dref.planned_interventions.add(self._planned_intervention(PlannedIntervention.Title.HEALTH))
+
+        row = self._row("MDRAA001")
+        self.assertEqual(row["pillar"], "Response")
+        self.assertEqual(self._flagged(row), {"sector_health"})
+        self.assertEqual(row["sector_health_budget"], 500)
+
+    def test_operational_updates_are_unaffected(self):
+        """DrefOperationalUpdate has no proposed actions; the follow-up stages of an
+        imminent-v2 DREF are created as Response and keep their planned interventions."""
+        dref = DrefFactory.create(
+            appeal_code="MDRAA001",
+            national_society=self.country,
+            status=Dref.Status.APPROVED,
+            type_of_dref=Dref.DrefType.IMMINENT,
+            is_dref_imminent_v2=True,
+        )
+        dref.proposed_action.add(self._proposed_action(self.wash))
+        op_update = DrefOperationalUpdateFactory.create(
+            appeal_code="MDRAA001",
+            national_society=self.country,
+            status=Dref.Status.APPROVED,
+            type_of_dref=Dref.DrefType.RESPONSE,
+            dref=dref,
+        )
+        op_update.planned_interventions.add(self._planned_intervention(PlannedIntervention.Title.HEALTH))
+
+        row = self._row("MDRAA001", stage="Operational Update 1")
+        self.assertEqual(self._flagged(row), {"sector_health"})
+        self.assertEqual(row["sector_health_budget"], 500)
+
+    def test_a_stage_flagged_imminent_v2_without_proposed_actions_still_serializes(self):
+        """`is_dref_imminent_v2` and `proposed_action` sit on different subsets of the
+        three stage models, so the sector branch must not assume one implies the other.
+        """
+        dref = DrefFactory.create(
+            appeal_code="MDRAA001",
+            national_society=self.country,
+            status=Dref.Status.APPROVED,
+            type_of_dref=Dref.DrefType.IMMINENT,
+            is_dref_imminent_v2=True,
+        )
+        op_update = DrefOperationalUpdateFactory.create(
+            appeal_code="MDRAA001",
+            national_society=self.country,
+            status=Dref.Status.APPROVED,
+            type_of_dref=Dref.DrefType.IMMINENT,
+            dref=dref,
+        )
+        op_update.planned_interventions.add(self._planned_intervention(PlannedIntervention.Title.HEALTH))
+        # DrefOperationalUpdate has no such field today; simulate one being added.
+        op_update.is_dref_imminent_v2 = True
+
+        serializer = DrefOperationalUpdate3Serializer()
+        serializer._context = {
+            "stage": "Operational Update 1",
+            "allocation": "No allocation",
+            "is_latest_stage": True,
+            "public": True,
+            "prefetched_appeal_by_code": {},
+        }
+        row = serializer.to_representation(op_update)
+        self.assertEqual(self._flagged(row), {"sector_health"})
