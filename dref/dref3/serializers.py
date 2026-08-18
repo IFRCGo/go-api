@@ -18,6 +18,24 @@ from dref.models import (
     PlannedIntervention,
 )
 
+# NOTE: Proposed-action activities tag their sector from "deployments.Sector" table,
+# while the exported sector columns are keyed by `PlannedIntervention.Title`.
+# Sectors with no counterpart there are absent from the table and stay false.
+# (multi-purpose cash, environmental sustainability, coordination and partnerships, secretariat services)
+_SECTOR_ID_TO_PLANNED_INTERVENTION_TITLE = {
+    # NOTE: "deployments.Sector.pk": PlannedIntervention.Title
+    0: PlannedIntervention.Title.WATER_SANITATION_AND_HYGIENE,  # WASH
+    1: PlannedIntervention.Title.PROTECTION_GENDER_AND_INCLUSION,  # PGI
+    2: PlannedIntervention.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY,  # CEA
+    3: PlannedIntervention.Title.MIGRATION_AND_DISPLACEMENT,  # Migration
+    4: PlannedIntervention.Title.HEALTH,  # Health (public)
+    5: PlannedIntervention.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY,  # DRR
+    6: PlannedIntervention.Title.SHELTER_HOUSING_AND_SETTLEMENTS,  # Shelter
+    7: PlannedIntervention.Title.NATIONAL_SOCIETY_STRENGTHENING,  # NS Strengthening
+    8: PlannedIntervention.Title.EDUCATION,  # Education
+    9: PlannedIntervention.Title.LIVELIHOODS_AND_BASIC_NEEDS,  # Livelihoods and basic needs
+}
+
 
 class BaseDref3Serializer(serializers.ModelSerializer):
     id = serializers.SerializerMethodField()
@@ -134,17 +152,53 @@ class BaseDref3Serializer(serializers.ModelSerializer):
         # If prefetched, this is memory-only. If not, this is 1 query per obj.
         return self._get_cached_list(obj, "planned_interventions", lambda: obj.planned_interventions.all())
 
+    def _proposed_actions(self, obj):
+        # Only Dref and DrefFinalReport carry proposed actions.
+        return self._get_cached_list(obj, "proposed_action", lambda: obj.proposed_action.all())
+
     def _districts_list(self, obj):
         return self._get_cached_list(obj, "districts", lambda: obj.district.all())
+
+    def _uses_proposed_actions(self, obj):
+        """Imminent-v2 rows plan their work as proposed actions rather than planned
+        interventions, so their sector breakdown lives there.
+
+        `is_dref_imminent_v2` and `proposed_action` sit on Dref and DrefFinalReport
+        but not DrefOperationalUpdate, so both are checked here: a stage that gains
+        the flag without the relation falls back to planned interventions instead of
+        failing on every row.
+        """
+        return (
+            obj.type_of_dref == Dref.DrefType.IMMINENT
+            and getattr(obj, "is_dref_imminent_v2", False)
+            and hasattr(type(obj), "proposed_action")
+        )
+
+    def _proposed_action_sector_index(self, obj):
+        """Proposed actions budget per action (early action / early response), not per
+        sector, and record no people numbers, so only the sector flag is available."""
+        idx = {}
+        for action in self._proposed_actions(obj):
+            for activity in action.activities.all():
+                title = _SECTOR_ID_TO_PLANNED_INTERVENTION_TITLE.get(activity.sector_id)
+                if title is not None:
+                    idx[title] = {"any": True}
+        return idx
 
     def _sector_index(self, obj):
         """
         One pass per object.
         PlannedIntervention.title -> {"any": bool, "budget": number, "people_targeted": number, "people_assisted": number}
+        Imminent-v2 rows carry only {"any": True}; the remaining keys read as null.
         """
         cache_attr = "_sector_index_cache"
         if hasattr(obj, cache_attr):
             return getattr(obj, cache_attr)
+
+        if self._uses_proposed_actions(obj):
+            idx = self._proposed_action_sector_index(obj)
+            setattr(obj, cache_attr, idx)
+            return idx
 
         idx = {}
         for p in self._planned_interventions(obj):
