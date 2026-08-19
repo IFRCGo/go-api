@@ -30,6 +30,7 @@ class Dref3FilterTests(APITestCase):
             appeal_code="APPEAL_A",
             national_society=self.country1,
             type_of_dref=Dref.DrefType.RESPONSE,
+            event_date=today - timedelta(days=30),
             date_of_approval=today - timedelta(days=5),
             end_date=today + timedelta(days=10),
             status=Dref.Status.DRAFT,
@@ -38,6 +39,7 @@ class Dref3FilterTests(APITestCase):
             appeal_code="APPEAL_B",
             national_society=self.country2,
             type_of_dref=Dref.DrefType.IMMINENT,
+            event_date=today - timedelta(days=30),
             date_of_approval=today - timedelta(days=5),
             end_date=today + timedelta(days=20),
             status=Dref.Status.DRAFT,
@@ -46,6 +48,7 @@ class Dref3FilterTests(APITestCase):
             appeal_code="APPEAL_A",
             national_society=self.country1,
             type_of_dref=Dref.DrefType.RESPONSE,
+            event_date=today - timedelta(days=30),
             new_operational_start_date=today - timedelta(days=3),
             new_operational_end_date=today + timedelta(days=7),
             status=Dref.Status.DRAFT,
@@ -55,6 +58,7 @@ class Dref3FilterTests(APITestCase):
             appeal_code="APPEAL_B",
             national_society=self.country2,
             type_of_dref=Dref.DrefType.IMMINENT,
+            event_date=today - timedelta(days=30),
             new_operational_start_date=today - timedelta(days=2),
             new_operational_end_date=today + timedelta(days=9),
             status=Dref.Status.DRAFT,
@@ -64,6 +68,7 @@ class Dref3FilterTests(APITestCase):
             appeal_code="APPEAL_A",
             national_society=self.country1,
             type_of_dref=Dref.DrefType.RESPONSE,
+            event_date=today - timedelta(days=30),
             operation_start_date=today - timedelta(days=15),
             operation_end_date=today - timedelta(days=1),
             status=Dref.Status.DRAFT,
@@ -92,20 +97,79 @@ class Dref3FilterTests(APITestCase):
         assert "APPEAL_B" in codes and "APPEAL_A" not in codes
 
     def test_appeal_type_filter(self):
+        """The filter takes the label the row reports, not the type_of_dref id."""
         self.authenticate(self.superuser)
-        resp = self.client.get(self.url, {"appeal_type": Dref.DrefType.IMMINENT})
+        for value in ("i-DREF", "i-dref"):
+            with self.subTest(appeal_type=value):
+                resp = self.client.get(self.url, {"appeal_type": value})
+                self.assertEqual(resp.status_code, status.HTTP_200_OK)
+                assert self._get_codes(resp) == {"APPEAL_B"}
+        resp = self.client.get(self.url, {"appeal_type": "DREF"})
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        codes = self._get_codes(resp)
-        assert codes == {"APPEAL_B"}
+        assert self._get_codes(resp) == {"APPEAL_A"}
+
+    def test_unknown_appeal_type_matches_nothing(self):
+        """No row reports it, so answering with every row would be a lie."""
+        self.authenticate(self.superuser)
+        for value in ("idref", "DREF3", "42"):
+            with self.subTest(appeal_type=value):
+                resp = self.client.get(self.url, {"appeal_type": value})
+                self.assertEqual(resp.status_code, status.HTTP_200_OK)
+                self.assertEqual(resp.json()["count"], 0)
+
+    def test_blank_appeal_type_is_ignored(self):
+        self.authenticate(self.superuser)
+        for value in ("", "   "):
+            with self.subTest(appeal_type=value):
+                resp = self.client.get(self.url, {"appeal_type": value})
+                self.assertEqual(resp.status_code, status.HTTP_200_OK)
+                assert self._get_codes(resp) == {"APPEAL_A", "APPEAL_B"}
 
     def test_operation_status_filter(self):
+        """active/closed as the rows report them: only the final report has
+        already ended."""
         self.authenticate(self.superuser)
-        self.dref_a.status = Dref.Status.APPROVED
-        self.dref_a.save(update_fields=["status"])
-        resp = self.client.get(self.url, {"operation_status": Dref.Status.APPROVED})
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        codes = self._get_codes(resp)
-        assert "APPEAL_A" in codes and "APPEAL_B" not in codes
+        active = self.client.get(self.url, {"operation_status": "active"})
+        self.assertEqual(active.status_code, status.HTTP_200_OK)
+        assert {row["id"] for row in self._rows(active)} == {
+            f"Dref-{self.dref_a.id}",
+            f"Dref-{self.dref_b.id}",
+            f"DrefOperationalUpdate-{self.op_a1.id}",
+            f"DrefOperationalUpdate-{self.op_b1.id}",
+        }
+
+        closed = self.client.get(self.url, {"operation_status": "closed"})
+        self.assertEqual(closed.status_code, status.HTTP_200_OK)
+        assert {row["id"] for row in self._rows(closed)} == {f"DrefFinalReport-{self.final_a.id}"}
+
+    def test_unknown_operation_status_matches_nothing(self):
+        """No row reports it, so answering with every row would be a lie."""
+        self.authenticate(self.superuser)
+        for value in ("open", "ACTIVE_", "1"):
+            with self.subTest(operation_status=value):
+                resp = self.client.get(self.url, {"operation_status": value})
+                self.assertEqual(resp.status_code, status.HTTP_200_OK)
+                self.assertEqual(resp.json()["count"], 0)
+
+    def test_blank_operation_status_is_ignored(self):
+        self.authenticate(self.superuser)
+        for value in ("", "   "):
+            with self.subTest(operation_status=value):
+                resp = self.client.get(self.url, {"operation_status": value})
+                self.assertEqual(resp.status_code, status.HTTP_200_OK)
+                assert self._get_codes(resp) == {"APPEAL_A", "APPEAL_B"}
+
+    def test_operation_status_ignores_a_missing_date(self):
+        """A row with no end date serializes operation_status as null, so it
+        belongs to neither bucket."""
+        self.authenticate(self.superuser)
+        self.dref_b.end_date = None
+        self.dref_b.save(update_fields=["end_date"])
+        row_id = f"Dref-{self.dref_b.id}"
+        for value in ("active", "closed"):
+            with self.subTest(operation_status=value):
+                resp = self.client.get(self.url, {"operation_status": value})
+                assert row_id not in {row["id"] for row in self._rows(resp)}
 
     def test_stage_application(self):
         self.authenticate(self.superuser)
@@ -126,11 +190,21 @@ class Dref3FilterTests(APITestCase):
         assert all(row["stage"] == "Final Report" for row in self._rows(resp))
 
     def test_filter_by_appeal_id(self):
+        """appeal_id is the value the rows report (the appeal code), matched
+        case-insensitively, and returns the whole group."""
         self.authenticate(self.superuser)
-        resp = self.client.get(self.url, {"appeal_id": self.dref_a.id})
+        for value in ("APPEAL_A", "appeal_a"):
+            with self.subTest(appeal_id=value):
+                resp = self.client.get(self.url, {"appeal_id": value})
+                self.assertEqual(resp.status_code, status.HTTP_200_OK)
+                assert self._get_codes(resp) == {"APPEAL_A"}
+                assert len(self._rows(resp)) == 3
+
+    def test_filter_by_unknown_appeal_id_is_empty(self):
+        self.authenticate(self.superuser)
+        resp = self.client.get(self.url, {"appeal_id": "APPEAL_NOPE"})
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        codes = self._get_codes(resp)
-        assert codes == {"APPEAL_A"}
+        assert self._rows(resp) == []
 
     def test_operation_start_end_filters(self):
         self.authenticate(self.superuser)
