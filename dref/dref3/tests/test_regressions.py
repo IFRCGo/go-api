@@ -14,7 +14,13 @@ from rest_framework import status
 from api.models import Appeal, AppealFilter, AppealType, Country, Region, RegionName
 from deployments.factories.project import SectorFactory
 from deployments.models import Sector
-from dref.dref3.common import DREF3_FILTERS, Dref3PageHydrator, dref3_csv_header
+from dref.dref3.common import (
+    DREF3_FILTERS,
+    OPERATION_STATUSES,
+    Dref3PageHydrator,
+    appeal_type_dref_types,
+    dref3_csv_header,
+)
 from dref.dref3.query import build_union_queryset
 from dref.dref3.schema import DREF3_LIST_PARAMETERS
 from dref.dref3.serializers import DrefOperationalUpdate3Serializer
@@ -458,6 +464,43 @@ class Dref3RoutingTests(APITestCase):
                 self.assertEqual(resp.json(), plain.json())
 
 
+class Dref3AppealTypeRoundTripTests(APITestCase):
+    """Every `appeal_type` a row reports must be a value the filter accepts.
+
+    The emitted label and the accepted one are one definition
+    (`named_appeal_types`); this asserts the round trip end to end, so a
+    DrefType added to only one side fails here.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.url = "/api/v2/dref3/"
+        self.region = Region.objects.create(name=RegionName.AFRICA, label="Africa")
+        self.country = Country.objects.create(name="C1", iso3="AAA", iso="AA", region=self.region)
+        self.drefs = {
+            type_of_dref: DrefFactory.create(
+                appeal_code=f"APPEAL_{type_of_dref}",
+                national_society=self.country,
+                type_of_dref=type_of_dref,
+                status=Dref.Status.APPROVED,
+            )
+            for type_of_dref in Dref.DrefType
+        }
+
+    def test_every_reported_appeal_type_filters_to_its_own_rows(self):
+        for type_of_dref, dref in self.drefs.items():
+            with self.subTest(type_of_dref=type_of_dref):
+                detail = self.client.get(f"{self.url}{dref.appeal_code}/")
+                self.assertEqual(detail.status_code, status.HTTP_200_OK)
+                reported = detail.json()[0]["appeal_type"]
+
+                resp = self.client.get(self.url, {"appeal_type": reported, "limit": 100000})
+                self.assertEqual(resp.status_code, status.HTTP_200_OK)
+                rows = resp.json()["results"]
+                self.assertIn(dref.appeal_code, {row["appeal_id"] for row in rows})
+                self.assertEqual({row["appeal_type"] for row in rows}, {reported})
+
+
 class Dref3SchemaParameterTests(APITestCase):
     """The documented parameters must stay tied to what the code honours.
 
@@ -471,18 +514,18 @@ class Dref3SchemaParameterTests(APITestCase):
         missing = set(DREF3_FILTERS) - documented
         self.assertEqual(missing, set(), f"filters applied but not documented: {sorted(missing)}")
 
-    def test_appeal_type_enum_matches_model(self):
+    def test_appeal_type_enum_matches_the_serialized_labels(self):
         param = next(p for p in DREF3_LIST_PARAMETERS if p.name == "appeal_type")
-        self.assertEqual(list(param.enum), [choice.value for choice in Dref.DrefType])
-        for choice in Dref.DrefType:
-            self.assertIn(f"`{choice.value}` {choice.label}", param.description)
+        self.assertEqual(list(param.enum), list(appeal_type_dref_types()))
+        # Every DrefType must be reachable through exactly one documented label
+        covered = [t for types in appeal_type_dref_types().values() for t in types]
+        self.assertEqual(sorted(covered), sorted(Dref.DrefType))
+        for label, types in appeal_type_dref_types().items():
+            self.assertIn(f"`{label}` ({', '.join(str(Dref.DrefType(t).label) for t in types)})", param.description)
 
-    def test_operation_status_lists_every_model_status(self):
+    def test_operation_status_documents_the_serialized_values(self):
         param = next(p for p in DREF3_LIST_PARAMETERS if p.name == "operation_status")
-        for choice in Dref.Status:
-            self.assertIn(f"`{choice.value}` {choice.label}", param.description)
-        # It accepts labels and names too, so it must not claim a closed id set
-        self.assertIsNone(param.enum)
+        self.assertEqual(list(param.enum), list(OPERATION_STATUSES))
 
     def test_stage_scoped_filters_say_so(self):
         """Date-range filters constrain application rows only; the schema must
