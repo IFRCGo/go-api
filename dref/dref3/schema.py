@@ -3,8 +3,8 @@
 The filter parameters are *generated* from `DREF3_FILTERS`, the same mapping
 `query.py` applies, so the documented parameters cannot drift from the ones
 actually honoured: adding a filter there documents it here automatically.
-Only the parameters handled outside that mapping (`stage`, `appeal_id`, `id`,
-`order_by`, `export`) are listed by hand.
+Only the parameters handled outside that mapping (`stage`, `operation_status`,
+`id`, `order_by`, `export`) are listed by hand.
 
 `filter_backends` is empty on the viewset because all filtering happens before
 the union, so drf-spectacular has no FilterSet to introspect - hence this
@@ -16,12 +16,14 @@ from drf_spectacular.utils import OpenApiParameter
 
 from dref.dref3.common import (
     DREF3_FILTERS,
+    OPERATION_STATUSES,
     Dref3Stage,
+    appeal_type_dref_types,
+    coerce_appeal_type,
     coerce_date_str,
     coerce_int,
     coerce_iso3,
     coerce_search_term,
-    status_to_int,
 )
 from dref.models import Dref
 
@@ -32,29 +34,35 @@ _TYPE_BY_COERCER = {
     coerce_iso3: OpenApiTypes.STR,
     coerce_date_str: OpenApiTypes.DATE,
     coerce_search_term: OpenApiTypes.STR,
-    status_to_int: OpenApiTypes.STR,
+    coerce_appeal_type: OpenApiTypes.STR,
     str: OpenApiTypes.STR,
 }
 
 
-def _choice_list(choices) -> str:
-    """Render `value label` pairs straight from the model's choices.
+def _appeal_type_list() -> str:
+    """Render each `appeal_type` label with the DREF types it covers.
 
-    Never hand-write these: the ids are not alphabetical or otherwise
-    guessable (DrefType is 0 Imminent, 1 Assessment, 2 Response, 3 Loan), and
-    a stale copy here would be served to clients as fact.
+    Never hand-write these: the ids behind a label are not guessable (DrefType
+    is 0 Imminent, 1 Assessment, 2 Response, 3 Loan), and a stale copy here
+    would be served to clients as fact.
     """
-    return ", ".join(f"`{choice.value}` {choice.label}" for choice in choices)
+    return ", ".join(
+        f"`{label}` ({', '.join(str(Dref.DrefType(t).label) for t in types)})"
+        for label, types in appeal_type_dref_types().items()
+    )
 
 
 _DESCRIPTIONS = {
+    "appeal_id": (
+        "The `appeal_id` of a row, i.e. its `appeal_code` (case-insensitive, exact). "
+        "Matches every stage of that appeal, so it returns the whole row group."
+    ),
     "appeal_code_prefix": "Rows whose `appeal_code` starts with this value (case-sensitive).",
     "region": "Region id of the national society.",
     "country_iso3": "ISO3 country code of the national society (case-insensitive).",
-    "appeal_type": f"DREF type (`type_of_dref`): {_choice_list(Dref.DrefType)}.",
-    "operation_status": (
-        f"Status as an id, label or name ({_choice_list(Dref.Status)}), e.g. `4` or `Approved`. "
-        "Unrecognised values are ignored."
+    "appeal_type": (
+        "Appeal type as returned in the `appeal_type` field: " + _appeal_type_list() + ". "
+        "Case-insensitive; an unrecognised value yields an empty result."
     ),
     "hazard_date_and_location": (
         "Case-insensitive substring match on `hazard_date_and_location`, the free-text answer to "
@@ -72,10 +80,8 @@ _DESCRIPTIONS = {
 }
 
 # Params whose accepted values are a closed set, documented as a real enum.
-# `operation_status` is deliberately absent: it also accepts labels and names,
-# so an enum of ids would misdescribe it.
 _ENUMS = {
-    "appeal_type": [choice.value for choice in Dref.DrefType],
+    "appeal_type": list(appeal_type_dref_types()),
 }
 
 
@@ -127,14 +133,16 @@ _STAGE_PARAMETERS = [
         ),
     ),
     OpenApiParameter(
-        name="appeal_id",
-        type=OpenApiTypes.INT,
+        name="operation_status",
+        type=OpenApiTypes.STR,
         location=OpenApiParameter.QUERY,
         required=False,
+        enum=list(OPERATION_STATUSES),
         description=(
-            "Primary key of a Dref, DrefOperationalUpdate or DrefFinalReport (probed in that order). "
-            "Resolved to that record's `appeal_code` and applied as an appeal_code filter, so it returns "
-            "the whole group. A pk that resolves to no appeal_code yields an empty result."
+            "Operation status as returned in the `operation_status` field, derived from the row's own dates: "
+            "`active` is `start_date_of_operation` <= today <= `end_date_of_operation`, `closed` is any row with "
+            "both dates that is not active. Rows missing either date serialize as null and match neither. "
+            "Case-insensitive; an unrecognised value yields an empty result."
         ),
     ),
     OpenApiParameter(

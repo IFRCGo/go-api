@@ -82,21 +82,13 @@ def _branch(stage: Dref3Stage, branch_q: Q, user, excluded_codes, access, includ
     return qs.filter(branch_q).order_by().annotate(**annotations).values(*union_columns(include_group_first))
 
 
-def empty_union_queryset(include_group_first: bool = True):
-    annotations = {"stage": Value(Dref3Stage.APPLICATION.value, output_field=IntegerField())}
-    if include_group_first:
-        annotations[GROUP_FIRST_COLUMN] = _group_first_created_at_subquery()
-    return Dref.objects.none().annotate(**annotations).values(*union_columns(include_group_first))
-
-
 def build_union_queryset(user, query_params, access: Dref3AccessFilter | None = None):
     """Single filtered+ordered UNION ALL queryset for the requesting user.
 
-    Raises dref.dref3.common.EmptyResult when params provably match nothing.
     Pass the same `access` instance to Dref3PageHydrator to compute the
     user-access narrowing once per request instead of twice.
     """
-    branch_filters = build_branch_filters(query_params)  # may raise EmptyResult
+    branch_filters = build_branch_filters(query_params)
     excluded_codes = get_excluded_codes()
     access = access or Dref3AccessFilter(user)
 

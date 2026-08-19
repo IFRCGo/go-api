@@ -73,20 +73,6 @@ def parse_stage_filter(raw) -> set[Dref3Stage] | None:
     return stages or None
 
 
-def status_to_int(raw):
-    from dref.models import Dref
-
-    if raw is None or raw == "":
-        return None
-    try:
-        return int(raw)
-    except ValueError:
-        pass
-    label_map = {s.label.lower(): s.value for s in Dref.Status}
-    name_map = {s.name.lower(): s.value for s in Dref.Status}
-    return label_map.get(str(raw).lower()) or name_map.get(str(raw).lower())
-
-
 def parse_composite_ids(raw) -> dict[Dref3Stage, set[int]] | None:
     """Parse ?id=Dref-3,DrefOperationalUpdate-7 into per-stage pk sets.
 
@@ -128,19 +114,6 @@ def has_full_access(user) -> bool:
     if getattr(user, "is_superuser", False):
         return True
     return user.groups.filter(name="DREF3 Admins").exists()
-
-
-def resolve_appeal_id(raw) -> str | None:
-    """Resolve ?appeal_id=<pk> to an appeal_code (legacy probe order)."""
-    try:
-        pk = int(raw)
-    except (TypeError, ValueError):
-        return None
-    for model in stage_models().values():
-        obj = model.objects.filter(pk=pk).only("appeal_code").first()
-        if obj and obj.appeal_code:
-            return obj.appeal_code
-    return None
 
 
 # -- Declarative filter mapping ----------------------------------------------
@@ -200,6 +173,124 @@ def coerce_search_term(raw):
     return text or None
 
 
+# -- Payload-value filters ---------------------------------------------------
+# `appeal_id`, `appeal_type` and `operation_status` filter on the values the
+# serializers *emit* for the fields of those names, not on the columns behind
+# them: a caller filters with a value it just read out of a response row. The
+# `appeal_type` labels live here rather than in the serializers, so the value
+# emitted and the value accepted are one definition.
+#
+# A value outside the emitted set matches nothing, the same as `appeal_id=NOPE`
+# does. Dropping it instead would answer a filter for rows that cannot exist
+# with every row the caller can see.
+
+
+# A filter value no row can hold. `pk__in=()` compiles to Django's
+# EmptyResultSet, so the branch it constrains contributes no rows.
+MATCHES_NOTHING = Q(pk__in=())
+
+DEFAULT_APPEAL_TYPE = "DREF"
+
+
+def named_appeal_types() -> dict[int, str]:
+    """`type_of_dref` -> `appeal_type` label, for the types that have their own.
+
+    The single source for both the serializers' `appeal_type` field and the
+    filter that matches it, so the two cannot drift. Every other type reports
+    DEFAULT_APPEAL_TYPE.
+    """
+    from dref.models import Dref
+
+    return {
+        Dref.DrefType.IMMINENT: "i-DREF",
+        Dref.DrefType.LOAN: "EA",
+    }
+
+
+def appeal_type_label(type_of_dref) -> str:
+    """The `appeal_type` a row with this `type_of_dref` reports."""
+    return named_appeal_types().get(type_of_dref, DEFAULT_APPEAL_TYPE)
+
+
+def appeal_type_dref_types() -> dict[str, tuple[int, ...]]:
+    """`appeal_type` label -> every `type_of_dref` that reports it.
+
+    The inverse of `appeal_type_label`, so the filter accepts exactly the
+    labels the serializers emit and a new DrefType is covered by both.
+    """
+    from dref.models import Dref
+
+    types_by_label: dict[str, tuple[int, ...]] = {}
+    for type_of_dref in Dref.DrefType:
+        label = appeal_type_label(type_of_dref)
+        types_by_label[label] = types_by_label.get(label, ()) + (type_of_dref,)
+    return types_by_label
+
+
+def coerce_appeal_type(raw):
+    """An `appeal_type` label as the ids it covers, or () for an unknown label.
+
+    The label must be spelled as the response spells it (`i-DREF`, not
+    `idref`), apart from case. An unknown label yields no ids, so the
+    `type_of_dref__in` lookup it feeds matches nothing; a blank value is None,
+    so the filter is ignored.
+    """
+    if raw is None:
+        return None
+    key = str(raw).strip().lower()
+    if not key:
+        return None
+    for label, types in appeal_type_dref_types().items():
+        if key == label.lower():
+            return types
+    return ()
+
+
+OPERATION_STATUSES = ("active", "closed")
+
+# Per-stage (start, end) fields behind `operation_status`. The start is
+# `event_date` on all three stages, matching the serializers'
+# `start_date_of_operation`; the end field differs per stage, matching
+# `end_date_of_operation`.
+_OPERATION_DATE_FIELDS = {
+    Dref3Stage.APPLICATION: ("event_date", "end_date"),
+    Dref3Stage.OPERATIONAL_UPDATE: ("event_date", "new_operational_end_date"),
+    Dref3Stage.FINAL_REPORT: ("event_date", "operation_end_date"),
+}
+
+
+def parse_operation_status(raw) -> str | None:
+    """The requested status, folded to lower case, or None for a blank value.
+
+    Values outside OPERATION_STATUSES are passed through for
+    `operation_status_q` to match nothing against, not dropped here.
+    """
+    if raw is None:
+        return None
+    return str(raw).strip().lower() or None
+
+
+def operation_status_q(value: str, stage: Dref3Stage) -> Q:
+    """Rows whose serialized `operation_status` is `value`.
+
+    `active` is start <= today <= end, as the serializer computes it; `closed`
+    is every row with both dates that is not active. A row missing either date
+    serializes as null, so it matches neither. No row serializes a status
+    outside OPERATION_STATUSES, so such a value matches nothing.
+    """
+    from django.utils import timezone
+
+    if value not in OPERATION_STATUSES:
+        return MATCHES_NOTHING
+
+    start, end = _OPERATION_DATE_FIELDS[stage]
+    today = timezone.now().date()
+    active = Q(**{f"{start}__lte": today, f"{end}__gte": today})
+    if value == "active":
+        return active
+    return Q(**{f"{start}__isnull": False, f"{end}__isnull": False}) & ~active
+
+
 # Date-range filters, exposed as `<field>_from` / `<field>_to`. They constrain
 # application-stage rows only (other stages pass). Every field here is a
 # DateField: `hazard_date` answers "when is the hazard expected to happen?",
@@ -217,6 +308,10 @@ DREF3_APPLICATION_RANGE_FIELDS = (
 )
 
 DREF3_FILTERS = {
+    "appeal_id": (
+        coerce_search_term,
+        ("appeal_code__iexact", "appeal_code__iexact", "appeal_code__iexact"),
+    ),
     "appeal_code_prefix": (
         str,
         ("appeal_code__startswith", "appeal_code__startswith", "appeal_code__startswith"),
@@ -230,12 +325,8 @@ DREF3_FILTERS = {
         ("national_society__iso3__iexact", "national_society__iso3__iexact", "national_society__iso3__iexact"),
     ),
     "appeal_type": (
-        coerce_int,
-        ("type_of_dref", "dref__type_of_dref", "dref__type_of_dref"),
-    ),
-    "operation_status": (
-        status_to_int,
-        ("status", "status", "status"),
+        coerce_appeal_type,
+        ("type_of_dref__in", "dref__type_of_dref__in", "dref__type_of_dref__in"),
     ),
     # Free text ("when and where is the hazard expected to happen?"), so it is
     # searched for a substring. Only the application stage has the field.
@@ -262,15 +353,12 @@ DREF3_FILTERS = {
 }
 
 
-class EmptyResult(Exception):
-    """Raised while building filters when the result is provably empty."""
-
-
 def build_branch_filters(query_params) -> dict[Dref3Stage, Q]:
     """Build one Q object per stage from legacy query params.
 
-    Raises EmptyResult when a param invalidates everything (e.g. an
-    ?appeal_id= that resolves to no appeal_code).
+    Unparseable values are ignored, so a filter never fails the request. The
+    payload-value filters are stricter: a well-formed value that no row can
+    report (`appeal_type`, `operation_status`) matches nothing.
     """
     branch_q = {stage: Q() for stage in Dref3Stage}
 
@@ -285,13 +373,10 @@ def build_branch_filters(query_params) -> dict[Dref3Stage, Q]:
             if lookup is not None:
                 branch_q[stage] &= Q(**{lookup: value})
 
-    appeal_id = query_params.get("appeal_id")
-    if appeal_id:
-        code = resolve_appeal_id(appeal_id)
-        if code is None:
-            raise EmptyResult
+    operation_status = parse_operation_status(query_params.get("operation_status"))
+    if operation_status is not None:
         for stage in Dref3Stage:
-            branch_q[stage] &= Q(appeal_code=code)
+            branch_q[stage] &= operation_status_q(operation_status, stage)
 
     wanted_ids = parse_composite_ids(query_params.get("id"))
     if wanted_ids is not None:

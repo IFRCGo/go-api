@@ -11,6 +11,7 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from api.models import Appeal
+from dref.dref3.common import appeal_type_label
 from dref.models import (
     Dref,
     DrefFinalReport,
@@ -262,11 +263,7 @@ class BaseDref3Serializer(serializers.ModelSerializer):
         return "Anticipatory" if obj.type_of_dref == Dref.DrefType.IMMINENT else "Response"
 
     def get_appeal_type(self, obj):
-        if obj.type_of_dref == Dref.DrefType.IMMINENT:
-            return "i-DREF"
-        elif obj.type_of_dref == Dref.DrefType.LOAN:
-            return "EA"
-        return "DREF"
+        return appeal_type_label(obj.type_of_dref)
 
     def get_allocation_type(self, obj):
         return "Loan" if obj.type_of_dref == Dref.DrefType.LOAN else "Grant"

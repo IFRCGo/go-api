@@ -25,10 +25,9 @@ from dref.dref3.common import (
     DREF3_CSV_CHUNK_SIZE,
     Dref3AccessFilter,
     Dref3PageHydrator,
-    EmptyResult,
     dref3_csv_streaming_response,
 )
-from dref.dref3.query import build_union_queryset, empty_union_queryset
+from dref.dref3.query import build_union_queryset
 from dref.dref3.schema import DREF3_LIST_PARAMETERS
 from dref.dref3.serializers import Dref3Serializer
 from dref.filter_set import (
@@ -484,10 +483,7 @@ class Dref3ViewSet(viewsets.GenericViewSet):
         # One access filter shared by the queryset and the hydrator, so the
         # per-model user-access narrowing is computed once per request.
         access = Dref3AccessFilter(request.user)
-        try:
-            queryset = build_union_queryset(request.user, request.query_params, access=access)
-        except EmptyResult:
-            queryset = empty_union_queryset()
+        queryset = build_union_queryset(request.user, request.query_params, access=access)
 
         hydrator = Dref3PageHydrator(request.user, access=access)
 
