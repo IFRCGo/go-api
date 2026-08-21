@@ -83,7 +83,9 @@ class FlashUpdateFileViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, vie
         permission_classes=[permissions.IsAuthenticated, DenyGuestUserPermission],
     )
     def multiple_file(self, request, pk=None, version=None):
-        files = [files[0] for files in dict((request.data).lists()).values()]
+        input_serializer = FlashGraphicMapFileInputSerializer(data=request.data)
+        input_serializer.is_valid(raise_exception=True)
+        files = input_serializer.validated_data["file"]
         data = [{"file": file} for file in files]
         if len(data) > 3:
             raise serializers.ValidationError("Number of files selected should not be greater than 3")

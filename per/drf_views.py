@@ -1108,8 +1108,9 @@ class PerFileViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.Ge
         permission_classes=[permissions.IsAuthenticated, DenyGuestUserPermission],
     )
     def multiple_file(self, request, pk=None, version=None):
-        # converts querydict to original dict
-        files = [files[0] for files in dict((request.data).lists()).values()]
+        input_serializer = PerFileInputSerializer(data=request.data)
+        input_serializer.is_valid(raise_exception=True)
+        files = input_serializer.validated_data["file"]
         data = [{"file": file} for file in files]
         file_serializer = PerFileSerializer(data=data, context={"request": request}, many=True)
         if file_serializer.is_valid():

@@ -714,7 +714,7 @@ class OpsLearning(models.Model):
         verbose_name_plural = _("Operational Learnings")
 
     def __str__(self):
-        name = self.learning_validated if self.learning_validated else self.learning
+        name = self.learning_validated or self.learning or ""
         return "%s - %s" % (name, self.appeal_code) if self.appeal_code else name
 
     @staticmethod
