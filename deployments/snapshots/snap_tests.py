@@ -46,7 +46,7 @@ snapshots["TestProjectAPI::test_global_project_api 2"] = [
     {
         "budget_amount_total": 800000,
         "id": 3,
-        "iso3": "Osx",
+        "iso3": "ujl",
         "name": "country-sKRWmlNOzBGufzQgliEupaqypCWrvtLUKaqPxSpdQhDtkzRGTX",
         "ongoing_projects": 8,
         "operation_types": [0, 1],
@@ -60,7 +60,7 @@ snapshots["TestProjectAPI::test_global_project_api 2"] = [
     {
         "budget_amount_total": 800000,
         "id": 4,
-        "iso3": "ZRt",
+        "iso3": "zvj",
         "name": "country-fLgGiOzeLKdBQipsquZzSVuuCroemiXXLgjgkCDuAhIwXnCtDq",
         "ongoing_projects": 8,
         "operation_types": [0, 1],
@@ -91,16 +91,16 @@ snapshots[
 snapshots[
     "TestProjectAPI::test_project_csv_api 1"
 ] = """actual_expenditure,budget_amount,description,document,dtype,dtype_detail.id,dtype_detail.name,dtype_detail.summary,dtype_detail.translation_module_original_language,end_date,event,event_detail.dtype,event_detail.emergency_response_contact_email,event_detail.id,event_detail.name,event_detail.parent_event,event_detail.slug,event_detail.start_date,event_detail.translation_module_original_language,id,modified_at,modified_by,modified_by_detail,name,operation_type,operation_type_display,primary_sector,primary_sector_display,programme_type,programme_type_display,project_country,project_country_detail.id,project_country_detail.iso,project_country_detail.iso3,project_country_detail.name,project_country_detail.society_name,project_districts_detail.code,project_districts_detail.id,project_districts_detail.is_deprecated,project_districts_detail.is_enclave,project_districts_detail.name,reached_female,reached_male,reached_other,reached_total,regional_project,regional_project_detail.created_at,regional_project_detail.id,regional_project_detail.modified_at,regional_project_detail.name,regional_project_detail.translation_module_original_language,regional_project_detail.translation_module_skip_auto_translation,reporting_ns,reporting_ns_contact_email,reporting_ns_contact_name,reporting_ns_contact_role,reporting_ns_detail.id,reporting_ns_detail.iso,reporting_ns_detail.iso3,reporting_ns_detail.name,reporting_ns_detail.society_name,secondary_sectors,secondary_sectors_display,start_date,status,status_display,target_female,target_male,target_other,target_total,translation_module_original_language,translation_module_skip_auto_translation,user,visibility,visibility_display\r
-0,100000,,,1,1,disaster-type-1,summary,en,2008-01-01,2,1,,2,event-1,1,event-slug,,en,1,2008-01-01T00:00:00.123456Z,,,project-1,1,Emergency Operation,1,sect-1,0,Bilateral,1,1,bV,rpo,country-1,society-name-1,"dct1, dct2","1, 2","True, False","False, True","district-1, district-2",0,0,0,0,1,2008-01-01T00:00:00.123456Z,1,2008-01-01T00:00:00.123456Z,regional-project-1,en,False,1,,,,1,bV,rpo,country-1,society-name-1,"1, 2","sec-tag-1, sec-tag-2",2008-01-01,1,Ongoing,0,0,0,0,en,False,5,public,Public\r
-0,100000,,,1,1,disaster-type-1,summary,en,2008-01-01,2,1,,2,event-1,1,event-slug,,en,2,2008-01-01T00:00:00.123456Z,,,project-1,1,Emergency Operation,1,sect-1,0,Bilateral,1,1,bV,rpo,country-1,society-name-1,"dct1, dct2","1, 2","True, False","False, True","district-1, district-2",0,0,0,0,1,2008-01-01T00:00:00.123456Z,1,2008-01-01T00:00:00.123456Z,regional-project-1,en,False,1,,,,1,bV,rpo,country-1,society-name-1,"1, 2","sec-tag-1, sec-tag-2",2008-01-01,1,Ongoing,0,0,0,0,en,False,6,public,Public\r
-0,100000,,,1,1,disaster-type-1,summary,en,2008-01-01,2,1,,2,event-1,1,event-slug,,en,3,2008-01-01T00:00:00.123456Z,,,project-1,1,Emergency Operation,1,sect-1,0,Bilateral,1,1,bV,rpo,country-1,society-name-1,"dct1, dct2","1, 2","True, False","False, True","district-1, district-2",0,0,0,0,1,2008-01-01T00:00:00.123456Z,1,2008-01-01T00:00:00.123456Z,regional-project-1,en,False,1,,,,1,bV,rpo,country-1,society-name-1,"1, 2","sec-tag-1, sec-tag-2",2008-01-01,1,Ongoing,0,0,0,0,en,False,7,public,Public\r
-0,100000,,,1,1,disaster-type-1,summary,en,2008-01-01,2,1,,2,event-1,1,event-slug,,en,4,2008-01-01T00:00:00.123456Z,,,project-1,1,Emergency Operation,1,sect-1,0,Bilateral,1,1,bV,rpo,country-1,society-name-1,"dct1, dct2","1, 2","True, False","False, True","district-1, district-2",0,0,0,0,1,2008-01-01T00:00:00.123456Z,1,2008-01-01T00:00:00.123456Z,regional-project-1,en,False,1,,,,1,bV,rpo,country-1,society-name-1,"1, 2","sec-tag-1, sec-tag-2",2008-01-01,1,Ongoing,0,0,0,0,en,False,8,public,Public\r
-0,100000,,,1,1,disaster-type-1,summary,en,2008-01-01,2,1,,2,event-1,1,event-slug,,en,5,2008-01-01T00:00:00.123456Z,,,project-1,1,Emergency Operation,1,sect-1,0,Bilateral,1,1,bV,rpo,country-1,society-name-1,"dct1, dct2","1, 2","True, False","False, True","district-1, district-2",0,0,0,0,1,2008-01-01T00:00:00.123456Z,1,2008-01-01T00:00:00.123456Z,regional-project-1,en,False,1,,,,1,bV,rpo,country-1,society-name-1,"1, 2","sec-tag-1, sec-tag-2",2008-01-01,1,Ongoing,0,0,0,0,en,False,9,public,Public\r
-0,100000,,,1,1,disaster-type-1,summary,en,2008-01-01,2,1,,2,event-1,1,event-slug,,en,6,2008-01-01T00:00:00.123456Z,,,project-1,1,Emergency Operation,1,sect-1,0,Bilateral,1,1,bV,rpo,country-1,society-name-1,"dct1, dct2","1, 2","True, False","False, True","district-1, district-2",0,0,0,0,1,2008-01-01T00:00:00.123456Z,1,2008-01-01T00:00:00.123456Z,regional-project-1,en,False,1,,,,1,bV,rpo,country-1,society-name-1,"1, 2","sec-tag-1, sec-tag-2",2008-01-01,1,Ongoing,0,0,0,0,en,False,10,public,Public\r
-0,100000,,,1,1,disaster-type-1,summary,en,2008-01-01,2,1,,2,event-1,1,event-slug,,en,7,2008-01-01T00:00:00.123456Z,,,project-1,1,Emergency Operation,1,sect-1,0,Bilateral,1,1,bV,rpo,country-1,society-name-1,"dct1, dct2","1, 2","True, False","False, True","district-1, district-2",0,0,0,0,1,2008-01-01T00:00:00.123456Z,1,2008-01-01T00:00:00.123456Z,regional-project-1,en,False,1,,,,1,bV,rpo,country-1,society-name-1,"1, 2","sec-tag-1, sec-tag-2",2008-01-01,1,Ongoing,0,0,0,0,en,False,11,public,Public\r
-0,100000,,,1,1,disaster-type-1,summary,en,2008-01-01,2,1,,2,event-1,1,event-slug,,en,8,2008-01-01T00:00:00.123456Z,,,project-1,1,Emergency Operation,1,sect-1,0,Bilateral,1,1,bV,rpo,country-1,society-name-1,"dct1, dct2","1, 2","True, False","False, True","district-1, district-2",0,0,0,0,1,2008-01-01T00:00:00.123456Z,1,2008-01-01T00:00:00.123456Z,regional-project-1,en,False,1,,,,1,bV,rpo,country-1,society-name-1,"1, 2","sec-tag-1, sec-tag-2",2008-01-01,1,Ongoing,0,0,0,0,en,False,12,public,Public\r
-0,100000,,,1,1,disaster-type-1,summary,en,2008-01-01,2,1,,2,event-1,1,event-slug,,en,9,2008-01-01T00:00:00.123456Z,,,project-1,1,Emergency Operation,1,sect-1,0,Bilateral,1,1,bV,rpo,country-1,society-name-1,"dct1, dct2","1, 2","True, False","False, True","district-1, district-2",0,0,0,0,1,2008-01-01T00:00:00.123456Z,1,2008-01-01T00:00:00.123456Z,regional-project-1,en,False,1,,,,1,bV,rpo,country-1,society-name-1,"1, 2","sec-tag-1, sec-tag-2",2008-01-01,1,Ongoing,0,0,0,0,en,False,13,public,Public\r
-0,100000,,,1,1,disaster-type-1,summary,en,2008-01-01,2,1,,2,event-1,1,event-slug,,en,10,2008-01-01T00:00:00.123456Z,,,project-1,1,Emergency Operation,1,sect-1,0,Bilateral,1,1,bV,rpo,country-1,society-name-1,"dct1, dct2","1, 2","True, False","False, True","district-1, district-2",0,0,0,0,1,2008-01-01T00:00:00.123456Z,1,2008-01-01T00:00:00.123456Z,regional-project-1,en,False,1,,,,1,bV,rpo,country-1,society-name-1,"1, 2","sec-tag-1, sec-tag-2",2008-01-01,1,Ongoing,0,0,0,0,en,False,14,public,Public\r
+0,100000,,,1,1,disaster-type-1,summary,en,2008-01-01,2,1,,2,event-1,1,event-slug,,en,1,2008-01-01T00:00:00.123456Z,,,project-1,1,Emergency Operation,1,sect-1,0,Bilateral,1,1,ax,ihh,country-1,society-name-1,"dct1, dct2","1, 2","True, False","False, True","district-1, district-2",0,0,0,0,1,2008-01-01T00:00:00.123456Z,1,2008-01-01T00:00:00.123456Z,regional-project-1,en,False,1,,,,1,ax,ihh,country-1,society-name-1,"1, 2","sec-tag-1, sec-tag-2",2008-01-01,1,Ongoing,0,0,0,0,en,False,5,public,Public\r
+0,100000,,,1,1,disaster-type-1,summary,en,2008-01-01,2,1,,2,event-1,1,event-slug,,en,2,2008-01-01T00:00:00.123456Z,,,project-1,1,Emergency Operation,1,sect-1,0,Bilateral,1,1,ax,ihh,country-1,society-name-1,"dct1, dct2","1, 2","True, False","False, True","district-1, district-2",0,0,0,0,1,2008-01-01T00:00:00.123456Z,1,2008-01-01T00:00:00.123456Z,regional-project-1,en,False,1,,,,1,ax,ihh,country-1,society-name-1,"1, 2","sec-tag-1, sec-tag-2",2008-01-01,1,Ongoing,0,0,0,0,en,False,6,public,Public\r
+0,100000,,,1,1,disaster-type-1,summary,en,2008-01-01,2,1,,2,event-1,1,event-slug,,en,3,2008-01-01T00:00:00.123456Z,,,project-1,1,Emergency Operation,1,sect-1,0,Bilateral,1,1,ax,ihh,country-1,society-name-1,"dct1, dct2","1, 2","True, False","False, True","district-1, district-2",0,0,0,0,1,2008-01-01T00:00:00.123456Z,1,2008-01-01T00:00:00.123456Z,regional-project-1,en,False,1,,,,1,ax,ihh,country-1,society-name-1,"1, 2","sec-tag-1, sec-tag-2",2008-01-01,1,Ongoing,0,0,0,0,en,False,7,public,Public\r
+0,100000,,,1,1,disaster-type-1,summary,en,2008-01-01,2,1,,2,event-1,1,event-slug,,en,4,2008-01-01T00:00:00.123456Z,,,project-1,1,Emergency Operation,1,sect-1,0,Bilateral,1,1,ax,ihh,country-1,society-name-1,"dct1, dct2","1, 2","True, False","False, True","district-1, district-2",0,0,0,0,1,2008-01-01T00:00:00.123456Z,1,2008-01-01T00:00:00.123456Z,regional-project-1,en,False,1,,,,1,ax,ihh,country-1,society-name-1,"1, 2","sec-tag-1, sec-tag-2",2008-01-01,1,Ongoing,0,0,0,0,en,False,8,public,Public\r
+0,100000,,,1,1,disaster-type-1,summary,en,2008-01-01,2,1,,2,event-1,1,event-slug,,en,5,2008-01-01T00:00:00.123456Z,,,project-1,1,Emergency Operation,1,sect-1,0,Bilateral,1,1,ax,ihh,country-1,society-name-1,"dct1, dct2","1, 2","True, False","False, True","district-1, district-2",0,0,0,0,1,2008-01-01T00:00:00.123456Z,1,2008-01-01T00:00:00.123456Z,regional-project-1,en,False,1,,,,1,ax,ihh,country-1,society-name-1,"1, 2","sec-tag-1, sec-tag-2",2008-01-01,1,Ongoing,0,0,0,0,en,False,9,public,Public\r
+0,100000,,,1,1,disaster-type-1,summary,en,2008-01-01,2,1,,2,event-1,1,event-slug,,en,6,2008-01-01T00:00:00.123456Z,,,project-1,1,Emergency Operation,1,sect-1,0,Bilateral,1,1,ax,ihh,country-1,society-name-1,"dct1, dct2","1, 2","True, False","False, True","district-1, district-2",0,0,0,0,1,2008-01-01T00:00:00.123456Z,1,2008-01-01T00:00:00.123456Z,regional-project-1,en,False,1,,,,1,ax,ihh,country-1,society-name-1,"1, 2","sec-tag-1, sec-tag-2",2008-01-01,1,Ongoing,0,0,0,0,en,False,10,public,Public\r
+0,100000,,,1,1,disaster-type-1,summary,en,2008-01-01,2,1,,2,event-1,1,event-slug,,en,7,2008-01-01T00:00:00.123456Z,,,project-1,1,Emergency Operation,1,sect-1,0,Bilateral,1,1,ax,ihh,country-1,society-name-1,"dct1, dct2","1, 2","True, False","False, True","district-1, district-2",0,0,0,0,1,2008-01-01T00:00:00.123456Z,1,2008-01-01T00:00:00.123456Z,regional-project-1,en,False,1,,,,1,ax,ihh,country-1,society-name-1,"1, 2","sec-tag-1, sec-tag-2",2008-01-01,1,Ongoing,0,0,0,0,en,False,11,public,Public\r
+0,100000,,,1,1,disaster-type-1,summary,en,2008-01-01,2,1,,2,event-1,1,event-slug,,en,8,2008-01-01T00:00:00.123456Z,,,project-1,1,Emergency Operation,1,sect-1,0,Bilateral,1,1,ax,ihh,country-1,society-name-1,"dct1, dct2","1, 2","True, False","False, True","district-1, district-2",0,0,0,0,1,2008-01-01T00:00:00.123456Z,1,2008-01-01T00:00:00.123456Z,regional-project-1,en,False,1,,,,1,ax,ihh,country-1,society-name-1,"1, 2","sec-tag-1, sec-tag-2",2008-01-01,1,Ongoing,0,0,0,0,en,False,12,public,Public\r
+0,100000,,,1,1,disaster-type-1,summary,en,2008-01-01,2,1,,2,event-1,1,event-slug,,en,9,2008-01-01T00:00:00.123456Z,,,project-1,1,Emergency Operation,1,sect-1,0,Bilateral,1,1,ax,ihh,country-1,society-name-1,"dct1, dct2","1, 2","True, False","False, True","district-1, district-2",0,0,0,0,1,2008-01-01T00:00:00.123456Z,1,2008-01-01T00:00:00.123456Z,regional-project-1,en,False,1,,,,1,ax,ihh,country-1,society-name-1,"1, 2","sec-tag-1, sec-tag-2",2008-01-01,1,Ongoing,0,0,0,0,en,False,13,public,Public\r
+0,100000,,,1,1,disaster-type-1,summary,en,2008-01-01,2,1,,2,event-1,1,event-slug,,en,10,2008-01-01T00:00:00.123456Z,,,project-1,1,Emergency Operation,1,sect-1,0,Bilateral,1,1,ax,ihh,country-1,society-name-1,"dct1, dct2","1, 2","True, False","False, True","district-1, district-2",0,0,0,0,1,2008-01-01T00:00:00.123456Z,1,2008-01-01T00:00:00.123456Z,regional-project-1,en,False,1,,,,1,ax,ihh,country-1,society-name-1,"1, 2","sec-tag-1, sec-tag-2",2008-01-01,1,Ongoing,0,0,0,0,en,False,14,public,Public\r
 """
 
 snapshots["TestProjectAPI::test_project_delete 1"] = b""
@@ -152,8 +152,8 @@ snapshots["TestProjectAPI::test_project_list_one 1"] = {
             "project_country": 1,
             "project_country_detail": {
                 "id": 1,
-                "iso": "bV",
-                "iso3": "rpo",
+                "iso": "ax",
+                "iso3": "ihh",
                 "name": "country-1",
                 "society_name": "society-name-1",
             },
@@ -176,7 +176,7 @@ snapshots["TestProjectAPI::test_project_list_one 1"] = {
             "reporting_ns_contact_email": None,
             "reporting_ns_contact_name": None,
             "reporting_ns_contact_role": None,
-            "reporting_ns_detail": {"id": 1, "iso": "bV", "iso3": "rpo", "name": "country-1", "society_name": "society-name-1"},
+            "reporting_ns_detail": {"id": 1, "iso": "ax", "iso3": "ihh", "name": "country-1", "society_name": "society-name-1"},
             "secondary_sectors": [1, 2],
             "secondary_sectors_display": ["sec-tag-1", "sec-tag-2"],
             "start_date": "2008-01-01",
@@ -242,8 +242,8 @@ snapshots["TestProjectAPI::test_project_list_two 1"] = {
             "project_country": 1,
             "project_country_detail": {
                 "id": 1,
-                "iso": "bV",
-                "iso3": "rpo",
+                "iso": "ax",
+                "iso3": "ihh",
                 "name": "country-1",
                 "society_name": "society-name-1",
             },
@@ -266,7 +266,7 @@ snapshots["TestProjectAPI::test_project_list_two 1"] = {
             "reporting_ns_contact_email": None,
             "reporting_ns_contact_name": None,
             "reporting_ns_contact_role": None,
-            "reporting_ns_detail": {"id": 1, "iso": "bV", "iso3": "rpo", "name": "country-1", "society_name": "society-name-1"},
+            "reporting_ns_detail": {"id": 1, "iso": "ax", "iso3": "ihh", "name": "country-1", "society_name": "society-name-1"},
             "secondary_sectors": [1, 2],
             "secondary_sectors_display": ["sec-tag-1", "sec-tag-2"],
             "start_date": "2008-01-01",
@@ -324,8 +324,8 @@ snapshots["TestProjectAPI::test_project_list_two 1"] = {
             "project_country": 1,
             "project_country_detail": {
                 "id": 1,
-                "iso": "bV",
-                "iso3": "rpo",
+                "iso": "ax",
+                "iso3": "ihh",
                 "name": "country-1",
                 "society_name": "society-name-1",
             },
@@ -348,7 +348,7 @@ snapshots["TestProjectAPI::test_project_list_two 1"] = {
             "reporting_ns_contact_email": None,
             "reporting_ns_contact_name": None,
             "reporting_ns_contact_role": None,
-            "reporting_ns_detail": {"id": 1, "iso": "bV", "iso3": "rpo", "name": "country-1", "society_name": "society-name-1"},
+            "reporting_ns_detail": {"id": 1, "iso": "ax", "iso3": "ihh", "name": "country-1", "society_name": "society-name-1"},
             "secondary_sectors": [1, 2],
             "secondary_sectors_display": ["sec-tag-1", "sec-tag-2"],
             "start_date": "2008-01-01",
@@ -404,7 +404,7 @@ snapshots["TestProjectAPI::test_project_read 1"] = {
     "project_admin2": [],
     "project_admin2_detail": [],
     "project_country": 1,
-    "project_country_detail": {"id": 1, "iso": "bV", "iso3": "rpo", "name": "country-1", "society_name": "society-name-1"},
+    "project_country_detail": {"id": 1, "iso": "ax", "iso3": "ihh", "name": "country-1", "society_name": "society-name-1"},
     "project_districts": [1, 2],
     "project_districts_detail": [{"id": 1, "name": "district-1"}, {"id": 2, "name": "district-2"}],
     "reached_female": 0,
@@ -424,7 +424,7 @@ snapshots["TestProjectAPI::test_project_read 1"] = {
     "reporting_ns_contact_email": None,
     "reporting_ns_contact_name": None,
     "reporting_ns_contact_role": None,
-    "reporting_ns_detail": {"id": 1, "iso": "bV", "iso3": "rpo", "name": "country-1", "society_name": "society-name-1"},
+    "reporting_ns_detail": {"id": 1, "iso": "ax", "iso3": "ihh", "name": "country-1", "society_name": "society-name-1"},
     "secondary_sectors": [1, 2],
     "secondary_sectors_display": ["sec-tag-1", "sec-tag-2"],
     "start_date": "2008-01-01",
@@ -476,7 +476,7 @@ snapshots["TestProjectAPI::test_project_update 1"] = {
     "project_admin2": [],
     "project_admin2_detail": [],
     "project_country": 2,
-    "project_country_detail": {"id": 2, "iso": "Te", "iso3": "frj", "name": "country-2", "society_name": "society-name-2"},
+    "project_country_detail": {"id": 2, "iso": "wc", "iso3": "cie", "name": "country-2", "society_name": "society-name-2"},
     "project_districts": [3],
     "project_districts_detail": [{"id": 3, "name": "district-3"}],
     "reached_female": 0,
@@ -496,7 +496,7 @@ snapshots["TestProjectAPI::test_project_update 1"] = {
     "reporting_ns_contact_email": None,
     "reporting_ns_contact_name": None,
     "reporting_ns_contact_role": None,
-    "reporting_ns_detail": {"id": 2, "iso": "Te", "iso3": "frj", "name": "country-2", "society_name": "society-name-2"},
+    "reporting_ns_detail": {"id": 2, "iso": "wc", "iso3": "cie", "name": "country-2", "society_name": "society-name-2"},
     "secondary_sectors": [1, 2],
     "secondary_sectors_display": ["sec-tag-1", "sec-tag-2"],
     "start_date": "2008-01-01",
