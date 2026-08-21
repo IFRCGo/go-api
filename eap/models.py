@@ -223,6 +223,7 @@ class EAPFile(EAPBaseModel):
     file = SecureFileField(
         verbose_name=_("file"),
         upload_to="eap/files/",
+        max_length=255,
         null=False,
         blank=False,
         help_text=_("Upload EAP related file."),
@@ -401,6 +402,9 @@ class OperationActivity(models.Model):
     )
     previous_id = models.PositiveIntegerField(verbose_name=_("Previous ID"), null=True, blank=True)
 
+    # TYPING
+    id: int
+
     class Meta:
         verbose_name = _("Operation Activity")
         verbose_name_plural = _("Operation Activities")
@@ -414,6 +418,9 @@ class Indicator(models.Model):
     target = models.IntegerField(verbose_name=_("Indicator Target"))
     previous_id = models.PositiveIntegerField(verbose_name=_("Previous ID"), null=True, blank=True)
 
+    # TYPING
+    id: int
+
     class Meta:
         verbose_name = _("Indicator")
         verbose_name_plural = _("Indicators")
@@ -425,6 +432,9 @@ class Indicator(models.Model):
 class EAPAction(models.Model):
     action = models.CharField(max_length=255, verbose_name=_("Early Action"))
     previous_id = models.PositiveIntegerField(verbose_name=_("Previous ID"), null=True, blank=True)
+
+    # TYPING
+    id: int
 
     class Meta:
         verbose_name = _("Early Action")
@@ -438,12 +448,51 @@ class EAPImpact(models.Model):
     impact = models.CharField(max_length=255, verbose_name=_("Impact"))
     previous_id = models.PositiveIntegerField(verbose_name=_("Previous ID"), null=True, blank=True)
 
+    # TYPING
+    id: int
+
     class Meta:
         verbose_name = _(" Impact")
         verbose_name_plural = _("Expected Impacts")
 
     def __str__(self):
         return f"{self.impact}"
+
+
+class PotentialRisk(models.Model):
+    risk = models.CharField(max_length=255, verbose_name=_("Potential Risk"))
+    previous_id = models.PositiveIntegerField(verbose_name=_("Previous ID"), null=True, blank=True)
+
+    # TYPING
+    id: int
+
+    class Meta:
+        verbose_name = _("Potential Risk")
+        verbose_name_plural = _("Potential Risks")
+
+    def __str__(self):
+        return f"{self.risk}"
+
+
+class Admin1(models.Model):
+    district = models.ForeignKey(
+        District,
+        on_delete=models.CASCADE,
+        verbose_name=_("District"),
+    )
+    description = models.TextField(verbose_name=_("Description"), null=True, blank=True)
+    previous_id = models.PositiveIntegerField(verbose_name=_("Previous ID"), null=True, blank=True)
+
+    # TYPING
+    id: int
+    district_id: int
+
+    class Meta:
+        verbose_name = _("Selected District")
+        verbose_name_plural = _("Selected Districts")
+
+    def __str__(self):
+        return f"{self.district}"
 
 
 class PlannedOperation(models.Model):
@@ -585,6 +634,8 @@ class SourceInformation(models.Model):
     source_link = models.URLField(
         verbose_name=_("Source Link"),
         max_length=255,
+        null=True,
+        blank=True,
     )
     previous_id = models.PositiveIntegerField(
         verbose_name=_("Previous ID"),
@@ -696,6 +747,14 @@ class EAPRegistration(EAPBaseModel):
         null=True,
     )
 
+    # NOTE: Only filled through the admin panel.
+    appeal_code = models.CharField(
+        max_length=20,
+        verbose_name=_("Appeal Code"),
+        blank=True,
+        null=True,
+    )
+
     eap_type = models.IntegerField(
         choices=EAPType.choices,
         verbose_name=_("EAP Type"),
@@ -739,16 +798,27 @@ class EAPRegistration(EAPBaseModel):
     # Validated Budget file
     validated_budget_file = SecureFileField(
         upload_to="eap/files/validated_budgets/",
+        max_length=255,
         blank=True,
         null=True,
         verbose_name=_("Validated Budget File"),
         help_text=_("Upload the validated budget file once the EAP is technically validated."),
     )
 
+    # NOTE: Uploaded when the EAP is technically validated; cleared if validation is reverted.
+    final_review_checklist_file = SecureFileField(
+        upload_to="eap/files/",
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name=_("Final Review Checklist File"),
+    )
+
     # NOTE: Only Full EAP have summary PDF
     summary_file = SecureFileField(
         verbose_name=_("EAP Summary PDF"),
         upload_to="eap/files/",
+        max_length=255,
         null=True,
         blank=True,
     )
@@ -901,6 +971,14 @@ class CommonEAPFields(models.Model):
         related_name="+",
     )
 
+    # NOTE: For countries without Admin2 data, districts (Admin1) are used instead.
+    districts = models.ManyToManyField(
+        Admin1,
+        verbose_name=_("districts"),
+        blank=True,
+        related_name="+",
+    )
+
     partners = models.ManyToManyField(
         Country,
         verbose_name=_("Partners"),
@@ -1017,6 +1095,7 @@ class CommonEAPFields(models.Model):
     export_file = SecureFileField(
         verbose_name=_("EAP Export File"),
         upload_to="eap/files/exports/",
+        max_length=255,
         null=True,
         blank=True,
     )
@@ -1024,6 +1103,7 @@ class CommonEAPFields(models.Model):
     diff_file = SecureFileField(
         verbose_name=_("EAP Diff PDF file"),
         upload_to="eap/files/",
+        max_length=255,
         null=True,
         blank=True,
     )
@@ -1033,6 +1113,7 @@ class CommonEAPFields(models.Model):
     review_checklist_file = SecureFileField(
         verbose_name=_("Review Checklist File"),
         upload_to="eap/files/",
+        max_length=255,
         null=True,
         blank=True,
     )
@@ -1119,6 +1200,13 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
         blank=True,
     )
 
+    potential_risks = models.ManyToManyField(
+        PotentialRisk,
+        verbose_name=_("Potential Risks"),
+        related_name="simplified_eap_potential_risks",
+        blank=True,
+    )
+
     risks_selected_protocols = models.TextField(
         verbose_name=_("Risk selected for the protocols."),
         null=True,
@@ -1133,6 +1221,14 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
     )
 
     # EARLY ACTION SELECTION #
+
+    early_actions = models.ManyToManyField(
+        EAPAction,
+        verbose_name=_("Early Actions"),
+        related_name="seap_early_actions",
+        blank=True,
+    )
+
     selected_early_actions = models.TextField(
         verbose_name=_("Selected Early Actions"),
         null=True,
@@ -1339,7 +1435,9 @@ class SimplifiedEAP(EAPBaseModel, CommonEAPFields):
         "early_action_budget",
         "budget_file",
         "prioritized_hazard_and_impact",
+        "potential_risks",
         "risks_selected_protocols",
+        "early_actions",
         "selected_early_actions",
         "overall_objective_intervention",
         "potential_geographical_high_risk_areas",
@@ -1488,9 +1586,8 @@ class FullEAP(EAPBaseModel, CommonEAPFields):
         blank=True,
     )
 
-    lead_time = models.CharField(
+    lead_time = models.IntegerField(
         verbose_name=_("Lead Time"),
-        max_length=255,
         null=True,
         blank=True,
     )

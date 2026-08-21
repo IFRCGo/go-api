@@ -1,7 +1,10 @@
 from django.contrib import admin
 from django.db import transaction
+from django.db.models import Prefetch
 
+from api.models import Admin2
 from eap.models import (
+    Admin1,
     EAPFile,
     EAPRegistration,
     EAPType,
@@ -55,6 +58,7 @@ class DevelopmentRegistrationEAPAdmin(admin.ModelAdmin):
     list_display = (
         "national_society_name",
         "country",
+        "appeal_code",
         "eap_type",
         "disaster_type",
         "status",
@@ -129,6 +133,9 @@ class SimplifiedEAPAdmin(admin.ModelAdmin):
     readonly_fields = (
         "cover_image",
         "partner_contacts",
+        "potential_risks",
+        "early_actions",
+        "districts",
         "hazard_impact_files",
         "risk_selected_protocols_files",
         "selected_early_actions_files",
@@ -192,9 +199,18 @@ class SimplifiedEAPAdmin(admin.ModelAdmin):
                 "eap_registration__disaster_type",
             )
             .prefetch_related(
-                "admin2",
                 "partners",
                 "partner_contacts",
+                "potential_risks",
+                "early_actions",
+                Prefetch(
+                    "admin2",
+                    queryset=Admin2.objects.select_related("admin1"),
+                ),
+                Prefetch(
+                    "districts",
+                    queryset=Admin1.objects.select_related("district"),
+                ),
             )
         )
 
@@ -221,6 +237,7 @@ class FullEAPAdmin(admin.ModelAdmin):
     )
     readonly_fields = (
         "partner_contacts",
+        "districts",
         "cover_image",
         "planned_operations",
         "enabling_approaches",
@@ -296,7 +313,6 @@ class FullEAPAdmin(admin.ModelAdmin):
                 "eap_registration__disaster_type",
             )
             .prefetch_related(
-                "admin2",
                 "partners",
                 "partner_contacts",
                 "key_actors",
@@ -305,5 +321,13 @@ class FullEAPAdmin(admin.ModelAdmin):
                 "trigger_model_source_of_information",
                 "evidence_base_source_of_information",
                 "activation_process_source_of_information",
+                Prefetch(
+                    "admin2",
+                    queryset=Admin2.objects.select_related("admin1"),
+                ),
+                Prefetch(
+                    "districts",
+                    queryset=Admin1.objects.select_related("district"),
+                ),
             )
         )

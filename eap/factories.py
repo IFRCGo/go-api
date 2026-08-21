@@ -120,6 +120,24 @@ class SimplifiedEAPFactory(factory.django.DjangoModelFactory):
             for operation in extracted:
                 self.planned_operations.add(operation)
 
+    @factory.post_generation
+    def potential_risks(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for risk in extracted:
+                self.potential_risks.add(risk)
+
+    @factory.post_generation
+    def early_actions(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for action in extracted:
+                self.early_actions.add(action)
+
 
 class OperationActivityFactory(factory.django.DjangoModelFactory):
     class Meta:

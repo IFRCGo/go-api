@@ -12,6 +12,7 @@ from django.utils.translation import get_language as django_get_language
 
 from api.factories.country import CountryFactory
 from api.factories.disaster_type import DisasterTypeFactory
+from api.factories.district import DistrictFactory
 from api.factories.region import RegionFactory
 from api.models import Export
 from deployments.factories.user import UserFactory
@@ -27,7 +28,9 @@ from eap.factories import (
     SimplifiedEAPFactory,
 )
 from eap.models import (
+    Admin1,
     DaysTimeFrameChoices,
+    EAPAction,
     EAPFile,
     EAPStatus,
     EAPType,
@@ -35,6 +38,7 @@ from eap.models import (
     EnablingApproach,
     MonthsTimeFrameChoices,
     PlannedOperation,
+    PotentialRisk,
     SimplifiedEAP,
     TimeFrame,
     YearsTimeFrameChoices,
@@ -143,12 +147,16 @@ class EAPRegistrationTestCase(APITestCase):
             "national_society_contact_name": "National society contact name",
             "national_society_contact_title": "National society contact title",
             "national_society_contact_email": "test@example.com",
+            # NOTE: appeal_code is read-only via API, only fillable through the admin panel.
+            "appeal_code": "MDR00001",
         }
 
         self.authenticate(self.country_admin)
         response = self.client.post(url, data, format="json")
 
         self.assertEqual(response.status_code, 201)
+        # appeal_code cannot be set through the API
+        self.assertIsNone(response.data["appeal_code"])
         # Check created_by
         self.assertIsNotNone(response.data["created_by_details"])
         self.assertEqual(
@@ -554,6 +562,8 @@ class EAPSimplifiedTestCase(APITestCase):
             modified_by=self.country_admin,
         )
 
+        district = DistrictFactory.create(country=self.country)
+
         data = {
             "eap_registration": eap_registration.id,
             "national_society_contact_name": "National society contact name",
@@ -571,8 +581,30 @@ class EAPSimplifiedTestCase(APITestCase):
                     "title": "Partner 2 Title",
                 },
             ],
+            "districts": [
+                {
+                    "district": district.id,
+                    "description": "District description",
+                },
+            ],
             "prioritized_hazard_and_impact": "Floods with potential heavy impact.",
+            "potential_risks": [
+                {
+                    "risk": "Potential risk 1",
+                },
+                {
+                    "risk": "Potential risk 2",
+                },
+            ],
             "risks_selected_protocols": "Protocol A and Protocol B.",
+            "early_actions": [
+                {
+                    "action": "Early action 1",
+                },
+                {
+                    "action": "Early action 2",
+                },
+            ],
             "selected_early_actions": "The early actions selected.",
             "overall_objective_intervention": "To reduce risks through early actions.",
             "potential_geographical_high_risk_areas": "Area 1, Area 2, and Area 3.",
@@ -713,6 +745,11 @@ class EAPSimplifiedTestCase(APITestCase):
             eap_registration.get_eap_type_enum,
             EAPType.SIMPLIFIED_EAP,
         )
+
+        # Check districts (Admin1) saved with their per-selection description
+        self.assertEqual(len(response.data["districts"]), 1)
+        self.assertEqual(response.data["districts"][0]["district"], district.id)
+        self.assertEqual(response.data["districts"][0]["description"], "District description")
 
         # Check latest simplified EAP in registration
         eap_registration.refresh_from_db()
@@ -1275,6 +1312,8 @@ class EAPStatusTransitionTestCase(APITestCase):
             ),
             planned_operations=[planned_operation.id],
             enabling_approaches=[enabling_approach.id],
+            potential_risks=[PotentialRisk.objects.create(risk="Potential risk").id],
+            early_actions=[EAPAction.objects.create(action="Early action").id],
         )
         self.eap_registration.latest_simplified_eap = simplified_eap
         self.eap_registration.save()
@@ -1583,10 +1622,21 @@ class EAPStatusTransitionTestCase(APITestCase):
         self.assertEqual(response.status_code, 400)
 
         # Login as IFRC admin user
-        # SUCCESS: As only ifrc admins or superuser can
+        # FAILS: As final_review_checklist_file is required
         self.authenticate(self.ifrc_admin_user)
         response = self.client.post(self.url, data, format="json")
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 400)
+
+        # Uploading final review checklist file
+        # SUCCESS: As only ifrc admins or superuser can
+        with tempfile.NamedTemporaryFile(suffix=".xlsx") as final_review_checklist_file:
+            final_review_checklist_file.write(b"Test content")
+            final_review_checklist_file.seek(0)
+
+            data["final_review_checklist_file"] = final_review_checklist_file
+
+            response = self.client.post(self.url, data, format="multipart")
+        self.assertEqual(response.status_code, 200, response.data)
         self.assertEqual(response.data["status"], EAPStatus.TECHNICALLY_VALIDATED)
         self.eap_registration.refresh_from_db()
         self.assertIsNotNone(
@@ -1715,9 +1765,20 @@ class EAPStatusTransitionTestCase(APITestCase):
         self.assertEqual(response.status_code, 400)
 
         # Login as IFRC admin user
-        # SUCCESS: As only ifrc admins or superuser can
+        # FAILS: As final_review_checklist_file is required
         self.authenticate(self.ifrc_admin_user)
         response = self.client.post(self.url, data, format="json")
+        self.assertEqual(response.status_code, 400)
+
+        # Uploading final review checklist file
+        # SUCCESS: As only ifrc admins or superuser can
+        with tempfile.NamedTemporaryFile(suffix=".xlsx") as final_review_checklist_file:
+            final_review_checklist_file.write(b"Test content")
+            final_review_checklist_file.seek(0)
+
+            data["final_review_checklist_file"] = final_review_checklist_file
+
+            response = self.client.post(self.url, data, format="multipart")
         self.assertEqual(response.status_code, 200, response.data)
         self.assertEqual(response.data["status"], EAPStatus.TECHNICALLY_VALIDATED)
         self.eap_registration.refresh_from_db()
@@ -1865,6 +1926,8 @@ class EAPStatusTransitionTestCase(APITestCase):
             ),
             planned_operations=[planned_operation.id],
             enabling_approaches=[enabling_approach.id],
+            potential_risks=[PotentialRisk.objects.create(risk="Potential risk").id],
+            early_actions=[EAPAction.objects.create(action="Early action").id],
         )
         eap_registration.latest_simplified_eap = simplified_eap
         eap_registration.save()
@@ -2027,8 +2090,14 @@ class EAPStatusTransitionTestCase(APITestCase):
         # Transition UNDER_REVIEW -> TECHNICALLY_VALIDATED
         data = {"status": EAPStatus.TECHNICALLY_VALIDATED}
         self.authenticate(self.ifrc_admin_user)
-        with self.capture_on_commit_callbacks(execute=True):
-            response = self.client.post(url, data, format="json")
+        with tempfile.NamedTemporaryFile(suffix=".xlsx") as final_review_checklist_file:
+            final_review_checklist_file.write(b"Test content")
+            final_review_checklist_file.seek(0)
+
+            data["final_review_checklist_file"] = final_review_checklist_file
+
+            with self.capture_on_commit_callbacks(execute=True):
+                response = self.client.post(url, data, format="multipart")
         self.assert_200(response)
         self.assertEqual(response.data["status"], EAPStatus.TECHNICALLY_VALIDATED)
         eap_registration.refresh_from_db()
@@ -2107,8 +2176,14 @@ class EAPStatusTransitionTestCase(APITestCase):
         # Again Transition UNDER_REVIEW -> TECHNICALLY_VALIDATED
         data = {"status": EAPStatus.TECHNICALLY_VALIDATED}
         self.authenticate(self.ifrc_admin_user)
-        with self.capture_on_commit_callbacks(execute=True):
-            response = self.client.post(url, data, format="json")
+        with tempfile.NamedTemporaryFile(suffix=".xlsx") as final_review_checklist_file:
+            final_review_checklist_file.write(b"Test content")
+            final_review_checklist_file.seek(0)
+
+            data["final_review_checklist_file"] = final_review_checklist_file
+
+            with self.capture_on_commit_callbacks(execute=True):
+                response = self.client.post(url, data, format="multipart")
         self.assert_200(response)
         eap_registration.refresh_from_db()
         self.assertEqual(response.data["status"], EAPStatus.TECHNICALLY_VALIDATED)
@@ -2424,11 +2499,19 @@ class EAPFullTestCase(APITestCase):
             modified_by=self.country_admin,
         )
 
+        district = DistrictFactory.create(country=self.country)
+
         data = {
             "eap_registration": eap_registration.id,
             "national_society_contact_name": "National society contact name",
             "national_society_contact_title": "National society contact title",
             "national_society_contact_email": "test@example.com",
+            "districts": [
+                {
+                    "district": district.id,
+                    "description": "District description",
+                },
+            ],
             "early_actions": [
                 {
                     "action": "Early action 1",
@@ -2653,6 +2736,11 @@ class EAPFullTestCase(APITestCase):
             "Newly created Full EAP should not be locked.",
         )
 
+        # Check districts (Admin1) saved with their per-selection description
+        self.assertEqual(len(response.data["districts"]), 1)
+        self.assertEqual(response.data["districts"][0]["district"], district.id)
+        self.assertEqual(response.data["districts"][0]["description"], "District description")
+
         # Check latest simplified EAP in registration
         eap_registration.refresh_from_db()
         self.assertEqual(
@@ -2760,6 +2848,14 @@ class TestSnapshotEAP(APITestCase):
             description="Key actor 1 description",
         )
 
+        early_action_1 = EAPAction.objects.create(action="Early action 1")
+        early_action_2 = EAPAction.objects.create(action="Early action 2")
+
+        selected_district = Admin1.objects.create(
+            district=DistrictFactory.create(country=self.country),
+            description="District description",
+        )
+
         planned_operation = PlannedOperationFactory.create(
             sector=PlannedOperation.Sector.SHELTER_SETTLEMENT_AND_HOUSING,
             people_targeted=5000,
@@ -2795,6 +2891,10 @@ class TestSnapshotEAP(APITestCase):
         original.enabling_approaches.add(enabling_approach)
         original.planned_operations.add(planned_operation)
         original.hazard_selection_files.add(hazard_selection_image_1, hazard_selection_image_2)
+        original.early_actions.add(early_action_1, early_action_2)
+        original.districts.add(selected_district)
+        original.review_checklist_file = "eap/files/review-checklist.xlsx"
+        original.save(update_fields=["review_checklist_file"])
 
         # Generate snapshot
         snapshot = original.generate_snapshot()
@@ -2863,6 +2963,21 @@ class TestSnapshotEAP(APITestCase):
             orig_hazard_images[0].pk,
             snapshot_hazard_images[0].pk,
         )
+
+        # M2M districts deeply cloned (each selection carries its own description)
+        orig_districts = list(original.districts.all())
+        snapshot_districts = list(snapshot.districts.all())
+        self.assertEqual(len(orig_districts), len(snapshot_districts))
+        self.assertNotEqual(orig_districts[0].pk, snapshot_districts[0].pk)
+        self.assertEqual(
+            orig_districts[0].district_id,
+            snapshot_districts[0].district_id,
+        )
+        self.assertEqual(
+            orig_districts[0].description,
+            snapshot_districts[0].description,
+        )
+
         # M2M Actors deeply cloned
         orig_actors = list(original.key_actors.all())
         snapshot_actors = list(snapshot.key_actors.all())
@@ -2877,11 +2992,31 @@ class TestSnapshotEAP(APITestCase):
             snapshot_actors[0].description,
         )
 
+        # M2M early actions deeply cloned
+        orig_early_actions = list(original.early_actions.all())
+        snapshot_early_actions = list(snapshot.early_actions.all())
+        self.assertEqual(len(orig_early_actions), len(snapshot_early_actions))
+        self.assertNotEqual(orig_early_actions[0].pk, snapshot_early_actions[0].pk)
+        self.assertEqual(
+            orig_early_actions[0].action,
+            snapshot_early_actions[0].action,
+        )
+
+        # review_checklist_file is reset on new snapshot
+        self.assertTrue(original.review_checklist_file)
+        self.assertFalse(snapshot.review_checklist_file)
+
         # Assert previous_id for all M2M objects
         for orig, snap in zip(original.key_actors.all(), snapshot.key_actors.all()):
             self.assertEqual(snap.previous_id, orig.pk)
 
         for orig, snap in zip(original.enabling_approaches.all(), snapshot.enabling_approaches.all()):
+            self.assertEqual(snap.previous_id, orig.pk)
+
+        for orig, snap in zip(original.early_actions.all(), snapshot.early_actions.all()):
+            self.assertEqual(snap.previous_id, orig.pk)
+
+        for orig, snap in zip(original.districts.all(), snapshot.districts.all()):
             self.assertEqual(snap.previous_id, orig.pk)
 
         for orig_op, snap_op in zip(original.planned_operations.all(), snapshot.planned_operations.all()):

@@ -355,9 +355,10 @@ class DrefFileViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.G
         permission_classes=[permissions.IsAuthenticated, DenyGuestUserPermission],
     )
     def multiple_file(self, request, pk=None, version=None):
-        input_serializer = DrefFileInputSerializer(data=request.data)
-        input_serializer.is_valid(raise_exception=True)
-        files = input_serializer.validated_data["file"]
+        # NOTE: Files may share one key or use distinct per-file keys; flatten across all keys.
+        files = [file for _, file_list in request.data.lists() for file in file_list] if hasattr(request.data, "lists") else []
+        if not files:
+            raise serializers.ValidationError({"file": "This field is required."})
         data = [{"file": file} for file in files]
         file_serializer = DrefFileSerializer(data=data, context={"request": request}, many=True)
         if file_serializer.is_valid():

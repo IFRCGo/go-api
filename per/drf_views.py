@@ -11,7 +11,7 @@ from django_filters import rest_framework as filters
 from django_filters.widgets import CSVWidget
 from drf_spectacular.utils import extend_schema
 from openpyxl import Workbook
-from rest_framework import mixins, permissions, response
+from rest_framework import mixins, permissions, response, serializers
 from rest_framework import status as drf_status
 from rest_framework import views, viewsets
 from rest_framework.authentication import TokenAuthentication
@@ -1108,9 +1108,10 @@ class PerFileViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.Ge
         permission_classes=[permissions.IsAuthenticated, DenyGuestUserPermission],
     )
     def multiple_file(self, request, pk=None, version=None):
-        input_serializer = PerFileInputSerializer(data=request.data)
-        input_serializer.is_valid(raise_exception=True)
-        files = input_serializer.validated_data["file"]
+        # NOTE: Files may share one key or use distinct per-file keys; flatten across all keys.
+        files = [file for _, file_list in request.data.lists() for file in file_list] if hasattr(request.data, "lists") else []
+        if not files:
+            raise serializers.ValidationError({"file": "This field is required."})
         data = [{"file": file} for file in files]
         file_serializer = PerFileSerializer(data=data, context={"request": request}, many=True)
         if file_serializer.is_valid():

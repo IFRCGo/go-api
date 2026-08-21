@@ -83,9 +83,10 @@ class FlashUpdateFileViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, vie
         permission_classes=[permissions.IsAuthenticated, DenyGuestUserPermission],
     )
     def multiple_file(self, request, pk=None, version=None):
-        input_serializer = FlashGraphicMapFileInputSerializer(data=request.data)
-        input_serializer.is_valid(raise_exception=True)
-        files = input_serializer.validated_data["file"]
+        # NOTE: Files may share one key or use distinct per-file keys; flatten across all keys.
+        files = [file for _, file_list in request.data.lists() for file in file_list] if hasattr(request.data, "lists") else []
+        if not files:
+            raise serializers.ValidationError({"file": "This field is required."})
         data = [{"file": file} for file in files]
         if len(data) > 3:
             raise serializers.ValidationError("Number of files selected should not be greater than 3")
