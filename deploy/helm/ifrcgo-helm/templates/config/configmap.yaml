@@ -50,6 +50,7 @@ data:
 
   EOAPI_STAC_EXTERNAL_URL: {{ .Values.env.EOAPI_STAC_EXTERNAL_URL | quote }}
   EOAPI_STAC_INTERNAL_URL: {{ .Values.env.EOAPI_STAC_INTERNAL_URL | quote }}
+  USE_DUMMY_LLM_CLIENT: {{ .Values.env.USE_DUMMY_LLM_CLIENT | quote }}
 
   # Additional configs
   {{- range $name, $value := .Values.envAdditional }}

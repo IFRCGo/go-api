@@ -1,17 +1,25 @@
 import logging
+from datetime import timedelta
+from enum import Enum
+from typing import Optional
 
 from celery import shared_task
 from django.apps import apps
+from django.db import transaction
 from django.template.loader import render_to_string
+from django.utils import timezone
 
 from api.utils import get_model_name
 from lang.tasks import translate_model_fields
+from main.lock import RedisLockKey, redis_lock
 from main.translation import TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME
+from main.utils import logger_context
 from notifications.notification import send_notification
 
 from .models import (
     Dref,
     DrefFile,
+    DrefSummary,
     IdentifiedNeed,
     NationalSocietyAction,
     PlannedIntervention,
@@ -21,9 +29,26 @@ from .models import (
     RiskSecurity,
     SourceInformation,
 )
+from .summary import DrefSummaryGenerator
 from .utils import get_email_context
 
 logger = logging.getLogger(__name__)
+
+# The PROCESSING status has no TTL of its own (see comment in generate_dref_summary
+# below), so a row can get stuck PROCESSING forever if a worker dies mid-generation.
+# Treat it as stale past this, so a later trigger can take over.
+PROCESSING_STALE_AFTER = timedelta(minutes=10)
+
+
+class DrefSummaryGenerationResult(str, Enum):
+    """Outcome of a ``generate_dref_summary`` run."""
+
+    SUCCESS = "success"
+    SOURCE_NOT_FOUND = "source_not_found"
+    ALREADY_IN_PROGRESS = "already_in_progress"
+    UP_TO_DATE = "up_to_date"
+    FAILED = "failed"
+    SUPERSEDED = "superseded"
 
 
 @shared_task
@@ -55,6 +80,112 @@ TRANSLATABLE_RELATED_MODELS = [
     PlannedInterventionIndicators,
     SourceInformation,
 ]
+
+
+@shared_task(soft_time_limit=600, time_limit=630)
+def generate_dref_summary(dref_id: int, overwrite: bool = False) -> DrefSummaryGenerationResult:
+    """Generate and store the AI-assisted summaries for a DREF.
+
+    Always (re)generates from whichever approved source is currently latest
+    for the DREF (see ``get_latest_approved_source``), rather than a
+    specific source passed in, so it self-corrects no matter which
+    approval triggered it or the order concurrent runs execute in.
+    """
+    dref = Dref.objects.filter(id=dref_id).first()
+    if not dref:
+        logger.error("Dref not found for summary generation", extra=logger_context({"dref_id": dref_id}))
+        return DrefSummaryGenerationResult.SOURCE_NOT_FOUND
+
+    # The Redis lock only needs to guard the brief read-check-mark-PROCESSING
+    # section below against a concurrent trigger for the same DREF (double-
+    # approve, admin retrigger, ...); it is released before the LLM call.
+    # The PROCESSING status written inside the lock is what actually blocks
+    # a second run for as long as generation takes - unlike the lock, it has
+    # no TTL, so it still holds even if generation outlives lock_expire.
+    with redis_lock(key=RedisLockKey.DREF_SUMMARY, id=dref_id) as acquired:
+        if not acquired:
+            logger.warning(f"DREF summary generation already in progress for DREF ({dref_id}); skipping.")
+            return DrefSummaryGenerationResult.ALREADY_IN_PROGRESS
+
+        latest_source = DrefSummaryGenerator.get_latest_approved_source(dref)
+        if not latest_source:
+            logger.error(f"No approved source found for DREF ({dref_id}) summary")
+            return DrefSummaryGenerationResult.SOURCE_NOT_FOUND
+        source_type, source_obj = latest_source
+
+        section_kwargs = DrefSummaryGenerator.get_section_kwargs(source_obj)
+        source_hash = DrefSummaryGenerator.compute_source_hash(source_obj, section_kwargs=section_kwargs)
+        summary_instance: Optional[DrefSummary] = DrefSummary.objects.filter(dref=dref).first()
+
+        if (
+            summary_instance
+            and summary_instance.status == DrefSummary.SummaryStatus.PROCESSING
+            and timezone.now() - summary_instance.updated_at < PROCESSING_STALE_AFTER
+            and summary_instance.source == source_type
+            and summary_instance.source_id == source_obj.id
+        ):
+            # Same source already in flight; a different one falls through to regenerate below.
+            logger.warning(f"DREF summary already in progress for DREF ({dref_id}); skipping.")
+            return DrefSummaryGenerationResult.ALREADY_IN_PROGRESS
+
+        if (
+            summary_instance
+            and not overwrite
+            and summary_instance.source_hash == source_hash
+            and summary_instance.status == DrefSummary.SummaryStatus.SUCCESS
+        ):
+            logger.info(f"DREF summary up to date for DREF ({dref_id}); skipping generation.")
+            return DrefSummaryGenerationResult.UP_TO_DATE
+
+        if summary_instance is None:
+            summary_instance = DrefSummary(dref=dref)
+
+        try:
+            summary_instance.source_hash = source_hash
+            summary_instance.source = source_type
+            summary_instance.source_id = source_obj.id
+            summary_instance.status = DrefSummary.SummaryStatus.PROCESSING
+            summary_instance.save()
+        except Exception:
+            logger.warning(f"Failed to mark DREF summary as processing for DREF ({dref_id})", exc_info=True)
+            if summary_instance.pk:
+                summary_instance.status = DrefSummary.SummaryStatus.FAILED
+                summary_instance.save()
+            return DrefSummaryGenerationResult.FAILED
+
+    # Lock released. The (possibly slow) LLM call runs unlocked; the
+    # PROCESSING status set above is what a concurrent trigger checks.
+    own_marker = {
+        "pk": summary_instance.pk,
+        "source": source_type,
+        "source_id": source_obj.id,
+        "status": DrefSummary.SummaryStatus.PROCESSING,
+    }
+    try:
+        logger.info(f"Generating DREF summaries for DREF ({dref_id}) from ({source_type.label}) ({source_obj.id})")
+        results = DrefSummaryGenerator().generate_all(source_obj, section_kwargs=section_kwargs)
+        with transaction.atomic():
+            latest_summary_instance = DrefSummary.objects.select_for_update().filter(**own_marker).first()
+            if latest_summary_instance is None:
+                logger.warning(f"DREF summary run for DREF ({dref_id}) was superseded by a newer trigger; discarding result.")
+                return DrefSummaryGenerationResult.SUPERSEDED
+            for field_name, value in results.items():
+                setattr(latest_summary_instance, field_name, value)
+            latest_summary_instance.status = DrefSummary.SummaryStatus.SUCCESS
+            latest_summary_instance.save()
+        logger.info(f"Successfully generated DREF summaries for DREF ({dref_id})")
+        transaction.on_commit(lambda: translate_model_fields.delay(get_model_name(DrefSummary), latest_summary_instance.pk))
+        return DrefSummaryGenerationResult.SUCCESS
+    except Exception:
+        with transaction.atomic():
+            latest_summary_instance = DrefSummary.objects.select_for_update().filter(**own_marker).first()
+            if latest_summary_instance is None:
+                logger.warning(f"DREF summary run for DREF ({dref_id}) failed but was already superseded; leaving it as is.")
+            else:
+                latest_summary_instance.status = DrefSummary.SummaryStatus.FAILED
+                latest_summary_instance.save()
+                logger.warning(f"DREF summary generation failed for DREF ({dref_id})", exc_info=True)
+        return DrefSummaryGenerationResult.FAILED
 
 
 @shared_task

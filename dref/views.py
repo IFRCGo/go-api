@@ -38,6 +38,7 @@ from dref.serializers import (
     AddDrefUserSerializer,
     CompletedDrefOperationsSerializer,
     Dref3Serializer,
+    DrefApproveSerializer,
     DrefFileInputSerializer,
     DrefFileSerializer,
     DrefFinalReport3Serializer,
@@ -49,7 +50,9 @@ from dref.serializers import (
     DrefShareUserSerializer,
     MiniDrefSerializer,
 )
-from dref.tasks import process_dref_translation
+from dref.tasks import generate_dref_summary, process_dref_translation
+from dref.utils import create_event_from_dref, sync_event_glide
+from lang.serializers import TranslatedModelSerializerMixin
 from main.permissions import DenyGuestUserPermission
 
 logger = logging.getLogger(__name__)
@@ -90,23 +93,52 @@ class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
         )
         return filter_dref_queryset_by_user_access(user, queryset)
 
-    @extend_schema(request=None, responses=DrefSerializer)
+    @extend_schema(
+        request=DrefApproveSerializer,
+        responses=DrefSerializer,
+    )
     @action(
         detail=True,
         url_path="approve",
         methods=["post"],
-        permission_classes=[permissions.IsAuthenticated, ApproveDrefPermission, DenyGuestUserPermission],
+        permission_classes=[
+            permissions.IsAuthenticated,
+            ApproveDrefPermission,
+            DenyGuestUserPermission,
+        ],
     )
     def get_approved(self, request, pk=None, version=None):
-        dref = self.get_object()
+        dref: Dref = self.get_object()
+
         if dref.status == Dref.Status.APPROVED:
             raise serializers.ValidationError(gettext("This Dref has already been approved."))
+
         if dref.status != Dref.Status.FINALIZED:
             raise serializers.ValidationError(gettext("Must be finalized before it can be approved"))
+
+        serializer = DrefApproveSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        event = serializer.validated_data.get("event", None)
+
+        if dref.event and event and dref.event != event:
+            raise serializers.ValidationError({"event": gettext("This Dref is already attached to an event.")})
+
+        # NOTE: If the Dref is not attached to an event,
+        # attaching it to the provided event or create a new one if not provided.
+        if not dref.event:
+            if event:
+                dref.event = event
+            else:
+                event = create_event_from_dref(dref)
+                dref.event = event
+                # Translate the emergency instance
+                TranslatedModelSerializerMixin.trigger_field_translation(event)
+
         dref.status = Dref.Status.APPROVED
-        dref.save(update_fields=["status"])
-        serializer = DrefSerializer(dref, context={"request": request})
-        return response.Response(serializer.data)
+        dref.save(update_fields=["event", "status"])
+        transaction.on_commit(lambda: generate_dref_summary.delay(dref_id=dref.id))
+        return response.Response(DrefSerializer(dref, context={"request": request}).data)
 
     @extend_schema(request=None, responses=DrefSerializer)
     @action(
@@ -200,7 +232,10 @@ class DrefOperationalUpdateViewSet(RevisionMixin, viewsets.ModelViewSet):
             raise serializers.ValidationError(gettext("Must be finalized before it can be approved."))
 
         operational_update.status = Dref.Status.APPROVED
-        operational_update.save(update_fields=["status"])
+        operational_update.date_of_approval = timezone.now().date()
+        operational_update.save(update_fields=["status", "date_of_approval"])
+        sync_event_glide(operational_update.dref.event, operational_update.glide_code)
+        transaction.on_commit(lambda: generate_dref_summary.delay(dref_id=operational_update.dref_id))
         serializer = DrefOperationalUpdateSerializer(operational_update, context={"request": request})
         return response.Response(serializer.data)
 
@@ -265,10 +300,12 @@ class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
             raise serializers.ValidationError(gettext("Must be finalized before it can be approved."))
 
         final_report.status = Dref.Status.APPROVED
-        final_report.save(update_fields=["status"])
-        final_report.dref.is_active = False
         final_report.date_of_approval = timezone.now().date()
-        final_report.dref.save(update_fields=["is_active", "date_of_approval"])
+        final_report.save(update_fields=["status", "date_of_approval"])
+        final_report.dref.is_active = False
+        final_report.dref.save(update_fields=["is_active"])
+        sync_event_glide(final_report.dref.event, final_report.glide_code)
+        transaction.on_commit(lambda: generate_dref_summary.delay(dref_id=final_report.dref_id))
         serializer = DrefFinalReportSerializer(final_report, context={"request": request})
         return response.Response(serializer.data)
 
@@ -335,7 +372,22 @@ class CompletedDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
         DenyGuestUserPermission,
     ]
     filterset_class = CompletedDrefOperationsFilterSet
-    queryset = DrefFinalReport.objects.filter(status=Dref.Status.APPROVED).order_by("-created_at").distinct()
+    queryset = (
+        DrefFinalReport.objects.filter(status=Dref.Status.APPROVED)
+        .select_related("country", "dref", "dref__country")
+        .prefetch_related(
+            # MiniDrefSerializer.operational_update_details reads this prefetched
+            # attr; without it DRF silently drops the field.
+            Prefetch(
+                "dref__drefoperationalupdate_set",
+                queryset=DrefOperationalUpdate.objects.select_related("country").order_by("-created_at"),
+                to_attr="prefetched_operational_updates",
+            ),
+            "dref__dreffinalreport__country",
+        )
+        .order_by("-created_at")
+        .distinct()
+    )
 
     def get_queryset(self):
         user = self.request.user

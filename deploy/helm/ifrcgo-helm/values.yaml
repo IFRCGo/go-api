@@ -71,6 +71,7 @@ env:
   RELIEF_WEB_APP_NAME: ''
   POWERBI_WORKSPACE_ID: ''
   POWERBI_DATASET_IDS: ''
+  USE_DUMMY_LLM_CLIENT: ''
 
 # NOTE: Used to pass additional configs to api/worker containers
 # NOTE: Not used by azure vault

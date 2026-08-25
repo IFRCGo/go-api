@@ -91,6 +91,9 @@ router.register(r"disaster_type", api_views.DisasterTypeViewset, basename="disas
 router.register(r"admin2", api_views.Admin2Viewset, basename="admin2")
 router.register(r"district", api_views.DistrictViewset, basename="district")
 router.register(r"district_rmd", api_views.DistrictRMDViewset, basename="district_rmd")
+
+router.register(r"emergency", api_views.EmergencyViewset, basename="emergency")
+
 router.register(r"domainwhitelist", registration_views.DomainWhitelistViewset)
 router.register(r"eru", deployment_views.ERUViewset, basename="eru")
 router.register(
@@ -269,6 +272,7 @@ urlpatterns = [
     url(r"^api/v2/per-options/", per_views.PerOptionsView.as_view()),
     url(r"^api/v2/export-per/(?P<pk>\d+)/", per_views.ExportPerView.as_view()),
     url(r"^api/v2/local-units-options/", local_units_views.LocalUnitOptionsView.as_view()),
+    # NOTE: This should be removed as DefaultRouter should cover this.
     url(r"^api/v2/event/(?P<pk>\d+)", api_views.EventViewset.as_view({"get": "retrieve"})),
     url(r"^api/v2/event/(?P<slug>[-\w]+)", api_views.EventViewset.as_view({"get": "retrieve"}, lookup_field="slug")),
     url(r"^api/v2/delegation-office/(?P<pk>\d+)", DelegationOfficeDetailAPIView.as_view()),

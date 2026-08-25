@@ -8,7 +8,6 @@ from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import Permission, User
 from django.contrib.gis import admin as geoadmin
-from django.core.exceptions import ValidationError
 from django.db.models import OuterRef, Subquery, Value
 from django.db.models.functions import Concat
 from django.http import HttpResponse, HttpResponseRedirect
@@ -26,7 +25,6 @@ from reversion_compare.admin import CompareVersionAdmin
 
 import api.models as models
 from api.admin_classes import RegionRestrictedAdmin
-from api.event_sources import SOURCES
 from api.management.commands.index_and_notify import Command as Notify
 from lang.admin import TranslationAdmin, TranslationInlineModelAdmin
 from notifications.models import RecordType, SubscriptionType
@@ -182,38 +180,6 @@ class IsFeaturedFilter(admin.SimpleListFilter):
             return queryset.filter(is_featured=False)
 
 
-class EventSourceFilter(admin.SimpleListFilter):
-    title = _("source")
-    parameter_name = "event_source"
-
-    def lookups(self, request, model_admin):
-        return (
-            ("input", _("Manual input")),
-            ("gdacs", _("GDACs scraper")),
-            ("who", _("WHO scraper")),
-            ("report_ingest", _("Field report ingest")),
-            ("report_admin", _("Field report admin")),
-            ("appeal_admin", _("Appeals admin")),
-            ("unknown", _("Unknown automated")),
-        )
-
-    def queryset(self, request, queryset):
-        if self.value() == "input":
-            return queryset.filter(auto_generated=False)
-        elif self.value() == "gdacs":
-            return queryset.filter(auto_generated_source=SOURCES["gdacs"])
-        elif self.value() == "who":
-            return queryset.filter(auto_generated_source__startswith="www.who.int")
-        elif self.value() == "report_ingest":
-            return queryset.filter(auto_generated_source=SOURCES["report_ingest"])
-        elif self.value() == "report_admin":
-            return queryset.filter(auto_generated_source=SOURCES["report_admin"])
-        elif self.value() == "appeal_admin":
-            return queryset.filter(auto_generated_source=SOURCES["appeal_admin"])
-        elif self.value() == "unknown":
-            return queryset.filter(auto_generated=True).filter(auto_generated_source__isnull=True)
-
-
 class DisasterTypeAdmin(CompareVersionAdmin, TranslationAdmin, admin.ModelAdmin):
     search_fields = ("name",)
 
@@ -242,7 +208,55 @@ class EventLinkInline(admin.TabularInline, TranslationInlineModelAdmin):
     model = models.EventLink
 
 
+class EventAdminForm(forms.ModelForm):
+    class Meta:
+        model = models.Event
+        fields = "__all__"
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if self.instance.pk is None:
+            return cleaned_data
+
+        new_severity = cleaned_data.get("ifrc_severity_level")
+        new_update_date = cleaned_data.get("ifrc_severity_level_update_date")
+        original_severity = self.instance.ifrc_severity_level
+        original_update_date = self.instance.ifrc_severity_level_update_date
+
+        if original_update_date is not None and new_update_date is None:
+            self.add_error(
+                "ifrc_severity_level_update_date",
+                "This field cannot be cleared once it has been set.",
+            )
+            return cleaned_data
+
+        severity_changed = original_severity != new_severity
+        update_date_changed = original_update_date != new_update_date
+
+        if severity_changed and not update_date_changed:
+            self.add_error(
+                "ifrc_severity_level_update_date",
+                "You must update this field when changing the severity level.",
+            )
+            return cleaned_data
+
+        if (
+            severity_changed
+            and update_date_changed
+            and original_update_date is not None
+            and new_update_date is not None
+            and original_update_date > new_update_date
+        ):
+            self.add_error(
+                "ifrc_severity_level_update_date",
+                "This date can not be earlier than the previous one.",
+            )
+
+        return cleaned_data
+
+
 class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
+    form = EventAdminForm
 
     @admin.display(ordering="ifrc_severity_level_update_date")
     def level_updated_at(self, obj):
@@ -270,9 +284,9 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
         "cc_status",
         "glide",
         "auto_generated",
-        "auto_generated_source",
+        "source",
     )
-    list_filter = [IsFeaturedFilter, EventSourceFilter]
+    list_filter = [IsFeaturedFilter, "source"]
     actions = ["create_field_reports"]
     search_fields = (
         "name",
@@ -393,7 +407,7 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
             self.readonly_fields = (
                 "appeals",
                 "field_reports",
-                "auto_generated_source",
+                "source",
                 "parent_event",
                 "created_at",
                 "updated_at",
@@ -402,9 +416,10 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
             self.readonly_fields = (
                 "appeals",
                 "field_reports",
-                "auto_generated_source",
+                "source",
                 "created_at",
                 "updated_at",
+                "who_guid",
             )
 
         # Set severity level from GET parameter
@@ -461,19 +476,8 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
             severity_changed = original.ifrc_severity_level != obj.ifrc_severity_level
             update_date_changed = original.ifrc_severity_level_update_date != obj.ifrc_severity_level_update_date
 
-            if severity_changed and not update_date_changed:
-                messages.error(
-                    request, "You must update the 'IFRC Severity Level Update Date/Time' when changing the severity level."
-                )
-                raise ValidationError("Cannot change severity level without updating the update date/time.")
-
+            # Validation for these fields is handled in EventAdminForm.clean().
             if severity_changed and update_date_changed:
-                if (
-                    original.ifrc_severity_level_update_date is not None
-                    and original.ifrc_severity_level_update_date > obj.ifrc_severity_level_update_date
-                ):
-                    messages.error(request, "A severity level update date can not be earlier than the previous one.")
-                    raise ValidationError("A severity level update date can not be earlier than the previous one.")
                 models.EventSeverityLevelHistory.objects.create(
                     event=obj,
                     ifrc_severity_level=original.ifrc_severity_level,
@@ -675,7 +679,7 @@ class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAd
                 dtype=getattr(report, "dtype"),
                 disaster_start_date=getattr(report, "created_at"),
                 auto_generated=True,
-                auto_generated_source=SOURCES["report_admin"],
+                source=models.Event.EventSource.FIELD_REPORT_ADMIN,
             )
             if getattr(report, "countries").exists():
                 for country in report.countries.all():
@@ -784,7 +788,7 @@ class AppealAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
                 dtype=getattr(appeal, "dtype"),
                 disaster_start_date=getattr(appeal, "start_date"),
                 auto_generated=True,
-                auto_generated_source=SOURCES["appeal_admin"],
+                source=models.Event.EventSource.APPEAL_ADMIN,
             )
             if appeal.country is not None:
                 event.countries.add(appeal.country)

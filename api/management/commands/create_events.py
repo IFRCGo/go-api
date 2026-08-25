@@ -1,6 +1,5 @@
 from django.core.management.base import BaseCommand
 
-from api.event_sources import SOURCES
 from api.models import Appeal, Event
 
 
@@ -18,7 +17,7 @@ class Command(BaseCommand):
                 "dtype": appeal.dtype,
                 "disaster_start_date": appeal.start_date,
                 "auto_generated": True,
-                "auto_generated_source": SOURCES["appeal_admin"],
+                "source": Event.EventSource.APPEAL_ADMIN,
             }
             event = Event.objects.create(**fields)
             if appeal.country is not None:

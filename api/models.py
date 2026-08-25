@@ -761,11 +761,47 @@ def snippet_image_path(instance, filename):
     return "emergencies/%s/%s" % (instance.id, filename)
 
 
+# NOTE: Stage for the emergency timeline
+class EventStage(models.IntegerChoices):
+    EMERGENCY_APPEAL = 1, _("Emergency Appeal")
+    DREF_APPLICATION = 2, _("DREF Application")
+    DREF_OPERATIONAL_UPDATE = 3, _("DREF Operational Update")
+    DREF_FINAL_REPORT = 4, _("DREF Final Report")
+    FIELD_REPORT = 5, _("Field Report")
+    DREF_APPEAL_ONLY = 6, _("DREF")
+
+
 # NOTE: If ever in future we need to create an api to update the event table
 # we also need to make sure to add appropriate signal to create ifrc severity level event history
 @reversion.register()
 class Event(models.Model):
     """A disaster, which could cover multiple countries"""
+
+    class EventSource(models.IntegerChoices):
+
+        MANUAL_INPUT = 100, _("Manual input")
+        """MANUAL_INPUT: Event data manually entered by a user through the event administration interface."""
+
+        GDACS = 110, _("GDACs scraper")
+        """GDACS: Event data automatically ingested from the GDACS scraper."""
+
+        WHO = 120, _("WHO scraper")
+        """WHO: Event data automatically ingested from the (WHO) scraper."""
+
+        FIELD_REPORT_DMIS_INGEST = 130, _("Field report DMIS ingest")
+        """FIELD_REPORT_DMIS_INGEST: Event data imported through the DMIS field report."""
+
+        FIELD_REPORT_ADMIN = 140, _("Field report admin")
+        """FIELD_REPORT_ADMIN: Event data created or modified via the field report administration interface."""
+
+        APPEAL_ADMIN = 150, _("Appeal admin")
+        """APPEAL_ADMIN: Event data created or managed through the appeal administration interface."""
+
+        NEW_FIELD_REPORT = 160, _("New field report")
+        """NEW_FIELD_REPORT: Event data originating from newly created field reports."""
+
+        DREF = 170, _("DREF")
+        """DREF: Event originating records."""
 
     name = models.CharField(verbose_name=_("name"), max_length=256)
     dtype = models.ForeignKey(DisasterType, verbose_name=_("disaster type"), null=True, on_delete=models.SET_NULL)
@@ -819,15 +855,15 @@ class Event(models.Model):
         verbose_name=_("ifrc severity level update date"), null=True, blank=True
     )
     glide = models.CharField(verbose_name=_("glide"), max_length=18, blank=True)
-
+    # NOTE: who_guid field Stores WHO source ID extracted from auto_generated_source.
+    # Example normalization: "www.who.int.247249"->247249
+    who_guid = models.IntegerField(verbose_name=("Who guid"), blank=True, null=True)
     created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
     updated_at = models.DateTimeField(verbose_name=_("updated at"), auto_now=True)
     previous_update = models.DateTimeField(verbose_name=_("previous update"), null=True, blank=True)
 
     auto_generated = models.BooleanField(verbose_name=_("auto generated"), default=False, editable=False)
-    auto_generated_source = models.CharField(
-        verbose_name=_("auto generated source"), max_length=50, null=True, blank=True, editable=False
-    )
+    source = models.IntegerField(choices=EventSource.choices, default=EventSource.MANUAL_INPUT, verbose_name=_("Event source"))
 
     # Meant to give the organization a way of highlighting certain, important events.
     is_featured = models.BooleanField(default=False, verbose_name=_("is featured on home page"))
@@ -849,6 +885,11 @@ class Event(models.Model):
     emergency_response_contact_email = models.CharField(
         verbose_name=_("emergency response contact email"), null=True, blank=True, max_length=255
     )
+
+    # TYPING
+
+    id: int
+    pk: int
 
     class Meta:
         ordering = (

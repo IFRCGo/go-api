@@ -12,6 +12,7 @@ from ..models import (
     AppealHistory,
     AppealType,
     Event,
+    EventContact,
     EventFeaturedDocument,
     EventLink,
 )
@@ -25,6 +26,7 @@ class EventFactory(factory.django.DjangoModelFactory):
     name = fuzzy.FuzzyText(length=50)
     slug = fuzzy.FuzzyText(length=50)
     dtype = factory.SubFactory(DisasterTypeFactory)
+    source = fuzzy.FuzzyChoice(Event.EventSource)
 
     @factory.post_generation
     def districts(self, create, extracted, **kwargs):
@@ -72,7 +74,7 @@ class EventFactory(factory.django.DjangoModelFactory):
     previous_update = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
 
     auto_generated = fuzzy.FuzzyChoice([True, False])
-    auto_generated_source = fuzzy.FuzzyText(length=50)
+    source = fuzzy.FuzzyChoice(Event.EventSource.values)
 
     is_featured = fuzzy.FuzzyChoice([True, False])
     is_featured_region = fuzzy.FuzzyChoice([True, False])
@@ -133,3 +135,9 @@ class AppealHistoryFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = AppealHistory
+
+
+class EventContactFactory(factory.django.DjangoModelFactory):
+
+    class Meta:
+        model = EventContact

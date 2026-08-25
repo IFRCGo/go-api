@@ -1,7 +1,9 @@
 from django.conf import settings
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db import models
+from django.utils import timezone
 
+from api.models import Event
 from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
 
 
@@ -53,3 +55,41 @@ def get_dref_users():
             )
         )
     return dref_users_list
+
+
+def create_event_from_dref(dref: Dref) -> Event:
+    create_kwargs = dict(
+        name=dref.title,
+        dtype=dref.disaster_type,
+        summary=dref.event_description or dref.event_scope or "",
+        disaster_start_date=dref.event_date or dref.hazard_date,
+        glide=dref.glide_code or "",
+        auto_generated=True,
+        source=Event.EventSource.DREF,
+    )
+
+    # Dref.DisasterCategory and api.AlertLevel share the same 0/1/2 indices, so
+    # the value maps directly with no remap.
+    if dref.disaster_category is not None:
+        create_kwargs["ifrc_severity_level"] = dref.disaster_category
+        create_kwargs["ifrc_severity_level_update_date"] = dref.date_of_approval or timezone.now()
+
+    event = Event.objects.create(**create_kwargs)
+
+    country = getattr(dref, "country", None)
+    if country:
+        event.countries.add(dref.country)
+
+    event.districts.add(*dref.district.all())
+    region = getattr(country, "region", None)
+    if region:
+        event.regions.add(region)
+    return event
+
+
+def sync_event_glide(event: Event, glide_code: str) -> None:
+    """Propagate a revision's (ops-update/final-report) glide code back to its event."""
+    if not event or not glide_code or event.glide == glide_code:
+        return
+    event.glide = glide_code
+    event.save(update_fields=["glide"])

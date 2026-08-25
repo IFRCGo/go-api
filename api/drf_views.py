@@ -6,6 +6,7 @@ from django.db.models import (
     Avg,
     Case,
     Count,
+    Exists,
     ExpressionWrapper,
     F,
     OuterRef,
@@ -13,6 +14,7 @@ from django.db.models import (
     Q,
     Subquery,
     Sum,
+    Value,
     When,
 )
 from django.db.models.fields import IntegerField
@@ -59,6 +61,7 @@ from country_plan.models import CountryPlan
 from databank.serializers import CountryOverviewSerializer
 from deployments.models import ERU, Personnel
 from deployments.serializers import ListDeployedERUByEventSerializer
+from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
 from main.enums import GlobalEnumSerializer, get_enum_values
 from main.filters import NullsLastOrderingFilter
 from main.permissions import DenyGuestUserMutationPermission, DenyGuestUserPermission
@@ -73,6 +76,7 @@ from .models import (
     Appeal,
     AppealDocument,
     AppealHistory,
+    AppealStatus,
     AppealType,
     Country,
     CountryKeyDocument,
@@ -85,10 +89,13 @@ from .models import (
     Event,
     EventContact,
     EventFeaturedDocument,
+    EventLink,
     EventSeverityLevelHistory,
+    EventStage,
     Export,
     ExternalPartner,
     FieldReport,
+    KeyFigure,
     MainContact,
     Profile,
     Region,
@@ -123,6 +130,7 @@ from .serializers import (  # AppealSerializer,; Tableau Serializers; AppealTabl
     CountrySupportingPartnerSerializer,
     CountryTableauSerializer,
     DeploymentsByEventSerializer,
+    DetailEmergencySerializer,
     DetailEventSerializer,
     DisasterTypeSerializer,
     DistrictSerializer,
@@ -723,6 +731,33 @@ class Admin2Viewset(viewsets.ReadOnlyModelViewSet):
         )
 
 
+class EventOrderingFilter(NullsLastOrderingFilter):
+    """
+    Appends a deterministic (-disaster_start_date, id) fallback to whatever ordering was
+    requested, so paginated /api/v2/event/ results stay stable even when the requested
+    column is empty or duplicated across rows.
+    """
+
+    fallback_ordering_fields = ("-disaster_start_date", "id")
+
+    def get_ordering(self, request, queryset, view):
+        # Bypass NullsLastOrderingFilter.get_ordering to get the raw field names, so the
+        # fallback fields can be appended before nulls-last is applied to all of them.
+        ordering = filters.OrderingFilter.get_ordering(self, request, queryset, view)
+        ordering = list(ordering) if ordering else []
+
+        existing_fields = {field.lstrip("-") for field in ordering}
+        ordering += [field for field in self.fallback_ordering_fields if field.lstrip("-") not in existing_fields]
+
+        nulls_last_ordering = []
+        for field in ordering:
+            if field.startswith("-"):
+                nulls_last_ordering.append(F(field[1:]).desc(nulls_last=True))
+            else:
+                nulls_last_ordering.append(F(field).asc(nulls_last=True))
+        return nulls_last_ordering
+
+
 class EventViewset(ReadOnlyVisibilityViewset):
     ordering_fields = (
         "disaster_start_date",
@@ -734,6 +769,7 @@ class EventViewset(ReadOnlyVisibilityViewset):
         "glide",
         "ifrc_severity_level",
     )
+    filter_backends = (EventOrderingFilter, rest_filters.DjangoFilterBackend, filters.SearchFilter)
     filterset_class = EventFilter
     visibility_model_class = Event
     search_fields = (
@@ -748,11 +784,12 @@ class EventViewset(ReadOnlyVisibilityViewset):
         qset = super().get_queryset()
         if self.action == "mini_events":
             # return Event.objects.filter(parent_event__isnull=True).select_related('dtype')
-            return qset.filter(parent_event__isnull=True).select_related("dtype")
+            return qset.filter(parent_event__isnull=True).select_related("dtype").prefetch_related("countries_for_preview")
+
         if self.action == "response_activity_events":
             return (
                 qset.filter(parent_event__isnull=True)
-                .filter(Q(auto_generated=False) | Q(auto_generated_source="New field report"))
+                .filter(Q(auto_generated=False) | Q(source=Event.EventSource.NEW_FIELD_REPORT))
                 .select_related("dtype")
             )
         return (
@@ -868,7 +905,11 @@ class EventViewset(ReadOnlyVisibilityViewset):
     )
     @action(methods=["get"], detail=False, url_path="mini")
     def mini_events(self, request):
-        queryset = self.filter_queryset(self.get_queryset())
+        queryset = self.filter_queryset(self.get_queryset()).annotate(
+            latest_field_report_id=Subquery(
+                FieldReport.objects.filter(event=OuterRef("pk")).order_by("-updated_at").values("id")[:1]
+            )
+        )
         serializer = ListMiniEventSerializer(queryset, many=True)
         page = self.paginate_queryset(queryset)
         if page is not None:
@@ -1352,7 +1393,7 @@ class SupportedActivityViewset(viewsets.ReadOnlyModelViewSet):
 #             summary=report.description or "",
 #             disaster_start_date=report.start_date,
 #             auto_generated=True,
-#             auto_generated_source=SOURCES["new_report"],
+#             source=Event.EventSource.NEW_FIELD_REPORT,
 #             visibility=report.visibility,
 #             **{TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME: django_get_language()},
 #         )
@@ -1558,3 +1599,221 @@ class CountrySupportingPartnerViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return CountrySupportingPartner.objects.select_related("country")
+
+
+class EmergencyViewset(
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet,
+    ReadOnlyVisibilityViewsetMixin,
+):
+    queryset = Event.objects.all()
+    lookup_field = "id"
+    serializer_class = DetailEmergencySerializer
+    filterset_class = EventFilter
+
+    def get_queryset(self):
+        today = timezone.now().date()
+
+        appeal_priority_qs = (
+            Appeal.objects.filter(
+                event=OuterRef("pk"),
+                status__in=[AppealStatus.ACTIVE, AppealStatus.CLOSED],
+            )
+            .annotate(
+                priority=Case(
+                    When(status=AppealStatus.ACTIVE, then=Value(1)),
+                    When(status=AppealStatus.CLOSED, then=Value(2)),
+                    output_field=IntegerField(),
+                )
+            )
+            .order_by("priority", "-start_date")
+        )
+
+        active_dref_appeal_qs = appeal_priority_qs.filter(atype=AppealType.DREF)
+        active_emergency_appeal_qs = appeal_priority_qs.filter(atype=AppealType.APPEAL)
+
+        appeal_exists_base_qs = Appeal.objects.filter(
+            event=OuterRef("pk"),
+            status__in=[AppealStatus.ACTIVE, AppealStatus.CLOSED],
+        )
+
+        # Unordered: used only in Exists() checks
+        active_dref_appeal_exists_qs = appeal_exists_base_qs.filter(atype=AppealType.DREF)
+        active_emergency_appeal_exists_qs = appeal_exists_base_qs.filter(atype=AppealType.APPEAL)
+
+        field_report_qs = FieldReport.objects.filter(event=OuterRef("pk"))
+
+        approved_dref_qs = Dref.objects.filter(
+            event=OuterRef("pk"),
+            status=Dref.Status.APPROVED,
+        )
+
+        approved_ops_update_qs = DrefOperationalUpdate.objects.filter(
+            dref__event=OuterRef("pk"),
+            status=Dref.Status.APPROVED,
+        ).order_by("-created_at")
+
+        approved_final_report_qs = DrefFinalReport.objects.filter(
+            dref__event=OuterRef("pk"),
+            status=Dref.Status.APPROVED,
+        ).order_by("-created_at")
+
+        # Unordered: used only in Exists() checks
+        approved_ops_update_exists_qs = DrefOperationalUpdate.objects.filter(
+            dref__event=OuterRef("pk"),
+            status=Dref.Status.APPROVED,
+        )
+        approved_final_report_exists_qs = DrefFinalReport.objects.filter(
+            dref__event=OuterRef("pk"),
+            status=Dref.Status.APPROVED,
+        )
+
+        return (
+            super()
+            .get_queryset()
+            .annotate(
+                # Aggregated Values
+                response_activity_count=Count(
+                    "emergency_projects",
+                    distinct=True,
+                ),
+                active_deployments_count=Count(
+                    "personneldeployment__personnel",
+                    filter=Q(
+                        personneldeployment__personnel__type=Personnel.TypeChoices.RR,
+                        personneldeployment__personnel__start_date__date__lte=today,
+                        personneldeployment__personnel__end_date__date__gte=today,
+                        personneldeployment__personnel__is_active=True,
+                    ),
+                    distinct=True,
+                ),
+                surge_alerts_count=Count(
+                    "surgealert",
+                    distinct=True,
+                ),
+                # Stage
+                stage=Case(
+                    When(
+                        Exists(active_emergency_appeal_exists_qs),
+                        then=Value(EventStage.EMERGENCY_APPEAL),
+                    ),
+                    When(
+                        Exists(approved_final_report_exists_qs),
+                        then=Value(EventStage.DREF_FINAL_REPORT),
+                    ),
+                    When(
+                        Exists(approved_ops_update_exists_qs),
+                        then=Value(EventStage.DREF_OPERATIONAL_UPDATE),
+                    ),
+                    When(
+                        Exists(approved_dref_qs),
+                        then=Value(EventStage.DREF_APPLICATION),
+                    ),
+                    # If there is an active appeal of DREF type, but no approved DREF yet,
+                    # we consider the emergency to be in the Dref Appeal only stage.
+                    # Reaches here only if no approved DREF/ops-update/final-report exists
+                    # So an active appeal type DREF appeal with no approved DREF = DREF_APPEAL_ONLY stage.
+                    When(
+                        Exists(active_dref_appeal_exists_qs),
+                        then=Value(EventStage.DREF_APPEAL_ONLY),
+                    ),
+                    When(
+                        Exists(field_report_qs),
+                        then=Value(EventStage.FIELD_REPORT),
+                    ),
+                    default=Value(None),
+                    output_field=IntegerField(null=True),
+                ),
+            )
+            .annotate(
+                # Passing values for the current stage's instance,
+                # to avoid extra queries in serializer.
+                stage_appeal_id=Case(
+                    When(
+                        stage=EventStage.EMERGENCY_APPEAL,
+                        then=Subquery(active_emergency_appeal_qs.values("id")[:1]),
+                    ),
+                    When(
+                        stage=EventStage.DREF_APPEAL_ONLY,
+                        then=Subquery(active_dref_appeal_qs.values("id")[:1]),
+                    ),
+                    default=Value(None),
+                    output_field=IntegerField(null=True),
+                ),
+                stage_dref_id=Case(
+                    When(
+                        stage__in=[
+                            EventStage.DREF_APPLICATION,
+                            EventStage.DREF_OPERATIONAL_UPDATE,
+                            EventStage.DREF_FINAL_REPORT,
+                        ],
+                        then=Subquery(approved_dref_qs.order_by("-created_at").values("id")[:1]),
+                    ),
+                    default=Value(None),
+                    output_field=IntegerField(null=True),
+                ),
+                stage_final_report_id=Case(
+                    When(
+                        stage=EventStage.DREF_FINAL_REPORT,
+                        then=Subquery(approved_final_report_qs.values("id")[:1]),
+                    ),
+                    default=Value(None),
+                    output_field=IntegerField(null=True),
+                ),
+                stage_ops_update_id=Case(
+                    When(
+                        stage__in=[
+                            EventStage.DREF_OPERATIONAL_UPDATE,
+                            EventStage.DREF_FINAL_REPORT,
+                        ],
+                        then=Subquery(approved_ops_update_qs.values("id")[:1]),
+                    ),
+                    default=Value(None),
+                    output_field=IntegerField(null=True),
+                ),
+                stage_field_report_id=Case(
+                    When(
+                        stage=EventStage.FIELD_REPORT,
+                        then=Subquery(field_report_qs.order_by("-updated_at", "-fr_num").values("id")[:1]),
+                    ),
+                    default=Value(None),
+                    output_field=IntegerField(null=True),
+                ),
+                first_field_report_created_at=Subquery(field_report_qs.order_by("created_at", "fr_num").values("created_at")[:1]),
+                latest_field_report_created_at=Subquery(
+                    field_report_qs.order_by("-created_at", "-fr_num").values("created_at")[:1]
+                ),
+            )
+            .select_related("dtype")
+            .prefetch_related(
+                Prefetch(
+                    "countries",
+                    queryset=Country.objects.select_related("region"),
+                ),
+                Prefetch(
+                    "districts",
+                    queryset=District.objects.select_related("country"),
+                ),
+                Prefetch(
+                    "key_figures",
+                    queryset=KeyFigure.objects.all(),
+                ),
+                Prefetch(
+                    "contacts",
+                    queryset=EventContact.objects.all(),
+                ),
+                Prefetch(
+                    "links",
+                    queryset=EventLink.objects.all(),
+                ),
+                Prefetch(
+                    "featured_documents",
+                    queryset=EventFeaturedDocument.objects.order_by("-id"),
+                ),
+                Prefetch(
+                    "field_reports",
+                    queryset=FieldReport.objects.order_by("-updated_at", "-fr_num"),
+                    to_attr="prefetched_timeline_field_reports",
+                ),
+            )
+        )
