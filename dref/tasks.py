@@ -91,8 +91,7 @@ def generate_dref_summary(dref_id: int, overwrite: bool = False) -> DrefSummaryG
     specific source passed in, so it self-corrects no matter which
     approval triggered it or the order concurrent runs execute in.
     """
-    # needs_identified feeds the summary when the Dref itself is the latest approved source.
-    dref = Dref.objects.prefetch_related("needs_identified").filter(id=dref_id).first()
+    dref = Dref.objects.filter(id=dref_id).first()
     if not dref:
         logger.error("Dref not found for summary generation", extra=logger_context({"dref_id": dref_id}))
         return DrefSummaryGenerationResult.SOURCE_NOT_FOUND

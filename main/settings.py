@@ -149,7 +149,7 @@ env = environ.Env(
     AZURE_OPENAI_API_KEY=(str, None),
     AZURE_OPENAI_DEPLOYMENT_NAME=(str, None),
     # Use a fake LLM client instead of calling Azure OpenAI
-    USE_DUMMY_LLM_CLIENT=(bool, False),
+    USE_DUMMY_LLM_CLIENT=(bool, True),
     # ReliefWeb appname
     RELIEF_WEB_APP_NAME=(str, None),
     # PowerBI

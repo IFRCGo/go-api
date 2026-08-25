@@ -6,10 +6,9 @@ from dref.factories.dref import (
     DrefFactory,
     DrefFinalReportFactory,
     DrefOperationalUpdateFactory,
-    IdentifiedNeedFactory,
     PlannedInterventionFactory,
 )
-from dref.models import Dref, DrefSummary, IdentifiedNeed
+from dref.models import Dref, DrefSummary
 from dref.summary import SUMMARY_FIELDS, DrefSummaryGenerator
 from dref.tasks import DrefSummaryGenerationResult, generate_dref_summary
 from main.llm import (
@@ -82,19 +81,13 @@ class DrefSummaryGeneratorTest(TestCase):
             people_assisted="5000 people",
             selection_criteria="Most vulnerable households",
             identified_gaps="No data for the eastern districts",
-            needs_identified=[
-                IdentifiedNeedFactory.create(
-                    title=IdentifiedNeed.Title.SHELTER_HOUSING_AND_SETTLEMENTS,
-                    description="2000 households need emergency shelter",
-                )
-            ],
         )
 
         kwargs = DrefSummaryGenerator.get_section_kwargs(dref)
 
         self.assertEqual(
             set(kwargs.keys()),
-            {"situational_overview", "needs_identified", "operational_strategy", "people_centered_approach"},
+            {"situational_overview", "operational_strategy", "people_centered_approach"},
         )
         # Only the mapped (Figma) fields feed each section — no title/demographics/budget metadata.
         self.assertEqual(kwargs["situational_overview"]["event_description"], "Severe flooding")
@@ -107,31 +100,6 @@ class DrefSummaryGeneratorTest(TestCase):
         self.assertEqual(kwargs["people_centered_approach"]["people_assisted"], "5000 people")
         self.assertEqual(kwargs["people_centered_approach"]["selection_criteria"], "Most vulnerable households")
         self.assertNotIn("women", kwargs["people_centered_approach"])
-
-        needs = kwargs["needs_identified"]["needs_identified"]
-        self.assertEqual(len(needs), 1)
-        self.assertEqual(needs[0]["title"], "Shelter Housing And Settlements")
-        self.assertEqual(needs[0]["description"], "2000 households need emergency shelter")
-        self.assertEqual(kwargs["needs_identified"]["identified_gaps"], "No data for the eastern districts")
-
-    def test_get_section_kwargs_keeps_needs_without_description_and_drops_missing_gaps(self):
-        # A need with no description still names the sector where a need exists, so it
-        # is kept; identified_gaps is absent on the Final Report model entirely.
-        dref = DrefFactory.create(
-            type_of_dref=Dref.DrefType.RESPONSE,
-            identified_gaps="",
-            needs_identified=[IdentifiedNeedFactory.create(title=IdentifiedNeed.Title.HEALTH, description="")],
-        )
-        needs_section = DrefSummaryGenerator.get_section_kwargs(dref)["needs_identified"]
-        self.assertEqual(needs_section["needs_identified"], [{"title": "Health"}])
-        self.assertIsNone(needs_section["identified_gaps"])
-
-        final_report = DrefFinalReportFactory.create(
-            needs_identified=[IdentifiedNeedFactory.create(title=IdentifiedNeed.Title.EDUCATION, description="Schools closed")]
-        )
-        final_needs_section = DrefSummaryGenerator.get_section_kwargs(final_report)["needs_identified"]
-        self.assertEqual(final_needs_section["needs_identified"], [{"title": "Education", "description": "Schools closed"}])
-        self.assertIsNone(final_needs_section["identified_gaps"])
 
     def test_get_section_kwargs_for_dref_operational_update(self):
         ops_update = DrefOperationalUpdateFactory.create(
@@ -150,22 +118,14 @@ class DrefSummaryGeneratorTest(TestCase):
             new_operational_end_date=date(2025, 6, 1),
             total_operation_timeframe=6,
             identified_gaps="Assessment pending in two districts",
-            needs_identified=[
-                IdentifiedNeedFactory.create(
-                    title=IdentifiedNeed.Title.HEALTH,
-                    description="Mobile clinics still required",
-                )
-            ],
         )
 
         kwargs = DrefSummaryGenerator.get_section_kwargs(ops_update)
 
         self.assertEqual(
             set(kwargs.keys()),
-            {"situational_overview", "needs_identified", "operational_strategy", "people_centered_approach"},
+            {"situational_overview", "operational_strategy", "people_centered_approach"},
         )
-        self.assertEqual(kwargs["needs_identified"]["needs_identified"][0]["description"], "Mobile clinics still required")
-        self.assertEqual(kwargs["needs_identified"]["identified_gaps"], "Assessment pending in two districts")
         self.assertEqual(kwargs["situational_overview"]["event_description"], "Flooding continues")
         self.assertEqual(kwargs["operational_strategy"]["operation_objective"], "Extend shelter support")
         self.assertEqual(kwargs["operational_strategy"]["response_strategy"], "Extended cash support")
@@ -202,7 +162,6 @@ class DrefSummaryGeneratorTest(TestCase):
             set(kwargs.keys()),
             {
                 "situational_overview",
-                "needs_identified",
                 "operational_strategy",
                 "people_centered_approach",
                 "challenges_identified",

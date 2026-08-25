@@ -1606,7 +1606,6 @@ class EmergencyStageTestCase(APITestCase):
             dref=dref,
             status=DrefSummary.SummaryStatus.SUCCESS,
             situational_overview="overview text",
-            needs_identified="needs text",
             operational_strategy="strategy text",
             people_centered_approach="approach text",
             challenges_identified="challenges text",
@@ -1620,7 +1619,6 @@ class EmergencyStageTestCase(APITestCase):
         self.assertIsNotNone(summary)
         self.assertEqual(summary["status"], DrefSummary.SummaryStatus.SUCCESS)
         self.assertEqual(summary["situational_overview"], "overview text")
-        self.assertEqual(summary["needs_identified"], "needs text")
         self.assertEqual(summary["operational_strategy"], "strategy text")
         self.assertEqual(summary["people_centered_approach"], "approach text")
         self.assertEqual(summary["challenges_identified"], "challenges text")

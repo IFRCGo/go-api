@@ -18,9 +18,7 @@ logger = logging.getLogger(__name__)
 
 ENCODING_NAME = "cl100k_base"
 
-MAX_OUTPUT_CHARS_PER_FIELD = 1500
 MAX_INPUT_TOKENS = 10000
-
 
 # The models a DrefSummary can be generated from.
 DrefSummarySource = Union[Dref, DrefOperationalUpdate, DrefFinalReport]
@@ -34,7 +32,6 @@ SOURCE_BY_MODEL: Dict[type, DrefSummary.SourceModel] = {
 # DrefSummary fields — order is the iteration order for prompt assembly.
 SUMMARY_FIELDS: List[str] = [
     "situational_overview",
-    "needs_identified",
     "operational_strategy",
     "people_centered_approach",
     "challenges_identified",
@@ -61,11 +58,6 @@ def _build_situational_overview_prompt(**kwargs) -> str:
     return f'Data for "situational_overview" — the disaster situation and rationale for the operation:\n{data_json}'
 
 
-def _build_needs_identified_prompt(**kwargs) -> str:
-    data_json = _section_data_json(kwargs)
-    return f'Data for "needs_identified" — the needs and gaps identified for the affected population:\n{data_json}'
-
-
 def _build_operational_strategy_prompt(**kwargs) -> str:
     data_json = _section_data_json(kwargs)
     return f'Data for "operational_strategy" — the objective and strategy of the response:\n{data_json}'
@@ -89,7 +81,6 @@ def _build_lessons_learned_prompt(**kwargs) -> str:
 # Registry
 SECTION_PROMPT_BUILDERS: Dict[str, Callable[..., str]] = {
     "situational_overview": _build_situational_overview_prompt,
-    "needs_identified": _build_needs_identified_prompt,
     "operational_strategy": _build_operational_strategy_prompt,
     "people_centered_approach": _build_people_centered_approach_prompt,
     "challenges_identified": _build_challenges_identified_prompt,
@@ -97,14 +88,12 @@ SECTION_PROMPT_BUILDERS: Dict[str, Callable[..., str]] = {
 }
 
 GLOBAL_PROMPT = (
-    "The DREF data above is organised by summary section. Using ONLY that data, write six "
-    "summary sections. Return a single JSON object (and nothing else) with exactly these "
-    "keys, each summarising the block of the same name:\n"
+    "The DREF data above is organised by summary section. Using ONLY that data, write five concise "
+    "summary sections. Return a single JSON object (and nothing else) with exactly these keys, each "
+    "summarising the block of the same name:\n"
     "\n"
     '  "situational_overview": The disaster situation and the rationale for the operation. Use the '
     'data under the "situational_overview" key.\n'
-    '  "needs_identified": The needs identified per sector, and any gaps or limitations in the '
-    'assessment. Use the data under the "needs_identified" key.\n'
     '  "operational_strategy": The overall objective and strategic approach of the response. Use the '
     'data under the "operational_strategy" key.\n'
     '  "people_centered_approach": Who is targeted and how they are selected and engaged. Use the '
@@ -169,28 +158,6 @@ class DrefSummaryGenerator:
         return _extract_fields(source_doc, SITUATIONAL_COMMON_FIELDS)  # event_scope is empty for Assessment; dropped
 
     @staticmethod
-    def _needs_identified_kwargs(source_doc) -> dict:
-        """Collect the needs from the ``needs_identified`` M2M, plus the gaps text."""
-
-        def need_title(need):
-            display = getattr(need, "get_title_display", None)
-            return display() if callable(display) else need.title
-
-        # Order explicitly: needs_identified has no Meta.ordering, so an unordered
-        # .all() can return rows in different orders across queries, which would
-        # change the source hash and trigger needless regeneration.
-        needs = sorted(source_doc.needs_identified.all(), key=lambda need: need.id)
-        return {
-            # A need with no description is still meaningful: it names a sector
-            # where a need was identified, so keep it and drop the empty text.
-            "needs_identified": [
-                {"title": need_title(need), **({"description": need.description} if need.description else {})} for need in needs
-            ]
-            or None,
-            "identified_gaps": _field_val(source_doc, "identified_gaps"),
-        }
-
-    @staticmethod
     def _challenges_and_lessons_kwargs(source_doc) -> Dict[str, dict]:
         """Collect challenges and lessons from ``planned_interventions`` M2M.
         Only called for ``DrefFinalReport``
@@ -219,34 +186,32 @@ class DrefSummaryGenerator:
 
     @classmethod
     def _extract_dref_kwargs(cls, dref) -> Dict[str, dict]:
-        """Dref Application / Assessment / Imminent — four sections.
+        """Dref Application / Assessment / Imminent — three sections only.
 
         Challenges and lessons are not applicable at the application stage;
         they are formally recorded only in the Final Report.
         """
         return {
             "situational_overview": cls._situational_overview_kwargs(dref),
-            "needs_identified": cls._needs_identified_kwargs(dref),
             "operational_strategy": _extract_fields(dref, OPERATIONAL_COMMON_FIELDS),
             "people_centered_approach": _extract_fields(dref, PEOPLE_COMMON_FIELDS),
         }
 
     @classmethod
     def _extract_dref_ops_kwargs(cls, ops) -> Dict[str, dict]:
-        """DrefOperationalUpdate — four sections.
+        """DrefOperationalUpdate — three sections.
 
         Challenges and lessons are not generated for Operational Updates.
         """
         return {
             "situational_overview": cls._situational_overview_kwargs(ops),
-            "needs_identified": cls._needs_identified_kwargs(ops),
             "operational_strategy": _extract_fields(ops, OPERATIONAL_COMMON_FIELDS),
             "people_centered_approach": _extract_fields(ops, PEOPLE_COMMON_FIELDS),
         }
 
     @classmethod
     def _extract_dref_final_kwargs(cls, final) -> Dict[str, dict]:
-        """DrefFinalReport — all six sections.
+        """DrefFinalReport — all five sections.
 
         Challenges and lessons come from ``planned_interventions`` M2M via
         ``_challenges_and_lessons_kwargs``; this is the only document type
@@ -254,7 +219,6 @@ class DrefSummaryGenerator:
         """
         kwargs = {
             "situational_overview": cls._situational_overview_kwargs(final),
-            "needs_identified": cls._needs_identified_kwargs(final),
             "operational_strategy": _extract_fields(final, OPERATIONAL_COMMON_FIELDS),
             "people_centered_approach": _extract_fields(final, PEOPLE_COMMON_FIELDS),
         }
@@ -284,7 +248,7 @@ class DrefSummaryGenerator:
         Priority: Final Report > latest Operational Update > Dref itself.
         """
         final_report = (
-            DrefFinalReport.objects.prefetch_related("needs_identified", "planned_interventions")
+            DrefFinalReport.objects.prefetch_related("planned_interventions")
             .filter(dref=dref, status=Dref.Status.APPROVED)
             .order_by("-created_at")
             .first()
@@ -293,8 +257,7 @@ class DrefSummaryGenerator:
             return SOURCE_BY_MODEL[DrefFinalReport], final_report
 
         latest_ops_update = (
-            DrefOperationalUpdate.objects.prefetch_related("needs_identified")
-            .filter(dref=dref, status=Dref.Status.APPROVED)
+            DrefOperationalUpdate.objects.filter(dref=dref, status=Dref.Status.APPROVED)
             .order_by(F("operational_update_number").desc(nulls_last=True), "-created_at")
             .first()
         )
@@ -378,8 +341,5 @@ class DrefSummaryGenerator:
             value = parsed.get(field_name)
             if not isinstance(value, str):
                 continue
-            summary = value.strip()
-            if len(summary) > MAX_OUTPUT_CHARS_PER_FIELD:
-                summary = summary[:MAX_OUTPUT_CHARS_PER_FIELD].rstrip()
-            results[field_name] = summary
+            results[field_name] = value.strip()
         return results

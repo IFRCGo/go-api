@@ -211,7 +211,6 @@ class DrefSummaryFactory(factory.django.DjangoModelFactory):
     source_id = factory.SelfAttribute("dref.id")
     status = DrefSummary.SummaryStatus.SUCCESS
     situational_overview = fuzzy.FuzzyText(length=100)
-    needs_identified = fuzzy.FuzzyText(length=100)
     operational_strategy = fuzzy.FuzzyText(length=100)
     people_centered_approach = fuzzy.FuzzyText(length=100)
     challenges_identified = fuzzy.FuzzyText(length=100)
