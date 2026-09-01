@@ -1,5 +1,4 @@
 import logging
-import re
 
 from django.conf import settings
 from django.contrib.postgres.aggregates import ArrayAgg
@@ -10,36 +9,6 @@ from api.models import Appeal, AppealType, Event
 from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
 
 logger = logging.getLogger(__name__)
-
-GLIDE_CODE_RE = re.compile(r"[A-Z]{2}-\d{4}-\d{6}-[A-Z]{3}")
-# NOTE: Some legacy records reference a GDACS event id instead of (or as well
-# as) a GLIDE code, e.g. "GDACS ID: TC 1000961" - also seen misspelled as
-# "GDCS ID: ...". We keep the id itself rather than dropping the record.
-GDACS_ID_RE = re.compile(r"GD(?:A)?CS\s*ID\s*:\s*(.+)", re.IGNORECASE)
-ZERO_WIDTH_CHARS_RE = re.compile("[\u200b\u200c\u200d\ufeff\u00a0]")
-
-
-def parse_glide_codes(raw: str | None) -> list[str]:
-    """Extract one or more GLIDE codes from a legacy free-text glide_code value.
-
-    Handles multiple codes joined by 'and'/';'/',', zero-width-space padding
-    around an otherwise-valid code, and 'GDACS ID: <value>' / 'GDCS ID: <value>'
-    references.
-    """
-    if not raw:
-        return []
-
-    codes = GLIDE_CODE_RE.findall(raw)
-    if codes:
-        return codes
-
-    gdacs_match = GDACS_ID_RE.search(raw)
-    if gdacs_match:
-        value = ZERO_WIDTH_CHARS_RE.sub("", gdacs_match.group(1)).strip()
-        if value:
-            return [value]
-
-    return []
 
 
 def get_email_context(instance):
@@ -152,13 +121,14 @@ def link_appeal_to_event(appeal_code: str, event: Event) -> None:
         )
 
 
-def sync_event_from_dref(event: Event, glide_codes: list[str], appeal_code: str) -> None:
-    """Propagate (ops-update/final-report) glide code back to its event,
+def sync_event_from_dref(instance: DrefOperationalUpdate | DrefFinalReport) -> None:
+    """Propagate an ops-update/final-report's glide code back to its event,
     and link a matching DREF Appeal to the event."""
+    event = instance.dref.event
     if not event:
         return
-    primary_glide_code = glide_codes[0] if glide_codes else ""
+    primary_glide_code = instance.glide_codes[0] if instance.glide_codes else ""
     if primary_glide_code and event.glide != primary_glide_code:
         event.glide = primary_glide_code
         event.save(update_fields=["glide"])
-    link_appeal_to_event(appeal_code, event)
+    link_appeal_to_event(instance.appeal_code, event)

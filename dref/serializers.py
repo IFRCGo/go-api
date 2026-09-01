@@ -854,7 +854,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["estimated_number_of_affected_boys_under_18"] = dref.estimated_number_of_affected_boys_under_18
             validated_data["emergency_appeal_planned"] = dref.emergency_appeal_planned
             validated_data["appeal_code"] = dref.appeal_code
-            validated_data["glide_code"] = dref.glide_code
+            validated_data["glide_codes"] = dref.glide_codes
             validated_data["ifrc_appeal_manager_name"] = dref.ifrc_appeal_manager_name
             validated_data["ifrc_appeal_manager_email"] = dref.ifrc_appeal_manager_email
             validated_data["ifrc_appeal_manager_title"] = dref.ifrc_appeal_manager_title
@@ -992,7 +992,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["number_of_people_affected"] = dref_operational_update.number_of_people_affected
             validated_data["emergency_appeal_planned"] = dref_operational_update.emergency_appeal_planned
             validated_data["appeal_code"] = dref_operational_update.appeal_code
-            validated_data["glide_code"] = dref_operational_update.glide_code
+            validated_data["glide_codes"] = dref_operational_update.glide_codes
             validated_data["total_dref_allocation"] = dref_operational_update.total_dref_allocation
             validated_data["ifrc_appeal_manager_name"] = dref_operational_update.ifrc_appeal_manager_name
             validated_data["ifrc_appeal_manager_email"] = dref_operational_update.ifrc_appeal_manager_email
@@ -1337,7 +1337,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             validated_data["operation_start_date"] = dref_operational_update.dref.date_of_approval
             validated_data["operation_end_date"] = dref_operational_update.new_operational_end_date
             validated_data["appeal_code"] = dref_operational_update.appeal_code
-            validated_data["glide_code"] = dref_operational_update.glide_code
+            validated_data["glide_codes"] = dref_operational_update.glide_codes
             validated_data["ifrc_appeal_manager_name"] = dref_operational_update.ifrc_appeal_manager_name
             validated_data["ifrc_appeal_manager_email"] = dref_operational_update.ifrc_appeal_manager_email
             validated_data["ifrc_appeal_manager_title"] = dref_operational_update.ifrc_appeal_manager_title
@@ -1472,7 +1472,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
                 # NOTE:These field should be blank for final report
                 validated_data["total_operation_timeframe"] = None
                 validated_data["total_operation_timeframe_imminent"] = dref.operation_timeframe_imminent
-            validated_data["glide_code"] = dref.glide_code
+            validated_data["glide_codes"] = dref.glide_codes
             validated_data["ifrc_appeal_manager_name"] = dref.ifrc_appeal_manager_name
             validated_data["ifrc_appeal_manager_email"] = dref.ifrc_appeal_manager_email
             validated_data["ifrc_appeal_manager_title"] = dref.ifrc_appeal_manager_title
@@ -1626,7 +1626,7 @@ class CompletedDrefOperationsSerializer(serializers.ModelSerializer):
             "created_at",
             "title",
             "appeal_code",
-            "glide_code",
+            "glide_codes",
             "country",
             "date_of_publication",
             "country_details",
@@ -2351,7 +2351,7 @@ class EmergencyDrefFinalReportSerializer(serializers.ModelSerializer):
             "event_description",
             "event_date",
             "appeal_code",
-            "glide_code",
+            "glide_codes",
             "country_details",
             "district_details",
             "planned_interventions",
@@ -2435,7 +2435,7 @@ class EmergencyDrefOperationalUpdateSerializer(serializers.ModelSerializer):
             "needs_identified",
             "event_date",
             "appeal_code",
-            "glide_code",
+            "glide_codes",
             "country_details",
             "district_details",
             "planned_interventions",
@@ -2526,7 +2526,7 @@ class EmergencyDrefSerializer(serializers.ModelSerializer):
             "status",
             "status_display",
             "appeal_code",
-            "glide_code",
+            "glide_codes",
             "country_details",
             "district_details",
             "planned_interventions",

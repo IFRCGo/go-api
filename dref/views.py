@@ -234,7 +234,7 @@ class DrefOperationalUpdateViewSet(RevisionMixin, viewsets.ModelViewSet):
         operational_update.status = Dref.Status.APPROVED
         operational_update.date_of_approval = timezone.now().date()
         operational_update.save(update_fields=["status", "date_of_approval"])
-        sync_event_from_dref(operational_update.dref.event, operational_update.glide_codes, operational_update.appeal_code)
+        sync_event_from_dref(operational_update)
         transaction.on_commit(lambda: generate_dref_summary.delay(dref_id=operational_update.dref_id))
         serializer = DrefOperationalUpdateSerializer(operational_update, context={"request": request})
         return response.Response(serializer.data)
@@ -304,7 +304,7 @@ class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
         final_report.save(update_fields=["status", "date_of_approval"])
         final_report.dref.is_active = False
         final_report.dref.save(update_fields=["is_active"])
-        sync_event_from_dref(final_report.dref.event, final_report.glide_codes, final_report.appeal_code)
+        sync_event_from_dref(final_report)
         transaction.on_commit(lambda: generate_dref_summary.delay(dref_id=final_report.dref_id))
         serializer = DrefFinalReportSerializer(final_report, context={"request": request})
         return response.Response(serializer.data)

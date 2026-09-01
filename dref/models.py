@@ -5,6 +5,7 @@ from typing import Optional
 import reversion
 from django.conf import settings
 from django.contrib.postgres.aggregates import ArrayAgg
+from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.templatetags.static import static
@@ -505,7 +506,7 @@ class Dref(models.Model):
         verbose_name=_("operation timeframe for imminent type"), null=True, blank=True
     )
     appeal_code = models.CharField(verbose_name=_("appeal code"), max_length=255, null=True, blank=True)
-    glide_code = models.CharField(verbose_name=_("glide number"), max_length=255, null=True, blank=True)
+    glide_codes = ArrayField(models.CharField(max_length=18), verbose_name=_("glide number"), default=list, blank=True)
     ifrc_appeal_manager_name = models.CharField(verbose_name=_("ifrc appeal manager name"), max_length=255, null=True, blank=True)
     ifrc_appeal_manager_email = models.CharField(
         verbose_name=_("ifrc appeal manager email"), max_length=255, null=True, blank=True
@@ -956,7 +957,7 @@ class DrefOperationalUpdate(models.Model):
     new_operational_end_date = models.DateField(verbose_name=_("New Operation End Date"), null=True, blank=True)
     total_operation_timeframe = models.IntegerField(verbose_name=_("Total Operation Timeframe"), null=True, blank=True)
     appeal_code = models.CharField(verbose_name=_("appeal code"), max_length=255, null=True, blank=True)
-    glide_code = models.CharField(verbose_name=_("glide number"), max_length=255, null=True, blank=True)
+    glide_codes = ArrayField(models.CharField(max_length=18), verbose_name=_("glide number"), default=list, blank=True)
     ifrc_appeal_manager_name = models.CharField(verbose_name=_("ifrc appeal manager name"), max_length=255, null=True, blank=True)
     ifrc_appeal_manager_email = models.CharField(
         verbose_name=_("ifrc appeal manager email"), max_length=255, null=True, blank=True
@@ -1349,7 +1350,7 @@ class DrefFinalReport(models.Model):
     )
     operation_start_date = models.DateField(verbose_name=_("Operation Start Date"), null=True, blank=True)
     appeal_code = models.CharField(verbose_name=_("appeal code"), max_length=255, null=True, blank=True)
-    glide_code = models.CharField(verbose_name=_("glide number"), max_length=255, null=True, blank=True)
+    glide_codes = ArrayField(models.CharField(max_length=18), verbose_name=_("glide number"), default=list, blank=True)
     ifrc_appeal_manager_name = models.CharField(verbose_name=_("ifrc appeal manager name"), max_length=255, null=True, blank=True)
     ifrc_appeal_manager_email = models.CharField(
         verbose_name=_("ifrc appeal manager email"), max_length=255, null=True, blank=True
