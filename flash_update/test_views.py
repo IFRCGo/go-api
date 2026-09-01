@@ -220,14 +220,12 @@ class FlashUpdateTest(APITestCase):
         self.authenticate()
         response = self.client.post(url, data, format="multipart")
         self.assert_201(response)
-        self.assertEqual(FlashGraphicMap.objects.count(), file_count + 1)
+        self.assertEqual(FlashGraphicMap.objects.count(), file_count + 3)
 
         # test number of files selected should not be greater than 3
-        # data2 = {
-        #     'file': [open(self.file, 'rb'), open(self.file, 'rb'), open(self.file, 'rb'), open(self.file, 'rb')]
-        # }
-        # response = self.client.post(url, data2, format='multipart')
-        # self.assert_400(response)
+        data2 = {"file": [open(self.file, "rb"), open(self.file, "rb"), open(self.file, "rb"), open(self.file, "rb")]}
+        response = self.client.post(url, data2, format="multipart")
+        self.assert_400(response)
 
     @mock.patch("notifications.notification.send_notification")
     def test_send_email(self, send_notification):

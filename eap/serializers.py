@@ -15,9 +15,11 @@ from api.serializers import (
     Admin2Serializer,
     DisasterTypeSerializer,
     MiniCountrySerializer,
+    MiniDistrictSerializer,
     UserNameSerializer,
 )
 from eap.models import (
+    Admin1,
     DaysTimeFrameChoices,
     EAPAction,
     EAPContact,
@@ -33,6 +35,7 @@ from eap.models import (
     MonthsTimeFrameChoices,
     OperationActivity,
     PlannedOperation,
+    PotentialRisk,
     SimplifiedEAP,
     SourceInformation,
     TimeFrame,
@@ -62,6 +65,8 @@ from eap.utils import (
 from main.writable_nested_serializers import NestedCreateMixin, NestedUpdateMixin
 
 ALLOWED_FILE_EXTENTIONS: list[str] = ["pdf", "docx", "pptx", "xlsx", "xlsm"]
+ALLOWED_IMAGE_EXTENTIONS: list[str] = ["png", "jpg", "jpeg", "gif"]
+ALLOWED_FILE_FIELD_EXTENTIONS: list[str] = ALLOWED_FILE_EXTENTIONS + ALLOWED_IMAGE_EXTENTIONS
 
 
 class BaseEAPSerializer(serializers.ModelSerializer):
@@ -290,12 +295,15 @@ class EAPRegistrationSerializer(
         read_only_fields = [
             "status",
             "validated_budget_file",
+            "final_review_checklist_file",
             "created_by",
             "modified_by",
             "latest_simplified_eap",
             "latest_full_eap",
             "deadline",
             "summary_file",
+            # NOTE: Only filled through the admin panel.
+            "appeal_code",
         ]
 
     def create(self, validated_data: dict[str, typing.Any]):
@@ -529,6 +537,25 @@ class ImpactSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class PotentialRiskSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
+    previous_id = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = PotentialRisk
+        fields = "__all__"
+
+
+class Admin1Serializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
+    previous_id = serializers.IntegerField(read_only=True)
+    district_details = MiniDistrictSerializer(source="district", read_only=True)
+
+    class Meta:
+        model = Admin1
+        fields = "__all__"
+
+
 class EAPContactSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
     previous_id = serializers.IntegerField(read_only=True)
@@ -546,8 +573,9 @@ class CommonEAPFieldsSerializer(serializers.ModelSerializer):
     def get_fields(self):
         fields = super().get_fields()
         fields["partner_contacts"] = EAPContactSerializer(many=True, required=False)
-        # TODO(susilnem): Make admin2 required once we verify the data!
         fields["admin2_details"] = Admin2Serializer(source="admin2", many=True, read_only=True)
+        # NOTE: For countries without Admin2 data, districts (Admin1) are used instead.
+        fields["districts"] = Admin1Serializer(many=True, required=False)
         fields["cover_image_file"] = EAPFileUpdateSerializer(source="cover_image", required=False, allow_null=True)
         fields["planned_operations"] = self.planned_operation_serializer_class(many=True, required=False)
         fields["enabling_approaches"] = self.enabling_approach_serializer_class(many=True, required=False)
@@ -578,6 +606,11 @@ class CommonEAPFieldsSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {field_name: [f"Maximum {self.MAX_NUMBER_OF_FILES} files are allowed."]},
             )
+
+        for file_data in files or []:
+            file = file_data.get("file")
+            if file:
+                validate_file_extention(file.name, ALLOWED_FILE_FIELD_EXTENTIONS)
         return files
 
     def update(self, instance, validated_data):
@@ -606,6 +639,9 @@ class SimplifiedEAPSerializer(
 ):
     planned_operation_serializer_class = SimplifiedPlannedOperationSerializer
     enabling_approach_serializer_class = SimplifiedEnablingApproachSerializer
+
+    potential_risks = PotentialRiskSerializer(many=True, required=True)
+    early_actions = EAPActionSerializer(many=True, required=True)
 
     # FILES
     version = serializers.IntegerField(default=1, read_only=True)
@@ -960,6 +996,8 @@ class EAPStatusSerializer(BaseEAPSerializer):
     status_display = serializers.CharField(source="get_status_display", read_only=True)
     # NOTE: Only required when changing status to NS Addressing Comments
     review_checklist_file = serializers.FileField(required=False, write_only=True)
+    # NOTE: Only required when changing status to Technically Validated
+    final_review_checklist_file = serializers.FileField(required=False, write_only=True)
 
     class Meta:
         model = EAPRegistration
@@ -968,6 +1006,7 @@ class EAPStatusSerializer(BaseEAPSerializer):
             "status_display",
             "status",
             "review_checklist_file",
+            "final_review_checklist_file",
         ]
 
     def _validate_status(self, validated_data: dict[str, typing.Any]) -> dict[str, typing.Any]:
@@ -1039,10 +1078,12 @@ class EAPStatusSerializer(BaseEAPSerializer):
             ):
                 self.instance.validated_budget_file = None
                 self.instance.technically_validated_at = None
+                self.instance.final_review_checklist_file = None
                 self.instance.save(
                     update_fields=[
                         "validated_budget_file",
                         "technically_validated_at",
+                        "final_review_checklist_file",
                     ]
                 )
 
@@ -1055,10 +1096,20 @@ class EAPStatusSerializer(BaseEAPSerializer):
                     gettext("You do not have permission to change status to %s.") % EAPRegistration.Status(new_status).label
                 )
 
-            # Update timestamp
+            # NOTE: Final review checklist file should be uploaded for the record.
+            final_review_checklist_file = validated_data.get("final_review_checklist_file")
+            if not final_review_checklist_file:
+                raise serializers.ValidationError(
+                    gettext("Final review checklist file must be uploaded before changing status to %s.")
+                    % EAPRegistration.Status(new_status).label
+                )
+
+            # Update timestamp and final review checklist file
+            self.instance.final_review_checklist_file = final_review_checklist_file
             self.instance.technically_validated_at = timezone.now()
             self.instance.save(
                 update_fields=[
+                    "final_review_checklist_file",
                     "technically_validated_at",
                 ]
             )
@@ -1157,6 +1208,15 @@ class EAPStatusSerializer(BaseEAPSerializer):
         return validated_data
 
     def validate_review_checklist_file(self, file):
+        if file is None:
+            return
+
+        validate_file_extention(file.name, ALLOWED_FILE_EXTENTIONS)
+        validate_file_object(file)
+
+        return file
+
+    def validate_final_review_checklist_file(self, file):
         if file is None:
             return
 
