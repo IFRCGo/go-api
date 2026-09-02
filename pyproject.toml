@@ -50,7 +50,7 @@ dependencies = [
     "opencensus-ext-azure==1.0.7",
     "opencensus-ext-django==0.7.4",
     "pandas~=2.2.3",
-    "pdfminer.six==20251107",
+    "pdfminer.six==20251230",
     "pytidylib==0.3.2",
     "polib==1.1.0",
     "psycopg2-binary",
