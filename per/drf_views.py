@@ -2,6 +2,7 @@ from datetime import datetime
 
 import pytz
 from django.conf import settings
+from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Count, F, Prefetch, Q
 from django.http import HttpResponse
@@ -42,6 +43,7 @@ from per.utils import filter_per_queryset_by_user_access
 
 from .admin_classes import RegionRestrictedAdmin
 from .custom_renderers import NarrowCSVRenderer
+from .dashboard_data import get_per_dashboard_data, get_per_map_data
 from .models import (
     AreaResponse,
     AssessmentType,
@@ -732,6 +734,12 @@ class PublicFormAssessmentViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 # Consolidated public endpoints (map-data, assessments-processed, dashboard-data)
+PER_MAP_DATA_CACHE_KEY = "per-dashboard:map-data:v2"
+PER_MAP_DATA_CACHE_TIMEOUT_SECONDS = 60
+PER_DASHBOARD_DATA_CACHE_KEY = "per-dashboard:dashboard-data:v1"
+PER_DASHBOARD_DATA_CACHE_TIMEOUT_SECONDS = 60
+
+
 class PerMapDataView(views.APIView):
     """Public consolidated PER map data.
 
@@ -739,142 +747,21 @@ class PerMapDataView(views.APIView):
     """
 
     def get(self, request):
-        latest_overviews = (
-            Overview.objects.order_by("country_id", "-assessment_number", "-date_of_assessment")
-            .distinct("country_id")
-            .select_related("country", "type_of_assessment", "country__region")
-        )
-        items = []
-        for ov in latest_overviews:
-            # Compute normalized phase display from int value or existing string
-            normalized_phase_display = _phase_display_from_int(getattr(ov, "phase", None), getattr(ov, "phase_display", None))
+        if settings.DJANGO_READ_ONLY:
+            cached_data = cache.get(PER_MAP_DATA_CACHE_KEY)
+            if cached_data is not None:
+                return Response(cached_data)
 
-            # Attach components from latest assessment tied to the overview
-            components = []
-            epi_considerations = False
-            climate_considerations = False
-            urban_considerations = False
-            migration_considerations = False
-            latest_assessment = (
-                PerAssessment.objects.filter(overview_id=getattr(ov, "id", None))
-                .prefetch_related(
-                    Prefetch(
-                        "area_responses",
-                        queryset=AreaResponse.objects.prefetch_related(
-                            Prefetch(
-                                "component_response",
-                                queryset=FormComponentResponse.objects.select_related("component", "component__area", "rating"),
-                            )
-                        ),
-                    )
-                )
-                .first()
+        data = get_per_map_data()
+
+        if settings.DJANGO_READ_ONLY:
+            cache.set(
+                PER_MAP_DATA_CACHE_KEY,
+                data,
+                timeout=PER_MAP_DATA_CACHE_TIMEOUT_SECONDS,
             )
-            if latest_assessment:
-                for ar in latest_assessment.area_responses.all():
-                    for cr in ar.component_response.all():
-                        # Flags
-                        epi = _contains_affirmative(getattr(cr, "epi_considerations", ""))
-                        urb = _contains_affirmative(getattr(cr, "urban_considerations", ""))
-                        clim = _contains_affirmative(getattr(cr, "climate_environmental_considerations", ""))
-                        mig = _contains_affirmative(getattr(cr, "migration_considerations", ""))
-                        epi_considerations = epi_considerations or epi
-                        urban_considerations = urban_considerations or urb
-                        climate_considerations = climate_considerations or clim
-                        migration_considerations = migration_considerations or mig
 
-                        comp = getattr(cr, "component", None)
-                        area = getattr(comp, "area", None) if comp else None
-                        rating = getattr(cr, "rating", None)
-                        # Resolve area name via AREA_NAMES when area_num is an int
-                        area_num_val = getattr(area, "area_num", None)
-                        components.append(
-                            {
-                                "component_id": getattr(comp, "id", None) or getattr(cr, "component_id", None),
-                                "component_name": getattr(comp, "title", None)
-                                or getattr(comp, "description_en", None)
-                                or getattr(comp, "description", None),
-                                "component_num": getattr(comp, "component_num", None),
-                                "area_id": getattr(area, "id", None),
-                                "area_name": (
-                                    AREA_NAMES.get(area_num_val) if isinstance(area_num_val, int) else getattr(area, "name", None)
-                                ),
-                                "rating_value": getattr(rating, "value", None),
-                                "rating_title": getattr(rating, "title", None),
-                            }
-                        )
-
-            # Prioritized components (workplan/prioritization)
-            prioritized_components = []
-            fp = FormPrioritization.objects.filter(overview_id=getattr(ov, "id", None)).first()
-            if fp:
-                for pac in fp.prioritized_action_responses.exclude(component_id=14).select_related(
-                    "component", "component__area"
-                ):
-                    pc_comp = pac.component
-                    pc_area = pc_comp.area if pc_comp else None
-                    area_num_val2 = getattr(pc_area, "area_num", None)
-                    prioritized_components.append(
-                        {
-                            "componentId": getattr(pc_comp, "id", None),
-                            "componentTitle": getattr(pc_comp, "title", None)
-                            or getattr(pc_comp, "description_en", None)
-                            or getattr(pc_comp, "description", None),
-                            "areaTitle": (
-                                AREA_NAMES.get(area_num_val2)
-                                if isinstance(area_num_val2, int)
-                                else getattr(pc_area, "name", None)
-                            ),
-                            "description": getattr(pc_comp, "description", None) or getattr(pc_comp, "description_en", None),
-                        }
-                    )
-
-            items.append(
-                {
-                    "id": getattr(ov, "id", None),
-                    "assessment_number": ov.assessment_number,
-                    "date_of_assessment": ov.date_of_assessment,
-                    "country_id": getattr(ov, "country_id", None),
-                    "country_name": ov.country.name if ov.country else None,
-                    "phase": getattr(ov, "phase", None),
-                    "phase_display": normalized_phase_display,
-                    "type_of_assessment": getattr(ov.type_of_assessment, "id", None),
-                    "type_of_assessment_name": getattr(ov.type_of_assessment, "name", None),
-                    "country_iso3": getattr(ov.country, "iso3", None),
-                    "region_id": getattr(getattr(ov.country, "region", None), "id", None),
-                    "region_name": getattr(getattr(ov.country, "region", None), "label", None),
-                    "latitude": (
-                        round(ov.country.centroid.y, 5)
-                        if getattr(ov.country, "centroid", None)
-                        else (
-                            round(getattr(ov.country, "latitude", None), 5)
-                            if getattr(ov.country, "latitude", None) is not None
-                            else None
-                        )
-                    ),
-                    "longitude": (
-                        round(ov.country.centroid.x, 5)
-                        if getattr(ov.country, "centroid", None)
-                        else (
-                            round(getattr(ov.country, "longitude", None), 5)
-                            if getattr(ov.country, "longitude", None) is not None
-                            else None
-                        )
-                    ),
-                    "updated_at": getattr(ov, "updated_at", None),
-                    "prioritized_components": prioritized_components,
-                    "epi_considerations": getattr(ov, "assess_preparedness_of_country", None),
-                    "climate_environmental_considerations": getattr(ov, "assess_climate_environment_of_country", None),
-                    "urban_considerations": getattr(ov, "assess_urban_aspect_of_country", None),
-                    "migration_considerations": getattr(ov, "assess_migration_aspect_of_country", None),
-                    "epi_considerations_from_assessment": epi_considerations,
-                    "climate_environmental_considerations_from_assessment": climate_considerations,
-                    "urban_considerations_from_assessment": urban_considerations,
-                    "migration_considerations_from_assessment": migration_considerations,
-                    "components": components,
-                }
-            )
-        return Response({"results": items})
+        return Response(data)
 
 
 class PerAssessmentsProcessedView(views.APIView):
@@ -992,103 +879,21 @@ class PerDashboardDataView(views.APIView):
     """
 
     def get(self, request):
-        # Build aggregation by component across all assessments
-        component_map = {}
-        country_assessments: dict[str, list] = {}
-        # Prefetch for performance
-        assessments = PerAssessment.objects.select_related("overview", "overview__country").prefetch_related(
-            Prefetch(
-                "area_responses",
-                queryset=AreaResponse.objects.prefetch_related(
-                    Prefetch(
-                        "component_response",
-                        queryset=FormComponentResponse.objects.select_related("component", "component__area", "rating"),
-                    )
-                ),
+        if settings.DJANGO_READ_ONLY:
+            cached_data = cache.get(PER_DASHBOARD_DATA_CACHE_KEY)
+            if cached_data is not None:
+                return Response(cached_data)
+
+        data = get_per_dashboard_data()
+
+        if settings.DJANGO_READ_ONLY:
+            cache.set(
+                PER_DASHBOARD_DATA_CACHE_KEY,
+                data,
+                timeout=PER_DASHBOARD_DATA_CACHE_TIMEOUT_SECONDS,
             )
-        )
 
-        for a in assessments:
-            assessment_entry = {
-                "assessment_id": getattr(a, "id", None),
-                "assessment_number": getattr(a.overview, "assessment_number", None),
-                "date_of_assessment": getattr(a.overview, "date_of_assessment", None),
-                "country_id": getattr(a.overview, "country_id", None),
-                "country_name": getattr(getattr(a.overview, "country", None), "name", None),
-                "country_iso3": getattr(getattr(a.overview, "country", None), "iso3", None),
-            }
-            # Also prepare detailed assessment for countryAssessments with ratings
-            ca_components = []
-
-            for ar in a.area_responses.all():
-                for cr in ar.component_response.all():
-                    comp = getattr(cr, "component", None)
-                    if comp is None:
-                        continue
-                    area = getattr(comp, "area", None)
-                    comp_id = getattr(comp, "id", None)
-                    if comp_id is None:
-                        continue
-                    # Component key aggregation
-                    if comp_id not in component_map:
-                        component_map[comp_id] = {
-                            "component_id": comp_id,
-                            "component_num": getattr(comp, "component_num", None),
-                            "component_name": getattr(comp, "title", None)
-                            or getattr(comp, "description_en", None)
-                            or getattr(comp, "description", None),
-                            "area_id": getattr(area, "id", None),
-                            "area_name": (
-                                AREA_NAMES.get(int(getattr(area, "area_num", 0)))
-                                if isinstance(getattr(area, "area_num", None), int)
-                                else getattr(area, "name", None)
-                            ),
-                            "assessments": [],
-                        }
-
-                    component_map[comp_id]["assessments"].append(assessment_entry)
-
-                    # Build component entry with rating for countryAssessments
-                    rating = getattr(cr, "rating", None)
-                    ca_components.append(
-                        {
-                            "component_id": comp_id,
-                            "component_name": getattr(comp, "title", None)
-                            or getattr(comp, "description_en", None)
-                            or getattr(comp, "description", None),
-                            "component_num": getattr(comp, "component_num", None),
-                            "area_id": getattr(area, "id", None),
-                            "area_name": (
-                                AREA_NAMES.get(int(getattr(area, "area_num", 0)))
-                                if isinstance(getattr(area, "area_num", None), int)
-                                else getattr(area, "name", None)
-                            ),
-                            "rating_value": getattr(rating, "value", None),
-                            "rating_title": getattr(rating, "title", None) or "",
-                        }
-                    )
-
-            # Append to countryAssessments mapping
-            country_name = assessment_entry["country_name"]
-            if country_name:
-                phase_display = _phase_display_from_int(
-                    getattr(a.overview, "phase", None), getattr(a.overview, "phase_display", None)
-                )
-                country_assessments.setdefault(country_name, []).append(
-                    {
-                        "assessment_number": assessment_entry["assessment_number"],
-                        "date": assessment_entry["date_of_assessment"],
-                        "components": ca_components,
-                        "phase": getattr(a.overview, "phase", None),
-                        "phase_display": phase_display,
-                    }
-                )
-
-        # Convert to list
-        items = list(component_map.values())
-        # Optional: sort by area then component_num for stable output
-        items.sort(key=lambda x: ((x["area_id"] or 0), (x["component_num"] or 0)))
-        return Response({"assessments": items, "countryAssessments": country_assessments})
+        return Response(data)
 
 
 class PerFileViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
