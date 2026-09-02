@@ -40,7 +40,8 @@ _SECTOR_ID_TO_PLANNED_INTERVENTION_TITLE = {
 
 class BaseDref3Serializer(serializers.ModelSerializer):
     id = serializers.SerializerMethodField()
-    appeal_id = serializers.CharField(source="appeal_code", read_only=True)
+    appeal_id = serializers.SerializerMethodField()
+    appeal_code = serializers.CharField(read_only=True)
     stage = serializers.SerializerMethodField()
     allocation = serializers.SerializerMethodField()
     pillar = serializers.SerializerMethodField()
@@ -595,27 +596,39 @@ class BaseDref3Serializer(serializers.ModelSerializer):
     def get_indicators_id(self, obj):
         return None
 
-    def get_link_to_emergency_page(self, obj):
+    def _appeal(self, obj):
+        """The Appeal carrying this row's `appeal_code`, or None.
+
+        Rows hold `appeal_code` as a plain column rather than a foreign key, so
+        the Appeal is resolved by code.
+        """
         code = getattr(obj, "appeal_code", None)
         if not code:
             return None
 
         cache = self._appeal_cache()
         if code in cache:
-            appeal = cache[code]
-        else:
-            prefetched = self.context.get("prefetched_appeal_by_code")
-            if prefetched is not None:
-                # Prefetched for the whole page: a miss means no Appeal exists,
-                # so don't fall back to a per-row query (N+1).
-                appeal = prefetched.get(code)
-            else:
-                try:
-                    appeal = Appeal.objects.only("event_id").get(code=code)
-                except Appeal.DoesNotExist:
-                    appeal = None
-            cache[code] = appeal
+            return cache[code]
 
+        prefetched = self.context.get("prefetched_appeal_by_code")
+        if prefetched is not None:
+            # Prefetched for the whole page: a miss means no Appeal exists,
+            # so don't fall back to a per-row query (N+1).
+            appeal = prefetched.get(code)
+        else:
+            try:
+                appeal = Appeal.objects.only("event_id").get(code=code)
+            except Appeal.DoesNotExist:
+                appeal = None
+        cache[code] = appeal
+        return appeal
+
+    def get_appeal_id(self, obj) -> int | None:
+        appeal = self._appeal(obj)
+        return appeal.pk if appeal else None
+
+    def get_link_to_emergency_page(self, obj):
+        appeal = self._appeal(obj)
         if not appeal or not getattr(appeal, "event_id", None):
             return None
         return f"https://go.ifrc.org/emergencies/{appeal.event_id}/details"
@@ -625,6 +638,7 @@ class BaseDref3Serializer(serializers.ModelSerializer):
         fields = [
             "id",
             "appeal_id",
+            "appeal_code",
             "stage",
             "allocation",
             "pillar",

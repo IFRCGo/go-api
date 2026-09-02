@@ -70,7 +70,7 @@ class Dref3LightUserVisibilityTests(APITestCase):
         resp = self.client.get(self.url, {"limit": 100000})
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         rows, count = self._payload(resp)
-        codes = {row["appeal_id"] for row in rows}
+        codes = {row["appeal_code"] for row in rows}
         self.assertIn("APPROVED_CODE", codes)
         self.assertNotIn("DRAFT_CODE", codes)
         # count must describe the same set the caller actually received
@@ -82,7 +82,7 @@ class Dref3LightUserVisibilityTests(APITestCase):
         resp = self.client.get(self.url, {"limit": 100000})
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         rows, count = self._payload(resp)
-        codes = {row["appeal_id"] for row in rows}
+        codes = {row["appeal_code"] for row in rows}
         self.assertIn("APPROVED_CODE", codes)
         self.assertNotIn("DRAFT_CODE", codes)
         self.assertEqual(count, len(rows))
@@ -96,7 +96,7 @@ class Dref3LightUserVisibilityTests(APITestCase):
         resp = self.client.get(self.url, {"limit": 100000})
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         rows, count = self._payload(resp)
-        self.assertNotIn("APPROVED_CODE", {row["appeal_id"] for row in rows})
+        self.assertNotIn("APPROVED_CODE", {row["appeal_code"] for row in rows})
         self.assertEqual(count, len(rows))
 
     def test_mixed_case_excluded_code_is_hidden_and_not_reported_public(self):
@@ -116,7 +116,7 @@ class Dref3LightUserVisibilityTests(APITestCase):
         resp = self.client.get(self.url, {"limit": 100000})
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         rows, count = self._payload(resp)
-        self.assertNotIn("mdrZz009", {row["appeal_id"] for row in rows})
+        self.assertNotIn("mdrZz009", {row["appeal_code"] for row in rows})
         self.assertEqual(count, len(rows))
 
         # Full-access user: the row is visible, and flagged non-public.
@@ -162,14 +162,14 @@ class Dref3AdminUserAccessTests(APITestCase):
         self.authenticate(self.user)
         resp = self.client.get(self.url, {"appeal_code_prefix": "MDRAA", "limit": 100000})
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        codes = {row["appeal_id"] for row in resp.json()["results"]}
+        codes = {row["appeal_code"] for row in resp.json()["results"]}
         self.assertEqual(codes, {"MDRAA001"}, "user-access narrowing discarded the prefix filter")
 
     def test_retrieve_returns_only_the_requested_code(self):
         self.authenticate(self.user)
         resp = self.client.get(f"{self.url}MDRAA001/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        codes = {row["appeal_id"] for row in resp.json()}
+        codes = {row["appeal_code"] for row in resp.json()}
         self.assertEqual(codes, {"MDRAA001"})
 
     def test_retrieve_populates_link_to_emergency_page(self):
@@ -237,7 +237,7 @@ class Dref3MalformedParamTests(APITestCase):
         resp = self.client.get(self.url, {"event_date_from": "2024-13-01", "limit": 100000})
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         # unparseable -> filter dropped, same as every other coercer here
-        codes = {row["appeal_id"] for row in resp.json()["results"]}
+        codes = {row["appeal_code"] for row in resp.json()["results"]}
         self.assertIn("APPEAL_A", codes)
 
     def test_garbage_date_params_are_ignored(self):
@@ -262,7 +262,7 @@ class Dref3MalformedParamTests(APITestCase):
         self.authenticate(self.superuser)
         resp = self.client.get(self.url, {"event_date_from": "2999-01-01", "limit": 100000})
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        codes = {row["appeal_id"] for row in resp.json()["results"]}
+        codes = {row["appeal_code"] for row in resp.json()["results"]}
         self.assertNotIn("APPEAL_A", codes, "a valid date bound must still constrain application rows")
 
 
@@ -304,7 +304,7 @@ class Dref3HazardTextSearchTests(APITestCase):
             query["stage"] = stage
         resp = self.client.get(self.url, query)
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        return {row["appeal_id"] for row in resp.json()["results"]}
+        return {row["appeal_code"] for row in resp.json()["results"]}
 
     def test_matches_a_substring_anywhere_in_the_value(self):
         self.assertEqual(self._codes({"hazard_date_and_location": "Elbasan"}), {"APPEAL_A"})
@@ -405,7 +405,7 @@ class Dref3HazardDateRangeTests(APITestCase):
         self.authenticate(self.superuser)
         resp = self.client.get(self.url, {"stage": "application", "limit": 100000, **params})
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        return {row["appeal_id"] for row in resp.json()["results"]}
+        return {row["appeal_code"] for row in resp.json()["results"]}
 
     def test_bounds_select_by_date(self):
         self.assertEqual(self._codes({"hazard_date_from": "2026-01-01"}), {"APPEAL_LATE"})
@@ -497,7 +497,7 @@ class Dref3AppealTypeRoundTripTests(APITestCase):
                 resp = self.client.get(self.url, {"appeal_type": reported, "limit": 100000})
                 self.assertEqual(resp.status_code, status.HTTP_200_OK)
                 rows = resp.json()["results"]
-                self.assertIn(dref.appeal_code, {row["appeal_id"] for row in rows})
+                self.assertIn(dref.appeal_code, {row["appeal_code"] for row in rows})
                 self.assertEqual({row["appeal_type"] for row in rows}, {reported})
 
 
