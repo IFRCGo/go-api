@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from rest_framework import status
 
-from api.models import Country, Region, RegionName
+from api.models import Appeal, AppealType, Country, Region, RegionName
 from dref.factories.dref import (
     DrefFactory,
     DrefFinalReportFactory,
@@ -75,12 +75,21 @@ class Dref3FilterTests(APITestCase):
             dref=self.dref_a,
         )
 
+    def _create_appeal(self, code):
+        return Appeal.objects.create(
+            code=code,
+            aid=code,
+            atype=AppealType.DREF,
+            country=self.country1,
+            region=self.region1,
+        )
+
     def _rows(self, response):
         # Standard DRF envelope: {count, next, previous, results}
         return response.json()["results"]
 
     def _get_codes(self, response):
-        return {row["appeal_id"] for row in self._rows(response)}
+        return {row["appeal_code"] for row in self._rows(response)}
 
     def test_region_filter(self):
         self.authenticate(self.superuser)
@@ -189,22 +198,67 @@ class Dref3FilterTests(APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         assert all(row["stage"] == "Final Report" for row in self._rows(resp))
 
-    def test_filter_by_appeal_id(self):
-        """appeal_id is the value the rows report (the appeal code), matched
-        case-insensitively, and returns the whole group."""
+    def test_filter_by_appeal_codes(self):
+        """appeal_codes takes the value the rows report in `appeal_code`,
+        matched case-insensitively, and returns the whole group."""
         self.authenticate(self.superuser)
         for value in ("APPEAL_A", "appeal_a"):
-            with self.subTest(appeal_id=value):
-                resp = self.client.get(self.url, {"appeal_id": value})
+            with self.subTest(appeal_codes=value):
+                resp = self.client.get(self.url, {"appeal_codes": value})
                 self.assertEqual(resp.status_code, status.HTTP_200_OK)
                 assert self._get_codes(resp) == {"APPEAL_A"}
                 assert len(self._rows(resp)) == 3
 
-    def test_filter_by_unknown_appeal_id_is_empty(self):
+    def test_filter_by_several_appeal_codes(self):
         self.authenticate(self.superuser)
-        resp = self.client.get(self.url, {"appeal_id": "APPEAL_NOPE"})
+        resp = self.client.get(self.url, {"appeal_codes": "APPEAL_A, appeal_b"})
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        assert self._get_codes(resp) == {"APPEAL_A", "APPEAL_B"}
+
+    def test_filter_by_unknown_appeal_code_is_empty(self):
+        self.authenticate(self.superuser)
+        resp = self.client.get(self.url, {"appeal_codes": "APPEAL_NOPE"})
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         assert self._rows(resp) == []
+
+    def test_filter_by_appeal_ids(self):
+        """appeal_ids takes Appeal pks, resolved to the codes those appeals
+        carry, and returns the whole group of each."""
+        appeal_a = self._create_appeal("APPEAL_A")
+        appeal_b = self._create_appeal("APPEAL_B")
+        self.authenticate(self.superuser)
+
+        resp = self.client.get(self.url, {"appeal_ids": str(appeal_a.pk)})
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        assert self._get_codes(resp) == {"APPEAL_A"}
+        assert len(self._rows(resp)) == 3
+
+        resp = self.client.get(self.url, {"appeal_ids": f"{appeal_a.pk},{appeal_b.pk}"})
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        assert self._get_codes(resp) == {"APPEAL_A", "APPEAL_B"}
+
+    def test_filter_by_unknown_appeal_id_is_empty(self):
+        self.authenticate(self.superuser)
+        resp = self.client.get(self.url, {"appeal_ids": "999999"})
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        assert self._rows(resp) == []
+
+    def test_filter_by_non_numeric_appeal_id_is_ignored(self):
+        """Unparseable values are ignored, like every other coerced filter."""
+        self.authenticate(self.superuser)
+        resp = self.client.get(self.url, {"appeal_ids": "not-an-id"})
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        assert self._get_codes(resp) == {"APPEAL_A", "APPEAL_B"}
+
+    def test_appeal_id_reports_the_appeal_pk(self):
+        """`appeal_id` is the Appeal's own pk; rows with no Appeal report null."""
+        appeal_a = self._create_appeal("APPEAL_A")
+        self.authenticate(self.superuser)
+        resp = self.client.get(self.url, {"limit": 100000})
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        by_code = {row["appeal_code"]: row["appeal_id"] for row in self._rows(resp)}
+        assert by_code["APPEAL_A"] == appeal_a.pk
+        assert by_code["APPEAL_B"] is None
 
     def test_operation_start_end_filters(self):
         self.authenticate(self.superuser)
@@ -255,21 +309,21 @@ class Dref3FilterTests(APITestCase):
         # group B: app+op (2 rows).
         asc = self.client.get(self.url, {"order_by": "created_at"})
         self.assertEqual(asc.status_code, status.HTTP_200_OK)
-        asc_codes = [row["appeal_id"] for row in self._rows(asc)]
+        asc_codes = [row["appeal_code"] for row in self._rows(asc)]
         self.assertEqual(asc_codes, ["APPEAL_A"] * 3 + ["APPEAL_B"] * 2)
 
         desc = self.client.get(self.url, {"order_by": "-created_at"})
         self.assertEqual(desc.status_code, status.HTTP_200_OK)
-        desc_codes = [row["appeal_id"] for row in self._rows(desc)]
+        desc_codes = [row["appeal_code"] for row in self._rows(desc)]
         self.assertEqual(desc_codes, ["APPEAL_B"] * 2 + ["APPEAL_A"] * 3)
 
         # Per-row pagination respects the group ordering
         page1 = self.client.get(self.url, {"limit": 1, "offset": 0, "order_by": "created_at"})
         self.assertEqual(page1.status_code, status.HTTP_200_OK)
-        assert {row["appeal_id"] for row in self._rows(page1)} == {"APPEAL_A"}
+        assert {row["appeal_code"] for row in self._rows(page1)} == {"APPEAL_A"}
         page1_desc = self.client.get(self.url, {"limit": 1, "offset": 0, "order_by": "-created_at"})
         self.assertEqual(page1_desc.status_code, status.HTTP_200_OK)
-        assert {row["appeal_id"] for row in self._rows(page1_desc)} == {"APPEAL_B"}
+        assert {row["appeal_code"] for row in self._rows(page1_desc)} == {"APPEAL_B"}
 
     def test_export_csv(self):
         self.authenticate(self.superuser)
@@ -318,7 +372,7 @@ class Dref3FilterTests(APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         rows = self._rows(resp)
         # Collect status_display values for appeal A
-        appeal_a_statuses = {r["status_display"] for r in rows if r["appeal_id"] == "APPEAL_A"}
+        appeal_a_statuses = {r["status_display"] for r in rows if r["appeal_code"] == "APPEAL_A"}
         # Expected labels
         assert {"Approved", "Finalized", "Draft"}.issubset(appeal_a_statuses)
 

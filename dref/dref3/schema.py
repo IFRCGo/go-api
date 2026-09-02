@@ -19,6 +19,8 @@ from dref.dref3.common import (
     OPERATION_STATUSES,
     Dref3Stage,
     appeal_type_dref_types,
+    coerce_appeal_codes,
+    coerce_appeal_ids,
     coerce_appeal_type,
     coerce_date_str,
     coerce_int,
@@ -35,6 +37,8 @@ _TYPE_BY_COERCER = {
     coerce_date_str: OpenApiTypes.DATE,
     coerce_search_term: OpenApiTypes.STR,
     coerce_appeal_type: OpenApiTypes.STR,
+    coerce_appeal_codes: OpenApiTypes.STR,
+    coerce_appeal_ids: OpenApiTypes.STR,
     str: OpenApiTypes.STR,
 }
 
@@ -53,9 +57,15 @@ def _appeal_type_list() -> str:
 
 
 _DESCRIPTIONS = {
-    "appeal_id": (
-        "The `appeal_id` of a row, i.e. its `appeal_code` (case-insensitive, exact). "
-        "Matches every stage of that appeal, so it returns the whole row group."
+    "appeal_codes": (
+        "Comma-separated `appeal_code` values as returned in the `appeal_code` field "
+        "(case-insensitive, exact per code), e.g. `MDRAM010,MDRTJ032`. Matches every stage of "
+        "those appeals, so it returns whole row groups. A code no row carries yields an empty result."
+    ),
+    "appeal_ids": (
+        "Comma-separated Appeal ids as returned in the `appeal_id` field, e.g. `3621,3622`. "
+        "Each id is resolved to that Appeal's code and matched like `appeal_codes`. "
+        "Non-numeric tokens are ignored; ids with no Appeal yield an empty result."
     ),
     "appeal_code_prefix": "Rows whose `appeal_code` starts with this value (case-sensitive).",
     "region": "Region id of the national society.",

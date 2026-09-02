@@ -117,9 +117,10 @@ def has_full_access(user) -> bool:
 
 
 # -- Declarative filter mapping ----------------------------------------------
-# param -> (coerce, per-stage source-model lookups). A `None` lookup means the
-# filter does not constrain that stage's rows. `query.py` applies these per
-# union branch, before the union.
+# param -> (coerce, per-stage source-model lookups). A lookup is either a
+# field lookup, applied as `Q(**{lookup: value})`, or a callable turning the
+# coerced value into a Q; `None` means the filter does not constrain that
+# stage's rows. `query.py` applies these per union branch, before the union.
 
 
 def coerce_int(raw):
@@ -174,20 +175,63 @@ def coerce_search_term(raw):
 
 
 # -- Payload-value filters ---------------------------------------------------
-# `appeal_id`, `appeal_type` and `operation_status` filter on the values the
-# serializers *emit* for the fields of those names, not on the columns behind
-# them: a caller filters with a value it just read out of a response row. The
-# `appeal_type` labels live here rather than in the serializers, so the value
-# emitted and the value accepted are one definition.
+# `appeal_codes`, `appeal_ids`, `appeal_type` and `operation_status` filter on
+# the values the serializers *emit* for the fields of those names, not on the
+# columns behind them: a caller filters with a value it just read out of a
+# response row. The `appeal_type` labels live here rather than in the
+# serializers, so the value emitted and the value accepted are one definition.
 #
-# A value outside the emitted set matches nothing, the same as `appeal_id=NOPE`
-# does. Dropping it instead would answer a filter for rows that cannot exist
-# with every row the caller can see.
+# A value outside the emitted set matches nothing, the same as
+# `appeal_codes=NOPE` does. Dropping it instead would answer a filter for rows
+# that cannot exist with every row the caller can see.
 
 
 # A filter value no row can hold. `pk__in=()` compiles to Django's
 # EmptyResultSet, so the branch it constrains contributes no rows.
 MATCHES_NOTHING = Q(pk__in=())
+
+
+def coerce_appeal_codes(raw):
+    """A comma-separated appeal-code list as uppercased codes.
+
+    None for a value with no codes at all (the filter is ignored), so a stray
+    `?appeal_codes=,` does not empty the result.
+    """
+    codes = {code.upper() for part in str(raw).split(",") if (code := part.strip())}
+    return tuple(sorted(codes)) or None
+
+
+def coerce_appeal_ids(raw):
+    """A comma-separated `appeal_id` list as the appeal codes those ids carry.
+
+    Rows carry an `appeal_code` column rather than a foreign key to Appeal, so
+    the ids are resolved to codes here, in one query. Ids that no Appeal has
+    contribute no code, so a list of only such ids yields `()` and matches
+    nothing; a list with no well-formed id at all is None and is ignored.
+    """
+    from api.models import Appeal
+
+    # `str.isdigit()` is also True for non-ASCII digits that int() cannot parse.
+    ids = {int(token) for part in str(raw).split(",") if (token := part.strip()).isascii() and token.isdigit()}
+    if not ids:
+        return None
+    codes = Appeal.objects.filter(pk__in=sorted(ids)).values_list("code", flat=True)
+    return tuple(sorted({code.upper() for code in codes if code}))
+
+
+def appeal_code_q(codes) -> Q:
+    """Rows whose `appeal_code` is one of `codes`, compared case-insensitively.
+
+    An empty list of codes matches nothing: it means every code the caller
+    asked for was resolved and none of them exists.
+    """
+    if not codes:
+        return MATCHES_NOTHING
+    q = Q()
+    for code in codes:
+        q |= Q(appeal_code__iexact=code)
+    return q
+
 
 DEFAULT_APPEAL_TYPE = "DREF"
 
@@ -308,9 +352,13 @@ DREF3_APPLICATION_RANGE_FIELDS = (
 )
 
 DREF3_FILTERS = {
-    "appeal_id": (
-        coerce_search_term,
-        ("appeal_code__iexact", "appeal_code__iexact", "appeal_code__iexact"),
+    "appeal_codes": (
+        coerce_appeal_codes,
+        (appeal_code_q, appeal_code_q, appeal_code_q),
+    ),
+    "appeal_ids": (
+        coerce_appeal_ids,
+        (appeal_code_q, appeal_code_q, appeal_code_q),
     ),
     "appeal_code_prefix": (
         str,
@@ -370,8 +418,9 @@ def build_branch_filters(query_params) -> dict[Dref3Stage, Q]:
         if value is None:
             continue  # legacy behavior: unparseable values are ignored
         for stage, lookup in zip(Dref3Stage, lookups):
-            if lookup is not None:
-                branch_q[stage] &= Q(**{lookup: value})
+            if lookup is None:
+                continue
+            branch_q[stage] &= lookup(value) if callable(lookup) else Q(**{lookup: value})
 
     operation_status = parse_operation_status(query_params.get("operation_status"))
     if operation_status is not None:
@@ -619,7 +668,7 @@ class Dref3PageHydrator:
         Keyed off the fetched groups rather than the requested codes: the
         serializers treat a present map as authoritative (no per-row fallback
         query), so a map narrower than the rows being serialized would silently
-        yield null `link_to_emergency_page` values.
+        yield null `appeal_id` and `link_to_emergency_page` values.
         """
         from api.models import Appeal
 
