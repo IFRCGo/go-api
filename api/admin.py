@@ -302,13 +302,10 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     def _crisis_categorisation_link_data(self, obj):
         # If there are event countries missing a CC-by-country record, prefer sending the user
         # to the "add" form prefilled with the first missing country.
-        event_country_ids = list(obj.countries.values_list("pk", flat=True))
+        event_country_ids = [country.pk for country in obj.countries.all()]
+        crisis_cats = list(obj.crisis_categorisations.all())
         if event_country_ids:
-            existing_country_ids = set(
-                models.CrisisCategorisationByCountry.objects.filter(event=obj, country_id__in=event_country_ids).values_list(
-                    "country_id", flat=True
-                )
-            )
+            existing_country_ids = {cc.country_id for cc in crisis_cats}
             missing_country_id = next((cid for cid in event_country_ids if cid not in existing_country_ids), None)
             if missing_country_id is not None:
                 return (
@@ -319,7 +316,7 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
                     "Add crisis categorisation",
                 )
 
-        first_crisis_cat = models.CrisisCategorisationByCountry.objects.filter(event=obj).first()
+        first_crisis_cat = crisis_cats[0] if crisis_cats else None
         if first_crisis_cat:
             return (
                 reverse("admin:api_crisiscategorisationbycountry_change", args=[first_crisis_cat.pk]),
@@ -385,7 +382,7 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
         )
         return qs.annotate(
             _cc_status=Subquery(latest_cc_status),
-        )
+        ).prefetch_related("countries", "crisis_categorisations")
 
     def appeals(self, instance):
         if getattr(instance, "appeals").exists():
@@ -673,7 +670,15 @@ class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAd
     change_list_template = "admin/fieldreport_change_list.html"
 
     def create_events(self, request, queryset):
-        for report in queryset:
+        created_count = 0
+        skipped_count = 0
+        for report in queryset.select_related("event").prefetch_related(
+            "countries",
+            "regions",
+        ):
+            if report.event is not None:
+                skipped_count += 1
+                continue
             event = models.Event.objects.create(
                 name=report.summary,
                 dtype=getattr(report, "dtype"),
@@ -681,15 +686,16 @@ class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAd
                 auto_generated=True,
                 source=models.Event.EventSource.FIELD_REPORT_ADMIN,
             )
-            if getattr(report, "countries").exists():
-                for country in report.countries.all():
-                    event.countries.add(country)
-            if getattr(report, "regions").exists():
-                for region in report.regions.all():
-                    event.regions.add(region)
+            event.countries.add(*report.countries.all())
+            event.regions.add(*report.regions.all())
+            event.districts.add(*report.districts.all())
             report.event = event
             report.save()
-        self.message_user(request, "%s emergency object(s) created" % queryset.count())
+            created_count += 1
+        message = "%s emergency object(s) created" % created_count
+        if skipped_count:
+            message += "; %s report(s) already had an event and were skipped" % skipped_count
+        self.message_user(request, message)
 
     create_events.short_description = "Create emergencies from selected reports"
 
@@ -782,9 +788,18 @@ class AppealAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     change_list_template = "admin/appeal_change_list.html"
 
     def create_events(self, request, queryset):
-        for appeal in queryset:
+        created_count = 0
+        skipped_count = 0
+        for appeal in queryset.select_related(
+            "event",
+            "country",
+            "region",
+        ):
+            if appeal.event is not None:
+                skipped_count += 1
+                continue
             event = models.Event.objects.create(
-                title=appeal.name,
+                name=appeal.name,
                 dtype=getattr(appeal, "dtype"),
                 disaster_start_date=getattr(appeal, "start_date"),
                 auto_generated=True,
@@ -796,7 +811,11 @@ class AppealAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
                 event.regions.add(appeal.region)
             appeal.event = event
             appeal.save()
-        self.message_user(request, "%s emergency object(s) created" % queryset.count())
+            created_count += 1
+        message = "%s emergency object(s) created" % created_count
+        if skipped_count:
+            message += "; %s appeal(s) already had an event and were skipped" % skipped_count
+        self.message_user(request, message)
 
     create_events.short_description = "Create emergencies from selected appeals"
 

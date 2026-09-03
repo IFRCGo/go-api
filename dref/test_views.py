@@ -11,7 +11,15 @@ from django.core import management
 from rest_framework import status
 
 from api.factories.event import EventFactory
-from api.models import Country, DisasterType, District, Event, Region, RegionName
+from api.models import (
+    AppealType,
+    Country,
+    DisasterType,
+    District,
+    Event,
+    Region,
+    RegionName,
+)
 from api.utils import get_model_name
 from deployments.factories.project import SectorFactory
 from deployments.factories.user import UserFactory
@@ -33,6 +41,7 @@ from dref.models import (
 from dref.tasks import send_dref_email
 from lang.serializers import TranslatedModelSerializerMixin
 from main.test_case import APITestCase
+from per.factories import AppealFactory
 
 
 class DrefTestCase(APITestCase):
@@ -169,7 +178,7 @@ class DrefTestCase(APITestCase):
             "publishing_date": "2021-08-01",
             "operation_timeframe": 4,
             "appeal_code": "J7876",
-            "glide_code": "ER878",
+            "glide_codes": ["ER878"],
             "appeal_manager_name": "Test Name",
             "appeal_manager_email": "test@gmail.com",
             "project_manager_name": "Test Name",
@@ -496,7 +505,7 @@ class DrefTestCase(APITestCase):
             "emergency_appeal_planned": False,
             "operation_timeframe": 4,
             "appeal_code": "J7876",
-            "glide_code": "ER878",
+            "glide_codes": ["ER878"],
         }
 
     @mock.patch("django.utils.timezone.now")
@@ -593,7 +602,7 @@ class DrefTestCase(APITestCase):
             "publishing_date": "2021-08-01",
             "operation_timeframe": 4,
             "appeal_code": "J7876",
-            "glide_code": "ER878",
+            "glide_codes": ["ER878"],
             "appeal_manager_name": "Test Name",
             "appeal_manager_email": "test@gmail.com",
             "project_manager_name": "Test Name",
@@ -774,6 +783,57 @@ class DrefTestCase(APITestCase):
         url = f"/api/v2/dref/{dref2.id}/"
         response = self.client.patch(url, data)
         self.assert_400(response)
+
+    def test_dref_approve_links_matching_appeal_to_event(self):
+        """Approving a Dref should link a matching DREF Appeal (by appeal_code) to the created event."""
+        root_user = self.root_user
+        region = Region.objects.create(name=RegionName.AFRICA)
+        country = Country.objects.create(name="country1", region=region)
+
+        appeal = AppealFactory.create(code="MDRXX001", atype=AppealType.DREF, country=country)
+        dref = DrefFactory.create(
+            title="test-appeal-link",
+            created_by=root_user,
+            country=country,
+            status=Dref.Status.FINALIZED,
+            type_of_dref=Dref.DrefType.IMMINENT,
+            appeal_code="MDRXX001",
+        )
+
+        self.authenticate(root_user)
+        response = self.client.post(f"/api/v2/dref/{dref.id}/approve/", {})
+        self.assert_200(response)
+
+        dref.refresh_from_db()
+        appeal.refresh_from_db()
+        self.assertIsNotNone(dref.event_id)
+        self.assertEqual(appeal.event_id, dref.event_id)
+
+    def test_dref_approve_does_not_relink_appeal_already_linked_to_other_event(self):
+        """Approving a Dref should not overwrite an Appeal that is already linked to a different event."""
+        root_user = self.root_user
+        region = Region.objects.create(name=RegionName.AFRICA)
+        country = Country.objects.create(name="country1", region=region)
+
+        other_event = EventFactory.create()
+        appeal = AppealFactory.create(code="MDRXX002", atype=AppealType.DREF, country=country, event=other_event)
+        dref = DrefFactory.create(
+            title="test-appeal-conflict",
+            created_by=root_user,
+            country=country,
+            status=Dref.Status.FINALIZED,
+            type_of_dref=Dref.DrefType.IMMINENT,
+            appeal_code="MDRXX002",
+        )
+
+        self.authenticate(root_user)
+        response = self.client.post(f"/api/v2/dref/{dref.id}/approve/", {})
+        self.assert_200(response)
+
+        dref.refresh_from_db()
+        appeal.refresh_from_db()
+        self.assertEqual(appeal.event_id, other_event.id)
+        self.assertNotEqual(dref.event_id, other_event.id)
 
     def test_dref_operation_update_create(self):
         """
@@ -1094,14 +1154,14 @@ class DrefTestCase(APITestCase):
             created_by=self.root_user,
             country=country,
             event=event,
-            glide_code="OLD-GLIDE",
+            glide_codes=["OLD-GLIDE"],
             status=Dref.Status.APPROVED,
         )
         final_report = DrefFinalReportFactory.create(
             title="Test final report",
             dref=dref,
             country=country,
-            glide_code="NEW-GLIDE",
+            glide_codes=["NEW-GLIDE"],
             status=Dref.Status.FINALIZED,
         )
 
@@ -1121,14 +1181,14 @@ class DrefTestCase(APITestCase):
             created_by=self.root_user,
             country=country,
             event=event,
-            glide_code="OLD-GLIDE",
+            glide_codes=["OLD-GLIDE"],
             status=Dref.Status.APPROVED,
         )
         operational_update = DrefOperationalUpdateFactory.create(
             title="Test operational update",
             dref=dref,
             country=country,
-            glide_code="UPDATED-GLIDE",
+            glide_codes=["UPDATED-GLIDE"],
             status=Dref.Status.FINALIZED,
         )
 
@@ -1193,7 +1253,7 @@ class DrefTestCase(APITestCase):
             "publishing_date": "2021-08-01",
             "operation_timeframe": 1,
             "appeal_code": "J7876",
-            "glide_code": "ER878",
+            "glide_codes": ["ER878"],
             "appeal_manager_name": "Test Name",
             "appeal_manager_email": "test@gmail.com",
             "project_manager_name": "Test Name",
@@ -1355,7 +1415,7 @@ class DrefTestCase(APITestCase):
             "publishing_date": "2021-08-01",
             "operation_timeframe": 4,
             "appeal_code": "J7876",
-            "glide_code": "ER878",
+            "glide_codes": ["ER878"],
             "appeal_manager_name": "Nombre de prueba",
             "appeal_manager_email": "test@gmail.com",
             "project_manager_name": "Nombre de prueba",
@@ -2818,7 +2878,7 @@ class DrefTestCase(APITestCase):
             disaster_type=disaster_type,
             event_description="Test event description",
             event_date="2021-10-10",
-            glide_code="GLIDE123",
+            glide_codes=["GLIDE123"],
             created_by=self.user,
             country=country,
             status=Dref.Status.FINALIZED,
@@ -2859,7 +2919,7 @@ class DrefTestCase(APITestCase):
                 dref.disaster_type.id,
                 dref.event_description,
                 dref.event_date,
-                dref.glide_code,
+                dref.glide_codes[0],
                 Event.EventSource.DREF,
             },
         )

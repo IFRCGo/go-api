@@ -2038,6 +2038,10 @@ class Appeal(models.Model):
         editable=False,
     )
 
+    # TYPING
+    id: int
+    event_id: int | None
+
     class Meta:
         ordering = (
             "-start_date",

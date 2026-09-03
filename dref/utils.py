@@ -1,10 +1,14 @@
+import logging
+
 from django.conf import settings
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db import models
 from django.utils import timezone
 
-from api.models import Event
+from api.models import Appeal, AppealType, Event
 from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
+
+logger = logging.getLogger(__name__)
 
 
 def get_email_context(instance):
@@ -63,7 +67,7 @@ def create_event_from_dref(dref: Dref) -> Event:
         dtype=dref.disaster_type,
         summary=dref.event_description or dref.event_scope or "",
         disaster_start_date=dref.event_date or dref.hazard_date,
-        glide=dref.glide_code or "",
+        glide=dref.glide_codes[0] if dref.glide_codes else "",
         auto_generated=True,
         source=Event.EventSource.DREF,
     )
@@ -84,12 +88,47 @@ def create_event_from_dref(dref: Dref) -> Event:
     region = getattr(country, "region", None)
     if region:
         event.regions.add(region)
+
+    link_appeal_to_event(dref.appeal_code, event)
     return event
 
 
-def sync_event_glide(event: Event, glide_code: str) -> None:
-    """Propagate a revision's (ops-update/final-report) glide code back to its event."""
-    if not event or not glide_code or event.glide == glide_code:
+def link_appeal_to_event(appeal_code: str | None, event: Event) -> None:
+    """Link the DREF Appeal matched by appeal_code to the given event.
+
+    If the Appeal is already linked to a different event, leave it alone and log
+    for manual review instead of overwriting an existing link.
+    """
+    if not appeal_code:
         return
-    event.glide = glide_code
-    event.save(update_fields=["glide"])
+
+    logger.info("Linking DREF Appeal code=%s to event id=%s", appeal_code, event.id)
+
+    appeal = Appeal.objects.filter(code=appeal_code, atype=AppealType.DREF).first()
+    if appeal is None:
+        return
+
+    if appeal.event_id is None:
+        appeal.event = event
+        appeal.save(update_fields=["event"])
+    elif appeal.event_id != event.id:
+        logger.warning(
+            "Appeal id=%s (code=%s) is already linked to event id=%s; not relinking to event id=%s.",
+            appeal.id,
+            appeal_code,
+            appeal.event_id,
+            event.id,
+        )
+
+
+def sync_event_from_dref(instance: DrefOperationalUpdate | DrefFinalReport) -> None:
+    """Propagate an ops-update/final-report's glide code back to its event,
+    and link a matching DREF Appeal to the event."""
+    event = instance.dref.event
+    if not event:
+        return
+    primary_glide_code = instance.glide_codes[0] if instance.glide_codes else ""
+    if primary_glide_code and event.glide != primary_glide_code:
+        event.glide = primary_glide_code
+        event.save(update_fields=["glide"])
+    link_appeal_to_event(instance.appeal_code, event)
