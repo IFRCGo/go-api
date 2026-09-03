@@ -431,6 +431,13 @@ class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = MiniDrefSerializer
     permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
     filterset_class = ActiveDrefFilterSet
+    search_fields = (
+        "title",
+        "appeal_code",
+        "country__name",
+        "national_society__name",
+        "disaster_type__name",
+    )
 
     queryset = (
         Dref.objects.select_related(

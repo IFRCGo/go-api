@@ -2077,6 +2077,37 @@ class DrefTestCase(APITestCase):
         self.assertEqual(len(response.data["results"]), 1)
         self.assertEqual(response.data["results"][0]["final_report_details"]["id"], dref_final_report.id)
 
+    def test_search_active_dref(self):
+        country = Country.objects.create(name="Searchable Country")
+        dref_by_title = DrefFactory.create(
+            is_active=True, title="Cyclone readiness", appeal_code="MDRAA001", created_by=self.root_user
+        )
+        dref_by_country = DrefFactory.create(is_active=True, country=country, created_by=self.root_user)
+
+        url = "/api/v2/active-dref/"
+        self.client.force_authenticate(self.root_user)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data["results"]), 2)
+
+        response = self.client.get(f"{url}?search=cyclone")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual([item["id"] for item in response.data["results"]], [dref_by_title.id])
+
+        response = self.client.get(f"{url}?search=MDRAA001")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual([item["id"] for item in response.data["results"]], [dref_by_title.id])
+
+        # the affected country, not the national society
+        response = self.client.get(f"{url}?search=Searchable")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual([item["id"] for item in response.data["results"]], [dref_by_country.id])
+
+        # a missing search_fields would return every row here
+        response = self.client.get(f"{url}?search=nomatchhere")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data["results"]), 0)
+
     def test_dref_share_users(self):
         user1 = UserFactory.create(
             username="user1@test.com",
