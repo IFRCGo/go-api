@@ -93,7 +93,7 @@ def create_event_from_dref(dref: Dref) -> Event:
     return event
 
 
-def link_appeal_to_event(appeal_code: str, event: Event) -> None:
+def link_appeal_to_event(appeal_code: str | None, event: Event) -> None:
     """Link the DREF Appeal matched by appeal_code to the given event.
 
     If the Appeal is already linked to a different event, leave it alone and log

@@ -800,7 +800,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
         return data
 
     def validate_appeal_code(self, appeal_code):
-        if appeal_code and appeal_code != self.instance.appeal_code:
+        if self.instance.appeal_code and appeal_code != self.instance.appeal_code:
             raise serializers.ValidationError("Can't edit MDR Code")
         return appeal_code
 
@@ -1273,6 +1273,11 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
                     }
                 )
         return data
+
+    def validate_appeal_code(self, appeal_code):
+        if self.instance.appeal_code and appeal_code != self.instance.appeal_code:
+            raise serializers.ValidationError("Can't edit MDR Code")
+        return appeal_code
 
     def validate_photos(self, photos):
         if photos and len(photos) > self.MAX_NUMBER_OF_PHOTOS:
