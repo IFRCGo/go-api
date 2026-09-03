@@ -1,3 +1,7 @@
 [submodule "assets"]
     path = assets
-    url = git@github.com:IFRCGo/go-api-artifacts.git
+    url = https://github.com/IFRCGo/go-api-artifacts.git
+[submodule "fugit"]
+	path = fugit
+	url = https://github.com/toggle-corp/fugit.git
+	branch = v0.3.0

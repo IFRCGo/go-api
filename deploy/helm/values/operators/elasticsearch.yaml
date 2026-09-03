@@ -1,0 +1,128 @@
+# Elasticsearch, provisioned as an ECK (Elastic Cloud on Kubernetes) custom resource.
+#
+# https://github.com/IFRCGo/go-deploy/blob/develop/base-infrastructure/terraform/resources/helm-eck-operator.tf
+#
+# Elasticsearch is reachable in-cluster only and MUST NOT be given an ingress: the
+# cluster runs without TLS and treats unauthenticated clients as an anonymous superuser
+# (see the config below), so the namespace boundary is the only access control.
+
+
+app:
+  extraEnvVars:
+    ELASTIC_SEARCH_HOST: { value: "http://go-api-elasticsearch-es-http:9200" }
+
+  extraManifests:
+    elasticsearch-cluster:
+      apiVersion: elasticsearch.k8s.elastic.co/v1
+      kind: Elasticsearch
+      metadata:
+        labels:
+          app.kubernetes.io/name: elasticsearch
+        name: go-api-elasticsearch   # NOTE: the operator serves this as <name>-es-http
+      spec:
+        # NOTE: Moving to 8.x requires replacing the search backend first. https://github.com/django-haystack/django-haystack/issues/1980
+        # XXX: ECK flags 7.x as deprecated
+        version: 7.17.28
+        http:
+          tls:
+            selfSignedCertificate:
+              # The client has no way to pass credentials or trust a CA: the app builds
+              # its client from a single URL env var. In-cluster plain HTTP instead.
+              disabled: true
+        # Keep the data volume when the cluster scales down or is renamed; only an
+        # explicit cluster deletion removes it.
+        volumeClaimDeletePolicy: DeleteOnScaledownOnly
+        nodeSets:
+          - name: default
+            count: 1
+            config:
+              # Avoids the privileged vm.max_map_count init container the operator would otherwise add.
+              node.store.allow_mmap: false
+              # Unauthenticated clients act as a superuser
+              xpack.security.authc.anonymous:
+                username: anonymous
+                roles: superuser
+                authz_exception: false
+            podTemplate:
+              spec:
+                containers:
+                  - name: elasticsearch
+                    resources:
+                      requests:
+                        cpu: "0.1"
+                        memory: 4Gi   # the operator sets the JVM heap to ~50% of this
+                      limits:
+                        cpu: "2"
+                        memory: 4Gi
+            volumeClaimTemplates:
+              - metadata:
+                  name: elasticsearch-data
+                spec:
+                  accessModes: [ReadWriteOnce]
+                  # storageClassName: XXX: set if needed - uses the cluster default
+                  resources:
+                    requests:
+                      storage: 20Gi
+
+  hooks:
+    jobs:
+      # A single-node cluster cannot allocate replica shards, so as soon as an index
+      # with replicas exists the cluster health stays yellow and ArgoCD never reports
+      # this application Healthy. This pins replicas to 0 for current and future
+      # indices.
+      #
+      # It runs in the same deploy stage as the cluster resource (not a later one): a
+      # cluster that is already yellow blocks the stages after it, so a job scheduled
+      # later could never run to fix it. Its own wait loop handles the cluster still
+      # coming up.
+      #
+      # FIXME: fix using django app
+      elasticsearch-zero-replicas:
+        enabled: true
+        jobAnnotations:
+          argocd.argoproj.io/hook: "Sync"
+          argocd.argoproj.io/sync-wave: "0"
+          argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+        activeDeadlineSeconds: 900
+        command: ["sh", "-c", "./manage.py shell < /etc/hook-files/es_zero_replicas.py"]
+        files:
+          es_zero_replicas.py: |
+            import time
+
+            from elasticsearch.client import IndicesClient
+
+            from api.esconnection import ES_CLIENT
+
+            TEMPLATE_NAME = "zzz-zero-replicas"
+            SETTINGS = {"index": {"number_of_replicas": 0}}
+            WAIT_DEADLINE_SECONDS = 600
+
+            if ES_CLIENT is None:
+                print("No Elasticsearch host configured; nothing to do")
+            else:
+                # Wait for the cluster to accept writes, i.e. at least yellow. Waiting
+                # for green is impossible here: green needs the very setting this
+                # script applies.
+                deadline = time.monotonic() + WAIT_DEADLINE_SECONDS
+                while True:
+                    try:
+                        ES_CLIENT.cluster.health(wait_for_status="yellow", timeout="10s")
+                        break
+                    except Exception as exc:
+                        if time.monotonic() >= deadline:
+                            raise
+                        print(f"Elasticsearch not ready yet ({exc!r}); retrying")
+                        time.sleep(5)
+
+                indices = IndicesClient(client=ES_CLIENT)
+                indices.put_template(
+                    name=TEMPLATE_NAME,
+                    body={"index_patterns": ["*"], "order": -1, "settings": SETTINGS},
+                )
+                indices.put_settings(
+                    body=SETTINGS,
+                    index="_all",
+                    allow_no_indices=True,
+                    ignore_unavailable=True,
+                )
+                print("Pinned number_of_replicas=0 for existing and future indices")

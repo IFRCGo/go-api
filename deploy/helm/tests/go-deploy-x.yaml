@@ -1,0 +1,33 @@
+app:
+  fullnameOverride: go-api
+
+  api:
+    ingress:
+      host: go-api.example.com
+      tls:
+        secretName: go-api-example-cert
+
+  # Dummy values for snapshot rendering only — real per-environment values are
+  # supplied at deploy time. No `secrets:` here: with the Secrets Store CSI driver
+  # enabled the chart renders no Secret of its own, the vault supplies them.
+  env:
+    API_FQDN: https://go-api.example.com
+    FRONTEND_URL: https://go.example.com
+    SESSION_COOKIE_DOMAIN: .example.com
+    CSRF_COOKIE_DOMAIN: .example.com
+    AZURE_STORAGE_ACCOUNT: exampleaccount
+    AZURE_STORAGE_ENABLED: "true"
+    AZURE_TENANT_ID: 11111111-1111-1111-1111-111111111111
+    AZURE_CLIENT_ID: 00000000-0000-0000-0000-000000000000
+    AZURE_STORAGE_MANAGED_IDENTITY: "true"
+    AZURE_STORAGE_STATIC_CONTAINER: static
+
+  serviceAccount:
+    annotations:
+      azure.workload.identity/client-id: 00000000-0000-0000-0000-000000000000
+
+  secretsStoreCsiDriver:
+    parameters:
+      clientID: 00000000-0000-0000-0000-000000000000
+      keyvaultName: go-api-example-key-vault
+      tenantId: 11111111-1111-1111-1111-111111111111

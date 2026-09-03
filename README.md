@@ -289,3 +289,7 @@ For more info checkout [GO-SSO](./docs/go-sso.md)
 ## Playwright exports
 
 For more info checkout [Playwright exports](./docs/playwright-exports.md)
+
+## Deploying to Kubernetes
+
+For more info checkout [Deploying go-api](./docs/go-deploy.md)

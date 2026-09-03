@@ -1,0 +1,20 @@
+tests:
+  alpha.yaml:
+    - values/operators/dragonfly.yaml
+    - values/alpha.yaml
+    - values/traefik.yaml
+    - tests/alpha.yaml
+  staging:
+    - values/traefik.yaml
+    - values/operators/dragonfly.yaml
+    - values/operators/elasticsearch.yaml
+    - values/go-deploy/base.yaml
+    - values/go-deploy/staging.yaml
+    - tests/go-deploy-x.yaml
+  production:
+    - values/traefik.yaml
+    - values/operators/dragonfly.yaml
+    - values/operators/elasticsearch.yaml
+    - values/go-deploy/base.yaml
+    - values/go-deploy/production.yaml
+    - tests/go-deploy-x.yaml

@@ -1,0 +1,3263 @@
+---
+# Source: ifrcgo-helm/charts/app/templates/api/service-account.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: service-token-reader
+  annotations:
+    azure.workload.identity/client-id: 00000000-0000-0000-0000-000000000000
+  labels:
+    azure.workload.identity/use: "true"
+automountServiceAccountToken: true
+
+---
+# Source: ifrcgo-helm/charts/app/templates/config/configmap.yaml
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: go-api-env-name
+  labels:
+    app: go-api
+    environment: staging
+    release: release-name
+data:
+  # Configs
+  API_FQDN: "https://go-api.example.com"
+  AUTO_TRANSLATION_TRANSLATOR: "lang.translation.IfrcTranslator"
+  AZURE_CLIENT_ID: "00000000-0000-0000-0000-000000000000"
+  AZURE_STORAGE_ACCOUNT: "exampleaccount"
+  AZURE_STORAGE_ENABLED: "true"
+  AZURE_STORAGE_MANAGED_IDENTITY: "true"
+  AZURE_STORAGE_STATIC_CONTAINER: "static"
+  AZURE_TENANT_ID: "11111111-1111-1111-1111-111111111111"
+  CACHE_MIDDLEWARE_SECONDS: "0"
+  CSRF_COOKIE_DOMAIN: ".example.com"
+  DEBUG_EMAIL: "false"
+  DJANGO_DEBUG: "false"
+  FRONTEND_URL: "https://go.example.com"
+  GO_ENVIRONMENT: "staging"
+  HEALTH_CHECK_DISK_USAGE_MAX: "none"
+  JWT_EXPIRE_TIMESTAMP_DAYS: "365"
+  OIDC_ENABLE: "true"
+  SENTRY_SAMPLE_RATE: "0.3"
+  SESSION_COOKIE_DOMAIN: ".example.com"
+
+---
+# Source: ifrcgo-helm/charts/app/templates/hooks/job.yaml
+# Hook files ConfigMap for: elasticsearch-zero-replicas
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: go-api-elasticsearch-zero-replicas-files
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "0"
+  labels:
+    app: go-api
+    component: hook
+    hookName: elasticsearch-zero-replicas
+    environment: staging
+    release: release-name
+data:
+  es_zero_replicas.py: "import time\n\nfrom elasticsearch.client import IndicesClient\n\nfrom api.esconnection import ES_CLIENT\n\nTEMPLATE_NAME = \"zzz-zero-replicas\"\nSETTINGS = {\"index\": {\"number_of_replicas\": 0}}\nWAIT_DEADLINE_SECONDS = 600\n\nif ES_CLIENT is None:\n    print(\"No Elasticsearch host configured; nothing to do\")\nelse:\n    # Wait for the cluster to accept writes, i.e. at least yellow. Waiting\n    # for green is impossible here: green needs the very setting this\n    # script applies.\n    deadline = time.monotonic() + WAIT_DEADLINE_SECONDS\n    while True:\n        try:\n            ES_CLIENT.cluster.health(wait_for_status=\"yellow\", timeout=\"10s\")\n            break\n        except Exception as exc:\n            if time.monotonic() >= deadline:\n                raise\n            print(f\"Elasticsearch not ready yet ({exc!r}); retrying\")\n            time.sleep(5)\n\n    indices = IndicesClient(client=ES_CLIENT)\n    indices.put_template(\n        name=TEMPLATE_NAME,\n        body={\"index_patterns\": [\"*\"], \"order\": -1, \"settings\": SETTINGS},\n    )\n    indices.put_settings(\n        body=SETTINGS,\n        index=\"_all\",\n        allow_no_indices=True,\n        ignore_unavailable=True,\n    )\n    print(\"Pinned number_of_replicas=0 for existing and future indices\")\n"
+---
+# Source: ifrcgo-helm/charts/app/templates/api/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: go-api-api
+  labels:
+    app: go-api
+    component: api
+    environment: staging
+    release: release-name
+spec:
+  type: ClusterIP
+  selector:
+    app: go-api
+    component: api
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+
+---
+# Source: ifrcgo-helm/templates/playwright.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: go-api-playwright
+  labels:
+    app.kubernetes.io/name: go-api-playwright
+    app.kubernetes.io/component: playwright
+    app.kubernetes.io/part-of: release-name
+spec:
+  selector:
+    app.kubernetes.io/name: go-api-playwright
+  ports:
+    - port: 3000
+      targetPort: 3000
+
+---
+# Source: ifrcgo-helm/charts/app/templates/api/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-api-api
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+    reloader.stakater.com/auto: "true"
+  labels:
+    app: go-api
+    component: api
+    environment: staging
+    release: release-name
+spec:
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: go-api
+      component: api
+  template:
+    metadata:
+      annotations:
+        checksum/secret: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+        checksum/configmap: 3be62c602f9e6651c5d7889f2bef452a571a23bdbe335aad3762f40eda5da3a5
+      labels:
+        app: go-api
+        component: api
+        azure.workload.identity/use: "true"
+    spec:
+      volumes:
+        - name: go-api-secret
+          csi:
+            driver: "secrets-store.csi.k8s.io"
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: go-api-secret-provider
+      serviceAccountName: service-token-reader
+      terminationGracePeriodSeconds: 38
+      containers:
+        - name: api
+          image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+          imagePullPolicy: IfNotPresent
+          command:
+            - ./deploy/run_web.sh
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            failureThreshold: 6
+            httpGet:
+              path: /healthz/live/
+              port: http
+            periodSeconds: 20
+            timeoutSeconds: 2
+          readinessProbe:
+            failureThreshold: 6
+            httpGet:
+              path: /healthz/ready/
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 2
+          startupProbe:
+            failureThreshold: 30
+            httpGet:
+              path: /healthz/ready/
+              port: http
+            periodSeconds: 5
+          resources:
+            limits:
+              memory: 4Gi
+            requests:
+              cpu: "1"
+              memory: 2Gi
+          envFrom:
+            - secretRef:
+                name: go-api-secret
+            - configMapRef:
+                name: go-api-env-name
+          env:
+            - name: DJANGO_APP_TYPE
+              value: "web"
+            - name: CACHE_REDIS_URL
+              value: redis://go-api-dragonfly:6379/1
+            - name: CELERY_REDIS_URL
+              value: redis://go-api-dragonfly:6379/0
+            - name: ELASTIC_SEARCH_HOST
+              value: http://go-api-elasticsearch-es-http:9200
+            - name: PLAYWRIGHT_SERVER_URL
+              value: ws://go-api-playwright:3000/
+            
+          lifecycle:
+            preStop:
+              sleep:
+                seconds: 8
+          volumeMounts:
+            - name: go-api-secret
+              mountPath: /mnt/secrets-store
+              readOnly: true
+
+---
+# Source: ifrcgo-helm/charts/app/templates/worker/deployment.yaml
+# Queue: default
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-api-worker-default
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+    reloader.stakater.com/auto: "true"
+  labels:
+    app: go-api
+    component: worker
+    queue: default
+    environment: staging
+    release: release-name
+spec:
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: go-api
+      component: worker
+      queue: default
+  template:
+    metadata:
+      annotations:
+        checksum/secret: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+        checksum/configmap: 3be62c602f9e6651c5d7889f2bef452a571a23bdbe335aad3762f40eda5da3a5
+      labels:
+        app: go-api
+        component: worker
+        queue: default
+        azure.workload.identity/use: "true"
+    spec:
+      volumes:
+        - name: go-api-secret
+          csi:
+            driver: "secrets-store.csi.k8s.io"
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: go-api-secret-provider
+        - emptyDir:
+            medium: Memory
+            sizeLimit: 1Mi
+          name: celery-heartbeat
+      serviceAccountName: service-token-reader
+      containers:
+        - name: worker
+          command:
+            - celery
+            - -A
+            - main
+            - worker
+            - -l
+            - INFO
+            - -Q
+            - default,heavy,cronjob
+            - --concurrency
+            - "2"
+          image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            exec:
+              command:
+              - banjo-celery-probe
+            failureThreshold: 6
+            periodSeconds: 20
+            timeoutSeconds: 5
+          startupProbe:
+            exec:
+              command:
+              - banjo-celery-probe
+            failureThreshold: 30
+            periodSeconds: 5
+          resources:
+            limits:
+              memory: 4Gi
+            requests:
+              cpu: "0.5"
+              memory: 0.5Gi
+          envFrom:
+            - secretRef:
+                name: go-api-secret
+            - configMapRef:
+                name: go-api-env-name
+          env:
+            - name: DJANGO_APP_TYPE
+              value: "worker"
+            - name: CACHE_REDIS_URL
+              value: redis://go-api-dragonfly:6379/1
+            - name: CELERY_REDIS_URL
+              value: redis://go-api-dragonfly:6379/0
+            - name: ELASTIC_SEARCH_HOST
+              value: http://go-api-elasticsearch-es-http:9200
+            - name: PLAYWRIGHT_SERVER_URL
+              value: ws://go-api-playwright:3000/
+            
+            - name: BANJO_CELERY_HEARTBEAT_FILE
+              value: "/var/run/celery/worker_heartbeat"
+          volumeMounts:
+            - name: go-api-secret
+              mountPath: /mnt/secrets-store
+              readOnly: true
+            - mountPath: /var/run/celery
+              name: celery-heartbeat
+
+---
+# Source: ifrcgo-helm/templates/playwright.yaml
+# Headless-browser server used by the screenshot / PDF-export Celery tasks.
+# Exposes a Playwright server over ws://<name>:<port>/; the app reaches it via
+# PLAYWRIGHT_SERVER_URL (see app.extraEnvVars in values.yaml).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-api-playwright
+  labels:
+    app.kubernetes.io/name: go-api-playwright
+    app.kubernetes.io/component: playwright
+    app.kubernetes.io/part-of: release-name
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: go-api-playwright
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: go-api-playwright
+    spec:
+      containers:
+        - name: playwright
+          image: "mcr.microsoft.com/playwright:v1.50.0-noble"
+          workingDir: /home/pwuser
+          command:
+            - bash
+            - -xc
+            - |
+              PLAYWRIGHT_VERSION=$(grep -oP '"driverVersion": "\K[^"]+' /ms-playwright/.docker-info)
+              npx -y playwright@$PLAYWRIGHT_VERSION run-server --host 0.0.0.0 --port 3000
+          ports:
+            - containerPort: 3000
+          resources:
+            limits:
+              cpu: "2"
+              memory: 2Gi
+            requests:
+              cpu: "0.1"
+              memory: 1Gi
+---
+# Source: ifrcgo-helm/charts/app/templates/hooks/job.yaml
+# Hook: collect-static
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: go-api-collect-static
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "20"
+  labels:
+    app: go-api
+    component: hook
+    hookName: collect-static
+    environment: staging
+    release: release-name
+spec:
+  template:
+    metadata:
+      annotations:
+        checksum/secret: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+        checksum/configmap: 3be62c602f9e6651c5d7889f2bef452a571a23bdbe335aad3762f40eda5da3a5
+      labels:
+        app: go-api
+        component: hook
+        hookName: collect-static
+        azure.workload.identity/use: "true"
+    spec:
+      restartPolicy: "Never"
+      volumes:
+        - name: go-api-secret
+          csi:
+            driver: "secrets-store.csi.k8s.io"
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: go-api-secret-provider
+      serviceAccountName: service-token-reader
+      containers:
+        - name: collect-static
+          image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+          imagePullPolicy: IfNotPresent
+          command: 
+            - ./manage.py
+            - collectstatic
+            - --noinput
+          resources:
+            limits:
+              memory: 2Gi
+            requests:
+              cpu: "0.1"
+              memory: 1Gi
+          envFrom:
+            - secretRef:
+                name: go-api-secret
+            - configMapRef:
+                name: go-api-env-name
+          env:
+            - name: DJANGO_APP_TYPE
+              value: "hook"
+            - name: CACHE_REDIS_URL
+              value: redis://go-api-dragonfly:6379/1
+            - name: CELERY_REDIS_URL
+              value: redis://go-api-dragonfly:6379/0
+            - name: ELASTIC_SEARCH_HOST
+              value: http://go-api-elasticsearch-es-http:9200
+            - name: PLAYWRIGHT_SERVER_URL
+              value: ws://go-api-playwright:3000/
+            
+          volumeMounts:
+            - name: go-api-secret
+              mountPath: /mnt/secrets-store
+              readOnly: true
+---
+# Source: ifrcgo-helm/charts/app/templates/hooks/job.yaml
+# Hook: db-migrate
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: go-api-db-migrate-
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/sync-wave: "20"
+  labels:
+    app: go-api
+    component: hook
+    hookName: db-migrate
+    environment: staging
+    release: release-name
+spec:
+  activeDeadlineSeconds: 3600
+  ttlSecondsAfterFinished: 604800
+  template:
+    metadata:
+      annotations:
+        checksum/secret: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+        checksum/configmap: 3be62c602f9e6651c5d7889f2bef452a571a23bdbe335aad3762f40eda5da3a5
+      labels:
+        app: go-api
+        component: hook
+        hookName: db-migrate
+        azure.workload.identity/use: "true"
+    spec:
+      restartPolicy: "Never"
+      volumes:
+        - name: go-api-secret
+          csi:
+            driver: "secrets-store.csi.k8s.io"
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: go-api-secret-provider
+      serviceAccountName: service-token-reader
+      containers:
+        - name: db-migrate
+          image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+          imagePullPolicy: IfNotPresent
+          command: 
+            - ./manage.py
+            - migrate
+          resources:
+            limits:
+              memory: 2Gi
+            requests:
+              cpu: "0.1"
+              memory: 1Gi
+          envFrom:
+            - secretRef:
+                name: go-api-secret
+            - configMapRef:
+                name: go-api-env-name
+          env:
+            - name: DJANGO_APP_TYPE
+              value: "hook"
+            - name: CACHE_REDIS_URL
+              value: redis://go-api-dragonfly:6379/1
+            - name: CELERY_REDIS_URL
+              value: redis://go-api-dragonfly:6379/0
+            - name: ELASTIC_SEARCH_HOST
+              value: http://go-api-elasticsearch-es-http:9200
+            - name: PLAYWRIGHT_SERVER_URL
+              value: ws://go-api-playwright:3000/
+            
+          volumeMounts:
+            - name: go-api-secret
+              mountPath: /mnt/secrets-store
+              readOnly: true
+---
+# Source: ifrcgo-helm/charts/app/templates/hooks/job.yaml
+# Hook: elasticsearch-zero-replicas
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: go-api-elasticsearch-zero-replicas
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "0"
+  labels:
+    app: go-api
+    component: hook
+    hookName: elasticsearch-zero-replicas
+    environment: staging
+    release: release-name
+spec:
+  activeDeadlineSeconds: 900
+  template:
+    metadata:
+      annotations:
+        checksum/secret: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+        checksum/configmap: 3be62c602f9e6651c5d7889f2bef452a571a23bdbe335aad3762f40eda5da3a5
+      labels:
+        app: go-api
+        component: hook
+        hookName: elasticsearch-zero-replicas
+        azure.workload.identity/use: "true"
+    spec:
+      restartPolicy: "Never"
+      volumes:
+        - name: go-api-secret
+          csi:
+            driver: "secrets-store.csi.k8s.io"
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: go-api-secret-provider
+        - configMap:
+            name: go-api-elasticsearch-zero-replicas-files
+          name: hook-files
+      serviceAccountName: service-token-reader
+      containers:
+        - name: elasticsearch-zero-replicas
+          image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+          imagePullPolicy: IfNotPresent
+          command: 
+            - sh
+            - -c
+            - ./manage.py shell < /etc/hook-files/es_zero_replicas.py
+          resources:
+            limits:
+              memory: 2Gi
+            requests:
+              cpu: "0.1"
+              memory: 1Gi
+          envFrom:
+            - secretRef:
+                name: go-api-secret
+            - configMapRef:
+                name: go-api-env-name
+          env:
+            - name: DJANGO_APP_TYPE
+              value: "hook"
+            - name: CACHE_REDIS_URL
+              value: redis://go-api-dragonfly:6379/1
+            - name: CELERY_REDIS_URL
+              value: redis://go-api-dragonfly:6379/0
+            - name: ELASTIC_SEARCH_HOST
+              value: http://go-api-elasticsearch-es-http:9200
+            - name: PLAYWRIGHT_SERVER_URL
+              value: ws://go-api-playwright:3000/
+            
+          volumeMounts:
+            - name: go-api-secret
+              mountPath: /mnt/secrets-store
+              readOnly: true
+            - mountPath: /etc/hook-files
+              name: hook-files
+              readOnly: true
+---
+# Source: ifrcgo-helm/charts/app/templates/hooks/job.yaml
+# Hook: wait-for-resources
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: go-api-wait-for-resources
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+    argocd.argoproj.io/sync-wave: "10"
+  labels:
+    app: go-api
+    component: hook
+    hookName: wait-for-resources
+    environment: staging
+    release: release-name
+spec:
+  template:
+    metadata:
+      annotations:
+        checksum/secret: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+        checksum/configmap: 3be62c602f9e6651c5d7889f2bef452a571a23bdbe335aad3762f40eda5da3a5
+      labels:
+        app: go-api
+        component: hook
+        hookName: wait-for-resources
+        azure.workload.identity/use: "true"
+    spec:
+      restartPolicy: "Never"
+      volumes:
+        - name: go-api-secret
+          csi:
+            driver: "secrets-store.csi.k8s.io"
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: go-api-secret-provider
+      serviceAccountName: service-token-reader
+      containers:
+        - name: wait-for-resources
+          image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+          imagePullPolicy: IfNotPresent
+          command: 
+            - ./manage.py
+            - wait_for_resources
+            - --db
+            - --cache
+            - --celery-broker
+          resources:
+            limits:
+              memory: 2Gi
+            requests:
+              cpu: "0.1"
+              memory: 1Gi
+          envFrom:
+            - secretRef:
+                name: go-api-secret
+            - configMapRef:
+                name: go-api-env-name
+          env:
+            - name: DJANGO_APP_TYPE
+              value: "hook"
+            - name: CACHE_REDIS_URL
+              value: redis://go-api-dragonfly:6379/1
+            - name: CELERY_REDIS_URL
+              value: redis://go-api-dragonfly:6379/0
+            - name: ELASTIC_SEARCH_HOST
+              value: http://go-api-elasticsearch-es-http:9200
+            - name: PLAYWRIGHT_SERVER_URL
+              value: ws://go-api-playwright:3000/
+            
+          volumeMounts:
+            - name: go-api-secret
+              mountPath: /mnt/secrets-store
+              readOnly: true
+
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: FDRS_INCOME
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-fdrs-income
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: FDRS_INCOME
+    environment: staging
+    release: release-name
+spec:
+  schedule: "0 0 * * 0"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+            azure.workload.identity/use: "true"
+        spec:
+          restartPolicy: "Never"
+          volumes:
+            - name: go-api-secret
+              csi:
+                driver: "secrets-store.csi.k8s.io"
+                readOnly: true
+                volumeAttributes:
+                  secretProviderClass: go-api-secret-provider
+          serviceAccountName: service-token-reader
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - FDRS_INCOME
+              image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: ELASTIC_SEARCH_HOST
+                  value: http://go-api-elasticsearch-es-http:9200
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+                
+              volumeMounts:
+                - name: go-api-secret
+                  mountPath: /mnt/secrets-store
+                  readOnly: true
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: alert_notification
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-alert-notification
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: alert_notification
+    environment: staging
+    release: release-name
+spec:
+  schedule: "0 */2 * * *"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+            azure.workload.identity/use: "true"
+        spec:
+          restartPolicy: "Never"
+          volumes:
+            - name: go-api-secret
+              csi:
+                driver: "secrets-store.csi.k8s.io"
+                readOnly: true
+                volumeAttributes:
+                  secretProviderClass: go-api-secret-provider
+          serviceAccountName: service-token-reader
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - alert_notification
+              image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: ELASTIC_SEARCH_HOST
+                  value: http://go-api-elasticsearch-es-http:9200
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+                
+              volumeMounts:
+                - name: go-api-secret
+                  mountPath: /mnt/secrets-store
+                  readOnly: true
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: eap_submission_reminder
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-eap-submission-reminder
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: eap_submission_reminder
+    environment: staging
+    release: release-name
+spec:
+  schedule: "0 0 * * *"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+            azure.workload.identity/use: "true"
+        spec:
+          restartPolicy: "Never"
+          volumes:
+            - name: go-api-secret
+              csi:
+                driver: "secrets-store.csi.k8s.io"
+                readOnly: true
+                volumeAttributes:
+                  secretProviderClass: go-api-secret-provider
+          serviceAccountName: service-token-reader
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - eap_submission_reminder
+              image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: ELASTIC_SEARCH_HOST
+                  value: http://go-api-elasticsearch-es-http:9200
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+                
+              volumeMounts:
+                - name: go-api-secret
+                  mountPath: /mnt/secrets-store
+                  readOnly: true
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: fdrs_annual_income
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-fdrs-annual-income
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: fdrs_annual_income
+    environment: staging
+    release: release-name
+spec:
+  schedule: "0 0 * * 0"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+            azure.workload.identity/use: "true"
+        spec:
+          restartPolicy: "Never"
+          volumes:
+            - name: go-api-secret
+              csi:
+                driver: "secrets-store.csi.k8s.io"
+                readOnly: true
+                volumeAttributes:
+                  secretProviderClass: go-api-secret-provider
+          serviceAccountName: service-token-reader
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - fdrs_annual_income
+              image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: ELASTIC_SEARCH_HOST
+                  value: http://go-api-elasticsearch-es-http:9200
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+                
+              volumeMounts:
+                - name: go-api-secret
+                  mountPath: /mnt/secrets-store
+                  readOnly: true
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: index_and_notify
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-index-and-notify
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: index_and_notify
+    environment: staging
+    release: release-name
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+            azure.workload.identity/use: "true"
+        spec:
+          restartPolicy: "Never"
+          volumes:
+            - name: go-api-secret
+              csi:
+                driver: "secrets-store.csi.k8s.io"
+                readOnly: true
+                volumeAttributes:
+                  secretProviderClass: go-api-secret-provider
+          serviceAccountName: service-token-reader
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - index_and_notify
+              image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: ELASTIC_SEARCH_HOST
+                  value: http://go-api-elasticsearch-es-http:9200
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+                
+              volumeMounts:
+                - name: go-api-secret
+                  mountPath: /mnt/secrets-store
+                  readOnly: true
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: ingest_acaps
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-ingest-acaps
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: ingest_acaps
+    environment: staging
+    release: release-name
+spec:
+  schedule: "0 1 * * 0"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+            azure.workload.identity/use: "true"
+        spec:
+          restartPolicy: "Never"
+          volumes:
+            - name: go-api-secret
+              csi:
+                driver: "secrets-store.csi.k8s.io"
+                readOnly: true
+                volumeAttributes:
+                  secretProviderClass: go-api-secret-provider
+          serviceAccountName: service-token-reader
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - ingest_acaps
+              image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: ELASTIC_SEARCH_HOST
+                  value: http://go-api-elasticsearch-es-http:9200
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+                
+              volumeMounts:
+                - name: go-api-secret
+                  mountPath: /mnt/secrets-store
+                  readOnly: true
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: ingest_appeals
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-ingest-appeals
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: ingest_appeals
+    environment: staging
+    release: release-name
+spec:
+  schedule: "*/30 * * * *"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+            azure.workload.identity/use: "true"
+        spec:
+          restartPolicy: "Never"
+          volumes:
+            - name: go-api-secret
+              csi:
+                driver: "secrets-store.csi.k8s.io"
+                readOnly: true
+                volumeAttributes:
+                  secretProviderClass: go-api-secret-provider
+          serviceAccountName: service-token-reader
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - ingest_appeals
+              image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: ELASTIC_SEARCH_HOST
+                  value: http://go-api-elasticsearch-es-http:9200
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+                
+              volumeMounts:
+                - name: go-api-secret
+                  mountPath: /mnt/secrets-store
+                  readOnly: true
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: ingest_climate
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-ingest-climate
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: ingest_climate
+    environment: staging
+    release: release-name
+spec:
+  schedule: "0 0 * * 0"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+            azure.workload.identity/use: "true"
+        spec:
+          restartPolicy: "Never"
+          volumes:
+            - name: go-api-secret
+              csi:
+                driver: "secrets-store.csi.k8s.io"
+                readOnly: true
+                volumeAttributes:
+                  secretProviderClass: go-api-secret-provider
+          serviceAccountName: service-token-reader
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - ingest_climate
+              image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: ELASTIC_SEARCH_HOST
+                  value: http://go-api-elasticsearch-es-http:9200
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+                
+              volumeMounts:
+                - name: go-api-secret
+                  mountPath: /mnt/secrets-store
+                  readOnly: true
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: ingest_country_plan_file
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-ingest-country-plan-file
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: ingest_country_plan_file
+    environment: staging
+    release: release-name
+spec:
+  schedule: "1 0 * * *"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+            azure.workload.identity/use: "true"
+        spec:
+          restartPolicy: "Never"
+          volumes:
+            - name: go-api-secret
+              csi:
+                driver: "secrets-store.csi.k8s.io"
+                readOnly: true
+                volumeAttributes:
+                  secretProviderClass: go-api-secret-provider
+          serviceAccountName: service-token-reader
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - ingest_country_plan_file
+              image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: ELASTIC_SEARCH_HOST
+                  value: http://go-api-elasticsearch-es-http:9200
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+                
+              volumeMounts:
+                - name: go-api-secret
+                  mountPath: /mnt/secrets-store
+                  readOnly: true
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: ingest_databank
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-ingest-databank
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: ingest_databank
+    environment: staging
+    release: release-name
+spec:
+  schedule: "0 0 * * 0"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+            azure.workload.identity/use: "true"
+        spec:
+          restartPolicy: "Never"
+          volumes:
+            - name: go-api-secret
+              csi:
+                driver: "secrets-store.csi.k8s.io"
+                readOnly: true
+                volumeAttributes:
+                  secretProviderClass: go-api-secret-provider
+          serviceAccountName: service-token-reader
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - ingest_databank
+              image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: ELASTIC_SEARCH_HOST
+                  value: http://go-api-elasticsearch-es-http:9200
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+                
+              volumeMounts:
+                - name: go-api-secret
+                  mountPath: /mnt/secrets-store
+                  readOnly: true
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: ingest_disaster_law
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-ingest-disaster-law
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: ingest_disaster_law
+    environment: staging
+    release: release-name
+spec:
+  schedule: "0 0 * * 0"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+            azure.workload.identity/use: "true"
+        spec:
+          restartPolicy: "Never"
+          volumes:
+            - name: go-api-secret
+              csi:
+                driver: "secrets-store.csi.k8s.io"
+                readOnly: true
+                volumeAttributes:
+                  secretProviderClass: go-api-secret-provider
+          serviceAccountName: service-token-reader
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - ingest_disaster_law
+              image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: ELASTIC_SEARCH_HOST
+                  value: http://go-api-elasticsearch-es-http:9200
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+                
+              volumeMounts:
+                - name: go-api-secret
+                  mountPath: /mnt/secrets-store
+                  readOnly: true
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: ingest_hdr
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-ingest-hdr
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: ingest_hdr
+    environment: staging
+    release: release-name
+spec:
+  schedule: "0 0 * * 0"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+            azure.workload.identity/use: "true"
+        spec:
+          restartPolicy: "Never"
+          volumes:
+            - name: go-api-secret
+              csi:
+                driver: "secrets-store.csi.k8s.io"
+                readOnly: true
+                volumeAttributes:
+                  secretProviderClass: go-api-secret-provider
+          serviceAccountName: service-token-reader
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - ingest_hdr
+              image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: ELASTIC_SEARCH_HOST
+                  value: http://go-api-elasticsearch-es-http:9200
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+                
+              volumeMounts:
+                - name: go-api-secret
+                  mountPath: /mnt/secrets-store
+                  readOnly: true
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: ingest_icrc
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-ingest-icrc
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: ingest_icrc
+    environment: staging
+    release: release-name
+spec:
+  schedule: "0 3 * * 0"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+            azure.workload.identity/use: "true"
+        spec:
+          restartPolicy: "Never"
+          volumes:
+            - name: go-api-secret
+              csi:
+                driver: "secrets-store.csi.k8s.io"
+                readOnly: true
+                volumeAttributes:
+                  secretProviderClass: go-api-secret-provider
+          serviceAccountName: service-token-reader
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - ingest_icrc
+              image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: ELASTIC_SEARCH_HOST
+                  value: http://go-api-elasticsearch-es-http:9200
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+                
+              volumeMounts:
+                - name: go-api-secret
+                  mountPath: /mnt/secrets-store
+                  readOnly: true
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: ingest_ns_capacity
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-ingest-ns-capacity
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: ingest_ns_capacity
+    environment: staging
+    release: release-name
+spec:
+  schedule: "0 0 * * 0"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+            azure.workload.identity/use: "true"
+        spec:
+          restartPolicy: "Never"
+          volumes:
+            - name: go-api-secret
+              csi:
+                driver: "secrets-store.csi.k8s.io"
+                readOnly: true
+                volumeAttributes:
+                  secretProviderClass: go-api-secret-provider
+          serviceAccountName: service-token-reader
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - ingest_ns_capacity
+              image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: ELASTIC_SEARCH_HOST
+                  value: http://go-api-elasticsearch-es-http:9200
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+                
+              volumeMounts:
+                - name: go-api-secret
+                  mountPath: /mnt/secrets-store
+                  readOnly: true
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: ingest_ns_contact
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-ingest-ns-contact
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: ingest_ns_contact
+    environment: staging
+    release: release-name
+spec:
+  schedule: "0 0 * * 0"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+            azure.workload.identity/use: "true"
+        spec:
+          restartPolicy: "Never"
+          volumes:
+            - name: go-api-secret
+              csi:
+                driver: "secrets-store.csi.k8s.io"
+                readOnly: true
+                volumeAttributes:
+                  secretProviderClass: go-api-secret-provider
+          serviceAccountName: service-token-reader
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - ingest_ns_contact
+              image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: ELASTIC_SEARCH_HOST
+                  value: http://go-api-elasticsearch-es-http:9200
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+                
+              volumeMounts:
+                - name: go-api-secret
+                  mountPath: /mnt/secrets-store
+                  readOnly: true
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: ingest_ns_directory
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-ingest-ns-directory
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: ingest_ns_directory
+    environment: staging
+    release: release-name
+spec:
+  schedule: "0 0 * * 0"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+            azure.workload.identity/use: "true"
+        spec:
+          restartPolicy: "Never"
+          volumes:
+            - name: go-api-secret
+              csi:
+                driver: "secrets-store.csi.k8s.io"
+                readOnly: true
+                volumeAttributes:
+                  secretProviderClass: go-api-secret-provider
+          serviceAccountName: service-token-reader
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - ingest_ns_directory
+              image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: ELASTIC_SEARCH_HOST
+                  value: http://go-api-elasticsearch-es-http:9200
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+                
+              volumeMounts:
+                - name: go-api-secret
+                  mountPath: /mnt/secrets-store
+                  readOnly: true
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: ingest_ns_document
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-ingest-ns-document
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: ingest_ns_document
+    environment: staging
+    release: release-name
+spec:
+  schedule: "0 0 * * 0"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+            azure.workload.identity/use: "true"
+        spec:
+          restartPolicy: "Never"
+          volumes:
+            - name: go-api-secret
+              csi:
+                driver: "secrets-store.csi.k8s.io"
+                readOnly: true
+                volumeAttributes:
+                  secretProviderClass: go-api-secret-provider
+          serviceAccountName: service-token-reader
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - ingest_ns_document
+              image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: ELASTIC_SEARCH_HOST
+                  value: http://go-api-elasticsearch-es-http:9200
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+                
+              volumeMounts:
+                - name: go-api-secret
+                  mountPath: /mnt/secrets-store
+                  readOnly: true
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: ingest_ns_initiatives
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-ingest-ns-initiatives
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: ingest_ns_initiatives
+    environment: staging
+    release: release-name
+spec:
+  schedule: "0 0 * * 0"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+            azure.workload.identity/use: "true"
+        spec:
+          restartPolicy: "Never"
+          volumes:
+            - name: go-api-secret
+              csi:
+                driver: "secrets-store.csi.k8s.io"
+                readOnly: true
+                volumeAttributes:
+                  secretProviderClass: go-api-secret-provider
+          serviceAccountName: service-token-reader
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - ingest_ns_initiatives
+              image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: ELASTIC_SEARCH_HOST
+                  value: http://go-api-elasticsearch-es-http:9200
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+                
+              volumeMounts:
+                - name: go-api-secret
+                  mountPath: /mnt/secrets-store
+                  readOnly: true
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: ingest_unicef
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-ingest-unicef
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: ingest_unicef
+    environment: staging
+    release: release-name
+spec:
+  schedule: "0 0 * * 0"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+            azure.workload.identity/use: "true"
+        spec:
+          restartPolicy: "Never"
+          volumes:
+            - name: go-api-secret
+              csi:
+                driver: "secrets-store.csi.k8s.io"
+                readOnly: true
+                volumeAttributes:
+                  secretProviderClass: go-api-secret-provider
+          serviceAccountName: service-token-reader
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - ingest_unicef
+              image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: ELASTIC_SEARCH_HOST
+                  value: http://go-api-elasticsearch-es-http:9200
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+                
+              volumeMounts:
+                - name: go-api-secret
+                  mountPath: /mnt/secrets-store
+                  readOnly: true
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: ingest_worldbank
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-ingest-worldbank
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: ingest_worldbank
+    environment: staging
+    release: release-name
+spec:
+  schedule: "0 2 * * 0"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+            azure.workload.identity/use: "true"
+        spec:
+          restartPolicy: "Never"
+          volumes:
+            - name: go-api-secret
+              csi:
+                driver: "secrets-store.csi.k8s.io"
+                readOnly: true
+                volumeAttributes:
+                  secretProviderClass: go-api-secret-provider
+          serviceAccountName: service-token-reader
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - ingest_worldbank
+              image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: ELASTIC_SEARCH_HOST
+                  value: http://go-api-elasticsearch-es-http:9200
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+                
+              volumeMounts:
+                - name: go-api-secret
+                  mountPath: /mnt/secrets-store
+                  readOnly: true
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: notify_validators
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-notify-validators
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: notify_validators
+    environment: staging
+    release: release-name
+spec:
+  schedule: "0 0 * * *"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+            azure.workload.identity/use: "true"
+        spec:
+          restartPolicy: "Never"
+          volumes:
+            - name: go-api-secret
+              csi:
+                driver: "secrets-store.csi.k8s.io"
+                readOnly: true
+                volumeAttributes:
+                  secretProviderClass: go-api-secret-provider
+          serviceAccountName: service-token-reader
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - notify_validators
+              image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: ELASTIC_SEARCH_HOST
+                  value: http://go-api-elasticsearch-es-http:9200
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+                
+              volumeMounts:
+                - name: go-api-secret
+                  mountPath: /mnt/secrets-store
+                  readOnly: true
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: oauth_cleartokens
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-oauth-cleartokens
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: oauth_cleartokens
+    environment: staging
+    release: release-name
+spec:
+  schedule: "0 1 * * *"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+            azure.workload.identity/use: "true"
+        spec:
+          restartPolicy: "Never"
+          volumes:
+            - name: go-api-secret
+              csi:
+                driver: "secrets-store.csi.k8s.io"
+                readOnly: true
+                volumeAttributes:
+                  secretProviderClass: go-api-secret-provider
+          serviceAccountName: service-token-reader
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - oauth_cleartokens
+              image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: ELASTIC_SEARCH_HOST
+                  value: http://go-api-elasticsearch-es-http:9200
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+                
+              volumeMounts:
+                - name: go-api-secret
+                  mountPath: /mnt/secrets-store
+                  readOnly: true
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: poll_gdacs_cyclone
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-poll-gdacs-cyclone
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: poll_gdacs_cyclone
+    environment: staging
+    release: release-name
+spec:
+  schedule: "0 11 * * 0"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+            azure.workload.identity/use: "true"
+        spec:
+          restartPolicy: "Never"
+          volumes:
+            - name: go-api-secret
+              csi:
+                driver: "secrets-store.csi.k8s.io"
+                readOnly: true
+                volumeAttributes:
+                  secretProviderClass: go-api-secret-provider
+          serviceAccountName: service-token-reader
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - poll_gdacs_cyclone
+              image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: ELASTIC_SEARCH_HOST
+                  value: http://go-api-elasticsearch-es-http:9200
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+                
+              volumeMounts:
+                - name: go-api-secret
+                  mountPath: /mnt/secrets-store
+                  readOnly: true
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: poll_gdacs_flood
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-poll-gdacs-flood
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: poll_gdacs_flood
+    environment: staging
+    release: release-name
+spec:
+  schedule: "0 11 * * *"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+            azure.workload.identity/use: "true"
+        spec:
+          restartPolicy: "Never"
+          volumes:
+            - name: go-api-secret
+              csi:
+                driver: "secrets-store.csi.k8s.io"
+                readOnly: true
+                volumeAttributes:
+                  secretProviderClass: go-api-secret-provider
+          serviceAccountName: service-token-reader
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - poll_gdacs_flood
+              image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: ELASTIC_SEARCH_HOST
+                  value: http://go-api-elasticsearch-es-http:9200
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+                
+              volumeMounts:
+                - name: go-api-secret
+                  mountPath: /mnt/secrets-store
+                  readOnly: true
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: poll_usgs_earthquake
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-poll-usgs-earthquake
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: poll_usgs_earthquake
+    environment: staging
+    release: release-name
+spec:
+  schedule: "0 18 * * 0"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+            azure.workload.identity/use: "true"
+        spec:
+          restartPolicy: "Never"
+          volumes:
+            - name: go-api-secret
+              csi:
+                driver: "secrets-store.csi.k8s.io"
+                readOnly: true
+                volumeAttributes:
+                  secretProviderClass: go-api-secret-provider
+          serviceAccountName: service-token-reader
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - poll_usgs_earthquake
+              image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: ELASTIC_SEARCH_HOST
+                  value: http://go-api-elasticsearch-es-http:9200
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+                
+              volumeMounts:
+                - name: go-api-secret
+                  mountPath: /mnt/secrets-store
+                  readOnly: true
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: revoke_staff_status
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-revoke-staff-status
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: revoke_staff_status
+    environment: staging
+    release: release-name
+spec:
+  schedule: "51 * * * *"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+            azure.workload.identity/use: "true"
+        spec:
+          restartPolicy: "Never"
+          volumes:
+            - name: go-api-secret
+              csi:
+                driver: "secrets-store.csi.k8s.io"
+                readOnly: true
+                volumeAttributes:
+                  secretProviderClass: go-api-secret-provider
+          serviceAccountName: service-token-reader
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - revoke_staff_status
+              image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: ELASTIC_SEARCH_HOST
+                  value: http://go-api-elasticsearch-es-http:9200
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+                
+              volumeMounts:
+                - name: go-api-secret
+                  mountPath: /mnt/secrets-store
+                  readOnly: true
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: sync_appealdocs
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-sync-appealdocs
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: sync_appealdocs
+    environment: staging
+    release: release-name
+spec:
+  schedule: "15 * * * *"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+            azure.workload.identity/use: "true"
+        spec:
+          restartPolicy: "Never"
+          volumes:
+            - name: go-api-secret
+              csi:
+                driver: "secrets-store.csi.k8s.io"
+                readOnly: true
+                volumeAttributes:
+                  secretProviderClass: go-api-secret-provider
+          serviceAccountName: service-token-reader
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - sync_appealdocs
+              image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: ELASTIC_SEARCH_HOST
+                  value: http://go-api-elasticsearch-es-http:9200
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+                
+              volumeMounts:
+                - name: go-api-secret
+                  mountPath: /mnt/secrets-store
+                  readOnly: true
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: sync_molnix
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-sync-molnix
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: sync_molnix
+    environment: staging
+    release: release-name
+spec:
+  schedule: "10 */2 * * *"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+            azure.workload.identity/use: "true"
+        spec:
+          restartPolicy: "Never"
+          volumes:
+            - name: go-api-secret
+              csi:
+                driver: "secrets-store.csi.k8s.io"
+                readOnly: true
+                volumeAttributes:
+                  secretProviderClass: go-api-secret-provider
+          serviceAccountName: service-token-reader
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - sync_molnix
+              image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: ELASTIC_SEARCH_HOST
+                  value: http://go-api-elasticsearch-es-http:9200
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+                
+              volumeMounts:
+                - name: go-api-secret
+                  mountPath: /mnt/secrets-store
+                  readOnly: true
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: update_project_status
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-update-project-status
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: update_project_status
+    environment: staging
+    release: release-name
+spec:
+  schedule: "1 3 * * *"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+            azure.workload.identity/use: "true"
+        spec:
+          restartPolicy: "Never"
+          volumes:
+            - name: go-api-secret
+              csi:
+                driver: "secrets-store.csi.k8s.io"
+                readOnly: true
+                volumeAttributes:
+                  secretProviderClass: go-api-secret-provider
+          serviceAccountName: service-token-reader
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - update_project_status
+              image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: ELASTIC_SEARCH_HOST
+                  value: http://go-api-elasticsearch-es-http:9200
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+                
+              volumeMounts:
+                - name: go-api-secret
+                  mountPath: /mnt/secrets-store
+                  readOnly: true
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: user_registration_reminder
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-user-registration-reminder
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: user_registration_reminder
+    environment: staging
+    release: release-name
+spec:
+  schedule: "0 9 * * *"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+            azure.workload.identity/use: "true"
+        spec:
+          restartPolicy: "Never"
+          volumes:
+            - name: go-api-secret
+              csi:
+                driver: "secrets-store.csi.k8s.io"
+                readOnly: true
+                volumeAttributes:
+                  secretProviderClass: go-api-secret-provider
+          serviceAccountName: service-token-reader
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - user_registration_reminder
+              image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: ELASTIC_SEARCH_HOST
+                  value: http://go-api-elasticsearch-es-http:9200
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+                
+              volumeMounts:
+                - name: go-api-secret
+                  mountPath: /mnt/secrets-store
+                  readOnly: true
+
+---
+# Source: ifrcgo-helm/charts/app/templates/api/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: go-api-api
+  labels:
+    app: go-api
+    component: api
+    environment: staging
+    release: release-name
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+    traefik.ingress.kubernetes.io/router.middlewares: default-go-api-body-size@kubernetescrd
+spec:
+  ingressClassName: "traefik"
+  rules:
+    - host: "go-api.example.com"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: go-api-api
+                port:
+                  number: 80
+  tls:
+    - secretName: go-api-example-cert
+      hosts:
+        - "go-api.example.com"
+
+---
+# Source: ifrcgo-helm/charts/app/templates/extraManifests.yaml
+# Manifest: dragonflydb-cluster
+apiVersion: dragonflydb.io/v1alpha1
+kind: Dragonfly
+metadata:
+  labels:
+    app.kubernetes.io/name: dragonfly
+  name: go-api-dragonfly
+spec:
+  args:
+  - --dbfilename=mainSnapshot
+  replicas: 1
+  resources:
+    limits:
+      cpu: "1"
+      memory: 750Mi
+    requests:
+      cpu: "0.1"
+      memory: 500Mi
+  snapshot:
+    cron: '*/5 * * * *'
+    persistentVolumeClaimSpec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+---
+# Source: ifrcgo-helm/charts/app/templates/extraManifests.yaml
+# Manifest: elasticsearch-cluster
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  labels:
+    app.kubernetes.io/name: elasticsearch
+  name: go-api-elasticsearch
+spec:
+  http:
+    tls:
+      selfSignedCertificate:
+        disabled: true
+  nodeSets:
+  - config:
+      node.store.allow_mmap: false
+      xpack.security.authc.anonymous:
+        authz_exception: false
+        roles: superuser
+        username: anonymous
+    count: 1
+    name: default
+    podTemplate:
+      spec:
+        containers:
+        - name: elasticsearch
+          resources:
+            limits:
+              cpu: "2"
+              memory: 4Gi
+            requests:
+              cpu: "0.1"
+              memory: 4Gi
+    volumeClaimTemplates:
+    - metadata:
+        name: elasticsearch-data
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 20Gi
+  version: 7.17.28
+  volumeClaimDeletePolicy: DeleteOnScaledownOnly
+---
+# Source: ifrcgo-helm/charts/app/templates/extraManifests.yaml
+# Manifest: traefik-body-size-middleware
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: go-api-body-size
+spec:
+  buffering:
+    maxRequestBodyBytes: 314572800
+
+---
+# Source: ifrcgo-helm/charts/app/templates/api/secrets-provider-class.yaml
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: go-api-secret-provider
+spec:
+  provider: azure
+  parameters:
+    clientID: 00000000-0000-0000-0000-000000000000
+    keyvaultName: go-api-example-key-vault
+    tenantId: 11111111-1111-1111-1111-111111111111
+    usePodIdentity: "false"
+    objects: |
+      array:
+        - |
+          objectName: ACAPS-API-TOKEN
+          objectType: secret
+        - |
+          objectName: APPEALS-PASS
+          objectType: secret
+        - |
+          objectName: APPEALS-USER
+          objectType: secret
+        - |
+          objectName: APPLICATION-INSIGHTS-INSTRUMENTATION-KEY
+          objectType: secret
+        - |
+          objectName: AZURE-OPENAI-API-KEY
+          objectType: secret
+        - |
+          objectName: AZURE-OPENAI-DEPLOYMENT-NAME
+          objectType: secret
+        - |
+          objectName: AZURE-OPENAI-ENDPOINT
+          objectType: secret
+        - |
+          objectName: AZURE-STORAGE-KEY
+          objectType: secret
+        - |
+          objectName: DJANGO-DB-HOST
+          objectType: secret
+        - |
+          objectName: DJANGO-DB-NAME
+          objectType: secret
+        - |
+          objectName: DJANGO-DB-PASS
+          objectType: secret
+        - |
+          objectName: DJANGO-DB-PORT
+          objectType: secret
+        - |
+          objectName: DJANGO-DB-USER
+          objectType: secret
+        - |
+          objectName: DJANGO-SECRET-KEY
+          objectType: secret
+        - |
+          objectName: EMAIL-API-ENDPOINT
+          objectType: secret
+        - |
+          objectName: EMAIL-HOST
+          objectType: secret
+        - |
+          objectName: EMAIL-PASS
+          objectType: secret
+        - |
+          objectName: EMAIL-PORT
+          objectType: secret
+        - |
+          objectName: EMAIL-USER
+          objectType: secret
+        - |
+          objectName: ERP-API-ENDPOINT
+          objectType: secret
+        - |
+          objectName: ERP-API-SUBSCRIPTION-KEY
+          objectType: secret
+        - |
+          objectName: FDRS-APIKEY
+          objectType: secret
+        - |
+          objectName: FDRS-CREDENTIAL
+          objectType: secret
+        - |
+          objectName: GO-DBPASS
+          objectType: secret
+        - |
+          objectName: GO-FTPHOST
+          objectType: secret
+        - |
+          objectName: GO-FTPPASS
+          objectType: secret
+        - |
+          objectName: GO-FTPUSER
+          objectType: secret
+        - |
+          objectName: HPC-CREDENTIAL
+          objectType: secret
+        - |
+          objectName: IFRC-TRANSLATION-DOMAIN
+          objectType: secret
+        - |
+          objectName: IFRC-TRANSLATION-HEADER-API-KEY
+          objectType: secret
+        - |
+          objectName: MOLNIX-API-BASE
+          objectType: secret
+        - |
+          objectName: MOLNIX-PASSWORD
+          objectType: secret
+        - |
+          objectName: MOLNIX-USERNAME
+          objectType: secret
+        - |
+          objectName: NS-CONTACT-PASSWORD
+          objectType: secret
+        - |
+          objectName: NS-CONTACT-USERNAME
+          objectType: secret
+        - |
+          objectName: NS-DOCUMENT-API-KEY
+          objectType: secret
+        - |
+          objectName: NS-INITIATIVES-API-KEY
+          objectType: secret
+        - |
+          objectName: NS-INITIATIVES-API-TOKEN
+          objectType: secret
+        - |
+          objectName: OIDC-RSA-PRIVATE-KEY-BASE64-ENCODED
+          objectType: secret
+        - |
+          objectName: OIDC-RSA-PUBLIC-KEY-BASE64-ENCODED
+          objectType: secret
+        - |
+          objectName: POWERBI-DATASET-IDS
+          objectType: secret
+        - |
+          objectName: POWERBI-WORKSPACE-ID
+          objectType: secret
+        - |
+          objectName: RELIEF-WEB-APP-NAME
+          objectType: secret
+        - |
+          objectName: SENTRY-DSN
+          objectType: secret
+        - |
+          objectName: TEST-EMAILS
+          objectType: secret
+  secretObjects:
+    - secretName: go-api-secret
+      type: Opaque
+      data:
+        - objectName: ACAPS-API-TOKEN
+          key: ACAPS_API_TOKEN
+        - objectName: APPEALS-PASS
+          key: APPEALS_PASS
+        - objectName: APPEALS-USER
+          key: APPEALS_USER
+        - objectName: APPLICATION-INSIGHTS-INSTRUMENTATION-KEY
+          key: APPLICATION_INSIGHTS_INSTRUMENTATION_KEY
+        - objectName: AZURE-OPENAI-API-KEY
+          key: AZURE_OPENAI_API_KEY
+        - objectName: AZURE-OPENAI-DEPLOYMENT-NAME
+          key: AZURE_OPENAI_DEPLOYMENT_NAME
+        - objectName: AZURE-OPENAI-ENDPOINT
+          key: AZURE_OPENAI_ENDPOINT
+        - objectName: AZURE-STORAGE-KEY
+          key: AZURE_STORAGE_KEY
+        - objectName: DJANGO-DB-HOST
+          key: DJANGO_DB_HOST
+        - objectName: DJANGO-DB-NAME
+          key: DJANGO_DB_NAME
+        - objectName: DJANGO-DB-PASS
+          key: DJANGO_DB_PASS
+        - objectName: DJANGO-DB-PORT
+          key: DJANGO_DB_PORT
+        - objectName: DJANGO-DB-USER
+          key: DJANGO_DB_USER
+        - objectName: DJANGO-SECRET-KEY
+          key: DJANGO_SECRET_KEY
+        - objectName: EMAIL-API-ENDPOINT
+          key: EMAIL_API_ENDPOINT
+        - objectName: EMAIL-HOST
+          key: EMAIL_HOST
+        - objectName: EMAIL-PASS
+          key: EMAIL_PASS
+        - objectName: EMAIL-PORT
+          key: EMAIL_PORT
+        - objectName: EMAIL-USER
+          key: EMAIL_USER
+        - objectName: ERP-API-ENDPOINT
+          key: ERP_API_ENDPOINT
+        - objectName: ERP-API-SUBSCRIPTION-KEY
+          key: ERP_API_SUBSCRIPTION_KEY
+        - objectName: FDRS-APIKEY
+          key: FDRS_APIKEY
+        - objectName: FDRS-CREDENTIAL
+          key: FDRS_CREDENTIAL
+        - objectName: GO-DBPASS
+          key: GO_DBPASS
+        - objectName: GO-FTPHOST
+          key: GO_FTPHOST
+        - objectName: GO-FTPPASS
+          key: GO_FTPPASS
+        - objectName: GO-FTPUSER
+          key: GO_FTPUSER
+        - objectName: HPC-CREDENTIAL
+          key: HPC_CREDENTIAL
+        - objectName: IFRC-TRANSLATION-DOMAIN
+          key: IFRC_TRANSLATION_DOMAIN
+        - objectName: IFRC-TRANSLATION-HEADER-API-KEY
+          key: IFRC_TRANSLATION_HEADER_API_KEY
+        - objectName: MOLNIX-API-BASE
+          key: MOLNIX_API_BASE
+        - objectName: MOLNIX-PASSWORD
+          key: MOLNIX_PASSWORD
+        - objectName: MOLNIX-USERNAME
+          key: MOLNIX_USERNAME
+        - objectName: NS-CONTACT-PASSWORD
+          key: NS_CONTACT_PASSWORD
+        - objectName: NS-CONTACT-USERNAME
+          key: NS_CONTACT_USERNAME
+        - objectName: NS-DOCUMENT-API-KEY
+          key: NS_DOCUMENT_API_KEY
+        - objectName: NS-INITIATIVES-API-KEY
+          key: NS_INITIATIVES_API_KEY
+        - objectName: NS-INITIATIVES-API-TOKEN
+          key: NS_INITIATIVES_API_TOKEN
+        - objectName: OIDC-RSA-PRIVATE-KEY-BASE64-ENCODED
+          key: OIDC_RSA_PRIVATE_KEY_BASE64_ENCODED
+        - objectName: OIDC-RSA-PUBLIC-KEY-BASE64-ENCODED
+          key: OIDC_RSA_PUBLIC_KEY_BASE64_ENCODED
+        - objectName: POWERBI-DATASET-IDS
+          key: POWERBI_DATASET_IDS
+        - objectName: POWERBI-WORKSPACE-ID
+          key: POWERBI_WORKSPACE_ID
+        - objectName: RELIEF-WEB-APP-NAME
+          key: RELIEF_WEB_APP_NAME
+        - objectName: SENTRY-DSN
+          key: SENTRY_DSN
+        - objectName: TEST-EMAILS
+          key: TEST_EMAILS

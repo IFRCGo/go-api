@@ -259,6 +259,11 @@ class CountryPerStatsViewset(mixins.ListModelMixin, viewsets.GenericViewSet):
 
 
 class PerOverviewViewSet(viewsets.ModelViewSet):
+    # NOTE: get_queryset() below is region-filtered per request and queries the
+    # database, which schema generation cannot do. Declaring the queryset lets the
+    # schema resolve the model (and so the filters and the {id} path type) without
+    # a database; requests still go through get_queryset().
+    queryset = Overview.objects.none()
     serializer_class = PerOverviewSerializer
     permission_classes = [IsAuthenticated, PerPermission, DenyGuestUserPermission]
     filterset_class = PerOverviewFilter
@@ -581,6 +586,8 @@ class PerOptionsView(views.APIView):
 
 
 class PerProcessStatusViewSet(viewsets.ReadOnlyModelViewSet):
+    # See PerOverviewViewSet — declared so the schema resolves without a database.
+    queryset = Overview.objects.none()
     serializer_class = PerProcessSerializer
     filterset_class = PerOverviewFilter
     permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
@@ -901,6 +908,8 @@ class PerCountryViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class PerAggregatedViewSet(viewsets.ReadOnlyModelViewSet):
+    # See PerOverviewViewSet — declared so the schema resolves without a database.
+    queryset = Overview.objects.none()
     serializer_class = PerProcessSerializer
     filterset_class = PerOverviewFilter
     permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]

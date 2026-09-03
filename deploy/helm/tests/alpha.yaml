@@ -1,0 +1,37 @@
+app:
+  # environment comes from values/alpha.yaml — not duplicated here, so the
+  # snapshot proves the overlay is what sets it.
+  fullnameOverride: go-api
+
+  image:
+    name: local.example.com/ifrcgo/go-api
+    tag: develop.xxxxxxxx
+
+  api:
+    ingress:
+      host: go-api.alpha.example.com
+
+  # Dummy values for snapshot rendering only — real per-environment values
+  # (domains, DB/redis/ES/storage credentials, Sentry DSN) are supplied at deploy time.
+  env:
+    API_FQDN: https://go-api.alpha.example.com
+    FRONTEND_URL: https://go.alpha.example.com
+    DJANGO_ADDITIONAL_ALLOWED_HOSTS: go-api.alpha.example.com
+    ADDITIONAL_TRUSTED_ORIGINS: https://go.alpha.example.com
+    SESSION_COOKIE_DOMAIN: .example.com
+    CSRF_COOKIE_DOMAIN: .example.com
+    ELASTIC_SEARCH_HOST: http://go-api-elasticsearch.example.com:9200
+    AZURE_STORAGE_ACCOUNT: exampleaccount
+
+  secrets:
+    DJANGO_SECRET_KEY: SECURE_DJANGO_SECRET_KEY
+    # Postgres (external / platform-provided)
+    DJANGO_DB_NAME: go
+    DJANGO_DB_USER: go
+    DJANGO_DB_PASS: XXXXXXXXXXXXXXXXXXXXXXXX
+    DJANGO_DB_HOST: go-api-pg.example.com
+    DJANGO_DB_PORT: "5432"
+    # Azure blob storage
+    AZURE_STORAGE_KEY: XXXXXXXXXXXXXXXXXXXXXXXX
+    # Sentry
+    SENTRY_DSN: https://xyz@sentry.example.com/14
