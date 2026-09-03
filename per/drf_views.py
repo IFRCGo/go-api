@@ -44,6 +44,7 @@ from per.utils import filter_per_queryset_by_user_access
 from .admin_classes import RegionRestrictedAdmin
 from .custom_renderers import NarrowCSVRenderer
 from .dashboard_data import get_per_dashboard_data, get_per_map_data
+from .dashboard_utils import contains_affirmative
 from .models import (
     AreaResponse,
     AssessmentType,
@@ -102,51 +103,6 @@ from .serializers import (
     PublicPerProcessSerializer,
     UserPerCountrySerializer,
 )
-
-# Helpers for transformed "-2" endpoints
-AREA_NAMES = {
-    1: "Policy Strategy and Standards",
-    2: "Analysis and planning",
-    3: "Operational capacity",
-    4: "Coordination",
-    5: "Operations support",
-}
-
-AFFIRMATIVE_WORDS = {"yes", "si", "sí", "oui", "da", "ja", "sim", "aye", "yep", "igen", "hai", "evet", "是", "はい", "예", "نعم"}
-
-
-def _contains_affirmative(text: str) -> bool:
-    if not text or not isinstance(text, str):
-        return False
-    try:
-        import unicodedata
-
-        normalized = unicodedata.normalize("NFD", text.lower())
-        normalized = "".join(ch for ch in normalized if unicodedata.category(ch) != "Mn")
-    except Exception:
-        normalized = text.lower()
-    return any(word in normalized for word in AFFIRMATIVE_WORDS)
-
-
-def _phase_display_from_int(phase: int | None, existing_display: str | None = None) -> str | None:
-    """Return normalized phase display using Overview.Phase IntegerChoices.
-
-    Uses the IntegerChoices label, then normalizes:
-    - "WorkPlan" -> "Workplan"
-    - "Action And Accountability" -> "Action & accountability"
-    """
-    label = None
-    try:
-        if isinstance(phase, int):
-            label = Overview.Phase(phase).label  # from IntegerChoices
-    except Exception:
-        label = None
-    disp = label or existing_display
-    if disp == "Action And Accountability":
-        return "Action & accountability"
-    if disp == "WorkPlan":
-        return "Workplan"
-    return disp
 
 
 class PERDocsFilter(filters.FilterSet):
@@ -832,12 +788,12 @@ class PerAssessmentsProcessedView(views.APIView):
                             "epi_considerations": getattr(cr, "epi_considerations", None),
                             "climate_environmental_considerations": getattr(cr, "climate_environmental_considerations", None),
                             "migration_considerations": getattr(cr, "migration_considerations", None),
-                            "urban_considerations_simplified": _contains_affirmative(getattr(cr, "urban_considerations", "")),
-                            "epi_considerations_simplified": _contains_affirmative(getattr(cr, "epi_considerations", "")),
-                            "climate_environmental_considerations_simplified": _contains_affirmative(
+                            "urban_considerations_simplified": contains_affirmative(getattr(cr, "urban_considerations", "")),
+                            "epi_considerations_simplified": contains_affirmative(getattr(cr, "epi_considerations", "")),
+                            "climate_environmental_considerations_simplified": contains_affirmative(
                                 getattr(cr, "climate_environmental_considerations", "")
                             ),
-                            "migration_considerations_simplified": _contains_affirmative(
+                            "migration_considerations_simplified": contains_affirmative(
                                 getattr(cr, "migration_considerations", "")
                             ),
                             "notes": getattr(cr, "notes", None),

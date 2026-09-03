@@ -3,6 +3,7 @@ from typing import Any
 
 from django.db.models import Prefetch
 
+from .dashboard_utils import AREA_NAMES, contains_affirmative
 from .models import (
     AreaResponse,
     FormComponentResponse,
@@ -11,41 +12,6 @@ from .models import (
     Overview,
     PerAssessment,
 )
-
-AREA_NAMES = {
-    1: "Policy Strategy and Standards",
-    2: "Analysis and planning",
-    3: "Operational capacity",
-    4: "Coordination",
-    5: "Operations support",
-}
-
-AFFIRMATIVE_WORDS = {
-    "yes",
-    "si",
-    "sí",
-    "oui",
-    "da",
-    "ja",
-    "sim",
-    "aye",
-    "yep",
-    "igen",
-    "hai",
-    "evet",
-    "是",
-    "はい",
-    "예",
-    "نعم",
-}
-
-
-def _contains_affirmative(value: object) -> bool:
-    if not isinstance(value, str) or not value:
-        return False
-
-    normalized = value.casefold()
-    return any(word in normalized for word in AFFIRMATIVE_WORDS)
 
 
 def _phase_display(phase: int | None) -> str | None:
@@ -292,12 +258,12 @@ def _serialize_process(
     latest_assessment = assessments[0] if assessments else None
     component_responses = _serialize_assessment_components(latest_assessment)
     derived_considerations = {
-        "epi_considerations": any(_contains_affirmative(item["epi_considerations"]) for item in component_responses),
+        "epi_considerations": any(contains_affirmative(item["epi_considerations"]) for item in component_responses),
         "climate_environmental_considerations": any(
-            _contains_affirmative(item["climate_environmental_considerations"]) for item in component_responses
+            contains_affirmative(item["climate_environmental_considerations"]) for item in component_responses
         ),
-        "urban_considerations": any(_contains_affirmative(item["urban_considerations"]) for item in component_responses),
-        "migration_considerations": any(_contains_affirmative(item["migration_considerations"]) for item in component_responses),
+        "urban_considerations": any(contains_affirmative(item["urban_considerations"]) for item in component_responses),
+        "migration_considerations": any(contains_affirmative(item["migration_considerations"]) for item in component_responses),
     }
 
     return {

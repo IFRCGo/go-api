@@ -24,6 +24,7 @@ from per.factories import (
     SectorTagFactory,
 )
 
+from .dashboard_utils import contains_affirmative
 from .models import (
     AreaResponse,
     FormComponentResponse,
@@ -488,6 +489,12 @@ class PerDashboardDataTestCase(APITestCase):
         )
         prioritization.prioritized_action_responses.add(prioritized_component)
         return assessment, component
+
+    def test_dashboard_helpers_normalize_affirmative_responses(self):
+        self.assertTrue(contains_affirmative("YES"))
+        self.assertTrue(contains_affirmative("Si\u0301"))
+        self.assertFalse(contains_affirmative("no"))
+        self.assertFalse(contains_affirmative(None))
 
     def test_map_data_returns_complete_history_and_deterministic_latest_processes(self):
         country_one = self.create_country("Country One", "C1", "C01")
