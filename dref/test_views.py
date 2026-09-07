@@ -505,7 +505,7 @@ class DrefTestCase(APITestCase):
             "emergency_appeal_planned": False,
             "operation_timeframe": 4,
             "appeal_code": "J7876",
-            "glide_code": "ER878",
+            "glide_code": ["ER878"],
         }
 
     @mock.patch("django.utils.timezone.now")
