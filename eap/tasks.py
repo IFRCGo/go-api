@@ -257,8 +257,6 @@ def send_feedback_email(eap_registration_id: int):
     else:
         latest_eap = instance.latest_full_eap
 
-    ifrc_delegation_focal_point_email = latest_eap.ifrc_delegation_focal_point_email
-
     partner_ns_emails = list(latest_eap.partner_contacts.values_list("email", flat=True))
 
     regional_coordinator_emails: list[str] = get_regional_coordinator_emails(instance.country.region)
@@ -270,7 +268,6 @@ def send_feedback_email(eap_registration_id: int):
     cc_recipients = list(
         set(
             [
-                ifrc_delegation_focal_point_email,
                 *get_emails_by_type(EmailRecipient.EmailType.DREF_ANTICIPATORY),
                 *get_emails_by_type(EmailRecipient.EmailType.DREF_AA_GLOBAL_TEAM),
                 *regional_coordinator_emails,
@@ -434,7 +431,7 @@ def send_technical_validation_email(eap_registration_id: int):
 
 
 @shared_task
-def send_pending_pfa_email(eap_registration_id: int):
+def send_approved_email(eap_registration_id: int):
 
     instance = EAPRegistration.objects.filter(id=eap_registration_id).first()
     if not instance:
@@ -462,9 +459,9 @@ def send_pending_pfa_email(eap_registration_id: int):
         )
     )
     email_context = get_eap_email_context(instance)
-    email_subject = f"[DREF {instance.get_eap_type_display()} APPROVED PENDING PFA] {instance.country} {instance.disaster_type}"
-    email_body = render_to_string("email/eap/pending_pfa.html", email_context)
-    email_type = "Approved Pending PFA EAP"
+    email_subject = f"[DREF {instance.get_eap_type_display()} APPROVED] {instance.country} {instance.disaster_type}"
+    email_body = render_to_string("email/eap/approved.html", email_context)
+    email_type = "Approved EAP"
     send_notification(
         subject=email_subject,
         recipients=recipient,
@@ -476,7 +473,7 @@ def send_pending_pfa_email(eap_registration_id: int):
 
 
 @shared_task
-def send_approved_email(eap_registration_id: int):
+def send_project_agreement_signed_email(eap_registration_id: int):
 
     instance = EAPRegistration.objects.filter(id=eap_registration_id).first()
     if not instance:
@@ -506,9 +503,11 @@ def send_approved_email(eap_registration_id: int):
         )
     )
     email_context = get_eap_email_context(instance)
-    email_subject = f"[DREF {instance.get_eap_type_display()} APPROVED] {instance.country} {instance.disaster_type}"
-    email_body = render_to_string("email/eap/approved.html", email_context)
-    email_type = "Approved EAP"
+    email_subject = (
+        f"[DREF {instance.get_eap_type_display()} PROJECT AGREEMENT SIGNED] {instance.country} {instance.disaster_type}"
+    )
+    email_body = render_to_string("email/eap/project_agreement_signed.html", email_context)
+    email_type = "Project Agreement Signed EAP"
     send_notification(
         subject=email_subject,
         recipients=recipient,
@@ -553,7 +552,7 @@ def send_deadline_reminder_email(eap_registration_id: int):
     email_context = get_eap_email_context(instance)
     email_subject = f"[DREF {instance.get_eap_type_display()} SUBMISSION REMINDER] {instance.country} {instance.disaster_type}"
     email_body = render_to_string("email/eap/reminder.html", email_context)
-    email_type = "Approved EAP"
+    email_type = "EAP Submission Reminder"
     send_notification(
         subject=email_subject,
         recipients=recipient,

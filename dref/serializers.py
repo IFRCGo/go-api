@@ -5,13 +5,14 @@ from typing import List, Optional
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models, transaction
+from django.db.models.query import Prefetch
 from django.utils import timezone
 from django.utils.translation import get_language, gettext
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-from api.models import Appeal
+from api.models import Appeal, Event
 from api.serializers import (
     DisasterTypeSerializer,
     MiniCountrySerializer,
@@ -24,6 +25,7 @@ from dref.models import (
     DrefFile,
     DrefFinalReport,
     DrefOperationalUpdate,
+    DrefSummary,
     IdentifiedNeed,
     NationalSocietyAction,
     PlannedIntervention,
@@ -208,15 +210,25 @@ class MiniDrefSerializer(serializers.ModelSerializer):
     type_of_dref_display = serializers.CharField(source="get_type_of_dref_display", read_only=True)
     status_display = serializers.CharField(source="get_status_display", read_only=True)
     country_details = MiniCountrySerializer(source="country", read_only=True)
-    has_ops_update = serializers.SerializerMethodField()
-    has_final_report = serializers.SerializerMethodField()
+    starting_language = serializers.CharField(read_only=True)
+    # Manually added fields
     application_type = serializers.SerializerMethodField()
     application_type_display = serializers.SerializerMethodField()
-    unpublished_op_update_count = serializers.SerializerMethodField()
-    unpublished_final_report_count = serializers.SerializerMethodField()
-    operational_update_details = serializers.SerializerMethodField()
-    final_report_details = serializers.SerializerMethodField()
-    starting_language = serializers.CharField(read_only=True)
+    # Annotate values from queryset
+    has_ops_update = serializers.BooleanField(read_only=True)
+    has_final_report = serializers.BooleanField(read_only=True)
+    unpublished_op_update_count = serializers.IntegerField(read_only=True)
+    unpublished_final_report_count = serializers.IntegerField(read_only=True)
+    # Prefetched data
+    operational_update_details = MiniOperationalUpdateActiveSerializer(
+        source="prefetched_operational_updates",
+        many=True,
+        read_only=True,
+    )
+    final_report_details = MiniDrefFinalReportActiveSerializer(
+        source="dreffinalreport",
+        read_only=True,
+    )
 
     class Meta:
         model = Dref
@@ -237,6 +249,7 @@ class MiniDrefSerializer(serializers.ModelSerializer):
             "operational_update_details",
             "final_report_details",
             "country",
+            "event",
             "country_details",
             "has_ops_update",
             "has_final_report",
@@ -250,38 +263,13 @@ class MiniDrefSerializer(serializers.ModelSerializer):
             "starting_language",
         ]
 
-    @extend_schema_field(MiniOperationalUpdateActiveSerializer(many=True))
-    def get_operational_update_details(self, obj):
-        queryset = DrefOperationalUpdate.objects.filter(dref_id=obj.id).order_by("-created_at")
-        return MiniOperationalUpdateActiveSerializer(queryset, many=True).data
-
-    @extend_schema_field(MiniDrefFinalReportActiveSerializer)
-    def get_final_report_details(self, obj):
-        queryset = DrefFinalReport.objects.filter(dref_id=obj.id).first()
-        return MiniDrefFinalReportActiveSerializer(queryset).data
-
-    def get_has_ops_update(self, obj) -> bool:
-        op_count_count = obj.drefoperationalupdate_set.count()
-        if op_count_count > 0:
-            return True
-        return False
-
-    def get_has_final_report(self, obj) -> bool:
-        if hasattr(obj, "dreffinalreport"):
-            return True
-        return False
-
-    def get_application_type(self, obj) -> str:
+    @extend_schema_field(serializers.CharField())
+    def get_application_type(self, _) -> str:
         return "DREF"
 
-    def get_application_type_display(self, obj) -> str:
+    @extend_schema_field(serializers.CharField())
+    def get_application_type_display(self, _) -> str:
         return gettext("DREF application")
-
-    def get_unpublished_op_update_count(self, obj) -> int:
-        return DrefOperationalUpdate.objects.filter(dref_id=obj.id).exclude(status=Dref.Status.APPROVED).count()
-
-    def get_unpublished_final_report_count(self, obj) -> int:
-        return DrefFinalReport.objects.filter(dref_id=obj.id).exclude(status=Dref.Status.APPROVED).count()
 
 
 class PlannedInterventionSerializer(
@@ -378,6 +366,14 @@ class MiniDrefFinalReportSerializer(ModelSerializer):
             "status",
             "status_display",
         ]
+
+
+class DrefApproveSerializer(serializers.Serializer):
+    event = serializers.PrimaryKeyRelatedField(
+        queryset=Event.objects.all(),
+        required=False,
+        allow_null=True,
+    )
 
 
 class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
@@ -804,7 +800,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
         return data
 
     def validate_appeal_code(self, appeal_code):
-        if appeal_code and appeal_code != self.instance.appeal_code:
+        if self.instance.appeal_code and appeal_code != self.instance.appeal_code:
             raise serializers.ValidationError("Can't edit MDR Code")
         return appeal_code
 
@@ -858,7 +854,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["estimated_number_of_affected_boys_under_18"] = dref.estimated_number_of_affected_boys_under_18
             validated_data["emergency_appeal_planned"] = dref.emergency_appeal_planned
             validated_data["appeal_code"] = dref.appeal_code
-            validated_data["glide_code"] = dref.glide_code
+            validated_data["glide_codes"] = dref.glide_codes
             validated_data["ifrc_appeal_manager_name"] = dref.ifrc_appeal_manager_name
             validated_data["ifrc_appeal_manager_email"] = dref.ifrc_appeal_manager_email
             validated_data["ifrc_appeal_manager_title"] = dref.ifrc_appeal_manager_title
@@ -996,7 +992,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["number_of_people_affected"] = dref_operational_update.number_of_people_affected
             validated_data["emergency_appeal_planned"] = dref_operational_update.emergency_appeal_planned
             validated_data["appeal_code"] = dref_operational_update.appeal_code
-            validated_data["glide_code"] = dref_operational_update.glide_code
+            validated_data["glide_codes"] = dref_operational_update.glide_codes
             validated_data["total_dref_allocation"] = dref_operational_update.total_dref_allocation
             validated_data["ifrc_appeal_manager_name"] = dref_operational_update.ifrc_appeal_manager_name
             validated_data["ifrc_appeal_manager_email"] = dref_operational_update.ifrc_appeal_manager_email
@@ -1278,6 +1274,11 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
                 )
         return data
 
+    def validate_appeal_code(self, appeal_code):
+        if self.instance.appeal_code and appeal_code != self.instance.appeal_code:
+            raise serializers.ValidationError("Can't edit MDR Code")
+        return appeal_code
+
     def validate_photos(self, photos):
         if photos and len(photos) > self.MAX_NUMBER_OF_PHOTOS:
             raise serializers.ValidationError("Can add utmost %s photos" % self.MAX_NUMBER_OF_PHOTOS)
@@ -1341,7 +1342,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             validated_data["operation_start_date"] = dref_operational_update.dref.date_of_approval
             validated_data["operation_end_date"] = dref_operational_update.new_operational_end_date
             validated_data["appeal_code"] = dref_operational_update.appeal_code
-            validated_data["glide_code"] = dref_operational_update.glide_code
+            validated_data["glide_codes"] = dref_operational_update.glide_codes
             validated_data["ifrc_appeal_manager_name"] = dref_operational_update.ifrc_appeal_manager_name
             validated_data["ifrc_appeal_manager_email"] = dref_operational_update.ifrc_appeal_manager_email
             validated_data["ifrc_appeal_manager_title"] = dref_operational_update.ifrc_appeal_manager_title
@@ -1476,7 +1477,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
                 # NOTE:These field should be blank for final report
                 validated_data["total_operation_timeframe"] = None
                 validated_data["total_operation_timeframe_imminent"] = dref.operation_timeframe_imminent
-            validated_data["glide_code"] = dref.glide_code
+            validated_data["glide_codes"] = dref.glide_codes
             validated_data["ifrc_appeal_manager_name"] = dref.ifrc_appeal_manager_name
             validated_data["ifrc_appeal_manager_email"] = dref.ifrc_appeal_manager_email
             validated_data["ifrc_appeal_manager_title"] = dref.ifrc_appeal_manager_title
@@ -1630,7 +1631,7 @@ class CompletedDrefOperationsSerializer(serializers.ModelSerializer):
             "created_at",
             "title",
             "appeal_code",
-            "glide_code",
+            "glide_codes",
             "country",
             "date_of_publication",
             "country_details",
@@ -2279,3 +2280,373 @@ class DrefOperationalUpdate3Serializer(BaseDref3Serializer):
 class DrefFinalReport3Serializer(BaseDref3Serializer):
     class Meta(BaseDref3Serializer.Meta):
         model = DrefFinalReport
+
+
+# Flatten the DREF's scalar contact fields into an api.EventContact-shaped list
+# for the emergency page. Integrity contact is intentionally excluded.
+DREF_EMERGENCY_CONTACT_GROUPS = (
+    ("national_society_contact", "National Society Contact"),
+    ("ifrc_appeal_manager", "IFRC Appeal Manager"),
+    ("ifrc_project_manager", "IFRC Project Manager"),
+    ("ifrc_emergency", "IFRC Emergency"),
+    ("media_contact", "Media Contact"),
+)
+
+
+def get_dref_emergency_contacts(obj):
+    contacts = []
+    for prefix, ctype in DREF_EMERGENCY_CONTACT_GROUPS:
+        name = getattr(obj, f"{prefix}_name", None)
+        title = getattr(obj, f"{prefix}_title", None)
+        email = getattr(obj, f"{prefix}_email", None)
+        phone = getattr(obj, f"{prefix}_phone_number", None)
+        if not any([name, title, email, phone]):
+            continue
+        contacts.append(
+            {
+                "id": f"{obj.id}-{prefix}",
+                "ctype": ctype,
+                "name": name or "",
+                "title": title or "",
+                "email": email or "",
+                "phone": phone or "",
+            }
+        )
+    return contacts
+
+
+class EmergencyDrefContactSerializer(serializers.Serializer):
+    id = serializers.CharField()
+    ctype = serializers.CharField()
+    name = serializers.CharField()
+    title = serializers.CharField()
+    email = serializers.CharField()
+    phone = serializers.CharField()
+
+
+# NOTE: This serializer is only used for the emergency page in GO,
+# which has a very specific and limited use case.
+# It is not intended to be a general-purpose serializer for DREF objects,
+# and as such, it does not include all fields or functionality of the other serializers.
+# It is designed to provide the necessary data for the emergency page in a format that is easy to consume and display.
+class EmergencyDrefFinalReportSerializer(serializers.ModelSerializer):
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+    disaster_category_display = serializers.CharField(source="get_disaster_category_display", read_only=True)
+    country_details = MiniCountrySerializer(source="country", read_only=True)
+    district_details = MiniDistrictSerializer(source="district", read_only=True, many=True)
+    planned_interventions = PlannedInterventionSerializer(many=True, read_only=True)
+    cover_image_file = DrefFileSerializer(source="cover_image", read_only=True)
+    proposed_action = ProposedActionSerializer(many=True, required=False)
+    needs_identified = IdentifiedNeedSerializer(many=True, read_only=True)
+    disaster_type_details = DisasterTypeSerializer(source="disaster_type", read_only=True)
+    dref_contacts = serializers.SerializerMethodField()
+
+    class Meta:
+        model = DrefFinalReport
+        fields = (
+            "id",
+            "title",
+            "disaster_type_details",
+            "cover_image_file",
+            "status",
+            "status_display",
+            "disaster_category",
+            "disaster_category_display",
+            "event_scope",
+            "event_description",
+            "event_date",
+            "appeal_code",
+            "glide_codes",
+            "country_details",
+            "district_details",
+            "planned_interventions",
+            "proposed_action",
+            "needs_identified",
+            # Timeframe of operation
+            "operation_start_date",
+            "operation_end_date",
+            "total_dref_allocation",
+            "government_requested_assistance",
+            "num_assisted",
+            "number_of_people_targeted",
+            "number_of_people_affected",
+            "total_targeted_population",
+            "people_targeted_with_early_actions",
+            "estimated_number_of_affected_male",
+            "estimated_number_of_affected_female",
+            "estimated_number_of_affected_girls_under_18",
+            "estimated_number_of_affected_boys_under_18",
+            "assisted_num_of_boys_under_18",
+            "assisted_num_of_girls_under_18",
+            "assisted_num_of_men",
+            "assisted_num_of_women",
+            "women",
+            "men",
+            "boys",
+            "people_assisted",
+            "date_of_approval",
+            "created_at",
+            "modified_at",
+            "dref_contacts",
+        )
+
+    @extend_schema_field(EmergencyDrefContactSerializer(many=True))
+    def get_dref_contacts(self, obj):
+        return get_dref_emergency_contacts(obj)
+
+
+class TimelineEmergencyDrefOperationalUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DrefOperationalUpdate
+        fields = (
+            "id",
+            "summary_of_change",
+            "date_of_approval",
+            # fallback timeline date when date_of_approval is unset
+            "modified_at",
+            "operational_update_number",
+            "total_targeted_population",
+            "total_dref_allocation",
+        )
+
+
+class EmergencyDrefOperationalUpdateSerializer(serializers.ModelSerializer):
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+    disaster_category_display = serializers.CharField(source="get_disaster_category_display", read_only=True)
+    country_details = MiniCountrySerializer(source="country", read_only=True)
+    district_details = MiniDistrictSerializer(source="district", read_only=True, many=True)
+    planned_interventions = PlannedInterventionSerializer(many=True, read_only=True)
+    cover_image_file = DrefFileSerializer(source="cover_image", required=False, allow_null=True)
+    disaster_type_details = DisasterTypeSerializer(source="disaster_type", read_only=True)
+    needs_identified = IdentifiedNeedSerializer(many=True, read_only=True)
+    dref_contacts = serializers.SerializerMethodField()
+
+    class Meta:
+        model = DrefOperationalUpdate
+        fields = (
+            "id",
+            "title",
+            "disaster_type_details",
+            "cover_image_file",
+            "status",
+            "status_display",
+            "disaster_category",
+            "disaster_category_display",
+            "event_scope",
+            "event_description",
+            "operational_update_number",
+            "update_date",
+            "summary_of_change",
+            "needs_identified",
+            "event_date",
+            "appeal_code",
+            "glide_codes",
+            "country_details",
+            "district_details",
+            "planned_interventions",
+            # Timeframe of operation
+            "new_operational_start_date",
+            "new_operational_end_date",
+            "total_dref_allocation",
+            "government_requested_assistance",
+            "women",
+            "men",
+            "boys",
+            "people_assisted",
+            "number_of_people_targeted",
+            "number_of_people_affected",
+            "total_targeted_population",
+            "people_targeted_with_early_actions",
+            "estimated_number_of_affected_male",
+            "estimated_number_of_affected_female",
+            "estimated_number_of_affected_girls_under_18",
+            "estimated_number_of_affected_boys_under_18",
+            "dref_contacts",
+        )
+
+    @extend_schema_field(EmergencyDrefContactSerializer(many=True))
+    def get_dref_contacts(self, obj):
+        return get_dref_emergency_contacts(obj)
+
+
+class DrefSummarySerializer(ModelSerializer):
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+    source_display = serializers.CharField(source="get_source_display", read_only=True)
+
+    class Meta:
+        model = DrefSummary
+        fields = (
+            "id",
+            "status",
+            "status_display",
+            "source",
+            "source_display",
+            "source_id",
+            "situational_overview",
+            "operational_strategy",
+            "people_centered_approach",
+            "challenges_identified",
+            "lessons_learned",
+            "created_at",
+            "updated_at",
+        )
+
+
+class EmergencyDrefSerializer(serializers.ModelSerializer):
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+    disaster_category_display = serializers.CharField(source="get_disaster_category_display", read_only=True)
+    country_details = MiniCountrySerializer(source="country", read_only=True)
+    district_details = MiniDistrictSerializer(source="district", read_only=True, many=True)
+    planned_interventions = PlannedInterventionSerializer(many=True, read_only=True)
+    proposed_action = ProposedActionSerializer(many=True, read_only=True)
+    needs_identified = IdentifiedNeedSerializer(many=True, read_only=True)
+    cover_image_file = DrefFileSerializer(source="cover_image", required=False, allow_null=True)
+    disaster_type_details = DisasterTypeSerializer(source="disaster_type", read_only=True)
+    type_of_dref_display = serializers.CharField(source="get_type_of_dref_display", read_only=True)
+    summary = DrefSummarySerializer(read_only=True)
+
+    # Dref operational update
+    operational_update_details = serializers.SerializerMethodField()
+    # Dref Final report
+    final_report_details = serializers.SerializerMethodField()
+
+    # Timeline of operational updates
+    timeline_operational_updates = serializers.SerializerMethodField()
+
+    dref_contacts = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Dref
+        fields = (
+            "id",
+            "title",
+            "type_of_dref",
+            "type_of_dref_display",
+            "disaster_category",
+            "disaster_category_display",
+            "disaster_type_details",
+            "cover_image_file",
+            "event_description",
+            "event_scope",
+            "status",
+            "status_display",
+            "appeal_code",
+            "glide_codes",
+            "country_details",
+            "district_details",
+            "planned_interventions",
+            "proposed_action",
+            "needs_identified",
+            "emergency_appeal_planned",
+            "government_requested_assistance",
+            "did_ns_request_fund",
+            # Related drefs
+            "operational_update_details",
+            "final_report_details",
+            # Key Figures
+            "num_affected",
+            "num_assisted",
+            "women",
+            "men",
+            "boys",
+            "hazard_date_and_location",
+            "hazard_vulnerabilities_and_risks",
+            "amount_requested",
+            "total_cost",
+            "total_targeted_population",
+            "people_targeted_with_early_actions",
+            "estimated_number_of_affected_male",
+            "estimated_number_of_affected_female",
+            "estimated_number_of_affected_girls_under_18",
+            "estimated_number_of_affected_boys_under_18",
+            "people_assisted",
+            # Operational timeframe date
+            "hazard_date",
+            "end_date",
+            "total_cost",
+            "date_of_approval",
+            # For Response Type
+            "event_date",
+            "timeline_operational_updates",
+            # Contacts
+            "dref_contacts",
+            # Summary
+            "summary",
+        )
+
+    @extend_schema_field(TimelineEmergencyDrefOperationalUpdateSerializer(many=True))
+    def get_timeline_operational_updates(self, obj):
+        ops_updates = getattr(obj, "prefetched_timeline_ops_updates", None)
+        if ops_updates is None:
+            ops_updates = DrefOperationalUpdate.objects.filter(
+                dref=obj,
+                status=Dref.Status.APPROVED,
+            ).order_by("operational_update_number")
+
+        serializer = TimelineEmergencyDrefOperationalUpdateSerializer(
+            ops_updates,
+            many=True,
+        )
+        return serializer.data
+
+    @extend_schema_field(EmergencyDrefContactSerializer(many=True))
+    def get_dref_contacts(self, obj):
+        return get_dref_emergency_contacts(obj)
+
+    @extend_schema_field(EmergencyDrefOperationalUpdateSerializer())
+    def get_operational_update_details(self, obj):
+        if not obj.operational_update_id:
+            return None
+
+        instance = (
+            DrefOperationalUpdate.objects.select_related(
+                "country",
+                "disaster_type",
+                "cover_image",
+                "cover_image__created_by",
+            )
+            .prefetch_related(
+                "district",
+                Prefetch(
+                    "planned_interventions",
+                    queryset=PlannedIntervention.objects.prefetch_related("indicators"),
+                ),
+            )
+            .get(pk=obj.operational_update_id)
+        )
+
+        return EmergencyDrefOperationalUpdateSerializer(
+            instance,
+            context=self.context,
+        ).data
+
+    @extend_schema_field(EmergencyDrefFinalReportSerializer())
+    def get_final_report_details(self, obj):
+        if not obj.final_report_id:
+            return None
+
+        instance = (
+            DrefFinalReport.objects.select_related(
+                "country",
+                "disaster_type",
+                "cover_image",
+                "cover_image__created_by",
+            )
+            .prefetch_related(
+                "district",
+                Prefetch(
+                    "planned_interventions",
+                    queryset=PlannedIntervention.objects.prefetch_related("indicators"),
+                ),
+                Prefetch(
+                    "proposed_action",
+                    queryset=ProposedAction.objects.prefetch_related("activities"),
+                ),
+            )
+            .get(pk=obj.final_report_id)
+        )
+
+        return EmergencyDrefFinalReportSerializer(
+            instance,
+            context=self.context,
+        ).data

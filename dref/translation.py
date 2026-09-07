@@ -5,6 +5,7 @@ from dref.models import (
     DrefFile,
     DrefFinalReport,
     DrefOperationalUpdate,
+    DrefSummary,
     IdentifiedNeed,
     NationalSocietyAction,
     PlannedIntervention,
@@ -113,6 +114,17 @@ class DrefOperationalUpdateTO(TranslationOptions):
         "communication",
         "identified_gaps",
         "summary_of_change",
+    )
+
+
+@register(DrefSummary)
+class DrefSummaryTO(TranslationOptions):
+    fields = (
+        "situational_overview",
+        "operational_strategy",
+        "people_centered_approach",
+        "challenges_identified",
+        "lessons_learned",
     )
 
 

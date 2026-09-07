@@ -39,6 +39,9 @@ env:
   DJANGO_DEBUG: ''
   DOCKER_HOST_IP: ''
   DJANGO_ADDITIONAL_ALLOWED_HOSTS: ''
+  ADDITIONAL_TRUSTED_ORIGINS: ''
+  SESSION_COOKIE_DOMAIN: ''
+  CSRF_COOKIE_DOMAIN: ''
   GO_ENVIRONMENT: ''
   API_FQDN: ''
   FRONTEND_URL: ''
@@ -68,6 +71,7 @@ env:
   RELIEF_WEB_APP_NAME: ''
   POWERBI_WORKSPACE_ID: ''
   POWERBI_DATASET_IDS: ''
+  USE_DUMMY_LLM_CLIENT: ''
 
 # NOTE: Used to pass additional configs to api/worker containers
 # NOTE: Not used by azure vault
@@ -215,10 +219,10 @@ argoHooks:
 cronjobsDefaultResources:
   requests:
     cpu: 0.1
-    memory: 4Gi
+    memory: 1Gi
   limits:
     cpu: 4
-    memory: 5Gi
+    memory: 2Gi
 
 cronjobs:
   - command: 'index_and_notify'
@@ -227,10 +231,10 @@ cronjobs:
     schedule: '10 */2 * * *'
     resources:
       requests:
-        memory: 5Gi
+        memory: 1Gi
         cpu: 0.1
       limits:
-        memory: 6Gi
+        memory: 2Gi
         cpu: 4
   - command: 'ingest_appeals'
     schedule: '*/30 * * * *'
@@ -276,6 +280,14 @@ cronjobs:
     schedule: '0 3 * * 0'
   - command: 'notify_validators'
     schedule: '0 0 * * *'
+  - command: 'poll_gdacs_cyclone'
+    schedule: '0 11 * * 0'
+  - command: 'poll_gdacs_flood'
+    schedule: '0 11 * * *'
+  - command: 'poll_usgs_earthquake'
+    schedule: '0 18 * * 0'
+  - command: 'alert_notification'
+    schedule: '0 */2 * * *'
   # https://github.com/jazzband/django-oauth-toolkit/blob/master/docs/management_commands.rst#cleartokens
   - command: 'oauth_cleartokens'
     schedule: '0 1 * * *'

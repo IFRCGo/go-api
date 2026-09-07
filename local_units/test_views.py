@@ -1052,6 +1052,7 @@ class TestExternallyManagedLocalUnit(APITestCase):
         self.country2 = CountryFactory.create(
             name="India",
             iso3="IND",
+            iso="IN",
             region=self.region,
             is_deprecated=False,
             independent=True,

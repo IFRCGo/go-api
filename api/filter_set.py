@@ -2,7 +2,6 @@ import django_filters as filters
 from django.contrib.auth.models import User
 from django.db import models
 
-from api.event_sources import SOURCES
 from api.models import (
     Admin2,
     Appeal,
@@ -183,10 +182,8 @@ class EventFilter(filters.FilterSet):
     countries__in = ListFilter(field_name="countries__id")
     regions__in = ListFilter(field_name="regions__id")
     id = filters.NumberFilter(field_name="id", lookup_expr="exact")
-    auto_generated_source = filters.ChoiceFilter(
-        label="Auto generated source choices",
-        choices=[(v, v) for v in SOURCES.values()],
-    )
+    source = filters.ChoiceFilter(choices=Event.EventSource.choices, lookup_expr="exact")
+
     is_subscribed = filters.BooleanFilter(label="is_subscribed", method="get_is_subcribed_event")
 
     class Meta:
@@ -194,6 +191,7 @@ class EventFilter(filters.FilterSet):
         fields = {
             "disaster_start_date": ("exact", "gt", "gte", "lt", "lte"),
             "created_at": ("exact", "gt", "gte", "lt", "lte"),
+            "updated_at": ("exact", "gt", "gte", "lt", "lte"),
         }
 
     def get_is_subcribed_event(self, qs, name, value):
@@ -334,6 +332,7 @@ class AppealDocumentFilter(filters.FilterSet):
         label="Component insight id for source document",
         method="get_cache_component_document",
     )
+    event_id = filters.NumberFilter(field_name="appeal__event", lookup_expr="exact")
 
     class Meta:
         model = AppealDocument

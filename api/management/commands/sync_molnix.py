@@ -257,13 +257,13 @@ def add_tags_to_obj(obj, tags):
 
 
 def sync_deployments(molnix_deployments, molnix_api, countries):
-    molnix_ids = [d["id"] for d in molnix_deployments]
+    molnix_ids = [d["id"] for d in molnix_deployments]  # XXX: LOOP 1
     warnings = []
     messages = []
     successful_creates = 0
     successful_updates = 0
     # Ensure there are PersonnelDeployment instances for every unique emergency
-    events = [get_go_event(d["tags"]) for d in molnix_deployments]
+    events = [get_go_event(d["tags"]) for d in molnix_deployments]  # XXX: LOOP 2
     event_ids = [ev.id for ev in events if ev]
     unique_event_ids = list(set(event_ids))
     for event_id in unique_event_ids:
@@ -292,10 +292,16 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
             p.save()
 
     # Create Personnel objects
-    for md in molnix_deployments:  # LOOP1
-        if "position_id" not in md:  # changed structure §
+    for md in molnix_deployments:  # XXX: LOOP 3
+        person = md.get("person") or {}
+
+        # The deployment list payload usually has person.fullname but not person.sex.
+        # Fetch full deployment detail when person.sex is missing.
+        if "position_id" not in md or "sex" not in person:  # changed structure §
             md2 = molnix_api.get_deployment(md["id"])
-            md |= md2["deployment"]
+            md.update(md2.get("deployment") or {})
+
+        person = md.get("person") or {}
         if skip_this(md["tags"]):
             warning = "Deployment id %d skipped due to No-GO" % md["id"]
             logger.warning(warning)
@@ -343,15 +349,7 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
 
         appraisal_received = "appraisals" in md and bool(len(md["appraisals"]))
 
-        gender = None
-        try:
-            if md["person"] and "sex" in md["person"]:
-                gender = md["person"]["sex"]
-        except Exception:
-            warning = "Did not find gender info in %d" % md["id"]
-            logger.warning(warning)
-            warnings.append(warning)
-            continue
+        gender = person.get("sex") or None
 
         location = None
         try:
@@ -380,7 +378,7 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
         personnel.type = Personnel.TypeChoices.RR
         personnel.start_date = get_datetime(md["start"])
         personnel.end_date = get_datetime(md["end"])
-        personnel.name = md["person"]["fullname"]
+        personnel.name = person.get("fullname")
         personnel.role = md["title"]
         country_to = get_go_country(countries, md["country_id"])
         if not country_to:
@@ -459,13 +457,13 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
 
 
 def sync_open_positions(molnix_positions, molnix_api, countries):
-    molnix_ids = [p["id"] for p in molnix_positions]
+    molnix_ids = [p["id"] for p in molnix_positions]  # XXX: Loop 1
     warnings = []
     messages = []
     successful_creates = 0
     successful_updates = 0
 
-    for position in molnix_positions:  # LOOP2
+    for position in molnix_positions:  # XXX: LOOP 2
         logger.warning("× " + str(position["id"]))
         if skip_this(position["tags"]):
             warning = "Position id %d skipped due to No-GO" % position["id"]

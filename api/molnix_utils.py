@@ -1,6 +1,63 @@
 import json
+import os
+import tempfile
+import weakref
 
 import requests
+
+from api.logger import logger
+
+
+def _safe_unlink(path):
+    try:
+        os.unlink(path)
+    except OSError:
+        pass
+
+
+class _CachedPaginated:
+    """Iterable wrapper around a streaming generator factory.
+
+    The first iteration drains the source generator and tees each record into a
+    JSONL cache file under /tmp/. Subsequent iterations replay from that cache.
+    Memory stays bounded to one record at a time, even when the caller iterates
+    the same result more than once (as sync_molnix does for tags + main loop).
+    """
+
+    def __init__(self, source_factory, label=""):
+        self._source_factory = source_factory
+        self._label = label
+        fd, self._cache_path = tempfile.mkstemp(suffix=".jsonl", prefix="molnix_paginated_")
+        os.close(fd)
+        self._cached = False
+        self._iter_count = 0
+        weakref.finalize(self, _safe_unlink, self._cache_path)
+
+    def __iter__(self):
+        self._iter_count += 1
+        if self._cached:
+            logger.warning(
+                "_CachedPaginated[%s] re-iteration #%d from cache %s",
+                self._label,
+                self._iter_count,
+                self._cache_path,
+            )
+            with open(self._cache_path) as f:
+                for line in f:
+                    yield json.loads(line)
+            return
+        logger.warning(
+            "_CachedPaginated[%s] first iteration #%d streaming from source -> %s",
+            self._label,
+            self._iter_count,
+            self._cache_path,
+        )
+        with open(self._cache_path, "w") as f:
+            for item in self._source_factory():
+                f.write(json.dumps(item))
+                f.write("\n")
+                yield item
+        self._cached = True
 
 
 class MolnixApi:
@@ -29,19 +86,15 @@ class MolnixApi:
 
     def call_api_paginated(self, path, response_key=None, params={}):
         page = 1
-        next_page = True
-        results = []
-        while next_page:
+        while True:
             params["page"] = page
             data = self.call_api(path=path, params=params)
             if response_key:
                 data = data[response_key]["data"]
-            results += data
             if len(data) == 0:
-                next_page = False
-            else:
-                page += 1
-        return results
+                return
+            yield from data
+            page += 1
 
     def login(self):
         params = {"username": self.username, "password": self.password}
@@ -63,7 +116,10 @@ class MolnixApi:
 
     def get_not_only_open_positions(self):
         # return self.call_api_paginated(path="positions", response_key="positions")
-        return self.call_api_paginated(path="positions", response_key="positions", params={"limit": 999999})
+        return _CachedPaginated(
+            lambda: self.call_api_paginated(path="positions", response_key="positions", params={"limit": 999999}),
+            label="positions",
+        )
 
     def get_deployments(self):
         deployments_filter = {
@@ -77,7 +133,10 @@ class MolnixApi:
             "criterias": "[]",
         }
         params = {"filter": json.dumps(deployments_filter)}
-        return self.call_api_paginated(path="deployments", response_key="deployments", params=params)
+        return _CachedPaginated(
+            lambda: self.call_api_paginated(path="deployments", response_key="deployments", params=params),
+            label="deployments",
+        )
 
     """
         WARNING: If position is not found or generates an error, we return None

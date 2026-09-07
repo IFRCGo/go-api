@@ -1,9 +1,11 @@
 import copy
 import os
+from typing import Optional
 
 import reversion
 from django.conf import settings
 from django.contrib.postgres.aggregates import ArrayAgg
+from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.templatetags.static import static
@@ -11,7 +13,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from pdf2image import convert_from_bytes
 
-from api.models import Country, DisasterType, District, FieldReport
+from api.models import Country, DisasterType, District, Event
 from deployments.models import Sector
 from main.fields import SecureFileField
 
@@ -295,13 +297,13 @@ class Dref(models.Model):
         related_name="modified_by_dref",
     )
     users = models.ManyToManyField(settings.AUTH_USER_MODEL, verbose_name=_("users"), blank=True, related_name="user_dref")
-    field_report = models.ForeignKey(
-        FieldReport,
-        verbose_name=_("field report"),
+    event = models.ForeignKey[Event](
+        Event,
+        verbose_name=_("event"),
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="field_report_dref",
+        related_name="event_dref",
     )
     title = models.CharField(verbose_name=_("title"), max_length=255)
     title_prefix = models.CharField(verbose_name=_("title prefix"), max_length=255, null=True, blank=True)
@@ -504,7 +506,7 @@ class Dref(models.Model):
         verbose_name=_("operation timeframe for imminent type"), null=True, blank=True
     )
     appeal_code = models.CharField(verbose_name=_("appeal code"), max_length=255, null=True, blank=True)
-    glide_code = models.CharField(verbose_name=_("glide number"), max_length=255, null=True, blank=True)
+    glide_codes = ArrayField(models.CharField(max_length=18), verbose_name=_("glide number"), default=list, blank=True)
     ifrc_appeal_manager_name = models.CharField(verbose_name=_("ifrc appeal manager name"), max_length=255, null=True, blank=True)
     ifrc_appeal_manager_email = models.CharField(
         verbose_name=_("ifrc appeal manager email"), max_length=255, null=True, blank=True
@@ -745,6 +747,11 @@ class Dref(models.Model):
         blank=True,
     )
 
+    # TYPING
+    id: int
+    pk: int
+    event_id: Optional[int]
+
     class Meta:
         verbose_name = _("dref")
         verbose_name_plural = _("drefs")
@@ -950,7 +957,7 @@ class DrefOperationalUpdate(models.Model):
     new_operational_end_date = models.DateField(verbose_name=_("New Operation End Date"), null=True, blank=True)
     total_operation_timeframe = models.IntegerField(verbose_name=_("Total Operation Timeframe"), null=True, blank=True)
     appeal_code = models.CharField(verbose_name=_("appeal code"), max_length=255, null=True, blank=True)
-    glide_code = models.CharField(verbose_name=_("glide number"), max_length=255, null=True, blank=True)
+    glide_codes = ArrayField(models.CharField(max_length=18), verbose_name=_("glide number"), default=list, blank=True)
     ifrc_appeal_manager_name = models.CharField(verbose_name=_("ifrc appeal manager name"), max_length=255, null=True, blank=True)
     ifrc_appeal_manager_email = models.CharField(
         verbose_name=_("ifrc appeal manager email"), max_length=255, null=True, blank=True
@@ -1227,6 +1234,10 @@ class DrefOperationalUpdate(models.Model):
     source_information = models.ManyToManyField(SourceInformation, blank=True, verbose_name=_("Source Information"))
     __budget_file_id = None
 
+    # TYPING
+    id: int
+    budget_file_id: int | None
+
     class Meta:
         verbose_name = _("Dref Operational Update")
         verbose_name_plural = _("Dref Operational Updates")
@@ -1339,7 +1350,7 @@ class DrefFinalReport(models.Model):
     )
     operation_start_date = models.DateField(verbose_name=_("Operation Start Date"), null=True, blank=True)
     appeal_code = models.CharField(verbose_name=_("appeal code"), max_length=255, null=True, blank=True)
-    glide_code = models.CharField(verbose_name=_("glide number"), max_length=255, null=True, blank=True)
+    glide_codes = ArrayField(models.CharField(max_length=18), verbose_name=_("glide number"), default=list, blank=True)
     ifrc_appeal_manager_name = models.CharField(verbose_name=_("ifrc appeal manager name"), max_length=255, null=True, blank=True)
     ifrc_appeal_manager_email = models.CharField(
         verbose_name=_("ifrc appeal manager email"), max_length=255, null=True, blank=True
@@ -1651,6 +1662,9 @@ class DrefFinalReport(models.Model):
     )
     __financial_report_id = None
 
+    # TYPING
+    id: int
+
     class Meta:
         verbose_name = _("Dref Final Report")
         verbose_name_plural = _("Dref Final Reports")
@@ -1694,3 +1708,70 @@ class DrefFinalReport(models.Model):
         if status == Dref.Status.APPROVED:
             return queryset.filter(status=Dref.Status.APPROVED)
         return queryset
+
+
+class DrefSummary(models.Model):
+
+    class SummaryStatus(models.IntegerChoices):
+        PENDING = 100, _("Pending")
+        PROCESSING = 200, _("Processing")
+        SUCCESS = 300, _("Success")
+        FAILED = 400, _("Failed")
+
+    class SourceModel(models.IntegerChoices):
+        DREF = 100, _("Dref")
+        DREF_OPERATIONAL_UPDATE = 200, _("Dref Operational Update")
+        DREF_FINAL_REPORT = 300, _("Dref Final Report")
+
+    dref = models.OneToOneField(
+        Dref,
+        on_delete=models.CASCADE,
+        related_name="summary",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    source = models.IntegerField(
+        verbose_name=_("source"),
+        help_text=_("The model this summary was generated from."),
+        choices=SourceModel.choices,
+    )
+    source_id = models.PositiveBigIntegerField(
+        verbose_name=_("source id"),
+    )
+
+    source_hash = models.CharField(
+        max_length=64,
+        unique=True,
+    )
+
+    situational_overview = models.TextField(
+        blank=True,
+        null=True,
+    )
+
+    operational_strategy = models.TextField(
+        blank=True,
+        null=True,
+    )
+
+    people_centered_approach = models.TextField(
+        blank=True,
+        null=True,
+    )
+
+    challenges_identified = models.TextField(
+        blank=True,
+        null=True,
+    )
+
+    lessons_learned = models.TextField(
+        blank=True,
+        null=True,
+    )
+
+    status = models.IntegerField(
+        choices=SummaryStatus.choices,
+        default=SummaryStatus.PENDING,
+    )

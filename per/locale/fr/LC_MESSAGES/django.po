@@ -734,31 +734,23 @@ msgstr "Documents PIE"
 
 #: per/models.py:578
 msgid "Not Started"
-msgstr ""
+msgstr "Non commencé"
 
 #: per/models.py:579
-#, fuzzy
-#| msgid "ongoing"
 msgid "Ongoing"
-msgstr "en cours"
+msgstr "En cours"
 
 #: per/models.py:580
-#, fuzzy
-#| msgid "delayed"
 msgid "Delayed"
-msgstr "retardé"
+msgstr "Retardé"
 
 #: per/models.py:581
-#, fuzzy
-#| msgid "standby"
 msgid "Standby"
-msgstr "en veille"
+msgstr "En veille"
 
 #: per/models.py:582
-#, fuzzy
-#| msgid "finished"
 msgid "Finished"
-msgstr "terminé"
+msgstr "Terminé"
 
 #: per/models.py:587
 msgid "UN Organization"

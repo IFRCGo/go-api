@@ -4,11 +4,13 @@ from collections import defaultdict
 
 import django.utils.timezone as timezone
 from django.contrib.auth.models import Permission
+from django.contrib.gis.db.models import Count, Exists, OuterRef, Q
 from django.db import models, transaction
+from django.db.models.query import Prefetch
 from django.http import HttpResponse
 from django.templatetags.static import static
 from django.utils.translation import gettext
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import (
     mixins,
     permissions,
@@ -36,6 +38,7 @@ from dref.serializers import (
     AddDrefUserSerializer,
     CompletedDrefOperationsSerializer,
     Dref3Serializer,
+    DrefApproveSerializer,
     DrefFileInputSerializer,
     DrefFileSerializer,
     DrefFinalReport3Serializer,
@@ -47,13 +50,15 @@ from dref.serializers import (
     DrefShareUserSerializer,
     MiniDrefSerializer,
 )
-from dref.tasks import process_dref_translation
+from dref.tasks import generate_dref_summary, process_dref_translation
+from dref.utils import create_event_from_dref, sync_event_from_dref
+from lang.serializers import TranslatedModelSerializerMixin
 from main.permissions import DenyGuestUserPermission
 
 logger = logging.getLogger(__name__)
 
 
-def filter_dref_queryset_by_user_access(user, queryset):
+def filter_dref_queryset_by_user_access(user, queryset: models.QuerySet) -> models.QuerySet[Dref]:
     if user.is_superuser:
         return queryset
     # Check if regional admin
@@ -88,23 +93,52 @@ class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
         )
         return filter_dref_queryset_by_user_access(user, queryset)
 
-    @extend_schema(request=None, responses=DrefSerializer)
+    @extend_schema(
+        request=DrefApproveSerializer,
+        responses=DrefSerializer,
+    )
     @action(
         detail=True,
         url_path="approve",
         methods=["post"],
-        permission_classes=[permissions.IsAuthenticated, ApproveDrefPermission, DenyGuestUserPermission],
+        permission_classes=[
+            permissions.IsAuthenticated,
+            ApproveDrefPermission,
+            DenyGuestUserPermission,
+        ],
     )
     def get_approved(self, request, pk=None, version=None):
-        dref = self.get_object()
+        dref: Dref = self.get_object()
+
         if dref.status == Dref.Status.APPROVED:
             raise serializers.ValidationError(gettext("This Dref has already been approved."))
+
         if dref.status != Dref.Status.FINALIZED:
             raise serializers.ValidationError(gettext("Must be finalized before it can be approved"))
+
+        serializer = DrefApproveSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        event = serializer.validated_data.get("event", None)
+
+        if dref.event and event and dref.event != event:
+            raise serializers.ValidationError({"event": gettext("This Dref is already attached to an event.")})
+
+        # NOTE: If the Dref is not attached to an event,
+        # attaching it to the provided event or create a new one if not provided.
+        if not dref.event:
+            if event:
+                dref.event = event
+            else:
+                event = create_event_from_dref(dref)
+                dref.event = event
+                # Translate the emergency instance
+                TranslatedModelSerializerMixin.trigger_field_translation(event)
+
         dref.status = Dref.Status.APPROVED
-        dref.save(update_fields=["status"])
-        serializer = DrefSerializer(dref, context={"request": request})
-        return response.Response(serializer.data)
+        dref.save(update_fields=["event", "status"])
+        transaction.on_commit(lambda: generate_dref_summary.delay(dref_id=dref.id))
+        return response.Response(DrefSerializer(dref, context={"request": request}).data)
 
     @extend_schema(request=None, responses=DrefSerializer)
     @action(
@@ -198,7 +232,10 @@ class DrefOperationalUpdateViewSet(RevisionMixin, viewsets.ModelViewSet):
             raise serializers.ValidationError(gettext("Must be finalized before it can be approved."))
 
         operational_update.status = Dref.Status.APPROVED
-        operational_update.save(update_fields=["status"])
+        operational_update.date_of_approval = timezone.now().date()
+        operational_update.save(update_fields=["status", "date_of_approval"])
+        sync_event_from_dref(operational_update)
+        transaction.on_commit(lambda: generate_dref_summary.delay(dref_id=operational_update.dref_id))
         serializer = DrefOperationalUpdateSerializer(operational_update, context={"request": request})
         return response.Response(serializer.data)
 
@@ -263,10 +300,12 @@ class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
             raise serializers.ValidationError(gettext("Must be finalized before it can be approved."))
 
         final_report.status = Dref.Status.APPROVED
-        final_report.save(update_fields=["status"])
-        final_report.dref.is_active = False
         final_report.date_of_approval = timezone.now().date()
-        final_report.dref.save(update_fields=["is_active", "date_of_approval"])
+        final_report.save(update_fields=["status", "date_of_approval"])
+        final_report.dref.is_active = False
+        final_report.dref.save(update_fields=["is_active"])
+        sync_event_from_dref(final_report)
+        transaction.on_commit(lambda: generate_dref_summary.delay(dref_id=final_report.dref_id))
         serializer = DrefFinalReportSerializer(final_report, context={"request": request})
         return response.Response(serializer.data)
 
@@ -316,8 +355,10 @@ class DrefFileViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.G
         permission_classes=[permissions.IsAuthenticated, DenyGuestUserPermission],
     )
     def multiple_file(self, request, pk=None, version=None):
-        # converts querydict to original dict
-        files = [files[0] for files in dict((request.data).lists()).values()]
+        # NOTE: Files may share one key or use distinct per-file keys; flatten across all keys.
+        files = [file for _, file_list in request.data.lists() for file in file_list] if hasattr(request.data, "lists") else []
+        if not files:
+            raise serializers.ValidationError({"file": "This field is required."})
         data = [{"file": file} for file in files]
         file_serializer = DrefFileSerializer(data=data, context={"request": request}, many=True)
         if file_serializer.is_valid():
@@ -333,27 +374,107 @@ class CompletedDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
         DenyGuestUserPermission,
     ]
     filterset_class = CompletedDrefOperationsFilterSet
-    queryset = DrefFinalReport.objects.filter(status=Dref.Status.APPROVED).order_by("-created_at").distinct()
+    queryset = (
+        DrefFinalReport.objects.filter(status=Dref.Status.APPROVED)
+        .select_related("country", "dref", "dref__country")
+        .prefetch_related(
+            # MiniDrefSerializer.operational_update_details reads this prefetched
+            # attr; without it DRF silently drops the field.
+            Prefetch(
+                "dref__drefoperationalupdate_set",
+                queryset=DrefOperationalUpdate.objects.select_related("country").order_by("-created_at"),
+                to_attr="prefetched_operational_updates",
+            ),
+            "dref__dreffinalreport__country",
+        )
+        .order_by("-created_at")
+        .distinct()
+    )
 
     def get_queryset(self):
         user = self.request.user
-        return filter_dref_queryset_by_user_access(user, super().get_queryset())
+        dref_qs = (
+            Dref.objects.select_related("country")
+            .prefetch_related(
+                Prefetch(
+                    "drefoperationalupdate_set",
+                    queryset=DrefOperationalUpdate.objects.select_related("country").order_by("-created_at"),
+                    to_attr="prefetched_operational_updates",
+                ),
+                "dreffinalreport__country",
+            )
+            .annotate(
+                has_ops_update=Exists(DrefOperationalUpdate.objects.filter(dref=OuterRef("pk"))),
+                unpublished_op_update_count=Count(
+                    "drefoperationalupdate",
+                    filter=~Q(drefoperationalupdate__status=Dref.Status.APPROVED),
+                ),
+                has_final_report=Exists(DrefFinalReport.objects.filter(dref=OuterRef("pk"))),
+                unpublished_final_report_count=Count(
+                    "dreffinalreport",
+                    filter=~Q(dreffinalreport__status=Dref.Status.APPROVED),
+                ),
+            )
+        )
+        qs = (
+            super()
+            .get_queryset()
+            .select_related("country")
+            .prefetch_related(
+                Prefetch("dref", queryset=dref_qs),
+            )
+        )
+        return filter_dref_queryset_by_user_access(user, qs)
 
 
 class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = MiniDrefSerializer
     permission_classes = [permissions.IsAuthenticated, DenyGuestUserPermission]
     filterset_class = ActiveDrefFilterSet
+    search_fields = (
+        "title",
+        "appeal_code",
+        "country__name",
+        "national_society__name",
+        "disaster_type__name",
+    )
+
     queryset = (
-        Dref.objects.prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
+        Dref.objects.select_related(
+            "country",
+        )
+        .prefetch_related(
+            Prefetch(
+                "drefoperationalupdate_set",
+                queryset=DrefOperationalUpdate.objects.select_related("country").order_by("-created_at"),
+                to_attr="prefetched_operational_updates",
+            ),
+            "dreffinalreport__country",
+        )
         .order_by("-created_at")
         .filter(is_active=True)
-        .distinct()
     )
 
     def get_queryset(self):
-        # user = self.request.user
-        return filter_dref_queryset_by_user_access(self.request.user, super().get_queryset()).order_by("-created_at")
+        return filter_dref_queryset_by_user_access(
+            self.request.user,
+            super().get_queryset(),
+        ).annotate(
+            has_ops_update=Exists(
+                DrefOperationalUpdate.objects.filter(dref=OuterRef("pk")),
+            ),
+            unpublished_op_update_count=Count(
+                "drefoperationalupdate",
+                filter=~Q(drefoperationalupdate__status=Dref.Status.APPROVED),
+            ),
+            has_final_report=Exists(
+                DrefFinalReport.objects.filter(dref=OuterRef("pk")),
+            ),
+            unpublished_final_report_count=Count(
+                "dreffinalreport",
+                filter=~Q(dreffinalreport__status=Dref.Status.APPROVED),
+            ),
+        )
 
 
 class DrefShareView(views.APIView):
@@ -464,6 +585,52 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):  # type: ignore[misc]
         name_map = {s.name.lower(): s.value for s in Dref.Status}
         return label_map.get(str(raw).lower()) or name_map.get(str(raw).lower())
 
+    def _order_codes(self, codes, request):
+        order_by = request.query_params.get("order_by")
+        if order_by not in ("created_at", "-created_at"):
+            return sorted(codes)
+
+        created_map = {
+            row["appeal_code"]: row["first_created_at"]
+            for row in Dref.objects.filter(appeal_code__in=codes)
+            .values("appeal_code")
+            .annotate(first_created_at=models.Min("created_at"))
+        }
+
+        present = [code for code in codes if created_map.get(code) is not None]
+        missing = sorted([code for code in codes if created_map.get(code) is None])
+        present_sorted = sorted(present, key=lambda code: (created_map.get(code), code), reverse=order_by == "-created_at")
+        return present_sorted + missing
+
+    def _paginate_codes(self, codes, request):
+        try:
+            limit = int(request.query_params.get("limit")) if request.query_params.get("limit") else None
+        except ValueError:
+            limit = None
+        try:
+            offset = int(request.query_params.get("offset")) if request.query_params.get("offset") else 0
+        except ValueError:
+            offset = 0
+
+        if not offset and limit is None:
+            return codes
+
+        end = offset + limit if limit is not None else None
+        return codes[offset:end]
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="order_by",
+                description=(
+                    "Ordering for paged appeal codes. Use 'created_at' or '-created_at' to sort by the first "
+                    "DREF application created_at per appeal_code; any other value defaults to appeal_code ordering."
+                ),
+                required=False,
+                type=str,
+            )
+        ]
+    )
     def list(self, request):
         # === First approach – would be nice to work like this, but recent definitons are more complex than that:
         # # Aggregate all appeal-codes from the three models
@@ -564,7 +731,7 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):  # type: ignore[misc]
             combined = set()
             for s in codes_sets:
                 combined.update([c for c in s if c])
-            codes = sorted(combined)
+            codes = list(combined)
 
         # Additional date range filters (applied to root Dref only where fields exist)
         date_range_fields = [
@@ -591,6 +758,14 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):  # type: ignore[misc]
             excluded_codes = self._excluded_codes()
             if excluded_codes:
                 codes = [c for c in codes if c and c.upper() not in excluded_codes]
+
+        # NOTE: Ordering and pagination are applied to the appeal codes, not the response objects.
+        # As a result, the number of response items may vary. This is expected behavior.
+        # This is a temporary limitation. In the future, we plan to apply standard
+        # ordering and pagination to the response objects table once an optimized
+        # layer is available to support it.
+        codes = self._order_codes(codes, request)
+        codes = self._paginate_codes(codes, request)
 
         data = []
         old_kwargs = getattr(self, "kwargs", {}).copy()
@@ -630,20 +805,7 @@ class Dref3ViewSet(RevisionMixin, viewsets.ModelViewSet):  # type: ignore[misc]
         if id_param:
             if wanted_ids := {i.strip() for i in str(id_param).split(",")}:
                 data = [row for row in data if row.get("id") in wanted_ids]
-        # pagination
-        try:
-            limit = int(request.query_params.get("limit")) if request.query_params.get("limit") else None
-        except ValueError:
-            limit = None
-        try:
-            offset = int(request.query_params.get("offset")) if request.query_params.get("offset") else 0
-        except ValueError:
-            offset = 0
-        if offset or limit is not None:
-            end = offset + limit if limit is not None else None
-            data_paginated = data[offset:end]
-        else:
-            data_paginated = data
+        data_paginated = data
 
         export_param = request.query_params.get("export")
         if export_param and export_param.lower() == "csv":

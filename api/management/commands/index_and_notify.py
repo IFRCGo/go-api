@@ -1,5 +1,5 @@
 import html
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -7,6 +7,7 @@ from django.core.management.base import BaseCommand
 from django.db.models import DurationField, ExpressionWrapper, F, Q, Sum
 from django.db.models.query import QuerySet
 from django.template.loader import render_to_string
+from django.utils import timezone
 from django.utils.html import strip_tags
 from elasticsearch.helpers import bulk
 from sentry_sdk.crons import monitor
@@ -80,23 +81,23 @@ class Command(BaseCommand):
 
     # Digest mode duration is 5 minutes once a week
     def is_digest_mode(self):
-        today = datetime.now(timezone.utc)
+        today = timezone.now()
         weekdayhourmin = int(today.strftime("%w%H%M"))
         return digest_time <= weekdayhourmin and weekdayhourmin < digest_time + 5
 
     def is_daily_checkup_time(self):
-        today = datetime.now(timezone.utc)
+        today = timezone.now()
         hourmin = int(today.strftime("%H%M"))
         return daily_retro <= hourmin and hourmin < daily_retro + 5
 
     def diff_9_minutes(self):
-        return datetime.now(timezone.utc) - time_9_minutes
+        return timezone.now() - time_9_minutes
 
     def diff_1_day(self):
-        return datetime.now(timezone.utc) - time_1_day
+        return timezone.now() - time_1_day
 
     def diff_1_week(self):
-        return datetime.now(timezone.utc) - time_1_week
+        return timezone.now() - time_1_week
 
     def gather_country_and_region(self, records):
         # Appeals only, since these have a single country/region
@@ -209,7 +210,15 @@ class Command(BaseCommand):
                 countries, regions = self.gather_countries_and_regions(records)
 
             if rtype_of_subscr == RecordType.SURGE_ALERT:
-                dtypes = list(set(["d%s" % record.event.dtype.id for record in records if record.event.dtype is not None]))
+                dtypes = list(
+                    set(
+                        [
+                            "d%s" % record.event.dtype.id
+                            for record in records
+                            if record.event is not None and record.event.dtype is not None
+                        ]
+                    )
+                )
             elif rtype_of_subscr == RecordType.SURGE_DEPLOYMENT_MESSAGES:
                 dtypes = list(set(["d%s" % rec.event_deployed_to.dtype.id for rec in records if rec.event_deployed_to.dtype]))
             else:
@@ -345,7 +354,7 @@ class Command(BaseCommand):
         return display
 
     def get_weekly_digest_data(self, field):
-        today = datetime.now(timezone.utc)
+        today = timezone.now()
         if field == "dref":
             return Appeal.objects.filter(end_date__gt=today, atype=0).count()
         elif field == "ea":
@@ -1035,7 +1044,7 @@ class Command(BaseCommand):
         condR = Q(real_data_update__gte=time_diff)  # instead of modified at
         cond2 = ~Q(previous_update__gte=time_diff_1_day)  # negate (~) no previous_update in the last day, so send once a day
         condF = Q(
-            auto_generated_source="New field report"
+            source=Event.EventSource.NEW_FIELD_REPORT
         )  # exclude those events that were generated from field reports, to avoid 2x notif.
         condE = Q(status=CronJobStatus.ERRONEOUS)
 

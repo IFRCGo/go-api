@@ -1,6 +1,8 @@
 import json
 import os
-from datetime import datetime, timedelta, timezone
+import re
+from datetime import datetime, timedelta
+from datetime import timezone as datetime_timezone
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -36,9 +38,13 @@ GEC_CODES = GECCode.objects.select_related("country").all()
 class Command(BaseCommand):
     help = "Add new entries from Access database file"
 
+    def get_codes_skip(self):
+        value = AppealFilter.objects.filter(name="ingestAppealFilter").values_list("value", flat=True).first()
+        return re.findall(r"[^\s,]+", value or "")
+
     def parse_date(self, date_string):
         timeformat = "%Y-%m-%dT%H:%M:%S"
-        return datetime.strptime(date_string[:18], timeformat).replace(tzinfo=timezone.utc)
+        return datetime.strptime(date_string[:18], timeformat).replace(tzinfo=datetime_timezone.utc)
 
     def create_bilaterals_dict(self, records):
         """Aggregate amounts (rec['AmountCHF']) of Bilateral records"""
@@ -61,10 +67,7 @@ class Command(BaseCommand):
             logger.info("Using local appeals.json file")
 
             codes = Appeal.objects.values_list("code", flat=True)
-            if AppealFilter.objects.values_list("value", flat=True).filter(name="ingestAppealFilter").count() > 0:
-                codes_skip = AppealFilter.objects.values_list("value", flat=True).filter(name="ingestAppealFilter")[0].split(",")
-            else:
-                codes_skip = []
+            codes_skip = self.get_codes_skip()
 
             with open("appeals.json") as f:
                 # modified = json.loads(f.read())
@@ -154,10 +157,7 @@ class Command(BaseCommand):
 
             codes = Appeal.objects.values_list("code", flat=True)
 
-            if AppealFilter.objects.values_list("value", flat=True).filter(name="ingestAppealFilter").count() > 0:
-                codes_skip = AppealFilter.objects.values_list("value", flat=True).filter(name="ingestAppealFilter")[0].split(",")
-            else:
-                codes_skip = []
+            codes_skip = self.get_codes_skip()
 
             for r in records:
                 # Temporary filtering, the manual version should be kept:

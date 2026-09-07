@@ -21,6 +21,7 @@ from oauth2_provider import urls as oauth2_urls
 # DRF routes
 from rest_framework import routers
 
+from alert_system.dev_views import AlertEmailPreview
 from api import drf_views as api_views
 from api.admin_reports import UsersPerPermissionViewSet
 from api.views import (
@@ -90,6 +91,9 @@ router.register(r"disaster_type", api_views.DisasterTypeViewset, basename="disas
 router.register(r"admin2", api_views.Admin2Viewset, basename="admin2")
 router.register(r"district", api_views.DistrictViewset, basename="district")
 router.register(r"district_rmd", api_views.DistrictRMDViewset, basename="district_rmd")
+
+router.register(r"emergency", api_views.EmergencyViewset, basename="emergency")
+
 router.register(r"domainwhitelist", registration_views.DomainWhitelistViewset)
 router.register(r"eru", deployment_views.ERUViewset, basename="eru")
 router.register(
@@ -136,6 +140,7 @@ router.register(r"per-country", per_views.PerCountryViewSet, basename="per-count
 router.register(r"public-per-stats", per_views.CountryPublicPerStatsViewset, basename="public_country_per_stats")
 router.register(r"per-stats", per_views.CountryPerStatsViewset, basename="country_per_stats")
 router.register(r"ops-learning", per_views.OpsLearningViewset, basename="ops_learning")
+router.register(r"ops-learning-coverage", per_views.OpsLearningCoverageViewset, basename="ops_learning_coverage")
 router.register(r"per-document-upload", per_views.PerDocumentUploadViewSet, basename="per_document_upload")
 
 router.register(r"personnel_deployment", deployment_views.PersonnelDeploymentViewset, basename="personnel_deployment")
@@ -163,6 +168,7 @@ router.register(r"situation_report", api_views.SituationReportViewset, basename=
 router.register(r"situation_report_type", api_views.SituationReportTypeViewset, basename="situation_report_type")
 router.register(r"subscription", notification_views.SubscriptionViewset, basename="subscription")
 router.register(r"surge_alert", notification_views.SurgeAlertViewset, basename="surge_alert")
+router.register(r"alert-subscription", notification_views.AlertSubscriptionViewSet, basename="alert_subscription")
 router.register(r"user", api_views.UserViewset, basename="user")
 router.register(r"flash-update", flash_views.FlashUpdateViewSet, basename="flash_update")
 router.register(r"flash-update-file", flash_views.FlashUpdateFileViewSet, basename="flash_update_file")
@@ -266,6 +272,7 @@ urlpatterns = [
     url(r"^api/v2/per-options/", per_views.PerOptionsView.as_view()),
     url(r"^api/v2/export-per/(?P<pk>\d+)/", per_views.ExportPerView.as_view()),
     url(r"^api/v2/local-units-options/", local_units_views.LocalUnitOptionsView.as_view()),
+    # NOTE: This should be removed as DefaultRouter should cover this.
     url(r"^api/v2/event/(?P<pk>\d+)", api_views.EventViewset.as_view({"get": "retrieve"})),
     url(r"^api/v2/event/(?P<slug>[-\w]+)", api_views.EventViewset.as_view({"get": "retrieve"}, lookup_field="slug")),
     url(r"^api/v2/delegation-office/(?P<pk>\d+)", DelegationOfficeDetailAPIView.as_view()),
@@ -308,6 +315,7 @@ if settings.DEBUG:
             # url(r'^__debug__/', include(debug_toolbar.urls)),
             url(r"^dev/email-preview/local-units/", LocalUnitsEmailPreview.as_view()),
             url(r"^dev/email-preview/eap/", EAPEmailPreview.as_view()),
+            url(r"^dev/email-preview/alert-system/", AlertEmailPreview.as_view()),
         ]
         + urlpatterns
         + static.static(

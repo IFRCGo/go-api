@@ -10,7 +10,16 @@ from django.contrib.contenttypes.models import ContentType
 from django.core import management
 from rest_framework import status
 
-from api.models import Country, DisasterType, District, Region, RegionName
+from api.factories.event import EventFactory
+from api.models import (
+    AppealType,
+    Country,
+    DisasterType,
+    District,
+    Event,
+    Region,
+    RegionName,
+)
 from api.utils import get_model_name
 from deployments.factories.project import SectorFactory
 from deployments.factories.user import UserFactory
@@ -30,7 +39,9 @@ from dref.models import (
     ProposedAction,
 )
 from dref.tasks import send_dref_email
+from lang.serializers import TranslatedModelSerializerMixin
 from main.test_case import APITestCase
+from per.factories import AppealFactory
 
 
 class DrefTestCase(APITestCase):
@@ -167,7 +178,7 @@ class DrefTestCase(APITestCase):
             "publishing_date": "2021-08-01",
             "operation_timeframe": 4,
             "appeal_code": "J7876",
-            "glide_code": "ER878",
+            "glide_codes": ["ER878"],
             "appeal_manager_name": "Test Name",
             "appeal_manager_email": "test@gmail.com",
             "project_manager_name": "Test Name",
@@ -591,7 +602,7 @@ class DrefTestCase(APITestCase):
             "publishing_date": "2021-08-01",
             "operation_timeframe": 4,
             "appeal_code": "J7876",
-            "glide_code": "ER878",
+            "glide_codes": ["ER878"],
             "appeal_manager_name": "Test Name",
             "appeal_manager_email": "test@gmail.com",
             "project_manager_name": "Test Name",
@@ -772,6 +783,57 @@ class DrefTestCase(APITestCase):
         url = f"/api/v2/dref/{dref2.id}/"
         response = self.client.patch(url, data)
         self.assert_400(response)
+
+    def test_dref_approve_links_matching_appeal_to_event(self):
+        """Approving a Dref should link a matching DREF Appeal (by appeal_code) to the created event."""
+        root_user = self.root_user
+        region = Region.objects.create(name=RegionName.AFRICA)
+        country = Country.objects.create(name="country1", region=region)
+
+        appeal = AppealFactory.create(code="MDRXX001", atype=AppealType.DREF, country=country)
+        dref = DrefFactory.create(
+            title="test-appeal-link",
+            created_by=root_user,
+            country=country,
+            status=Dref.Status.FINALIZED,
+            type_of_dref=Dref.DrefType.IMMINENT,
+            appeal_code="MDRXX001",
+        )
+
+        self.authenticate(root_user)
+        response = self.client.post(f"/api/v2/dref/{dref.id}/approve/", {})
+        self.assert_200(response)
+
+        dref.refresh_from_db()
+        appeal.refresh_from_db()
+        self.assertIsNotNone(dref.event_id)
+        self.assertEqual(appeal.event_id, dref.event_id)
+
+    def test_dref_approve_does_not_relink_appeal_already_linked_to_other_event(self):
+        """Approving a Dref should not overwrite an Appeal that is already linked to a different event."""
+        root_user = self.root_user
+        region = Region.objects.create(name=RegionName.AFRICA)
+        country = Country.objects.create(name="country1", region=region)
+
+        other_event = EventFactory.create()
+        appeal = AppealFactory.create(code="MDRXX002", atype=AppealType.DREF, country=country, event=other_event)
+        dref = DrefFactory.create(
+            title="test-appeal-conflict",
+            created_by=root_user,
+            country=country,
+            status=Dref.Status.FINALIZED,
+            type_of_dref=Dref.DrefType.IMMINENT,
+            appeal_code="MDRXX002",
+        )
+
+        self.authenticate(root_user)
+        response = self.client.post(f"/api/v2/dref/{dref.id}/approve/", {})
+        self.assert_200(response)
+
+        dref.refresh_from_db()
+        appeal.refresh_from_db()
+        self.assertEqual(appeal.event_id, other_event.id)
+        self.assertNotEqual(dref.event_id, other_event.id)
 
     def test_dref_operation_update_create(self):
         """
@@ -1084,6 +1146,60 @@ class DrefTestCase(APITestCase):
         response = self.client.patch(patch_url, data)
         self.assert_400(response)
 
+    def test_final_report_approve_syncs_event_glide(self):
+        country = Country.objects.create(name="country-final-report-glide")
+        event = EventFactory.create(glide="OLD-GLIDE")
+        dref = DrefFactory.create(
+            title="Test Title",
+            created_by=self.root_user,
+            country=country,
+            event=event,
+            glide_codes=["OLD-GLIDE"],
+            status=Dref.Status.APPROVED,
+        )
+        final_report = DrefFinalReportFactory.create(
+            title="Test final report",
+            dref=dref,
+            country=country,
+            glide_codes=["NEW-GLIDE"],
+            status=Dref.Status.FINALIZED,
+        )
+
+        self.client.force_authenticate(self.root_user)
+        approve_url = f"/api/v2/dref-final-report/{final_report.id}/approve/"
+        response = self.client.post(approve_url, {})
+        self.assert_200(response)
+
+        event.refresh_from_db()
+        self.assertEqual(event.glide, "NEW-GLIDE")
+
+    def test_operational_update_approve_syncs_event_glide(self):
+        country = Country.objects.create(name="country-ops-update-glide")
+        event = EventFactory.create(glide="OLD-GLIDE")
+        dref = DrefFactory.create(
+            title="Test Title",
+            created_by=self.root_user,
+            country=country,
+            event=event,
+            glide_codes=["OLD-GLIDE"],
+            status=Dref.Status.APPROVED,
+        )
+        operational_update = DrefOperationalUpdateFactory.create(
+            title="Test operational update",
+            dref=dref,
+            country=country,
+            glide_codes=["UPDATED-GLIDE"],
+            status=Dref.Status.FINALIZED,
+        )
+
+        self.client.force_authenticate(self.root_user)
+        approve_url = f"/api/v2/dref-op-update/{operational_update.id}/approve/"
+        response = self.client.post(approve_url, {})
+        self.assert_200(response)
+
+        event.refresh_from_db()
+        self.assertEqual(event.glide, "UPDATED-GLIDE")
+
     def test_dref_for_assessment_report(self):
         old_count = Dref.objects.count()
         national_society = Country.objects.create(name="xzz")
@@ -1137,7 +1253,7 @@ class DrefTestCase(APITestCase):
             "publishing_date": "2021-08-01",
             "operation_timeframe": 1,
             "appeal_code": "J7876",
-            "glide_code": "ER878",
+            "glide_codes": ["ER878"],
             "appeal_manager_name": "Test Name",
             "appeal_manager_email": "test@gmail.com",
             "project_manager_name": "Test Name",
@@ -1299,7 +1415,7 @@ class DrefTestCase(APITestCase):
             "publishing_date": "2021-08-01",
             "operation_timeframe": 4,
             "appeal_code": "J7876",
-            "glide_code": "ER878",
+            "glide_codes": ["ER878"],
             "appeal_manager_name": "Nombre de prueba",
             "appeal_manager_email": "test@gmail.com",
             "project_manager_name": "Nombre de prueba",
@@ -2021,6 +2137,37 @@ class DrefTestCase(APITestCase):
         self.assertEqual(len(response.data["results"]), 1)
         self.assertEqual(response.data["results"][0]["final_report_details"]["id"], dref_final_report.id)
 
+    def test_search_active_dref(self):
+        country = Country.objects.create(name="Searchable Country")
+        dref_by_title = DrefFactory.create(
+            is_active=True, title="Cyclone readiness", appeal_code="MDRAA001", created_by=self.root_user
+        )
+        dref_by_country = DrefFactory.create(is_active=True, country=country, created_by=self.root_user)
+
+        url = "/api/v2/active-dref/"
+        self.client.force_authenticate(self.root_user)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data["results"]), 2)
+
+        response = self.client.get(f"{url}?search=cyclone")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual([item["id"] for item in response.data["results"]], [dref_by_title.id])
+
+        response = self.client.get(f"{url}?search=MDRAA001")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual([item["id"] for item in response.data["results"]], [dref_by_title.id])
+
+        # the affected country, not the national society
+        response = self.client.get(f"{url}?search=Searchable")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual([item["id"] for item in response.data["results"]], [dref_by_country.id])
+
+        # a missing search_fields would return every row here
+        response = self.client.get(f"{url}?search=nomatchhere")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data["results"]), 0)
+
     def test_dref_share_users(self):
         user1 = UserFactory.create(
             username="user1@test.com",
@@ -2716,6 +2863,79 @@ class DrefTestCase(APITestCase):
         response = self.client.post(finalize_url)
         self.assert_200(response)
         self.assertEqual(response.data["status"], Dref.Status.FINALIZED)
+
+    @patch.object(
+        TranslatedModelSerializerMixin,
+        "trigger_field_translation",
+    )
+    def test_create_event_from_dref(self, mock_trigger_translation):
+        region = Region.objects.create(name=RegionName.ASIA_PACIFIC)
+        country = Country.objects.create(name="Test countrynpl", region=region)
+        district = District.objects.create(name="test district", country=country)
+        disaster_type = DisasterType.objects.create(name="test disaster")
+        dref = DrefFactory.create(
+            title="Test Title",
+            disaster_type=disaster_type,
+            event_description="Test event description",
+            event_date="2021-10-10",
+            glide_codes=["GLIDE123"],
+            created_by=self.user,
+            country=country,
+            status=Dref.Status.FINALIZED,
+            type_of_dref=Dref.DrefType.ASSESSMENT,
+        )
+        dref.district.set([district])
+        url = f"/api/v2/dref/{dref.id}/approve/"
+        self.authenticate(self.root_user)
+        response = self.client.post(url)
+        self.assert_200(response)
+
+        dref.refresh_from_db()
+
+        dref_event_id = response.data["event"]
+        event_instance = Event.objects.get(id=dref_event_id)
+
+        # Translation triggered
+        mock_trigger_translation.assert_called_once()
+
+        translated_event = mock_trigger_translation.call_args.args[0]
+
+        self.assertEqual(
+            translated_event.pk,
+            event_instance.pk,
+        )
+
+        self.assertEqual(
+            {
+                event_instance.name,
+                event_instance.dtype.id,
+                event_instance.summary,
+                event_instance.disaster_start_date.date(),
+                event_instance.glide,
+                event_instance.source,
+            },
+            {
+                dref.title,
+                dref.disaster_type.id,
+                dref.event_description,
+                dref.event_date,
+                dref.glide_codes[0],
+                Event.EventSource.DREF,
+            },
+        )
+        self.assertEqual(
+            list(event_instance.regions.values_list("id", flat=True)),
+            [dref.country.region.id],
+        )
+        self.assertEqual(
+            list(event_instance.countries.values_list("id", flat=True)),
+            [dref.country.id],
+        )
+        self.assertEqual(
+            list(event_instance.districts.values_list("id", flat=True)),
+            [district.id],
+        )
+        self.assertTrue(event_instance.auto_generated)
 
 
 User = get_user_model()

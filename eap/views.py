@@ -3,10 +3,11 @@ from django.db.models import Case, F, IntegerField, When
 from django.db.models.query import Prefetch, QuerySet
 from django.templatetags.static import static
 from drf_spectacular.utils import OpenApiParameter, extend_schema
-from rest_framework import mixins, permissions, response, status, viewsets
+from rest_framework import mixins, permissions, response, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import GenericAPIView
 
+from api.models import Admin2
 from eap.filter_set import (
     EAPRegistrationFilterSet,
     EAPShareUserFilterSet,
@@ -14,13 +15,13 @@ from eap.filter_set import (
     SimplifiedEAPFilterSet,
 )
 from eap.models import (
+    Admin1,
     EAPFile,
     EAPRegistration,
     EAPStatus,
     EAPType,
     EnablingApproach,
     FullEAP,
-    KeyActor,
     PlannedOperation,
     SimplifiedEAP,
 )
@@ -66,7 +67,7 @@ class ActiveEAPViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
         return (
             super()
             .get_queryset()
-            .filter(status=EAPStatus.APPROVED)
+            .filter(status=EAPStatus.PROJECT_AGREEMENT_SIGNED)
             .select_related("disaster_type", "country")
             .annotate(
                 requirement_cost=Case(
@@ -255,7 +256,16 @@ class SimplifiedEAPViewSet(EAPModelViewSet):
                 "eap_registration__partners",
                 "partners",
                 "partner_contacts",
-                "admin2",
+                "potential_risks",
+                "early_actions",
+                Prefetch(
+                    "admin2",
+                    queryset=Admin2.objects.select_related("admin1"),
+                ),
+                Prefetch(
+                    "districts",
+                    queryset=Admin1.objects.select_related("district"),
+                ),
                 Prefetch(
                     "planned_operations",
                     queryset=PlannedOperation.objects.prefetch_related(
@@ -275,15 +285,15 @@ class SimplifiedEAPViewSet(EAPModelViewSet):
                     ),
                 ),
                 Prefetch(
-                    "hazard_impact_images",
+                    "hazard_impact_files",
                     queryset=EAPFile.objects.select_related("created_by", "modified_by"),
                 ),
                 Prefetch(
-                    "risk_selected_protocols_images",
+                    "risk_selected_protocols_files",
                     queryset=EAPFile.objects.select_related("created_by", "modified_by"),
                 ),
                 Prefetch(
-                    "selected_early_actions_images",
+                    "selected_early_actions_files",
                     queryset=EAPFile.objects.select_related("created_by", "modified_by"),
                 ),
             )
@@ -357,11 +367,18 @@ class FullEAPViewSet(EAPModelViewSet):
                 "budget_file",
             )
             .prefetch_related(
-                "admin2",
                 "partners",
                 "partner_contacts",
                 "prioritized_impacts",
                 "early_actions",
+                Prefetch(
+                    "admin2",
+                    queryset=Admin2.objects.select_related("admin1"),
+                ),
+                Prefetch(
+                    "districts",
+                    queryset=Admin1.objects.select_related("district"),
+                ),
                 # source information
                 "risk_analysis_source_of_information",
                 "trigger_statement_source_of_information",
@@ -369,27 +386,24 @@ class FullEAPViewSet(EAPModelViewSet):
                 "evidence_base_source_of_information",
                 "activation_process_source_of_information",
                 # Files
-                "hazard_selection_images",
+                "hazard_selection_files",
                 "theory_of_change_table_file",
-                "exposed_element_and_vulnerability_factor_images",
-                "prioritized_impact_images",
+                "exposed_element_and_vulnerability_factor_files",
+                "prioritized_impact_files",
                 "risk_analysis_relevant_files",
-                "forecast_selection_images",
-                "definition_and_justification_impact_level_images",
-                "identification_of_the_intervention_area_images",
+                "forecast_selection_files",
+                "definition_and_justification_impact_level_files",
+                "identification_of_the_intervention_area_files",
                 "trigger_model_relevant_files",
-                "early_action_selection_process_images",
+                "early_action_selection_process_files",
                 "evidence_base_relevant_files",
-                "early_action_implementation_images",
-                "trigger_activation_system_images",
+                "early_action_implementation_files",
+                "trigger_activation_system_files",
                 "activation_process_relevant_files",
                 "meal_relevant_files",
                 "capacity_relevant_files",
                 "forecast_table_file",
-                Prefetch(
-                    "key_actors",
-                    queryset=KeyActor.objects.select_related("national_society"),
-                ),
+                "key_actors",
                 Prefetch(
                     "planned_operations",
                     queryset=PlannedOperation.objects.prefetch_related(
@@ -486,7 +500,10 @@ class EAPFileViewSet(
         permission_classes=[permissions.IsAuthenticated, DenyGuestUserPermission],
     )
     def multiple_file(self, request):
-        files = [files[0] for files in dict((request.data).lists()).values()]
+        # NOTE: Files may share one key or use distinct per-file keys; flatten across all keys.
+        files = [file for _, file_list in request.data.lists() for file in file_list] if hasattr(request.data, "lists") else []
+        if not files:
+            raise serializers.ValidationError({"file": "This field is required."})
         data = [{"file": file} for file in files]
         file_serializer = EAPFileSerializer(data=data, context={"request": request}, many=True)
         if file_serializer.is_valid(raise_exception=True):

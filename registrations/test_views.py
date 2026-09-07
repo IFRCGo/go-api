@@ -6,6 +6,8 @@
 # 6. Use the admin token and new user username to query views.ValidateUser
 # 7. Confirm that a user without an official email is activated.
 
+import uuid
+from datetime import timedelta
 from unittest import mock
 
 from cryptography.hazmat.backends import default_backend
@@ -13,12 +15,14 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from django.contrib.auth.models import User
 from django.test import override_settings
+from django.utils import timezone
 from rest_framework.test import APITestCase
 
 from api.models import Country, Profile
+from deployments.factories.user import UserFactory
 from main.test_case import APITestCase as GoAPITestCase
 
-from .models import Pending
+from .models import Pending, UserExternalToken
 
 
 class TwoGatekeepersTest(APITestCase):
@@ -211,8 +215,147 @@ class UserExternalTokenTest(GoAPITestCase):
         ):
             response = self.client.post("/api/v2/external-token/", data, format="json")
         self.assertEqual(response.status_code, 201)
+        # get_token() returns the generated JWT on the creation path (a header.payload.signature string).
+        body = response.json()
+        self.assertTrue(body["token"])
+        self.assertEqual(body["token"].count("."), 2)
+        # id is returned so clients can later revoke the token
+        self.assertEqual(body["id"], UserExternalToken.objects.get().id)
 
     def test_external_token_with_no_keys(self):
         self.client.force_authenticate(self.user)
         response = self.client.post("/api/v2/external-token/")
         self.assertEqual(response.status_code, 400)
+
+    def test_verify_active_token(self):
+        token = UserExternalToken.objects.create(
+            title="active",
+            user=self.user,
+            expire_timestamp=timezone.now() + timedelta(days=1),
+        )
+        # NOTE: verify is unauthenticated (server-to-server introspection)
+        response = self.client.post("/api/v2/external-token/verify/", {"jti": str(token.jti)}, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"active": True})
+
+    def test_verify_disabled_token(self):
+        token = UserExternalToken.objects.create(
+            title="disabled",
+            user=self.user,
+            expire_timestamp=timezone.now() + timedelta(days=1),
+            is_disabled=True,
+        )
+        response = self.client.post("/api/v2/external-token/verify/", {"jti": str(token.jti)}, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"active": False})
+
+    def test_verify_expired_token(self):
+        token = UserExternalToken.objects.create(
+            title="expired",
+            user=self.user,
+            expire_timestamp=timezone.now() - timedelta(days=1),
+        )
+        response = self.client.post("/api/v2/external-token/verify/", {"jti": str(token.jti)}, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"active": False})
+
+    def test_verify_old_token(self):
+        token = UserExternalToken.objects.create(
+            title="old",
+            user=self.user,
+            expire_timestamp=timezone.now() + timedelta(days=1),
+            is_old_token=True,
+        )
+        response = self.client.post("/api/v2/external-token/verify/", {"jti": str(token.jti)}, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"active": False})
+
+    def test_verify_unknown_jti(self):
+        response = self.client.post("/api/v2/external-token/verify/", {"jti": str(uuid.uuid4())}, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"active": False})
+
+    def test_verify_invalid_jti(self):
+        response = self.client.post("/api/v2/external-token/verify/", {"jti": "not-a-uuid"}, format="json")
+        self.assertEqual(response.status_code, 400)
+
+    def test_revoke_own_token(self):
+        self.client.force_authenticate(self.user)
+        token = UserExternalToken.objects.create(
+            title="revoke-me",
+            user=self.user,
+            expire_timestamp=timezone.now() + timedelta(days=1),
+        )
+
+        # NOTE: verify is unauthenticated (server-to-server introspection)
+        # Token is active before revocation.
+        response = self.client.post("/api/v2/external-token/verify/", {"jti": str(token.jti)}, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"active": True})
+
+        response = self.client.post(f"/api/v2/external-token/{token.id}/revoke/")
+        self.assertEqual(response.status_code, 200)
+        token.refresh_from_db()
+        self.assertIs(token.is_disabled, True)
+
+        # Token is inactive after revocation.
+        response = self.client.post("/api/v2/external-token/verify/", {"jti": str(token.jti)}, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"active": False})
+
+    def test_revoke_already_revoked_token_errors(self):
+        self.client.force_authenticate(self.user)
+        token = UserExternalToken.objects.create(
+            title="revoke-twice",
+            user=self.user,
+            expire_timestamp=timezone.now() + timedelta(days=1),
+        )
+        response = self.client.post(f"/api/v2/external-token/{token.id}/revoke/")
+        self.assertEqual(response.status_code, 200)
+
+        # A second revoke on the same token is a client error.
+        response = self.client.post(f"/api/v2/external-token/{token.id}/revoke/")
+        self.assertEqual(response.status_code, 400)
+
+    def test_revoke_other_users_token_not_found(self):
+        other_user = UserFactory.create(
+            username="other@dave.com",
+            first_name="Other",
+            last_name="User",
+            password="test123",
+            email="other@dave.com",
+        )
+        token = UserExternalToken.objects.create(
+            title="not-mine",
+            user=other_user,
+            expire_timestamp=timezone.now() + timedelta(days=1),
+        )
+        self.client.force_authenticate(self.user)
+        response = self.client.post(f"/api/v2/external-token/{token.id}/revoke/")
+        self.assertEqual(response.status_code, 404)
+        token.refresh_from_db()
+        self.assertIs(token.is_disabled, False)
+
+    def test_revoke_requires_auth(self):
+        token = UserExternalToken.objects.create(
+            title="revoke-unauth",
+            user=self.user,
+            expire_timestamp=timezone.now() + timedelta(days=1),
+        )
+        response = self.client.post(f"/api/v2/external-token/{token.id}/revoke/")
+        self.assertEqual(response.status_code, 401)
+
+    def test_list_includes_is_disabled(self):
+        self.client.force_authenticate(self.user)
+        UserExternalToken.objects.create(
+            title="listed",
+            user=self.user,
+            expire_timestamp=timezone.now() + timedelta(days=1),
+        )
+        response = self.client.get("/api/v2/external-token/")
+        self.assertEqual(response.status_code, 200)
+        results = response.json()["results"]
+        self.assertEqual(len(results), 1)
+        self.assertIn("is_disabled", results[0])
+        # get_token() returns None for stored instances, so the JWT is never re-exposed on list.
+        self.assertIsNone(results[0]["token"])

@@ -24,6 +24,8 @@ x-server: &base_server_setup
     PLAYWRIGHT_SERVER_URL: ${PLAYWRIGHT_SERVER_URL:-ws://playwright:3000/}
     GO_WEB_INTERNAL_URL: ${GO_WEB_INTERNAL_URL:-http://host.docker.internal:3000}
     DJANGO_ADDITIONAL_ALLOWED_HOSTS: ${DJANGO_ADDITIONAL_ALLOWED_HOSTS:-host.docker.internal,127.0.0.1,localhost}
+    SESSION_COOKIE_DOMAIN: ${SESSION_COOKIE_DOMAIN:-localhost}
+    CSRF_COOKIE_DOMAIN: ${CSRF_COOKIE_DOMAIN:-localhost}
     DEBUG_EMAIL: ${DEBUG_EMAIL:-true}
     MOLNIX_API_BASE: ${MOLNIX_API_BASE:-https://api.ifrc-staging.rpm.molnix.com/api/}
     ERP_API_ENDPOINT: ${ERP_API_ENDPOINT:-https://ifrctintapim001.azure-api.net/GoAPI/ExtractGoEmergency}
@@ -33,6 +35,8 @@ x-server: &base_server_setup
     CACHE_TEST_REDIS_URL: ${CACHE_TEST_REDIS_URL:-redis://redis:6379/11}
     CACHE_MIDDLEWARE_SECONDS: ${CACHE_MIDDLEWARE_SECONDS:-600}
     ELASTIC_SEARCH_HOST: ${ELASTIC_SEARCH_HOST:-elasticsearch://elasticsearch:9200}
+    # LLM
+    USE_DUMMY_LLM_CLIENT: ${USE_DUMMY_LLM_CLIENT:-true}
     # Appeal API
     APPEALS_USER: ${APPEALS_USER:-}
     APPEALS_PASS: ${APPEALS_PASS:-}
@@ -59,7 +63,10 @@ x-server: &base_server_setup
   extra_hosts:
     - "host.docker.internal:host-gateway"
   env_file:
-    - .env
+    # Path is resolved from the project directory (the first compose file's
+    # directory when stacking via COMPOSE_FILE)
+    - path: ${BACKEND_ENV_FILE:-.env}
+      required: false
   volumes:
     - ".:/home/ifrc/go-api"
   depends_on:

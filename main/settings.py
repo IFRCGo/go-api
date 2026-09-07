@@ -29,7 +29,9 @@ env = environ.Env(
     DJANGO_STATIC_URL=(str, "/static/"),
     DJANGO_ADDITIONAL_ALLOWED_HOSTS=(list, []),  # Eg: api.go.ifrc.org, goadmin.ifrc.org, dsgocdnapi.azureedge.net
     GO_ENVIRONMENT=(str, "development"),  # staging, production
-    #
+    SESSION_COOKIE_DOMAIN=str,
+    CSRF_COOKIE_DOMAIN=str,
+    ADDITIONAL_TRUSTED_ORIGINS=(list, []),
     API_FQDN=str,  # https://goadmin.ifrc.org
     FRONTEND_URL=str,  # https://go.ifrc.org
     GO_WEB_INTERNAL_URL=(str, None),  # http://host.docker.internal
@@ -117,6 +119,7 @@ env = environ.Env(
     # Sentry
     SENTRY_DSN=(str, None),
     SENTRY_SAMPLE_RATE=(float, 0.2),
+    SENTRY_RELEASE=(str, None),
     # Maintenance mode
     DJANGO_READ_ONLY=(bool, False),
     # Misc
@@ -143,13 +146,18 @@ env = environ.Env(
     NS_INITIATIVES_API_TOKEN=(str, None),
     # OpenAi Azure
     AZURE_OPENAI_ENDPOINT=(str, None),
-    AZURE_OPENAI_KEY=(str, None),
+    AZURE_OPENAI_API_KEY=(str, None),
     AZURE_OPENAI_DEPLOYMENT_NAME=(str, None),
+    # Use a fake LLM client instead of calling Azure OpenAI
+    USE_DUMMY_LLM_CLIENT=(bool, False),
     # ReliefWeb appname
     RELIEF_WEB_APP_NAME=(str, None),
     # PowerBI
     POWERBI_WORKSPACE_ID=(str, None),
     POWERBI_DATASET_IDS=(str, None),
+    # Alert system - remap external STAC related-item URLs to internal cluster URLs
+    EOAPI_STAC_EXTERNAL_URL=(str, None),  # e.g. https://montandon-eoapi.ifrc.org/stac
+    EOAPI_STAC_INTERNAL_URL=(str, None),  # e.g. http://montandon-eoapi-stac.montandon-eoapi.svc.cluster.local:8080
 )
 
 
@@ -173,13 +181,16 @@ def parse_domain(*env_keys: str) -> str:
     return domain.strip("/")
 
 
+EOAPI_STAC_EXTERNAL_URL = env("EOAPI_STAC_EXTERNAL_URL")
+EOAPI_STAC_INTERNAL_URL = env("EOAPI_STAC_INTERNAL_URL")
+
 GO_API_URL = parse_domain("API_FQDN")
 GO_WEB_URL = parse_domain("FRONTEND_URL")
 # NOTE: Used in local development to point to the frontend service from within go-api container
 #  Default to GO_WEB_URL if GO_WEB_INTERNAL_URL is not provided
 GO_WEB_INTERNAL_URL = parse_domain("GO_WEB_INTERNAL_URL", "FRONTEND_URL")
-FRONTEND_URL = urlparse(GO_WEB_URL).hostname  # FIXME: Deprecated. Slowly remove this from codebase
 
+FRONTEND_URL = urlparse(GO_WEB_URL).hostname  # FIXME: Deprecated. Slowly remove this from codebase
 PLAYWRIGHT_SERVER_URL = env("PLAYWRIGHT_SERVER_URL")
 
 INTERNAL_IPS = ["127.0.0.1"]
@@ -241,6 +252,7 @@ GO_APPS = [
     "eap",
     "country_plan",
     "local_units",
+    "alert_system",
 ]
 
 INSTALLED_APPS = [
@@ -469,10 +481,39 @@ AUTO_TRANSLATION_TRANSLATOR = env("AUTO_TRANSLATION_TRANSLATOR")
 IFRC_TRANSLATION_DOMAIN = env("IFRC_TRANSLATION_DOMAIN")
 IFRC_TRANSLATION_HEADER_API_KEY = env("IFRC_TRANSLATION_HEADER_API_KEY")
 
-# Needed to generate correct https links when running behind a reverse proxy
-# when SSL is terminated at the proxy
-USE_X_FORWARDED_HOST = True
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_SCHEME", "https")
+
+# -- Security Headers --
+GO_TRUSTED_ORIGINS = [
+    GO_WEB_URL,
+    GO_API_URL,
+    *env("ADDITIONAL_TRUSTED_ORIGINS"),
+]
+
+SESSION_COOKIE_NAME = f"GO-{GO_ENVIRONMENT}-SESSIONID"
+CSRF_COOKIE_NAME = f"GO-{GO_ENVIRONMENT}-CSRFTOKEN"
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = "DENY"
+CSP_DEFAULT_SRC = ["'self'"]
+SECURE_REFERRER_POLICY = "same-origin"
+
+if urlparse(GO_API_URL).scheme == "https":
+    SESSION_COOKIE_NAME = f"__Secure-{SESSION_COOKIE_NAME}"
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 30  # TODO: Increase this slowly
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+CSRF_TRUSTED_ORIGINS = GO_TRUSTED_ORIGINS
+
+# https://docs.djangoproject.com/en/4.2/ref/settings/#std:setting-SESSION_COOKIE_DOMAIN
+SESSION_COOKIE_DOMAIN = env("SESSION_COOKIE_DOMAIN")
+# https://docs.djangoproject.com/en/4.2/ref/settings/#csrf-cookie-domain
+CSRF_COOKIE_DOMAIN = env("CSRF_COOKIE_DOMAIN")
+
 
 # Storage
 MEDIA_URL = env("DJANGO_MEDIA_URL")
@@ -602,7 +643,7 @@ HPC_CREDENTIAL = env("HPC_CREDENTIAL")
 APPLICATION_INSIGHTS_INSTRUMENTATION_KEY = env("APPLICATION_INSIGHTS_INSTRUMENTATION_KEY")
 
 if not TESTING and APPLICATION_INSIGHTS_INSTRUMENTATION_KEY:
-    MIDDLEWARE.append("opencensus.ext.django.middleware.OpencensusMiddleware")
+    MIDDLEWARE.append("middlewares.middlewares.OpencensusMiddlewareCompat")
     OPENCENSUS = {
         "TRACE": {
             "SAMPLER": "opencensus.trace.samplers.ProbabilitySampler(rate=1)",
@@ -760,18 +801,30 @@ APPEALS_USER = env("APPEALS_USER")
 APPEALS_PASS = env("APPEALS_PASS")
 
 # Handmade Git Command
-LAST_GIT_TAG = max(os.listdir(os.path.join(BASE_DIR, ".git", "refs", "tags")), default=0)
+try:
+    LAST_GIT_TAG = max(os.listdir(os.path.join(BASE_DIR, ".git", "refs", "tags")), default=0)
+except OSError:
+    # .git is missing, or is a gitfile pointer (submodule/worktree checkout)
+    LAST_GIT_TAG = 0
 
 # Sentry Config
 SENTRY_DSN = env("SENTRY_DSN")
 SENTRY_SAMPLE_RATE = env("SENTRY_SAMPLE_RATE")
+
+SENTRY_RELEASE = env("SENTRY_RELEASE")
+if not SENTRY_RELEASE:
+    try:
+        SENTRY_RELEASE = sentry.fetch_git_sha(BASE_DIR)
+    except (sentry.InvalidGitRepository, OSError):
+        # .git is missing, unreadable, or a gitfile pointer (submodule/worktree checkout)
+        SENTRY_RELEASE = "unknown"
 
 SENTRY_CONFIG = {
     "dsn": SENTRY_DSN,
     "send_default_pii": True,
     "traces_sample_rate": SENTRY_SAMPLE_RATE,
     "enable_tracing": True,
-    "release": sentry.fetch_git_sha(BASE_DIR),
+    "release": SENTRY_RELEASE,
     "environment": GO_ENVIRONMENT,
     "debug": DEBUG,
     "tags": {
@@ -852,8 +905,9 @@ JWT_PUBLIC_KEY = decode_base64("JWT_PUBLIC_KEY_BASE64_ENCODED", "JWT_PUBLIC_KEY"
 JWT_EXPIRE_TIMESTAMP_DAYS = env("JWT_EXPIRE_TIMESTAMP_DAYS")
 
 AZURE_OPENAI_ENDPOINT = env("AZURE_OPENAI_ENDPOINT")
-AZURE_OPENAI_KEY = env("AZURE_OPENAI_KEY")
+AZURE_OPENAI_API_KEY = env("AZURE_OPENAI_API_KEY")
 AZURE_OPENAI_DEPLOYMENT_NAME = env("AZURE_OPENAI_DEPLOYMENT_NAME")
+USE_DUMMY_LLM_CLIENT = env("USE_DUMMY_LLM_CLIENT")
 
 OIDC_ENABLE = env("OIDC_ENABLE")
 OIDC_RSA_PRIVATE_KEY = None

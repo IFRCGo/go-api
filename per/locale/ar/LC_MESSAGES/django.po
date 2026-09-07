@@ -743,29 +743,21 @@ msgstr "مستندات PER"
 
 #: per/models.py:578
 msgid "Not Started"
-msgstr ""
+msgstr "لم يبدأ"
 
 #: per/models.py:579
-#, fuzzy
-#| msgid "ongoing"
 msgid "Ongoing"
 msgstr "جاري"
 
 #: per/models.py:580
-#, fuzzy
-#| msgid "delayed"
 msgid "Delayed"
-msgstr "آجِل ; مُرْجَأ ; مُعَاق ; مُعَوّق ; مُؤَجّل ; مُؤَخّر"
+msgstr "مُؤَجَّل"
 
 #: per/models.py:581
-#, fuzzy
-#| msgid "standby"
 msgid "Standby"
 msgstr "وضع الاستعداد"
 
 #: per/models.py:582
-#, fuzzy
-#| msgid "finished"
 msgid "Finished"
 msgstr "مكتمل"
 
