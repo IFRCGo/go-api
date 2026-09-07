@@ -332,6 +332,7 @@ class AppealDocumentFilter(filters.FilterSet):
         label="Component insight id for source document",
         method="get_cache_component_document",
     )
+    event_id = filters.NumberFilter(field_name="appeal__event", lookup_expr="exact")
 
     class Meta:
         model = AppealDocument
