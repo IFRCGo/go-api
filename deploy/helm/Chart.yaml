@@ -1,0 +1,13 @@
+apiVersion: v2
+name: ifrcgo-helm
+description: "Helm Chart to deploy the IFRC GO API"
+type: application
+version: 0.0.2-SET-BY-CICD  # managed by release.sh
+sources:
+  - https://github.com/IFRCGo/go-api
+
+dependencies:
+  - name: banjo-helm
+    alias: app
+    version: 0.5.0
+    repository: oci://ghcr.io/toggle-corp

@@ -7,8 +7,11 @@ from urllib.parse import urlparse
 
 import environ
 import pytz
-
-# from azure.identity import DefaultAzureCredential
+from azure.identity import DefaultAzureCredential
+from banjo_utils.health import (
+    is_health_probe_path,
+    make_sentry_traces_sampler_with_health_probe_ignore,
+)
 from corsheaders.defaults import default_headers
 from django.utils.translation import gettext_lazy as _
 from urllib3.util.retry import Retry
@@ -50,6 +53,8 @@ env = environ.Env(
     AZURE_STORAGE_KEY=(str, None),
     AZURE_STORAGE_TOKEN_CREDENTIAL=(str, None),
     AZURE_STORAGE_MANAGED_IDENTITY=(bool, False),
+    AZURE_STORAGE_STATIC_CONTAINER=(str, "static"),  # must be a different container, readable anonymously
+    AZURE_STORAGE_MEDIA_CONTAINER=(str, "api"),
     # -- S3 storage
     AWS_S3_ENABLED=(bool, False),
     AWS_S3_ENDPOINT_URL=(str, None),
@@ -124,19 +129,14 @@ env = environ.Env(
     DJANGO_READ_ONLY=(bool, False),
     # Misc
     DISABLE_API_CACHE=(bool, False),
-    # jwt private and public key (NOTE: Used algorithm ES256)
-    # FIXME: Deprecated configuration. Remove this and it references
-    JWT_PRIVATE_KEY_BASE64_ENCODED=(str, None),
-    JWT_PUBLIC_KEY_BASE64_ENCODED=(str, None),
-    JWT_PRIVATE_KEY=(str, None),
-    JWT_PUBLIC_KEY=(str, None),
-    JWT_EXPIRE_TIMESTAMP_DAYS=(int, 365),
     # OIDC
     OIDC_ENABLE=(bool, False),
     OIDC_RSA_PRIVATE_KEY_BASE64_ENCODED=(str, None),
     OIDC_RSA_PRIVATE_KEY=(str, None),
     OIDC_RSA_PUBLIC_KEY_BASE64_ENCODED=(str, None),
     OIDC_RSA_PUBLIC_KEY=(str, None),
+    # -- User External Token
+    JWT_EXPIRE_TIMESTAMP_DAYS=(int, 365),
     # Country page
     NS_CONTACT_USERNAME=(str, None),
     NS_CONTACT_PASSWORD=(str, None),
@@ -158,6 +158,11 @@ env = environ.Env(
     # Alert system - remap external STAC related-item URLs to internal cluster URLs
     EOAPI_STAC_EXTERNAL_URL=(str, None),  # e.g. https://montandon-eoapi.ifrc.org/stac
     EOAPI_STAC_INTERNAL_URL=(str, None),  # e.g. http://montandon-eoapi-stac.montandon-eoapi.svc.cluster.local:8080
+    # django-health-check (/health-check/ — external monitoring, distinct from /healthz probes)
+    # Read as strings so an empty value / "none" can disable a check (see below); default active.
+    HEALTH_CHECK_DISK_USAGE_MAX=(str, "80"),  # percent; empty/"none" -> disk check skipped
+    HEALTH_CHECK_MEMORY_MIN=(str, "100"),  # MB (toggles the memory check on); empty/"none" -> skipped
+    HEALTH_CHECK_SKIP_STORAGE=(bool, False),  # true -> drop the storage round-trip check
 )
 
 
@@ -282,6 +287,20 @@ INSTALLED_APPS = [
     "tinymce",
     "admin_auto_filters",
     "haystack",
+    # banjo health probes / celery heartbeat helpers
+    "banjo_utils",
+    # django-health-check: outward-facing /health-check/ endpoint for the external monitor
+    # (distinct from the pod-internal /healthz probes). Each plugin is a Django app; only the
+    # ones whose dependency go-api actually has are enabled. health_check.storage is appended
+    # conditionally below (HEALTH_CHECK_SKIP_STORAGE). No rabbitmq plugin (broker is redis).
+    # The unapplied-migrations check (health_check.contrib.migrations) is intentionally omitted:
+    # the deploy-time db-migrate hook already gates every release, so a runtime check is redundant.
+    "health_check",
+    "health_check.db",
+    "health_check.cache",
+    "health_check.contrib.psutil",  # disk + memory (needs psutil)
+    # NOTE: the redis plugin is NOT enabled as an app — api.apps.ApiConfig.ready()
+    # registers the api/health_checks.py subclass of it instead (same check, quieter).
     # Logging
     "reversion",
     "reversion_compare",
@@ -292,6 +311,12 @@ INSTALLED_APPS = [
     # chained select
     "smart_selects",
 ]
+
+# health_check.storage does a save/read/delete round-trip against the default storage backend
+# (Azure Blob in prod) on every /health-check/ poll. Enabled by default; set
+# HEALTH_CHECK_SKIP_STORAGE=true to omit it where that round-trip is undesirable.
+if not env("HEALTH_CHECK_SKIP_STORAGE"):
+    INSTALLED_APPS.append("health_check.storage")
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
@@ -325,6 +350,9 @@ if DEBUG:
 # GRAPHENE = {"SCHEMA": "api.schema.schema"}
 
 MIDDLEWARE = [
+    # banjo_utils HealthProbeMiddleware serves pod-local /healthz/live/ and
+    # /healthz/ready/ (bypassing ALLOWED_HOSTS); keep it first.
+    "banjo_utils.health.HealthProbeMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -341,6 +369,10 @@ MIDDLEWARE = [
     "middlewares.middlewares.RequestMiddleware",
     "reversion.middleware.RevisionMiddleware",
 ]
+
+# banjo health-probe endpoints (served by HealthProbeMiddleware, pod-local)
+BANJO_HEALTH_PROBE_LIVE_URL = "/healthz/live/"
+BANJO_HEALTH_PROBE_READY_URL = "/healthz/ready/"
 
 AUTHENTICATION_BACKENDS = (
     # 'django.contrib.auth.backends.ModelBackend',
@@ -555,26 +587,27 @@ if env("AZURE_STORAGE_ENABLED"):
             }
         )
 
-        # if env("AZURE_STORAGE_MANAGED_IDENTITY"):
-        #     AZURE_STORAGE_CONFIG_OPTIONS["token_credential"] = DefaultAzureCredential()
+        if env("AZURE_STORAGE_MANAGED_IDENTITY"):
+            AZURE_STORAGE_CONFIG_OPTIONS["token_credential"] = DefaultAzureCredential()
 
+    # Media and static go to separate containers: media is uploaded by the running
+    # app and never overwritten, static is replaced wholesale by collectstatic on
+    # every deployment.
     STORAGES = {
         "default": {
             "BACKEND": "storages.backends.azure_storage.AzureStorage",
             "OPTIONS": {
                 **AZURE_STORAGE_CONFIG_OPTIONS,
-                "azure_container": "api",
+                "azure_container": env("AZURE_STORAGE_MEDIA_CONTAINER"),
             },
         },
         "staticfiles": {
-            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
-            # FIXME: Use this instead of nginx for staticfiles
-            # "BACKEND": "storages.backends.azure_storage.AzureStorage",
-            # "OPTIONS": {
-            #     **AZURE_STORAGE_CONFIG_OPTIONS,
-            #     "azure_container": env("AZURE_STORAGE_STATIC_CONTAINER"),
-            #     "overwrite_files": True,
-            # },
+            "BACKEND": "storages.backends.azure_storage.AzureStorage",
+            "OPTIONS": {
+                **AZURE_STORAGE_CONFIG_OPTIONS,
+                "azure_container": env("AZURE_STORAGE_STATIC_CONTAINER"),
+                "overwrite_files": True,
+            },
         },
     }
 
@@ -656,6 +689,25 @@ if not TESTING and APPLICATION_INSIGHTS_INSTRUMENTATION_KEY:
         }
     }
 
+
+def skip_health_probe_logs(record):
+    """Drop *successful* request-line log records for k8s health-probe paths (/healthz/*)."""
+    args = record.args
+    path = ""
+    status = ""
+    if isinstance(args, dict):  # gunicorn.access
+        path = str(args.get("U", ""))
+        status = str(args.get("s", ""))
+    elif isinstance(args, tuple | list) and args:  # django.server request line
+        request_line = str(args[0]).strip('"').split(" ")
+        if len(request_line) >= 2:
+            path = request_line[1]
+        if len(args) >= 2:
+            status = str(args[1])
+    is_probe_ok = is_health_probe_path(path) and status.startswith("2")
+    return not is_probe_ok
+
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -665,6 +717,12 @@ LOGGING = {
             "style": "{",
         },
     },
+    "filters": {
+        "skip_health_probes": {
+            "()": "django.utils.log.CallbackFilter",
+            "callback": skip_health_probe_logs,
+        },
+    },
     "handlers": {
         "file": {
             "level": "INFO",
@@ -672,6 +730,22 @@ LOGGING = {
             "filename": "../logs/logger.log",
             "formatter": "timestamp",
             "encoding": "utf-8",
+        },
+        # gunicorn's own access handler writes to stdout for `--access-logfile=-`;
+        # the stream is pinned so replacing that handler keeps request lines there
+        # and off stderr, where log pipelines that key severity off the stream would
+        # read normal traffic as errors.
+        "probe_aware_stdout": {
+            "level": "INFO",
+            "class": "logging.StreamHandler",
+            "stream": "ext://sys.stdout",
+            "filters": ["skip_health_probes"],
+        },
+        # runserver's request lines; Django emits these on stderr.
+        "probe_aware_stderr": {
+            "level": "INFO",
+            "class": "logging.StreamHandler",
+            "filters": ["skip_health_probes"],
         },
     },
     "loggers": {
@@ -684,6 +758,20 @@ LOGGING = {
             "handlers": ["file"],
             "level": "INFO",
             "propagate": True,
+        },
+        # Suppress successful health-probe request lines (gunicorn serves the app
+        # directly; runserver uses django.server). 4xx/5xx on probes still log.
+        "gunicorn.access": {
+            "handlers": ["probe_aware_stdout"],
+            "level": "INFO",
+            "propagate": False,
+            "filters": ["skip_health_probes"],
+        },
+        "django.server": {
+            "handlers": ["probe_aware_stderr"],
+            "level": "INFO",
+            "propagate": False,
+            "filters": ["skip_health_probes"],
         },
     },
 }
@@ -822,7 +910,8 @@ if not SENTRY_RELEASE:
 SENTRY_CONFIG = {
     "dsn": SENTRY_DSN,
     "send_default_pii": True,
-    "traces_sample_rate": SENTRY_SAMPLE_RATE,
+    # Drop k8s health-probe transactions from tracing (they fire every few seconds).
+    "traces_sampler": make_sentry_traces_sampler_with_health_probe_ignore(SENTRY_SAMPLE_RATE),
     "enable_tracing": True,
     "release": SENTRY_RELEASE,
     "environment": GO_ENVIRONMENT,
@@ -866,6 +955,33 @@ CACHES = {
 # Redis locking
 REDIS_DEFAULT_LOCK_EXPIRE = 60 * 10  # Lock expires in 10min (in seconds)
 
+# django-health-check (/health-check/). Its redis plugin connects to settings.REDIS_URL
+# (it defaults to localhost otherwise) — point it at the same redis the app already uses.
+REDIS_URL = CELERY_REDIS_URL
+HEALTHCHECK_CACHE_KEY = "app_healthcheck_key"
+
+
+def _health_check_threshold(env_key):
+    # Empty / "none" disables the corresponding psutil check (the plugin isn't registered);
+    # any other value is the numeric threshold. Lets each environment toggle it via env alone.
+    raw = env(env_key).strip()
+    return None if raw.lower() in ("", "none") else int(raw)
+
+
+HEALTH_CHECK = {
+    # percent; None -> disk check skipped (env HEALTH_CHECK_DISK_USAGE_MAX)
+    "DISK_USAGE_MAX": _health_check_threshold("HEALTH_CHECK_DISK_USAGE_MAX"),
+    # MB toggle; None -> memory check skipped (env HEALTH_CHECK_MEMORY_MIN)
+    "MEMORY_MIN": _health_check_threshold("HEALTH_CHECK_MEMORY_MIN"),
+    # Both psutil checks raise a *warning*, and the library turns warnings into errors by
+    # default — so a node running low on disk would make /health-check/ (and
+    # `manage.py health_check`) fail on every pod at once. Both metrics are node-level
+    # anyway: the disk check measures the filesystem behind the working directory and
+    # the memory check reads host-wide totals, not the container's cgroup limit. Report
+    # them in the response, don't fail the endpoint on them.
+    "WARNINGS_AS_ERRORS": False,
+}
+
 if env("CACHE_MIDDLEWARE_SECONDS"):
     CACHE_MIDDLEWARE_SECONDS = env("CACHE_MIDDLEWARE_SECONDS")  # Planned: 600 for staging, 60 from prod
 DISABLE_API_CACHE = env("DISABLE_API_CACHE")
@@ -900,8 +1016,6 @@ def decode_base64(env_key, fallback_env_key):
     return env(fallback_env_key)
 
 
-JWT_PRIVATE_KEY = decode_base64("JWT_PRIVATE_KEY_BASE64_ENCODED", "JWT_PRIVATE_KEY")
-JWT_PUBLIC_KEY = decode_base64("JWT_PUBLIC_KEY_BASE64_ENCODED", "JWT_PUBLIC_KEY")
 JWT_EXPIRE_TIMESTAMP_DAYS = env("JWT_EXPIRE_TIMESTAMP_DAYS")
 
 AZURE_OPENAI_ENDPOINT = env("AZURE_OPENAI_ENDPOINT")

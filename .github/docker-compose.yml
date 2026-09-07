@@ -1,8 +1,20 @@
 services:
   serve:
-    image: $DOCKER_IMAGE
+    image: $DOCKER_IMAGE_BACKEND
     build: !reset null
     env_file: !reset null
     environment:
       CI: "true"
       DJANGO_SECRET_KEY: RANDOM-STRING-FOR-SECRET-KEYS
+    # Run the code baked into the image rather than the checkout, so the pipeline
+    # exercises what the deployed container actually contains.
+    volumes: !override
+      # Shared with the runner so the pipeline can diff generated schema files.
+      - ./ci-share/:/ci-share/
+    # playwright is only reached from celery tasks, which tests never execute
+    # (no eager mode, so they dispatch to the broker); elasticsearch is required,
+    # the APITestCase teardown clears the haystack index.
+    depends_on: !override
+      - db
+      - redis
+      - elasticsearch

@@ -50,3 +50,6 @@ htmlcov
 country-key-documents/
 celerybeat-schedule
 .venv
+
+# Scratch directory shared between the CI runner and the container
+ci-share/

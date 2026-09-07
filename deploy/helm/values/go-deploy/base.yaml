@@ -1,0 +1,120 @@
+# go-deploy base values
+
+app:
+  podLabels:
+    azure.workload.identity/use: "true"
+
+  api:
+    ingress:
+      enabled: true
+      tls:
+        enabled: true
+        # secretName: XXX: go-deploy
+
+  env:
+    DJANGO_DEBUG: "false"
+    DEBUG_EMAIL: "false"
+    SENTRY_SAMPLE_RATE: "0.2"
+    AUTO_TRANSLATION_TRANSLATOR: "lang.translation.IfrcTranslator"
+    # OIDC / Token
+    OIDC_ENABLE: "true"
+    JWT_EXPIRE_TIMESTAMP_DAYS: "365"
+    # Misc
+    CACHE_MIDDLEWARE_SECONDS: "0"  # TODO: is this used?
+    HEALTH_CHECK_DISK_USAGE_MAX: "none"  # Disable disk-free check
+    # -- App Domain
+    # API_FQDN: XXX: go-deploy
+    # FRONTEND_URL: XXX: go-deploy
+    # SESSION_COOKIE_DOMAIN: XXX: go-deploy
+    # CSRF_COOKIE_DOMAIN: XXX: go-deploy
+    # -- Blob Storage Configs
+    # AZURE_STORAGE_ENABLED: XXX: go-deploy
+    # AZURE_TENANT_ID: XXX: go-deploy
+    # AZURE_CLIENT_ID: XXX: go-deploy
+    # AZURE_STORAGE_ACCOUNT: XXX: go-deploy
+    # AZURE_STORAGE_STATIC_CONTAINER: XXX: go-deploy
+    # AZURE_STORAGE_MANAGED_IDENTITY: XXX: go-deploy
+
+  serviceAccountName: "service-token-reader"
+  serviceAccount:
+    create: true
+    automountServiceAccountToken: true
+    # annotations:
+    #   azure.workload.identity/client-id: # XXX: go-deploy
+    labels:
+      azure.workload.identity/use: "true"
+
+  secretsStoreCsiDriver:
+    create: true
+    provider: azure
+    parameters:
+      usePodIdentity: "false"
+      # clientID: # XXX: go-deploy
+      # keyvaultName: # XXX: go-deploy
+      # tenantId: # XXX: go-deploy
+
+    # k8s Secret key -> Key Vault secret name.
+    secretsKeyMap:
+      DJANGO_SECRET_KEY: DJANGO-SECRET-KEY
+      # Monitoring
+      SENTRY_DSN: SENTRY-DSN
+      APPLICATION_INSIGHTS_INSTRUMENTATION_KEY: APPLICATION-INSIGHTS-INSTRUMENTATION-KEY
+      # Database
+      DJANGO_DB_NAME: DJANGO-DB-NAME
+      DJANGO_DB_USER: DJANGO-DB-USER
+      DJANGO_DB_PASS: DJANGO-DB-PASS
+      DJANGO_DB_HOST: DJANGO-DB-HOST
+      DJANGO_DB_PORT: DJANGO-DB-PORT
+      # Azure Blob storage
+      AZURE_STORAGE_KEY: AZURE-STORAGE-KEY  # TODO: Replace this with SA
+      # Translation
+      IFRC_TRANSLATION_DOMAIN: IFRC-TRANSLATION-DOMAIN
+      # Email
+      EMAIL_API_ENDPOINT: EMAIL-API-ENDPOINT
+      EMAIL_HOST: EMAIL-HOST
+      EMAIL_PORT: EMAIL-PORT
+      EMAIL_USER: EMAIL-USER
+      EMAIL_PASS: EMAIL-PASS
+      TEST_EMAILS: TEST-EMAILS
+      # Translation
+      IFRC_TRANSLATION_HEADER_API_KEY: IFRC-TRANSLATION-HEADER-API-KEY
+      # Molnix
+      MOLNIX_API_BASE: MOLNIX-API-BASE
+      MOLNIX_USERNAME: MOLNIX-USERNAME
+      MOLNIX_PASSWORD: MOLNIX-PASSWORD
+      # EPR
+      ERP_API_ENDPOINT: ERP-API-ENDPOINT
+      ERP_API_SUBSCRIPTION_KEY: ERP-API-SUBSCRIPTION-KEY
+      # FDRS
+      FDRS_APIKEY: FDRS-APIKEY
+      FDRS_CREDENTIAL: FDRS-CREDENTIAL
+      # HCP
+      HPC_CREDENTIAL: HPC-CREDENTIAL
+      # GO FTP
+      GO_FTPHOST: GO-FTPHOST
+      GO_FTPUSER: GO-FTPUSER
+      GO_FTPPASS: GO-FTPPASS
+      GO_DBPASS: GO-DBPASS
+      # Appeal
+      APPEALS_USER: APPEALS-USER
+      APPEALS_PASS: APPEALS-PASS
+      # ReliefWeb job
+      RELIEF_WEB_APP_NAME: RELIEF-WEB-APP-NAME
+      # PowerBI
+      POWERBI_WORKSPACE_ID: POWERBI-WORKSPACE-ID
+      POWERBI_DATASET_IDS: POWERBI-DATASET-IDS
+      # Country page
+      NS_CONTACT_USERNAME: NS-CONTACT-USERNAME
+      NS_CONTACT_PASSWORD: NS-CONTACT-PASSWORD
+      # ACAPS
+      ACAPS_API_TOKEN: ACAPS-API-TOKEN
+      # NS
+      NS_DOCUMENT_API_KEY: NS-DOCUMENT-API-KEY
+      NS_INITIATIVES_API_KEY: NS-INITIATIVES-API-KEY
+      NS_INITIATIVES_API_TOKEN: NS-INITIATIVES-API-TOKEN
+      AZURE_OPENAI_DEPLOYMENT_NAME: AZURE-OPENAI-DEPLOYMENT-NAME
+      AZURE_OPENAI_ENDPOINT: AZURE-OPENAI-ENDPOINT
+      AZURE_OPENAI_API_KEY: AZURE-OPENAI-API-KEY
+      # OAUTH Toolkit
+      OIDC_RSA_PRIVATE_KEY_BASE64_ENCODED: OIDC-RSA-PRIVATE-KEY-BASE64-ENCODED
+      OIDC_RSA_PUBLIC_KEY_BASE64_ENCODED: OIDC-RSA-PUBLIC-KEY-BASE64-ENCODED

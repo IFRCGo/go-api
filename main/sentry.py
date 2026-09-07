@@ -138,9 +138,13 @@ class SentryMonitor(models.TextChoices):
 
     @staticmethod
     def load_cron_data() -> typing.List[typing.Tuple[str, str]]:
-        with open(os.path.join(settings.BASE_DIR, "deploy/helm/ifrcgo-helm/values.yaml")) as fp:
+        with open(os.path.join(settings.BASE_DIR, "deploy/helm/values.yaml")) as fp:
             try:
-                return [(metadata["command"], metadata["schedule"]) for metadata in yaml.safe_load(fp)["cronjobs"]]
+                # Helm chart cronjobs are keyed by the management-command name under
+                # app.cronjobs.jobs.<name> = {schedule, command}. Keep the job keys in
+                # sync with the SentryMonitor members (name == command).
+                jobs = yaml.safe_load(fp)["app"]["cronjobs"]["jobs"]
+                return [(name, metadata["schedule"]) for name, metadata in jobs.items()]
             except yaml.YAMLError as e:
                 logger.error("Failed to load cronjob data from helm", exc_info=True)
                 raise e

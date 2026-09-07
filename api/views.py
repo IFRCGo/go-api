@@ -549,14 +549,17 @@ class Brief(APIView):
         c = CronJob.objects.filter(status=2).count()
         f = Event.objects.filter(disaster_start_date__gt=timezone.now()).count()
 
-        res = ES_CLIENT.cluster.health()
-        res["--------------------------------"] = "----------"
-        res["base64_img"] = e + s + r + u
-        res["events_in_future"] = f
-        res["cronjob_err"] = c
-        res["maintenance_mode"] = settings.DJANGO_READ_ONLY
-        res["git_last_tag"] = settings.LAST_GIT_TAG
-        res["git_last_commit"] = settings.SENTRY_CONFIG["release"][0:8]
+        # Infrastructure health (db/cache/redis/disk/memory/storage and Elasticsearch)
+        # is served by /health-check/; this endpoint keeps only the operational and
+        # data-quality diagnostics unique to it.
+        res = {
+            "base64_img": e + s + r + u,
+            "events_in_future": f,
+            "cronjob_err": c,
+            "maintenance_mode": settings.DJANGO_READ_ONLY,
+            "git_last_tag": settings.LAST_GIT_TAG,
+            "git_last_commit": settings.SENTRY_CONFIG["release"][0:8],
+        }
         return JsonResponse(res, safe=False)
 
 

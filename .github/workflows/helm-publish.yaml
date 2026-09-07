@@ -1,19 +1,30 @@
-name: CI
+name: Publish
 
 on:
-  pull_request:
+  workflow_dispatch:
+  push:
+    branches:
+      - develop
+      - master
+      - project/*
+      # TODO: remove before merge — temporary trigger to test the publish pipeline
+      # (docker + helm push) on this feature branch prior to opening the PR.
+      - feature/banjo-stack
+    tags:
+      - "v*.*.*"
+
+permissions:
+  # contents: write is required so the tag-triggered release job can create the
+  # GitHub Release (softprops/action-gh-release); read is insufficient (403).
+  contents: write
+  packages: write
+  pull-requests: read
 
 jobs:
   _:
     uses: toggle-corp/banjo-action/.github/workflows/pipeline.yml@v0.4.0
-    permissions:
-      contents: read
-      packages: write
-      pull-requests: read
     with:
-      # Pre-commit needs cairo headers for pycairo to import during uv sync.
       pre_commit__apt_packages: "libcairo2-dev pkg-config"
-      # Docker / test
       docker__wait_cmd: "./manage.py wait_for_resources --db --cache --celery-broker"
       docker__migration_dummy_test: "main.test_fake"
       docker__run_openapi_check: true
@@ -21,9 +32,12 @@ jobs:
       docker__compose_file: "docker-compose.yml:.github/docker-compose.yml"
       docker__compose_service_name: "serve"
       docker__compose_test_cmd: "pytest --reuse-db --durations=10"
-      # Keep the Sentry cron monitors in sync with the chart cronjobs.
       docker__post_test__extra_step_01: "Validate SentryMonitor config"
       docker__post_test__extra_step_01_command: "docker compose run --rm serve ./manage.py cron_job_monitor --validate-only"
       # Helm
       helm__chart_directory: "./deploy/helm"
       helm__version: "v4.2.2"
+      # -- Publish
+      docker__push: true
+      helm__push: true
+      github_release__create: ${{ github.ref_type == 'tag' }}

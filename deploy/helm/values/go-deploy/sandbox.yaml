@@ -1,0 +1,11 @@
+app:
+  environment: sandbox
+
+  api:
+    ingress:
+      tls:
+        enabled: false
+
+  env:
+    # Extra
+    AUTO_TRANSLATION_TRANSLATOR: "lang.translation.DummyTranslator"

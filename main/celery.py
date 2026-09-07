@@ -1,6 +1,7 @@
 import os
 
 import celery
+from banjo_utils.celery_health.worker import setup_worker_heartbeat
 from django.conf import settings
 
 from main import sentry
@@ -19,6 +20,9 @@ class CustomCeleryApp(celery.Celery):
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "main.settings")
 
 app = CustomCeleryApp("main")
+# Write a periodic heartbeat file so the worker pod's liveness probe
+# (banjo-celery-probe) can tell the worker is processing.
+setup_worker_heartbeat(app)
 
 # Using a string here means the worker doesn't have to serialize
 # the configuration object to child processes.

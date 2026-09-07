@@ -1,8 +1,14 @@
 .db/
 deploy/
+# ...but keep the two files the running container needs: the web entrypoint and
+# the chart values, which main/sentry.py reads to validate the cron schedules
+# against SentryMonitor.
+!deploy/run_web.sh
+!deploy/helm/values.yaml
 .mypy_cache/
 .pytest_cache/
 go-logs/
+ci-share/
 media/
 go.log
 .venv
