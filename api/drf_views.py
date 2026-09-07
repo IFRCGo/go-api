@@ -59,13 +59,14 @@ from api.visibility_class import (
 )
 from country_plan.models import CountryPlan
 from databank.serializers import CountryOverviewSerializer
-from deployments.models import ERU, Personnel
+from deployments.models import ERU, EmergencyProject, Personnel
 from deployments.serializers import ListDeployedERUByEventSerializer
 from dref.models import Dref, DrefFinalReport, DrefOperationalUpdate
 from main.enums import GlobalEnumSerializer, get_enum_values
 from main.filters import NullsLastOrderingFilter
 from main.permissions import DenyGuestUserMutationPermission, DenyGuestUserPermission
 from main.utils import is_tableau
+from notifications.models import SurgeAlert
 from per.models import Overview
 from per.serializers import CountryLatestOverviewSerializer
 
@@ -1668,28 +1669,47 @@ class EmergencyViewset(
             status=Dref.Status.APPROVED,
         )
 
+        # Subquery per count instead of 3 joined Count(distinct=True) — joining
+        # multiplies rows (e.g. 9M+ for one event), forcing a disk-spilled sort.
+        # .order_by() must be LAST in each chain: Personnel/SurgeAlert have a
+        # Meta.ordering that otherwise leaks into GROUP BY and breaks the
+        # single-row-per-event assumption Subquery() needs.
+        response_activity_count_qs = (
+            EmergencyProject.objects.filter(event=OuterRef("pk")).values("event").annotate(c=Count("id")).values("c").order_by()
+        )
+        active_deployments_count_qs = (
+            Personnel.objects.filter(
+                deployment__event_deployed_to=OuterRef("pk"),
+                type=Personnel.TypeChoices.RR,
+                start_date__date__lte=today,
+                end_date__date__gte=today,
+                is_active=True,
+            )
+            .values("deployment__event_deployed_to")
+            .annotate(c=Count("id"))
+            .values("c")
+            .order_by()
+        )
+        surge_alerts_count_qs = (
+            SurgeAlert.objects.filter(event=OuterRef("pk")).values("event").annotate(c=Count("id")).values("c").order_by()
+        )
+
         return (
             super()
             .get_queryset()
             .annotate(
                 # Aggregated Values
-                response_activity_count=Count(
-                    "emergency_projects",
-                    distinct=True,
+                response_activity_count=Coalesce(
+                    Subquery(response_activity_count_qs, output_field=IntegerField()),
+                    0,
                 ),
-                active_deployments_count=Count(
-                    "personneldeployment__personnel",
-                    filter=Q(
-                        personneldeployment__personnel__type=Personnel.TypeChoices.RR,
-                        personneldeployment__personnel__start_date__date__lte=today,
-                        personneldeployment__personnel__end_date__date__gte=today,
-                        personneldeployment__personnel__is_active=True,
-                    ),
-                    distinct=True,
+                active_deployments_count=Coalesce(
+                    Subquery(active_deployments_count_qs, output_field=IntegerField()),
+                    0,
                 ),
-                surge_alerts_count=Count(
-                    "surgealert",
-                    distinct=True,
+                surge_alerts_count=Coalesce(
+                    Subquery(surge_alerts_count_qs, output_field=IntegerField()),
+                    0,
                 ),
                 # Stage
                 stage=Case(
