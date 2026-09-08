@@ -30,6 +30,7 @@ class Command(BaseCommand):
                     "urban_considerations_guidance_en",
                     "epi_considerations_guidance_en",
                     "climate_environmental_considerations_guidance_en",
+                    "migration_considerations_guidance_en",
                 ],
                 chunk_size=20,
             )
@@ -47,6 +48,7 @@ class Command(BaseCommand):
                         climate_environmental_considerations_guidance=format_description(
                             row["Climate & Environmental Description"]
                         ),
+                        migration_considerations_guidance_en=format_description(row["Migration Description"]),
                     )
                 )
             bulk_mgr.done()
