@@ -18,6 +18,7 @@ from django.db.models import (
 from django.db.models.functions import Upper
 
 from dref.dref3.common import (
+    MATCHES_NOTHING,
     Dref3AccessFilter,
     Dref3Stage,
     build_branch_filters,
@@ -98,6 +99,13 @@ def build_union_queryset(user, query_params, access: Dref3AccessFilter | None = 
     include_group_first = ordering_needs_group_first(query_params.get("order_by"))
 
     stages = parse_stage_filter(query_params.get("stage"))
+    if stages is not None and not stages:
+        # Every alias given names a stage this endpoint does not have, so no
+        # row can match. Keep one branch and constrain it to nothing: dropping
+        # all three would leave no queryset to build the union from.
+        stages = {Dref3Stage.APPLICATION}
+        branch_filters = {**branch_filters, Dref3Stage.APPLICATION: MATCHES_NOTHING}
+
     branches = [
         _branch(stage, branch_q, user, excluded_codes, access, include_group_first)
         for stage, branch_q in branch_filters.items()

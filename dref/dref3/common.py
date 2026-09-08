@@ -66,11 +66,18 @@ _STAGE_ALIASES = {
 
 
 def parse_stage_filter(raw) -> set[Dref3Stage] | None:
-    """Canonical stages from a comma-separated, case-insensitive alias list."""
-    if not raw:
+    """Canonical stages from a comma-separated, case-insensitive alias list.
+
+    None for a value with no aliases at all, which ignores the filter. An empty
+    set for a value whose every alias is unknown: it names no stage this
+    endpoint has, so no row can match.
+    """
+    if raw is None:
         return None
-    stages = {_STAGE_ALIASES[key] for part in str(raw).split(",") if (key := part.strip().lower()) in _STAGE_ALIASES}
-    return stages or None
+    keys = [key for part in str(raw).split(",") if (key := part.strip().lower())]
+    if not keys:
+        return None
+    return {_STAGE_ALIASES[key] for key in keys if key in _STAGE_ALIASES}
 
 
 def parse_composite_ids(raw) -> dict[Dref3Stage, set[int]] | None:
@@ -124,10 +131,22 @@ def has_full_access(user) -> bool:
 
 
 def coerce_int(raw):
-    try:
-        return int(raw)
-    except (TypeError, ValueError):
+    """An integer id, or UNMATCHABLE for a value that is not one.
+
+    A blank value is absence and is ignored. Anything else was supplied to
+    narrow the result, so a value outside the id's domain (`region=Africa`)
+    matches nothing rather than dropping the filter, exactly as an id no row
+    carries (`region=99`) does.
+    """
+    if raw is None:
         return None
+    text = str(raw).strip()
+    if not text:
+        return None
+    try:
+        return int(text)
+    except ValueError:
+        return UNMATCHABLE
 
 
 def coerce_iso3(raw):
@@ -138,11 +157,16 @@ def coerce_date_str(raw):
     """Validate a YYYY-MM-DD date param, returning the original string.
 
     The value is passed through unchanged (not as a `date`) so the generated
-    SQL stays byte-identical to before this guard existed. Anything Django
-    cannot parse is dropped -> the filter is ignored, consistent with every
-    other coercer here. Without this, an unparseable value reaches
-    `queryset.filter(<DateField>__gte=...)`, which raises Django's
-    ValidationError from deep inside the ORM -> HTTP 500 instead of a result.
+    SQL stays byte-identical to before this guard existed. Without this guard an
+    unparseable value reaches `queryset.filter(<DateField>__gte=...)`, which
+    raises Django's ValidationError from deep inside the ORM -> HTTP 500 instead
+    of a result.
+
+    A blank value is absence and is ignored. A value Django cannot read as a
+    date names no date, so it is UNMATCHABLE: it constrains the same stages a
+    real bound would, which for the application-only range params leaves the
+    other two stages untouched -- the same result an unsatisfiable bound like
+    `2999-01-01` gives.
     """
     from django.utils.dateparse import parse_date
 
@@ -153,10 +177,10 @@ def coerce_date_str(raw):
         return None
     try:
         if parse_date(text) is None:
-            return None
+            return UNMATCHABLE
     except ValueError:
         # Well-formed but impossible dates, e.g. 2024-13-01.
-        return None
+        return UNMATCHABLE
     return text
 
 
@@ -189,6 +213,27 @@ def coerce_search_term(raw):
 # A filter value no row can hold. `pk__in=()` compiles to Django's
 # EmptyResultSet, so the branch it constrains contributes no rows.
 MATCHES_NOTHING = Q(pk__in=())
+
+
+class _Unmatchable:
+    """A coerced value naming something no row has, as opposed to nothing.
+
+    A coercer returns None for an *absent* filter, which is then ignored. That
+    cannot also stand for a value the caller did supply but that no row can
+    hold: ignoring such a value answers a request to narrow with every row the
+    caller can see. Coercers return this instead, and
+    `build_branch_filters` turns it into MATCHES_NOTHING for the stages the
+    filter applies to.
+    """
+
+    def __repr__(self):
+        return "UNMATCHABLE"
+
+    def __bool__(self):
+        return False
+
+
+UNMATCHABLE = _Unmatchable()
 
 
 def coerce_appeal_codes(raw):
@@ -411,9 +456,11 @@ DREF3_FILTERS = {
 def build_branch_filters(query_params) -> dict[Dref3Stage, Q]:
     """Build one Q object per stage from legacy query params.
 
-    Unparseable values are ignored, so a filter never fails the request. The
-    payload-value filters are stricter: a well-formed value that no row can
-    report (`appeal_type`, `operation_status`) matches nothing.
+    A blank value is absence and is ignored, so a filter never fails the
+    request. Any other value was supplied to narrow the result: one that no row
+    can hold matches nothing rather than being dropped, whether it is outside
+    the reportable set (`appeal_type`, `operation_status`, `appeal_codes`) or
+    outside the param's domain altogether (`region=Africa`, a malformed date).
     """
     branch_q = {stage: Q() for stage in Dref3Stage}
 
@@ -423,11 +470,14 @@ def build_branch_filters(query_params) -> dict[Dref3Stage, Q]:
             continue
         value = coerce(raw)
         if value is None:
-            continue  # legacy behavior: unparseable values are ignored
+            continue  # the value holds nothing to filter by
         for stage, lookup in zip(Dref3Stage, lookups):
             if lookup is None:
                 continue
-            branch_q[stage] &= lookup(value) if callable(lookup) else Q(**{lookup: value})
+            if value is UNMATCHABLE:
+                branch_q[stage] &= MATCHES_NOTHING
+            else:
+                branch_q[stage] &= lookup(value) if callable(lookup) else Q(**{lookup: value})
 
     operation_status = parse_operation_status(query_params.get("operation_status"))
     if operation_status is not None:
