@@ -98,6 +98,48 @@ class Dref3FilterTests(APITestCase):
         codes = self._get_codes(resp)
         assert "APPEAL_A" in codes and "APPEAL_B" not in codes
 
+    def test_region_filter_by_non_numeric_value_is_empty(self):
+        """`region=Africa` names no region id, so it matches nothing.
+
+        Dropping it instead would answer a request to narrow by region with
+        every row the caller can see.
+        """
+        self.authenticate(self.superuser)
+        resp = self.client.get(self.url, {"region": "Africa"})
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        assert self._rows(resp) == []
+
+    def test_region_filter_by_unknown_id_is_empty(self):
+        self.authenticate(self.superuser)
+        resp = self.client.get(self.url, {"region": 99999})
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        assert self._rows(resp) == []
+
+    def test_region_filter_ignores_a_blank_value(self):
+        self.authenticate(self.superuser)
+        resp = self.client.get(self.url, {"region": " "})
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        assert self._get_codes(resp) == {"APPEAL_A", "APPEAL_B"}
+
+    def test_filter_by_unknown_stage_is_empty(self):
+        """`stage=bogus` names no stage this endpoint has."""
+        self.authenticate(self.superuser)
+        resp = self.client.get(self.url, {"stage": "bogus"})
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        assert self._rows(resp) == []
+
+    def test_filter_by_stage_keeps_the_known_alias_among_junk(self):
+        self.authenticate(self.superuser)
+        resp = self.client.get(self.url, {"stage": "bogus,application"})
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        assert self._get_codes(resp) == {"APPEAL_A", "APPEAL_B"}
+
+    def test_filter_by_stage_ignores_a_value_with_no_aliases(self):
+        self.authenticate(self.superuser)
+        resp = self.client.get(self.url, {"stage": ", ,"})
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        assert self._get_codes(resp) == {"APPEAL_A", "APPEAL_B"}
+
     def test_country_iso3_filter(self):
         self.authenticate(self.superuser)
         resp = self.client.get(self.url, {"country_iso3": "C22"})

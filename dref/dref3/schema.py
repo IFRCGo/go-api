@@ -70,7 +70,7 @@ _DESCRIPTIONS = {
         "`appeal_codes` instead."
     ),
     "appeal_code_prefix": "Rows whose `appeal_code` starts with this value (case-sensitive).",
-    "region": "Region id of the national society.",
+    "region": "Region id of the national society. A value that is not an id matches nothing.",
     "country_iso3": "ISO3 country code of the national society (case-insensitive).",
     "appeal_type": (
         "Appeal type as returned in the `appeal_type` field: " + _appeal_type_list() + ". "
@@ -83,11 +83,13 @@ _DESCRIPTIONS = {
     ),
     "start_date_of_operation": (
         "Lower bound (inclusive) on each stage's own start date: `date_of_approval` for applications, "
-        "`new_operational_start_date` for operational updates, `operation_start_date` for final reports."
+        "`new_operational_start_date` for operational updates, `operation_start_date` for final reports. "
+        "A value that is not a date matches nothing."
     ),
     "end_date_of_operation": (
         "Upper bound (inclusive) on each stage's own end date: `end_date` for applications, "
-        "`new_operational_end_date` for operational updates, `operation_end_date` for final reports."
+        "`new_operational_end_date` for operational updates, `operation_end_date` for final reports. "
+        "A value that is not a date matches nothing."
     ),
 }
 
@@ -100,7 +102,10 @@ _ENUMS = {
 def _range_description(param: str) -> str:
     field, _, bound = param.rpartition("_")
     edge = "Lower" if bound == "from" else "Upper"
-    return f"{edge} bound (inclusive) on `{field}`."
+    return (
+        f"{edge} bound (inclusive) on `{field}`, as `YYYY-MM-DD`. "
+        f"A value that is not a date names no date and matches nothing."
+    )
 
 
 def _stage_note(lookups) -> str:
@@ -141,7 +146,7 @@ _STAGE_PARAMETERS = [
             "Comma-separated list of stages to include. Case-insensitive, accepts aliases: "
             "`application`/`app`/`dref`, `operational_update`/`operationalupdate`/`op_update`/`op`/`update`, "
             "`final_report`/`finalreport`/`final`/`report`. Unknown tokens are ignored; "
-            "if none are recognised the filter is not applied."
+            "if none are recognised the value names no stage and the result is empty."
         ),
     ),
     OpenApiParameter(

@@ -232,15 +232,16 @@ class Dref3MalformedParamTests(APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(resp.json()["results"], [])
 
-    def test_impossible_date_param_is_ignored(self):
+    def test_impossible_date_param_matches_nothing(self):
         self.authenticate(self.superuser)
         resp = self.client.get(self.url, {"event_date_from": "2024-13-01", "limit": 100000})
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        # unparseable -> filter dropped, same as every other coercer here
+        # A value Django cannot read as a date names no date, so it constrains
+        # application rows exactly as an unsatisfiable bound does.
         codes = {row["appeal_code"] for row in resp.json()["results"]}
-        self.assertIn("APPEAL_A", codes)
+        self.assertNotIn("APPEAL_A", codes)
 
-    def test_garbage_date_params_are_ignored(self):
+    def test_garbage_date_params_do_not_500(self):
         self.authenticate(self.superuser)
         for param in (
             "event_date_from",
@@ -420,9 +421,8 @@ class Dref3HazardDateRangeTests(APITestCase):
             with self.subTest(param=param):
                 self.assertNotIn("APPEAL_NONE", self._codes({param: "2025-01-01"}))
 
-    def test_unparseable_bound_is_ignored_like_the_other_dates(self):
-        codes = self._codes({"hazard_date_from": "not-a-date"})
-        self.assertEqual(codes, {"APPEAL_EARLY", "APPEAL_LATE", "APPEAL_NONE"})
+    def test_unparseable_bound_matches_nothing_like_the_other_dates(self):
+        self.assertEqual(self._codes({"hazard_date_from": "not-a-date"}), set())
 
 
 class Dref3RoutingTests(APITestCase):
