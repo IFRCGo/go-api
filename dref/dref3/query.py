@@ -104,7 +104,10 @@ def build_union_queryset(user, query_params, access: Dref3AccessFilter | None = 
         # row can match. Keep one branch and constrain it to nothing: dropping
         # all three would leave no queryset to build the union from.
         stages = {Dref3Stage.APPLICATION}
-        branch_filters = {**branch_filters, Dref3Stage.APPLICATION: MATCHES_NOTHING}
+        branch_filters = {
+            **branch_filters,
+            Dref3Stage.APPLICATION: branch_filters[Dref3Stage.APPLICATION] & MATCHES_NOTHING,
+        }
 
     branches = [
         _branch(stage, branch_q, user, excluded_codes, access, include_group_first)
