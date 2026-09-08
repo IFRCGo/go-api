@@ -205,16 +205,23 @@ def coerce_appeal_ids(raw):
     """A comma-separated `appeal_id` list as the appeal codes those ids carry.
 
     Rows carry an `appeal_code` column rather than a foreign key to Appeal, so
-    the ids are resolved to codes here, in one query. Ids that no Appeal has
-    contribute no code, so a list of only such ids yields `()` and matches
-    nothing; a list with no well-formed id at all is None and is ignored.
+    the ids are resolved to codes here, in one query.
+
+    Only a value holding no token at all is None, which ignores the filter, so a
+    stray `?appeal_ids=,` does not empty the result. Any other value asks for a
+    specific set of appeals and yields the codes they carry: a token that is not
+    an id, or an id no Appeal has, contributes no code, so a list of only such
+    tokens yields `()` and matches nothing.
     """
     from api.models import Appeal
 
-    # `str.isdigit()` is also True for non-ASCII digits that int() cannot parse.
-    ids = {int(token) for part in str(raw).split(",") if (token := part.strip()).isascii() and token.isdigit()}
-    if not ids:
+    tokens = [token for part in str(raw).split(",") if (token := part.strip())]
+    if not tokens:
         return None
+    # `str.isdigit()` is also True for non-ASCII digits that int() cannot parse.
+    ids = {int(token) for token in tokens if token.isascii() and token.isdigit()}
+    if not ids:
+        return ()
     codes = Appeal.objects.filter(pk__in=sorted(ids)).values_list("code", flat=True)
     return tuple(sorted({code.upper() for code in codes if code}))
 

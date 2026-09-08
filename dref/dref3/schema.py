@@ -65,7 +65,9 @@ _DESCRIPTIONS = {
     "appeal_ids": (
         "Comma-separated Appeal ids as returned in the `appeal_id` field, e.g. `3621,3622`. "
         "Each id is resolved to that Appeal's code and matched like `appeal_codes`. "
-        "Non-numeric tokens are ignored; ids with no Appeal yield an empty result."
+        "A token that is not an id names no Appeal, exactly like an id no Appeal has, "
+        "so a value with no resolvable id yields an empty result. Pass appeal codes to "
+        "`appeal_codes` instead."
     ),
     "appeal_code_prefix": "Rows whose `appeal_code` starts with this value (case-sensitive).",
     "region": "Region id of the national society.",

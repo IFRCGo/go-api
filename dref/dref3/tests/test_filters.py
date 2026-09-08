@@ -243,12 +243,31 @@ class Dref3FilterTests(APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         assert self._rows(resp) == []
 
-    def test_filter_by_non_numeric_appeal_id_is_ignored(self):
-        """Unparseable values are ignored, like every other coerced filter."""
+    def test_filter_by_non_numeric_appeal_id_is_empty(self):
+        """A token that is not an id names no Appeal, like an id no Appeal has.
+
+        Passing an appeal *code* here is the mistake this covers: it must not
+        read as "no filter given" and return everything.
+        """
         self.authenticate(self.superuser)
-        resp = self.client.get(self.url, {"appeal_ids": "not-an-id"})
+        resp = self.client.get(self.url, {"appeal_ids": "APPEAL_A"})
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        assert self._rows(resp) == []
+
+    def test_filter_by_appeal_ids_ignores_a_value_with_no_tokens(self):
+        """A value holding only separators asks for nothing, so it is ignored."""
+        self.authenticate(self.superuser)
+        resp = self.client.get(self.url, {"appeal_ids": ", ,"})
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         assert self._get_codes(resp) == {"APPEAL_A", "APPEAL_B"}
+
+    def test_filter_by_appeal_ids_keeps_the_ids_among_junk(self):
+        """A well-formed id still filters when other tokens name no Appeal."""
+        self.authenticate(self.superuser)
+        appeal = self._create_appeal("APPEAL_A")
+        resp = self.client.get(self.url, {"appeal_ids": f"not-an-id,{appeal.pk}"})
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        assert self._get_codes(resp) == {"APPEAL_A"}
 
     def test_appeal_id_reports_the_appeal_pk(self):
         """`appeal_id` is the Appeal's own pk; rows with no Appeal report null."""
