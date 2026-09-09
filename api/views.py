@@ -558,7 +558,7 @@ class Brief(APIView):
             "cronjob_err": c,
             "maintenance_mode": settings.DJANGO_READ_ONLY,
             "git_last_tag": settings.LAST_GIT_TAG,
-            "git_last_commit": settings.SENTRY_CONFIG["release"][0:8],
+            "git_last_commit": settings.SENTRY_CONFIG.release[0:8],
         }
         return JsonResponse(res, safe=False)
 

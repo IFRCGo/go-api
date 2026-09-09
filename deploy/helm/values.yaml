@@ -66,8 +66,46 @@ app:
       default:
         enabled: true
         celeryArgs: ["-Q", "default,heavy,cronjob", "--concurrency", "2"]
-    # No beat: go-api has no in-code schedule / django-celery-beat; scheduled work
-    # runs as CronJobs below (Sentry-monitored via main/sentry.py).
+    addons:
+      # Scheduler for the cronjobs declared in main/cronjobs.py. The legacy jobs
+      # still run as CronJobs below (Sentry-monitored via main/sentry.py); see
+      # docs/cronjobs.md for which mechanism a job belongs to.
+      beat:
+        enabled: true
+        # MUST stay 1 -- two beat processes fire every cronjob twice.
+        replicaCount: 1
+        strategy: {type: Recreate}
+        # settings.py sets CELERY_BEAT_SCHEDULER to django-celery-beat's
+        # DatabaseScheduler. HeartbeatDatabaseScheduler is that same scheduler
+        # plus a heartbeat file each tick, so banjo-celery-probe can check liveness.
+        command:
+          - "celery"
+          - "-A"
+          - "main"
+          - "beat"
+          - "-l"
+          - "INFO"
+          - "--scheduler=banjo_utils.celery_health.database.HeartbeatDatabaseScheduler"
+        extraEnv:
+          BANJO_CELERY_HEARTBEAT_FILE: /var/run/celery/beat_heartbeat
+        volumes:
+          celery-heartbeat: {emptyDir: {medium: Memory, sizeLimit: 1Mi}}
+        volumeMounts:
+          celery-heartbeat: {mountPath: /var/run/celery}
+        probes:
+          enabled: true
+          liveness:
+            # DatabaseScheduler ticks every ~5s, so a tight --max-age is fine.
+            exec: {command: [banjo-celery-probe, --max-age, "60"]}
+            periodSeconds: 60
+            timeoutSeconds: 5
+            failureThreshold: 3
+        resources:
+          requests:
+            cpu: "0.1"
+            memory: 256Mi
+          limits:
+            memory: 512Mi
 
   hooks:
     enabled: true
@@ -226,6 +264,10 @@ app:
     # Object storage: Azure Blob is the deployment backend (pod filesystem is ephemeral)
     AZURE_STORAGE_ENABLED: "true"
     SENTRY_SAMPLE_RATE: "0.2"
+    SENTRY_DEBUG: "false"
+    # Auto-creates Sentry cron monitors for celery beat cronjobs. The legacy
+    # CronJobs are registered separately via `manage.py cron_job_monitor`.
+    SENTRY_MONITOR_CELERY_BEAT_TASKS: "true"
 
   secrets: {}
 
