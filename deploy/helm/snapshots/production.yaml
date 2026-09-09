@@ -39,6 +39,8 @@ data:
   HEALTH_CHECK_DISK_USAGE_MAX: "none"
   JWT_EXPIRE_TIMESTAMP_DAYS: "365"
   OIDC_ENABLE: "true"
+  SENTRY_DEBUG: "false"
+  SENTRY_MONITOR_CELERY_BEAT_TASKS: "true"
   SENTRY_SAMPLE_RATE: "0.2"
   SESSION_COOKIE_DOMAIN: ".example.com"
 
@@ -123,7 +125,7 @@ spec:
     metadata:
       annotations:
         checksum/secret: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
-        checksum/configmap: 8338ba490298cb58350d749c6fe8334b174149408ad4fec592f1a7360a91b4c5
+        checksum/configmap: bd46cc3d30ba7d2fe19e56ce7943519f3a7e5f908a0159decb6b70d664896ff6
       labels:
         app: go-api
         component: api
@@ -201,6 +203,108 @@ spec:
               readOnly: true
 
 ---
+# Source: ifrcgo-helm/charts/app/templates/worker-addons/deployment.yaml
+# Addon: beat
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-api-worker-beat
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+    reloader.stakater.com/auto: "true"
+  labels:
+    app: go-api
+    component: worker-addon
+    addon: beat
+    environment: production
+    release: release-name
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: go-api
+      component: worker-addon
+      addon: beat
+  template:
+    metadata:
+      annotations:
+        checksum/secret: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+        checksum/configmap: bd46cc3d30ba7d2fe19e56ce7943519f3a7e5f908a0159decb6b70d664896ff6
+      labels:
+        app: go-api
+        component: worker-addon
+        addon: beat
+        azure.workload.identity/use: "true"
+    spec:
+      volumes:
+        - name: go-api-secret
+          csi:
+            driver: "secrets-store.csi.k8s.io"
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: go-api-secret-provider
+        - emptyDir:
+            medium: Memory
+            sizeLimit: 1Mi
+          name: celery-heartbeat
+      serviceAccountName: service-token-reader
+      containers:
+        - name: beat
+          image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+          imagePullPolicy: IfNotPresent
+          command:
+            - celery
+            - -A
+            - main
+            - beat
+            - -l
+            - INFO
+            - --scheduler=banjo_utils.celery_health.database.HeartbeatDatabaseScheduler
+          livenessProbe:
+            exec:
+              command:
+              - banjo-celery-probe
+              - --max-age
+              - "60"
+            failureThreshold: 3
+            periodSeconds: 60
+            timeoutSeconds: 5
+          resources:
+            limits:
+              memory: 512Mi
+            requests:
+              cpu: "0.1"
+              memory: 256Mi
+          envFrom:
+            - secretRef:
+                name: go-api-secret
+            - configMapRef:
+                name: go-api-env-name
+          env:
+            - name: DJANGO_APP_TYPE
+              value: "worker"
+            - name: CACHE_REDIS_URL
+              value: redis://go-api-dragonfly:6379/1
+            - name: CELERY_REDIS_URL
+              value: redis://go-api-dragonfly:6379/0
+            - name: ELASTIC_SEARCH_HOST
+              value: http://go-api-elasticsearch-es-http:9200
+            - name: PLAYWRIGHT_SERVER_URL
+              value: ws://go-api-playwright:3000/
+            
+            - name: BANJO_CELERY_HEARTBEAT_FILE
+              value: "/var/run/celery/beat_heartbeat"
+          volumeMounts:
+            - name: go-api-secret
+              mountPath: /mnt/secrets-store
+              readOnly: true
+            - mountPath: /var/run/celery
+              name: celery-heartbeat
+
+---
 # Source: ifrcgo-helm/charts/app/templates/worker/deployment.yaml
 # Queue: default
 apiVersion: apps/v1
@@ -227,7 +331,7 @@ spec:
     metadata:
       annotations:
         checksum/secret: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
-        checksum/configmap: 8338ba490298cb58350d749c6fe8334b174149408ad4fec592f1a7360a91b4c5
+        checksum/configmap: bd46cc3d30ba7d2fe19e56ce7943519f3a7e5f908a0159decb6b70d664896ff6
       labels:
         app: go-api
         component: worker
@@ -370,7 +474,7 @@ spec:
     metadata:
       annotations:
         checksum/secret: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
-        checksum/configmap: 8338ba490298cb58350d749c6fe8334b174149408ad4fec592f1a7360a91b4c5
+        checksum/configmap: bd46cc3d30ba7d2fe19e56ce7943519f3a7e5f908a0159decb6b70d664896ff6
       labels:
         app: go-api
         component: hook
@@ -444,7 +548,7 @@ spec:
     metadata:
       annotations:
         checksum/secret: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
-        checksum/configmap: 8338ba490298cb58350d749c6fe8334b174149408ad4fec592f1a7360a91b4c5
+        checksum/configmap: bd46cc3d30ba7d2fe19e56ce7943519f3a7e5f908a0159decb6b70d664896ff6
       labels:
         app: go-api
         component: hook
@@ -517,7 +621,7 @@ spec:
     metadata:
       annotations:
         checksum/secret: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
-        checksum/configmap: 8338ba490298cb58350d749c6fe8334b174149408ad4fec592f1a7360a91b4c5
+        checksum/configmap: bd46cc3d30ba7d2fe19e56ce7943519f3a7e5f908a0159decb6b70d664896ff6
       labels:
         app: go-api
         component: hook
@@ -596,7 +700,7 @@ spec:
     metadata:
       annotations:
         checksum/secret: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
-        checksum/configmap: 8338ba490298cb58350d749c6fe8334b174149408ad4fec592f1a7360a91b4c5
+        checksum/configmap: bd46cc3d30ba7d2fe19e56ce7943519f3a7e5f908a0159decb6b70d664896ff6
       labels:
         app: go-api
         component: hook
