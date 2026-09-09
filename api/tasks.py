@@ -63,7 +63,6 @@ def generate_export_pdf(export_id, title, set_user_language="en"):
     logger.info(f"End export: {export.pk}")
 
 
-# TODO(susilnem): Do we need this cron?
 @shared_task
 def clear_expired_django_sessions():
     """Purge expired django_session rows -- nothing else prunes them."""
