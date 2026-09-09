@@ -71,26 +71,38 @@ accepted and then never consumed by anything.
 docker-compose up celery celery-beat
 ```
 
-Worker and beat entrypoints live in `misc/dev/`.
+Worker and beat entrypoints live in `misc/dev/`. Both wait for the database and
+the broker first via banjo's `manage.py wait_for_resources`.
 
-### Not deployed yet
+### Deployment
 
-**Beat currently runs in local development only.** There is no beat Deployment
-in `deploy/helm/`, so nothing in `SCHEDULES` fires in alpha/staging/prod until
-one is added. Still to do:
+Beat runs as the `beat` worker addon in
+[`deploy/helm/values.yaml`](../deploy/helm/values.yaml) (`app.worker.addons.beat`),
+rendered by banjo-helm as a `-worker-beat` Deployment.
 
-- A beat Deployment with **`replicas: 1`** and `strategy: Recreate` — two beat
-  processes fire every cronjob twice — plus a `celeryBeat` block in
-  `values.yaml`. It needs the same `envFrom` secret + configmap as the celery
-  worker.
-- Beat needs the `django_celery_beat` tables, which `manage.py migrate` creates
-  on the API pod. If beat starts first it crashloops until migrations have run.
+Two properties there are load-bearing:
+
+- **`replicaCount: 1` with `strategy: Recreate`.** Two beat processes fire every
+  cronjob twice, so this must never be scaled up.
+- **`--scheduler=banjo_utils.celery_health.database.HeartbeatDatabaseScheduler`** —
+  django-celery-beat's `DatabaseScheduler` plus a heartbeat file each tick, which
+  is what the `banjo-celery-probe` liveness check reads.
+
+Beat needs the `django_celery_beat` tables, created by `manage.py migrate` in the
+deploy hook. If beat starts first it crashloops until migrations have run.
+
+After changing `SCHEDULES`, regenerate the chart snapshots:
+
+```bash
+cd deploy/helm && ./update-snapshots.sh
+```
 
 ## 2. Kubernetes CronJobs — the legacy set
 
-The pre-existing cronjobs run as k8s CronJob resources listed under `cronjobs:`
-in `deploy/helm/ifrcgo-helm/values.yaml`, one pod per run, monitored via
-`SentryMonitor` in `main/sentry.py`. Their Sentry monitors are registered with:
+The pre-existing cronjobs run as k8s CronJob resources listed under
+`app.cronjobs.jobs` in `deploy/helm/values.yaml`, one pod per run, monitored via
+`SentryMonitor` in `main/sentry.py`. Their Sentry monitors are **not** created
+automatically — they must be registered per environment with:
 
 ```bash
 docker-compose exec serve bash ./manage.py cron_job_monitor
