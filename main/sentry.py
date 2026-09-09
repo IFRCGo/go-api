@@ -6,6 +6,7 @@ from difflib import context_diff
 
 import sentry_sdk
 import yaml
+from banjo_utils.health import make_sentry_traces_sampler_with_health_probe_ignore
 
 # Celery Terminated Exception: The worker processing a job has been terminated by user request.
 from billiard.exceptions import Terminated
@@ -117,7 +118,9 @@ class SentryConfig:
             release=self.release,
             environment=self.environment,
             send_default_pii=self.send_default_pii,
-            traces_sample_rate=self.traces_sample_rate,
+            # Never sample k8s /healthz/* probe transactions (they hit the WSGI
+            # layer outside Django middleware); defer everything else to the rate.
+            traces_sampler=make_sentry_traces_sampler_with_health_probe_ignore(self.traces_sample_rate),
             enable_tracing=self.enable_tracing,
             debug=self.debug,
         )

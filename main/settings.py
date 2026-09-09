@@ -9,10 +9,7 @@ from urllib.parse import urlparse
 import environ
 import pytz
 from azure.identity import DefaultAzureCredential
-from banjo_utils.health import (
-    is_health_probe_path,
-    make_sentry_traces_sampler_with_health_probe_ignore,
-)
+from banjo_utils.health import is_health_probe_path
 from corsheaders.defaults import default_headers
 from django.utils.translation import gettext_lazy as _
 from urllib3.util.retry import Retry
@@ -922,8 +919,7 @@ SENTRY_CONFIG = sentry.SentryConfig(
     release=SENTRY_RELEASE,
     environment=GO_ENVIRONMENT,
     send_default_pii=True,
-    # Drop k8s health-probe transactions from tracing (they fire every few seconds).
-    traces_sampler=make_sentry_traces_sampler_with_health_probe_ignore(SENTRY_SAMPLE_RATE),
+    traces_sample_rate=SENTRY_SAMPLE_RATE,
     enable_tracing=True,
     debug=SENTRY_DEBUG,
     # Custom configs
