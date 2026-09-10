@@ -299,6 +299,11 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
         # Fetch full deployment detail when person.sex is missing.
         if "position_id" not in md or "sex" not in person:  # changed structure §
             md2 = molnix_api.get_deployment(md["id"])
+            if md2 is None:
+                warning = "Could not fetch deployment detail for Molnix ID %d from API" % md["id"]
+                logger.warning(warning)
+                warnings.append(warning)
+                continue
             md.update(md2.get("deployment") or {})
 
         person = md.get("person") or {}

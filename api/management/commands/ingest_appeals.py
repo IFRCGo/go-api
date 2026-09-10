@@ -75,7 +75,7 @@ class Command(BaseCommand):
 
                 for r in records:
                     # Temporary filtering, the manual version should be kept:
-                    if r["APP_code"] in codes_skip:  # ['MDR65002', 'MDR00001', 'MDR00004']:
+                    if r["APP_code"] in codes_skip or r["APP_code"].startswith("MAA"):
                         continue
                     if r["APP_code"] not in codes:
                         new.append(r)
@@ -161,7 +161,7 @@ class Command(BaseCommand):
 
             for r in records:
                 # Temporary filtering, the manual version should be kept:
-                if r["APP_code"] in codes_skip:  # ['MDR65002', 'MDR00001', 'MDR00004']:
+                if r["APP_code"] in codes_skip or r["APP_code"].startswith("MAA"):
                     continue
                 # if r['APP_code'] != 'DEBUG_this': continue
                 if r["APP_code"] not in codes:
@@ -185,6 +185,10 @@ class Command(BaseCommand):
         return dtype
 
     def parse_country(self, gec_code, country_name):
+        if not gec_code:
+            # FIXME: Defaulting to IFRC for now, should handle missing country more gracefully
+            return Country.objects.filter(name__iexact="IFRC").first()
+
         # If gec_code has a mapping then we use that Country straight
         gec = GEC_CODES.filter(code=gec_code).first()
         if gec:
@@ -223,11 +227,15 @@ class Command(BaseCommand):
             region = Region.objects.get(pk=country.region.pk)
         else:
             regions = {"africa": 0, "americas": 1, "asia pacific": 2, "europe": 3, "middle east and north africa": 4}
-            region_name = r["OSR_name"].lower().strip()
-            if region_name not in regions:
-                region = None
+            if r["OSR_name"] is None:
+                # FIXME: Defaulting to Europe for now, should handle missing region more gracefully
+                region = Region.objects.get(name=3)
             else:
-                region = Region.objects.get(name=regions[region_name])
+                region_name = r["OSR_name"].lower().strip()
+                if region_name not in regions:
+                    region = None
+                else:
+                    region = Region.objects.get(name=regions[region_name])
 
         # ordering appeals by start date
         # if there is more than one detail, the start date should be the *earliest
