@@ -220,11 +220,7 @@ class MiniDrefSerializer(serializers.ModelSerializer):
     unpublished_op_update_count = serializers.IntegerField(read_only=True)
     unpublished_final_report_count = serializers.IntegerField(read_only=True)
     # Prefetched data
-    operational_update_details = MiniOperationalUpdateActiveSerializer(
-        source="prefetched_operational_updates",
-        many=True,
-        read_only=True,
-    )
+    operational_update_details = serializers.SerializerMethodField()
     final_report_details = MiniDrefFinalReportActiveSerializer(
         source="dreffinalreport",
         read_only=True,
@@ -270,6 +266,13 @@ class MiniDrefSerializer(serializers.ModelSerializer):
     @extend_schema_field(serializers.CharField())
     def get_application_type_display(self, _) -> str:
         return gettext("DREF application")
+
+    @extend_schema_field(MiniOperationalUpdateActiveSerializer(many=True))
+    def get_operational_update_details(self, obj):
+        ops_updates = getattr(obj, "prefetched_operational_updates", None)
+        if ops_updates is None:
+            ops_updates = obj.drefoperationalupdate_set.select_related("country").order_by("-created_at")
+        return MiniOperationalUpdateActiveSerializer(ops_updates, many=True, context=self.context).data
 
 
 class PlannedInterventionSerializer(

@@ -2168,6 +2168,22 @@ class DrefTestCase(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data["results"]), 0)
 
+    def test_active_dref_ops_update_details_for_user_shared_only_on_ops_update(self):
+        dref = DrefFactory.create(is_active=True, created_by=self.root_user)
+        ops_update = DrefOperationalUpdateFactory.create(dref=dref, created_by=self.root_user)
+        ops_update.users.add(self.user)
+
+        url = "/api/v2/active-dref/"
+        self.client.force_authenticate(self.user)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        result = next((item for item in response.data["results"] if item["id"] == dref.id), None)
+        self.assertIsNotNone(result)
+        self.assertTrue(result["has_ops_update"])
+        self.assertEqual(len(result["operational_update_details"]), 1)
+        self.assertEqual(result["operational_update_details"][0]["id"], ops_update.id)
+
     def test_dref_share_users(self):
         user1 = UserFactory.create(
             username="user1@test.com",
