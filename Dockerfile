@@ -1,4 +1,4 @@
-FROM python:3.11-bullseye
+FROM python:3.11-trixie
 COPY --from=ghcr.io/astral-sh/uv:0.11.3 /uv /uvx /bin/
 
 LABEL maintainer="GO Dev <go-dev@ifrc.org>"
