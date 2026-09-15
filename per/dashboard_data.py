@@ -441,9 +441,7 @@ def get_per_dashboard_data() -> dict[str, Any]:
             continue
         overview_assessments = assessments_by_overview.get(overview.id, [])
         latest_assessment = overview_assessments[0] if overview_assessments else None
-        country_assessments[country.name].append(
-            _country_assessment_entry(overview, latest_assessment)
-        )
+        country_assessments[country.name].append(_country_assessment_entry(overview, latest_assessment))
 
     items = sorted(
         component_map.values(),
