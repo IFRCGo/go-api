@@ -194,6 +194,10 @@ class Command(BaseCommand):
             # FIXME: Defaulting to IFRC for now, should handle missing country more gracefully
             return Country.objects.filter(name__iexact="IFRC").first()
 
+        if ";" in gec_code:
+            # Multi-country appeal code (e.g. "KM;MG;MW;MZ"), use the latest country in the list
+            gec_code = gec_code.split(";")[-1].strip()
+
         # If gec_code has a mapping then we use that Country straight
         gec = GEC_CODES.filter(code=gec_code).first()
         if gec:
@@ -211,6 +215,7 @@ class Command(BaseCommand):
 
         if not country:
             logger.warning(f"Could not find Country with: {gec_code} OR {country_name}")
+            country = Country.objects.filter(name__iexact="IFRC").first()
 
         return country
 
@@ -289,7 +294,6 @@ class Command(BaseCommand):
             "atype": atype,
             "country": country,
             "region": region,
-            "sector": r["OSS_name"],
             "code": r["APP_code"],
             "status": {"Active": 0, "Closed": 1, "Frozen": 2, "Archived": 3}[r["APP_status"]],
             "start_date": start_date,
@@ -300,6 +304,9 @@ class Command(BaseCommand):
             "real_data_update": modify_time,
             "triggering_amount": float(int(triggering_amount) % 10**10),  # to avoid overflow
         }
+
+        if r["OSS_name"]:
+            fields["sector"] = r["OSS_name"]
 
         if event is not None:
             fields["event"] = event
