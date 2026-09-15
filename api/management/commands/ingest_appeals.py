@@ -95,14 +95,16 @@ class Command(BaseCommand):
                     if api_appeal_modify_time < apd_modify_time or api_appeal_modify_time < app_modify_time:
                         modified.append(r)
 
-            logger.info("Using local appealbilaterals.json file")
-            with open("appealbilaterals.json") as f:
-                records = json.loads(f.read())
-                bilaterals = self.create_bilaterals_dict(records)
+            # bilaterals ingestion disabled, no longer needed
+            # logger.info("Using local appealbilaterals.json file")
+            # with open("appealbilaterals.json") as f:
+            #     records = json.loads(f.read())
+            #     bilaterals = self.create_bilaterals_dict(records)
         else:
-            # get latest BILATERALS
-            logger.info("Querying appeals API for new appeals data (bilateral)")
-            url = "https://go-api.ifrc.org/api/appealbilaterals"
+            # bilaterals ingestion disabled, no longer needed
+            # # get latest BILATERALS
+            # logger.info("Querying appeals API for new appeals data (bilateral)")
+            # url = "https://go-api.ifrc.org/api/appealbilaterals"
             auth = (settings.APPEALS_USER, settings.APPEALS_PASS)
 
             adapter = HTTPAdapter(max_retries=settings.RETRY_STRATEGY)
@@ -111,25 +113,26 @@ class Command(BaseCommand):
             # IFRC App Gateway doesn't like python-requests/2... as User-Agent.
             headers = {"User-Agent": "go-requests/2.32.4"}
 
-            # try 3 times to reach the API
-            try:
-                response = sess.get(url, auth=auth, headers=headers)  # Bilaterals API doesn't need narrowing by date
-            except reqexc.HTTPError as ex:
-                log_text = f"Error querying AppealBilaterals API: {ex}"
-                logger.error(log_text)
-                create_cron_record(CRON_NAME, log_text, CronJobStatus.ERRONEOUS)
-                return None, None, None
-            except Exception as ex:
-                log_text = f"Error querying AppealBilaterals API at {url}: {str(ex)}"
-                logger.error(log_text)
-                create_cron_record(CRON_NAME, log_text, CronJobStatus.ERRONEOUS)
-                return None, None, None
-            records = response.json()
-            bilaterals = self.create_bilaterals_dict(records)
-
-            # write the current record file to local disk
-            with open("appealbilaterals.json", "w") as outfile:
-                json.dump(records, outfile)
+            # bilaterals ingestion disabled, no longer needed
+            # # try 3 times to reach the API
+            # try:
+            #     response = sess.get(url, auth=auth, headers=headers)  # Bilaterals API doesn't need narrowing by date
+            # except reqexc.HTTPError as ex:
+            #     log_text = f"Error querying AppealBilaterals API: {ex}"
+            #     logger.error(log_text)
+            #     create_cron_record(CRON_NAME, log_text, CronJobStatus.ERRONEOUS)
+            #     return None, None, None
+            # except Exception as ex:
+            #     log_text = f"Error querying AppealBilaterals API at {url}: {str(ex)}"
+            #     logger.error(log_text)
+            #     create_cron_record(CRON_NAME, log_text, CronJobStatus.ERRONEOUS)
+            #     return None, None, None
+            # records = response.json()
+            # bilaterals = self.create_bilaterals_dict(records)
+            #
+            # # write the current record file to local disk
+            # with open("appealbilaterals.json", "w") as outfile:
+            #     json.dump(records, outfile)
 
             # get latest APPEALS
             logger.info("Querying appeals API for new appeals data")
@@ -142,12 +145,12 @@ class Command(BaseCommand):
                 log_text = f"Error querying Appeals API: {ex}"
                 logger.error(log_text)
                 create_cron_record(CRON_NAME, log_text, CronJobStatus.ERRONEOUS)
-                return None, None, None
+                return None, None
             except Exception as ex:
                 log_text = f"Error querying Appeals API at {url}: {str(ex)}"
                 logger.error(log_text)
                 create_cron_record(CRON_NAME, log_text, CronJobStatus.ERRONEOUS)
-                return None, None, None
+                return None, None
 
             records = response.json()
 
@@ -170,7 +173,9 @@ class Command(BaseCommand):
                     # We use all records, do NOT check if last_modified > since_last_checked
                     modified.append(r)
 
-        return new, modified, bilaterals
+        # bilaterals ingestion disabled, no longer needed
+        # return new, modified, bilaterals
+        return new, modified
 
     def parse_disaster_name(self, dname):
         if dname in DTYPE_KEYS:
@@ -307,11 +312,11 @@ class Command(BaseCommand):
         logger.info("Starting appeals ingest")
         start_appeals_count = Appeal.objects.all().count()
         try:
-            new, modified, bilaterals = self.get_new_or_modified_appeals()
+            new, modified = self.get_new_or_modified_appeals()
         except Exception as ex:
-            logger.error(f"Getting Appeals and AppealBilaterals failed: {str(ex)}")
+            logger.error(f"Getting Appeals failed: {str(ex)}")
             return
-        if new is None or modified is None or bilaterals is None:
+        if new is None or modified is None:
             logger.error("Appeals ingest aborted due to upstream API errors.")
             return
         logger.info(f"{start_appeals_count} current appeals")
@@ -322,10 +327,10 @@ class Command(BaseCommand):
         num_created = 0
         for i, r in enumerate(new):
             fields = self.parse_appeal_record(r, is_new_appeal=True)
-            # correction of the appeal record with appealbilaterals value
-            if fields["code"] in bilaterals:
-                fields["amount_funded"] += round(bilaterals[fields["code"]], 1)
-                fields["triggering_amount"] += round(bilaterals[fields["code"]], 1)
+            # correction of the appeal record with appealbilaterals value (no longer needed)
+            # if fields["code"] in bilaterals:
+            #     fields["amount_funded"] += round(bilaterals[fields["code"]], 1)
+            #     fields["triggering_amount"] += round(bilaterals[fields["code"]], 1)
             try:
                 Appeal.objects.create(**fields)
                 num_created += 1
@@ -339,10 +344,10 @@ class Command(BaseCommand):
         fba_appeals = list(Appeal.objects.filter(atype=AppealType.FBA).values_list("code", flat=True))
         for i, r in enumerate(modified):
             fields = self.parse_appeal_record(r, is_new_appeal=False)
-            # correction of the appeal record with appealbilaterals value
-            if fields["code"] in bilaterals:
-                fields["amount_funded"] += round(bilaterals[fields["code"]], 1)
-                fields["triggering_amount"] += round(bilaterals[fields["code"]], 1)
+            # correction of the appeal record with appealbilaterals value (no longer needed)
+            # if fields["code"] in bilaterals:
+            #     fields["amount_funded"] += round(bilaterals[fields["code"]], 1)
+            #     fields["triggering_amount"] += round(bilaterals[fields["code"]], 1)
 
             try:
                 # DREF is coming from Apple (doesn't have FBA), keep FBA type
