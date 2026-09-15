@@ -498,11 +498,11 @@ class PerDashboardDataTestCase(APITestCase):
 
     def test_map_data_returns_complete_history_and_deterministic_latest_processes(self):
         country_one = self.create_country("Country One", "C1", "C01")
-        country_one.society_name = "Country One Red Cross"
-        country_one.save(update_fields=["society_name"])
+        country_one.society_name_en = "Country One Red Cross"
+        country_one.save(update_fields=["society_name_en"])
         country_two = self.create_country("Country Two", "C2", "C02")
-        country_two.society_name = ""
-        country_two.save(update_fields=["society_name"])
+        country_two.society_name_en = ""
+        country_two.save(update_fields=["society_name_en"])
         older_dated = OverviewFactory.create(
             country=country_one,
             assessment_number=1,
