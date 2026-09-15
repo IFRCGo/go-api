@@ -697,9 +697,9 @@ class PublicFormAssessmentViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 # Consolidated public endpoints (map-data, assessments-processed, dashboard-data)
-PER_MAP_DATA_CACHE_KEY = "per-dashboard:map-data:v2"
+PER_MAP_DATA_CACHE_KEY = "per-dashboard:map-data:v3"
 PER_MAP_DATA_CACHE_TIMEOUT_SECONDS = 60
-PER_DASHBOARD_DATA_CACHE_KEY = "per-dashboard:dashboard-data:v1"
+PER_DASHBOARD_DATA_CACHE_KEY = "per-dashboard:dashboard-data:v2"
 PER_DASHBOARD_DATA_CACHE_TIMEOUT_SECONDS = 60
 
 
