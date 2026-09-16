@@ -44,7 +44,7 @@ msgstr "plan d'action"
 
 #: per/models.py:18
 msgid "action and accountability"
-msgstr "action et responsabilisation"
+msgstr "action et redevabilité"
 
 #: per/models.py:35
 msgid "NS PER Process Phase"
@@ -350,7 +350,7 @@ msgstr "Évaluation"
 
 #: per/models.py:272
 msgid "Prioritisation"
-msgstr "Priorités"
+msgstr "Priorisation"
 
 #: per/models.py:273
 msgid "WorkPlan"
@@ -358,7 +358,7 @@ msgstr "Plan de travail PIE"
 
 #: per/models.py:274
 msgid "Action And Accountability"
-msgstr "Action et responsabilisation"
+msgstr "Action et redevabilité"
 
 #: per/models.py:277
 msgid "PER"
@@ -724,7 +724,7 @@ msgstr "Documents PIE"
 
 #: per/models.py:578
 msgid "Not Started"
-msgstr "Non commencé"
+msgstr "Non démarré"
 
 #: per/models.py:579
 msgid "Ongoing"
@@ -736,7 +736,7 @@ msgstr "En retard"
 
 #: per/models.py:581
 msgid "Standby"
-msgstr "En veille"
+msgstr "En attente"
 
 #: per/models.py:582
 msgid "Finished"

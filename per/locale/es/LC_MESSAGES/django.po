@@ -358,7 +358,7 @@ msgstr "Plan de trabajo de PER"
 
 #: per/models.py:274
 msgid "Action And Accountability"
-msgstr "Acción y responsabilidad"
+msgstr "Acción y rendición de cuentas"
 
 #: per/models.py:277
 msgid "PER"

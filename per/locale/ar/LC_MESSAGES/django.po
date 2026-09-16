@@ -745,7 +745,7 @@ msgstr "متأخر"
 
 #: per/models.py:581
 msgid "Standby"
-msgstr "وضع الاستعداد"
+msgstr "في الانتظار"
 
 #: per/models.py:582
 msgid "Finished"
