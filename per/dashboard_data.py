@@ -235,6 +235,7 @@ def _base_process_data(overview: Overview) -> dict[str, Any]:
         "updated_at": overview.updated_at,
         "country_id": overview.country_id,
         "country_name": country.name if country is not None else None,
+        "national_society_name": country.society_name if country is not None else None,
         "country_iso3": country.iso3 if country is not None else None,
         "region_id": country.region_id if country is not None else None,
         "region_name": region.label if region is not None else None,
@@ -340,14 +341,28 @@ def _component_assessment_metadata(assessment: PerAssessment) -> dict[str, Any]:
     }
 
 
-def _country_assessment_entry(assessment: PerAssessment) -> dict[str, Any]:
-    overview = assessment.overview
-    metadata = _component_assessment_metadata(assessment)
+def _country_assessment_entry(
+    overview: Overview,
+    assessment: PerAssessment | None,
+) -> dict[str, Any]:
+    base = _base_process_data(overview)
     return {
-        **metadata,
-        "date": metadata["date_of_assessment"],
-        "phase": overview.phase if overview is not None else None,
-        "phase_display": _phase_display(overview.phase) if overview is not None else None,
+        "assessment_id": assessment.id if assessment is not None else None,
+        "process_id": base["id"],
+        "assessment_number": base["assessment_number"],
+        "country_id": base["country_id"],
+        "country_name": base["country_name"],
+        "country_iso3": base["country_iso3"],
+        "region_id": base["region_id"],
+        "region_name": base["region_name"],
+        "date_of_assessment": base["date_of_assessment"],
+        "type_of_assessment": base["type_of_assessment"],
+        "type_of_assessment_name": base["type_of_assessment_name"],
+        "assessment_method": base["assessment_method"],
+        "updated_at": base["updated_at"],
+        "date": base["date_of_assessment"],
+        "phase": base["phase"],
+        "phase_display": base["phase_display"],
     }
 
 
@@ -420,9 +435,13 @@ def get_per_dashboard_data() -> dict[str, Any]:
                 }
             )
 
-        country_name = metadata["country_name"]
-        if country_name:
-            country_assessments[country_name].append(_country_assessment_entry(assessment))
+    for overview in overviews:
+        country = overview.country
+        if country is None:
+            continue
+        overview_assessments = assessments_by_overview.get(overview.id, [])
+        latest_assessment = overview_assessments[0] if overview_assessments else None
+        country_assessments[country.name].append(_country_assessment_entry(overview, latest_assessment))
 
     items = sorted(
         component_map.values(),

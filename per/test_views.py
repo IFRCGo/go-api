@@ -498,7 +498,11 @@ class PerDashboardDataTestCase(APITestCase):
 
     def test_map_data_returns_complete_history_and_deterministic_latest_processes(self):
         country_one = self.create_country("Country One", "C1", "C01")
+        country_one.society_name_en = "Country One Red Cross"
+        country_one.save(update_fields=["society_name_en"])
         country_two = self.create_country("Country Two", "C2", "C02")
+        country_two.society_name_en = ""
+        country_two.save(update_fields=["society_name_en"])
         older_dated = OverviewFactory.create(
             country=country_one,
             assessment_number=1,
@@ -530,6 +534,8 @@ class PerDashboardDataTestCase(APITestCase):
         latest_by_country = {item["country_id"]: item for item in response.data["results"]}
         self.assertEqual(latest_by_country[country_one.id]["id"], latest_dated.id)
         self.assertEqual(latest_by_country[country_two.id]["id"], latest_number.id)
+        self.assertEqual(latest_by_country[country_one.id]["national_society_name"], "Country One Red Cross")
+        self.assertEqual(latest_by_country[country_two.id]["national_society_name"], "")
 
     def test_map_data_results_are_ordered_by_country(self):
         first_country = self.create_country("First Country", "F1", "F01")
@@ -588,6 +594,8 @@ class PerDashboardDataTestCase(APITestCase):
         assessment, component = self.create_component_assessment(overview_with_components, duplicate=True)
         overview_without_components = OverviewFactory.create(country=country_without_components)
         empty_assessment = PerAssessment.objects.create(overview=overview_without_components)
+        country_without_assessment = self.create_country("Country Without Assessment", "C6", "C06")
+        OverviewFactory.create(country=country_without_assessment)
 
         response = self.client.get("/api/v2/per-dashboard-data")
 
@@ -611,6 +619,10 @@ class PerDashboardDataTestCase(APITestCase):
         empty_country_entry = response.data["countryAssessments"][country_without_components.name][0]
         self.assertEqual(empty_country_entry["assessment_id"], empty_assessment.id)
         self.assertNotIn("components", empty_country_entry)
+
+        process_only_entry = response.data["countryAssessments"][country_without_assessment.name][0]
+        self.assertIsNone(process_only_entry["assessment_id"])
+        self.assertNotIn("components", process_only_entry)
 
     @override_settings(CACHES=TEST_LOC_MEM_CACHE)
     def test_map_data_uses_cache_in_read_only_mode(self):
