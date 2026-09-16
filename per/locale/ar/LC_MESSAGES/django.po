@@ -747,11 +747,11 @@ msgstr "لم يبدأ"
 
 #: per/models.py:579
 msgid "Ongoing"
-msgstr "جاري"
+msgstr "قيد التنفيذ"
 
 #: per/models.py:580
 msgid "Delayed"
-msgstr "مُؤَجَّل"
+msgstr "متأخر"
 
 #: per/models.py:581
 msgid "Standby"

@@ -738,11 +738,11 @@ msgstr "No iniciado"
 
 #: per/models.py:579
 msgid "Ongoing"
-msgstr "En marcha"
+msgstr "En curso"
 
 #: per/models.py:580
 msgid "Delayed"
-msgstr "Atrasado"
+msgstr "Retrasado"
 
 #: per/models.py:581
 msgid "Standby"

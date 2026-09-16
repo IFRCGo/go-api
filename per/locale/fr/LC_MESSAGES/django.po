@@ -742,7 +742,7 @@ msgstr "En cours"
 
 #: per/models.py:580
 msgid "Delayed"
-msgstr "Retardé"
+msgstr "En retard"
 
 #: per/models.py:581
 msgid "Standby"
