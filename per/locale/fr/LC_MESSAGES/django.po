@@ -341,34 +341,24 @@ msgid "PER Assessment Types"
 msgstr "évaluation"
 
 #: per/models.py:270
-#, fuzzy
-#| msgid "orientation"
 msgid "Orientation"
-msgstr "orientation"
+msgstr "Orientation"
 
 #: per/models.py:271
-#, fuzzy
-#| msgid "assessment"
 msgid "Assessment"
-msgstr "évaluation"
+msgstr "Évaluation"
 
 #: per/models.py:272
-#, fuzzy
-#| msgid "prioritization"
 msgid "Prioritisation"
-msgstr "priorités"
+msgstr "Priorités"
 
 #: per/models.py:273
-#, fuzzy
-#| msgid "PER Work Plan"
 msgid "WorkPlan"
 msgstr "Plan de travail PIE"
 
 #: per/models.py:274
-#, fuzzy
-#| msgid "action and accountability"
 msgid "Action And Accountability"
-msgstr "action et responsabilisation"
+msgstr "Action et responsabilisation"
 
 #: per/models.py:277
 msgid "PER"

@@ -25,7 +25,7 @@ msgstr "لكل"
 
 #: per/models.py:13
 msgid "baseline"
-msgstr "تقييم"
+msgstr "خط الأساس"
 
 #: per/models.py:14
 msgid "orientation"
@@ -33,7 +33,7 @@ msgstr "إتّجاه ; إعْداد ; تَأهِيل ; تَيّار ; مَنْح
 
 #: per/models.py:15
 msgid "assessment"
-msgstr "خط الأساس"
+msgstr "تقييم"
 
 #: per/models.py:16 per/models.py:517
 msgid "prioritization"
@@ -344,32 +344,22 @@ msgid "PER Assessment Types"
 msgstr "خط الأساس"
 
 #: per/models.py:270
-#, fuzzy
-#| msgid "orientation"
 msgid "Orientation"
 msgstr "إتّجاه ; إعْداد ; تَأهِيل ; تَيّار ; مَنْحىً ; نَزْعَة"
 
 #: per/models.py:271
-#, fuzzy
-#| msgid "assessment"
 msgid "Assessment"
-msgstr "خط الأساس"
+msgstr "تقييم"
 
 #: per/models.py:272
-#, fuzzy
-#| msgid "prioritization"
 msgid "Prioritisation"
 msgstr "تَحْدِيْدُ الأَوْلَوِيَّات"
 
 #: per/models.py:273
-#, fuzzy
-#| msgid "PER Work Plan"
 msgid "WorkPlan"
 msgstr "لكل خطة عمل"
 
 #: per/models.py:274
-#, fuzzy
-#| msgid "action and accountability"
 msgid "Action And Accountability"
 msgstr "العمل والمساءلة"
 
