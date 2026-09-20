@@ -6,15 +6,6 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    replaces = [
-        ("dref", "0072_auto_20231117_0602"),
-        ("dref", "0073_auto_20231120_0944"),
-        ("dref", "0074_dref_targeting_strategy_support_file"),
-        ("dref", "0075_auto_20231208_0654"),
-        ("dref", "0076_auto_20231208_1006"),
-        ("dref", "0077_auto_20231211_0426"),
-    ]
-
     dependencies = [
         ("dref", "0071_auto_20230912_0438"),
     ]
