@@ -14,7 +14,7 @@ from api.factories.country import CountryFactory
 from api.factories.disaster_type import DisasterTypeFactory
 from api.factories.district import DistrictFactory
 from api.factories.region import RegionFactory
-from api.models import Export
+from api.models import Export, RegionName
 from deployments.factories.user import UserFactory
 from eap.factories import (
     EAPFileFactory,
@@ -32,6 +32,7 @@ from eap.models import (
     DaysTimeFrameChoices,
     EAPAction,
     EAPFile,
+    EAPRegistration,
     EAPStatus,
     EAPType,
     EmailRecipient,
@@ -128,7 +129,7 @@ class EAPRegistrationTestCase(APITestCase):
             modified_by=self.country_admin,
         )
         url = "/api/v2/eap-registration/"
-        self.authenticate()
+        self.authenticate(self.country_admin)
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data["results"]), 5)
@@ -390,7 +391,7 @@ class EAPRegistrationTestCase(APITestCase):
         eap_registration_2.save()
 
         url = "/api/v2/active-eap/"
-        self.authenticate()
+        self.authenticate(self.country_admin)
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200, response.data)
         self.assertEqual(len(response.data["results"]), 2, response.data["results"])
@@ -429,7 +430,7 @@ class EAPRegistrationTestCase(APITestCase):
                 user3.id,
             ],
         }
-        self.authenticate()
+        self.authenticate(self.country_admin)
 
         with self.capture_on_commit_callbacks(execute=True):
             response = self.client.post(url, data, format="json")
@@ -467,7 +468,7 @@ class EAPRegistrationTestCase(APITestCase):
 
         # NOTE: test list of EAP Share Users
         url = "/api/v2/eap-share-users/"
-        self.authenticate()
+        self.authenticate(self.country_admin)
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["count"], 1, response.data)
@@ -477,7 +478,7 @@ class EAPRegistrationTestCase(APITestCase):
 
         # NOTE: test with filter by EAP Registration Id
         url = f"/api/v2/eap-share-users/?id={eap_registration.id}"
-        self.authenticate()
+        self.authenticate(self.country_admin)
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["count"], 1, response.data)
@@ -531,7 +532,7 @@ class EAPSimplifiedTestCase(APITestCase):
             )
 
         url = "/api/v2/simplified-eap/"
-        self.authenticate()
+        self.authenticate(self.country_admin)
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data["results"]), 5)
@@ -2462,7 +2463,7 @@ class EAPFullTestCase(APITestCase):
             )
 
         url = "/api/v2/full-eap/"
-        self.authenticate()
+        self.authenticate(self.country_admin)
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200, response.data)
         self.assertEqual(len(response.data["results"]), 5)
@@ -2965,8 +2966,8 @@ class TestSnapshotEAP(APITestCase):
         )
 
         # M2M districts deeply cloned (each selection carries its own description)
-        orig_districts = list(original.districts.all())
-        snapshot_districts = list(snapshot.districts.all())
+        orig_districts = list(original.districts.order_by("id"))
+        snapshot_districts = list(snapshot.districts.order_by("id"))
         self.assertEqual(len(orig_districts), len(snapshot_districts))
         self.assertNotEqual(orig_districts[0].pk, snapshot_districts[0].pk)
         self.assertEqual(
@@ -2979,8 +2980,8 @@ class TestSnapshotEAP(APITestCase):
         )
 
         # M2M Actors deeply cloned
-        orig_actors = list(original.key_actors.all())
-        snapshot_actors = list(snapshot.key_actors.all())
+        orig_actors = list(original.key_actors.order_by("id"))
+        snapshot_actors = list(snapshot.key_actors.order_by("id"))
         self.assertEqual(len(orig_actors), len(snapshot_actors))
         self.assertNotEqual(orig_actors[0].pk, snapshot_actors[0].pk)
         self.assertEqual(
@@ -2993,8 +2994,9 @@ class TestSnapshotEAP(APITestCase):
         )
 
         # M2M early actions deeply cloned
-        orig_early_actions = list(original.early_actions.all())
-        snapshot_early_actions = list(snapshot.early_actions.all())
+        # NOTE: EAPAction has no default ordering, so order explicitly before comparing.
+        orig_early_actions = list(original.early_actions.order_by("id"))
+        snapshot_early_actions = list(snapshot.early_actions.order_by("id"))
         self.assertEqual(len(orig_early_actions), len(snapshot_early_actions))
         self.assertNotEqual(orig_early_actions[0].pk, snapshot_early_actions[0].pk)
         self.assertEqual(
@@ -3007,21 +3009,25 @@ class TestSnapshotEAP(APITestCase):
         self.assertFalse(snapshot.review_checklist_file)
 
         # Assert previous_id for all M2M objects
-        for orig, snap in zip(original.key_actors.all(), snapshot.key_actors.all()):
+        # NOTE: these M2Ms have no default ordering, so pair them by id rather than by
+        # whatever order the database happens to return.
+        for orig, snap in zip(original.key_actors.order_by("id"), snapshot.key_actors.order_by("id")):
             self.assertEqual(snap.previous_id, orig.pk)
 
-        for orig, snap in zip(original.enabling_approaches.all(), snapshot.enabling_approaches.all()):
+        for orig, snap in zip(original.enabling_approaches.order_by("id"), snapshot.enabling_approaches.order_by("id")):
             self.assertEqual(snap.previous_id, orig.pk)
 
-        for orig, snap in zip(original.early_actions.all(), snapshot.early_actions.all()):
+        for orig, snap in zip(original.early_actions.order_by("id"), snapshot.early_actions.order_by("id")):
             self.assertEqual(snap.previous_id, orig.pk)
 
-        for orig, snap in zip(original.districts.all(), snapshot.districts.all()):
+        for orig, snap in zip(original.districts.order_by("id"), snapshot.districts.order_by("id")):
             self.assertEqual(snap.previous_id, orig.pk)
 
-        for orig_op, snap_op in zip(original.planned_operations.all(), snapshot.planned_operations.all()):
+        for orig_op, snap_op in zip(original.planned_operations.order_by("id"), snapshot.planned_operations.order_by("id")):
             self.assertEqual(snap_op.previous_id, orig_op.pk)
-            for orig_act, snap_act in zip(orig_op.readiness_activities.all(), snap_op.readiness_activities.all()):
+            for orig_act, snap_act in zip(
+                orig_op.readiness_activities.order_by("id"), snap_op.readiness_activities.order_by("id")
+            ):
                 self.assertEqual(snap_act.previous_id, orig_act.pk)
 
 
@@ -3142,3 +3148,144 @@ class EmailRecipientModelTest(APITestCase):
         # full_clean won't catch DB constraint, so test save
         with self.assertRaises(IntegrityError):
             duplicate.save()
+
+
+class EAPVisibilityTestCase(APITestCase):
+    """A user only sees and edits the EAPs of their own National Society."""
+
+    def setUp(self):
+        super().setUp()
+        self.region_1 = RegionFactory.create(name=RegionName.ASIA_PACIFIC)
+        self.region_2 = RegionFactory.create(name=RegionName.EUROPE)
+
+        self.ns_1 = CountryFactory.create(name="ns-1", iso3="NS1", iso="N1", region=self.region_1)
+        self.ns_2 = CountryFactory.create(name="ns-2", iso3="NS2", iso="N2", region=self.region_2)
+        self.disaster_type = DisasterTypeFactory.create(name="disaster1")
+
+        management.call_command("make_permissions")
+
+        self.ns_1_admin = self._create_admin("country_admin_%s" % self.ns_1.id, "%s Admins" % self.ns_1.name)
+        self.ns_2_admin = self._create_admin("country_admin_%s" % self.ns_2.id, "%s Admins" % self.ns_2.name)
+        self.region_1_admin = self._create_admin("region_admin_%s" % self.region_1.id, "%s Regional Admins" % self.region_1.name)
+
+        # NOTE: self.ifrc_user from the base test case is a superuser, so use a plain user
+        # holding only the ifrc_admin permission to cover the non-superuser path.
+        self.ifrc_admin = UserFactory.create()
+        self.ifrc_admin.user_permissions.add(Permission.objects.get(codename="ifrc_admin"))
+
+        self.shared_user = UserFactory.create()
+        self.outsider = UserFactory.create()
+
+        self.eap_1 = self._create_eap(self.ns_1, self.ns_1_admin)
+        self.eap_2 = self._create_eap(self.ns_2, self.ns_2_admin)
+        self.eap_1.users.add(self.shared_user)
+
+    def _create_admin(self, codename, group_name):
+        user = UserFactory.create()
+        user.user_permissions.add(Permission.objects.filter(codename=codename).first())
+        user.groups.add(Group.objects.filter(name=group_name).first())
+        return user
+
+    def _create_eap(self, national_society, created_by):
+        return EAPRegistrationFactory.create(
+            country=national_society,
+            national_society=national_society,
+            disaster_type=self.disaster_type,
+            eap_type=EAPType.SIMPLIFIED_EAP,
+            created_by=created_by,
+            modified_by=created_by,
+        )
+
+    def _list_ids(self, user, url="/api/v2/eap-registration/"):
+        self.authenticate(user)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200, response.data)
+        return {result["id"] for result in response.data["results"]}
+
+    def test_registration_visibility_per_role(self):
+        both = {self.eap_1.id, self.eap_2.id}
+        for user, expected in [
+            (self.ns_1_admin, {self.eap_1.id}),
+            (self.ns_2_admin, {self.eap_2.id}),
+            (self.region_1_admin, {self.eap_1.id}),
+            (self.shared_user, {self.eap_1.id}),
+            (self.outsider, set()),
+            (self.ifrc_admin, both),
+            (self.root_user, both),
+        ]:
+            with self.subTest(user=user.id):
+                self.assertEqual(self._list_ids(user), expected)
+
+        # Out of scope means 404, not 403, so ids cannot be probed
+        self.authenticate(self.ns_2_admin)
+        self.assertEqual(self.client.get(f"/api/v2/eap-registration/{self.eap_1.id}/").status_code, 404)
+
+        # active-eap is scoped the same way
+        EAPRegistration.objects.filter(id__in=both).update(status=EAPStatus.PROJECT_AGREEMENT_SIGNED)
+        self.assertEqual(self._list_ids(self.ns_1_admin, "/api/v2/active-eap/"), {self.eap_1.id})
+
+    def test_application_visibility_follows_registration(self):
+        simplified_eap = SimplifiedEAPFactory.create(
+            eap_registration=self.eap_1,
+            created_by=self.ns_1_admin,
+            modified_by=self.ns_1_admin,
+            budget_file=EAPFileFactory._create_file(created_by=self.ns_1_admin, modified_by=self.ns_1_admin),
+        )
+        FullEAPFactory.create(
+            eap_registration=self.eap_2,
+            created_by=self.ns_2_admin,
+            modified_by=self.ns_2_admin,
+            budget_file=EAPFileFactory._create_file(created_by=self.ns_2_admin, modified_by=self.ns_2_admin),
+        )
+
+        self.assertEqual(self._list_ids(self.shared_user, "/api/v2/simplified-eap/"), {simplified_eap.id})
+        self.assertEqual(self._list_ids(self.shared_user, "/api/v2/full-eap/"), set())
+
+        self.authenticate(self.ns_2_admin)
+        self.assertEqual(self.client.get(f"/api/v2/simplified-eap/{simplified_eap.id}/").status_code, 404)
+
+    def test_creator_and_shared_user_can_update(self):
+        url = f"/api/v2/eap-registration/{self.eap_1.id}/"
+
+        self.authenticate(self.shared_user)
+        response = self.client.patch(url, {"disaster_sub_type": "by shared"}, format="json")
+        self.assertEqual(response.status_code, 200, response.data)
+
+        # The creator keeps access even once their country admin group is revoked
+        self.ns_1_admin.groups.clear()
+        self.ns_1_admin.user_permissions.clear()
+        self.authenticate(self.ns_1_admin)
+        response = self.client.patch(url, {"disaster_sub_type": "by creator"}, format="json")
+        self.assertEqual(response.status_code, 200, response.data)
+
+        self.authenticate(self.outsider)
+        response = self.client.patch(url, {"disaster_sub_type": "nope"}, format="json")
+        self.assertEqual(response.status_code, 404, response.data)
+
+        self.eap_1.refresh_from_db()
+        self.assertEqual(self.eap_1.disaster_sub_type, "by creator")
+
+    def test_creating_application_requires_access(self):
+        # NOTE: has_object_permission is not called on create, and creating an application locks
+        # the registration, so an unauthorised create would brick the National Society's EAP.
+        data = {
+            "eap_registration": self.eap_1.id,
+            "national_society_contact_name": "Name",
+            "national_society_contact_title": "Title",
+            "national_society_contact_email": "contact@example.com",
+            "seap_timeframe": 1,
+            "potential_risks": [],
+            "early_actions": [],
+        }
+
+        for user in [self.outsider, self.ns_2_admin]:
+            with self.subTest(user=user.id):
+                self.authenticate(user)
+                response = self.client.post("/api/v2/simplified-eap/", data, format="json")
+                self.assertEqual(response.status_code, 403, response.data)
+
+        self.assertFalse(SimplifiedEAP.objects.filter(eap_registration=self.eap_1).exists())
+
+        self.authenticate(self.ns_1_admin)
+        response = self.client.post("/api/v2/simplified-eap/", data, format="json")
+        self.assertEqual(response.status_code, 201, response.data)

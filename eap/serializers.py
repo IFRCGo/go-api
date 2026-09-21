@@ -41,6 +41,7 @@ from eap.models import (
     TimeFrame,
     YearsTimeFrameChoices,
 )
+from eap.permissions import has_creator_or_shared_permission
 from eap.tasks import (
     generate_eap_summary_pdf,
     generate_export_diff_pdf,
@@ -1024,7 +1025,7 @@ class EAPStatusSerializer(BaseEAPSerializer):
 
         if (current_status, new_status) not in valid_transitions:
             raise serializers.ValidationError(
-                gettext("EAP status cannot be changed from %s to %s.")
+                gettext("You cannot change EAP status from %s to %s.")
                 % (EAPRegistration.Status(current_status).label, EAPRegistration.Status(new_status).label)
             )
 
@@ -1118,7 +1119,11 @@ class EAPStatusSerializer(BaseEAPSerializer):
             EAPRegistration.Status.NS_ADDRESSING_COMMENTS,
             EAPRegistration.Status.UNDER_REVIEW,
         ):
-            if not (has_country_permission(user, self.instance.national_society_id) or is_user_ifrc_admin(user)):
+            if not (
+                has_country_permission(user, self.instance.national_society_id)
+                or is_user_ifrc_admin(user)
+                or has_creator_or_shared_permission(user, self.instance)
+            ):
                 raise PermissionDenied(
                     gettext("You do not have permission to change status to %s.") % EAPRegistration.Status(new_status).label
                 )
