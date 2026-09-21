@@ -86,6 +86,22 @@ class AppealTest(APITestCase):
         self.assertIsNone(response["event"])
         self.assertIsNotNone(response["country"])
 
+    def test_history_not_duplicated_when_same_aid_is_shared(self):
+        country = models.Country.objects.create(name="history-country")
+
+        appeal1 = models.Appeal.objects.create(aid="0", name="appeal-1", atype=1, code="MDRKE073", country=country)
+        models.Appeal.objects.create(aid="0", name="appeal-2", atype=1, code="MDRXY001", country=country)
+
+        initial_history_count = models.AppealHistory.objects.filter(appeal=appeal1).count()
+        self.assertEqual(initial_history_count, 1)
+
+        # Save without changing watched fields; this should not create a new history row.
+        appeal1.name = "appeal-1"
+        appeal1.save(update_fields=["name"])
+
+        final_history_count = models.AppealHistory.objects.filter(appeal=appeal1).count()
+        self.assertEqual(final_history_count, initial_history_count)
+
 
 class FieldReportTest(TestCase):
 

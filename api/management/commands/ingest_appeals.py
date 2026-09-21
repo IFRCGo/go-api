@@ -38,6 +38,17 @@ GEC_CODES = GECCode.objects.select_related("country").all()
 class Command(BaseCommand):
     help = "Add new entries from Access database file"
 
+    def generate_numeric_aid(self, app_code):
+        """Generate a deterministic numeric identifier from APP_code using ASCII positional encoding."""
+        if not app_code:
+            return "0"
+
+        value = 0
+        for char in app_code:
+            value = (value * 128) + ord(char)
+
+        return str(value)
+
     def get_codes_skip(self):
         value = AppealFilter.objects.filter(name="ingestAppealFilter").values_list("value", flat=True).first()
         return re.findall(r"[^\s,]+", value or "")
@@ -288,7 +299,8 @@ class Command(BaseCommand):
             modify_time = self.parse_date(r["APP_modifyTime"])
 
         fields = {
-            "aid": r["APP_Id"],
+            # APP_Id is no longer reliable in D365 (currently always 0); derive a deterministic numeric aid from APP_code.
+            "aid": self.generate_numeric_aid(r["APP_code"]),
             "name": r["APP_name"],
             "dtype": dtype,
             "atype": atype,

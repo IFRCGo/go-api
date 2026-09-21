@@ -247,12 +247,35 @@ def add_update_appeal_history(sender, instance, created, **kwargs):
 
     else:
         # Appeal Update
-        appeal = Appeal.objects.get(code=instance.code)
-        appeal_history = AppealHistory.objects.filter(aid=instance.aid).order_by("id").last()
+        appeal = Appeal.objects.get(pk=instance.pk)
+        # D365 can send non-unique APP_Id (aid), so history must be scoped to this exact appeal.
+        appeal_history = AppealHistory.objects.filter(appeal=instance).order_by("id").last()
         for field in fields_watched:
             if appeal_history and getattr(appeal, field) != getattr(appeal_history, field):
                 # Watched fields are not changed
                 changed = True
+
+        if appeal_history is None:
+            AppealHistory.objects.create(
+                aid=instance.aid,
+                num_beneficiaries=instance.num_beneficiaries,
+                amount_requested=instance.amount_requested,
+                amount_funded=instance.amount_funded,
+                valid_from=now,
+                valid_to=datetime(2200, 1, 1, tzinfo=datetime_timezone.utc),
+                start_date=instance.start_date,
+                end_date=instance.end_date,
+                appeal=instance,
+                atype=instance.atype,
+                country=instance.country,
+                region=instance.region,
+                dtype=instance.dtype,
+                needs_confirmation=instance.needs_confirmation,
+                status=instance.status,
+                code=instance.code,
+                triggering_amount=instance.triggering_amount,
+            )
+            return
 
         if not changed:
             # Watched fields are not changed
