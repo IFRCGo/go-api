@@ -10,12 +10,10 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    replaces = [('country_plan', '0001_initial'), ('country_plan', '0002_alter_countryplan_is_publish'), ('country_plan', '0003_auto_20221128_0831'), ('country_plan', '0004_countryplan_appeal_api_inserted_date'), ('country_plan', '0005_auto_20230207_0840'), ('country_plan', '0006_alter_countryplan_created_by_and_more'), ('country_plan', '0007_alter_membershipcoordination_sector_and_more'), ('country_plan', '0008_alter_countryplan_internal_plan_file'), ('country_plan', '0009_countryplan_internal_plan_url_and_more')]
-
     initial = True
 
     dependencies = [
-        ('api', '0160_merge_0159_auto_20221022_1542_0159_auto_20221028_0940'),
+        ('api', '0001_squashed_0232'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 

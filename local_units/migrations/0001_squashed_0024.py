@@ -50,15 +50,10 @@ def _0007__seed_reverse(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
-    replaces = [('local_units', '0001_initial'), ('local_units', '0002_alter_localunit_phone'), ('local_units', '0003_alter_localunit_validated'), ('local_units', '0004_auto_20231127_1500'), ('local_units', '0005_delegationoffice_delegationofficetype'), ('local_units', '0006_auto_20240329_0849'), ('local_units', '0007_auto_20240330_1710'), ('local_units', '0008_remove_localunit_data_source_id'), ('local_units', '0009_alter_localunit_location'), ('local_units', '0010_alter_localunit_country'), ('local_units', '0011_auto_20240506_0624'), ('local_units', '0012_auto_20240506_0636'), ('local_units', '0013_localunittype_colour'), ('local_units', '0014_auto_20240509_0529'), ('local_units', '0015_auto_20240521_0434'), ('local_units', '0016_auto_20240521_0511'), ('local_units', '0017_alter_healthdata_other_medical_heal'), ('local_units', '0018_localunit_deprecated_reason_and_more'), ('local_units', '0019_localunit_last_sent_validator_type'), ('local_units', '0020_alter_localunit_created_at'), ('local_units', '0021_localunit_is_new_local_unit_localunit_status_and_more'), ('local_units', '0022_localunit_status_migrate'), ('local_units', '0023_remove_localunit_is_locked_and_more'), ('local_units', '0024_otherprofile_healthdata_other_training_facilities_and_more')]
-
     initial = True
 
     dependencies = [
-        ('api', '0160_merge_0159_auto_20221022_1542_0159_auto_20221028_0940'),
-        ('api', '0187_auto_20231218_0508'),
-        ('api', '0210_profile_accepted_montandon_license_terms'),
-        ('api', '0220_event_ifrc_severity_level_update_date_and_more'),
+        ('api', '0001_squashed_0232'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 

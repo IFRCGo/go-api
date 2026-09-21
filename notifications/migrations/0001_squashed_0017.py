@@ -16,16 +16,11 @@ def _0012__update_stood_down(self, schema_editor):
 
 class Migration(migrations.Migration):
 
-    replaces = [('notifications', '0001_initial'), ('notifications', '0002_subscription_event'), ('notifications', '0003_notificationguid'), ('notifications', '0004_auto_20200618_1017'), ('notifications', '0004_auto_20200618_0904'), ('notifications', '0005_merge_20200619_0724'), ('notifications', '0006_auto_20200623_0704'), ('notifications', '0007_auto_20200810_1116'), ('notifications', '0008_auto_20201104_0352'), ('notifications', '0009_surgealert_is_active'), ('notifications', '0010_surgealert_molnix_status'), ('notifications', '0011_surgealert_country'), ('notifications', '0012_surgealert_is_stood_down'), ('notifications', '0013_auto_20230410_0720'), ('notifications', '0014_surgealert_status'), ('notifications', '0015_rename_molnix_status_surgealert_molnix_status_old'), ('notifications', '0016_alertsubscription'), ('notifications', '0017_alter_alertsubscription_countries')]
-
     initial = True
 
     dependencies = [
-        ('api', '0001_initial'),
-        ('api', '0017_auto_20190424_1508'),
-        ('api', '0227_alter_eventseveritylevelhistory_options'),
-        ('api', '0231_alter_export_export_type'),
-        ('deployments', '0033_molnixtag'),
+        ('api', '0001_squashed_0232'),
+        ('deployments', '0001_squashed_0081'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 

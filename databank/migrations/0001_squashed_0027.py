@@ -9,12 +9,10 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    replaces = [('databank', '0001_initial'), ('databank', '0002_auto_20200603_0613'), ('databank', '0003_auto_20200618_0904'), ('databank', '0004_externalsource_keydocument_keydocumentgroup'), ('databank', '0005_auto_20200903_0843'), ('databank', '0006_acapsseasonalcalender'), ('databank', '0007_auto_20231221_0608'), ('databank', '0008_countryoverview_branches'), ('databank', '0009_auto_20231226_0516'), ('databank', '0010_auto_20231227_0445'), ('databank', '0011_auto_20231227_0922'), ('databank', '0012_auto_20231228_0623'), ('databank', '0013_auto_20231228_1038'), ('databank', '0014_auto_20231229_0510'), ('databank', '0015_auto_20240111_0813'), ('databank', '0016_fdrsincome'), ('databank', '0017_countryoverview_world_bank_poverty_rate'), ('databank', '0018_countryoverview_unicef_population_under_18'), ('databank', '0019_countryoverview_hdr_gii'), ('databank', '0020_fdrsannualincome'), ('databank', '0021_countrykeyclimate'), ('databank', '0022_alter_fdrsincome_indicator'), ('databank', '0023_auto_20240402_0912'), ('databank', '0024_countryoverview_fdrs_data_fetched_year'), ('databank', '0025_countryoverview_world_bank_gni_capita'), ('databank', '0026_countryoverview_calculated_world_bank_gdp_year_and_more'), ('databank', '0027_remove_countryoverview_branches_and_more')]
-
     initial = True
 
     dependencies = [
-        ('api', '0036_auto_20191215_0615'),
+        ('api', '0001_squashed_0232'),
     ]
 
     operations = [
