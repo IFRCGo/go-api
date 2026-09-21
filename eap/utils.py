@@ -14,6 +14,46 @@ from eap.models import EAPType, EmailRecipient
 from utils.file_check import validate_file_type
 
 
+def get_admin_ids(user, codename_prefix: str) -> list[int]:
+    """Ids of the countries/regions the user administers, eg. "country_admin_", "region_admin_"."""
+    return [
+        int(codename.replace(codename_prefix, ""))
+        for codename in Permission.objects.filter(
+            group__user=user,
+            codename__startswith=codename_prefix,
+        ).values_list("codename", flat=True)
+    ]
+
+
+def filter_eap_registration_queryset_by_user_access(user, queryset):
+    """
+    EAP Registrations the user can see: their own National Society's, the ones of the
+    regions they administer, the ones they created and the ones shared with them.
+    """
+    if user.is_superuser or user.has_perm("api.ifrc_admin"):
+        return queryset
+
+    return queryset.filter(
+        models.Q(created_by=user)
+        | models.Q(users=user)
+        | models.Q(national_society__in=get_admin_ids(user, "country_admin_"))
+        | models.Q(national_society__region__in=get_admin_ids(user, "region_admin_"))
+    ).distinct()
+
+
+def filter_eap_queryset_by_user_access(user, queryset):
+    """Same rule for SimplifiedEAP/FullEAP, which follow their EAP Registration."""
+    if user.is_superuser or user.has_perm("api.ifrc_admin"):
+        return queryset
+
+    return queryset.filter(
+        models.Q(eap_registration__created_by=user)
+        | models.Q(eap_registration__users=user)
+        | models.Q(eap_registration__national_society__in=get_admin_ids(user, "country_admin_"))
+        | models.Q(eap_registration__national_society__region__in=get_admin_ids(user, "region_admin_"))
+    ).distinct()
+
+
 def get_emails_by_type(email_type: EmailRecipient.EmailType) -> list[str]:
     return list(EmailRecipient.objects.filter(type=email_type).values_list("email", flat=True))
 
