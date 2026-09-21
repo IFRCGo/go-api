@@ -28,6 +28,7 @@ from eap.models import (
 from eap.permissions import (
     EAPBasePermission,
     EAPRegistrationPermissions,
+    EAPRevisePermission,
     EAPValidatedBudgetPermission,
 )
 from eap.serializers import (
@@ -42,6 +43,10 @@ from eap.serializers import (
     FullEAPSerializer,
     MiniEAPSerializer,
     SimplifiedEAPSerializer,
+)
+from eap.utils import (
+    filter_eap_queryset_by_user_access,
+    filter_eap_registration_queryset_by_user_access,
 )
 from main.permissions import DenyGuestUserMutationPermission, DenyGuestUserPermission
 
@@ -65,8 +70,7 @@ class ActiveEAPViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
 
     def get_queryset(self) -> QuerySet[EAPRegistration]:
         return (
-            super()
-            .get_queryset()
+            filter_eap_registration_queryset_by_user_access(self.request.user, super().get_queryset())
             .filter(status=EAPStatus.PROJECT_AGREEMENT_SIGNED)
             .select_related("disaster_type", "country")
             .annotate(
@@ -98,8 +102,7 @@ class EAPRegistrationViewSet(EAPModelViewSet):
 
     def get_queryset(self) -> QuerySet[EAPRegistration]:
         base_qs = (
-            super()
-            .get_queryset()
+            filter_eap_registration_queryset_by_user_access(self.request.user, super().get_queryset())
             .select_related(
                 "created_by",
                 "modified_by",
@@ -224,7 +227,12 @@ class EAPShareUserViewSet(
     filterset_class = EAPShareUserFilterSet
 
     def get_queryset(self) -> QuerySet[EAPRegistration]:
-        return super().get_queryset().prefetch_related("users").order_by("-created_at").distinct()
+        return (
+            filter_eap_registration_queryset_by_user_access(self.request.user, super().get_queryset())
+            .prefetch_related("users")
+            .order_by("-created_at")
+            .distinct()
+        )
 
 
 class SimplifiedEAPViewSet(EAPModelViewSet):
@@ -240,8 +248,7 @@ class SimplifiedEAPViewSet(EAPModelViewSet):
 
     def get_queryset(self) -> QuerySet[SimplifiedEAP]:
         return (
-            super()
-            .get_queryset()
+            filter_eap_queryset_by_user_access(self.request.user, super().get_queryset())
             .select_related(
                 "created_by",
                 "modified_by",
@@ -310,7 +317,7 @@ class SimplifiedEAPViewSet(EAPModelViewSet):
         permission_classes=[
             permissions.IsAuthenticated,
             DenyGuestUserMutationPermission,
-            EAPBasePermission,
+            EAPRevisePermission,
         ],
     )
     def revise(
@@ -359,8 +366,7 @@ class FullEAPViewSet(EAPModelViewSet):
 
     def get_queryset(self) -> QuerySet[FullEAP]:
         return (
-            super()
-            .get_queryset()
+            filter_eap_queryset_by_user_access(self.request.user, super().get_queryset())
             .select_related(
                 "created_by",
                 "modified_by",
@@ -436,7 +442,7 @@ class FullEAPViewSet(EAPModelViewSet):
         permission_classes=[
             permissions.IsAuthenticated,
             DenyGuestUserMutationPermission,
-            EAPBasePermission,
+            EAPRevisePermission,
         ],
     )
     def revise(
