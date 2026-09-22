@@ -542,12 +542,19 @@ class HayStackSearch(APIView):
 class Brief(APIView):
     @classmethod
     def get(cls, request):
+        now = timezone.now()
         e = Event.objects.filter(summary__contains="base64").count()
         s = Snippet.objects.filter(snippet__contains="base64").count()
         r = FieldReport.objects.filter(description__contains="base64").count()
         u = FlashUpdate.objects.filter(situational_overview__contains="base64").count()
         c = CronJob.objects.filter(status=2).count()
-        f = Event.objects.filter(disaster_start_date__gt=timezone.now()).count()
+        f = Event.objects.filter(disaster_start_date__gt=now).count()
+        a = AppealHistory.objects.filter(
+            valid_from__lte=now,
+            valid_to__gt=now,
+            appeal__code__isnull=False,
+            amount_funded__lt=F("appeal__amount_funded") - 0.1,
+        ).count()
 
         # Infrastructure health (db/cache/redis/disk/memory/storage and Elasticsearch)
         # is served by /health-check/; this endpoint keeps only the operational and
@@ -555,6 +562,7 @@ class Brief(APIView):
         res = {
             "base64_img": e + s + r + u,
             "events_in_future": f,
+            "appeals_cut_from_history": a,
             "cronjob_err": c,
             "maintenance_mode": settings.DJANGO_READ_ONLY,
             "git_last_tag": settings.LAST_GIT_TAG,
