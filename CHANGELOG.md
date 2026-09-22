@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Added
+ - Squash all app migrations (745 files to 14) using `replaces`; the replaced
+   files are deleted in a follow-up release, which must not be deployed until
+   this one is applied everywhere
  - Fix sentry N+1 issues
  - Use Don_Code for country identification in ingest_ns_directory job
  - Skip for empty email on notification
