@@ -8,13 +8,11 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    replaces = [('alert_system', '0001_initial'), ('alert_system', '0002_remove_alertemailthread_unique_user_guid_and_more'), ('alert_system', '0003_remove_alertemailthread_unique_user_parent_event'), ('alert_system', '0004_alter_alertemailthread_root_email_message_id_and_more')]
-
     initial = True
 
     dependencies = [
-        ('api', '0231_alter_export_export_type'),
-        ('notifications', '0016_alertsubscription'),
+        ('api', '0001_squashed_0232'),
+        ('notifications', '0001_squashed_0017'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 

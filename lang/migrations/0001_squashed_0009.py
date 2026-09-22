@@ -20,8 +20,6 @@ def _0009__fill_last_used(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
-    replaces = [('lang', '0001_initial'), ('lang', '0002_auto_20200603_0613'), ('lang', '0003_auto_20200610_0911'), ('lang', '0004_auto_20200616_0713'), ('lang', '0005_string_page_name'), ('lang', '0006_alter_string_unique_together'), ('lang', '0007_translationcache'), ('lang', '0008_translationcache_table_field'), ('lang', '0009_remove_translationcache_lang_transl_text_4a497b_idx_and_more')]
-
     initial = True
 
     dependencies = [

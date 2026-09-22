@@ -14,8 +14,6 @@ def _0012__set_is_old_token(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
-    replaces = [('registrations', '0001_initial'), ('registrations', '0002_auto_20180626_1808'), ('registrations', '0003_auto_20200206_0926'), ('registrations', '0004_auto_20200211_1514'), ('registrations', '0005_domainwhitelist'), ('registrations', '0006_domainwhitelist_description'), ('registrations', '0007_auto_20200618_0904'), ('registrations', '0008_pending_justification'), ('registrations', '0009_auto_20220104_1632'), ('registrations', '0010_pending_reminder_sent_to_admin'), ('registrations', '0011_userexternaltoken'), ('registrations', '0012_userexternaltoken_is_old_token'), ('registrations', '0013_userexternaltoken_is_disabled')]
-
     initial = True
 
     dependencies = [

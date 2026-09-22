@@ -7,13 +7,10 @@ from django.db import migrations, models
 # Second half of the deployments squash; see 0001_squashed_0081 for why it is split.
 class Migration(migrations.Migration):
 
-    replaces = [('deployments', '0082_personnel_surge_alert'), ('deployments', '0083_auto_20230727_0853'), ('deployments', '0084_auto_20230731_1006'), ('deployments', '0085_alter_personnel_location'), ('deployments', '0086_auto_20230809_0822'), ('deployments', '0087_auto_20230816_0430'), ('deployments', '0088_alter_project_visibility'), ('deployments', '0089_alter_emergencyproject_districts'), ('deployments', '0090_sectortag_title_ar_sectortag_title_en_and_more'), ('deployments', '0091_erureadinesstype_alter_erureadiness_options_and_more'), ('deployments', '0092_alter_eru_type_alter_erureadinesstype_type'), ('deployments', '0093_sector_title_ar_sector_title_en_sector_title_es_and_more'), ('deployments', '0094_molnixappraisal_molnixappraiser_rrmspersonsnapshot_and_more'), ('deployments', '0094_erureadinesstype_ns_contribution'), ('deployments', '0095_molnix_appraisal_appraised_person_and_event_participation_constraint'), ('deployments', '0096_alter_eru_type_alter_erureadinesstype_type'), ('deployments', '0097_alter_emergencyproject_event')]
-
     dependencies = [
-        ('api', '0210_profile_accepted_montandon_license_terms'),
-        ('api', '0232_remove_event_auto_generated_source_event_source_and_more'),
-        ('deployments', '0081_merge_20230614_0804'),
-        ('notifications', '0013_auto_20230410_0720'),
+        ('api', '0001_squashed_0232'),
+        ('deployments', '0001_squashed_0081'),
+        ('notifications', '0001_squashed_0017'),
     ]
 
     operations = [

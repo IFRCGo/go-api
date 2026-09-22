@@ -36,13 +36,10 @@ def _0006__clamp_negative_values_to_zero(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
-    replaces = [('eap', '0001_initial'), ('eap', '0002_auto_20220708_0747'), ('eap', '0003_eapaction_eapcontact_eapfile_eapimpact_and_more'), ('eap', '0004_emailrecipient_and_more'), ('eap', '0005_remove_fulleap_unique_full_eap_version_and_more'), ('eap', '0006_remove_eapregistration_pending_pfa_at_and_more'), ('eap', '0007_keyactor_partner_positive_integer_fields'), ('eap', '0008_potentialrisk_eapregistration_appeal_code_and_more')]
-
     initial = True
 
     dependencies = [
-        ('api', '0150_admin2_admin2geoms'),
-        ('api', '0231_alter_export_export_type'),
+        ('api', '0001_squashed_0232'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 

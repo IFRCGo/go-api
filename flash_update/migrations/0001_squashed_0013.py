@@ -10,12 +10,10 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    replaces = [('flash_update', '0001_initial'), ('flash_update', '0002_auto_20220228_0544'), ('flash_update', '0003_flashupdateshare'), ('flash_update', '0004_auto_20220303_0633'), ('flash_update', '0005_auto_20220303_0834'), ('flash_update', '0006_auto_20220303_0906'), ('flash_update', '0007_auto_20220303_1116'), ('flash_update', '0008_auto_20220311_1023'), ('flash_update', '0009_auto_20220513_0633'), ('flash_update', '0010_auto_20220607_1157'), ('flash_update', '0011_auto_20220805_1047'), ('flash_update', '0012_auto_20230410_0720'), ('flash_update', '0013_alter_flashgraphicmap_file_and_more')]
-
     initial = True
 
     dependencies = [
-        ('api', '0145_auto_20220218_1338'),
+        ('api', '0001_squashed_0232'),
         ('auth', '0011_update_proxy_permissions'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
