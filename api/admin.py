@@ -868,7 +868,7 @@ class AppealAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
             amount_requested=obj.amount_requested,
             amount_funded=obj.amount_funded,
             valid_from=now,
-            valid_to=datetime(2200, 1, 1, tzinfo=timezone.utc),
+            valid_to=timezone.make_aware(datetime(2200, 1, 1)),
             start_date=obj.start_date,
             end_date=obj.end_date,
             appeal=obj,
