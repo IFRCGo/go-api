@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 from .logger import logger
-from .models import Action, ActionOrg, ActionType
+from .models import Action, ActionOrg, ActionType, Appeal
 
 
 class ActionForm(forms.ModelForm):
@@ -14,6 +14,19 @@ class ActionForm(forms.ModelForm):
 
     class Meta:
         model = Action
+        fields = "__all__"
+
+
+class AppealForm(forms.ModelForm):
+    force_history_save = forms.BooleanField(
+        label="Save changes to history",
+        required=False,
+        initial=False,
+        help_text="Check if changes should be saved to AppealHistory, regardless of the values of the fields.",
+    )
+
+    class Meta:
+        model = Appeal
         fields = "__all__"
 
 
