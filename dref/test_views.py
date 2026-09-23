@@ -2615,15 +2615,11 @@ class DrefTestCase(APITestCase):
                 response.data["sub_total_cost"],
                 response.data["indirect_cost"],
                 response.data["total_cost"],
-                response.data["surge_deployment_expenditure_cost"],
-                response.data["indirect_expenditure_cost"],
             },
             {
                 dref1.sub_total_cost,
                 dref1.indirect_cost,
                 dref1.total_cost,
-                dref1.surge_deployment_cost,
-                dref1.indirect_cost,
             },
         )
 
@@ -2632,39 +2628,11 @@ class DrefTestCase(APITestCase):
             "title": "Updated Title",
             "starting_language": "en",
             "modified_at": datetime.now(),
-            # Add total_expenditure on the existing proposed_action
-            "proposed_action": [
-                {
-                    "id": response.data["proposed_action"][0]["id"],
-                    "total_expenditure": 50000,
-                },
-                {
-                    "id": response.data["proposed_action"][1]["id"],
-                    "total_expenditure": 5000,
-                },
-            ],
-            "sub_total_expenditure_cost": 55000,
-            "surge_deployment_expenditure_cost": 10000,
-            "indirect_expenditure_cost": 5800,
-            "total_expenditure_cost": 70800,
         }
         url = f"/api/v2/dref-final-report/{response.data['id']}/"
         response = self.client.patch(url, data=data)
         self.assert_200(response)
-        self.assertEqual(
-            {
-                response.data["title"],
-                response.data["sub_total_expenditure_cost"],
-                response.data["indirect_expenditure_cost"],
-                response.data["total_expenditure_cost"],
-            },
-            {
-                data["title"],
-                data["sub_total_expenditure_cost"],
-                data["indirect_expenditure_cost"],
-                data["total_expenditure_cost"],
-            },
-        )
+        self.assertEqual(response.data["title"], data["title"])
 
         dref2 = DrefFactory.create(
             title="Test Title",

@@ -85,7 +85,8 @@ class ProposedActionSerializer(NestedCreateMixin, NestedUpdateMixin, serializers
 
     class Meta:
         model = ProposedAction
-        fields = "__all__"
+        # NOTE: Expenditure is no longer captured on the Imminent DREF Final Report
+        exclude = ("total_expenditure",)
 
     def validate(self, data):
         activities = data.get("activities")
@@ -1190,6 +1191,12 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             "event_map",
             "cover_image",
             "users",
+            # NOTE: Expenditure is no longer captured on the Imminent DREF Final Report.
+            # The columns are kept for the historical records but are neither read nor written.
+            "sub_total_expenditure_cost",
+            "surge_deployment_expenditure_cost",
+            "indirect_expenditure_cost",
+            "total_expenditure_cost",
         )
 
     def validate(self, data):
@@ -1217,12 +1224,8 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
         # NOTE: Validation for type DREF Imminent
         if self.instance and self.instance.is_dref_imminent_v2 and data.get("type_of_dref") == Dref.DrefType.IMMINENT:
             sub_total_cost = data.get("sub_total_cost")
-            sub_total_expenditure_cost = data.get("sub_total_expenditure_cost")
-            surge_deployment_expenditure_cost = data.get("surge_deployment_expenditure_cost") or 0
             indirect_cost = data.get("indirect_cost")
-            indirect_expenditure_cost = data.get("indirect_expenditure_cost")
             total_cost = data.get("total_cost")
-            total_expenditure_cost = data.get("total_expenditure_cost")
             proposed_actions = data.get("proposed_action", [])
 
             if not proposed_actions:
@@ -1231,54 +1234,22 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
                 )
             if not sub_total_cost:
                 raise serializers.ValidationError({"sub_total_cost": gettext("Sub-total is required for Imminent DREF")})
-            if not sub_total_expenditure_cost:
-                raise serializers.ValidationError(
-                    {"sub_total_expenditure_cost": gettext("Sub-total Expenditure is required for Imminent DREF")}
-                )
             if sub_total_cost != self.SUB_TOTAL_COST:
                 raise serializers.ValidationError(
                     {"sub_total": gettext("Sub-total should be equal to %s for Imminent DREF" % self.SUB_TOTAL_COST)}
                 )
             if not indirect_cost:
                 raise serializers.ValidationError({"indirect_cost": gettext("Indirect Cost is required for Imminent DREF")})
-            if not indirect_expenditure_cost:
-                raise serializers.ValidationError(
-                    {"indirect_expenditure_cost": gettext("Indirect Expenditure is required for Imminent DREF")}
-                )
             if not total_cost:
                 raise serializers.ValidationError({"total_cost": gettext("Total is required for Imminent DREF")})
-            if not total_expenditure_cost:
-                raise serializers.ValidationError(
-                    {"total_expenditure_cost": gettext("Total Expenditure is required for Imminent DREF")}
-                )
 
-            total_proposed_budget: int = 0
-            total_proposed_expenditure: int = 0
-            for action in proposed_actions:
-                total_proposed_budget += action.get("total_budget", 0)
-                total_proposed_expenditure += action.get("total_expenditure", 0)
+            total_proposed_budget = sum(action.get("total_budget", 0) for action in proposed_actions)
             if total_proposed_budget != sub_total_cost:
                 raise serializers.ValidationError({"sub_total_cost": gettext("Sub-total should be equal to proposed budget.")})
-            if total_proposed_expenditure != sub_total_expenditure_cost:
-                raise serializers.ValidationError(
-                    {"sub_total_expenditure_cost": gettext("Sub-total Expenditure should be equal to proposed expenditure.")}
-                )
-            expected_total_expenditure_cost: int = (
-                sub_total_expenditure_cost + surge_deployment_expenditure_cost + indirect_expenditure_cost
-            )
-            if expected_total_expenditure_cost != total_expenditure_cost:
-                raise serializers.ValidationError(
-                    {
-                        "total_expenditure_cost": gettext(
-                            "Total Expenditure Cost should be equal to sum of Sub-total Expenditure, "
-                            "Surge Deployment Expenditure and Indirect Expenditure Cost."
-                        )
-                    }
-                )
         return data
 
     def validate_appeal_code(self, appeal_code):
-        if self.instance.appeal_code and appeal_code != self.instance.appeal_code:
+        if self.instance and self.instance.appeal_code and appeal_code != self.instance.appeal_code:
             raise serializers.ValidationError("Can't edit MDR Code")
         return appeal_code
 
@@ -1321,9 +1292,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             validated_data["is_dref_imminent_v2"] = True
             validated_data["sub_total_cost"] = dref.sub_total_cost
             validated_data["surge_deployment_cost"] = dref.surge_deployment_cost
-            validated_data["surge_deployment_expenditure_cost"] = dref.surge_deployment_cost
             validated_data["indirect_cost"] = dref.indirect_cost
-            validated_data["indirect_expenditure_cost"] = dref.indirect_cost
             validated_data["total_cost"] = dref.total_cost
 
         if dref_operational_update:
@@ -1565,9 +1534,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
                 validated_data["is_dref_imminent_v2"] = True
                 validated_data["sub_total_cost"] = dref.sub_total_cost
                 validated_data["surge_deployment_cost"] = dref.surge_deployment_cost
-                validated_data["surge_deployment_expenditure_cost"] = dref.surge_deployment_cost
                 validated_data["indirect_cost"] = dref.indirect_cost
-                validated_data["indirect_expenditure_cost"] = dref.indirect_cost
                 validated_data["total_cost"] = dref.total_cost
 
             dref_final_report = super().create(validated_data)
