@@ -7,6 +7,7 @@ from django.conf import settings
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
+from django.core.validators import EmailValidator, MaxValueValidator, MinValueValidator
 from django.db import models
 from django.templatetags.static import static
 from django.utils import timezone
@@ -130,8 +131,8 @@ class IdentifiedNeed(models.Model):
 @reversion.register()
 class PlannedInterventionIndicators(models.Model):
     title = models.CharField(max_length=255, verbose_name="Title")
-    target = models.IntegerField(verbose_name=_("Target"), null=True, blank=True)
-    actual = models.IntegerField(verbose_name=_("Actual"), null=True, blank=True)
+    target = models.IntegerField(verbose_name=_("Target"), null=True, blank=True, validators=[MinValueValidator(0)])
+    actual = models.IntegerField(verbose_name=_("Actual"), null=True, blank=True, validators=[MinValueValidator(0)])
 
     class Meta:
         verbose_name = _("planned intervention indicator")
@@ -164,11 +165,21 @@ class PlannedIntervention(models.Model):
 
     title = models.CharField(max_length=255, verbose_name=_("title"), choices=Title.choices)
     description = models.TextField(verbose_name=_("description"), blank=True, null=True)
-    person_targeted = models.IntegerField(verbose_name=_("person targeted"), null=True, blank=True)
-    person_assisted = models.IntegerField(verbose_name=_("person assisted"), null=True, blank=True)
-    budget = models.IntegerField(verbose_name=_("budget"), blank=True, null=True)
-    male = models.IntegerField(verbose_name=_("male"), blank=True, null=True)
-    female = models.IntegerField(verbose_name=_("female"), blank=True, null=True)
+    person_targeted = models.IntegerField(
+        verbose_name=_("person targeted"),
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0)],
+    )
+    person_assisted = models.IntegerField(
+        verbose_name=_("person assisted"),
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0)],
+    )
+    budget = models.IntegerField(verbose_name=_("budget"), blank=True, null=True, validators=[MinValueValidator(0)])
+    male = models.IntegerField(verbose_name=_("male"), blank=True, null=True, validators=[MinValueValidator(0)])
+    female = models.IntegerField(verbose_name=_("female"), blank=True, null=True, validators=[MinValueValidator(0)])
     indicators = models.ManyToManyField(
         PlannedInterventionIndicators,
         verbose_name=_("Indicators"),
@@ -349,22 +360,30 @@ class Dref(models.Model):
         verbose_name=_("Starting language"),
         help_text="The language in which this record was first created.",
     )  # NOTE: This field is set at creation with the active language.
-    num_assisted = models.IntegerField(verbose_name=_("number of assisted"), blank=True, null=True)
-    num_affected = models.IntegerField(verbose_name=_("number of affected"), blank=True, null=True)
+    num_assisted = models.IntegerField(
+        verbose_name=_("number of assisted"), blank=True, null=True, validators=[MinValueValidator(0)]
+    )
+    num_affected = models.IntegerField(
+        verbose_name=_("number of affected"), blank=True, null=True, validators=[MinValueValidator(0)]
+    )
     estimated_number_of_affected_male = models.IntegerField(
-        verbose_name=_("estimated number of affected male"), blank=True, null=True
+        verbose_name=_("estimated number of affected male"), blank=True, null=True, validators=[MinValueValidator(0)]
     )
     estimated_number_of_affected_female = models.IntegerField(
-        verbose_name=_("estimated number of affected female"), blank=True, null=True
+        verbose_name=_("estimated number of affected female"), blank=True, null=True, validators=[MinValueValidator(0)]
     )
     estimated_number_of_affected_girls_under_18 = models.IntegerField(
-        verbose_name=_("estimated number of affected girls under 18"), blank=True, null=True
+        verbose_name=_("estimated number of affected girls under 18"), blank=True, null=True, validators=[MinValueValidator(0)]
     )
     estimated_number_of_affected_boys_under_18 = models.IntegerField(
-        verbose_name=_("estimated number of affected boys under 18"), blank=True, null=True
+        verbose_name=_("estimated number of affected boys under 18"), blank=True, null=True, validators=[MinValueValidator(0)]
     )
-    amount_requested = models.IntegerField(verbose_name=_("amount requested"), blank=True, null=True)
-    people_in_need = models.IntegerField(verbose_name=_("people in need"), blank=True, null=True)
+    amount_requested = models.IntegerField(
+        verbose_name=_("amount requested"), blank=True, null=True, validators=[MinValueValidator(0)]
+    )
+    people_in_need = models.IntegerField(
+        verbose_name=_("people in need"), blank=True, null=True, validators=[MinValueValidator(0)]
+    )
     emergency_appeal_planned = models.BooleanField(verbose_name=_("emergency appeal planned "), null=True, blank=True)
     event_date = models.DateField(
         verbose_name=_("event date"), null=True, blank=True, help_text=_("Date of event/Approximate date of impact")
@@ -445,42 +464,63 @@ class Dref(models.Model):
         null=True,
         help_text=_("Community been involved in the analysis of the process"),
     )
-    women = models.IntegerField(verbose_name=_("women"), blank=True, null=True)
-    men = models.IntegerField(verbose_name=_("men"), blank=True, null=True)
-    girls = models.IntegerField(verbose_name=_("girls"), help_text=_("Girls under 18"), blank=True, null=True)
-    boys = models.IntegerField(verbose_name=_("boys"), help_text=_("Boys under 18"), blank=True, null=True)
+    women = models.IntegerField(verbose_name=_("women"), blank=True, null=True, validators=[MinValueValidator(0)])
+    men = models.IntegerField(verbose_name=_("men"), blank=True, null=True, validators=[MinValueValidator(0)])
+    girls = models.IntegerField(
+        verbose_name=_("girls"),
+        help_text=_("Girls under 18"),
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(0)],
+    )
+    boys = models.IntegerField(
+        verbose_name=_("boys"),
+        help_text=_("Boys under 18"),
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(0)],
+    )
     total_targeted_population = models.IntegerField(
         verbose_name=_("total targeted population"),
         help_text=_("Estimated number of targeted people"),
         blank=True,
         null=True,
+        validators=[MinValueValidator(0)],
     )
     disability_people_per = models.FloatField(
         verbose_name=_("disability people per"),
         help_text=_("Estimated % people disability"),
         blank=True,
         null=True,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
     )
     people_per_urban = models.FloatField(
         verbose_name=_("people per urban"),
         help_text=_("Estimated % people Urban"),
         blank=True,
         null=True,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
     )
     people_per_local = models.FloatField(
         verbose_name=_("people per local"),
         help_text=_("Estimated % people Rural"),
         blank=True,
         null=True,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
     )
     people_targeted_with_early_actions = models.IntegerField(
         verbose_name=_("people targeted with early actions"),
         help_text=_("Number of persons targeted with early actions"),
         blank=True,
         null=True,
+        validators=[MinValueValidator(0)],
     )
     displaced_people = models.IntegerField(
-        verbose_name=_("displaced people"), help_text=_("Estimated number of displaced people"), blank=True, null=True
+        verbose_name=_("displaced people"),
+        help_text=_("Estimated number of displaced people"),
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(0)],
     )
     operation_objective = models.TextField(
         verbose_name=_("operation objective"),
@@ -500,16 +540,28 @@ class Dref(models.Model):
     date_of_approval = models.DateField(verbose_name=_("date of approval"), null=True, blank=True)
     end_date = models.DateField(verbose_name=_("end date"), null=True, blank=True)
     publishing_date = models.DateField(verbose_name=_("publishing date"), null=True, blank=True)
-    operation_timeframe = models.IntegerField(verbose_name=_("operation timeframe"), null=True, blank=True)
+    operation_timeframe = models.IntegerField(
+        verbose_name=_("operation timeframe"),
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0)],
+    )
     # NOTE: Operation Timeframe for Imminent Type: Days
     operation_timeframe_imminent = models.IntegerField(
-        verbose_name=_("operation timeframe for imminent type"), null=True, blank=True
+        verbose_name=_("operation timeframe for imminent type"),
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0)],
     )
     appeal_code = models.CharField(verbose_name=_("appeal code"), max_length=255, null=True, blank=True)
     glide_codes = ArrayField(models.CharField(max_length=18), verbose_name=_("glide number"), default=list, blank=True)
     ifrc_appeal_manager_name = models.CharField(verbose_name=_("ifrc appeal manager name"), max_length=255, null=True, blank=True)
     ifrc_appeal_manager_email = models.CharField(
-        verbose_name=_("ifrc appeal manager email"), max_length=255, null=True, blank=True
+        verbose_name=_("ifrc appeal manager email"),
+        max_length=255,
+        null=True,
+        blank=True,
+        validators=[EmailValidator()],
     )
     ifrc_appeal_manager_title = models.CharField(
         verbose_name=_("ifrc appeal manager title"), max_length=255, null=True, blank=True
@@ -521,7 +573,11 @@ class Dref(models.Model):
         verbose_name=_("ifrc project manager name"), max_length=255, null=True, blank=True
     )
     ifrc_project_manager_email = models.CharField(
-        verbose_name=_("ifrc project manager email"), max_length=255, null=True, blank=True
+        verbose_name=_("ifrc project manager email"),
+        max_length=255,
+        null=True,
+        blank=True,
+        validators=[EmailValidator()],
     )
     ifrc_project_manager_title = models.CharField(
         verbose_name=_("ifrc project manager title"), max_length=255, null=True, blank=True
@@ -533,7 +589,11 @@ class Dref(models.Model):
         verbose_name=_("national society contact name"), max_length=255, null=True, blank=True
     )
     national_society_contact_email = models.CharField(
-        verbose_name=_("national society contact email"), max_length=255, null=True, blank=True
+        verbose_name=_("national society contact email"),
+        max_length=255,
+        null=True,
+        blank=True,
+        validators=[EmailValidator()],
     )
     national_society_contact_title = models.CharField(
         verbose_name=_("national society contact title"), max_length=255, null=True, blank=True
@@ -545,7 +605,11 @@ class Dref(models.Model):
         verbose_name=_("national society integrity contact name"), max_length=255, null=True, blank=True
     )
     national_society_integrity_contact_email = models.CharField(
-        verbose_name=_("national society integrity contact email"), max_length=255, null=True, blank=True
+        verbose_name=_("national society integrity contact email"),
+        max_length=255,
+        null=True,
+        blank=True,
+        validators=[EmailValidator()],
     )
     national_society_integrity_contact_title = models.CharField(
         verbose_name=_("national society integrity contact title"), max_length=255, null=True, blank=True
@@ -557,26 +621,48 @@ class Dref(models.Model):
         verbose_name=_("national society hotline phone number"), max_length=100, null=True, blank=True
     )
     media_contact_name = models.CharField(verbose_name=_("media contact name"), max_length=255, null=True, blank=True)
-    media_contact_email = models.CharField(verbose_name=_("media contact email"), max_length=255, null=True, blank=True)
+    media_contact_email = models.CharField(
+        verbose_name=_("media contact email"),
+        max_length=255,
+        null=True,
+        blank=True,
+        validators=[EmailValidator()],
+    )
     media_contact_title = models.CharField(verbose_name=_("media contact title"), max_length=255, null=True, blank=True)
     media_contact_phone_number = models.CharField(
         verbose_name=_("media_contact phone number"), max_length=100, null=True, blank=True
     )
     ifrc_emergency_name = models.CharField(verbose_name=_("ifrc emergency name"), max_length=255, null=True, blank=True)
-    ifrc_emergency_email = models.CharField(verbose_name=_("ifrc emergency email"), max_length=255, null=True, blank=True)
+    ifrc_emergency_email = models.CharField(
+        verbose_name=_("ifrc emergency email"),
+        max_length=255,
+        null=True,
+        blank=True,
+        validators=[EmailValidator()],
+    )
     ifrc_emergency_title = models.CharField(verbose_name=_("ifrc emergency title"), max_length=255, null=True, blank=True)
     ifrc_emergency_phone_number = models.CharField(
         verbose_name=_("ifrc emergency phone number"), max_length=100, null=True, blank=True
     )
     originator_name = models.CharField(verbose_name=_("originator name"), max_length=255, null=True, blank=True)
-    originator_email = models.CharField(verbose_name=_("originator email"), max_length=255, null=True, blank=True)
+    originator_email = models.CharField(
+        verbose_name=_("originator email"),
+        max_length=255,
+        null=True,
+        blank=True,
+        validators=[EmailValidator()],
+    )
     originator_title = models.CharField(verbose_name=_("originator title"), max_length=255, null=True, blank=True)
     originator_phone_number = models.CharField(verbose_name=_("originator phone number"), max_length=100, null=True, blank=True)
     regional_focal_point_name = models.CharField(
         verbose_name=_("regional focal point name"), max_length=255, null=True, blank=True
     )
     regional_focal_point_email = models.CharField(
-        verbose_name=_("regional focal point email"), max_length=255, null=True, blank=True
+        verbose_name=_("regional focal point email"),
+        max_length=255,
+        null=True,
+        blank=True,
+        validators=[EmailValidator()],
     )
     regional_focal_point_title = models.CharField(
         verbose_name=_("regional focal point title"), max_length=255, null=True, blank=True
@@ -884,23 +970,33 @@ class DrefOperationalUpdate(models.Model):
         verbose_name=_("Starting language"),
         help_text="The language in which this record was first created.",
     )  # NOTE: This field is set at creation with the active language.
-    number_of_people_targeted = models.IntegerField(verbose_name=_("Number of people targeted"), blank=True, null=True)
-    number_of_people_affected = models.IntegerField(verbose_name=_("number of people affected"), blank=True, null=True)
+    number_of_people_targeted = models.IntegerField(
+        verbose_name=_("Number of people targeted"), blank=True, null=True, validators=[MinValueValidator(0)]
+    )
+    number_of_people_affected = models.IntegerField(
+        verbose_name=_("number of people affected"), blank=True, null=True, validators=[MinValueValidator(0)]
+    )
     estimated_number_of_affected_male = models.IntegerField(
-        verbose_name=_("estimated number of affected male"), blank=True, null=True
+        verbose_name=_("estimated number of affected male"), blank=True, null=True, validators=[MinValueValidator(0)]
     )
     estimated_number_of_affected_female = models.IntegerField(
-        verbose_name=_("estimated number of affected female"), blank=True, null=True
+        verbose_name=_("estimated number of affected female"), blank=True, null=True, validators=[MinValueValidator(0)]
     )
     estimated_number_of_affected_girls_under_18 = models.IntegerField(
-        verbose_name=_("estimated number of affected girls under 18"), blank=True, null=True
+        verbose_name=_("estimated number of affected girls under 18"), blank=True, null=True, validators=[MinValueValidator(0)]
     )
     estimated_number_of_affected_boys_under_18 = models.IntegerField(
-        verbose_name=_("estimated number of affected boys under 18"), blank=True, null=True
+        verbose_name=_("estimated number of affected boys under 18"), blank=True, null=True, validators=[MinValueValidator(0)]
     )
-    dref_allocated_so_far = models.IntegerField(verbose_name=_("Dref allocated so far"), null=True, blank=True)
-    additional_allocation = models.IntegerField(verbose_name=_("Additional allocation"), null=True, blank=True)
-    total_dref_allocation = models.IntegerField(verbose_name=_("Total dref allocation"), null=True, blank=True)
+    dref_allocated_so_far = models.IntegerField(
+        verbose_name=_("Dref allocated so far"), null=True, blank=True, validators=[MinValueValidator(0)]
+    )
+    additional_allocation = models.IntegerField(
+        verbose_name=_("Additional allocation"), null=True, blank=True, validators=[MinValueValidator(0)]
+    )
+    total_dref_allocation = models.IntegerField(
+        verbose_name=_("Total dref allocation"), null=True, blank=True, validators=[MinValueValidator(0)]
+    )
     emergency_appeal_planned = models.BooleanField(verbose_name=_("emergency appeal planned "), null=True, blank=True)
     event_map = models.ForeignKey(
         "DrefFile",
@@ -955,12 +1051,14 @@ class DrefOperationalUpdate(models.Model):
     )
     new_operational_start_date = models.DateField(verbose_name=_("New Operation Start Date"), null=True, blank=True)
     new_operational_end_date = models.DateField(verbose_name=_("New Operation End Date"), null=True, blank=True)
-    total_operation_timeframe = models.IntegerField(verbose_name=_("Total Operation Timeframe"), null=True, blank=True)
+    total_operation_timeframe = models.IntegerField(
+        verbose_name=_("Total Operation Timeframe"), null=True, blank=True, validators=[MinValueValidator(0)]
+    )
     appeal_code = models.CharField(verbose_name=_("appeal code"), max_length=255, null=True, blank=True)
     glide_codes = ArrayField(models.CharField(max_length=18), verbose_name=_("glide number"), default=list, blank=True)
     ifrc_appeal_manager_name = models.CharField(verbose_name=_("ifrc appeal manager name"), max_length=255, null=True, blank=True)
     ifrc_appeal_manager_email = models.CharField(
-        verbose_name=_("ifrc appeal manager email"), max_length=255, null=True, blank=True
+        verbose_name=_("ifrc appeal manager email"), max_length=255, null=True, blank=True, validators=[EmailValidator()]
     )
     ifrc_appeal_manager_title = models.CharField(
         verbose_name=_("ifrc appeal manager title"), max_length=255, null=True, blank=True
@@ -972,7 +1070,7 @@ class DrefOperationalUpdate(models.Model):
         verbose_name=_("ifrc project manager name"), max_length=255, null=True, blank=True
     )
     ifrc_project_manager_email = models.CharField(
-        verbose_name=_("ifrc project manager email"), max_length=255, null=True, blank=True
+        verbose_name=_("ifrc project manager email"), max_length=255, null=True, blank=True, validators=[EmailValidator()]
     )
     ifrc_project_manager_title = models.CharField(
         verbose_name=_("ifrc project manager title"), max_length=255, null=True, blank=True
@@ -984,7 +1082,7 @@ class DrefOperationalUpdate(models.Model):
         verbose_name=_("national society contact name"), max_length=255, null=True, blank=True
     )
     national_society_contact_email = models.CharField(
-        verbose_name=_("national society contact email"), max_length=255, null=True, blank=True
+        verbose_name=_("national society contact email"), max_length=255, null=True, blank=True, validators=[EmailValidator()]
     )
     national_society_contact_title = models.CharField(
         verbose_name=_("national society contact title"), max_length=255, null=True, blank=True
@@ -996,7 +1094,11 @@ class DrefOperationalUpdate(models.Model):
         verbose_name=_("national society integrity contact name"), max_length=255, null=True, blank=True
     )
     national_society_integrity_contact_email = models.CharField(
-        verbose_name=_("national society integrity contact email"), max_length=255, null=True, blank=True
+        verbose_name=_("national society integrity contact email"),
+        max_length=255,
+        null=True,
+        blank=True,
+        validators=[EmailValidator()],
     )
     national_society_integrity_contact_title = models.CharField(
         verbose_name=_("national society integrity contact title"), max_length=255, null=True, blank=True
@@ -1008,13 +1110,17 @@ class DrefOperationalUpdate(models.Model):
         verbose_name=_("national society hotline phone number"), max_length=100, null=True, blank=True
     )
     media_contact_name = models.CharField(verbose_name=_("media contact name"), max_length=255, null=True, blank=True)
-    media_contact_email = models.CharField(verbose_name=_("media contact email"), max_length=255, null=True, blank=True)
+    media_contact_email = models.CharField(
+        verbose_name=_("media contact email"), max_length=255, null=True, blank=True, validators=[EmailValidator()]
+    )
     media_contact_title = models.CharField(verbose_name=_("media contact title"), max_length=255, null=True, blank=True)
     media_contact_phone_number = models.CharField(
         verbose_name=_("media_contact phone number"), max_length=100, null=True, blank=True
     )
     ifrc_emergency_name = models.CharField(verbose_name=_("ifrc emergency name"), max_length=255, null=True, blank=True)
-    ifrc_emergency_email = models.CharField(verbose_name=_("ifrc emergency email"), max_length=255, null=True, blank=True)
+    ifrc_emergency_email = models.CharField(
+        verbose_name=_("ifrc emergency email"), max_length=255, null=True, blank=True, validators=[EmailValidator()]
+    )
     ifrc_emergency_title = models.CharField(verbose_name=_("ifrc emergency title"), max_length=255, null=True, blank=True)
     ifrc_emergency_phone_number = models.CharField(
         verbose_name=_("ifrc emergency phone number"), max_length=100, null=True, blank=True
@@ -1023,7 +1129,7 @@ class DrefOperationalUpdate(models.Model):
         verbose_name=_("regional focal point name"), max_length=255, null=True, blank=True
     )
     regional_focal_point_email = models.CharField(
-        verbose_name=_("regional focal point email"), max_length=255, null=True, blank=True
+        verbose_name=_("regional focal point email"), max_length=255, null=True, blank=True, validators=[EmailValidator()]
     )
     regional_focal_point_title = models.CharField(
         verbose_name=_("regional focal point title"), max_length=255, null=True, blank=True
@@ -1081,32 +1187,41 @@ class DrefOperationalUpdate(models.Model):
         null=True,
         help_text=_("Protection, gender, Inclusion affected in this process"),
     )
-    women = models.IntegerField(verbose_name=_("women"), blank=True, null=True)
-    men = models.IntegerField(verbose_name=_("men"), blank=True, null=True)
-    girls = models.IntegerField(verbose_name=_("girls"), help_text=_("Girls under 18"), blank=True, null=True)
-    boys = models.IntegerField(verbose_name=_("boys"), help_text=_("Boys under 18"), blank=True, null=True)
+    women = models.IntegerField(verbose_name=_("women"), blank=True, null=True, validators=[MinValueValidator(0)])
+    men = models.IntegerField(verbose_name=_("men"), blank=True, null=True, validators=[MinValueValidator(0)])
+    girls = models.IntegerField(
+        verbose_name=_("girls"), help_text=_("Girls under 18"), blank=True, null=True, validators=[MinValueValidator(0)]
+    )
+    boys = models.IntegerField(
+        verbose_name=_("boys"), help_text=_("Boys under 18"), blank=True, null=True, validators=[MinValueValidator(0)]
+    )
     disability_people_per = models.FloatField(
         verbose_name=_("disability people per"),
         help_text=_("Estimated % people disability"),
         blank=True,
         null=True,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
     )
     people_per_urban = models.FloatField(
         verbose_name=_("people per urban"),
         help_text=_("Estimated % people Urban"),
         blank=True,
         null=True,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
     )
     people_per_local = models.FloatField(
         verbose_name=_("people per local"),
         help_text=_("Estimated % people Rural"),
         blank=True,
         null=True,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
     )
     people_targeted_with_early_actions = models.IntegerField(
-        verbose_name=_("people targeted with early actions"), blank=True, null=True
+        verbose_name=_("people targeted with early actions"), blank=True, null=True, validators=[MinValueValidator(0)]
     )
-    displaced_people = models.IntegerField(verbose_name=_("displaced people"), blank=True, null=True)
+    displaced_people = models.IntegerField(
+        verbose_name=_("displaced people"), blank=True, null=True, validators=[MinValueValidator(0)]
+    )
     operation_objective = models.TextField(
         verbose_name=_("operation objective"),
         blank=True,
@@ -1161,7 +1276,9 @@ class DrefOperationalUpdate(models.Model):
         blank=True,
     )
     specified_trigger_met = models.TextField(verbose_name=_("Specified Trigger Met"), null=True, blank=True)
-    people_in_need = models.IntegerField(verbose_name=_("people in need"), blank=True, null=True)
+    people_in_need = models.IntegerField(
+        verbose_name=_("people in need"), blank=True, null=True, validators=[MinValueValidator(0)]
+    )
     event_date = models.DateField(
         verbose_name=_("event date"),
         null=True,
@@ -1173,7 +1290,9 @@ class DrefOperationalUpdate(models.Model):
         blank=True,
     )
     did_ns_respond = models.BooleanField(null=True, blank=True, default=False, help_text=_("Did NS respond"))
-    total_targeted_population = models.IntegerField(verbose_name=_("total targeted population"), blank=True, null=True)
+    total_targeted_population = models.IntegerField(
+        verbose_name=_("total targeted population"), blank=True, null=True, validators=[MinValueValidator(0)]
+    )
     has_event_occurred = models.BooleanField(null=True, blank=True, help_text=_("Has Event occurred"))
     reporting_start_date = models.DateField(verbose_name=_("Reporting Time Start Date"), null=True, blank=True)
     reporting_end_date = models.DateField(verbose_name=_("Reporting Time End Date"), null=True, blank=True)
@@ -1327,33 +1446,41 @@ class DrefFinalReport(models.Model):
         verbose_name=_("Starting language"),
         help_text="The language in which this record was first created.",
     )  # NOTE: This field is set at creation with the active language.
-    number_of_people_targeted = models.IntegerField(verbose_name=_("Number of people targeted"), blank=True, null=True)
-    number_of_people_affected = models.IntegerField(verbose_name=_("number of people affected"), blank=True, null=True)
+    number_of_people_targeted = models.IntegerField(
+        verbose_name=_("Number of people targeted"), blank=True, null=True, validators=[MinValueValidator(0)]
+    )
+    number_of_people_affected = models.IntegerField(
+        verbose_name=_("number of people affected"), blank=True, null=True, validators=[MinValueValidator(0)]
+    )
     estimated_number_of_affected_male = models.IntegerField(
-        verbose_name=_("estimated number of affected male"), blank=True, null=True
+        verbose_name=_("estimated number of affected male"), blank=True, null=True, validators=[MinValueValidator(0)]
     )
     estimated_number_of_affected_female = models.IntegerField(
-        verbose_name=_("estimated number of affected female"), blank=True, null=True
+        verbose_name=_("estimated number of affected female"), blank=True, null=True, validators=[MinValueValidator(0)]
     )
     estimated_number_of_affected_girls_under_18 = models.IntegerField(
-        verbose_name=_("estimated number of affected girls under 18"), blank=True, null=True
+        verbose_name=_("estimated number of affected girls under 18"), blank=True, null=True, validators=[MinValueValidator(0)]
     )
     estimated_number_of_affected_boys_under_18 = models.IntegerField(
-        verbose_name=_("estimated number of affected boys under 18"), blank=True, null=True
+        verbose_name=_("estimated number of affected boys under 18"), blank=True, null=True, validators=[MinValueValidator(0)]
     )
-    total_dref_allocation = models.IntegerField(verbose_name=_("Total dref allocation"), null=True, blank=True)
+    total_dref_allocation = models.IntegerField(
+        verbose_name=_("Total dref allocation"), null=True, blank=True, validators=[MinValueValidator(0)]
+    )
     date_of_publication = models.DateField(verbose_name=_("Date of publication"), blank=True, null=True)
-    total_operation_timeframe = models.IntegerField(verbose_name=_("Total Operation Timeframe"), null=True, blank=True)
+    total_operation_timeframe = models.IntegerField(
+        verbose_name=_("Total Operation Timeframe"), null=True, blank=True, validators=[MinValueValidator(0)]
+    )
     # NOTE: Total operation Timeframe for Imminent Type: Days
     total_operation_timeframe_imminent = models.IntegerField(
-        verbose_name=_("total operation timeframe for imminent type"), null=True, blank=True
+        verbose_name=_("total operation timeframe for imminent type"), null=True, blank=True, validators=[MinValueValidator(0)]
     )
     operation_start_date = models.DateField(verbose_name=_("Operation Start Date"), null=True, blank=True)
     appeal_code = models.CharField(verbose_name=_("appeal code"), max_length=255, null=True, blank=True)
     glide_codes = ArrayField(models.CharField(max_length=18), verbose_name=_("glide number"), default=list, blank=True)
     ifrc_appeal_manager_name = models.CharField(verbose_name=_("ifrc appeal manager name"), max_length=255, null=True, blank=True)
     ifrc_appeal_manager_email = models.CharField(
-        verbose_name=_("ifrc appeal manager email"), max_length=255, null=True, blank=True
+        verbose_name=_("ifrc appeal manager email"), max_length=255, null=True, blank=True, validators=[EmailValidator()]
     )
     ifrc_appeal_manager_title = models.CharField(
         verbose_name=_("ifrc appeal manager title"), max_length=255, null=True, blank=True
@@ -1365,7 +1492,7 @@ class DrefFinalReport(models.Model):
         verbose_name=_("ifrc project manager name"), max_length=255, null=True, blank=True
     )
     ifrc_project_manager_email = models.CharField(
-        verbose_name=_("ifrc project manager email"), max_length=255, null=True, blank=True
+        verbose_name=_("ifrc project manager email"), max_length=255, null=True, blank=True, validators=[EmailValidator()]
     )
     ifrc_project_manager_title = models.CharField(
         verbose_name=_("ifrc project manager title"), max_length=255, null=True, blank=True
@@ -1377,7 +1504,7 @@ class DrefFinalReport(models.Model):
         verbose_name=_("national society contact name"), max_length=255, null=True, blank=True
     )
     national_society_contact_email = models.CharField(
-        verbose_name=_("national society contact email"), max_length=255, null=True, blank=True
+        verbose_name=_("national society contact email"), max_length=255, null=True, blank=True, validators=[EmailValidator()]
     )
     national_society_contact_title = models.CharField(
         verbose_name=_("national society contact title"), max_length=255, null=True, blank=True
@@ -1389,7 +1516,11 @@ class DrefFinalReport(models.Model):
         verbose_name=_("national society integrity contact name"), max_length=255, null=True, blank=True
     )
     national_society_integrity_contact_email = models.CharField(
-        verbose_name=_("national society integrity contact email"), max_length=255, null=True, blank=True
+        verbose_name=_("national society integrity contact email"),
+        max_length=255,
+        null=True,
+        blank=True,
+        validators=[EmailValidator()],
     )
     national_society_integrity_contact_title = models.CharField(
         verbose_name=_("national society integrity contact title"), max_length=255, null=True, blank=True
@@ -1401,13 +1532,17 @@ class DrefFinalReport(models.Model):
         verbose_name=_("national society hotline phone number"), max_length=100, null=True, blank=True
     )
     ifrc_emergency_name = models.CharField(verbose_name=_("ifrc emergency name"), max_length=255, null=True, blank=True)
-    ifrc_emergency_email = models.CharField(verbose_name=_("ifrc emergency email"), max_length=255, null=True, blank=True)
+    ifrc_emergency_email = models.CharField(
+        verbose_name=_("ifrc emergency email"), max_length=255, null=True, blank=True, validators=[EmailValidator()]
+    )
     ifrc_emergency_title = models.CharField(verbose_name=_("ifrc emergency title"), max_length=255, null=True, blank=True)
     ifrc_emergency_phone_number = models.CharField(
         verbose_name=_("ifrc emergency phone number"), max_length=100, null=True, blank=True
     )
     media_contact_name = models.CharField(verbose_name=_("media contact name"), max_length=255, null=True, blank=True)
-    media_contact_email = models.CharField(verbose_name=_("media contact email"), max_length=255, null=True, blank=True)
+    media_contact_email = models.CharField(
+        verbose_name=_("media contact email"), max_length=255, null=True, blank=True, validators=[EmailValidator()]
+    )
     media_contact_title = models.CharField(verbose_name=_("media contact title"), max_length=255, null=True, blank=True)
     media_contact_phone_number = models.CharField(
         verbose_name=_("media_contact phone number"), max_length=100, null=True, blank=True
@@ -1416,7 +1551,7 @@ class DrefFinalReport(models.Model):
         verbose_name=_("regional focal point name"), max_length=255, null=True, blank=True
     )
     regional_focal_point_email = models.CharField(
-        verbose_name=_("regional focal point email"), max_length=255, null=True, blank=True
+        verbose_name=_("regional focal point email"), max_length=255, null=True, blank=True, validators=[EmailValidator()]
     )
     regional_focal_point_title = models.CharField(
         verbose_name=_("regional focal point title"), max_length=255, null=True, blank=True
@@ -1481,17 +1616,59 @@ class DrefFinalReport(models.Model):
     change_in_operational_strategy_text = models.TextField(
         verbose_name=_("Change in operational strategy"), null=True, blank=True
     )
-    women = models.IntegerField(verbose_name=_("women"), blank=True, null=True)
-    men = models.IntegerField(verbose_name=_("men"), blank=True, null=True)
-    girls = models.IntegerField(verbose_name=_("girls"), help_text=_("Girls under 18"), blank=True, null=True)
-    boys = models.IntegerField(verbose_name=_("boys"), help_text=_("Boys under 18"), blank=True, null=True)
-    disability_people_per = models.FloatField(verbose_name=_("disability people per"), blank=True, null=True)
-    people_per_urban = models.FloatField(verbose_name=_("people per urban"), blank=True, null=True)
-    people_per_local = models.FloatField(verbose_name=_("people per local"), blank=True, null=True)
-    people_targeted_with_early_actions = models.IntegerField(
-        verbose_name=_("people targeted with early actions"), blank=True, null=True
+    women = models.IntegerField(
+        verbose_name=_("women"),
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(0)],
     )
-    displaced_people = models.IntegerField(verbose_name=_("displaced people"), blank=True, null=True)
+    men = models.IntegerField(
+        verbose_name=_("men"),
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(0)],
+    )
+    girls = models.IntegerField(
+        verbose_name=_("girls"),
+        help_text=_("Girls under 18"),
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(0)],
+    )
+    boys = models.IntegerField(
+        verbose_name=_("boys"),
+        help_text=_("Boys under 18"),
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(0)],
+    )
+    disability_people_per = models.FloatField(
+        verbose_name=_("disability people per"),
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+    )
+    people_per_urban = models.FloatField(
+        verbose_name=_("people per urban"),
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+    )
+    people_per_local = models.FloatField(
+        verbose_name=_("people per local"),
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+    )
+    people_targeted_with_early_actions = models.IntegerField(
+        verbose_name=_("people targeted with early actions"),
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(0)],
+    )
+    displaced_people = models.IntegerField(
+        verbose_name=_("displaced people"), blank=True, null=True, validators=[MinValueValidator(0)]
+    )
     operation_objective = models.TextField(
         verbose_name=_("operation objective"),
         blank=True,
@@ -1540,7 +1717,9 @@ class DrefFinalReport(models.Model):
         null=True,
         verbose_name=_("major coordination mechanism"),
     )
-    total_targeted_population = models.IntegerField(verbose_name=_("total targeted population"), blank=True, null=True)
+    total_targeted_population = models.IntegerField(
+        verbose_name=_("total targeted population"), blank=True, null=True, validators=[MinValueValidator(0)]
+    )
     risk_security = models.ManyToManyField(RiskSecurity, blank=True, verbose_name=_("Risk Security"))
     has_child_safeguarding_risk_analysis_assessment = models.BooleanField(
         verbose_name=_("Has the child safeguarding risk analysis assessment been completed?"), null=True, blank=True
@@ -1567,7 +1746,9 @@ class DrefFinalReport(models.Model):
     national_society_actions = models.ManyToManyField(
         NationalSocietyAction, verbose_name=_("national society actions"), blank=True
     )
-    people_in_need = models.IntegerField(verbose_name=_("people in need"), blank=True, null=True)
+    people_in_need = models.IntegerField(
+        verbose_name=_("people in need"), blank=True, null=True, validators=[MinValueValidator(0)]
+    )
     event_text = models.TextField(verbose_name=_("event text"), blank=True, null=True)
     ns_respond_date = models.DateField(
         verbose_name=_("ns respond date"), null=True, blank=True, help_text=_("NS anticipatory actions started/NS response")
@@ -1584,26 +1765,32 @@ class DrefFinalReport(models.Model):
     financial_report_preview = SecureFileField(
         verbose_name=_("financial preview"), null=True, blank=True, upload_to="dref/images/"
     )
-    num_assisted = models.IntegerField(verbose_name=_("number of assisted"), blank=True, null=True)
+    num_assisted = models.IntegerField(
+        verbose_name=_("number of assisted"), blank=True, null=True, validators=[MinValueValidator(0)]
+    )
     assisted_num_of_women = models.IntegerField(
         verbose_name=_("Number of women assisted"),
         blank=True,
         null=True,
+        validators=[MinValueValidator(0)],
     )
     assisted_num_of_men = models.IntegerField(
         verbose_name=_("Number of men assisted"),
         blank=True,
         null=True,
+        validators=[MinValueValidator(0)],
     )
     assisted_num_of_girls_under_18 = models.IntegerField(
         verbose_name=_("Number of girls under 18 assisted"),
         blank=True,
         null=True,
+        validators=[MinValueValidator(0)],
     )
     assisted_num_of_boys_under_18 = models.IntegerField(
         verbose_name=_("Number of boys under 18 assisted"),
         blank=True,
         null=True,
+        validators=[MinValueValidator(0)],
     )
     has_national_society_conducted = models.BooleanField(
         verbose_name=_("Has national society conducted any intervention"), null=True, blank=True

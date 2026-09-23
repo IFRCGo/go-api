@@ -81,7 +81,7 @@ class ProposedActionSerializer(NestedCreateMixin, NestedUpdateMixin, serializers
     proposed_type_display = serializers.CharField(source="get_proposed_type_display", read_only=True)
     # note(frozenhelium): Early response activities are optional
     activities = ProposedActionActivitySerializer(many=True, required=False)
-    total_budget = serializers.IntegerField(required=True)
+    total_budget = serializers.IntegerField(required=True, min_value=0)
 
     class Meta:
         model = ProposedAction
@@ -92,7 +92,7 @@ class ProposedActionSerializer(NestedCreateMixin, NestedUpdateMixin, serializers
         activities = data.get("activities")
         proposed_type = data.get("proposed_type")
 
-        if proposed_type is ProposedAction.Action.EARLY_ACTION.value and not activities:
+        if proposed_type == ProposedAction.Action.EARLY_ACTION.value and not activities:
             raise serializers.ValidationError("At least one early action activity is required")
 
         return data
@@ -447,6 +447,20 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
             "images",
             "users",
         )
+        # NOTE: Both stay optional so drafts can be created before the type is picked,
+        # but an explicit null is rejected.
+        extra_kwargs = {
+            "type_of_dref": {"allow_null": False},
+            "type_of_onset": {"allow_null": False},
+        }
+
+    def get_fields(self, *args, **kwargs):
+        fields = super().get_fields(*args, **kwargs)
+        # NOTE: The translation mixin swaps `title` for the nullable active-language field after
+        # declared fields are resolved, so the model's mandatory constraint is re-applied here.
+        fields["title"].required = True
+        fields["title"].allow_null = False
+        return fields
 
     def get_dref_access_user_list(self, obj) -> List[int] | None:
         dref_users_list = get_dref_users()
@@ -503,7 +517,12 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
         if self.instance and self.instance.status == Dref.Status.FINALIZING:
             raise serializers.ValidationError(gettext("Cannot be updated while the translation is in progress"))
         is_assessment_report = data.get("is_assessment_report")
-        if event_date and data["type_of_onset"] not in [Dref.OnsetType.SLOW, Dref.OnsetType.SUDDEN]:
+        # NOTE: Loan DREFs record the date the trigger was met in event_date and have no onset type.
+        if (
+            event_date
+            and data.get("type_of_dref") != Dref.DrefType.LOAN
+            and data.get("type_of_onset") not in [Dref.OnsetType.SLOW, Dref.OnsetType.SUDDEN]
+        ):
             raise serializers.ValidationError(
                 {
                     "event_date": gettext(
@@ -529,7 +548,10 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
             indirect_cost = data.get("indirect_cost")
             total_cost = data.get("total_cost")
             proposed_actions = data.get("proposed_action", [])
+            hazard_date = data.get("hazard_date")
 
+            if hazard_date and hazard_date < timezone.now().date():
+                raise serializers.ValidationError({"hazard_date": gettext("Hazard date can't be in the past for Imminent DREF")})
             if not proposed_actions:
                 raise serializers.ValidationError(
                     {"proposed_action": gettext("Proposed Action is required for type DREF Imminent")}

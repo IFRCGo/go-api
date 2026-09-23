@@ -257,6 +257,21 @@ class DrefTestCase(APITestCase):
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, 201)
         self.assertEqual(Dref.objects.count(), old_count + 1)
+
+        # Values the UI forbids must not slip through the API either.
+        for field, bad_value in [
+            ("num_affected", -1),
+            ("people_per_urban", 100.1),
+            ("media_contact_email", "not-an-email"),
+            ("title", None),
+            ("type_of_onset", None),
+            ("type_of_dref", None),
+        ]:
+            with self.subTest(field=field):
+                bad_response = self.client.post(url, {**data, field: bad_value}, format="json")
+                self.assert_400(bad_response)
+                self.assertIn(field, bad_response.data["errors"])
+
         instance = Dref.objects.get(id=response.data["id"])
         instance.users.add(self.user.id)
         instance_user_email = [user.email for user in instance.users.all()]
@@ -632,6 +647,19 @@ class DrefTestCase(APITestCase):
         self.client.force_authenticate(self.user)
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, 201)
+
+        # Loan DREFs record the trigger date in event_date and carry no onset type.
+        loan_data = {**data, "type_of_dref": Dref.DrefType.LOAN.value}
+        del loan_data["type_of_onset"]
+        response = self.client.post(url, loan_data, format="json")
+        self.assert_201(response)
+
+        # Without an onset type, any other DREF type still rejects event_date.
+        response_data = {**data, "type_of_dref": Dref.DrefType.RESPONSE.value}
+        del response_data["type_of_onset"]
+        response = self.client.post(url, response_data, format="json")
+        self.assert_400(response)
+        self.assertIn("event_date", response.data["errors"])
 
     def test_update_dref_image(self):
         file1, file2, file3, file5 = DrefFileFactory.create_batch(4, created_by=self.user)
@@ -2314,6 +2342,12 @@ class DrefTestCase(APITestCase):
         response = self.client.post(url, data, format="json")
         self.assert_201(response)
         self.assertEqual(Dref.objects.count(), old_count + 1)
+
+        # The hazard is yet to happen, so a past date is invalid.
+        past_date = (datetime.now().date() - timedelta(days=1)).isoformat()
+        response = self.client.post(url, {**data, "hazard_date": past_date}, format="json")
+        self.assert_400(response)
+        self.assertIn("hazard_date", response.data["errors"])
 
         # Checking for surge personnel deployed
         data["is_surge_personnel_deployed"] = True
