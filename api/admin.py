@@ -1,6 +1,7 @@
 import csv
 import json
 import time
+from datetime import datetime
 
 from django import forms
 from django.conf import settings
@@ -838,9 +839,48 @@ class AppealAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     confirm_events.short_description = "Confirm emergencies as correct"
 
     def save_model(self, request, obj, form, change):
+        previous_amount_funded = None
+        if change:
+            previous_amount_funded = models.Appeal.objects.filter(pk=obj.pk).values_list("amount_funded", flat=True).first()
+
         if obj.country:
             obj.region = obj.country.region
+
         super().save_model(request, obj, form, change)
+
+        if not change or previous_amount_funded == obj.amount_funded:
+            return
+
+        latest_history = models.AppealHistory.objects.filter(appeal=obj).order_by("id").last()
+
+        # Avoid duplicates if another save flow already created this exact savepoint.
+        if latest_history and latest_history.amount_funded == obj.amount_funded:
+            return
+
+        now = timezone.now()
+        if latest_history:
+            latest_history.valid_to = now
+            latest_history.save(update_fields=["valid_to"])
+
+        models.AppealHistory.objects.create(
+            aid=obj.aid,
+            num_beneficiaries=obj.num_beneficiaries,
+            amount_requested=obj.amount_requested,
+            amount_funded=obj.amount_funded,
+            valid_from=now,
+            valid_to=datetime(2200, 1, 1, tzinfo=timezone.utc),
+            start_date=obj.start_date,
+            end_date=obj.end_date,
+            appeal=obj,
+            atype=obj.atype,
+            country=obj.country,
+            region=obj.region,
+            dtype=obj.dtype,
+            needs_confirmation=obj.needs_confirmation,
+            status=obj.status,
+            code=obj.code,
+            triggering_amount=obj.triggering_amount,
+        )
 
 
 class AppealDocumentAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
