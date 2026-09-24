@@ -26,9 +26,7 @@ dependencies = [
     "django-filter>=23.5,<24.0",
     "django-guardian==2.4.0",
     "django-graphql-geojson==0.1.4",
-    # NOTE: pinned to the latest 3.x; 4.x is a breaking async rewrite that drops the
-    # disk check and the HEALTH_CHECK settings this project uses.
-    "django-health-check==3.24.0",
+    "django-health-check[psutil,redis]==4.6.1",
     "django-modeltranslation==0.17.5",
     "django-read-only==1.12.0",
     "django-reversion-compare==0.16.2",

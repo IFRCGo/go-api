@@ -692,15 +692,23 @@ elasticsearch = [
 
 [[package]]
 name = "django-health-check"
-version = "3.24.0"
+version = "4.6.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django" },
+    { name = "dnspython" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/66/fc/a5e623c60600b888914ea8b7bdaba1abbfc4b6e88b6382d746177fdc9ea6/django_health_check-4.6.1.tar.gz", hash = "sha256:53b17a142d52179561593493351f6b6c20343b23a669ac632e53bb7a4dcfca51", size = 22156, upload-time = "2026-09-18T11:35:26.777Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ef/0e/2401f90f841cc89f48eddcc0a316257f2550b0ef1ace37c60b02a868be1e/django_health_check-4.6.1-py3-none-any.whl", hash = "sha256:1e3641e7d09975052cc9c081d572660269d3becb4b690cdf1b5302aeda5e4302", size = 27253, upload-time = "2026-09-18T11:35:25.572Z" },
+]
+
+[package.optional-dependencies]
+psutil = [
     { name = "psutil" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/98/a6/f474f443b0a7f9e7e52a25a3773a31c5c061bdb28cf311b7801fc250db9b/django_health_check-3.24.0.tar.gz", hash = "sha256:b5e01d2013a254cc5a2c7b19c62f11ea6fd2624c87a9d990e11a1b3874df78b5", size = 20807, upload-time = "2026-02-12T10:02:18.482Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/38/17/51aabb4908e007accf3c596b92a62ed7e456c581a1e45f06e0f2219dc6c0/django_health_check-3.24.0-py3-none-any.whl", hash = "sha256:bd568d7d3813980668dfbe730214aef5da7c8da73bc2aa60ec2eeca8a3788da6", size = 37964, upload-time = "2026-02-12T10:02:17.08Z" },
+redis = [
+    { name = "redis" },
 ]
 
 [[package]]
@@ -895,6 +903,15 @@ wheels = [
 ]
 
 [[package]]
+name = "dnspython"
+version = "2.8.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/8c/8b/57666417c0f90f08bcafa776861060426765fdb422eb10212086fb811d26/dnspython-2.8.0.tar.gz", hash = "sha256:181d3c6996452cb1189c4046c61599b84a5a86e099562ffde77d26984ff26d0f", size = 368251, upload-time = "2025-09-07T18:58:00.022Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ba/5a/18ad964b0086c6e62e2e7500f7edc89e3faa45033c71c1893d34eed2b2de/dnspython-2.8.0-py3-none-any.whl", hash = "sha256:01d9bbc4a2d76bf0db7c1f729812ded6d912bd318d3b1cf81d30c0f845dbf3af", size = 331094, upload-time = "2025-09-07T18:57:58.071Z" },
+]
+
+[[package]]
 name = "drf-spectacular"
 version = "0.30.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1047,7 +1064,7 @@ dependencies = [
     { name = "django-graphql-geojson" },
     { name = "django-guardian" },
     { name = "django-haystack", extra = ["elasticsearch"] },
-    { name = "django-health-check" },
+    { name = "django-health-check", extra = ["psutil", "redis"] },
     { name = "django-modeltranslation" },
     { name = "django-oauth-toolkit" },
     { name = "django-read-only" },
@@ -1143,7 +1160,7 @@ requires-dist = [
     { name = "django-graphql-geojson", specifier = "==0.1.4" },
     { name = "django-guardian", specifier = "==2.4.0" },
     { name = "django-haystack", extras = ["elasticsearch"] },
-    { name = "django-health-check", specifier = "==3.24.0" },
+    { name = "django-health-check", extras = ["psutil", "redis"], specifier = "==4.6.1" },
     { name = "django-modeltranslation", specifier = "==0.17.5" },
     { name = "django-oauth-toolkit", specifier = "==3.0.1" },
     { name = "django-read-only", specifier = "==1.12.0" },

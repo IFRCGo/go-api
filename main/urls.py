@@ -16,6 +16,7 @@ from drf_spectacular.views import (
     SpectacularRedocView,
     SpectacularSwaggerView,
 )
+from health_check.views import HealthCheckView
 from oauth2_provider import urls as oauth2_urls
 
 # DRF routes
@@ -24,6 +25,7 @@ from rest_framework import routers
 from alert_system.dev_views import AlertEmailPreview
 from api import drf_views as api_views
 from api.admin_reports import UsersPerPermissionViewSet
+from api.health_checks import get_health_checks
 from api.views import (
     AddCronJobLog,
     AddSubscription,
@@ -223,7 +225,7 @@ admin.site.site_title = "IFRC Go admin"
 urlpatterns = [
     # Outward-facing health endpoint for the external monitor (django-health-check).
     # Distinct from the pod-internal /healthz/{live,ready} probes served by banjo middleware.
-    path("health-check/", include("health_check.urls")),
+    path("health-check/", HealthCheckView.as_view(checks=get_health_checks()), name="health_check"),
     # url(r"^api/v1/es_search/", EsPageSearch.as_view()),
     url(r"^api/v1/search/", HayStackSearch.as_view()),
     url(r"^api/v1/es_health/", EsPageHealth.as_view()),
