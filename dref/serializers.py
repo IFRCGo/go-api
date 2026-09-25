@@ -560,7 +560,7 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
                 raise serializers.ValidationError({"sub_total_cost": gettext("Sub-total is required for Imminent DREF")})
             if sub_total_cost != self.SUB_TOTAL_COST:
                 raise serializers.ValidationError(
-                    {"sub_total": gettext("Sub-total should be equal to %s for Imminent DREF" % self.SUB_TOTAL_COST)}
+                    {"sub_total_cost": gettext("Sub-total should be equal to %s for Imminent DREF" % self.SUB_TOTAL_COST)}
                 )
             if is_surge_personnel_deployed and not surge_deployment_cost:
                 raise serializers.ValidationError(
@@ -573,7 +573,14 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
 
             total_proposed_budget = sum(action.get("total_budget", 0) for action in proposed_actions)
             if total_proposed_budget != sub_total_cost:
-                raise serializers.ValidationError("Sub-total should be equal to proposed budget")
+                raise serializers.ValidationError(
+                    {
+                        "sub_total_cost": gettext(
+                            "The sum of the Early Action and Early Response budgets should be exactly CHF %s."
+                        )
+                        % f"{self.SUB_TOTAL_COST:,}"
+                    }
+                )
 
             if is_surge_personnel_deployed:
                 if surge_deployment_cost != self.SURGE_DEPLOYMENT_COST:
@@ -1258,7 +1265,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
                 raise serializers.ValidationError({"sub_total_cost": gettext("Sub-total is required for Imminent DREF")})
             if sub_total_cost != self.SUB_TOTAL_COST:
                 raise serializers.ValidationError(
-                    {"sub_total": gettext("Sub-total should be equal to %s for Imminent DREF" % self.SUB_TOTAL_COST)}
+                    {"sub_total_cost": gettext("Sub-total should be equal to %s for Imminent DREF" % self.SUB_TOTAL_COST)}
                 )
             if not indirect_cost:
                 raise serializers.ValidationError({"indirect_cost": gettext("Indirect Cost is required for Imminent DREF")})
@@ -1267,7 +1274,14 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
 
             total_proposed_budget = sum(action.get("total_budget", 0) for action in proposed_actions)
             if total_proposed_budget != sub_total_cost:
-                raise serializers.ValidationError({"sub_total_cost": gettext("Sub-total should be equal to proposed budget.")})
+                raise serializers.ValidationError(
+                    {
+                        "sub_total_cost": gettext(
+                            "The sum of the Early Action and Early Response budgets should be exactly CHF %s."
+                        )
+                        % f"{self.SUB_TOTAL_COST:,}"
+                    }
+                )
         return data
 
     def validate_appeal_code(self, appeal_code):
