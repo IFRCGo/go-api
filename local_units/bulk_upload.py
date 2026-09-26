@@ -123,18 +123,29 @@ class ErrorWriter:
         self._has_errors = False
 
     def _format_errors(self, errors: dict) -> dict[str, list[str]]:
-        """Recursively flatten DRF errors."""
+        """Recursively flatten DRF errors onto spreadsheet column labels."""
         formatted = {}
         for key, value in errors.items():
             if isinstance(value, dict):
                 formatted.update(self._format_errors(value))
             elif isinstance(value, list):
-                header = self._reverse_header_map.get(key, key)
-                formatted[header] = [self._clean_message(v) for v in value]
+                self._assign_error(formatted, key, [self._clean_message(v) for v in value])
             else:
-                header = self._reverse_header_map.get(key, key)
-                formatted[header] = [self._clean_message(value)]
+                self._assign_error(formatted, key, [self._clean_message(value)])
         return formatted
+
+    def _assign_error(self, formatted: dict[str, list[str]], key: str, messages: list[str]) -> None:
+        if key == "non_field_errors":
+            formatted["General Error"] = messages
+            return
+
+        if key == "location":
+            for header in ("Latitude", "Longitude"):
+                formatted[header] = messages
+            return
+
+        header = self._reverse_header_map.get(key, key)
+        formatted[header] = messages
 
     def _clean_message(self, msg: any) -> str:
         if isinstance(msg, ErrorDetail):
