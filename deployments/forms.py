@@ -25,6 +25,28 @@ from .models import (
 )
 
 
+def parse_csv_integer(value):
+    """
+    Parse integer columns from 3W project CSV imports.
+    Decimal strings (e.g. budget amounts like 353873.10) are rounded to the nearest int.
+    """
+    if value is None or value == "":
+        return None
+    try:
+        if isinstance(value, str):
+            value = value.strip()
+            if not value:
+                return None
+            if "." in value:
+                return int(round(float(value)))
+            return int(value)
+        if isinstance(value, float):
+            return int(round(value))
+        return int(value)
+    except (ValueError, TypeError):
+        return None
+
+
 class ProjectForm(forms.ModelForm):
     """
     Custom Form For Project
@@ -160,13 +182,7 @@ class ProjectImportForm(forms.Form):
                 row_errors[field] = [str(e)]
 
         def _parse_integer(integer):
-            try:
-                if isinstance(integer, str):
-                    # ALL are integer fields. Change this if not
-                    return int(integer)
-                return integer
-            except ValueError:
-                return None
+            return parse_csv_integer(integer)
 
         file.seek(0)
         reader = csv.DictReader(
