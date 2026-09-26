@@ -1107,10 +1107,43 @@ class OpsLearningSerializer(serializers.ModelSerializer):
 
 
 class OpsLearningInSerializer(serializers.ModelSerializer):
+    VALIDATED_M2M_FIELDS = ("organization_validated", "sector_validated", "per_component_validated")
 
     class Meta:
         model = OpsLearning
         fields = "__all__"
+
+    def validate(self, attrs):
+        is_validated = attrs.get("is_validated", getattr(self.instance, "is_validated", False))
+
+        if is_validated:
+            return attrs
+
+        errors = {}
+        learning_validated = attrs.get(
+            "learning_validated",
+            getattr(self.instance, "learning_validated", None) if self.instance else None,
+        )
+        if learning_validated:
+            errors["learning_validated"] = "Cannot set validated fields when is_validated is false."
+
+        record_type = attrs.get("type", getattr(self.instance, "type", None) if self.instance else None)
+        type_validated = attrs.get(
+            "type_validated",
+            getattr(self.instance, "type_validated", None) if self.instance else None,
+        )
+        if record_type is not None and type_validated is not None and type_validated != record_type:
+            errors["type_validated"] = "Cannot set validated fields when is_validated is false."
+
+        for field_name in self.VALIDATED_M2M_FIELDS:
+            if field_name not in attrs:
+                continue
+            if attrs[field_name]:
+                errors[field_name] = "Cannot set validated fields when is_validated is false."
+
+        if errors:
+            raise serializers.ValidationError(errors)
+        return attrs
 
 
 class PublicOpsLearningSerializer(serializers.ModelSerializer):
