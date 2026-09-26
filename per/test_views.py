@@ -689,3 +689,37 @@ class PerDashboardDataTestCase(APITestCase):
         self.assert_200(response)
         self.assertEqual(len(response.data["countryAssessments"]), 12)
         self.assertLessEqual(len(queries), 8)
+
+
+class OpsLearningValidationTestCase(APITestCase):
+    def setUp(self):
+        super().setUp()
+        self.sector = SectorTagFactory.create()
+
+    def test_rejects_validated_fields_when_not_validated(self):
+        self.authenticate(self.ifrc_user)
+        response = self.client.post(
+            "/api/v2/ops-learning/",
+            {
+                "learning": "Draft lesson",
+                "is_validated": False,
+                "sector_validated": [self.sector.id],
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("sector_validated", response.data)
+
+    def test_allows_validated_fields_when_is_validated(self):
+        self.authenticate(self.ifrc_user)
+        response = self.client.post(
+            "/api/v2/ops-learning/",
+            {
+                "learning": "Validated lesson",
+                "learning_validated": "Validated lesson",
+                "is_validated": True,
+                "sector_validated": [self.sector.id],
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, 201)
