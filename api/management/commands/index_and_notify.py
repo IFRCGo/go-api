@@ -971,18 +971,41 @@ class Command(BaseCommand):
         self.bulk([construct_es_data(record, is_create=to_create) for record in list(records)])
 
     def bulk(self, actions):
+        if not actions:
+            return
         try:
             created, errors = bulk(client=ES_CLIENT, actions=actions)
             if errors:
                 logger.error(
                     "(index_and_notify:bulk): produced errors:",
-                    extra=logger_context(dict(errors=errors)),
+                    extra=logger_context(dict(errors=errors[:10], error_count=len(errors))),
                 )
+                # Retry failed updates individually with upsert (#2523)
+                for action in actions:
+                    if action.get("_op_type") != "update":
+                        continue
+                    try:
+                        bulk(client=ES_CLIENT, actions=[{**action, "doc_as_upsert": True}])
+                    except Exception:
+                        logger.error(
+                            "Failed to index record id=%s after bulk retry",
+                            action.get("_id"),
+                            exc_info=True,
+                        )
         except Exception:
             logger.error(
                 "(index_and_notify:bulk): could not index records",
                 exc_info=True,
             )
+            for action in actions:
+                try:
+                    bulk(client=ES_CLIENT, actions=[action])
+                except Exception:
+                    logger.error(
+                        "Failed to index record id=%s in fallback bulk",
+                        action.get("_id"),
+                        exc_info=True,
+                    )
 
     # Remove items in a queryset where updated_at == created_at.
     # This leaves us with only ones that have been modified.
