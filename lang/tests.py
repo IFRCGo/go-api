@@ -232,9 +232,12 @@ class TranslatorMockTest(unittest.TestCase):
     @mock.patch("lang.translation.requests")
     def test_ifrc_translator(self, requests_mock):
         # Simple mock test where we define what the expected response is from provider
-        requests_mock.post.return_value.json.return_value = [
+        response_mock = mock.Mock()
+        response_mock.status_code = 200
+        response_mock.json.return_value = [
             {"detectedLanguage": {"language": "en", "score": 1}, "translations": [{"text": "Hola", "to": "es"}]}
         ]
+        requests_mock.post.return_value = response_mock
 
         # Without valid settings provided
         for settings_params in [
@@ -265,6 +268,56 @@ class TranslatorMockTest(unittest.TestCase):
             # with settings.TESTING False
             with override_settings(TESTING=False):
                 assert ifrc_translator.translate_text("hello", "es") == "Hola"
+
+    @pytest.mark.django_db
+    @mock.patch("lang.translation.requests")
+    def test_ifrc_translator_server_error_returns_none(self, requests_mock):
+        response_mock = mock.Mock()
+        response_mock.status_code = 500
+        requests_mock.post.return_value = response_mock
+
+        with override_settings(
+            AUTO_TRANSLATION_TRANSLATOR="lang.translation.IfrcTranslator",
+            IFRC_TRANSLATION_DOMAIN="http://example.org",
+            IFRC_TRANSLATION_HEADER_API_KEY="dummy-api-header-key",
+            TESTING=False,
+            AZURE_TRANSL_LIMIT=20,
+        ):
+            ifrc_translator = IfrcTranslator()
+            result = ifrc_translator.translate_text("hello world", "es", source_language="en", table_field="test:model:name")
+            assert result is None
+
+    @pytest.mark.django_db
+    @mock.patch("lang.translation.requests")
+    def test_ifrc_translator_translates_oversized_html_in_chunks(self, requests_mock):
+        def fake_translate(*args, **kwargs):
+            payload = kwargs.get("json") or (args[1] if len(args) > 1 else {})
+            text = payload.get("text", "")
+            response = mock.Mock()
+            response.status_code = 200
+            response.json.return_value = [{"translations": [{"text": f"ES:{text}"}]}]
+            return response
+
+        requests_mock.post.side_effect = fake_translate
+
+        with override_settings(
+            AUTO_TRANSLATION_TRANSLATOR="lang.translation.IfrcTranslator",
+            IFRC_TRANSLATION_DOMAIN="http://example.org",
+            IFRC_TRANSLATION_HEADER_API_KEY="dummy-api-header-key",
+            TESTING=False,
+            AZURE_TRANSL_LIMIT=30,
+        ):
+            ifrc_translator = IfrcTranslator()
+            html = "<p>" + ("word " * 20) + "</p><p>tail</p>"
+            result = ifrc_translator.translate_text(html, "es", source_language="en", table_field="test:model:body")
+            assert result is not None
+            assert result.startswith("ES:")
+            assert requests_mock.post.call_count >= 2
+
+    def test_split_text_for_translation(self):
+        head, tail = IfrcTranslator.split_text_for_translation("<p>1234567890</p><p>rest</p>", 10)
+        assert head == "<p>123456789"
+        assert tail == "0</p><p>rest</p>"
 
     def test_ifrc_translator_detect_text_content_type(self):
         valid_htmls = [
