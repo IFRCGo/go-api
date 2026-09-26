@@ -30,9 +30,9 @@ class ProjectGetTest(APITestCase):
     def setUp(self):
         super().setUp()
         self.maxDiff = None
-        self.country1 = Country.objects.create(name="country1", iso="XX")
-        self.country2 = Country.objects.create(name="country2", iso="YY")
-        self.country3 = Country.objects.create(name="country3", iso="ZZ")
+        self.country1 = Country.objects.create(name="country1", iso="XX", iso3="XXX")
+        self.country2 = Country.objects.create(name="country2", iso="YY", iso3="YYY")
+        self.country3 = Country.objects.create(name="country3", iso="ZZ", iso3="ZZZ")
 
         self.district1 = District.objects.create(name="district1", country=self.country1)
         self.district2 = District.objects.create(name="district2", country=self.country2)
@@ -40,12 +40,26 @@ class ProjectGetTest(APITestCase):
 
         self.split1 = AnnualSplit.objects.create(project_id=0, year=2009, budget_amount=333, target_male=40)
 
+        self.sector1 = Sector.objects.create(title="sect1", order=1, id=1)
+        self.sector2 = Sector.objects.create(title="sect2", order=2, id=2)
+        self.sector3 = Sector.objects.create(title="sect3", order=3, id=3)
+        self.sector4 = Sector.objects.create(title="sect4", order=4, id=4)
+        self.sector5 = Sector.objects.create(title="sect5", order=5, id=5)
+        self.sector6 = Sector.objects.create(title="sect6", order=6, id=6)
+        self.sector7 = Sector.objects.create(title="sect7", order=7, id=7)
+        self.sector8 = Sector.objects.create(title="sect8", order=8, id=8)
+
+        self.sectortag1 = SectorTag.objects.create(title="sectag1", order=1, id=1)
+        self.sectortag2 = SectorTag.objects.create(title="sectag2", order=2, id=2)
+        self.sectortag3 = SectorTag.objects.create(title="sectag3", order=3, id=3)
+        self.sectortag4 = SectorTag.objects.create(title="sectag4", order=4, id=4)
+
         first = Project.objects.create(
             user=self.user,
             reporting_ns=self.country1,
             name="aaa",
             programme_type=ProgrammeTypes.BILATERAL,
-            primary_sector=Sector.objects.get(pk=0),
+            primary_sector=self.sector1,
             operation_type=OperationTypes.EMERGENCY_OPERATION,
             start_date=datetime.date(2011, 11, 11),
             end_date=datetime.date(2011, 11, 11),
@@ -59,7 +73,7 @@ class ProjectGetTest(APITestCase):
             reporting_ns=self.country1,
             name="bbb",
             programme_type=ProgrammeTypes.MULTILATERAL,
-            primary_sector=Sector.objects.get(pk=6),
+            primary_sector=self.sector6,
             operation_type=OperationTypes.PROGRAMME,
             start_date=datetime.date(2012, 12, 12),
             end_date=datetime.date(2013, 1, 1),
@@ -67,7 +81,7 @@ class ProjectGetTest(APITestCase):
             status=Statuses.ONGOING,
         )
         second.project_districts.set([self.district2])
-        second.secondary_sectors.set([SectorTag.objects.get(pk=0), SectorTag.objects.get(pk=3)]),
+        second.secondary_sectors.set([self.sectortag1, self.sectortag3]),
 
         third = Project.objects.create(
             id=0,
@@ -75,7 +89,7 @@ class ProjectGetTest(APITestCase):
             reporting_ns=self.country3,
             name="ccc",
             programme_type=ProgrammeTypes.MULTILATERAL.value,
-            primary_sector=Sector.objects.get(pk=6),
+            primary_sector=self.sector6,
             operation_type=OperationTypes.PROGRAMME.value,
             start_date=datetime.date(2012, 12, 12),
             end_date=datetime.date(2013, 1, 1),
@@ -83,7 +97,7 @@ class ProjectGetTest(APITestCase):
             status=Statuses.ONGOING.value,
         )
         third.project_districts.set([self.district3])
-        third.secondary_sectors.set([SectorTag.objects.get(pk=0), SectorTag.objects.get(pk=3)]),
+        third.secondary_sectors.set([self.sectortag1, self.sectortag3]),
 
     def create_project(self, **kwargs):
         project = Project.objects.create(
@@ -93,7 +107,7 @@ class ProjectGetTest(APITestCase):
             end_date=datetime.date(2011, 11, 11),
             reporting_ns=self.country1,
             programme_type=ProgrammeTypes.BILATERAL,
-            primary_sector=Sector.objects.get(pk=0),
+            primary_sector=self.sector1,
             operation_type=OperationTypes.PROGRAMME,
             status=Statuses.PLANNED,
             budget_amount=1000,
@@ -119,8 +133,8 @@ class ProjectGetTest(APITestCase):
             "project_districts": [district2.id],
             "name": "CreateMePls",
             "programme_type": ProgrammeTypes.BILATERAL,
-            "primary_sector": Sector.objects.get(pk=0).id,
-            "secondary_sectors": [Sector.objects.get(pk=2).id, Sector.objects.get(pk=1).id],
+            "primary_sector": self.sector1.id,
+            "secondary_sectors": [self.sectortag3.id, self.sectortag2.id],
             "operation_type": OperationTypes.EMERGENCY_OPERATION,
             "start_date": "2012-11-12",
             "end_date": "2013-11-13",
@@ -613,6 +627,9 @@ class TranslationTest(APITestCase):
         """
         country = Country.objects.create(name="country", iso="YY")
         district = District.objects.create(name="district", country=country)
+        sector1 = Sector.objects.create(title="sect1", order=1, id=1)
+        sectortag2 = SectorTag.objects.create(title="sectag2", order=2, id=2)
+        sectortag3 = SectorTag.objects.create(title="sectag3", order=3, id=3)
         disaster_names = {
             "en": "Disaster 1 (EN)",
             "es": "Disaster 1 (ES)",
@@ -643,8 +660,8 @@ class TranslationTest(APITestCase):
                     "project_districts": [district.id],
                     "name": names[current_language],
                     "programme_type": ProgrammeTypes.BILATERAL,
-                    "primary_sector": Sector.objects.get(pk=0).id,
-                    "secondary_sectors": [Sector.objects.get(pk=2).id, Sector.objects.get(pk=1).id],
+                    "primary_sector": sector1.id,
+                    "secondary_sectors": [sectortag3.id, sectortag2.id],
                     "operation_type": OperationTypes.EMERGENCY_OPERATION,
                     "start_date": "2012-11-12",
                     "end_date": "2013-11-13",
