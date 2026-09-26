@@ -42,24 +42,51 @@ def construct_es_data(instance, is_create=False):
         metadata.update(**data)
     else:
         metadata["doc"] = data
+        # Create the document when an update targets a missing ES record (#2523)
+        metadata["doc_as_upsert"] = True
     return metadata
+
+
+def _log_bulk_errors(errors, context=""):
+    if not errors:
+        return
+    logger.error(
+        "Elasticsearch bulk indexing produced errors%s: %s",
+        f" ({context})" if context else "",
+        errors[:5],
+        extra={"error_count": len(errors)},
+    )
 
 
 def create_es_index(instance):
     """Creates an Elasticsearch index from the record instance"""
 
     if ES_CLIENT and ES_PAGE_NAME:
-        # To make sure it doesn't run for tests
-        created, errors = bulk(client=ES_CLIENT, actions=[construct_es_data(instance, True)])
-        logger.info(f"Created {created} records")
-        log_errors(errors)
+        try:
+            created, errors = bulk(client=ES_CLIENT, actions=[construct_es_data(instance, True)])
+            logger.info(f"Created {created} records for {instance.__class__.__name__} pk={instance.pk}")
+            _log_bulk_errors(errors, f"create {instance.__class__.__name__}:{instance.pk}")
+        except Exception:
+            logger.error(
+                "Failed to index %s pk=%s",
+                instance.__class__.__name__,
+                instance.pk,
+                exc_info=True,
+            )
 
 
 def update_es_index(instance):
     """Updates the Elasticsearch index from the record instance"""
 
     if ES_CLIENT and ES_PAGE_NAME:
-        # To make sure it doesn't run for tests
-        updated, errors = bulk(client=ES_CLIENT, actions=[construct_es_data(instance)])
-        logger.info(f"Updated {updated} records")
-        log_errors(errors)
+        try:
+            updated, errors = bulk(client=ES_CLIENT, actions=[construct_es_data(instance)])
+            logger.info(f"Updated {updated} records for {instance.__class__.__name__} pk={instance.pk}")
+            _log_bulk_errors(errors, f"update {instance.__class__.__name__}:{instance.pk}")
+        except Exception:
+            logger.error(
+                "Failed to index %s pk=%s",
+                instance.__class__.__name__,
+                instance.pk,
+                exc_info=True,
+            )
