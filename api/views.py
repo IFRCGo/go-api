@@ -209,7 +209,7 @@ class HayStackSearch(APIView):
                         .models(SurgeAlert)
                         .filter(
                             (SQ(event_name__content=phrase) | SQ(country_name__contains=phrase) | SQ(iso3__contains=phrase))
-                            & ~SQ(status="archived")
+                            & SQ(status=str(SurgeAlertStatus.OPEN))
                         )
                         .order_by("-_score")
                     )
@@ -268,7 +268,7 @@ class HayStackSearch(APIView):
                         .filter(
                             (SQ(event_name__content=phrase) | SQ(country_name__contains=phrase) | SQ(iso3__contains=phrase))
                             & ~SQ(visibility="IFRC Only")
-                            & ~SQ(status="archived")
+                            & SQ(status=str(SurgeAlertStatus.OPEN))
                         )
                         .order_by("-_score")
                     )
@@ -325,7 +325,7 @@ class HayStackSearch(APIView):
                     .filter(
                         (SQ(event_name__content=phrase) | SQ(country_name__contains=phrase) | SQ(iso3__contains=phrase))
                         & SQ(visibility="Public")
-                        & ~SQ(status="archived")
+                        & SQ(status=str(SurgeAlertStatus.OPEN))
                     )
                     .order_by("-_score")
                 )
