@@ -27,6 +27,7 @@ db.sqlite3
 static
 URLs*
 db.sqlite3-journal
+docker-compose-local.yml
 
 # test and coverage artifacts
 .coverage
