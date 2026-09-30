@@ -61,7 +61,7 @@ from deployments.models import (
 )
 from flash_update.models import FlashUpdate
 from main.permissions import DenyGuestUserPermission
-from notifications.models import Subscription, SurgeAlert
+from notifications.models import Subscription, SurgeAlert, SurgeAlertStatus
 from notifications.notification import send_notification
 from registrations.models import Pending, Recovery
 
@@ -474,7 +474,7 @@ class HayStackSearch(APIView):
                     "alert_date": data.alert_date,
                     "score": data.score,
                     "event_id": data.event_id,
-                    "status": data.status,
+                    "status": SurgeAlertStatus(int(data.status)).label if data.status is not None else None,
                     "deadline": data.deadline,
                     "surge_type": data.surge_type,
                     "country_id": data.country_id,
