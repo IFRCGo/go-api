@@ -23,6 +23,27 @@ def get_email_context(instance):
     return email_context
 
 
+def get_final_report_alert_email_context(dref: Dref) -> dict:
+    return {
+        "mdr_code": dref.appeal_code,
+        "operation_name": dref.title,
+        "operation_end_date": dref.end_date,
+        "due_date": dref.final_report_due_date,
+        "frontend_url": settings.GO_WEB_URL,
+    }
+
+
+def get_final_report_alert_recipients(dref: Dref) -> tuple[list, list]:
+    """Recipients are sourced only from the DREF Application contact fields (no ERP fallback)."""
+    to_emails = [
+        dref.ifrc_appeal_manager_email,
+        dref.ifrc_project_manager_email,
+        dref.national_society_contact_email,
+    ]
+    cc_emails = [dref.regional_focal_point_email]
+    return to_emails, cc_emails
+
+
 def get_dref_users():
     dref_users_qs = Dref.objects.annotate(
         created_user_list=ArrayAgg("created_by", filter=models.Q(created_by__isnull=False)),

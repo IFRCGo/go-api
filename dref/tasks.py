@@ -30,7 +30,11 @@ from .models import (
     SourceInformation,
 )
 from .summary import DrefSummaryGenerator
-from .utils import get_email_context
+from .utils import (
+    get_email_context,
+    get_final_report_alert_email_context,
+    get_final_report_alert_recipients,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -64,6 +68,97 @@ def send_dref_email(dref_id, users_emails, new_or_updated=""):
 
     send_notification(email_subject, users_emails, email_body, email_type)
     return email_context
+
+
+@shared_task
+def send_final_report_implementation_end_email(dref_id: int):
+    instance = Dref.objects.filter(id=dref_id).first()
+    if not instance:
+        return None
+
+    to_emails, cc_emails = get_final_report_alert_recipients(instance)
+    email_context = get_final_report_alert_email_context(instance)
+    email_subject = f"DREF Final Report required: {instance.appeal_code} – {instance.title}"
+    email_body = render_to_string("email/dref/final_report_implementation_end.html", email_context)
+    send_notification(
+        subject=email_subject,
+        recipients=to_emails,
+        html=email_body,
+        mailtype="DREF Final Report Implementation End Alert",
+        cc_recipients=cc_emails,
+    )
+    instance.final_report_implementation_end_alert_sent_at = timezone.now()
+    instance.save(update_fields=["final_report_implementation_end_alert_sent_at"])
+    return True
+
+
+@shared_task
+def send_final_report_reminder_email(dref_id: int):
+    instance = Dref.objects.filter(id=dref_id).first()
+    if not instance:
+        return None
+
+    to_emails, cc_emails = get_final_report_alert_recipients(instance)
+    email_context = get_final_report_alert_email_context(instance)
+    email_subject = f"Reminder: DREF Final Report due in 30 days – {instance.appeal_code}"
+    email_body = render_to_string("email/dref/final_report_reminder.html", email_context)
+    send_notification(
+        subject=email_subject,
+        recipients=to_emails,
+        html=email_body,
+        mailtype="DREF Final Report Reminder",
+        cc_recipients=cc_emails,
+    )
+    instance.final_report_reminder_alert_sent_at = timezone.now()
+    instance.save(update_fields=["final_report_reminder_alert_sent_at"])
+    return True
+
+
+@shared_task
+def send_final_report_overdue_email(dref_id: int):
+    instance = Dref.objects.filter(id=dref_id).first()
+    if not instance:
+        return None
+
+    to_emails, cc_emails = get_final_report_alert_recipients(instance)
+    email_context = get_final_report_alert_email_context(instance)
+    email_subject = f"Action Required: Overdue DREF Final Report – {instance.appeal_code}"
+    email_body = render_to_string("email/dref/final_report_overdue.html", email_context)
+    send_notification(
+        subject=email_subject,
+        recipients=to_emails,
+        html=email_body,
+        mailtype="DREF Final Report Overdue Alert",
+        cc_recipients=cc_emails,
+    )
+    # Also seed the recurring timestamp so the first recurring reminder is 30 days from here.
+    now = timezone.now()
+    instance.final_report_overdue_alert_sent_at = now
+    instance.final_report_recurring_overdue_alert_sent_at = now
+    instance.save(update_fields=["final_report_overdue_alert_sent_at", "final_report_recurring_overdue_alert_sent_at"])
+    return True
+
+
+@shared_task
+def send_final_report_recurring_overdue_email(dref_id: int):
+    instance = Dref.objects.filter(id=dref_id).first()
+    if not instance:
+        return None
+
+    to_emails, cc_emails = get_final_report_alert_recipients(instance)
+    email_context = get_final_report_alert_email_context(instance)
+    email_subject = f"Reminder: DREF Final Report remains overdue – {instance.appeal_code}"
+    email_body = render_to_string("email/dref/final_report_recurring_overdue.html", email_context)
+    send_notification(
+        subject=email_subject,
+        recipients=to_emails,
+        html=email_body,
+        mailtype="DREF Final Report Recurring Overdue Alert",
+        cc_recipients=cc_emails,
+    )
+    instance.final_report_recurring_overdue_alert_sent_at = timezone.now()
+    instance.save(update_fields=["final_report_recurring_overdue_alert_sent_at"])
+    return True
 
 
 # NOTE: Only the models directly related to Dref are included here.

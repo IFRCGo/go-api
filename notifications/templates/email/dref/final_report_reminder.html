@@ -1,0 +1,21 @@
+{% include "email/dref/head.html" %}
+
+   <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff">
+     <tr>
+       <td align="center" class="pb-30" style="padding-bottom:30px;">
+         <p>Dear Colleague,</p>
+         <p>
+           This is a reminder that the final narrative and financial report for DREF operation
+           <b>{{ mdr_code }}</b> – <b>{{ operation_name }}</b> is due on <b>{{ due_date|date:"d M Y" }}</b>.
+         </p>
+         <p>
+           The implementation timeframe ended on <b>{{ operation_end_date|date:"d M Y" }}</b>, and 30 days
+           remain until the report submission deadline.
+         </p>
+         <p>If work on the report has already started, please ensure it is finalized and submitted by the due date.</p>
+         <p>Kind regards,<br>DREF Team</p>
+       </td>
+     </tr>
+   </table>
+
+{% include "design/foot1.html" %}
