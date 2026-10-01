@@ -78,6 +78,269 @@ def is_user_ifrc(user):
     return False
 
 
+# Hardwired search phrase -> pre-defined URL mapping.
+# TODO: move to a model/DB table if this needs to be editable without a deploy.
+SEARCH_PREDEFINED_LINKS = [
+    (
+        {"surge deployments", "active deployments", "deployed staff", "rapid response deployment"},
+        "/surge/active-surge-deployments",
+    ),
+    (
+        {"surge", "surge dashboard", "rapid response"},
+        "/surge/overview",
+    ),
+    (
+        {"rapid response personnel", "surge staff", "surge roster", "deployable personnel"},
+        "/surge/overview/rapid-response-personnel",
+    ),
+    (
+        {"eru", "emergency response unit", "eru deployment", "eru capacity"},
+        "/surge/overview/emergency-response-unit",
+    ),
+    (
+        {"surge alerts", "open surge positions", "deployment vacancies", "rapid response alerts"},
+        "/alerts/all",
+    ),
+    (
+        {"deployed personnel", "all deployments", "rapid response deployments"},
+        "/deployed-personnels/all",
+    ),
+    (
+        {
+            "operational toolbox",
+            "operations toolbox",
+            "response toolbox",
+            "emergency guidance",
+            "templates by sector",
+            "operational guidance",
+            "surge toolbox",
+        },
+        "/surge/operational-toolbox",
+    ),
+    (
+        {"surge catalogue", "catalogue of surge services", "surge roles", "role profiles", "erus", "technical competencies"},
+        "/surge/catalogue/overview",
+    ),
+    (
+        {"administration", "admin support"},
+        "/surge/catalogue/administration",
+    ),
+    (
+        {"cva", "cash assistance", "cash transfer programming", "vouchers"},
+        "/surge/catalogue/cash",
+    ),
+    (
+        {"cmr", "civil military relations"},
+        "/surge/catalogue/other/civil-military-relations",
+    ),
+    (
+        {"communications", "media", "public information"},
+        "/surge/catalogue/communication",
+    ),
+    (
+        {"cea", "community engagement", "accountability to affected people", "aap"},
+        "/surge/catalogue/community-engagement",
+    ),
+    (
+        {"digital surge", "it support", "humanitarian technology", "ict"},
+        "/surge/catalogue/digital-systems",
+    ),
+    (
+        {"drr", "disaster risk reduction", "resilience"},
+        "/surge/catalogue/other/disaster-risk-reduction",
+    ),
+    (
+        {"drones", "uav", "aerial imagery", "drone mapping"},
+        "/surge/catalogue/other/uav",
+    ),
+    (
+        {"needs assessment", "rapid assessment", "initial assessment"},
+        "/surge/catalogue/emergency-needs-assessment",
+    ),
+    (
+        {"green response", "environmental sustainability"},
+        "/surge/catalogue/other/green-response",
+    ),
+    (
+        {"health surge", "emergency health", "public health"},
+        "/surge/catalogue/health",
+    ),
+    (
+        {"humanitarian diplomacy", "hd", "advocacy"},
+        "/surge/catalogue/other/humanitarian-diplomacy",
+    ),
+    (
+        {"human resources", "hr surge", "people management"},
+        "/surge/catalogue/other/human-resources",
+    ),
+    (
+        {"information management", "im", "data analysis", "mapping", "gis", "geospatial", "dashboards"},
+        "/surge/catalogue/information-management",
+    ),
+    (
+        {"idrl", "disaster law", "legal preparedness"},
+        "/surge/catalogue/other/international-disaster-response-law",
+    ),
+    (
+        {"livelihoods", "basic needs", "lbn", "food security"},
+        "/surge/catalogue/livelihood",
+    ),
+    (
+        {"logistics", "supply chain", "procurement", "fleet", "warehousing"},
+        "/surge/catalogue/logistics",
+    ),
+    (
+        {"migration", "displacement", "migrants"},
+        "/surge/catalogue/other/migration",
+    ),
+    (
+        {"nsd", "national society development", "branch development"},
+        "/surge/catalogue/other/national-society-development",
+    ),
+    (
+        {"operations management", "operations manager", "field coordinator"},
+        "/surge/catalogue/operations-management",
+    ),
+    (
+        {"operations support hub", "osh", "basecamp"},
+        "/surge/catalogue/basecamp",
+    ),
+    (
+        {"pmer", "monitoring and evaluation", "reporting", "m&e"},
+        "/surge/catalogue/pmer",
+    ),
+    (
+        {"per", "preparedness assessment"},
+        "/surge/catalogue/other/preparedness-effective-response",
+    ),
+    (
+        {"pgi", "protection gender inclusion", "safeguarding", "disability inclusion"},
+        "/surge/catalogue/pgi",
+    ),
+    (
+        {"recovery", "early recovery", "recovery planning"},
+        "/surge/catalogue/other/recovery",
+    ),
+    (
+        {"relief", "relief distribution", "nfi", "household items"},
+        "/surge/catalogue/relief",
+    ),
+    (
+        {"risk management", "operational risk"},
+        "/surge/catalogue/risk-management",
+    ),
+    (
+        {"security", "field security", "safety and security"},
+        "/surge/catalogue/security",
+    ),
+    (
+        {"shelter", "emergency shelter", "settlements"},
+        "/surge/catalogue/shelter",
+    ),
+    (
+        {"sprm", "resource mobilisation", "donor relations", "fundraising", "funding coverage"},
+        "/surge/catalogue/other/strategic-partnership-resource-mobilisation",
+    ),
+    (
+        {"wash", "water sanitation hygiene", "hygiene promotion"},
+        "/surge/catalogue/wash",
+    ),
+    (
+        {"risk watch", "seasonal risk", "forecast", "climate risk", "hazard monitoring"},
+        "/risk-watch/seasonal",
+    ),
+    (
+        {"preparedness resources", "preparedness tools", "ns preparedness"},
+        "/preparedness/resources-catalogue",
+    ),
+    (
+        {"per global summary", "preparedness overview", "preparedness assessment results"},
+        "/preparedness/global-summary",
+    ),
+    (
+        {"per performance", "preparedness performance", "response capacity"},
+        "/preparedness/global-performance",
+    ),
+    (
+        {"emergencies", "active emergencies", "disasters", "current crises"},
+        "/emergencies/all",
+    ),
+    (
+        {"operations", "appeals", "emergency appeals", "dref operations", "response funding"},
+        "/appeals/all",
+    ),
+    (
+        {"operational learning", "learn", "lessons learned", "after action review", "aar", "evaluations"},
+        "/operational-learning",
+    ),
+    (
+        {"survey designer", "questionnaire builder", "form designer", "survey builder", "xlsform", "data collection form"},
+        "https://surveydesigner.ifrc.org/",
+    ),
+    (
+        {"wiki", "go wiki", "go documentation", "user guide", "help", "how to use go", "go guidance"},
+        "https://go-wiki.ifrc.org/en/home",
+    ),
+    (
+        {"go blog", "go news", "go updates", "product updates", "new go features"},
+        "https://ifrcgoproject.medium.com/",
+    ),
+    (
+        {
+            "montandon",
+            "monty",
+            "global crisis data bank",
+            "disaster database",
+            "hazard data",
+            "impact data",
+            "stac",
+            "historical disasters",
+            "montandon api",
+        },
+        "/montandon-landing",
+    ),
+    (
+        {"montandon data", "global crisis databank", "methodology", "partners", "disaster data platform"},
+        "https://montandondata.org/",
+    ),
+    (
+        {"montandon notebooks", "cookbook", "disaster analytics", "stac notebooks", "python disaster data", "jupyter"},
+        "https://ifrcgo.org/montandon-notebooks/",
+    ),
+    (
+        {"register go", "create go account", "sign up", "access go"},
+        "/register",
+    ),
+    (
+        {"go source code", "github", "open source", "go repository", "developer resources"},
+        "https://github.com/ifrcgo",
+    ),
+    (
+        {"go api", "api documentation", "developer api", "data api", "integration", "endpoints"},
+        "https://go-api.ifrc.org/docs/",
+    ),
+    (
+        {"kobo", "kobotoolbox", "mobile data collection", "field data collection", "surveys"},
+        "https://kobo.ifrc.org/",
+    ),
+    (
+        {"kobo faq", "kobo help", "kobo guidance", "data collection help"},
+        "https://www.ifrc.org/ifrc-kobo",
+    ),
+]
+
+
+def get_predefined_search_url(phrase: str) -> Optional[str]:
+    """Returns the pre-defined URL for a known search phrase, or None if there is no match"""
+    if not phrase:
+        return None
+    normalized_phrase = phrase.strip().lower()
+    for expressions, url in SEARCH_PREDEFINED_LINKS:
+        if normalized_phrase in expressions:
+            return url
+    return None
+
+
 # FIXME: not usable because of circular dependency
 # def filter_visibility_by_auth(user, visibility_model_class):
 #     if user.is_authenticated:
