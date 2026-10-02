@@ -75,6 +75,7 @@ class EmergenciesIndex(indexes.Indexable, indexes.SearchIndex):
     amount_requested = indexes.CharField(model_attr="appeals__amount_requested", null=True)
     amount_funded = indexes.CharField(model_attr="appeals__amount_funded", null=True)
     disaster_type = indexes.CharField(model_attr="dtype__name", null=True)
+    glide = indexes.CharField(model_attr="glide", null=True)
     countries_id = indexes.MultiValueField(
         null=True,
     )
@@ -82,6 +83,9 @@ class EmergenciesIndex(indexes.Indexable, indexes.SearchIndex):
         null=True,
     )
     appeals_type = indexes.MultiValueField(
+        null=True,
+    )
+    appeals_code = indexes.MultiValueField(
         null=True,
     )
     crisis_categorization = indexes.CharField(model_attr="get_ifrc_severity_level_display", null=True)
@@ -106,6 +110,10 @@ class EmergenciesIndex(indexes.Indexable, indexes.SearchIndex):
 
     def prepare_appeals_type(self, obj):
         return [appeal.get_atype_display() for appeal in obj.appeals.all()]
+
+    def prepare_appeals_code(self, obj):
+        # Keep entries aligned positionally with appeals_id/appeals_type (some appeals may lack a code).
+        return [appeal.code or "" for appeal in obj.appeals.all()]
 
     def index_queryset(self, using=None):
         return self.get_model().objects.all()
