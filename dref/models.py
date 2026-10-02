@@ -1,5 +1,6 @@
 import copy
 import os
+from datetime import timedelta
 from typing import Optional
 
 import reversion
@@ -10,6 +11,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.templatetags.static import static
 from django.utils import timezone
+from django.utils.dateparse import parse_date
 from django.utils.translation import gettext_lazy as _
 from pdf2image import convert_from_bytes
 
@@ -249,6 +251,12 @@ class ProposedAction(models.Model):
 
     def __str__(self) -> str:
         return f"{self.get_proposed_type_display()}-{self.total_budget}"
+
+
+# DREF Final Report Alerts: fixed-day offsets (per feature doc, not calendar months).
+DREF_FINAL_REPORT_DUE_DAYS = 90
+DREF_FINAL_REPORT_REMINDER_DAYS_BEFORE_DUE = 30
+DREF_FINAL_REPORT_RECURRING_OVERDUE_INTERVAL_DAYS = 30
 
 
 @reversion.register()
@@ -668,6 +676,20 @@ class Dref(models.Model):
         default=False,
         verbose_name=_("Is final report created"),
     )
+    # Final Report Alerts: due date is auto-derived from end_date in save(), not user-editable.
+    final_report_due_date = models.DateField(verbose_name=_("final report due date"), null=True, blank=True)
+    final_report_implementation_end_alert_sent_at = models.DateTimeField(
+        verbose_name=_("final report implementation end alert sent at"), null=True, blank=True
+    )
+    final_report_reminder_alert_sent_at = models.DateTimeField(
+        verbose_name=_("final report reminder alert sent at"), null=True, blank=True
+    )
+    final_report_overdue_alert_sent_at = models.DateTimeField(
+        verbose_name=_("final report overdue alert sent at"), null=True, blank=True
+    )
+    final_report_recurring_overdue_alert_sent_at = models.DateTimeField(
+        verbose_name=_("final report recurring overdue alert last sent at"), null=True, blank=True
+    )
     country = models.ForeignKey(
         Country,
         verbose_name=_("country"),
@@ -757,6 +779,10 @@ class Dref(models.Model):
         verbose_name_plural = _("drefs")
 
     def save(self, *args, **kwargs):
+        # end_date may still be a raw "YYYY-MM-DD" string here (assigned directly, not through a
+        # form/serializer), so normalize it before doing date arithmetic.
+        end_date = parse_date(self.end_date) if isinstance(self.end_date, str) else self.end_date
+        self.final_report_due_date = end_date + timedelta(days=DREF_FINAL_REPORT_DUE_DAYS) if end_date else None
         if self.budget_file and self.budget_file_id != self.__budget_file_id:
             pages = convert_from_bytes(self.budget_file.file.read())
             if len(pages) > 0:
