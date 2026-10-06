@@ -57,15 +57,19 @@ class Command(BaseCommand):
         timeformat = "%Y-%m-%dT%H:%M:%S"
         return datetime.strptime(date_string[:18], timeformat).replace(tzinfo=datetime_timezone.utc)
 
+    def parse_unix_timestamp(self, date_string):
+        """Convert an ISO-8601 timestamp string (e.g. '2026-10-01T13:59:52.333') to a unix timestamp."""
+        return int(datetime.fromisoformat(date_string).replace(tzinfo=datetime_timezone.utc).timestamp())
+
     def create_bilaterals_dict(self, records):
         """Aggregate amounts (rec['AmountCHF']) of Bilateral records"""
         bilaterals = {}
         for rec in records:
-            if rec["APP_Code"] and rec["AmountCHF"]:
-                if rec["APP_Code"] in bilaterals.keys():
-                    bilaterals[rec["APP_Code"]] += rec["AmountCHF"]
+            if rec["APP_code"] and rec["AmountCHF"]:
+                if rec["APP_code"] in bilaterals.keys():
+                    bilaterals[rec["APP_code"]] += rec["AmountCHF"]
                 else:
-                    bilaterals[rec["APP_Code"]] = rec["AmountCHF"]
+                    bilaterals[rec["APP_code"]] = rec["AmountCHF"]
         return bilaterals
 
     def get_new_or_modified_appeals(self):
@@ -147,7 +151,7 @@ class Command(BaseCommand):
 
             # get latest APPEALS
             logger.info("Querying appeals API for new appeals data")
-            url = "https://go-api.ifrc.org/api/appealsD365"  # DEBUG: can append filter &app_code=MDRDJ003
+            url = "https://go-api.ifrc.org/api/appealsD365V2"  # DEBUG: can append filter &APP_code=MDRDJ003
             params = {"App_startDate": "2023-07-01|2100-01-01"}
             # try 3 times to reach the API
             try:
@@ -273,7 +277,10 @@ class Command(BaseCommand):
         for detl in details:
             if self.parse_date(detl["APD_endDate"]) < end_date:
                 continue
-            triggering_amount += detl["TriggeringAmount"] if detl["TriggeringAmount"] else 0
+            triggering_ts = detl["TriggeringTimestamp"]
+            if isinstance(triggering_ts, str):
+                triggering_ts = self.parse_unix_timestamp(triggering_ts)
+            triggering_amount += triggering_ts if triggering_ts else 0
             if atype == AppealType.DREF:
                 # appeals are always fully-funded
                 amount_funded += detl["APD_amountCHF"] if detl["APD_amountCHF"] else 0
