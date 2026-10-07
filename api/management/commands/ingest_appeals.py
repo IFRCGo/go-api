@@ -236,7 +236,8 @@ class Command(BaseCommand):
 
     def parse_appeal_record(self, r, **options):
         # get the disaster type mapping
-        dname = "" if not r["ADT_name"] else r["ADT_name"].lower()
+        disaster_type_name = r.get("Disaster_Type")
+        dname = "" if not disaster_type_name else disaster_type_name.lower()
         # sometimes for some reason the string starts with a period
         if dname and dname[0] == ".":
             dname = dname[1:]

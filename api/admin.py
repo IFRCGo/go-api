@@ -182,6 +182,7 @@ class IsFeaturedFilter(admin.SimpleListFilter):
 
 
 class DisasterTypeAdmin(CompareVersionAdmin, TranslationAdmin, admin.ModelAdmin):
+    list_display = ("name", "id")
     search_fields = ("name",)
 
 
