@@ -1635,3 +1635,55 @@ class EmergencyStageTestCase(APITestCase):
 
         self.assertEqual(data["stage"], EventStage.DREF_APPLICATION)
         self.assertIsNone(data["dref"]["summary"])
+
+
+class AggregateByTimeTest(APITestCase):
+    url = "/api/v1/aggregate/"
+
+    def setUp(self):
+        super().setUp()
+        start_date = timezone.now()
+        AppealFactory.create(start_date=start_date, atype=models.AppealType.DREF, amount_funded=10, num_beneficiaries=5)
+        AppealFactory.create(start_date=start_date, atype=models.AppealType.DREF, amount_funded=20, num_beneficiaries=7)
+        AppealFactory.create(start_date=start_date, atype=models.AppealType.APPEAL, amount_funded=100, num_beneficiaries=50)
+
+    def test_appeal_sums_with_atype_filter(self):
+        response = self.client.get(
+            self.url,
+            {
+                "model_type": "appeal",
+                "filter_atype": models.AppealType.DREF,
+                "sum_amount_funded": "amount_funded",
+                "sum_beneficiaries": "num_beneficiaries",
+            },
+        )
+        self.assert_200(response)
+        self.assertEqual(sum(row["count"] for row in response.data), 2)
+        self.assertEqual(sum(row["amount_funded"] for row in response.data), 30)
+        self.assertEqual(sum(row["beneficiaries"] for row in response.data), 12)
+
+    def test_undeclared_params_are_ignored(self):
+        FieldReportFactory.create()
+        response = self.client.get(
+            self.url,
+            {
+                "model_type": "fieldreport",
+                "filter_user__isnull": "true",
+                "filter_user__password__startswith": "x",
+                "sum_user__id": "user__id",
+            },
+        )
+        self.assert_200(response)
+        self.assertEqual(sum(row["count"] for row in response.data), 1)
+        self.assertEqual(set(response.data[0].keys()), {"timespan", "count", "beneficiaries", "amount_funded"})
+
+    def test_invalid_params(self):
+        for params in [
+            {},
+            {"model_type": "user"},
+            {"model_type": "appeal", "start_date": "2020/01/01"},
+            {"model_type": "appeal", "sum_amount_funded": "id"},
+            {"model_type": "event", "filter_atype": models.AppealType.DREF},
+        ]:
+            with self.subTest(params=params):
+                self.assert_400(self.client.get(self.url, params))
