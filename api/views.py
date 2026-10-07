@@ -2,7 +2,7 @@ import base64
 import json
 import os
 import secrets
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from datetime import timezone as datetime_timezone
 from urllib.parse import urlparse
 
@@ -758,25 +758,19 @@ class AggregateByTime(APIView):
             "heop": Heop,
         }
 
-        unit = request.GET.get("unit", None)
-        start_date = request.GET.get("start_date", None)
-        mtype = request.GET.get("model_type", None)
+        input_serializer = AggregateByTimeSeriesInputSerializer(data=request.GET)
+        input_serializer.is_valid(raise_exception=True)
+        params = input_serializer.validated_data
 
-        country = request.GET.get("country", None)
-        region = request.GET.get("region", None)
-
-        if mtype is None or mtype not in models:
-            return bad_request("Must specify an `model_type` that is `heop`, `appeal`, `event`, or `fieldreport`")
-
-        if start_date is None:
-            start_date = datetime(1980, 1, 1, tzinfo=datetime_timezone.utc)
-        else:
-            try:
-                start_date = datetime.strptime(start_date, "%Y-%m-%d")
-            except ValueError:
-                return bad_request("`start_date` must be YYYY-MM-DD format")
-
-            start_date = start_date.replace(tzinfo=datetime_timezone.utc)
+        mtype = params["model_type"]
+        unit = params["unit"]
+        country = params.get("country")
+        region = params.get("region")
+        start_date = datetime.combine(
+            params.get("start_date", date(1980, 1, 1)),
+            datetime.min.time(),
+            tzinfo=datetime_timezone.utc,
+        )
 
         model = models[mtype]
 
@@ -802,18 +796,14 @@ class AggregateByTime(APIView):
             regions = region if is_appeal else [region]
             filter_obj[region_filter] = regions
 
-        # allow custom filter attributes
-        # TODO this should check if the model definition contains this field
-        for key, value in request.GET.items():
-            if key[0:7] == "filter_":
-                filter_obj[key[7:]] = value
+        if "filter_atype" in params:
+            filter_obj["atype"] = params["filter_atype"]
 
-        # allow arbitrary SUM functions
         annotation_funcs = {"count": Count("id")}
         output_values = ["timespan", "count"]
-        for key, value in request.GET.items():
-            if key[0:4] == "sum_":
-                annotation_funcs[key[4:]] = Sum(value)
+        for key in ("sum_amount_funded", "sum_beneficiaries"):
+            if key in params:
+                annotation_funcs[key[4:]] = Sum(params[key])
                 output_values.append(key[4:])
 
         trunc_method = TruncMonth if unit == "month" else TruncYear
