@@ -44,6 +44,7 @@ from eap.models import (
     TimeFrame,
     YearsTimeFrameChoices,
 )
+from eap.permissions import has_submit_permission
 from main.test_case import APITestCase
 
 
@@ -3264,6 +3265,22 @@ class EAPVisibilityTestCase(APITestCase):
 
         self.eap_1.refresh_from_db()
         self.assertEqual(self.eap_1.disaster_sub_type, "by creator")
+
+    def test_submit_for_review_allows_everyone_with_write_access(self):
+        # NOTE: Both "submit for review" transitions share this check. They used to differ -
+        # the resubmit path omitted region admins, so the same person could submit a new EAP
+        # but not resubmit it after IFRC comments.
+        for user, expected in [
+            (self.ns_1_admin, True),
+            (self.region_1_admin, True),
+            (self.shared_user, True),
+            (self.ifrc_admin, True),
+            (self.root_user, True),
+            (self.ns_2_admin, False),
+            (self.outsider, False),
+        ]:
+            with self.subTest(user=user.id):
+                self.assertIs(has_submit_permission(user, self.eap_1), expected)
 
     def test_creating_application_requires_access(self):
         # NOTE: has_object_permission is not called on create, and creating an application locks
