@@ -41,7 +41,7 @@ from eap.models import (
     TimeFrame,
     YearsTimeFrameChoices,
 )
-from eap.permissions import has_creator_or_shared_permission
+from eap.permissions import has_submit_permission
 from eap.tasks import (
     generate_eap_summary_pdf,
     generate_export_diff_pdf,
@@ -57,7 +57,6 @@ from eap.tasks import (
     send_technical_validation_email,
 )
 from eap.utils import (
-    has_country_permission,
     is_user_ifrc_admin,
     validate_file_extention,
     validate_file_object,
@@ -1040,6 +1039,11 @@ class EAPStatusSerializer(BaseEAPSerializer):
             EAPRegistration.Status.UNDER_DEVELOPMENT,
             EAPRegistration.Status.UNDER_REVIEW,
         ):
+            if not has_submit_permission(user, self.instance):
+                raise PermissionDenied(
+                    gettext("You do not have permission to change status to %s.") % EAPRegistration.Status(new_status).label
+                )
+
             if self.instance.get_eap_type_enum == EAPType.SIMPLIFIED_EAP:
                 self.instance.latest_simplified_eap.is_locked = True
                 self.instance.latest_simplified_eap.save(update_fields=["is_locked"])
@@ -1119,11 +1123,7 @@ class EAPStatusSerializer(BaseEAPSerializer):
             EAPRegistration.Status.NS_ADDRESSING_COMMENTS,
             EAPRegistration.Status.UNDER_REVIEW,
         ):
-            if not (
-                has_country_permission(user, self.instance.national_society_id)
-                or is_user_ifrc_admin(user)
-                or has_creator_or_shared_permission(user, self.instance)
-            ):
+            if not has_submit_permission(user, self.instance):
                 raise PermissionDenied(
                     gettext("You do not have permission to change status to %s.") % EAPRegistration.Status(new_status).label
                 )

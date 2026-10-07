@@ -29,6 +29,7 @@ def has_creator_or_shared_permission(
     user,
     eap_registration: EAPRegistration,
 ) -> bool:
+    # NOTE: The creator and the users the EAP is shared with can update it, same as in Dref.
     return eap_registration.created_by_id == user.id or eap_registration.users.filter(id=user.id).exists()
 
 
@@ -123,3 +124,17 @@ class EAPValidatedBudgetPermission(BasePermission):
         if user.is_superuser or user.has_perm("api.ifrc_admin"):
             return True
         return False
+
+
+def has_submit_permission(
+    user,
+    eap_registration: EAPRegistration,
+) -> bool:
+    # NOTE: Submitting for review is open to the same people who can edit the EAP: the
+    # National Society's admins, its region's admins, the creator and the shared users.
+    return (
+        user.is_superuser
+        or has_creator_or_shared_permission(user=user, eap_registration=eap_registration)
+        or has_country_permission(user=user, national_society_id=eap_registration.national_society_id)
+        or has_regional_permission(user=user, region_id=eap_registration.national_society.region_id)
+    )
