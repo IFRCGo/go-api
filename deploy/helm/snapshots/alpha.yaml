@@ -599,6 +599,65 @@ spec:
                   value: ws://go-api-playwright:3000/
 ---
 # Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: dref_final_report_alert
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-dref-final-report-alert
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: dref_final_report_alert
+    environment: ALPHA
+    release: release-name
+spec:
+  schedule: "0 6 * * *"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+        spec:
+          restartPolicy: "Never"
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - dref_final_report_alert
+              image: "local.example.com/ifrcgo/go-api:develop.xxxxxxxx"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
 # Job: eap_submission_reminder
 apiVersion: batch/v1
 kind: CronJob
