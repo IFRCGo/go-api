@@ -52,5 +52,3 @@ RUN perl -pi -e "s/if response.get/if response is None:\n            return\n\n 
 
 COPY ./ $HOME/go-api/
 WORKDIR $HOME/go-api/
-
-ENTRYPOINT ["./main/entrypoint.sh"]
