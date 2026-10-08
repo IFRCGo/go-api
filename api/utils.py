@@ -78,6 +78,389 @@ def is_user_ifrc(user):
     return False
 
 
+# Hardwired search phrase -> pre-defined URL mapping.
+# TODO: move to a model/DB table if this needs to be editable without a deploy.
+SEARCH_PREDEFINED_LINKS = [
+    (
+        {"surge deployments", "active deployments", "deployed staff", "deployed personnel", "rapid response deployment"},
+        "/surge/active-surge-deployments",
+        "Active Surge Deployments",
+    ),
+    (
+        {"surge", "surge dashboard", "rapid response", "eru"},
+        "/surge/overview",
+        "Surge Overview",
+    ),
+    (
+        {"rapid response personnel", "surge staff", "surge roster", "deployable personnel"},
+        "/surge/overview/rapid-response-personnel",
+        "Rapid Response Personnel",
+    ),
+    (
+        {"eru", "emergency response unit", "eru deployment", "eru capacity"},
+        "/surge/overview/emergency-response-unit",
+        "Emergency Response Unit",
+    ),
+    (
+        {"surge alerts", "open surge positions", "deployment vacancies", "rapid response alerts"},
+        "/alerts/all",
+        "Surge Alerts",
+    ),
+    (
+        {"deployed personnel", "all deployments", "rapid response deployments"},
+        "/deployed-personnels/all",
+        "All Deployed Personnel",
+    ),
+    (
+        {
+            "operational toolbox",
+            "operations toolbox",
+            "response toolbox",
+            "emergency guidance",
+            "templates by sector",
+            "operational guidance",
+            "surge toolbox",
+        },
+        "/surge/operational-toolbox",
+        "Operational Toolbox",
+    ),
+    (
+        {"surge catalogue", "catalogue of surge services", "surge roles", "role profiles", "erus", "technical competencies"},
+        "/surge/catalogue/overview",
+        "Catalogue of Surge Services",
+    ),
+    (
+        {"administration", "admin support"},
+        "/surge/catalogue/administration",
+        "Administration",
+    ),
+    (
+        {"cva", "cash assistance", "cash transfer programming", "vouchers"},
+        "/surge/catalogue/cash",
+        "Cash and Vouchers Assistance (CVA)",
+    ),
+    (
+        {"cmr", "civil military relations"},
+        "/surge/catalogue/other/civil-military-relations",
+        "Civil Military Relations (CMR)",
+    ),
+    (
+        {"communications", "media", "public information"},
+        "/surge/catalogue/communication",
+        "Communications",
+    ),
+    (
+        {"cea", "community engagement", "accountability to affected people", "aap"},
+        "/surge/catalogue/community-engagement",
+        "Community Engagement and Accountability (CEA)",
+    ),
+    (
+        {"digital surge", "it support", "humanitarian technology", "ict"},
+        "/surge/catalogue/digital-systems",
+        "Digital Systems, Tools & Information Technology",
+    ),
+    (
+        {"drr", "disaster risk reduction", "resilience"},
+        "/surge/catalogue/other/disaster-risk-reduction",
+        "Disaster Risk Reduction (DRR)",
+    ),
+    (
+        {"drones", "uav", "aerial imagery", "drone mapping"},
+        "/surge/catalogue/other/uav",
+        "Drones – Uncrewed Aerial Vehicles (UAV)",
+    ),
+    (
+        {"needs assessment", "rapid assessment", "initial assessment"},
+        "/surge/catalogue/emergency-needs-assessment",
+        "Emergency Needs Assessment",
+    ),
+    (
+        {"green response", "environmental sustainability"},
+        "/surge/catalogue/other/green-response",
+        "Green Response (GR)",
+    ),
+    (
+        {"health surge", "emergency health", "public health"},
+        "/surge/catalogue/health",
+        "Health",
+    ),
+    (
+        {"humanitarian diplomacy", "hd", "advocacy"},
+        "/surge/catalogue/other/humanitarian-diplomacy",
+        "Humanitarian Diplomacy (HD)",
+    ),
+    (
+        {"human resources", "hr surge", "people management"},
+        "/surge/catalogue/other/human-resources",
+        "Human Resources (HR)",
+    ),
+    (
+        {"information management", "im", "data analysis", "mapping", "gis", "geospatial", "dashboards"},
+        "/surge/catalogue/information-management",
+        "Information Management (IM)",
+    ),
+    (
+        {"idrl", "disaster law", "legal preparedness"},
+        "/surge/catalogue/other/international-disaster-response-law",
+        "International Disaster Response Law (IDRL)",
+    ),
+    (
+        {"livelihoods", "basic needs", "lbn", "food security"},
+        "/surge/catalogue/livelihood",
+        "Livelihoods and Basic Needs (LBN)",
+    ),
+    (
+        {"logistics", "supply chain", "procurement", "fleet", "warehousing"},
+        "/surge/catalogue/logistics",
+        "Logistics",
+    ),
+    (
+        {"migration", "displacement", "migrants"},
+        "/surge/catalogue/other/migration",
+        "Migration",
+    ),
+    (
+        {"nsd", "national society development", "branch development"},
+        "/surge/catalogue/other/national-society-development",
+        "National Society Development (NSD)",
+    ),
+    (
+        {"operations management", "operations manager", "field coordinator"},
+        "/surge/catalogue/operations-management",
+        "Operations Management",
+    ),
+    (
+        {"operations support hub", "osh", "basecamp"},
+        "/surge/catalogue/basecamp",
+        "Operations Support HUB (OSH)",
+    ),
+    (
+        {"pmer", "monitoring and evaluation", "reporting", "m&e"},
+        "/surge/catalogue/pmer",
+        "Planning, Monitoring, Evaluation and Reporting (PMER)",
+    ),
+    (
+        {"per", "preparedness assessment", "response capacity"},
+        "/surge/catalogue/other/preparedness-effective-response",
+        "Preparedness for Effective Response (PER)",
+    ),
+    (
+        {"pgi", "protection gender inclusion", "safeguarding", "disability inclusion"},
+        "/surge/catalogue/pgi",
+        "Protection, Gender and Inclusion (PGI)",
+    ),
+    (
+        {"recovery", "early recovery", "recovery planning"},
+        "/surge/catalogue/other/recovery",
+        "Recovery",
+    ),
+    (
+        {"relief", "relief distribution", "nfi", "household items"},
+        "/surge/catalogue/relief",
+        "Relief",
+    ),
+    (
+        {"risk management", "operational risk"},
+        "/surge/catalogue/risk-management",
+        "Risk Management",
+    ),
+    (
+        {"security", "field security", "safety and security"},
+        "/surge/catalogue/security",
+        "Security",
+    ),
+    (
+        {"shelter", "emergency shelter", "settlements"},
+        "/surge/catalogue/shelter",
+        "Shelter",
+    ),
+    (
+        {"sprm", "resource mobilisation", "donor relations", "fundraising", "funding coverage"},
+        "/surge/catalogue/other/strategic-partnership-resource-mobilisation",
+        "Strategic Partnerships and Resource Mobilisation (SPRM)",
+    ),
+    (
+        {"wash", "water sanitation hygiene", "hygiene promotion"},
+        "/surge/catalogue/wash",
+        "Water, Sanitation, and Hygiene (WASH)",
+    ),
+    (
+        {"risk watch", "seasonal risk", "forecast", "climate risk", "hazard monitoring"},
+        "/risk-watch/seasonal",
+        "Risk Watch - Seasonal",
+    ),
+    (
+        {"preparedness resources", "preparedness tools", "ns preparedness"},
+        "/preparedness/resources-catalogue",
+        "Preparedness Resources Catalogue",
+    ),
+    (
+        {"per global summary", "preparedness overview", "preparedness assessment results"},
+        "/preparedness/global-summary",
+        "PER Global Summary",
+    ),
+    (
+        {"per performance", "preparedness performance", "response capacity"},
+        "/preparedness/global-performance",
+        "PER Global Performance",
+    ),
+    (
+        {"emergencies", "active emergencies", "disasters", "current crises"},
+        "/emergencies/all",
+        "Emergencies",
+    ),
+    (
+        {"operations", "appeals", "emergency appeals", "dref operations", "response funding"},
+        "/appeals/all",
+        "Operations and Appeals",
+    ),
+    (
+        {"operational learning", "learn", "lessons learned", "after action review", "aar", "evaluations"},
+        "/operational-learning",
+        "Operational Learning",
+    ),
+    (
+        {"survey designer", "questionnaire builder", "form designer", "survey builder", "xlsform", "data collection form"},
+        "https://surveydesigner.ifrc.org/",
+        "Survey Designer",
+    ),
+    (
+        {"wiki", "go wiki", "go documentation", "user guide", "help", "how to use go", "go guidance"},
+        "https://go-wiki.ifrc.org/en/home",
+        "GO Wiki",
+    ),
+    (
+        {"go blog", "go news", "go updates", "product updates", "new go features"},
+        "https://ifrcgoproject.medium.com/",
+        "GO Blog",
+    ),
+    (
+        {
+            "montandon",
+            "monty",
+            "global crisis data bank",
+            "disaster database",
+            "hazard data",
+            "impact data",
+            "stac",
+            "historical disasters",
+            "montandon api",
+        },
+        "/montandon-landing",
+        "Montandon - Global Crisis Data Bank",
+    ),
+    (
+        {"montandon data", "global crisis databank", "methodology", "partners", "disaster data platform"},
+        "https://montandondata.org/",
+        "Montandon public website",
+    ),
+    (
+        {"montandon notebooks", "cookbook", "disaster analytics", "stac notebooks", "python disaster data", "jupyter"},
+        "https://ifrcgo.org/montandon-notebooks/",
+        "Montandon Data Cookbook and Notebooks",
+    ),
+    (
+        {"register go", "create go account", "sign up", "access go"},
+        "/register",
+        "IFRC GO registration",
+    ),
+    (
+        {"go source code", "github", "open source", "go repository", "developer resources"},
+        "https://github.com/ifrcgo",
+        "IFRC GO Open Source Code",
+    ),
+    (
+        {"go api", "api documentation", "developer api", "data api", "integration", "endpoints"},
+        "https://go-api.ifrc.org/docs/",
+        "GO API Documentation",
+    ),
+    (
+        {"kobo", "kobotoolbox", "mobile data collection", "field data collection", "surveys"},
+        "https://kobo.ifrc.org/",
+        "IFRC KoboToolbox",
+    ),
+    (
+        {"kobo faq", "kobo help", "kobo guidance", "data collection help"},
+        "https://www.ifrc.org/ifrc-kobo",
+        "IFRC KoboToolbox FAQ",
+    ),
+]
+
+
+def get_predefined_search_urls(phrase: str) -> list[dict]:
+    """Returns all pre-defined {url, name} entries matching a known search phrase (a phrase may map to more than one)"""
+    if not phrase:
+        return []
+    normalized_phrase = phrase.strip().lower()
+    return [{"url": url, "name": name} for expressions, url, name in SEARCH_PREDEFINED_LINKS if normalized_phrase in expressions]
+
+
+COUNTRY_SEARCH_CACHE_KEY = "search:country-name-to-id-map:v1"
+COUNTRY_SEARCH_CACHE_TIMEOUT_SECONDS = 60 * 60  # 1 hour
+
+# Per-country search phrase suffix/prefix -> URL template ({id} is substituted with the matched country's id).
+COUNTRY_CATEGORY_LINKS = [
+    ({"operations", "ongoing activities"}, "/countries/{id}/ongoing-activities", "Ongoing Activities"),
+    ({"emergencies", "current disasters"}, "/countries/{id}/ongoing-activities/emergencies", "Ongoing Emergencies"),
+    ({"red cross activities", "ns activities"}, "/countries/{id}/ns-overview/activities", "National Society Activities"),
+    ({"red cross structure", "branches"}, "/countries/{id}/ns-overview/context-and-structure", "Context and Structure"),
+    (
+        {"country plan", "strategy", "annual plan", "unified plan"},
+        "/countries/{id}/ns-overview/strategic-priorities",
+        "Strategic Priorities",
+    ),
+    ({"capacity", "per", "response capacity"}, "/countries/{id}/ns-overview/capacity", "Capacity"),
+    ({"partners", "movement partners"}, "/countries/{id}/ns-overview/partners", "Partners"),
+    ({"profile", "demographics", "risk profile", "humanitarian context"}, "/countries/{id}/profile/overview", "Country Profile"),
+]
+
+
+def _get_country_name_to_id_map() -> dict:
+    """Returns a cached {lowercased name or ISO3: id} map for independent, non-deprecated countries"""
+    from django.core.cache import cache
+
+    from api.models import Country
+
+    name_to_id = cache.get(COUNTRY_SEARCH_CACHE_KEY)
+    if name_to_id is not None:
+        return name_to_id
+
+    name_to_id = {}
+    for country_id, name, iso3 in Country.objects.filter(is_deprecated=False).values_list("id", "name", "iso3"):
+        if name:
+            name_to_id[name.strip().lower()] = country_id
+        if iso3:
+            name_to_id[iso3.strip().lower()] = country_id
+
+    cache.set(COUNTRY_SEARCH_CACHE_KEY, name_to_id, timeout=COUNTRY_SEARCH_CACHE_TIMEOUT_SECONDS)
+    return name_to_id
+
+
+def get_country_specific_search_urls(phrase: str) -> list[dict]:
+    """Returns pre-defined {url, name} entries for phrases like "<country> emergencies" (country matched by name or ISO3)"""
+    if not phrase:
+        return []
+    normalized_phrase = phrase.strip().lower()
+    name_to_id = _get_country_name_to_id_map()
+
+    # Longest country token first, so e.g. "nigeria" isn't shadowed by "niger".
+    for country_token in sorted(name_to_id, key=len, reverse=True):
+        if normalized_phrase.startswith(country_token + " "):
+            remainder = normalized_phrase[len(country_token) + 1 :].strip()
+        elif normalized_phrase.endswith(" " + country_token):
+            remainder = normalized_phrase[: -(len(country_token) + 1)].strip()
+        else:
+            continue
+
+        country_id = name_to_id[country_token]
+        return [
+            {"url": template.format(id=country_id), "name": name}
+            for expressions, template, name in COUNTRY_CATEGORY_LINKS
+            if remainder in expressions
+        ]
+    return []
+
+
 # FIXME: not usable because of circular dependency
 # def filter_visibility_by_auth(user, visibility_model_class):
 #     if user.is_authenticated:
