@@ -43,6 +43,7 @@ from .models import (
     Appeal,
     AppealDocument,
     AppealHistory,
+    AppealType,
     Country,
     CountryCapacityStrengthening,
     CountryContact,
@@ -2628,11 +2629,25 @@ class ProjectSecondarySectorsSerializer(serializers.Serializer):
 
 
 class AggregateByTimeSeriesInputSerializer(serializers.Serializer):
-    unit = serializers.CharField(required=False)
-    start_date = serializers.DateTimeField(required=False)
-    mtype = serializers.CharField(required=False)
+    # NOTE: Only explicitly declared params are accepted.
+    APPEAL_ONLY_FIELDS = ("filter_atype", "sum_amount_funded", "sum_beneficiaries")
+
+    model_type = serializers.ChoiceField(choices=["appeal", "event", "fieldreport", "heop"])
+    unit = serializers.ChoiceField(choices=["month", "year"], required=False, default="year")
+    start_date = serializers.DateField(required=False)
     country = serializers.IntegerField(required=False)
     region = serializers.IntegerField(required=False)
+    # Appeal only
+    filter_atype = serializers.ChoiceField(choices=AppealType.choices, required=False)
+    sum_amount_funded = serializers.ChoiceField(choices=["amount_funded"], required=False)
+    sum_beneficiaries = serializers.ChoiceField(choices=["num_beneficiaries"], required=False)
+
+    def validate(self, attrs):
+        if attrs["model_type"] != "appeal":
+            invalid_fields = [field for field in self.APPEAL_ONLY_FIELDS if field in attrs]
+            if invalid_fields:
+                raise serializers.ValidationError({field: "Only supported for model_type=appeal" for field in invalid_fields})
+        return attrs
 
 
 class AggregateByTimeSeriesSerializer(serializers.Serializer):
