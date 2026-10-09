@@ -77,11 +77,11 @@ from .models import (
     FieldReport,
     Snippet,
 )
-from .utils import (
-    get_country_specific_search_urls,
-    get_predefined_search_urls,
-    is_user_ifrc,
-)
+from .utils import is_user_ifrc
+
+# TODO: re-enable ^ once the frontend can consume these predefined search links.
+# get_country_specific_search_urls,
+# get_predefined_search_urls,
 
 
 def bad_request(message):
@@ -448,7 +448,8 @@ class HayStackSearch(APIView):
             ]
             field_report.extend(field_reports_data)
         result = {
-            "urls": get_predefined_search_urls(phrase) + get_country_specific_search_urls(phrase),
+            # TODO: re-enable once the frontend can consume these predefined search links.
+            # "urls": get_predefined_search_urls(phrase) + get_country_specific_search_urls(phrase),
             "regions": [
                 {"id": int(data.id.split(".")[-1]), "name": data.name, "score": data.score} for data in region_response[:50]
             ],

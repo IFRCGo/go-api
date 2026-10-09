@@ -2609,7 +2609,8 @@ class SearchPredefinedLinkSerializer(serializers.Serializer):
 
 
 class SearchSerializer(serializers.Serializer):
-    urls = SearchPredefinedLinkSerializer(many=True, required=False)
+    # TODO: re-enable once the frontend can consume these predefined search links.
+    # urls = SearchPredefinedLinkSerializer(many=True, required=False)
     regions = SearchRegionSerializer(many=True, required=False, allow_null=True)
     district_province_response = SearchDistrictSerializer(many=True, required=False, allow_null=True)
     countries = SearchCountrySerializer(many=True, required=False, allow_null=True)
