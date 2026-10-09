@@ -76,6 +76,7 @@ from .models import (
     Event,
     FieldReport,
     Snippet,
+    VisibilityChoices,
 )
 from .utils import is_user_ifrc
 
@@ -447,6 +448,39 @@ class HayStackSearch(APIView):
                 for data in fieldreport_response.order_by("-created_at")
             ]
             field_report.extend(field_reports_data)
+
+        # Pin exact matches to the front regardless of the ES relevance score.
+        exact_code_events_qs = Event.objects.filter(Q(appeals__code__iexact=phrase) | Q(glide__iexact=phrase)).distinct()
+        if self.request.user.is_authenticated:
+            if not is_user_ifrc(self.request.user):
+                exact_code_events_qs = exact_code_events_qs.exclude(visibility=VisibilityChoices.IFRC)
+        else:
+            exact_code_events_qs = exact_code_events_qs.filter(visibility=VisibilityChoices.PUBLIC)
+
+        exact_code_emergencies = []
+        for event in exact_code_events_qs.select_related("dtype").prefetch_related("countries", "appeals"):
+            event_appeals = list(event.appeals.all())
+            exact_code_emergencies.append(
+                {
+                    "id": event.id,
+                    "name": event.name,
+                    "disaster_type": event.dtype.name if event.dtype else None,
+                    "funding_requirements": sum(appeal.amount_requested for appeal in event_appeals) if event_appeals else None,
+                    "funding_coverage": sum(appeal.amount_funded for appeal in event_appeals) if event_appeals else None,
+                    "start_date": event.disaster_start_date,
+                    # Sentinel score (higher than any realistic ES relevance score) so these sort/display first.
+                    "score": 1_000_000.0,
+                    "countries": [{"id": country.id, "name": country.name} for country in event.countries.all()],
+                    "severity_level_display": event.get_ifrc_severity_level_display(),
+                    "glide": event.glide,
+                    "appeals": [
+                        {"id": appeal.id, "atype": appeal.get_atype_display(), "code": appeal.code or None}
+                        for appeal in event_appeals
+                    ],
+                    "severity_level": event.ifrc_severity_level,
+                }
+            )
+        exact_code_event_ids = {emergency["id"] for emergency in exact_code_emergencies}
         result = {
             # TODO: re-enable once the frontend can consume these predefined search links.
             # "urls": get_predefined_search_urls(phrase) + get_country_specific_search_urls(phrase),
@@ -473,26 +507,30 @@ class HayStackSearch(APIView):
                 }
                 for data in country_response[:50]
             ],
-            "emergencies": [
-                {
-                    "id": int(data.id.split(".")[-1]),
-                    "name": data.name,
-                    "disaster_type": data.disaster_type,
-                    "funding_requirements": data.amount_requested,
-                    "funding_coverage": data.amount_funded,
-                    "start_date": data.disaster_start_date,
-                    "score": data.score,
-                    "countries": [{"id": id, "name": name} for id, name in zip(data.countries_id, data.countries)],
-                    "severity_level_display": data.crisis_categorization,
-                    "glide": data.glide,
-                    "appeals": [
-                        {"id": id, "atype": atype, "code": code or None}
-                        for id, atype, code in zip(data.appeals_id or [], data.appeals_type or [], data.appeals_code or [])
-                    ],
-                    "severity_level": data.severity_level,
-                }
-                for data in emergency_response[:50]
-            ],
+            "emergencies": (
+                exact_code_emergencies
+                + [
+                    {
+                        "id": int(data.id.split(".")[-1]),
+                        "name": data.name,
+                        "disaster_type": data.disaster_type,
+                        "funding_requirements": data.amount_requested,
+                        "funding_coverage": data.amount_funded,
+                        "start_date": data.disaster_start_date,
+                        "score": data.score,
+                        "countries": [{"id": id, "name": name} for id, name in zip(data.countries_id, data.countries)],
+                        "severity_level_display": data.crisis_categorization,
+                        "glide": data.glide,
+                        "appeals": [
+                            {"id": id, "atype": atype, "code": code or None}
+                            for id, atype, code in zip(data.appeals_id or [], data.appeals_type or [], data.appeals_code or [])
+                        ],
+                        "severity_level": data.severity_level,
+                    }
+                    for data in emergency_response[:50]
+                    if int(data.id.split(".")[-1]) not in exact_code_event_ids
+                ]
+            )[:50],
             "surge_alerts": [
                 {
                     "id": int(data.id.split(".")[-1]),
