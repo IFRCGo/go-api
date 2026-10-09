@@ -79,6 +79,10 @@ from .models import (
 )
 from .utils import is_user_ifrc
 
+# TODO: re-enable ^ once the frontend can consume these predefined search links.
+# get_country_specific_search_urls,
+# get_predefined_search_urls,
+
 
 def bad_request(message):
     return JsonResponse({"statusCode": 400, "error_message": message}, status=400)
@@ -176,7 +180,13 @@ class HayStackSearch(APIView):
                     emergency_response = (
                         SearchQuerySet()
                         .models(Event)
-                        .filter(SQ(name__content=phrase) | SQ(iso3__content=phrase) | SQ(countries__content=phrase))
+                        .filter(
+                            SQ(name__content=phrase)
+                            | SQ(iso3__content=phrase)
+                            | SQ(countries__content=phrase)
+                            | SQ(appeals_code__content=phrase)
+                            | SQ(glide__content=phrase)
+                        )
                         .order_by("-_score")
                     )
                     fieldreport_response = (
@@ -209,7 +219,7 @@ class HayStackSearch(APIView):
                         .models(SurgeAlert)
                         .filter(
                             (SQ(event_name__content=phrase) | SQ(country_name__contains=phrase) | SQ(iso3__contains=phrase))
-                            & ~SQ(status="archived")
+                            & SQ(status=str(SurgeAlertStatus.OPEN))
                         )
                         .order_by("-_score")
                     )
@@ -227,7 +237,13 @@ class HayStackSearch(APIView):
                         SearchQuerySet()
                         .models(Event)
                         .filter(
-                            (SQ(name__content=phrase) | SQ(country__iso3__content=phrase) | SQ(countries__content=phrase))
+                            (
+                                SQ(name__content=phrase)
+                                | SQ(country__iso3__content=phrase)
+                                | SQ(countries__content=phrase)
+                                | SQ(appeals_code__content=phrase)
+                                | SQ(glide__content=phrase)
+                            )
                             & ~SQ(visibility="IFRC Only")
                         )
                         .order_by("-_score")
@@ -268,7 +284,7 @@ class HayStackSearch(APIView):
                         .filter(
                             (SQ(event_name__content=phrase) | SQ(country_name__contains=phrase) | SQ(iso3__contains=phrase))
                             & ~SQ(visibility="IFRC Only")
-                            & ~SQ(status="archived")
+                            & SQ(status=str(SurgeAlertStatus.OPEN))
                         )
                         .order_by("-_score")
                     )
@@ -286,7 +302,15 @@ class HayStackSearch(APIView):
                 emergency_response = (
                     SearchQuerySet()
                     .models(Event)
-                    .filter((SQ(name__content=phrase) | SQ(iso3__content=phrase)) & SQ(visibility="Public"))
+                    .filter(
+                        (
+                            SQ(name__content=phrase)
+                            | SQ(iso3__content=phrase)
+                            | SQ(appeals_code__content=phrase)
+                            | SQ(glide__content=phrase)
+                        )
+                        & SQ(visibility="Public")
+                    )
                     .order_by("-_score")
                 )
                 fieldreport_response = (
@@ -325,7 +349,7 @@ class HayStackSearch(APIView):
                     .filter(
                         (SQ(event_name__content=phrase) | SQ(country_name__contains=phrase) | SQ(iso3__contains=phrase))
                         & SQ(visibility="Public")
-                        & ~SQ(status="archived")
+                        & SQ(status=str(SurgeAlertStatus.OPEN))
                     )
                     .order_by("-_score")
                 )
@@ -424,6 +448,8 @@ class HayStackSearch(APIView):
             ]
             field_report.extend(field_reports_data)
         result = {
+            # TODO: re-enable once the frontend can consume these predefined search links.
+            # "urls": get_predefined_search_urls(phrase) + get_country_specific_search_urls(phrase),
             "regions": [
                 {"id": int(data.id.split(".")[-1]), "name": data.name, "score": data.score} for data in region_response[:50]
             ],
@@ -458,7 +484,11 @@ class HayStackSearch(APIView):
                     "score": data.score,
                     "countries": [{"id": id, "name": name} for id, name in zip(data.countries_id, data.countries)],
                     "severity_level_display": data.crisis_categorization,
-                    "appeals": [{"id": id, "atype": atype} for id, atype in zip(data.appeals_id or [], data.appeals_type or [])],
+                    "glide": data.glide,
+                    "appeals": [
+                        {"id": id, "atype": atype, "code": code or None}
+                        for id, atype, code in zip(data.appeals_id or [], data.appeals_type or [], data.appeals_code or [])
+                    ],
                     "severity_level": data.severity_level,
                 }
                 for data in emergency_response[:50]

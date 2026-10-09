@@ -2509,6 +2509,7 @@ class SearchMiniCountrySerializer(serializers.Serializer):
 class SearchMiniAppealSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     atype = serializers.CharField()
+    code = serializers.CharField(required=False, allow_null=True)
 
 
 class SearchEmergencySerializer(serializers.Serializer):
@@ -2522,6 +2523,7 @@ class SearchEmergencySerializer(serializers.Serializer):
     # countries_id = serializers.ListField(child=serializers.IntegerField())
     # iso3 = serializers.ListField(child=serializers.CharField())
     severity_level_display = serializers.CharField()
+    glide = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     appeals = SearchMiniAppealSerializer(many=True)
     score = serializers.FloatField()
     severity_level = serializers.IntegerField()
@@ -2601,7 +2603,14 @@ class SearchInputSerializer(serializers.Serializer):
     keyword = serializers.CharField(required=True)
 
 
+class SearchPredefinedLinkSerializer(serializers.Serializer):
+    url = serializers.CharField()
+    name = serializers.CharField()
+
+
 class SearchSerializer(serializers.Serializer):
+    # TODO: re-enable once the frontend can consume these predefined search links.
+    # urls = SearchPredefinedLinkSerializer(many=True, required=False)
     regions = SearchRegionSerializer(many=True, required=False, allow_null=True)
     district_province_response = SearchDistrictSerializer(many=True, required=False, allow_null=True)
     countries = SearchCountrySerializer(many=True, required=False, allow_null=True)
