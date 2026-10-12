@@ -1718,6 +1718,11 @@ class DrefSummary(models.Model):
         SUCCESS = 300, _("Success")
         FAILED = 400, _("Failed")
 
+    class SectionStatus(models.IntegerChoices):
+        SUCCESS = 100, _("Success")
+        SKIPPED = 200, _("Skipped")
+        FAILED = 300, _("Failed")
+
     class SourceModel(models.IntegerChoices):
         DREF = 100, _("Dref")
         DREF_OPERATIONAL_UPDATE = 200, _("Dref Operational Update")
@@ -1774,4 +1779,14 @@ class DrefSummary(models.Model):
     status = models.IntegerField(
         choices=SummaryStatus.choices,
         default=SummaryStatus.PENDING,
+    )
+
+    section_status = models.JSONField(
+        verbose_name=_("section status"),
+        help_text=_(
+            "Outcome of the last generation per summary section: 100 success, 200 skipped, 300 failed. "
+            "Skipped sections had no source content; any failed section fails the whole summary."
+        ),
+        default=dict,
+        blank=True,
     )

@@ -1,4 +1,5 @@
 from datetime import date
+from unittest import mock
 
 from django.test import TestCase, override_settings
 
@@ -9,7 +10,13 @@ from dref.factories.dref import (
     PlannedInterventionFactory,
 )
 from dref.models import Dref, DrefSummary
-from dref.summary import SUMMARY_FIELDS, DrefSummaryGenerator
+from dref.summary import (
+    SECTION_MAX_ATTEMPTS,
+    SUMMARY_FIELDS,
+    DrefSummaryGenerator,
+    build_section_prompt,
+    target_word_count,
+)
 from dref.tasks import DrefSummaryGenerationResult, generate_dref_summary
 from main.llm import (
     AzureOpenAiChat,
@@ -42,31 +49,41 @@ class DrefSummaryLLMClientTest(TestCase):
 
 class DrefSummaryGeneratorTest(TestCase):
     def test_generate_all_succeeds_end_to_end_for_dref(self):
-        dref = DrefFactory.create(title="Test Dref")
+        dref = DrefFactory.create(title="Test Dref", type_of_dref=Dref.DrefType.RESPONSE, event_description="Flooding")
 
-        results = DrefSummaryGenerator().generate_all(dref)
+        result = DrefSummaryGenerator().generate_all(dref)
 
-        self.assertEqual(set(results.keys()), set(SUMMARY_FIELDS))
-        self.assertIn("DUMMY RESPONSE", results["situational_overview"])
+        self.assertEqual(set(result.values.keys()), set(SUMMARY_FIELDS))
+        self.assertEqual(set(result.section_status.keys()), set(SUMMARY_FIELDS))
+        self.assertIn("DUMMY RESPONSE", result.values["situational_overview"])
+        self.assertEqual(result.section_status["situational_overview"], DrefSummary.SectionStatus.SUCCESS)
+        # Challenges and lessons have no source on a Dref, so they are skipped, not failed.
+        self.assertEqual(result.values["challenges_identified"], "")
+        self.assertEqual(result.section_status["challenges_identified"], DrefSummary.SectionStatus.SKIPPED)
+        self.assertEqual(result.failed_sections, [])
 
     def test_generate_all_succeeds_end_to_end_for_dref_operational_update(self):
-        ops_update = DrefOperationalUpdateFactory.create(dref=DrefFactory.create(), title="Test Ops Update")
+        ops_update = DrefOperationalUpdateFactory.create(
+            dref=DrefFactory.create(), title="Test Ops Update", event_description="Flooding continues"
+        )
 
-        results = DrefSummaryGenerator().generate_all(ops_update)
+        result = DrefSummaryGenerator().generate_all(ops_update)
 
-        self.assertEqual(set(results.keys()), set(SUMMARY_FIELDS))
-        self.assertIn("DUMMY RESPONSE", results["situational_overview"])
+        self.assertEqual(set(result.values.keys()), set(SUMMARY_FIELDS))
+        self.assertIn("DUMMY RESPONSE", result.values["situational_overview"])
 
     def test_generate_all_succeeds_end_to_end_for_dref_final_report(self):
         planned_intervention = PlannedInterventionFactory.create(challenges="Some challenge", lessons_learnt="Some lesson")
-        final_report = DrefFinalReportFactory.create(title="Test Final Report", planned_interventions=[planned_intervention])
+        final_report = DrefFinalReportFactory.create(
+            title="Test Final Report", event_description="Response concluded", planned_interventions=[planned_intervention]
+        )
 
-        results = DrefSummaryGenerator().generate_all(final_report)
+        result = DrefSummaryGenerator().generate_all(final_report)
 
-        self.assertEqual(set(results.keys()), set(SUMMARY_FIELDS))
-        self.assertIn("DUMMY RESPONSE", results["situational_overview"])
-        self.assertIn("DUMMY RESPONSE", results["challenges_identified"])
-        self.assertIn("DUMMY RESPONSE", results["lessons_learned"])
+        self.assertEqual(set(result.values.keys()), set(SUMMARY_FIELDS))
+        self.assertIn("DUMMY RESPONSE", result.values["situational_overview"])
+        self.assertIn("DUMMY RESPONSE", result.values["challenges_identified"])
+        self.assertIn("DUMMY RESPONSE", result.values["lessons_learned"])
 
     def test_get_section_kwargs_for_dref(self):
         dref = DrefFactory.create(
@@ -393,3 +410,126 @@ class DrefSummaryGeneratorTest(TestCase):
 
         # Nothing changed since - re-running should not regenerate.
         self.assertEqual(generate_dref_summary(dref_id=dref.id), DrefSummaryGenerationResult.UP_TO_DATE)
+
+
+def _respond(failing_sections=(), response="Generated section text " * 10):
+    """A get_response stand-in: empty for the prompts of ``failing_sections``, ``response`` otherwise."""
+
+    def get_response(messages):
+        prompt = messages[-1]["content"]
+        if any(prompt.startswith(f'Data for "{section}"') for section in failing_sections):
+            return ""
+        return response
+
+    return get_response
+
+
+def _prompted_sections(mocked_get_response):
+    return sorted({call.args[0][-1]["content"].split('"')[1] for call in mocked_get_response.call_args_list})
+
+
+@mock.patch("dref.summary.RETRY_BACKOFF_SECONDS", 0)
+class DrefSummarySectionFailureTest(TestCase):
+    def setUp(self):
+        self.dref = DrefFactory.create(
+            status=Dref.Status.APPROVED,
+            type_of_dref=Dref.DrefType.RESPONSE,
+            event_description="Severe flooding across three districts",
+            operation_objective="Provide shelter",
+            response_strategy="Cash and shelter support",
+            people_assisted="5000 people",
+            selection_criteria="Most vulnerable households",
+        )
+
+    def _patch_client(self, **kwargs):
+        return mock.patch(
+            "main.llm.DummyDrefSummaryLLMClient.get_response",
+            autospec=False,
+            side_effect=_respond(**kwargs),
+        )
+
+    def test_target_word_count_follows_the_source(self):
+        # 40% of the source, in both directions: no floor and no ceiling.
+        self.assertEqual(target_word_count(160), 64)
+        self.assertEqual(target_word_count(1364), 546)
+        self.assertEqual(target_word_count(10000), 4000)
+        self.assertIsNone(target_word_count(1))
+
+        self.assertIn("approximately 546 words", build_section_prompt("situational_overview", {"a": "b"}, 546))
+        self.assertNotIn("approximately", build_section_prompt("situational_overview", {"a": "b"}, None))
+
+    def test_section_without_source_is_skipped_without_a_call(self):
+        with self._patch_client() as get_response:
+            result = DrefSummaryGenerator().generate_all(self.dref)
+
+        self.assertEqual(
+            _prompted_sections(get_response), ["operational_strategy", "people_centered_approach", "situational_overview"]
+        )
+        self.assertEqual(result.section_status["lessons_learned"], DrefSummary.SectionStatus.SKIPPED)
+
+    def test_empty_response_fails_the_section_after_retrying(self):
+        with self._patch_client(failing_sections=["operational_strategy"]) as get_response:
+            result = DrefSummaryGenerator().generate_all(self.dref)
+
+        self.assertEqual(result.failed_sections, ["operational_strategy"])
+        self.assertEqual(result.values["operational_strategy"], "")
+        self.assertEqual(result.section_status["situational_overview"], DrefSummary.SectionStatus.SUCCESS)
+        operational_calls = [
+            call for call in get_response.call_args_list if '"operational_strategy"' in call.args[0][-1]["content"]
+        ]
+        self.assertEqual(len(operational_calls), SECTION_MAX_ATTEMPTS)
+
+    def test_transient_failure_is_retried_within_the_run(self):
+        prompted = set()
+
+        def fail_first_attempt(messages):
+            prompt = messages[-1]["content"]
+            if prompt in prompted:
+                return "Generated section text " * 10
+            prompted.add(prompt)
+            return ""
+
+        with mock.patch("main.llm.DummyDrefSummaryLLMClient.get_response", side_effect=fail_first_attempt):
+            result = DrefSummaryGenerator().generate_all(self.dref)
+
+        self.assertEqual(result.failed_sections, [])
+        self.assertEqual(result.section_status["situational_overview"], DrefSummary.SectionStatus.SUCCESS)
+
+    def test_failed_section_fails_the_summary_and_stores_no_section(self):
+        with self._patch_client(response="First run text " * 10):
+            self.assertEqual(generate_dref_summary(dref_id=self.dref.id), DrefSummaryGenerationResult.SUCCESS)
+
+        with self._patch_client(failing_sections=["operational_strategy"], response="Second run text " * 10):
+            self.assertEqual(generate_dref_summary(dref_id=self.dref.id, overwrite=True), DrefSummaryGenerationResult.FAILED)
+
+        summary = DrefSummary.objects.get(dref=self.dref)
+        self.assertEqual(summary.status, DrefSummary.SummaryStatus.FAILED)
+        self.assertEqual(summary.section_status["operational_strategy"], DrefSummary.SectionStatus.FAILED)
+        self.assertEqual(summary.section_status["situational_overview"], DrefSummary.SectionStatus.SUCCESS)
+        self.assertEqual(summary.section_status["lessons_learned"], DrefSummary.SectionStatus.SKIPPED)
+        # All or none: the sections that succeeded in the failed run are not stored either.
+        self.assertIn("First run text", summary.situational_overview)
+        self.assertIn("First run text", summary.operational_strategy)
+
+    def test_retrigger_after_a_failure_regenerates_every_section(self):
+        with self._patch_client(failing_sections=["operational_strategy"]):
+            self.assertEqual(generate_dref_summary(dref_id=self.dref.id), DrefSummaryGenerationResult.FAILED)
+
+        with self._patch_client(response="Retried text " * 10) as get_response:
+            self.assertEqual(generate_dref_summary(dref_id=self.dref.id), DrefSummaryGenerationResult.SUCCESS)
+
+        self.assertEqual(
+            _prompted_sections(get_response), ["operational_strategy", "people_centered_approach", "situational_overview"]
+        )
+        summary = DrefSummary.objects.get(dref=self.dref)
+        self.assertEqual(summary.status, DrefSummary.SummaryStatus.SUCCESS)
+        self.assertIn("Retried text", summary.situational_overview)
+        self.assertIn("Retried text", summary.operational_strategy)
+        self.assertNotIn(DrefSummary.SectionStatus.FAILED, summary.section_status.values())
+
+    def test_unexpected_error_mid_run_fails_the_summary(self):
+        with mock.patch("dref.tasks.DrefSummaryGenerator.generate_all", side_effect=RuntimeError("boom")):
+            self.assertEqual(generate_dref_summary(dref_id=self.dref.id), DrefSummaryGenerationResult.FAILED)
+        summary = DrefSummary.objects.get(dref=self.dref)
+        self.assertEqual(summary.status, DrefSummary.SummaryStatus.FAILED)
+        self.assertEqual(summary.section_status, {})
