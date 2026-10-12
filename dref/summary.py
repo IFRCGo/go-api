@@ -5,7 +5,10 @@ DREF AI summary generation.
 import hashlib
 import json
 import logging
-from typing import Callable, Dict, List, Optional, Union
+import time
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional, Tuple, Union
 
 import tiktoken
 from django.db.models import F
@@ -18,7 +21,14 @@ logger = logging.getLogger(__name__)
 
 ENCODING_NAME = "cl100k_base"
 
+# Per-section budget: each section is its own LLM call.
 MAX_INPUT_TOKENS = 10000
+
+TARGET_SOURCE_RATIO = 0.4
+
+# Attempts per section before it is recorded as failed, and the pause between them.
+SECTION_MAX_ATTEMPTS = 2
+RETRY_BACKOFF_SECONDS = 3
 
 # The models a DrefSummary can be generated from.
 DrefSummarySource = Union[Dref, DrefOperationalUpdate, DrefFinalReport]
@@ -45,72 +55,62 @@ SYSTEM_MESSAGE = (
     "provided in the data; do not invent facts, figures, or details."
 )
 
-# Section prompt builders
+# Section prompts
+
+# What each section covers, used both to label its data and to instruct the model.
+SECTION_DESCRIPTIONS: Dict[str, str] = {
+    "situational_overview": "the disaster situation and the rationale for the operation",
+    "operational_strategy": "the overall objective and strategic approach of the response",
+    "people_centered_approach": "who is targeted and how they are selected",
+    "challenges_identified": "the challenges recorded per planned intervention",
+    "lessons_learned": "the lessons learned recorded per planned intervention",
+}
 
 
-def _section_data_json(kwargs: dict) -> str:
-    data = {k: v for k, v in kwargs.items() if v not in (None, "", [], {})}
+def _section_data(kwargs: dict) -> dict:
+    return {k: v for k, v in kwargs.items() if v not in (None, "", [], {})}
+
+
+def _section_data_json(data: dict) -> str:
     return json.dumps(data, indent=2, ensure_ascii=False, default=str)
 
 
-def _build_situational_overview_prompt(**kwargs) -> str:
-    data_json = _section_data_json(kwargs)
-    return f'Data for "situational_overview" — the disaster situation and rationale for the operation:\n{data_json}'
+def _word_count(value) -> int:
+    """Words in the source text of a section's data, ignoring its keys and JSON punctuation."""
+    if isinstance(value, dict):
+        return sum(_word_count(v) for v in value.values())
+    if isinstance(value, (list, tuple)):
+        return sum(_word_count(v) for v in value)
+    if value is None:
+        return 0
+    return len(str(value).split())
 
 
-def _build_operational_strategy_prompt(**kwargs) -> str:
-    data_json = _section_data_json(kwargs)
-    return f'Data for "operational_strategy" — the objective and strategy of the response:\n{data_json}'
+def target_word_count(source_words: int) -> Optional[int]:
+    """Word target for a section with ``source_words`` of source, or ``None`` to leave length to the model."""
+    target = round(source_words * TARGET_SOURCE_RATIO)
+    return target or None
 
 
-def _build_people_centered_approach_prompt(**kwargs) -> str:
-    data_json = _section_data_json(kwargs)
-    return f'Data for "people_centered_approach" — the targeting, selection and engagement of affected people:\n{data_json}'
-
-
-def _build_challenges_identified_prompt(**kwargs) -> str:
-    data_json = _section_data_json(kwargs)
-    return f'Data for "challenges_identified" — challenges recorded per planned intervention:\n{data_json}'
-
-
-def _build_lessons_learned_prompt(**kwargs) -> str:
-    data_json = _section_data_json(kwargs)
-    return f'Data for "lessons_learned" — lessons recorded per planned intervention:\n{data_json}'
-
-
-# Registry
-SECTION_PROMPT_BUILDERS: Dict[str, Callable[..., str]] = {
-    "situational_overview": _build_situational_overview_prompt,
-    "operational_strategy": _build_operational_strategy_prompt,
-    "people_centered_approach": _build_people_centered_approach_prompt,
-    "challenges_identified": _build_challenges_identified_prompt,
-    "lessons_learned": _build_lessons_learned_prompt,
-}
-
-GLOBAL_PROMPT = (
-    "The DREF data above is organised by summary section. Using ONLY that data, write five concise "
-    "summary sections. Return a single JSON object (and nothing else) with exactly these keys, each "
-    "summarising the block of the same name:\n"
-    "\n"
-    '  "situational_overview": The disaster situation and the rationale for the operation. Use the '
-    'data under the "situational_overview" key.\n'
-    '  "operational_strategy": The overall objective and strategic approach of the response. Use the '
-    'data under the "operational_strategy" key.\n'
-    '  "people_centered_approach": Who is targeted and how they are selected and engaged. Use the '
-    'data under the "people_centered_approach" key.\n'
-    '  "challenges_identified": The challenges recorded per planned intervention. Use the data under '
-    'the "challenges_identified" key.\n'
-    '  "lessons_learned": The lessons learned recorded per planned intervention. Use the data under '
-    'the "lessons_learned" key.\n'
-    "\n"
-    "Requirements:\n"
-    "- Summarise only what each section's data actually contains; do not add topics or details it "
-    "does not mention.\n"
-    "- Preserve every specific figure, location and timeframe from the source; never fabricate them.\n"
-    "- Each value must be plain text (no markdown, no bullet lists, no nested JSON): one "
-    "well-structured paragraph in professional humanitarian language.\n"
-    "- Return ONLY the JSON object, with no surrounding prose or code fences."
-)
+def build_section_prompt(section: str, data: dict, target_words: Optional[int]) -> str:
+    requirements = [
+        "Summarise only what the data contains; do not add topics, interpretation or details it does not mention.",
+        "Keep the most important figures, locations and timeframes exactly as written and never fabricate them; "
+        "leave out secondary details when needed to stay within the length limit.",
+        "Write plain text in professional humanitarian language: no markdown, headings or bullet lists. "
+        "Separate paragraphs with a blank line.",
+        "Never write more than the source data contains; if the data is brief, keep the section brief.",
+    ]
+    if target_words:
+        requirements.append(f"Write approximately {target_words} words.")
+    requirements.append("Return only the section text, with no title, preamble or closing remarks.")
+    return (
+        f'Data for "{section}" — {SECTION_DESCRIPTIONS[section]}:\n'
+        f"{_section_data_json(data)}\n\n"
+        f'Using ONLY the data above, write the "{section}" section of a DREF summary, covering '
+        f"{SECTION_DESCRIPTIONS[section]}.\n\n"
+        "Requirements:\n" + "\n".join(f"- {r}" for r in requirements)
+    )
 
 
 def count_tokens(text: str) -> int:
@@ -144,8 +144,31 @@ OPERATIONAL_COMMON_FIELDS: List[str] = ["operation_objective", "response_strateg
 PEOPLE_COMMON_FIELDS: List[str] = ["people_assisted", "selection_criteria"]
 
 
+SectionStatus = DrefSummary.SectionStatus
+
+
+@dataclass
+class SummaryGenerationResult:
+    """Outcome of generating every section of a summary.
+
+    ``values`` and ``section_status`` hold an entry for every section in
+    ``SUMMARY_FIELDS``; a skipped or failed section has an empty value.
+    """
+
+    values: Dict[str, str] = field(default_factory=dict)
+    section_status: Dict[str, int] = field(default_factory=dict)
+
+    @property
+    def failed_sections(self) -> List[str]:
+        return [section for section, status in self.section_status.items() if status == SectionStatus.FAILED]
+
+
+class SectionGenerationError(Exception):
+    pass
+
+
 class DrefSummaryGenerator:
-    """Assembles per-section prompts from a source document and produces all summaries."""
+    """Assembles per-section prompts from a source document and produces the summaries, one LLM call per section."""
 
     def __init__(self):
         self.client = get_dref_summary_llm_client()
@@ -284,62 +307,74 @@ class DrefSummaryGenerator:
         content = json.dumps(payload, sort_keys=True, ensure_ascii=False, default=str)
         return hashlib.sha256(content.encode("utf-8")).hexdigest()
 
-    @staticmethod
-    def _parse_response(response: str) -> Dict[str, str]:
-        """Parse the model's JSON object, tolerating ```json code fences."""
-        text = response.strip()
-        if text.startswith("```"):
-            text = text.split("\n", 1)[1] if "\n" in text else text
-            text = text.rsplit("```", 1)[0]
-        data = json.loads(text)
-        if not isinstance(data, dict):
-            raise ValueError("Expected a JSON object of summary fields")
-        return data
-
-    def generate_all(self, source_doc: DrefSummarySource, section_kwargs: Optional[Dict[str, dict]] = None) -> Dict[str, str]:
-        """Generate every summary for ``source_doc`` in a single LLM call.
-
-        Always returns a value for every ``SUMMARY_FIELDS`` key (empty string
-        when a section has no content), so callers overwrite stale values
-        instead of leaving them in place on regeneration. ``section_kwargs``
-        can be passed in by a caller that already computed it (e.g. via
-        ``compute_source_hash``) to avoid re-extracting it from ``source_doc``.
-        """
-        empty_results: Dict[str, str] = {field_name: "" for field_name in SUMMARY_FIELDS}
-
-        if section_kwargs is None:
-            section_kwargs = self.get_section_kwargs(source_doc)
-        if not section_kwargs:
-            logger.info(f"No source content for ({type(source_doc).__name__}) ({source_doc.id}) summary; skipping generation.")
-            return empty_results
-
-        section_blocks = [SECTION_PROMPT_BUILDERS[section](**section_kwargs.get(section, {})) for section in SUMMARY_FIELDS]
-        user_content = "\n\n".join(section_blocks) + "\n\n" + GLOBAL_PROMPT
-
-        if count_tokens(SYSTEM_MESSAGE + user_content) > MAX_INPUT_TOKENS:
-            logger.warning(f"({type(source_doc).__name__}) ({source_doc.id}) summary prompt too long; truncating source text.")
-            char_budget = MAX_INPUT_TOKENS * 4 - len(GLOBAL_PROMPT) - len(SYSTEM_MESSAGE)
-            data_blocks = "\n\n".join(section_blocks)
-            user_content = data_blocks[: max(char_budget, 0)] + "\n\n" + GLOBAL_PROMPT
-
+    def _generate_section(self, source_doc: DrefSummarySource, section: str, data: dict) -> str:
+        """Generate one section, retrying up to ``SECTION_MAX_ATTEMPTS``; raises ``SectionGenerationError`` if none succeeds."""
+        prompt = build_section_prompt(section, data, target_word_count(_word_count(data)))
+        if count_tokens(SYSTEM_MESSAGE + prompt) > MAX_INPUT_TOKENS:
+            logger.warning(f"({type(source_doc).__name__}) ({source_doc.id}) {section} prompt too long; truncating source text.")
+            prompt = prompt[: MAX_INPUT_TOKENS * 4 - len(SYSTEM_MESSAGE)]
         messages = [
             {"role": "system", "content": SYSTEM_MESSAGE},
-            {"role": "user", "content": user_content},
+            {"role": "user", "content": prompt},
         ]
 
-        response = self.client.get_response(messages)
-        if not response:
-            raise RuntimeError(f"No LLM response for ({type(source_doc).__name__}) ({source_doc.id}) summary")
+        for attempt in range(1, SECTION_MAX_ATTEMPTS + 1):
+            if attempt > 1:
+                time.sleep(RETRY_BACKOFF_SECONDS * (attempt - 1))
+            # The client logs and swallows API errors, returning None, so an empty
+            # response is the one failure signal for a section.
+            response = (self.client.get_response(messages) or "").strip()
+            if response:
+                return response
+            logger.warning(
+                f"({type(source_doc).__name__}) ({source_doc.id}) {section} summary attempt "
+                f"{attempt}/{SECTION_MAX_ATTEMPTS} got no LLM response"
+            )
+        raise SectionGenerationError("no LLM response")
 
-        try:
-            parsed = self._parse_response(response)
-        except (json.JSONDecodeError, ValueError) as e:
-            raise RuntimeError(f"Could not parse ({type(source_doc).__name__}) ({source_doc.id}) summary response: {e}") from e
+    def generate_all(
+        self,
+        source_doc: DrefSummarySource,
+        section_kwargs: Optional[Dict[str, dict]] = None,
+    ) -> SummaryGenerationResult:
+        """Generate every summary section for ``source_doc``.
 
-        results = dict(empty_results)
-        for field_name in SUMMARY_FIELDS:
-            value = parsed.get(field_name)
-            if not isinstance(value, str):
-                continue
-            results[field_name] = value.strip()
-        return results
+        Each section with source content gets its own LLM call, run concurrently.
+        A section without source content is SKIPPED and makes no call; one with
+        content whose call does not produce usable text is FAILED. Neither
+        raises: the caller decides what a failed section means for the summary.
+        """
+        if section_kwargs is None:
+            section_kwargs = self.get_section_kwargs(source_doc)
+
+        result = SummaryGenerationResult()
+        to_generate: List[Tuple[str, dict]] = []
+        for section in SUMMARY_FIELDS:
+            data = _section_data(section_kwargs.get(section, {}))
+            if data:
+                to_generate.append((section, data))
+            else:
+                result.values[section] = ""
+                result.section_status[section] = SectionStatus.SKIPPED
+
+        if not to_generate:
+            return result
+
+        # Only the LLM call runs in the workers: section data is extracted above, so
+        # no thread touches the database.
+        with ThreadPoolExecutor(max_workers=len(to_generate)) as executor:
+            futures = {
+                section: executor.submit(self._generate_section, source_doc, section, data) for section, data in to_generate
+            }
+            for section, future in futures.items():
+                try:
+                    result.values[section] = future.result()
+                    result.section_status[section] = SectionStatus.SUCCESS
+                except Exception:
+                    logger.warning(
+                        f"({type(source_doc).__name__}) ({source_doc.id}) {section} summary failed",
+                        exc_info=True,
+                    )
+                    result.values[section] = ""
+                    result.section_status[section] = SectionStatus.FAILED
+        return result
