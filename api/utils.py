@@ -1,5 +1,6 @@
 import base64
 import typing
+import unicodedata
 from typing import Optional, TypedDict
 
 from django.core.exceptions import ValidationError
@@ -76,6 +77,11 @@ def is_user_ifrc(user):
     if user.has_perm("api.ifrc_admin") or user.is_superuser:
         return True
     return False
+
+
+def strip_diacritics(value: str) -> str:
+    """Removes accents/diacritics, e.g. "Türkiye" -> "Turkiye", "Côte d'Ivoire" -> "Cote d'Ivoire" """
+    return "".join(char for char in unicodedata.normalize("NFKD", value) if not unicodedata.combining(char))
 
 
 # Hardwired search phrase -> pre-defined URL mapping.

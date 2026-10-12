@@ -36,7 +36,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from api.forms import LoginForm
-from api.models import Country, District, Region
+from api.models import Country, District, Region, RegionName
 from api.serializers import (
     AggregateByDtypeSerializer,
     AggregateByTimeSeriesInputSerializer,
@@ -78,7 +78,7 @@ from .models import (
     Snippet,
     VisibilityChoices,
 )
-from .utils import is_user_ifrc
+from .utils import is_user_ifrc, strip_diacritics
 
 # TODO: re-enable ^ once the frontend can consume these predefined search links.
 # get_country_specific_search_urls,
@@ -355,13 +355,56 @@ class HayStackSearch(APIView):
                     .order_by("-_score")
                 )
 
-            region_response = SearchQuerySet().models(Region).filter(SQ(name__startswith=phrase))
+            # Region only has 5 fixed values, so match directly against the choice labels instead of fuzzy ES
+            # matching (edge-ngram queries falsely matched e.g. "afghanistan" to "Africa" via a shared 2-letter prefix).
+            matching_region_values = [value for value, label in RegionName.choices if phrase in str(label).lower()]
+            regions_qs = list(Region.objects.filter(name__in=matching_region_values))
+
             country_response = (
                 SearchQuerySet()
                 .models(Country)
                 .filter(SQ(name__contains=phrase, independent="true", is_deprecated="false") | SQ(iso3__contains=phrase))
                 .order_by("-_score")
             )
+
+            # Accent-insensitive fallback: ES wildcard matching won't match an unaccented query like "turkiye"
+            # against the indexed "Türkiye" token. Only ~250 countries exist, so a plain Python scan is cheap
+            # and avoids maintaining a hardcoded alias dictionary for accented country/society names.
+            countries_result = [
+                {
+                    "id": int(data.id.split(".")[-1]),
+                    "name": data.name,
+                    "society_name": data.society_name,
+                    "iso3": data.iso3,
+                    "score": data.score,
+                }
+                for data in country_response[:50]
+            ]
+            matched_country_ids = {country["id"] for country in countries_result}
+            normalized_phrase = strip_diacritics(phrase)
+            for country in Country.objects.filter(independent=True, is_deprecated=False).exclude(id__in=matched_country_ids):
+                if normalized_phrase in strip_diacritics((country.name or "").lower()) or normalized_phrase in strip_diacritics(
+                    (country.society_name or "").lower()
+                ):
+                    countries_result.append(
+                        {
+                            "id": country.id,
+                            "name": country.name,
+                            "society_name": country.society_name,
+                            "iso3": country.iso3,
+                            "score": 1.0,
+                        }
+                    )
+
+            # Also surface the region of the best-guessed matching country, even if no region name was typed.
+            if countries_result:
+                guessed_country = Country.objects.filter(id=countries_result[0]["id"]).select_related("region").first()
+                if (
+                    guessed_country
+                    and guessed_country.region
+                    and guessed_country.region.id not in {region.id for region in regions_qs}
+                ):
+                    regions_qs.append(guessed_country.region)
             # appeal_response = SearchQuerySet().models(Appeal).filter(
             #     SQ(name__content=phrase) | SQ(code__content=phrase) | SQ(iso3__content=phrase)
             # ).order_by('-_score')
@@ -481,12 +524,11 @@ class HayStackSearch(APIView):
                 }
             )
         exact_code_event_ids = {emergency["id"] for emergency in exact_code_emergencies}
+
         result = {
             # TODO: re-enable once the frontend can consume these predefined search links.
             # "urls": get_predefined_search_urls(phrase) + get_country_specific_search_urls(phrase),
-            "regions": [
-                {"id": int(data.id.split(".")[-1]), "name": data.name, "score": data.score} for data in region_response[:50]
-            ],
+            "regions": [{"id": region.id, "name": region.get_name_display(), "score": 1.0} for region in regions_qs],
             "district_province_response": [
                 {
                     "id": int(data.id.split(".")[-1]),
@@ -497,16 +539,7 @@ class HayStackSearch(APIView):
                 }
                 for data in district_province_response[:50]
             ],
-            "countries": [
-                {
-                    "id": int(data.id.split(".")[-1]),
-                    "name": data.name,
-                    "society_name": data.society_name,
-                    "iso3": data.iso3,
-                    "score": data.score,
-                }
-                for data in country_response[:50]
-            ],
+            "countries": countries_result[:50],
             "emergencies": (
                 exact_code_emergencies
                 + [
