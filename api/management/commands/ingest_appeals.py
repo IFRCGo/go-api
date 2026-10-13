@@ -152,7 +152,7 @@ class Command(BaseCommand):
             # get latest APPEALS
             logger.info("Querying appeals API for new appeals data")
             url = "https://go-api.ifrc.org/api/appealsD365V2"  # DEBUG: can append filter &APP_code=MDRDJ003
-            params = {"App_startDate": "2023-07-01|2100-01-01"}
+            params = {"App_startDate": "2021-07-01|2100-01-01"}
             # try 3 times to reach the API
             try:
                 response = sess.get(url, auth=auth, headers=headers, params=params)
