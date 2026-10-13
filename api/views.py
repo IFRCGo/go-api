@@ -64,6 +64,7 @@ from main.permissions import DenyGuestUserPermission
 from notifications.models import Subscription, SurgeAlert, SurgeAlertStatus
 from notifications.notification import send_notification
 from registrations.models import Pending, Recovery
+from registrations.utils import is_valid_domain
 
 from .esconnection import ES_CLIENT
 from .indexes import ES_PAGE_NAME
@@ -1089,8 +1090,10 @@ class ResendValidation(APIView):
                     )
                 }
 
-                if pending_user.user.is_staff:
+                if is_valid_domain(pending_user.user.email):
                     template = "email/registration/verify-staff-email.html"
+                elif pending_user.user.profile.limit_access_to_guest:
+                    template = "email/registration/verify-guest-email.html"
                 else:
                     template = "email/registration/verify-outside-email.html"
 

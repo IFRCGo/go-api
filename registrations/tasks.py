@@ -6,7 +6,7 @@ from notifications.notification import send_notification
 
 
 @shared_task
-def send_notification_create(token, username, is_staff, email):
+def send_notification_create(token, username, is_staff, is_guest, email):
     safe_username = username.replace("+", "%2B")
     email_context = {
         "confirmation_link": "%s/verify_email/?token=%s&user=%s"
@@ -20,6 +20,8 @@ def send_notification_create(token, username, is_staff, email):
     # if validated email accounts get a different message
     if is_staff:
         template = "email/registration/verify-staff-email.html"
+    elif is_guest:
+        template = "email/registration/verify-guest-email.html"
     else:
         template = "email/registration/verify-outside-email.html"
 

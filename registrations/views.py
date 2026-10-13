@@ -62,7 +62,8 @@ class VerifyEmail(APIView):
                                     Please contact your system administrator.",
             )
 
-        if is_valid_domain(pending_user.user.email):
+        # Trusted-domain and guest accounts are activated right away; everyone else needs admin approval
+        if is_valid_domain(pending_user.user.email) or pending_user.user.profile.limit_access_to_guest:
             pending_user.user.is_active = True
             pending_user.user.save()
             pending_user.delete()
