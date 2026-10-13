@@ -47,7 +47,7 @@ class Command(BaseCommand):
         for char in app_code:
             value = (value * 128) + ord(char)
 
-        return str(value)
+        return str(value)[-20:]
 
     def get_codes_skip(self):
         value = AppealFilter.objects.filter(name="ingestAppealFilter").values_list("value", flat=True).first()
