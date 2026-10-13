@@ -111,6 +111,9 @@ class RegistrationSerializer(serializers.Serializer):
         position = self.validated_data.get("position")
         phone_number = self.validated_data.get("phone_number")
 
+        # Guest accounts (Other/OTHR org type) still verify their email, but skip admin approval
+        org_type_norm = (organization_type or "").strip().lower()
+        is_guest = org_type_norm in {"other", "othr"}
         is_staff = is_valid_domain(email)
 
         # Create the User object
@@ -129,21 +132,20 @@ class RegistrationSerializer(serializers.Serializer):
             user.profile.department = department
             user.profile.position = position
             user.profile.phone_number = phone_number
-            # Limit access to guest when organization type is Other/OTHR
-            org_type_norm = (organization_type or "").strip().lower()
-            if org_type_norm in {"other", "othr"}:
+            if is_guest:
                 user.profile.limit_access_to_guest = True
             user.profile.save()
         except Exception:
             raise serializers.ValidationError("Could not create user profile.")
 
         pending = Pending(user=user, justification=justification, token=get_random_string(length=32))
-        if not is_staff:
+        # Guests skip admin approval, so they never need an admin token
+        if not is_staff and not is_guest:
             pending.admin_token_1 = get_random_string(length=32)
         pending.save()
 
         # send notification
-        transaction.on_commit(lambda: send_notification_create.delay(pending.token, username, is_staff, email))
+        transaction.on_commit(lambda: send_notification_create.delay(pending.token, username, is_staff, is_guest, email))
 
 
 class UserExternalTokenSerializer(serializers.ModelSerializer):
