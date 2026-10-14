@@ -3078,6 +3078,9 @@ spec:
           objectName: EMAIL-API-ENDPOINT
           objectType: secret
         - |
+          objectName: EMAIL-API-ENDPOINT-DREF
+          objectType: secret
+        - |
           objectName: EMAIL-HOST
           objectType: secret
         - |
@@ -3088,6 +3091,9 @@ spec:
           objectType: secret
         - |
           objectName: EMAIL-USER
+          objectType: secret
+        - |
+          objectName: EMAIL-USER-DREF
           objectType: secret
         - |
           objectName: ERP-API-ENDPOINT
@@ -3201,6 +3207,8 @@ spec:
           key: DJANGO_SECRET_KEY
         - objectName: EMAIL-API-ENDPOINT
           key: EMAIL_API_ENDPOINT
+        - objectName: EMAIL-API-ENDPOINT-DREF
+          key: EMAIL_API_ENDPOINT_DREF
         - objectName: EMAIL-HOST
           key: EMAIL_HOST
         - objectName: EMAIL-PASS
@@ -3209,6 +3217,8 @@ spec:
           key: EMAIL_PORT
         - objectName: EMAIL-USER
           key: EMAIL_USER
+        - objectName: EMAIL-USER-DREF
+          key: EMAIL_USER_DREF
         - objectName: ERP-API-ENDPOINT
           key: ERP_API_ENDPOINT
         - objectName: ERP-API-SUBSCRIPTION-KEY
