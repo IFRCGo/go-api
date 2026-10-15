@@ -70,10 +70,14 @@ x-server: &base_server_setup
   volumes:
     - ".:/home/ifrc/go-api"
   depends_on:
-    - db
-    - redis
-    - elasticsearch
-    - playwright
+    db:
+      condition: service_healthy
+    redis:
+      condition: service_started
+    elasticsearch:
+      condition: service_started
+    playwright:
+      condition: service_started
 
 services:
   db:
@@ -86,6 +90,11 @@ services:
       - "./.db/pg-15:/var/lib/postgresql/data"
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
 
   redis:
     image: redis:latest
@@ -140,7 +149,7 @@ services:
     <<: *base_server_setup
     ports:
       - 8000:8000
-    command: python manage.py runserver 0.0.0.0:8000
+    command: ./deploy/run_web_dev.sh
 
   # For development only
   celery:

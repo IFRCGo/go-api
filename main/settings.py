@@ -290,17 +290,9 @@ INSTALLED_APPS = [
     # banjo health probes / celery heartbeat helpers
     "banjo_utils",
     # django-health-check: outward-facing /health-check/ endpoint for the external monitor
-    # (distinct from the pod-internal /healthz probes). Each plugin is a Django app; only the
-    # ones whose dependency go-api actually has are enabled. health_check.storage is appended
-    # conditionally below (HEALTH_CHECK_SKIP_STORAGE). No rabbitmq plugin (broker is redis).
-    # The unapplied-migrations check (health_check.contrib.migrations) is intentionally omitted:
-    # the deploy-time db-migrate hook already gates every release, so a runtime check is redundant.
+    # (distinct from the pod-internal /healthz probes). The checks themselves are listed in
+    # api/health_checks.py; the app is only needed for its template and management command.
     "health_check",
-    "health_check.db",
-    "health_check.cache",
-    "health_check.contrib.psutil",  # disk + memory (needs psutil)
-    # NOTE: the redis plugin is NOT enabled as an app — api.apps.ApiConfig.ready()
-    # registers the api/health_checks.py subclass of it instead (same check, quieter).
     # Logging
     "reversion",
     "reversion_compare",
@@ -311,12 +303,6 @@ INSTALLED_APPS = [
     # chained select
     "smart_selects",
 ]
-
-# health_check.storage does a save/read/delete round-trip against the default storage backend
-# (Azure Blob in prod) on every /health-check/ poll. Enabled by default; set
-# HEALTH_CHECK_SKIP_STORAGE=true to omit it where that round-trip is undesirable.
-if not env("HEALTH_CHECK_SKIP_STORAGE"):
-    INSTALLED_APPS.append("health_check.storage")
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
@@ -955,32 +941,23 @@ CACHES = {
 # Redis locking
 REDIS_DEFAULT_LOCK_EXPIRE = 60 * 10  # Lock expires in 10min (in seconds)
 
-# django-health-check (/health-check/). Its redis plugin connects to settings.REDIS_URL
-# (it defaults to localhost otherwise) — point it at the same redis the app already uses.
-REDIS_URL = CELERY_REDIS_URL
-HEALTHCHECK_CACHE_KEY = "app_healthcheck_key"
 
-
+# django-health-check (/health-check/) thresholds, consumed by api/health_checks.py.
 def _health_check_threshold(env_key):
-    # Empty / "none" disables the corresponding psutil check (the plugin isn't registered);
+    # Empty / "none" disables the corresponding psutil check (it isn't added to the view);
     # any other value is the numeric threshold. Lets each environment toggle it via env alone.
     raw = env(env_key).strip()
     return None if raw.lower() in ("", "none") else int(raw)
 
 
-HEALTH_CHECK = {
-    # percent; None -> disk check skipped (env HEALTH_CHECK_DISK_USAGE_MAX)
-    "DISK_USAGE_MAX": _health_check_threshold("HEALTH_CHECK_DISK_USAGE_MAX"),
-    # MB toggle; None -> memory check skipped (env HEALTH_CHECK_MEMORY_MIN)
-    "MEMORY_MIN": _health_check_threshold("HEALTH_CHECK_MEMORY_MIN"),
-    # Both psutil checks raise a *warning*, and the library turns warnings into errors by
-    # default — so a node running low on disk would make /health-check/ (and
-    # `manage.py health_check`) fail on every pod at once. Both metrics are node-level
-    # anyway: the disk check measures the filesystem behind the working directory and
-    # the memory check reads host-wide totals, not the container's cgroup limit. Report
-    # them in the response, don't fail the endpoint on them.
-    "WARNINGS_AS_ERRORS": False,
-}
+# Both are node-level metrics: the disk check measures the filesystem behind the working
+# directory and the memory check reads host-wide totals, not the container's cgroup limit.
+# A breach is a warning, which fails /health-check/ (500).
+HEALTH_CHECK_DISK_USAGE_MAX = _health_check_threshold("HEALTH_CHECK_DISK_USAGE_MAX")  # percent
+HEALTH_CHECK_MEMORY_MIN = _health_check_threshold("HEALTH_CHECK_MEMORY_MIN")  # MB available
+# The storage check does a save/read/delete round-trip against the default storage backend
+# (Azure Blob in prod) on every poll; set HEALTH_CHECK_SKIP_STORAGE=true to omit it.
+HEALTH_CHECK_SKIP_STORAGE = env("HEALTH_CHECK_SKIP_STORAGE")
 
 if env("CACHE_MIDDLEWARE_SECONDS"):
     CACHE_MIDDLEWARE_SECONDS = env("CACHE_MIDDLEWARE_SECONDS")  # Planned: 600 for staging, 60 from prod

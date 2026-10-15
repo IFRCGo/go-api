@@ -161,11 +161,9 @@ To release a new version to docker hub do the following:
 
 # Deployment
 
-`main/runserver.sh` is the entrypoint for deploying this API to a new
-environment. It is also the default command specified in `Dockerfile`.
-`main/runserver.sh` requires that environment variables corresponding to
-database connection strings, FTP settings, and email settings, among others, be
-set. Check the script for the specific variables in your environment.
+Deployment is done via the Helm chart in `deploy/helm/` (see its README). The
+web pods run `deploy/run_web.sh`, which serves the app with gunicorn directly
+on :80 (no nginx); migrations and collectstatic run as pre-deploy hooks.
 
 ## Deployment command
 
@@ -176,10 +174,6 @@ or (just the base serve command):
 ```(bash)
 docker-compose run --rm --service-ports serve
 ```
-## Comment for loading data
-
-In `main/runserver.sh` the line containing the `loaddata` command is only necessary when creating a new database. In other cases it might be causing the conflict, so it is commented. 
-
 ## Initializing ElasticSearch
 
 For the initial creation of an index

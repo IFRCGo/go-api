@@ -13,14 +13,13 @@ ENV UV_PROJECT_ENVIRONMENT="/usr/local/"
 ENV UV_CACHE_DIR="/root/.cache/uv"
 
 EXPOSE 80
-EXPOSE 443
 
 RUN apt-get update -y && \
     apt-get install -y --no-install-recommends \
         # FIXME: Make sure all packages are used/required
-        nginx mdbtools vim tidy less gettext \
+        mdbtools vim tidy less gettext \
         cron \
-        wait-for-it \
+        iproute2 \
         binutils libproj-dev gdal-bin poppler-utils && \
     apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/*
@@ -51,15 +50,5 @@ ENV CLICKJACKING=/usr/local/lib/python3.11/site-packages/django/middleware/click
 RUN perl -pi -e "s/if response.get/if response is None:\n            return\n\n        if response.get/" ${CLICKJACKING} 2>/dev/null
 
 
-COPY main/nginx.conf /etc/nginx/sites-available/
-RUN \
-	ln -s /etc/nginx/sites-available/nginx.conf /etc/nginx/sites-enabled; \
-	>> /etc/nginx/nginx.conf
-
-COPY main/runserver.sh /usr/local/bin/
-RUN chmod 755 /usr/local/bin/runserver.sh
-
 COPY ./ $HOME/go-api/
 WORKDIR $HOME/go-api/
-
-ENTRYPOINT ["./main/entrypoint.sh"]
