@@ -802,6 +802,81 @@ spec:
                   readOnly: true
 ---
 # Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
+# Job: dref_final_report_alert
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: go-api-job-dref-final-report-alert
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    app: go-api
+    component: cronjob
+    jobName: dref_final_report_alert
+    environment: production
+    release: release-name
+spec:
+  schedule: "0 6 * * *"
+  concurrencyPolicy: "Forbid"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200  # 2 hours default
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            app: go-api
+            component: cronjob
+            azure.workload.identity/use: "true"
+        spec:
+          restartPolicy: "Never"
+          volumes:
+            - name: go-api-secret
+              csi:
+                driver: "secrets-store.csi.k8s.io"
+                readOnly: true
+                volumeAttributes:
+                  secretProviderClass: go-api-secret-provider
+          serviceAccountName: service-token-reader
+          containers:
+            - name: cronjob
+              command:
+                - ./manage.py
+                - dref_final_report_alert
+              image: "SET-BY-CICD-IMAGE:SET-BY-CICD-TAG"
+              imagePullPolicy: IfNotPresent
+              resources:
+                limits:
+                  cpu: "4"
+                  memory: 2Gi
+                requests:
+                  cpu: "0.1"
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: go-api-secret
+                - configMapRef:
+                    name: go-api-env-name
+              env:
+                - name: DJANGO_APP_TYPE
+                  value: "cronjob"
+                - name: CACHE_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/1
+                - name: CELERY_REDIS_URL
+                  value: redis://go-api-dragonfly:6379/0
+                - name: ELASTIC_SEARCH_HOST
+                  value: http://go-api-elasticsearch-es-http:9200
+                - name: PLAYWRIGHT_SERVER_URL
+                  value: ws://go-api-playwright:3000/
+                
+              volumeMounts:
+                - name: go-api-secret
+                  mountPath: /mnt/secrets-store
+                  readOnly: true
+---
+# Source: ifrcgo-helm/charts/app/templates/cronjobs/deployment.yaml
 # Job: eap_submission_reminder
 apiVersion: batch/v1
 kind: CronJob

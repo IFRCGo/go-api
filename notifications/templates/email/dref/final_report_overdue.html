@@ -1,0 +1,21 @@
+{% include "email/dref/head.html" %}
+
+   <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff">
+     <tr>
+       <td align="center" class="pb-30" style="padding-bottom:30px;">
+         <p>Dear Colleague,</p>
+         <p>
+           The final narrative and financial report for DREF operation <b>{{ mdr_code }}</b> –
+           <b>{{ operation_name }}</b> was due on <b>{{ due_date|date:"d M Y" }}</b> and has not yet been submitted.
+         </p>
+         <p>
+           Timely submission of final reports is an important DREF requirement and helps ensure our
+           accountability to donors and stakeholders.
+         </p>
+         <p>Please prioritize the completion and submission of the report as soon as possible.</p>
+         <p>Kind regards,<br>DREF Team</p>
+       </td>
+     </tr>
+   </table>
+
+{% include "design/foot1.html" %}
