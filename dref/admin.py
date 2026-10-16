@@ -341,7 +341,7 @@ class DrefSummaryAdmin(TranslationAdmin, admin.ModelAdmin):
     list_display = ("dref", "status", "source", "source_id", "created_at", "updated_at")
     list_filter = ("status",)
     search_fields = ("dref__title", "dref__appeal_code")
-    readonly_fields = ("source_hash", "created_at", "updated_at")
+    readonly_fields = ("source_hash", "section_status", "created_at", "updated_at")
     autocomplete_fields = ("dref",)
     actions = ["regenerate_summary"]
     fields = (
@@ -353,6 +353,7 @@ class DrefSummaryAdmin(TranslationAdmin, admin.ModelAdmin):
         "people_centered_approach",
         "challenges_identified",
         "lessons_learned",
+        "section_status",
         "created_at",
         "updated_at",
     )

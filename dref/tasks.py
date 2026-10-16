@@ -145,6 +145,8 @@ def generate_dref_summary(dref_id: int, overwrite: bool = False) -> DrefSummaryG
             summary_instance.source = source_type
             summary_instance.source_id = source_obj.id
             summary_instance.status = DrefSummary.SummaryStatus.PROCESSING
+            # Outcomes from an older run no longer describe this one.
+            summary_instance.section_status = {}
             summary_instance.save()
         except Exception:
             logger.warning(f"Failed to mark DREF summary as processing for DREF ({dref_id})", exc_info=True)
@@ -163,16 +165,27 @@ def generate_dref_summary(dref_id: int, overwrite: bool = False) -> DrefSummaryG
     }
     try:
         logger.info(f"Generating DREF summaries for DREF ({dref_id}) from ({source_type.label}) ({source_obj.id})")
-        results = DrefSummaryGenerator().generate_all(source_obj, section_kwargs=section_kwargs)
+        result = DrefSummaryGenerator().generate_all(source_obj, section_kwargs=section_kwargs)
         with transaction.atomic():
             latest_summary_instance = DrefSummary.objects.select_for_update().filter(**own_marker).first()
             if latest_summary_instance is None:
                 logger.warning(f"DREF summary run for DREF ({dref_id}) was superseded by a newer trigger; discarding result.")
                 return DrefSummaryGenerationResult.SUPERSEDED
-            for field_name, value in results.items():
-                setattr(latest_summary_instance, field_name, value)
-            latest_summary_instance.status = DrefSummary.SummaryStatus.SUCCESS
+            # All or none: a failed section fails the whole summary and none of
+            # this run's text is stored, so the previous summary stays in place
+            # until a retrigger regenerates every section.
+            failed_sections = result.failed_sections
+            latest_summary_instance.section_status = result.section_status
+            if failed_sections:
+                latest_summary_instance.status = DrefSummary.SummaryStatus.FAILED
+            else:
+                for field_name, value in result.values.items():
+                    setattr(latest_summary_instance, field_name, value)
+                latest_summary_instance.status = DrefSummary.SummaryStatus.SUCCESS
             latest_summary_instance.save()
+        if failed_sections:
+            logger.warning(f"DREF summary sections {failed_sections} failed for DREF ({dref_id})")
+            return DrefSummaryGenerationResult.FAILED
         logger.info(f"Successfully generated DREF summaries for DREF ({dref_id})")
         transaction.on_commit(lambda: translate_model_fields.delay(get_model_name(DrefSummary), latest_summary_instance.pk))
         return DrefSummaryGenerationResult.SUCCESS
