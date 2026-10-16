@@ -94,10 +94,12 @@ def target_word_count(source_words: int) -> Optional[int]:
 
 def build_section_prompt(section: str, data: dict, target_words: Optional[int]) -> str:
     requirements = [
-        "Summarise only what the data contains; do not add topics or details it does not mention.",
-        "Preserve every specific figure, location and timeframe from the source; never fabricate them.",
+        "Summarise only what the data contains; do not add topics, interpretation or details it does not mention.",
+        "Keep the most important figures, locations and timeframes exactly as written and never fabricate them; "
+        "leave out secondary details when needed to stay within the length limit.",
         "Write plain text in professional humanitarian language: no markdown, headings or bullet lists. "
         "Separate paragraphs with a blank line.",
+        "Never write more than the source data contains; if the data is brief, keep the section brief.",
     ]
     if target_words:
         requirements.append(f"Write approximately {target_words} words.")

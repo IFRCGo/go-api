@@ -458,6 +458,16 @@ class DrefSummarySectionFailureTest(TestCase):
         self.assertIn("approximately 546 words", build_section_prompt("situational_overview", {"a": "b"}, 546))
         self.assertNotIn("approximately", build_section_prompt("situational_overview", {"a": "b"}, None))
 
+    def test_prompt_caps_length_at_the_source(self):
+        # Applies at every size, with or without a word target: no source-size threshold.
+        for target_words in (6, 546, None):
+            prompt = build_section_prompt("operational_strategy", {"a": "b"}, target_words)
+            self.assertIn("Never write more than the source data contains", prompt)
+            self.assertIn("do not add topics, interpretation or details", prompt)
+            # Figures yield to the length limit instead of competing with it.
+            self.assertIn("leave out secondary details when needed to stay within the length limit", prompt)
+            self.assertNotIn("Preserve every specific figure", prompt)
+
     def test_section_without_source_is_skipped_without_a_call(self):
         with self._patch_client() as get_response:
             result = DrefSummaryGenerator().generate_all(self.dref)
