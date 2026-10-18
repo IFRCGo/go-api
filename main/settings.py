@@ -70,9 +70,12 @@ env = environ.Env(
     EMAIL_USE_TLS=(bool, True),
     FORCE_USE_SMTP=(bool, False),
     EMAIL_API_ENDPOINT=(str, None),
+    # DREF-specific mailbox override for Final Report alert emails; falls back to EMAIL_API_ENDPOINT/EMAIL_USER if unset.
+    EMAIL_API_ENDPOINT_DREF=(str, None),
     EMAIL_HOST=(str, None),
     EMAIL_PORT=(str, None),
     EMAIL_USER=(str, None),
+    EMAIL_USER_DREF=(str, None),
     EMAIL_PASS=(str, None),
     DEBUG_EMAIL=(bool, False),  # This was 0/1 before
     # TEST_EMAILS=(list, ['im@ifrc.org']), # maybe later
@@ -637,9 +640,11 @@ else:
 FORCE_USE_SMTP = env("FORCE_USE_SMTP")
 EMAIL_USE_TLS = env("EMAIL_USE_TLS")
 EMAIL_API_ENDPOINT = env("EMAIL_API_ENDPOINT")
+EMAIL_API_ENDPOINT_DREF = env("EMAIL_API_ENDPOINT_DREF")
 EMAIL_HOST = env("EMAIL_HOST")
 EMAIL_PORT = env("EMAIL_PORT")
 EMAIL_USER = env("EMAIL_USER")
+EMAIL_USER_DREF = env("EMAIL_USER_DREF")
 EMAIL_PASS = env("EMAIL_PASS")
 DEBUG_EMAIL = env("DEBUG_EMAIL")
 # TEST_EMAILS = env('TEST_EMAILS') # maybe later

@@ -210,6 +210,10 @@ app:
         enabled: true
         schedule: "0 */2 * * *"
         command: ["./manage.py", "alert_notification"]
+      dref_final_report_alert:
+        enabled: true
+        schedule: "0 6 * * *"
+        command: ["./manage.py", "dref_final_report_alert"]
       oauth_cleartokens:
         enabled: true
         schedule: "0 1 * * *"
