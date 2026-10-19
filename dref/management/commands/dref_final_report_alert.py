@@ -4,6 +4,9 @@ from django.db.models import Q
 from django.utils import timezone
 from sentry_sdk.crons import monitor
 
+from api.create_cron import create_cron_record
+from api.logger import logger
+from api.models import CronJobStatus
 from dref.models import (
     DREF_FINAL_REPORT_DUE_MONTHS,
     DREF_FINAL_REPORT_RECURRING_OVERDUE_INTERVAL_MONTHS,
@@ -18,6 +21,8 @@ from dref.tasks import (
 )
 from main.sentry import SentryMonitor
 
+CRON_NAME = "dref_final_report_alert"
+
 # Response (incl. Assessment) and Imminent DREFs only; Loan is out of scope.
 IN_SCOPE_DREF_TYPES = [Dref.DrefType.IMMINENT, Dref.DrefType.ASSESSMENT, Dref.DrefType.RESPONSE]
 
@@ -30,12 +35,27 @@ class Command(BaseCommand):
 
     @monitor(monitor_slug=SentryMonitor.DREF_FINAL_REPORT_ALERT)
     def handle(self, *args, **options):
+        logger.info("Starting DREF final report alert check")
         today = timezone.now().date()
 
-        self.send_implementation_end_alerts(today)
-        self.send_reminder_alerts(today)
-        self.send_overdue_alerts(today)
-        self.send_recurring_overdue_alerts(today)
+        implementation_end_count = self.send_implementation_end_alerts(today)
+        reminder_count = self.send_reminder_alerts(today)
+        overdue_count = self.send_overdue_alerts(today)
+        recurring_overdue_count = self.send_recurring_overdue_alerts(today)
+
+        total_count = implementation_end_count + reminder_count + overdue_count + recurring_overdue_count
+        logger.info(f"{implementation_end_count} implementation end alerts sent")
+        logger.info(f"{reminder_count} reminder alerts sent")
+        logger.info(f"{overdue_count} overdue alerts sent")
+        logger.info(f"{recurring_overdue_count} recurring overdue alerts sent")
+        logger.info("DREF final report alert check completed")
+
+        cron_msg = (
+            f"DREF final report alert check completed, {total_count} alerts sent "
+            f"({implementation_end_count} implementation end, {reminder_count} reminder, "
+            f"{overdue_count} overdue, {recurring_overdue_count} recurring overdue)."
+        )
+        create_cron_record(CRON_NAME, cron_msg, CronJobStatus.SUCCESSFUL, total_count)
 
     def send_implementation_end_alerts(self, today):
         queryset = Dref.objects.filter(
@@ -44,9 +64,12 @@ class Command(BaseCommand):
             final_report_implementation_end_alert_sent_at__isnull=True,
         ).filter(NOT_SUBMITTED_FILTER)
 
+        count = 0
         for instance in queryset.iterator():
             self.stdout.write(self.style.NOTICE(f"Sending implementation end alert for Dref ID={instance.id}"))
             send_final_report_implementation_end_email(instance.id)
+            count += 1
+        return count
 
     def send_reminder_alerts(self, today):
         # "1 month before the due date" == "2 months after end_date" (due date itself is end_date + 3
@@ -60,9 +83,12 @@ class Command(BaseCommand):
             final_report_reminder_alert_sent_at__isnull=True,
         ).filter(NOT_SUBMITTED_FILTER)
 
+        count = 0
         for instance in queryset.iterator():
             self.stdout.write(self.style.NOTICE(f"Sending final report reminder for Dref ID={instance.id}"))
             send_final_report_reminder_email(instance.id)
+            count += 1
+        return count
 
     def send_overdue_alerts(self, today):
         queryset = Dref.objects.filter(
@@ -71,9 +97,12 @@ class Command(BaseCommand):
             final_report_overdue_alert_sent_at__isnull=True,
         ).filter(NOT_SUBMITTED_FILTER)
 
+        count = 0
         for instance in queryset.iterator():
             self.stdout.write(self.style.NOTICE(f"Sending final report overdue alert for Dref ID={instance.id}"))
             send_final_report_overdue_email(instance.id)
+            count += 1
+        return count
 
     def send_recurring_overdue_alerts(self, today):
         # Anchored to final_report_due_date (not chained off the last send) so a due date that falls on
@@ -87,6 +116,7 @@ class Command(BaseCommand):
             final_report_due_date__lt=today,
         ).filter(NOT_SUBMITTED_FILTER)
 
+        count = 0
         for instance in queryset.iterator():
             if instance.final_report_recurring_overdue_alert_sent_at and (
                 instance.final_report_recurring_overdue_alert_sent_at.date() == today
@@ -102,3 +132,5 @@ class Command(BaseCommand):
 
             self.stdout.write(self.style.NOTICE(f"Sending recurring overdue alert for Dref ID={instance.id}"))
             send_final_report_recurring_overdue_email(instance.id)
+            count += 1
+        return count
