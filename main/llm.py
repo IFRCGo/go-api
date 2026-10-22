@@ -88,18 +88,13 @@ class BaseDummyLLMClient(BaseLLMClient):
 
 
 class DummyDrefSummaryLLMClient(BaseDummyLLMClient):
-    """Fake response for DREF summary generation: a JSON object with all of
-    DREF's summary fields, each set to the same fake content, so
-    ``dref.summary.DrefSummaryGenerator`` parses/saves it unchanged.
+    """Fake response for DREF summary generation: each section is its own call
+    and is returned as plain text, so this returns the fake content as is.
     """
 
     def _fake_response(self, messages: Messages) -> str:
-        from dref.summary import SUMMARY_FIELDS
-
-        logger.info("DummyDrefSummaryLLMClient: generating fake response for DREF summary fields")
-        fake_content = self._fake_content()
-        payload: Dict[str, str] = {field_name: fake_content for field_name in SUMMARY_FIELDS}
-        return json.dumps(payload)
+        logger.info("DummyDrefSummaryLLMClient: generating fake response for a DREF summary section")
+        return self._fake_content()
 
 
 class DummyOpsLearningLLMClient(BaseDummyLLMClient):
