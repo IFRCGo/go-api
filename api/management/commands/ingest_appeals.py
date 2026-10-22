@@ -271,8 +271,15 @@ class Command(BaseCommand):
         detail1 = details[-1]  # last
         start_date = self.parse_date(r["APP_startDate"])  # not self.parse_date(detail0['APD_startDate'])
         end_date = self.parse_date(r["APP_endDate"])  # not self.parse_date(detail1['APD_endDate'])
-        atypes = {66: AppealType.DREF, 64: AppealType.APPEAL, 1537: AppealType.INTL}
-        atype = atypes[detail1["APD_TYP_Id"]]
+        atypes = {
+            # 66: AppealType.DREF, – legacy DREF code
+            # 64: AppealType.APPEAL, – legacy Appeal code
+            # 1537: AppealType.INTL, – we don't use it any more
+            "Minor Emergency": AppealType.DREF,
+            "Emergency": AppealType.APPEAL,
+        }
+        # instead of detail1["APD_TYP_Id"]:
+        atype = atypes.get(r.get("APP_subtype"), AppealType.DREF)
 
         amount_funded = triggering_amount = 0
         for detl in details:
@@ -347,7 +354,7 @@ class Command(BaseCommand):
             logger.error("Appeals ingest aborted due to upstream API errors.")
             return
         logger.info(f"{start_appeals_count} current appeals")
-        logger.info(f"Creating {len(new)} new appeals")
+        logger.info(f"Creating {len(new)} new appeal{'s' if len(new) > 1 else ''}")
         logger.info(f"Updating {len(modified)} existing appeals that MIGHT have been modified")
 
         errors = []
@@ -392,8 +399,8 @@ class Command(BaseCommand):
             create_cron_record(CRON_NAME, "\n".join(errors), CronJobStatus.WARNED, len(errors))
 
         appeals_count = Appeal.objects.all().count()
-        logger.info(f"{num_created} appeals created")
-        logger.info(f"{num_updated} appeals updated")
+        logger.info(f"{num_created} appeal{'s' if num_created > 1 else ''} created")
+        logger.info(f"{num_updated} appeal{'s' if num_updated > 1 else ''} updated")
         logger.info(f"{appeals_count} total appeals")
         logger.info("Appeals ingest completed")
 
