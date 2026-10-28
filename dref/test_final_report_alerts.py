@@ -6,7 +6,11 @@ from django.core.management import call_command
 from django.test import TestCase
 from django.utils import timezone
 
-from dref.factories.dref import DrefFactory, DrefFinalReportFactory
+from dref.factories.dref import (
+    DrefFactory,
+    DrefFinalReportFactory,
+    DrefOperationalUpdateFactory,
+)
 from dref.models import (
     DREF_FINAL_REPORT_DUE_MONTHS,
     DREF_FINAL_REPORT_RECURRING_OVERDUE_INTERVAL_MONTHS,
@@ -18,6 +22,10 @@ from dref.tasks import (
     send_final_report_overdue_email,
     send_final_report_recurring_overdue_email,
     send_final_report_reminder_email,
+)
+from dref.utils import (
+    get_final_report_alert_recipients,
+    get_latest_approved_operational_update,
 )
 
 
@@ -283,3 +291,135 @@ class DrefFinalReportAlertCommandTest(TestCase):
         call_command("dref_final_report_alert")
 
         mock_recurring.assert_not_called()
+
+
+class GetFinalReportAlertRecipientsTest(TestCase):
+    def setUp(self):
+        self.dref = DrefFactory.create(
+            appeal_code="MDRXX002",
+            ifrc_appeal_manager_email="dref.appeal.manager@example.com",
+            ifrc_project_manager_email="dref.project.manager@example.com",
+            national_society_contact_email="dref.ns.contact@example.com",
+            regional_focal_point_email="dref.regional.focal@example.com",
+        )
+
+    def test_latest_approved_operational_update_is_none_when_none_exist(self):
+        self.assertIsNone(get_latest_approved_operational_update(self.dref))
+
+    def test_latest_approved_operational_update_ignores_unapproved_ones(self):
+        DrefOperationalUpdateFactory.create(dref=self.dref, appeal_code=self.dref.appeal_code, date_of_approval=None)
+
+        self.assertIsNone(get_latest_approved_operational_update(self.dref))
+
+    def test_latest_approved_operational_update_matches_via_appeal_code_not_fk(self):
+        # Deliberately attached to a different Dref to prove matching is done via appeal_code, not
+        # the Operational Update's own `dref` FK.
+        other_dref = DrefFactory.create(appeal_code=self.dref.appeal_code)
+        operational_update = DrefOperationalUpdateFactory.create(
+            dref=other_dref,
+            appeal_code=self.dref.appeal_code,
+            date_of_approval=timezone.now().date(),
+        )
+
+        self.assertEqual(get_latest_approved_operational_update(self.dref), operational_update)
+
+    def test_latest_approved_operational_update_picks_most_recently_approved(self):
+        today = timezone.now().date()
+        DrefOperationalUpdateFactory.create(
+            dref=self.dref,
+            appeal_code=self.dref.appeal_code,
+            date_of_approval=today - timedelta(days=10),
+            operational_update_number=1,
+        )
+        latest = DrefOperationalUpdateFactory.create(
+            dref=self.dref,
+            appeal_code=self.dref.appeal_code,
+            date_of_approval=today,
+            operational_update_number=2,
+        )
+
+        self.assertEqual(get_latest_approved_operational_update(self.dref), latest)
+
+    def test_recipients_fall_back_to_dref_contacts_when_no_operational_update_exists(self):
+        to_emails, cc_emails = get_final_report_alert_recipients(self.dref)
+
+        self.assertEqual(
+            to_emails,
+            [
+                "dref.appeal.manager@example.com",
+                "dref.project.manager@example.com",
+                "dref.ns.contact@example.com",
+            ],
+        )
+        self.assertEqual(cc_emails, ["dref.regional.focal@example.com"])
+
+    def test_recipients_fall_back_to_dref_contacts_when_operational_update_is_not_approved(self):
+        DrefOperationalUpdateFactory.create(
+            dref=self.dref,
+            appeal_code=self.dref.appeal_code,
+            date_of_approval=None,
+            ifrc_appeal_manager_email="ou.appeal.manager@example.com",
+        )
+
+        to_emails, _ = get_final_report_alert_recipients(self.dref)
+
+        self.assertEqual(to_emails[0], "dref.appeal.manager@example.com")
+
+    def test_recipients_use_approved_operational_update_contacts(self):
+        DrefOperationalUpdateFactory.create(
+            dref=self.dref,
+            appeal_code=self.dref.appeal_code,
+            date_of_approval=timezone.now().date(),
+            ifrc_appeal_manager_email="ou.appeal.manager@example.com",
+            ifrc_project_manager_email="ou.project.manager@example.com",
+            national_society_contact_email="ou.ns.contact@example.com",
+            regional_focal_point_email="ou.regional.focal@example.com",
+        )
+
+        to_emails, cc_emails = get_final_report_alert_recipients(self.dref)
+
+        self.assertEqual(
+            to_emails,
+            [
+                "ou.appeal.manager@example.com",
+                "ou.project.manager@example.com",
+                "ou.ns.contact@example.com",
+            ],
+        )
+        self.assertEqual(cc_emails, ["ou.regional.focal@example.com"])
+
+    def test_recipients_fall_back_per_field_when_operational_update_contact_is_blank(self):
+        DrefOperationalUpdateFactory.create(
+            dref=self.dref,
+            appeal_code=self.dref.appeal_code,
+            date_of_approval=timezone.now().date(),
+            ifrc_appeal_manager_email="ou.appeal.manager@example.com",
+            ifrc_project_manager_email="",
+            national_society_contact_email=None,
+            regional_focal_point_email="ou.regional.focal@example.com",
+        )
+
+        to_emails, cc_emails = get_final_report_alert_recipients(self.dref)
+
+        self.assertEqual(
+            to_emails,
+            [
+                "ou.appeal.manager@example.com",  # overridden by the Operational Update
+                "dref.project.manager@example.com",  # fallback: blank on the Operational Update
+                "dref.ns.contact@example.com",  # fallback: None on the Operational Update
+            ],
+        )
+        self.assertEqual(cc_emails, ["ou.regional.focal@example.com"])
+
+    def test_recipients_fall_back_to_dref_contacts_when_dref_has_no_appeal_code(self):
+        dref = DrefFactory.create(appeal_code=None, ifrc_appeal_manager_email="dref.appeal.manager@example.com")
+        DrefOperationalUpdateFactory.create(
+            dref=dref,
+            appeal_code=None,
+            date_of_approval=timezone.now().date(),
+            ifrc_appeal_manager_email="ou.appeal.manager@example.com",
+        )
+
+        to_emails, _ = get_final_report_alert_recipients(dref)
+
+        self.assertEqual(to_emails[0], "dref.appeal.manager@example.com")

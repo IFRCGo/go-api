@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 
 from django.conf import settings
 from django.contrib.postgres.aggregates import ArrayAgg
@@ -33,14 +34,46 @@ def get_final_report_alert_email_context(dref: Dref) -> dict:
     }
 
 
+def get_latest_approved_operational_update(dref: Dref) -> Optional[DrefOperationalUpdate]:
+    """Return the latest approved DrefOperationalUpdate sharing the same appeal_code as the given Dref.
+
+    "Approved" here is determined by date_of_approval being set, since date_of_approval is only ever
+    set when an Operational Update transitions to Dref.Status.APPROVED (see
+    DrefOperationalUpdateViewSet.get_approved). Matching is done via appeal_code rather than the
+    Operational Update's dref FK, since appeal_code is the shared business identifier across DREF stages.
+    """
+    if not dref.appeal_code:
+        return None
+
+    return (
+        DrefOperationalUpdate.objects.filter(
+            appeal_code=dref.appeal_code,
+            date_of_approval__isnull=False,
+        )
+        .order_by("-date_of_approval", "-operational_update_number")
+        .first()
+    )
+
+
 def get_final_report_alert_recipients(dref: Dref) -> tuple[list, list]:
-    """Recipients are sourced only from the DREF Application contact fields (no ERP fallback)."""
+    """Recipients are sourced from the DREF Application contact fields, with each field overridden
+    (where non-empty) by the latest approved Operational Update's corresponding contact, since the
+    Operational Update may hold more up-to-date contact information than the original Application."""
+    latest_operational_update = get_latest_approved_operational_update(dref)
+
+    def get_contact(field_name: str) -> str:
+        if latest_operational_update is not None:
+            value = getattr(latest_operational_update, field_name)
+            if value:
+                return value
+        return getattr(dref, field_name)
+
     to_emails = [
-        dref.ifrc_appeal_manager_email,
-        dref.ifrc_project_manager_email,
-        dref.national_society_contact_email,
+        get_contact("ifrc_appeal_manager_email"),
+        get_contact("ifrc_project_manager_email"),
+        get_contact("national_society_contact_email"),
     ]
-    cc_emails = [dref.regional_focal_point_email]
+    cc_emails = [get_contact("regional_focal_point_email")]
     return to_emails, cc_emails
 
 
