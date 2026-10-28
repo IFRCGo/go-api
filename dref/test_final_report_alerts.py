@@ -182,6 +182,48 @@ class DrefFinalReportAlertCommandTest(TestCase):
 
         mock_overdue.assert_called_once_with(dref.id)
 
+    def test_implementation_end_alert_catches_up_when_end_date_is_in_the_past(
+        self, mock_implementation_end, mock_reminder, mock_overdue, mock_recurring
+    ):
+        # Simulates a Dref whose implementation end date was missed (e.g. cron downtime) and never
+        # triggered an alert - the catch-up filter (end_date <= today) must still send it.
+        end_date = self.today - timedelta(days=5)
+        dref = self._create_dref(end_date=end_date)
+
+        call_command("dref_final_report_alert")
+
+        mock_implementation_end.assert_called_once_with(dref.id)
+
+    def test_reminder_alert_catches_up_when_reminder_date_is_in_the_past(
+        self, mock_implementation_end, mock_reminder, mock_overdue, mock_recurring
+    ):
+        # Simulates a Dref whose reminder date was missed and never triggered an alert - the catch-up
+        # filter (end_date <= target_end_date) must still send it.
+        end_date = (
+            self.today
+            - relativedelta(months=DREF_FINAL_REPORT_DUE_MONTHS - DREF_FINAL_REPORT_REMINDER_MONTHS_BEFORE_DUE)
+            - timedelta(days=5)
+        )
+        dref = self._create_dref(end_date=end_date)
+
+        call_command("dref_final_report_alert")
+
+        mock_reminder.assert_called_once_with(dref.id)
+
+    def test_overdue_alert_catches_up_when_due_date_is_in_the_past_and_never_sent(
+        self, mock_implementation_end, mock_reminder, mock_overdue, mock_recurring
+    ):
+        # Regression test for the "stuck record" bug: a Dref whose final_report_due_date already passed,
+        # but which never received an overdue alert (e.g. because it missed the previous exact-day
+        # match), must be caught up by the next run instead of being permanently skipped - which also
+        # unblocks recurring overdue alerts from ever starting for it.
+        end_date = self.today - relativedelta(months=DREF_FINAL_REPORT_DUE_MONTHS) - timedelta(days=60)
+        dref = self._create_dref(end_date=end_date)
+
+        call_command("dref_final_report_alert")
+
+        mock_overdue.assert_called_once_with(dref.id)
+
     def test_recurring_overdue_alert_sent_after_interval_elapsed(
         self, mock_implementation_end, mock_reminder, mock_overdue, mock_recurring
     ):

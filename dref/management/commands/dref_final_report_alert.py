@@ -58,9 +58,13 @@ class Command(BaseCommand):
         create_cron_record(CRON_NAME, cron_msg, CronJobStatus.SUCCESSFUL, total_count)
 
     def send_implementation_end_alerts(self, today):
+        # end_date <= today (not == today) so a Dref whose implementation end date was missed on its
+        # exact day (e.g. cron downtime, or it only became eligible afterwards) is still caught up here,
+        # instead of being permanently skipped. final_report_implementation_end_alert_sent_at still
+        # guarantees this fires at most once per Dref.
         queryset = Dref.objects.filter(
             type_of_dref__in=IN_SCOPE_DREF_TYPES,
-            end_date=today,
+            end_date__lte=today,
             final_report_implementation_end_alert_sent_at__isnull=True,
         ).filter(NOT_SUBMITTED_FILTER)
 
@@ -77,9 +81,12 @@ class Command(BaseCommand):
         # to avoid relativedelta's day-of-month clamping producing an inconsistent result between the two.
         months_before_end_date = DREF_FINAL_REPORT_DUE_MONTHS - DREF_FINAL_REPORT_REMINDER_MONTHS_BEFORE_DUE
         target_end_date = today - relativedelta(months=months_before_end_date)
+        # end_date <= target_end_date (not == target_end_date) so a Dref whose reminder date was missed
+        # on its exact day is still caught up here, instead of being permanently skipped.
+        # final_report_reminder_alert_sent_at still guarantees this fires at most once per Dref.
         queryset = Dref.objects.filter(
             type_of_dref__in=IN_SCOPE_DREF_TYPES,
-            end_date=target_end_date,
+            end_date__lte=target_end_date,
             final_report_reminder_alert_sent_at__isnull=True,
         ).filter(NOT_SUBMITTED_FILTER)
 
@@ -91,9 +98,15 @@ class Command(BaseCommand):
         return count
 
     def send_overdue_alerts(self, today):
+        # final_report_due_date <= today (not == today) so a Dref whose due date was missed on its exact
+        # day (e.g. cron downtime, or final_report_due_date recomputed to a past date after an end_date
+        # edit) is still caught up here, instead of being permanently stuck with no overdue alert ever
+        # sent and, consequently, recurring overdue alerts never starting either (see
+        # send_recurring_overdue_alerts below). final_report_overdue_alert_sent_at still guarantees this
+        # fires at most once per Dref.
         queryset = Dref.objects.filter(
             type_of_dref__in=IN_SCOPE_DREF_TYPES,
-            final_report_due_date=today,
+            final_report_due_date__lte=today,
             final_report_overdue_alert_sent_at__isnull=True,
         ).filter(NOT_SUBMITTED_FILTER)
 
