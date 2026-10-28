@@ -146,6 +146,7 @@ class EAPRegistrationTestCase(APITestCase):
             "disaster_sub_type": "disaster sub type",
             "expected_submission_time": "2024-12-31",
             "partners": [self.partner1.id, self.partner2.id],
+            "include_rcrc_climate_center": True,
             "national_society_contact_name": "National society contact name",
             "national_society_contact_title": "National society contact title",
             "national_society_contact_email": "test@example.com",
@@ -165,6 +166,7 @@ class EAPRegistrationTestCase(APITestCase):
             response.data["created_by_details"]["id"],
             self.country_admin.id,
         )
+        self.assertTrue(response.data["include_rcrc_climate_center"])
         self.assertEqual(
             {
                 response.data["eap_type"],

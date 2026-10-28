@@ -385,7 +385,7 @@ class HoursTimeFrameChoices(models.IntegerChoices):
 class OperationActivity(models.Model):
     # NOTE: `timeframe` and `time_value` together represent the time span for an activity.
     # Make sure to keep them in sync.
-    activity = models.CharField(max_length=255, verbose_name=_("Activity"))
+    activity = models.TextField(verbose_name=_("Activity"))
     activation_one = models.BooleanField(verbose_name=_("Activation 1"), null=True, blank=True)
     activation_two = models.BooleanField(verbose_name=_("Activation 2"), null=True, blank=True)
     timeframe = models.IntegerField(
@@ -785,6 +785,11 @@ class EAPRegistration(EAPBaseModel):
         help_text=_("Select any partner NS involved in the EAP development."),
         related_name="development_registration_eap_partners",
         blank=True,
+    )
+
+    include_rcrc_climate_center = models.BooleanField(
+        verbose_name=_("Include RCRC Climate Center."),
+        default=False,
     )
 
     # Users involved in the EAP
