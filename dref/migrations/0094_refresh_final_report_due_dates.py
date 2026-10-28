@@ -23,7 +23,7 @@ def refresh_final_report_due_dates(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("dref", "0092_dref_final_report_due_date_and_more"),
+        ("dref", "0093_drefsummary_section_status"),
     ]
 
     operations = [
