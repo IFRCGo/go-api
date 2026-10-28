@@ -150,7 +150,7 @@ class DrefFinalReportDueDateTest(TestCase):
             final_report_due_date=None,
             final_report_overdue_alert_sent_at=sent_at,
         )
-        migration = import_module("dref.migrations.0093_refresh_final_report_due_dates")
+        migration = import_module("dref.migrations.0094_refresh_final_report_due_dates")
 
         migration.refresh_final_report_due_dates(apps, mock.Mock(connection=mock.Mock(alias="default")))
 
