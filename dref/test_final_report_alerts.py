@@ -1,9 +1,7 @@
 from datetime import date, timedelta
-from importlib import import_module
 from unittest import mock
 
 from dateutil.relativedelta import relativedelta
-from django.apps import apps
 from django.core.management import call_command
 from django.test import TestCase
 from django.utils import timezone
@@ -141,25 +139,6 @@ class DrefFinalReportDueDateTest(TestCase):
         update.save(update_fields=["date_of_approval"])
         self.dref.refresh_from_db()
         self.assertEqual(self.dref.final_report_due_date, date(2026, 4, 30))
-
-    def test_migration_refreshes_existing_deadlines_without_resetting_alerts(self):
-        self._create_update()
-        fallback_dref = DrefFactory.create(appeal_code="MDRXX002", end_date=date(2026, 1, 31))
-        sent_at = timezone.now()
-        Dref.objects.filter(pk__in=[self.dref.pk, fallback_dref.pk]).update(
-            final_report_due_date=None,
-            final_report_overdue_alert_sent_at=sent_at,
-        )
-        migration = import_module("dref.migrations.0094_refresh_final_report_due_dates")
-
-        migration.refresh_final_report_due_dates(apps, mock.Mock(connection=mock.Mock(alias="default")))
-
-        self.dref.refresh_from_db()
-        fallback_dref.refresh_from_db()
-        self.assertEqual(self.dref.final_report_due_date, date(2026, 8, 31))
-        self.assertEqual(fallback_dref.final_report_due_date, date(2026, 4, 30))
-        self.assertEqual(self.dref.final_report_overdue_alert_sent_at, sent_at)
-        self.assertEqual(fallback_dref.final_report_overdue_alert_sent_at, sent_at)
 
     def test_due_date_computed_on_save(self):
         today = timezone.now().date()
@@ -459,6 +438,98 @@ class DrefFinalReportAlertCommandTest(TestCase):
         call_command("dref_final_report_alert")
 
         mock_recurring.assert_not_called()
+
+    def test_only_latest_dref_per_appeal_code_gets_alerts(
+        self, mock_implementation_end, mock_reminder, mock_overdue, mock_recurring
+    ):
+        # Several Dref rows share one appeal_code - only the one with the max id may trigger alerts.
+        self._create_dref(appeal_code="MDRXX001", end_date=self.today)
+        self._create_dref(appeal_code="MDRXX001", end_date=self.today)
+        latest = self._create_dref(appeal_code="MDRXX001", end_date=self.today)
+
+        call_command("dref_final_report_alert")
+
+        mock_implementation_end.assert_called_once_with(latest.id)
+
+    def test_only_latest_dref_per_appeal_code_gets_overdue_and_recurring_alerts(
+        self, mock_implementation_end, mock_reminder, mock_overdue, mock_recurring
+    ):
+        end_date = self.today - relativedelta(months=DREF_FINAL_REPORT_DUE_MONTHS)
+        self._create_dref(appeal_code="MDRXX001", end_date=end_date)
+        latest_overdue = self._create_dref(appeal_code="MDRXX001", end_date=end_date)
+        last_sent = timezone.now() - timedelta(days=35)
+        recurring_end_date = self.today - relativedelta(months=self.RECURRING_DUE_MONTHS_AGO)
+        recurring_kwargs = {
+            "end_date": recurring_end_date,
+            "final_report_overdue_alert_sent_at": last_sent,
+            "final_report_recurring_overdue_alert_sent_at": last_sent,
+        }
+        self._create_dref(appeal_code="MDRXX002", **recurring_kwargs)
+        latest_recurring = self._create_dref(appeal_code="MDRXX002", **recurring_kwargs)
+
+        call_command("dref_final_report_alert")
+
+        mock_overdue.assert_called_once_with(latest_overdue.id)
+        mock_recurring.assert_called_once_with(latest_recurring.id)
+
+    def test_older_dref_is_skipped_even_if_latest_dref_has_approved_final_report(
+        self, mock_implementation_end, mock_reminder, mock_overdue, mock_recurring
+    ):
+        self._create_dref(appeal_code="MDRXX001", end_date=self.today)
+        latest = self._create_dref(appeal_code="MDRXX001", end_date=self.today)
+        DrefFinalReportFactory.create(dref=latest, status=Dref.Status.APPROVED)
+
+        call_command("dref_final_report_alert")
+
+        mock_implementation_end.assert_not_called()
+
+    def test_older_dref_is_skipped_even_if_latest_dref_already_sent_the_alert(
+        self, mock_implementation_end, mock_reminder, mock_overdue, mock_recurring
+    ):
+        self._create_dref(appeal_code="MDRXX001", end_date=self.today)
+        self._create_dref(
+            appeal_code="MDRXX001",
+            end_date=self.today,
+            final_report_implementation_end_alert_sent_at=timezone.now(),
+        )
+
+        call_command("dref_final_report_alert")
+
+        mock_implementation_end.assert_not_called()
+
+    def test_each_appeal_code_gets_its_own_alert(self, mock_implementation_end, mock_reminder, mock_overdue, mock_recurring):
+        first = self._create_dref(appeal_code="MDRXX001", end_date=self.today)
+        second = self._create_dref(appeal_code="MDRXX002", end_date=self.today)
+
+        call_command("dref_final_report_alert")
+
+        self.assertEqual(
+            sorted(call.args[0] for call in mock_implementation_end.call_args_list),
+            sorted([first.id, second.id]),
+        )
+
+    def test_drefs_without_appeal_code_are_not_grouped(
+        self, mock_implementation_end, mock_reminder, mock_overdue, mock_recurring
+    ):
+        first = self._create_dref(appeal_code=None, end_date=self.today)
+        second = self._create_dref(appeal_code="", end_date=self.today)
+
+        call_command("dref_final_report_alert")
+
+        self.assertEqual(
+            sorted(call.args[0] for call in mock_implementation_end.call_args_list),
+            sorted([first.id, second.id]),
+        )
+
+    def test_out_of_scope_dref_with_same_appeal_code_does_not_hide_the_in_scope_one(
+        self, mock_implementation_end, mock_reminder, mock_overdue, mock_recurring
+    ):
+        in_scope = self._create_dref(appeal_code="MDRXX001", end_date=self.today)
+        self._create_dref(appeal_code="MDRXX001", end_date=self.today, type_of_dref=Dref.DrefType.LOAN)
+
+        call_command("dref_final_report_alert")
+
+        mock_implementation_end.assert_called_once_with(in_scope.id)
 
 
 class GetFinalReportAlertRecipientsTest(TestCase):

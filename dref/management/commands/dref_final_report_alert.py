@@ -19,7 +19,10 @@ from dref.tasks import (
     send_final_report_recurring_overdue_email,
     send_final_report_reminder_email,
 )
-from dref.utils import get_final_report_operation_end_date
+from dref.utils import (
+    get_final_report_operation_end_date,
+    get_latest_dref_per_appeal_code_filter,
+)
 from main.sentry import SentryMonitor
 
 CRON_NAME = "dref_final_report_alert"
@@ -66,7 +69,7 @@ class Command(BaseCommand):
         queryset = Dref.objects.filter(
             type_of_dref__in=IN_SCOPE_DREF_TYPES,
             final_report_implementation_end_alert_sent_at__isnull=True,
-        ).filter(NOT_SUBMITTED_FILTER)
+        ).filter(NOT_SUBMITTED_FILTER, get_latest_dref_per_appeal_code_filter(IN_SCOPE_DREF_TYPES))
 
         count = 0
         for instance in queryset.iterator():
@@ -90,7 +93,7 @@ class Command(BaseCommand):
         queryset = Dref.objects.filter(
             type_of_dref__in=IN_SCOPE_DREF_TYPES,
             final_report_reminder_alert_sent_at__isnull=True,
-        ).filter(NOT_SUBMITTED_FILTER)
+        ).filter(NOT_SUBMITTED_FILTER, get_latest_dref_per_appeal_code_filter(IN_SCOPE_DREF_TYPES))
 
         count = 0
         for instance in queryset.iterator():
@@ -113,7 +116,7 @@ class Command(BaseCommand):
             type_of_dref__in=IN_SCOPE_DREF_TYPES,
             final_report_due_date__lte=today,
             final_report_overdue_alert_sent_at__isnull=True,
-        ).filter(NOT_SUBMITTED_FILTER)
+        ).filter(NOT_SUBMITTED_FILTER, get_latest_dref_per_appeal_code_filter(IN_SCOPE_DREF_TYPES))
 
         count = 0
         for instance in queryset.iterator():
@@ -132,7 +135,7 @@ class Command(BaseCommand):
             final_report_overdue_alert_sent_at__isnull=False,
             final_report_due_date__isnull=False,
             final_report_due_date__lt=today,
-        ).filter(NOT_SUBMITTED_FILTER)
+        ).filter(NOT_SUBMITTED_FILTER, get_latest_dref_per_appeal_code_filter(IN_SCOPE_DREF_TYPES))
 
         count = 0
         for instance in queryset.iterator():
