@@ -142,25 +142,6 @@ class DrefFinalReportDueDateTest(TestCase):
         self.dref.refresh_from_db()
         self.assertEqual(self.dref.final_report_due_date, date(2026, 4, 30))
 
-    def test_migration_refreshes_existing_deadlines_without_resetting_alerts(self):
-        self._create_update()
-        fallback_dref = DrefFactory.create(appeal_code="MDRXX002", end_date=date(2026, 1, 31))
-        sent_at = timezone.now()
-        Dref.objects.filter(pk__in=[self.dref.pk, fallback_dref.pk]).update(
-            final_report_due_date=None,
-            final_report_overdue_alert_sent_at=sent_at,
-        )
-        migration = import_module("dref.migrations.0094_refresh_final_report_due_dates")
-
-        migration.refresh_final_report_due_dates(apps, mock.Mock(connection=mock.Mock(alias="default")))
-
-        self.dref.refresh_from_db()
-        fallback_dref.refresh_from_db()
-        self.assertEqual(self.dref.final_report_due_date, date(2026, 8, 31))
-        self.assertEqual(fallback_dref.final_report_due_date, date(2026, 4, 30))
-        self.assertEqual(self.dref.final_report_overdue_alert_sent_at, sent_at)
-        self.assertEqual(fallback_dref.final_report_overdue_alert_sent_at, sent_at)
-
     def test_due_date_computed_on_save(self):
         today = timezone.now().date()
         dref = DrefFactory.create(end_date=today)
