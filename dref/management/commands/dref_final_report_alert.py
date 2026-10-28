@@ -19,6 +19,7 @@ from dref.tasks import (
     send_final_report_recurring_overdue_email,
     send_final_report_reminder_email,
 )
+from dref.utils import get_final_report_operation_end_date
 from main.sentry import SentryMonitor
 
 CRON_NAME = "dref_final_report_alert"
@@ -64,20 +65,22 @@ class Command(BaseCommand):
         # guarantees this fires at most once per Dref.
         queryset = Dref.objects.filter(
             type_of_dref__in=IN_SCOPE_DREF_TYPES,
-            end_date__lte=today,
             final_report_implementation_end_alert_sent_at__isnull=True,
         ).filter(NOT_SUBMITTED_FILTER)
 
         count = 0
         for instance in queryset.iterator():
+            end_date = get_final_report_operation_end_date(instance)
+            if end_date is None or end_date > today:
+                continue
             self.stdout.write(self.style.NOTICE(f"Sending implementation end alert for Dref ID={instance.id}"))
             send_final_report_implementation_end_email(instance.id)
             count += 1
         return count
 
     def send_reminder_alerts(self, today):
-        # "1 month before the due date" == "2 months after end_date" (due date itself is end_date + 3
-        # months) - computed directly from end_date, not by subtracting a month from final_report_due_date,
+        # Use the effective operation end date, including approved operational extensions.
+        # Compute directly from it, not by subtracting a month from final_report_due_date,
         # to avoid relativedelta's day-of-month clamping producing an inconsistent result between the two.
         months_before_end_date = DREF_FINAL_REPORT_DUE_MONTHS - DREF_FINAL_REPORT_REMINDER_MONTHS_BEFORE_DUE
         target_end_date = today - relativedelta(months=months_before_end_date)
@@ -86,12 +89,14 @@ class Command(BaseCommand):
         # final_report_reminder_alert_sent_at still guarantees this fires at most once per Dref.
         queryset = Dref.objects.filter(
             type_of_dref__in=IN_SCOPE_DREF_TYPES,
-            end_date__lte=target_end_date,
             final_report_reminder_alert_sent_at__isnull=True,
         ).filter(NOT_SUBMITTED_FILTER)
 
         count = 0
         for instance in queryset.iterator():
+            end_date = get_final_report_operation_end_date(instance)
+            if end_date is None or end_date > target_end_date:
+                continue
             self.stdout.write(self.style.NOTICE(f"Sending final report reminder for Dref ID={instance.id}"))
             send_final_report_reminder_email(instance.id)
             count += 1

@@ -9,6 +9,8 @@ from django.contrib.postgres.aggregates import ArrayAgg
 from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 from django.templatetags.static import static
 from django.utils import timezone
 from django.utils.dateparse import parse_date
@@ -779,10 +781,22 @@ class Dref(models.Model):
         verbose_name_plural = _("drefs")
 
     def save(self, *args, **kwargs):
+        from dref.utils import get_final_report_operation_end_date
+
+        deadline_source = self
+        if self.pk and kwargs.get("update_fields"):
+            deadline_source = copy.copy(self)
+            saved_source = type(self).objects.only("end_date", "appeal_code").get(pk=self.pk)
+            for field in ("end_date", "appeal_code"):
+                if field not in kwargs["update_fields"]:
+                    setattr(deadline_source, field, getattr(saved_source, field))
         # end_date may still be a raw "YYYY-MM-DD" string here (assigned directly, not through a
         # form/serializer), so normalize it before doing date arithmetic.
-        end_date = parse_date(self.end_date) if isinstance(self.end_date, str) else self.end_date
+        end_date = get_final_report_operation_end_date(deadline_source)
+        end_date = parse_date(end_date) if isinstance(end_date, str) else end_date
         self.final_report_due_date = end_date + relativedelta(months=DREF_FINAL_REPORT_DUE_MONTHS) if end_date else None
+        if kwargs.get("update_fields"):
+            kwargs["update_fields"] = set(kwargs["update_fields"]) | {"final_report_due_date"}
         if self.budget_file and self.budget_file_id != self.__budget_file_id:
             pages = convert_from_bytes(self.budget_file.file.read())
             if len(pages) > 0:
@@ -1269,6 +1283,9 @@ class DrefOperationalUpdate(models.Model):
         verbose_name_plural = _("Dref Operational Updates")
 
     def save(self, *args, **kwargs):
+        previous_appeal_code = (
+            type(self).objects.filter(pk=self.pk).values_list("appeal_code", flat=True).first() if self.pk else None
+        )
         if self.budget_file and self.budget_file_id != self.__budget_file_id:
             pages = convert_from_bytes(self.budget_file.file.read())
             if len(pages) > 0:
@@ -1283,6 +1300,8 @@ class DrefOperationalUpdate(models.Model):
 
         self.__budget_file_id = self.budget_file_id
         super().save(*args, **kwargs)
+        appeal_code = type(self).objects.values_list("appeal_code", flat=True).get(pk=self.pk)
+        update_final_report_due_dates([previous_appeal_code, appeal_code])
 
     @staticmethod
     def get_for(user):
@@ -1302,6 +1321,20 @@ class DrefOperationalUpdate(models.Model):
         op_update_created_by = DrefOperationalUpdate.objects.filter(created_by=user).distinct()
         union_query = op_update_users.union(op_update_created_by)
         return DrefOperationalUpdate.objects.filter(id__in=union_query.values("id")).distinct()
+
+
+def update_final_report_due_dates(appeal_codes):
+    from dref.utils import get_final_report_operation_end_date
+
+    for dref in Dref.objects.filter(appeal_code__in=[code for code in appeal_codes if code]).iterator():
+        end_date = get_final_report_operation_end_date(dref)
+        due_date = end_date + relativedelta(months=DREF_FINAL_REPORT_DUE_MONTHS) if end_date else None
+        Dref.objects.filter(pk=dref.pk).update(final_report_due_date=due_date)
+
+
+@receiver(post_delete, sender=DrefOperationalUpdate)
+def update_final_report_due_dates_after_operational_update_delete(sender, instance, **kwargs):
+    update_final_report_due_dates([instance.appeal_code])
 
 
 @reversion.register()

@@ -1,7 +1,9 @@
-from datetime import timedelta
+from datetime import date, timedelta
+from importlib import import_module
 from unittest import mock
 
 from dateutil.relativedelta import relativedelta
+from django.apps import apps
 from django.core.management import call_command
 from django.test import TestCase
 from django.utils import timezone
@@ -24,12 +26,141 @@ from dref.tasks import (
     send_final_report_reminder_email,
 )
 from dref.utils import (
+    get_final_report_alert_email_context,
     get_final_report_alert_recipients,
     get_latest_approved_operational_update,
 )
 
 
 class DrefFinalReportDueDateTest(TestCase):
+    def setUp(self):
+        self.dref = DrefFactory.create(appeal_code="MDRXX001", end_date=date(2026, 1, 31))
+
+    def _create_update(self, **kwargs):
+        kwargs.setdefault("dref", self.dref)
+        kwargs.setdefault("appeal_code", self.dref.appeal_code)
+        kwargs.setdefault("date_of_approval", date(2026, 2, 1))
+        kwargs.setdefault("new_operational_end_date", date(2026, 5, 31))
+        return DrefOperationalUpdateFactory.create(**kwargs)
+
+    def test_due_date_uses_latest_approved_update_matching_appeal_code(self):
+        self._create_update(operational_update_number=1, new_operational_end_date=date(2026, 8, 31))
+        self._create_update(
+            dref=DrefFactory.create(),
+            operational_update_number=2,
+            new_operational_end_date=date(2026, 5, 31),
+        )
+        self._create_update(date_of_approval=None, new_operational_end_date=date(2026, 12, 31))
+        self._create_update(appeal_code="MDRXX999", date_of_approval=date(2026, 3, 1))
+
+        self.dref.refresh_from_db()
+        self.assertEqual(self.dref.final_report_due_date, date(2026, 8, 31))
+        self.dref.save()
+        self.dref.refresh_from_db()
+        self.assertEqual(self.dref.final_report_due_date, date(2026, 8, 31))
+        context = get_final_report_alert_email_context(self.dref)
+        self.assertEqual(context["operation_end_date"], date(2026, 5, 31))
+        self.assertEqual(context["due_date"], date(2026, 8, 31))
+
+    def test_due_date_falls_back_when_latest_update_has_no_end_date(self):
+        self._create_update(operational_update_number=1)
+        self._create_update(operational_update_number=2, new_operational_end_date=None)
+        self.dref.refresh_from_db()
+        self.assertEqual(self.dref.final_report_due_date, date(2026, 4, 30))
+
+    def test_due_date_uses_most_recent_approval_not_largest_end_date_or_update_number(self):
+        self._create_update(operational_update_number=10, new_operational_end_date=date(2026, 12, 31))
+        self._create_update(
+            operational_update_number=1,
+            date_of_approval=date(2026, 3, 1),
+            new_operational_end_date=date(2026, 4, 30),
+        )
+        self.dref.refresh_from_db()
+        self.assertEqual(self.dref.final_report_due_date, date(2026, 7, 30))
+
+    def test_due_date_uses_update_when_application_has_no_end_date(self):
+        self.dref.end_date = None
+        self.dref.save()
+        self._create_update()
+        self.dref.refresh_from_db()
+        self.assertEqual(self.dref.final_report_due_date, date(2026, 8, 31))
+
+    def test_due_date_ignores_updates_without_appeal_code(self):
+        self.dref.appeal_code = None
+        self.dref.save()
+        self._create_update(appeal_code=None)
+        self.dref.refresh_from_db()
+        self.assertEqual(self.dref.final_report_due_date, date(2026, 4, 30))
+
+    def test_due_date_changes_when_update_is_approved_edited_and_deleted(self):
+        update = self._create_update(date_of_approval=None)
+        self.dref.refresh_from_db()
+        self.assertEqual(self.dref.final_report_due_date, date(2026, 4, 30))
+        update.date_of_approval = date(2026, 2, 1)
+        update.save(update_fields=["date_of_approval"])
+        self.dref.refresh_from_db()
+        self.assertEqual(self.dref.final_report_due_date, date(2026, 8, 31))
+        update.new_operational_end_date = date(2026, 6, 30)
+        update.save(update_fields=["new_operational_end_date"])
+        self.dref.refresh_from_db()
+        self.assertEqual(self.dref.final_report_due_date, date(2026, 9, 30))
+        type(update).objects.filter(pk=update.pk).delete()
+        self.dref.refresh_from_db()
+        self.assertEqual(self.dref.final_report_due_date, date(2026, 4, 30))
+
+    def test_due_date_refreshes_both_appeals_when_update_moves(self):
+        other_dref = DrefFactory.create(appeal_code="MDRXX002", end_date=date(2026, 2, 28))
+        update = self._create_update()
+        update.appeal_code = other_dref.appeal_code
+        update.save(update_fields=["appeal_code"])
+        self.dref.refresh_from_db()
+        other_dref.refresh_from_db()
+        self.assertEqual(self.dref.final_report_due_date, date(2026, 4, 30))
+        self.assertEqual(other_dref.final_report_due_date, date(2026, 8, 31))
+
+    def test_due_date_persisted_with_partial_application_save(self):
+        self.dref.end_date = "2026-02-28"
+        self.dref.save(update_fields=["end_date"])
+        self.dref.refresh_from_db()
+        self.assertEqual(self.dref.final_report_due_date, date(2026, 5, 28))
+
+    def test_partial_save_does_not_use_unsaved_deadline_source_fields(self):
+        self._create_update()
+        self.dref.end_date = date(2026, 12, 31)
+        self.dref.appeal_code = "MDRXX999"
+        self.dref.title = "Updated title"
+        self.dref.save(update_fields=["title"])
+        self.dref.refresh_from_db()
+        self.assertEqual(self.dref.final_report_due_date, date(2026, 8, 31))
+        self.assertEqual(self.dref.end_date, date(2026, 1, 31))
+        self.assertEqual(self.dref.appeal_code, "MDRXX001")
+
+    def test_due_date_falls_back_when_approval_is_removed(self):
+        update = self._create_update()
+        update.date_of_approval = None
+        update.save(update_fields=["date_of_approval"])
+        self.dref.refresh_from_db()
+        self.assertEqual(self.dref.final_report_due_date, date(2026, 4, 30))
+
+    def test_migration_refreshes_existing_deadlines_without_resetting_alerts(self):
+        self._create_update()
+        fallback_dref = DrefFactory.create(appeal_code="MDRXX002", end_date=date(2026, 1, 31))
+        sent_at = timezone.now()
+        Dref.objects.filter(pk__in=[self.dref.pk, fallback_dref.pk]).update(
+            final_report_due_date=None,
+            final_report_overdue_alert_sent_at=sent_at,
+        )
+        migration = import_module("dref.migrations.0093_refresh_final_report_due_dates")
+
+        migration.refresh_final_report_due_dates(apps, mock.Mock(connection=mock.Mock(alias="default")))
+
+        self.dref.refresh_from_db()
+        fallback_dref.refresh_from_db()
+        self.assertEqual(self.dref.final_report_due_date, date(2026, 8, 31))
+        self.assertEqual(fallback_dref.final_report_due_date, date(2026, 4, 30))
+        self.assertEqual(self.dref.final_report_overdue_alert_sent_at, sent_at)
+        self.assertEqual(fallback_dref.final_report_overdue_alert_sent_at, sent_at)
+
     def test_due_date_computed_on_save(self):
         today = timezone.now().date()
         dref = DrefFactory.create(end_date=today)
@@ -122,6 +253,43 @@ class DrefFinalReportAlertCommandTest(TestCase):
     def _create_dref(self, **kwargs):
         kwargs.setdefault("type_of_dref", Dref.DrefType.RESPONSE)
         return DrefFactory.create(**kwargs)
+
+    def test_alerts_wait_for_approved_operational_extension(
+        self, mock_implementation_end, mock_reminder, mock_overdue, mock_recurring
+    ):
+        dref = self._create_dref(
+            appeal_code="MDRXX001",
+            end_date=self.today - relativedelta(months=self.RECURRING_DUE_MONTHS_AGO),
+        )
+        DrefOperationalUpdateFactory.create(
+            dref=dref,
+            appeal_code=dref.appeal_code,
+            date_of_approval=self.today,
+            new_operational_end_date=self.today + relativedelta(months=1),
+        )
+
+        call_command("dref_final_report_alert")
+
+        mock_implementation_end.assert_not_called()
+        mock_reminder.assert_not_called()
+        mock_overdue.assert_not_called()
+        mock_recurring.assert_not_called()
+
+    def test_reminder_uses_approved_operational_end_date(
+        self, mock_implementation_end, mock_reminder, mock_overdue, mock_recurring
+    ):
+        dref = self._create_dref(appeal_code="MDRXX001", end_date=self.today)
+        DrefOperationalUpdateFactory.create(
+            dref=dref,
+            appeal_code=dref.appeal_code,
+            date_of_approval=self.today,
+            new_operational_end_date=self.today
+            - relativedelta(months=DREF_FINAL_REPORT_DUE_MONTHS - DREF_FINAL_REPORT_REMINDER_MONTHS_BEFORE_DUE),
+        )
+
+        call_command("dref_final_report_alert")
+
+        mock_reminder.assert_called_once_with(dref.id)
 
     def test_implementation_end_alert_sent_when_end_date_is_today(
         self, mock_implementation_end, mock_reminder, mock_overdue, mock_recurring

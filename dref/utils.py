@@ -28,7 +28,7 @@ def get_final_report_alert_email_context(dref: Dref) -> dict:
     return {
         "mdr_code": dref.appeal_code,
         "operation_name": dref.title,
-        "operation_end_date": dref.end_date,
+        "operation_end_date": get_final_report_operation_end_date(dref),
         "due_date": dref.final_report_due_date,
         "frontend_url": settings.GO_WEB_URL,
     }
@@ -50,9 +50,17 @@ def get_latest_approved_operational_update(dref: Dref) -> Optional[DrefOperation
             appeal_code=dref.appeal_code,
             date_of_approval__isnull=False,
         )
-        .order_by("-date_of_approval", "-operational_update_number")
+        .order_by("-date_of_approval", "-operational_update_number", "-pk")
         .first()
     )
+
+
+def get_final_report_operation_end_date(dref: Dref):
+    """Use the latest approved update's end date, falling back to the application."""
+    latest_operational_update = get_latest_approved_operational_update(dref)
+    if latest_operational_update and latest_operational_update.new_operational_end_date:
+        return latest_operational_update.new_operational_end_date
+    return dref.end_date
 
 
 def get_final_report_alert_recipients(dref: Dref) -> tuple[list, list]:
