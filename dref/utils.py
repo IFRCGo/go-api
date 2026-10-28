@@ -4,6 +4,7 @@ from typing import Optional
 from django.conf import settings
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db import models
+from django.db.models import Max, Q
 from django.utils import timezone
 
 from api.models import Appeal, AppealType, Event
@@ -53,6 +54,22 @@ def get_latest_approved_operational_update(dref: Dref) -> Optional[DrefOperation
         .order_by("-date_of_approval", "-operational_update_number", "-pk")
         .first()
     )
+
+
+def get_latest_dref_per_appeal_code_filter(dref_types) -> Q:
+    """Keep only the latest created (max id) Dref of each appeal_code, so that several Dref rows
+    sharing one appeal_code (the same operation) don't each trigger their own final report alerts.
+    The latest is picked among the given Dref types, regardless of the Final Report status.
+    Drefs without an appeal_code can't be grouped, so they are all kept."""
+    latest_ids = (
+        Dref.objects.filter(type_of_dref__in=dref_types, appeal_code__isnull=False)
+        .exclude(appeal_code="")
+        .order_by()
+        .values("appeal_code")
+        .annotate(latest_id=Max("id"))
+        .values("latest_id")
+    )
+    return Q(appeal_code__isnull=True) | Q(appeal_code="") | Q(id__in=latest_ids)
 
 
 def get_final_report_operation_end_date(dref: Dref):
