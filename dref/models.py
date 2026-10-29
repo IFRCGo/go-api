@@ -17,6 +17,7 @@ from django.utils.dateparse import parse_date
 from django.utils.translation import gettext_lazy as _
 from pdf2image import convert_from_bytes
 
+from api.logger import logger
 from api.models import Country, DisasterType, District, Event
 from deployments.models import Sector
 from main.fields import SecureFileField
@@ -780,6 +781,16 @@ class Dref(models.Model):
         verbose_name = _("dref")
         verbose_name_plural = _("drefs")
 
+    @classmethod
+    def from_db(cls, db, field_names, values):
+        # Seed __budget_file_id with the value already persisted in the DB, so a later save()
+        # that doesn't actually change budget_file (e.g. one only updating an unrelated field,
+        # such as an alert *_sent_at timestamp) isn't mistaken for a brand new budget_file and
+        # doesn't needlessly re-read/re-process it (see save() below).
+        instance = super().from_db(db, field_names, values)
+        instance.__budget_file_id = instance.budget_file_id
+        return instance
+
     def save(self, *args, **kwargs):
         from dref.utils import get_final_report_operation_end_date
 
@@ -798,16 +809,23 @@ class Dref(models.Model):
         if kwargs.get("update_fields"):
             kwargs["update_fields"] = set(kwargs["update_fields"]) | {"final_report_due_date"}
         if self.budget_file and self.budget_file_id != self.__budget_file_id:
-            pages = convert_from_bytes(self.budget_file.file.read())
-            if len(pages) > 0:
-                budget_file_preview = pages[0]  # get first page
-                filename = f'preview_{self.budget_file.file.name.split("/")[0]}.png'
-                temp_image = open(os.path.join("/tmp", filename), "wb")
-                budget_file_preview.save(temp_image, "PNG")
-                thumb_data = open(os.path.join("/tmp", filename), "rb")
-                self.budget_file_preview.save(filename, thumb_data, save=False)
+            try:
+                pages = convert_from_bytes(self.budget_file.file.read())
+            except Exception:
+                # The budget file may no longer be readable from storage (e.g. its blob was
+                # deleted). Don't let that crash the whole save; just skip (re)generating the
+                # preview for it.
+                logger.exception(f"Could not read budget_file (id={self.budget_file_id}) to generate its preview")
             else:
-                raise ValidationError({"budget_file": "Sorry cannot generate preview for empty pdf"})
+                if len(pages) > 0:
+                    budget_file_preview = pages[0]  # get first page
+                    filename = f'preview_{self.budget_file.file.name.split("/")[0]}.png'
+                    temp_image = open(os.path.join("/tmp", filename), "wb")
+                    budget_file_preview.save(temp_image, "PNG")
+                    thumb_data = open(os.path.join("/tmp", filename), "rb")
+                    self.budget_file_preview.save(filename, thumb_data, save=False)
+                else:
+                    raise ValidationError({"budget_file": "Sorry cannot generate preview for empty pdf"})
         self.__budget_file_id = self.budget_file_id
         super().save(*args, **kwargs)
 
@@ -1282,21 +1300,38 @@ class DrefOperationalUpdate(models.Model):
         verbose_name = _("Dref Operational Update")
         verbose_name_plural = _("Dref Operational Updates")
 
+    @classmethod
+    def from_db(cls, db, field_names, values):
+        # Seed __budget_file_id with the value already persisted in the DB, so a later save()
+        # that doesn't actually change budget_file (e.g. one only updating an unrelated field,
+        # such as its status) isn't mistaken for a brand new budget_file and doesn't needlessly
+        # re-read/re-process it (see save() below).
+        instance = super().from_db(db, field_names, values)
+        instance.__budget_file_id = instance.budget_file_id
+        return instance
+
     def save(self, *args, **kwargs):
         previous_appeal_code = (
             type(self).objects.filter(pk=self.pk).values_list("appeal_code", flat=True).first() if self.pk else None
         )
         if self.budget_file and self.budget_file_id != self.__budget_file_id:
-            pages = convert_from_bytes(self.budget_file.file.read())
-            if len(pages) > 0:
-                budget_file_preview = pages[0]  # get first page
-                filename = f'preview_{self.budget_file.file.name.split("/")[0]}.png'
-                temp_image = open(os.path.join("/tmp", filename), "wb")
-                budget_file_preview.save(temp_image, "PNG")
-                thumb_data = open(os.path.join("/tmp", filename), "rb")
-                self.budget_file_preview.save(filename, thumb_data, save=False)
+            try:
+                pages = convert_from_bytes(self.budget_file.file.read())
+            except Exception:
+                # The budget file may no longer be readable from storage (e.g. its blob was
+                # deleted). Don't let that crash the whole save; just skip (re)generating the
+                # preview for it.
+                logger.exception(f"Could not read budget_file (id={self.budget_file_id}) to generate its preview")
             else:
-                raise ValidationError({"budget_file": "Sorry cannot generate preview for empty pdf"})
+                if len(pages) > 0:
+                    budget_file_preview = pages[0]  # get first page
+                    filename = f'preview_{self.budget_file.file.name.split("/")[0]}.png'
+                    temp_image = open(os.path.join("/tmp", filename), "wb")
+                    budget_file_preview.save(temp_image, "PNG")
+                    thumb_data = open(os.path.join("/tmp", filename), "rb")
+                    self.budget_file_preview.save(filename, thumb_data, save=False)
+                else:
+                    raise ValidationError({"budget_file": "Sorry cannot generate preview for empty pdf"})
 
         self.__budget_file_id = self.budget_file_id
         super().save(*args, **kwargs)
@@ -1728,18 +1763,35 @@ class DrefFinalReport(models.Model):
         verbose_name = _("Dref Final Report")
         verbose_name_plural = _("Dref Final Reports")
 
+    @classmethod
+    def from_db(cls, db, field_names, values):
+        # Seed __financial_report_id with the value already persisted in the DB, so a later
+        # save() that doesn't actually change financial_report (e.g. one only updating an
+        # unrelated field, such as its status) isn't mistaken for a brand new financial_report
+        # and doesn't needlessly re-read/re-process it (see save() below).
+        instance = super().from_db(db, field_names, values)
+        instance.__financial_report_id = instance.financial_report_id
+        return instance
+
     def save(self, *args, **kwargs):
         if self.financial_report_id and self.financial_report_id != self.__financial_report_id:
-            pages = convert_from_bytes(self.financial_report.file.read())
-            if len(pages) > 0:
-                financial_report_preview = pages[0]  # get first page
-                filename = f'preview_{self.financial_report.file.name.split("/")[0]}.png'
-                temp_image = open(os.path.join("/tmp", filename), "wb")
-                financial_report_preview.save(temp_image, "PNG")
-                thumb_data = open(os.path.join("/tmp", filename), "rb")
-                self.financial_report_preview.save(filename, thumb_data, save=False)
+            try:
+                pages = convert_from_bytes(self.financial_report.file.read())
+            except Exception:
+                # The financial report may no longer be readable from storage (e.g. its blob
+                # was deleted). Don't let that crash the whole save; just skip (re)generating
+                # the preview for it.
+                logger.exception(f"Could not read financial_report (id={self.financial_report_id}) to generate its preview")
             else:
-                raise ValidationError({"financial_report": "Sorry cannot generate preview for empty pdf"})
+                if len(pages) > 0:
+                    financial_report_preview = pages[0]  # get first page
+                    filename = f'preview_{self.financial_report.file.name.split("/")[0]}.png'
+                    temp_image = open(os.path.join("/tmp", filename), "wb")
+                    financial_report_preview.save(temp_image, "PNG")
+                    thumb_data = open(os.path.join("/tmp", filename), "rb")
+                    self.financial_report_preview.save(filename, thumb_data, save=False)
+                else:
+                    raise ValidationError({"financial_report": "Sorry cannot generate preview for empty pdf"})
 
         self.__financial_report_id = self.financial_report_id
         super().save(*args, **kwargs)
