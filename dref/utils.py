@@ -27,6 +27,7 @@ def get_email_context(instance):
 
 def get_final_report_alert_email_context(dref: Dref) -> dict:
     return {
+        "id": dref.id,
         "mdr_code": dref.appeal_code,
         "operation_name": dref.title,
         "operation_end_date": get_final_report_operation_end_date(dref),
