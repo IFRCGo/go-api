@@ -79,7 +79,7 @@ def send_final_report_implementation_end_email(dref_id: int):
 
     to_emails, cc_emails = get_final_report_alert_recipients(instance)
     email_context = get_final_report_alert_email_context(instance)
-    email_subject = f"DREF Final Report required – {instance.appeal_code}"
+    email_subject = f"DREF Final Report Required – {instance.appeal_code}"
     email_body = render_to_string("email/dref/final_report_implementation_end.html", email_context)
     send_notification_dref(
         subject=email_subject,
@@ -101,7 +101,7 @@ def send_final_report_reminder_email(dref_id: int):
 
     to_emails, cc_emails = get_final_report_alert_recipients(instance)
     email_context = get_final_report_alert_email_context(instance)
-    email_subject = f"Reminder: DREF Final Report due in 1 month – {instance.appeal_code}"
+    email_subject = f"Reminder: DREF Final Report Due in 1 Month – {instance.appeal_code}"
     email_body = render_to_string("email/dref/final_report_reminder.html", email_context)
     send_notification_dref(
         subject=email_subject,
@@ -123,7 +123,7 @@ def send_final_report_overdue_email(dref_id: int):
 
     to_emails, cc_emails = get_final_report_alert_recipients(instance)
     email_context = get_final_report_alert_email_context(instance)
-    email_subject = f"Action Required: Overdue DREF Final Report – {instance.appeal_code}"
+    email_subject = f"DREF Final Report Overdue – {instance.appeal_code}"
     email_body = render_to_string("email/dref/final_report_overdue.html", email_context)
     send_notification_dref(
         subject=email_subject,
@@ -148,7 +148,7 @@ def send_final_report_recurring_overdue_email(dref_id: int):
 
     to_emails, cc_emails = get_final_report_alert_recipients(instance)
     email_context = get_final_report_alert_email_context(instance)
-    email_subject = f"Reminder: DREF Final Report remains overdue – {instance.appeal_code}"
+    email_subject = f"DREF Final Report Remains Overdue – {instance.appeal_code}"
     email_body = render_to_string("email/dref/final_report_recurring_overdue.html", email_context)
     send_notification_dref(
         subject=email_subject,

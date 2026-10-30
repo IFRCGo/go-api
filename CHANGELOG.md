@@ -7,12 +7,39 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Added
+ - EAP: add RCRC Climate Centre to registration and lift activity limit
+ - Use APP_subtype instead of APD_TYP_Id in ingest_appeals
+ - DREF: add automated DREF Final Report alert emails and cron job
+ - DREF: update DREF budget template to 2025.08.19 version
+ - Add DREF email variables
+ - Use IFRC GO instead of IFRC Go + a startdate fix
+ - Change guest user approval process
+ - Fix regions and accented countries in query results
+ - DREF: implement per-section summary
+ - Pin exact appeal-code/GLIDE matches above fuzzy ES matches
+ - Hide predefined_search_urls and their tests
+ - Docker: replace entrypoint with dev run script
+ - Add predefined general/country-specific search keys/urls
+ - EAP: use one permission check for both submit-for-review transitions
+ - Aggregate: allowlist filter_*/sum_* query params
+ - Add some ERP-side disaster types to dtype_map
+ - Fix ingest_appeals: apply the new upsteam API fields
+ - Give only open surge alerts as HayStackSearch result
+ - Use SurgeAlertStatus text instead of numbers
+ - Fix timezone issue in AppealAdmin
+ - Create AppealHistory savepoint when amount_funded changes
+ - Add appeals_cut_from_history count to Brief
+ - Derive numeric aid from APP_code and scope AppealHistory updates by appeal
+ - Restrict EAP visibility to the owning National Society
+ - Fix some more GlobalEnumView language issues in PER
+ - ingest_appeals: handle null sector/country from upstream API
+ - PER-dashboard: expand dashboard data contract, fix National Society fixture
+ - Bilaterals are no longer used in Appeals
+ - Docker: build on Debian Trixie
+ - Fix sync_molnix and ingest_appeals jobs
  - Remove nginx, wait-for-it and the unused `main/runserver.sh` from the image
- - Upgrade django-health-check to 4.x; a disk/memory threshold breach now fails
-   `/health-check/`
- - Squash all app migrations (745 files to 14) using `replaces`; the replaced
-   files are deleted in a follow-up release, which must not be deployed until
-   this one is applied everywhere
+ - Upgrade django-health-check to 4.x
+ - Squash all app migrations (745 files to 14) using `replaces`
  - Fix sentry N+1 issues
  - Use Don_Code for country identification in ingest_ns_directory job
  - Skip for empty email on notification
