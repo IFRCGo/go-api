@@ -1612,6 +1612,15 @@ class EmergencyViewset(
     serializer_class = DetailEmergencySerializer
     filterset_class = EventFilter
 
+    def get_object(self):
+        # Support lookups by either numeric id or slug, e.g. /api/v2/emergency/<id-or-slug>/
+        queryset = self.filter_queryset(self.get_queryset())
+        lookup_value = self.kwargs[self.lookup_url_kwarg or self.lookup_field]
+        filter_kwargs = {"id": lookup_value} if str(lookup_value).isdigit() else {"slug": lookup_value}
+        obj = get_object_or_404(queryset, **filter_kwargs)
+        self.check_object_permissions(self.request, obj)
+        return obj
+
     def get_queryset(self):
         today = timezone.now().date()
 

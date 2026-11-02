@@ -1150,6 +1150,19 @@ class EmergencyViewTestCase(APITestCase):
         self.assertEqual(response.data["stage"], EventStage.FIELD_REPORT, response.data)
         self.assertEqual(response.data["field_report"]["id"], self.field_report.id, response.data)
 
+    def test_retrive_emergency_detail_by_slug(self):
+        url = f"/api/v2/emergency/{self.event1.slug}/"
+        response = self.client.get(url)
+        self.assert_200(response)
+        self.assertEqual(response.data["id"], self.event1.id)
+        self.assertEqual(response.data["slug"], self.event1.slug)
+        self.assertEqual(response.data["name"], self.event1.name)
+
+    def test_retrive_emergency_detail_by_unknown_slug(self):
+        url = "/api/v2/emergency/unknown-slug/"
+        response = self.client.get(url)
+        self.assert_404(response)
+
 
 class EmergencyStageTestCase(APITestCase):
     """
