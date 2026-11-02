@@ -36,11 +36,7 @@ SITUATIONAL_OVERVIEW_MAX_PARAGRAPHS = 3
 SINGLE_PARAGRAPH_SECTIONS = {"operational_strategy", "people_centered_approach"}
 
 # Sections with no word target: length is left to the single-paragraph rule.
-NO_WORD_TARGET_SECTIONS = {"operational_strategy"}
-
-# People-centred approach keeps the source ratio but is capped, so the single
-# paragraph does not grow with the source.
-PEOPLE_CENTERED_MAX_WORDS = 100
+NO_WORD_TARGET_SECTIONS = {"operational_strategy", "people_centered_approach"}
 
 # Attempts per section before it is recorded as failed, and the pause between them.
 SECTION_MAX_ATTEMPTS = 2
@@ -108,8 +104,6 @@ def target_word_count(source_words: int, section: Optional[str] = None) -> Optio
         return None
     if section == "situational_overview":
         target = min(round(source_words * SITUATIONAL_OVERVIEW_SOURCE_RATIO), SITUATIONAL_OVERVIEW_MAX_WORDS)
-    elif section == "people_centered_approach":
-        target = min(round(source_words * TARGET_SOURCE_RATIO), PEOPLE_CENTERED_MAX_WORDS)
     else:
         target = round(source_words * TARGET_SOURCE_RATIO)
     return target or None
@@ -133,12 +127,10 @@ def build_section_prompt(section: str, data: dict, target_words: Optional[int]) 
         )
     if section == "situational_overview":
         requirements.append(
-            "Cover the key context, impacts, humanitarian needs and operational considerations, prioritising "
-            "what a reader needs to grasp the situation quickly."
-        )
-        requirements.append(
-            f"Write at most {SITUATIONAL_OVERVIEW_MAX_PARAGRAPHS} short paragraphs, each focused on one theme, "
-            "so the section is easy to scan."
+            "Use only as many paragraphs as the data needs, up to "
+            f"{SITUATIONAL_OVERVIEW_MAX_PARAGRAPHS}: start a new paragraph only for a theme the data describes in detail, "
+            "and use a single paragraph when the data is brief or covers one topic. Never split a few sentences "
+            "into several paragraphs or add sentences to fill a theme."
         )
     requirements.append("Never write more than the source data contains; if the data is brief, keep the section brief.")
     if target_words:
