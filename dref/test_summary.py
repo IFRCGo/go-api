@@ -454,9 +454,32 @@ class DrefSummarySectionFailureTest(TestCase):
         self.assertEqual(target_word_count(1364), 546)
         self.assertEqual(target_word_count(10000), 4000)
         self.assertIsNone(target_word_count(1))
+        self.assertEqual(target_word_count(1364, "lessons_learned"), 546)
 
-        self.assertIn("approximately 546 words", build_section_prompt("situational_overview", {"a": "b"}, 546))
-        self.assertNotIn("approximately", build_section_prompt("situational_overview", {"a": "b"}, None))
+        self.assertIn("no more than about 546 words", build_section_prompt("challenges_identified", {"a": "b"}, 546))
+        self.assertNotIn("no more than about", build_section_prompt("challenges_identified", {"a": "b"}, None))
+
+    def test_situational_overview_target_is_shorter_and_capped(self):
+        self.assertEqual(target_word_count(400, "situational_overview"), 100)
+        self.assertEqual(target_word_count(1364, "situational_overview"), 250)
+        self.assertIsNone(target_word_count(1, "situational_overview"))
+
+        prompt = build_section_prompt("situational_overview", {"a": "b"}, 250)
+        self.assertIn("context, impacts, humanitarian needs and operational considerations", prompt)
+        self.assertIn("at most 3 short paragraphs", prompt)
+        self.assertIn("no more than about 250 words", prompt)
+
+    def test_strategy_and_people_sections_are_a_single_paragraph(self):
+        for section in ("operational_strategy", "people_centered_approach"):
+            prompt = build_section_prompt(section, {"a": "b"}, None)
+            self.assertIn("Write exactly one concise, well-structured paragraph.", prompt)
+            self.assertNotIn("Separate paragraphs", prompt)
+
+    def test_strategy_has_no_word_target_and_people_section_is_capped(self):
+        self.assertIsNone(target_word_count(1364, "operational_strategy"))
+        self.assertEqual(target_word_count(200, "people_centered_approach"), 80)
+        self.assertEqual(target_word_count(1364, "people_centered_approach"), 100)
+        self.assertIsNone(target_word_count(1, "people_centered_approach"))
 
     def test_prompt_caps_length_at_the_source(self):
         # Applies at every size, with or without a word target: no source-size threshold.
