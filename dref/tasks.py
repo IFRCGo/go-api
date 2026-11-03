@@ -101,7 +101,7 @@ def send_final_report_reminder_email(dref_id: int):
 
     to_emails, cc_emails = get_final_report_alert_recipients(instance)
     email_context = get_final_report_alert_email_context(instance)
-    email_subject = f"Reminder: DREF Final Report Due in 1 Month – {instance.appeal_code}"
+    email_subject = f"DREF Final Report Due in 1 Month – {instance.appeal_code}"
     email_body = render_to_string("email/dref/final_report_reminder.html", email_context)
     send_notification_dref(
         subject=email_subject,
