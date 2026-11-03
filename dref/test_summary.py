@@ -459,8 +459,7 @@ class DrefSummarySectionFailureTest(TestCase):
         self.assertIn("no more than about 546 words", build_section_prompt("challenges_identified", {"a": "b"}, 546))
         self.assertNotIn("no more than about", build_section_prompt("challenges_identified", {"a": "b"}, None))
 
-    def test_situational_overview_target_is_shorter_and_capped(self):
-        self.assertEqual(target_word_count(400, "situational_overview"), 100)
+    def test_situational_overview_target_is_capped(self):
         self.assertEqual(target_word_count(1364, "situational_overview"), 250)
         self.assertIsNone(target_word_count(1, "situational_overview"))
 
@@ -470,10 +469,11 @@ class DrefSummarySectionFailureTest(TestCase):
 
     def test_strategy_and_people_sections_are_a_single_paragraph(self):
         for section in ("operational_strategy", "people_centered_approach"):
-            self.assertIsNone(target_word_count(1364, section))
-            prompt = build_section_prompt(section, {"a": "b"}, None)
+            self.assertEqual(target_word_count(1364, section), 150)
+            prompt = build_section_prompt(section, {"a": "b"}, 150)
             self.assertIn("Write exactly one concise, well-structured paragraph.", prompt)
             self.assertNotIn("Separate paragraphs", prompt)
+            self.assertIn("no more than about 150 words", prompt)
 
     def test_prompt_caps_length_at_the_source(self):
         # Applies at every size, with or without a word target: no source-size threshold.

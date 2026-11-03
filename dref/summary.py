@@ -26,17 +26,13 @@ MAX_INPUT_TOKENS = 10000
 
 TARGET_SOURCE_RATIO = 0.4
 
-# Situational overview: shorter than the source ratio above and capped, so the
-# summary stays comprehensive but quick to scan on the Emergency Page.
-SITUATIONAL_OVERVIEW_SOURCE_RATIO = 0.25
+# Situational overview: capped, so long sources stay quick to scan on the Emergency Page.
 SITUATIONAL_OVERVIEW_MAX_WORDS = 250
 SITUATIONAL_OVERVIEW_MAX_PARAGRAPHS = 3
 
-# Sections written as a single paragraph.
+# Sections written as a single paragraph, capped so the paragraph stays readable.
 SINGLE_PARAGRAPH_SECTIONS = {"operational_strategy", "people_centered_approach"}
-
-# Sections with no word target: length is left to the single-paragraph rule.
-NO_WORD_TARGET_SECTIONS = {"operational_strategy", "people_centered_approach"}
+SINGLE_PARAGRAPH_MAX_WORDS = 150
 
 # Attempts per section before it is recorded as failed, and the pause between them.
 SECTION_MAX_ATTEMPTS = 2
@@ -100,12 +96,11 @@ def _word_count(value) -> int:
 
 def target_word_count(source_words: int, section: Optional[str] = None) -> Optional[int]:
     """Word target for ``section`` with ``source_words`` of source, or ``None`` to leave length to the model."""
-    if section in NO_WORD_TARGET_SECTIONS:
-        return None
+    target = round(source_words * TARGET_SOURCE_RATIO)
     if section == "situational_overview":
-        target = min(round(source_words * SITUATIONAL_OVERVIEW_SOURCE_RATIO), SITUATIONAL_OVERVIEW_MAX_WORDS)
-    else:
-        target = round(source_words * TARGET_SOURCE_RATIO)
+        target = min(target, SITUATIONAL_OVERVIEW_MAX_WORDS)
+    elif section in SINGLE_PARAGRAPH_SECTIONS:
+        target = min(target, SINGLE_PARAGRAPH_MAX_WORDS)
     return target or None
 
 
