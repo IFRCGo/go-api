@@ -1605,7 +1605,6 @@ class CountrySupportingPartnerViewSet(viewsets.ModelViewSet):
 class EmergencyViewset(
     mixins.RetrieveModelMixin,
     viewsets.GenericViewSet,
-    ReadOnlyVisibilityViewsetMixin,
 ):
     queryset = Event.objects.all()
     lookup_field = "id"
@@ -1620,6 +1619,21 @@ class EmergencyViewset(
         obj = get_object_or_404(queryset, **filter_kwargs)
         self.check_object_permissions(self.request, obj)
         return obj
+
+    def get_visibility_queryset(self, queryset):
+        user = self.request.user
+        if not user.is_authenticated or user.profile.limit_access_to_guest:
+            return queryset.filter(visibility=VisibilityChoices.PUBLIC)
+        if is_user_ifrc(user):
+            return queryset
+        user_countries = (
+            UserCountry.objects.filter(user=user.id)
+            .values_list("country", flat=True)
+            .union(Profile.objects.filter(user=user.id).values_list("country", flat=True))
+        )
+        return queryset.exclude(visibility=VisibilityChoices.IFRC).exclude(
+            Q(visibility=VisibilityChoices.IFRC_NS) & ~Q(countries__id__in=user_countries)
+        )
 
     def get_queryset(self):
         today = timezone.now().date()
@@ -1704,8 +1718,7 @@ class EmergencyViewset(
         )
 
         return (
-            super()
-            .get_queryset()
+            self.get_visibility_queryset(super().get_queryset())
             .annotate(
                 # Aggregated Values
                 response_activity_count=Coalesce(

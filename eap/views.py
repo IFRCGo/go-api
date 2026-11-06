@@ -70,8 +70,9 @@ class ActiveEAPViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
 
     def get_queryset(self) -> QuerySet[EAPRegistration]:
         return (
-            filter_eap_registration_queryset_by_user_access(self.request.user, super().get_queryset())
-            .filter(status=EAPStatus.PROJECT_AGREEMENT_SIGNED)
+            super()
+            .get_queryset()
+            .filter(status__in=[EAPStatus.APPROVED, EAPStatus.PROJECT_AGREEMENT_SIGNED])
             .select_related("disaster_type", "country")
             .annotate(
                 requirement_cost=Case(

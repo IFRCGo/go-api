@@ -284,7 +284,7 @@ class EAPRegistrationTestCase(APITestCase):
             partners=[self.partner2.id],
             created_by=self.country_admin,
             modified_by=self.country_admin,
-            status=EAPStatus.PROJECT_AGREEMENT_SIGNED,
+            status=EAPStatus.APPROVED,
             eap_type=EAPType.SIMPLIFIED_EAP,
         )
         EAPRegistrationFactory.create(
@@ -3223,9 +3223,10 @@ class EAPVisibilityTestCase(APITestCase):
         self.authenticate(self.ns_2_admin)
         self.assertEqual(self.client.get(f"/api/v2/eap-registration/{self.eap_1.id}/").status_code, 404)
 
-        # active-eap is scoped the same way
+        # active-eap is not scoped: approved/active EAPs are visible to every authenticated user
         EAPRegistration.objects.filter(id__in=both).update(status=EAPStatus.PROJECT_AGREEMENT_SIGNED)
-        self.assertEqual(self._list_ids(self.ns_1_admin, "/api/v2/active-eap/"), {self.eap_1.id})
+        self.assertEqual(self._list_ids(self.ns_1_admin, "/api/v2/active-eap/"), both)
+        self.assertEqual(self._list_ids(self.outsider, "/api/v2/active-eap/"), both)
 
     def test_application_visibility_follows_registration(self):
         simplified_eap = SimplifiedEAPFactory.create(
