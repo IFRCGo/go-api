@@ -26,6 +26,14 @@ MAX_INPUT_TOKENS = 10000
 
 TARGET_SOURCE_RATIO = 0.4
 
+# Situational overview: capped, so long sources stay quick to scan on the Emergency Page.
+SITUATIONAL_OVERVIEW_MAX_WORDS = 250
+SITUATIONAL_OVERVIEW_MAX_PARAGRAPHS = 3
+
+# Sections written as a single paragraph, capped so the paragraph stays readable.
+SINGLE_PARAGRAPH_SECTIONS = {"operational_strategy", "people_centered_approach"}
+SINGLE_PARAGRAPH_MAX_WORDS = 150
+
 # Attempts per section before it is recorded as failed, and the pause between them.
 SECTION_MAX_ATTEMPTS = 2
 RETRY_BACKOFF_SECONDS = 3
@@ -86,9 +94,13 @@ def _word_count(value) -> int:
     return len(str(value).split())
 
 
-def target_word_count(source_words: int) -> Optional[int]:
-    """Word target for a section with ``source_words`` of source, or ``None`` to leave length to the model."""
+def target_word_count(source_words: int, section: Optional[str] = None) -> Optional[int]:
+    """Word target for ``section`` with ``source_words`` of source, or ``None`` to leave length to the model."""
     target = round(source_words * TARGET_SOURCE_RATIO)
+    if section == "situational_overview":
+        target = min(target, SITUATIONAL_OVERVIEW_MAX_WORDS)
+    elif section in SINGLE_PARAGRAPH_SECTIONS:
+        target = min(target, SINGLE_PARAGRAPH_MAX_WORDS)
     return target or None
 
 
@@ -97,12 +109,27 @@ def build_section_prompt(section: str, data: dict, target_words: Optional[int]) 
         "Summarise only what the data contains; do not add topics, interpretation or details it does not mention.",
         "Keep the most important figures, locations and timeframes exactly as written and never fabricate them; "
         "leave out secondary details when needed to stay within the length limit.",
-        "Write plain text in professional humanitarian language: no markdown, headings or bullet lists. "
-        "Separate paragraphs with a blank line.",
-        "Never write more than the source data contains; if the data is brief, keep the section brief.",
     ]
+    if section in SINGLE_PARAGRAPH_SECTIONS:
+        requirements.append(
+            "Write plain text in professional humanitarian language: no markdown, headings or bullet lists. "
+            "Write exactly one concise, well-structured paragraph."
+        )
+    else:
+        requirements.append(
+            "Write plain text in professional humanitarian language: no markdown, headings or bullet lists. "
+            "Separate paragraphs with a blank line."
+        )
+    if section == "situational_overview":
+        requirements.append(
+            "Use only as many paragraphs as the data needs, up to "
+            f"{SITUATIONAL_OVERVIEW_MAX_PARAGRAPHS}: start a new paragraph only for a theme the data describes in detail, "
+            "and use a single paragraph when the data is brief or covers one topic. Never split a few sentences "
+            "into several paragraphs or add sentences to fill a theme."
+        )
+    requirements.append("Never write more than the source data contains; if the data is brief, keep the section brief.")
     if target_words:
-        requirements.append(f"Write approximately {target_words} words.")
+        requirements.append(f"Write no more than about {target_words} words.")
     requirements.append("Return only the section text, with no title, preamble or closing remarks.")
     return (
         f'Data for "{section}" — {SECTION_DESCRIPTIONS[section]}:\n'
@@ -309,7 +336,7 @@ class DrefSummaryGenerator:
 
     def _generate_section(self, source_doc: DrefSummarySource, section: str, data: dict) -> str:
         """Generate one section, retrying up to ``SECTION_MAX_ATTEMPTS``; raises ``SectionGenerationError`` if none succeeds."""
-        prompt = build_section_prompt(section, data, target_word_count(_word_count(data)))
+        prompt = build_section_prompt(section, data, target_word_count(_word_count(data), section))
         if count_tokens(SYSTEM_MESSAGE + prompt) > MAX_INPUT_TOKENS:
             logger.warning(f"({type(source_doc).__name__}) ({source_doc.id}) {section} prompt too long; truncating source text.")
             prompt = prompt[: MAX_INPUT_TOKENS * 4 - len(SYSTEM_MESSAGE)]
