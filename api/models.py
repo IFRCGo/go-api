@@ -2807,6 +2807,10 @@ class Profile(models.Model):
         default=False,
     )
 
+    # TYPING
+    id: int
+    user_id: int
+
     class Meta:
         verbose_name = _("user profile")
         verbose_name_plural = _("user profiles")

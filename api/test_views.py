@@ -1163,6 +1163,47 @@ class EmergencyViewTestCase(APITestCase):
         response = self.client.get(url)
         self.assert_404(response)
 
+    def test_retrive_emergency_detail_visibility(self):
+        country = CountryFactory.create(name="ns-country", iso3="NSC", iso="NS")
+        ifrc_event = EventFactory.create(dtype=self.disaster_type, visibility=VisibilityChoices.IFRC)
+        ifrc_ns_event = EventFactory.create(dtype=self.disaster_type, visibility=VisibilityChoices.IFRC_NS, countries=[country])
+        membership_event = EventFactory.create(dtype=self.disaster_type, visibility=VisibilityChoices.MEMBERSHIP)
+
+        ifrc_url = f"/api/v2/emergency/{ifrc_event.id}/"
+        ifrc_ns_url = f"/api/v2/emergency/{ifrc_ns_event.id}/"
+        membership_url = f"/api/v2/emergency/{membership_event.id}/"
+
+        # Anonymous user: only public
+        self.assert_404(self.client.get(ifrc_url))
+        self.assert_404(self.client.get(ifrc_ns_url))
+        self.assert_404(self.client.get(membership_url))
+
+        # Guest user: only public
+        guest_user = User.objects.create_user(username="guest", password="x")
+        guest_user.profile.limit_access_to_guest = True
+        guest_user.profile.save()
+        self.authenticate(guest_user)
+        self.assert_404(self.client.get(membership_url))
+
+        # Non-IFRC user without country: no IFRC, no IFRC_NS
+        self.authenticate(self.user)
+        self.assert_404(self.client.get(ifrc_url))
+        self.assert_404(self.client.get(ifrc_ns_url))
+        self.assert_200(self.client.get(membership_url))
+
+        # Non-IFRC user with event country: IFRC_NS allowed
+        ns_user = User.objects.create_user(username="ns_user", password="x")
+        ns_user.profile.country = country
+        ns_user.profile.save()
+        self.authenticate(ns_user)
+        self.assert_404(self.client.get(ifrc_url))
+        self.assert_200(self.client.get(ifrc_ns_url))
+
+        # IFRC user: everything
+        self.authenticate(self.ifrc_user)
+        self.assert_200(self.client.get(ifrc_url))
+        self.assert_200(self.client.get(ifrc_ns_url))
+
 
 class EmergencyStageTestCase(APITestCase):
     """
