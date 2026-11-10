@@ -11,7 +11,7 @@ from .utils import catch_error, get_country_by_iso3
 
 logger = logging.getLogger(__name__)
 
-DISASTER_API = f"https://api.reliefweb.int/v1/disasters?appname={settings.RELIEF_WEB_APP_NAME}"
+DISASTER_API = f"https://api.reliefweb.int/v2/disasters?appname={settings.RELIEF_WEB_APP_NAME}"
 RELIEFWEB_DATETIME_FORMAT = "%Y-%m-%d"
 
 
