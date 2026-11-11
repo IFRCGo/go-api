@@ -281,7 +281,7 @@ class Command(BaseCommand):
         # instead of detail1["APD_TYP_Id"]:
         atype = atypes.get(r.get("APP_subtype"), AppealType.DREF)
 
-        amount_funded = triggering_amount = 0
+        amount_funded = amount_potential_funding = triggering_amount = 0
         for detl in details:
             if self.parse_date(detl["APD_endDate"]) < end_date:
                 continue
@@ -290,10 +290,12 @@ class Command(BaseCommand):
                 triggering_ts = self.parse_unix_timestamp(triggering_ts)
             triggering_amount += triggering_ts if triggering_ts else 0
             if atype == AppealType.DREF:
-                # appeals are always fully-funded
                 amount_funded += detl["APD_amountCHF"] if detl["APD_amountCHF"] else 0
+                # DREF appeals are always fully-funded, we skip potential funding for them
             else:
                 amount_funded += detl["ContributionAmount"] if detl["ContributionAmount"] else 0
+                # PotentialFunding may be absent on some upstream records, so fetch it defensively.
+                amount_potential_funding += detl.get("PotentialFunding") or 0
 
         # for new, open appeals, if we have a country, try to guess what emergency it belongs to.
         # only consider emergencies within the past 90 days
@@ -328,6 +330,7 @@ class Command(BaseCommand):
             "num_beneficiaries": detail1["APD_noBeneficiaries"],
             "amount_requested": detail1["APD_amountCHF"],
             "amount_funded": amount_funded,
+            "amount_potential_funding": amount_potential_funding,
             "real_data_update": modify_time,
             "triggering_amount": float(int(triggering_amount) % 10**10),  # to avoid overflow
         }

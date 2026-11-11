@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Added
+ - Add potential funding (`PotentialFunding`) ingestion and expose it on Appeal/AppealHistory
  - EAP: add RCRC Climate Centre to registration and lift activity limit
  - Use APP_subtype instead of APD_TYP_Id in ingest_appeals
  - DREF: add automated DREF Final Report alert emails and cron job

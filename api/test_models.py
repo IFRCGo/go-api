@@ -77,7 +77,15 @@ class AppealTest(APITestCase):
         event = models.Event.objects.create(name="associated event", summary="foo")
         country = models.Country.objects.create(name="country")
         models.Appeal.objects.create(
-            aid="test1", name="appeal", atype=1, code="abc", needs_confirmation=True, event=event, country=country
+            aid="test1",
+            name="appeal",
+            atype=1,
+            code="abc",
+            needs_confirmation=True,
+            event=event,
+            country=country,
+            amount_funded=1000,
+            amount_potential_funding=2000,
         )
 
     def test_unconfirmed_event(self):
@@ -85,6 +93,8 @@ class AppealTest(APITestCase):
         response = dict(dict(response.data)["results"][0])
         self.assertIsNone(response["event"])
         self.assertIsNotNone(response["country"])
+        self.assertEqual(response["amount_funded"], 1000)
+        self.assertEqual(response["amount_potential_funding"], 2000)
 
     def test_history_not_duplicated_when_same_aid_is_shared(self):
         country = models.Country.objects.create(name="history-country")
@@ -101,6 +111,20 @@ class AppealTest(APITestCase):
 
         final_history_count = models.AppealHistory.objects.filter(appeal=appeal1).count()
         self.assertEqual(final_history_count, initial_history_count)
+
+        # amount_funded/amount_potential_funding are excluded from the watched fields (like amount_funded
+        # already was), so changing them alone should not create a new history row either. The existing
+        # (now stale) history row is intentionally left untouched in this case.
+        appeal1.amount_funded = 500
+        appeal1.amount_potential_funding = 750
+        appeal1.save(update_fields=["amount_funded", "amount_potential_funding"])
+
+        after_funding_update_count = models.AppealHistory.objects.filter(appeal=appeal1).count()
+        self.assertEqual(after_funding_update_count, initial_history_count)
+
+        latest_history = models.AppealHistory.objects.filter(appeal=appeal1).order_by("id").last()
+        self.assertEqual(latest_history.amount_funded, 0)
+        self.assertEqual(latest_history.amount_potential_funding, 0)
 
 
 class FieldReportTest(TestCase):

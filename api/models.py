@@ -1977,6 +1977,7 @@ class Appeal(models.Model):
     num_beneficiaries = models.IntegerField(verbose_name=_("number of beneficiaries"), default=0)
     amount_requested = models.FloatField(verbose_name=_("amount requested"), default=0.00)
     amount_funded = models.FloatField(verbose_name=_("amount funded"), default=0.00)
+    amount_potential_funding = models.FloatField(verbose_name=_("amount potential funding"), default=0.00)
 
     start_date = models.DateTimeField(verbose_name=_("start date"), null=True)
     end_date = models.DateTimeField(verbose_name=_("end date"), null=True)
@@ -2089,6 +2090,7 @@ class AppealHistory(models.Model):
     num_beneficiaries = models.IntegerField(verbose_name=_("number of beneficiaries"), default=0)
     amount_requested = models.FloatField(verbose_name=_("amount requested"), default=0.00)
     amount_funded = models.FloatField(verbose_name=_("amount funded"), default=0.00)
+    amount_potential_funding = models.FloatField(verbose_name=_("amount potential funding"), default=0.00)
     valid_from = models.DateTimeField(verbose_name=_("valid_from"), null=True)
     valid_to = models.DateTimeField(verbose_name=_("valid_to"), null=True)
     aid = models.CharField(verbose_name=_("appeal ID"), max_length=20)

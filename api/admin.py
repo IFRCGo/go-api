@@ -840,22 +840,28 @@ class AppealAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     confirm_events.short_description = "Confirm emergencies as correct"
 
     def save_model(self, request, obj, form, change):
-        previous_amount_funded = None
+        previous_funding = None
         if change:
-            previous_amount_funded = models.Appeal.objects.filter(pk=obj.pk).values_list("amount_funded", flat=True).first()
+            previous_funding = (
+                models.Appeal.objects.filter(pk=obj.pk).values_list("amount_funded", "amount_potential_funding").first()
+            )
 
         if obj.country:
             obj.region = obj.country.region
 
         super().save_model(request, obj, form, change)
 
-        if not change or previous_amount_funded == obj.amount_funded:
+        if not change or previous_funding == (obj.amount_funded, obj.amount_potential_funding):
             return
 
         latest_history = models.AppealHistory.objects.filter(appeal=obj).order_by("id").last()
 
         # Avoid duplicates if another save flow already created this exact savepoint.
-        if latest_history and latest_history.amount_funded == obj.amount_funded:
+        if (
+            latest_history
+            and latest_history.amount_funded == obj.amount_funded
+            and latest_history.amount_potential_funding == obj.amount_potential_funding
+        ):
             return
 
         now = timezone.now()
@@ -868,6 +874,7 @@ class AppealAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
             num_beneficiaries=obj.num_beneficiaries,
             amount_requested=obj.amount_requested,
             amount_funded=obj.amount_funded,
+            amount_potential_funding=obj.amount_potential_funding,
             valid_from=now,
             valid_to=timezone.make_aware(datetime(2200, 1, 1)),
             start_date=obj.start_date,
