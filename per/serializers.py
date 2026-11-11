@@ -1361,3 +1361,91 @@ class OpsLearningStatSerializer(serializers.Serializer):
     learning_by_country = LearningByCountrySerializer(many=True)
     learning_by_sector = LearningBySectorSerializer(many=True)
     sources_overtime = LearningSourcesOvertimeSerializer(many=True)
+
+
+# NOTE: The PER dashboard serializers below only describe the responses of
+# PerMapDataView and PerDashboardDataView in the OpenAPI schema. The data is
+# built as plain dicts in per/dashboard_data.py.
+class PerDashboardPrioritizedComponentSerializer(serializers.Serializer):
+    componentId = serializers.IntegerField()
+    componentTitle = serializers.CharField(allow_null=True)
+    areaTitle = serializers.CharField(allow_null=True)
+    areaNum = serializers.IntegerField(allow_null=True)
+    description = serializers.CharField(allow_null=True)
+
+
+class PerMapDataProcessSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    assessment_number = serializers.IntegerField()
+    date_of_assessment = serializers.DateField(allow_null=True)
+    created_at = serializers.DateTimeField()
+    updated_at = serializers.DateTimeField()
+    country_id = serializers.IntegerField(allow_null=True)
+    country_name = serializers.CharField(allow_null=True)
+    national_society_name = serializers.CharField(allow_null=True)
+    country_iso3 = serializers.CharField(allow_null=True)
+    region_id = serializers.IntegerField(allow_null=True)
+    latitude = serializers.FloatField(allow_null=True)
+    longitude = serializers.FloatField(allow_null=True)
+    phase = serializers.IntegerField(allow_null=True)
+    type_of_assessment = serializers.IntegerField(allow_null=True)
+    assessment_method = serializers.CharField(allow_null=True)
+    prioritized_components = PerDashboardPrioritizedComponentSerializer(many=True)
+    epi_considerations = serializers.BooleanField(allow_null=True)
+    climate_environmental_considerations = serializers.BooleanField(allow_null=True)
+    urban_considerations = serializers.BooleanField(allow_null=True)
+    migration_considerations = serializers.BooleanField(allow_null=True)
+
+
+class PerMapDataSerializer(serializers.Serializer):
+    processes = PerMapDataProcessSerializer(many=True)
+
+
+class PerDashboardComponentAssessmentSerializer(serializers.Serializer):
+    assessment_id = serializers.IntegerField()
+    process_id = serializers.IntegerField(allow_null=True)
+    assessment_number = serializers.IntegerField(allow_null=True)
+    country_id = serializers.IntegerField(allow_null=True)
+    country_name = serializers.CharField(allow_null=True)
+    country_iso3 = serializers.CharField(allow_null=True)
+    region_id = serializers.IntegerField(allow_null=True)
+    date_of_assessment = serializers.DateField(allow_null=True)
+    type_of_assessment = serializers.IntegerField(allow_null=True)
+    assessment_method = serializers.CharField(allow_null=True)
+    updated_at = serializers.DateTimeField(allow_null=True)
+    rating_value = serializers.IntegerField(allow_null=True)
+    rating_title = serializers.CharField(allow_null=True)
+
+
+class PerDashboardComponentSerializer(serializers.Serializer):
+    component_id = serializers.IntegerField()
+    component_num = serializers.IntegerField()
+    component_letter = serializers.CharField(allow_null=True)
+    is_parent = serializers.BooleanField()
+    component_name = serializers.CharField(allow_null=True)
+    area_id = serializers.IntegerField(allow_null=True)
+    area_num = serializers.IntegerField(allow_null=True)
+    area_name = serializers.CharField(allow_null=True)
+    assessments = PerDashboardComponentAssessmentSerializer(many=True)
+
+
+class PerDashboardCountryAssessmentSerializer(serializers.Serializer):
+    assessment_id = serializers.IntegerField(allow_null=True)
+    process_id = serializers.IntegerField()
+    assessment_number = serializers.IntegerField()
+    country_id = serializers.IntegerField(allow_null=True)
+    country_name = serializers.CharField(allow_null=True)
+    country_iso3 = serializers.CharField(allow_null=True)
+    region_id = serializers.IntegerField(allow_null=True)
+    date_of_assessment = serializers.DateField(allow_null=True)
+    type_of_assessment = serializers.IntegerField(allow_null=True)
+    assessment_method = serializers.CharField(allow_null=True)
+    updated_at = serializers.DateTimeField()
+    date = serializers.DateField(allow_null=True)
+    phase = serializers.IntegerField(allow_null=True)
+
+
+class PerDashboardDataSerializer(serializers.Serializer):
+    assessments = PerDashboardComponentSerializer(many=True)
+    # NOTE: keyed by country name
+    countryAssessments = serializers.DictField(child=PerDashboardCountryAssessmentSerializer(many=True))

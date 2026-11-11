@@ -456,13 +456,24 @@ class PerDashboardDataTestCase(APITestCase):
     def create_country(self, name: str, iso: str, iso3: str):
         return CountryFactory.create(name=name, iso=iso, iso3=iso3, region=self.region)
 
-    def create_component_assessment(self, overview, *, component_id=None, duplicate=False, priority_value=True):
+    def create_component_assessment(
+        self,
+        overview,
+        *,
+        component_id=None,
+        duplicate=False,
+        priority_value=True,
+        **component_fields,
+    ):
         area = FormAreaFactory.create(title="Analysis and planning", area_num=2)
         component = FormComponentFactory.create(
-            area=area,
-            component_num=3,
-            title="Component three",
-            **({"id": component_id} if component_id is not None else {}),
+            **{
+                "area": area,
+                "component_num": 3,
+                "title": "Component three",
+                **({"id": component_id} if component_id is not None else {}),
+                **component_fields,
+            }
         )
         rating = PerComponentRating.objects.create(title="High", value=4)
         component_response = FormComponentResponse.objects.create(
@@ -496,7 +507,7 @@ class PerDashboardDataTestCase(APITestCase):
         self.assertFalse(contains_affirmative("no"))
         self.assertFalse(contains_affirmative(None))
 
-    def test_map_data_returns_complete_history_and_deterministic_latest_processes(self):
+    def test_map_data_returns_every_process(self):
         country_one = self.create_country("Country One", "C1", "C01")
         country_one.society_name_en = "Country One Red Cross"
         country_one.save(update_fields=["society_name_en"])
@@ -522,34 +533,42 @@ class PerDashboardDataTestCase(APITestCase):
         response = self.client.get("/api/v2/per-map-data")
 
         self.assert_200(response)
+        processes_by_id = {item["id"]: item for item in response.data["processes"]}
         self.assertEqual(
-            {item["id"] for item in response.data["processes"]},
+            set(processes_by_id),
             {
                 older_dated.id,
                 latest_dated.id,
                 latest_number.id,
             },
         )
-        self.assertEqual(len(response.data["results"]), 2)
-        latest_by_country = {item["country_id"]: item for item in response.data["results"]}
-        self.assertEqual(latest_by_country[country_one.id]["id"], latest_dated.id)
-        self.assertEqual(latest_by_country[country_two.id]["id"], latest_number.id)
-        self.assertEqual(latest_by_country[country_one.id]["national_society_name"], "Country One Red Cross")
-        self.assertEqual(latest_by_country[country_two.id]["national_society_name"], "")
+        self.assertEqual(processes_by_id[latest_dated.id]["national_society_name"], "Country One Red Cross")
+        self.assertEqual(processes_by_id[latest_number.id]["national_society_name"], "")
 
-    def test_map_data_results_are_ordered_by_country(self):
-        first_country = self.create_country("First Country", "F1", "F01")
-        second_country = self.create_country("Second Country", "S1", "S01")
-        OverviewFactory.create(country=second_country)
-        OverviewFactory.create(country=first_country)
+    def test_map_data_leaves_out_unused_and_translated_fields(self):
+        country = self.create_country("Trimmed Country", "T1", "T01")
+        overview = OverviewFactory.create(country=country)
+        self.create_component_assessment(overview)
 
         response = self.client.get("/api/v2/per-map-data")
 
         self.assert_200(response)
-        self.assertEqual(
-            [item["country_id"] for item in response.data["results"]],
-            [first_country.id, second_country.id],
-        )
+        self.assertEqual(list(response.data), ["processes"])
+        process = response.data["processes"][0]
+        for key in (
+            "components",
+            "epi_considerations_from_assessment",
+            "climate_environmental_considerations_from_assessment",
+            "urban_considerations_from_assessment",
+            "migration_considerations_from_assessment",
+            "assessment_date",
+            "lat",
+            "lon",
+            "region_name",
+            "phase_display",
+            "type_of_assessment_name",
+        ):
+            self.assertNotIn(key, process)
 
     def test_map_data_preserves_authoritative_considerations_and_priorities(self):
         country = self.create_country("Country With Considerations", "C3", "C03")
@@ -560,18 +579,19 @@ class PerDashboardDataTestCase(APITestCase):
             assess_urban_aspect_of_country=None,
             assess_migration_aspect_of_country=True,
         )
-        self.create_component_assessment(overview)
+        _, component = self.create_component_assessment(overview)
 
         response = self.client.get("/api/v2/per-map-data")
 
         self.assert_200(response)
-        process = response.data["results"][0]
+        process = response.data["processes"][0]
         self.assertIs(process["epi_considerations"], True)
         self.assertIs(process["climate_environmental_considerations"], False)
         self.assertIsNone(process["urban_considerations"])
         self.assertIs(process["migration_considerations"], True)
-        self.assertEqual(process["migration_considerations_from_assessment"], False)
-        self.assertEqual(process["prioritized_components"][0]["componentId"], process["components"][0]["component_id"])
+        prioritized_component = process["prioritized_components"][0]
+        self.assertEqual(prioritized_component["componentId"], component.id)
+        self.assertEqual(prioritized_component["areaNum"], 2)
 
     def test_map_data_keeps_legacy_null_priority_components(self):
         country = self.create_country("Country With Legacy Priorities", "C6", "C06")
@@ -581,11 +601,21 @@ class PerDashboardDataTestCase(APITestCase):
         response = self.client.get("/api/v2/per-map-data")
 
         self.assert_200(response)
-        process = response.data["results"][0]
+        process = response.data["processes"][0]
         self.assertEqual(
             [item["componentId"] for item in process["prioritized_components"]],
             [component.id],
         )
+
+    def test_map_data_leaves_out_the_parent_component(self):
+        country = self.create_country("Country With Parent Priority", "C7", "C07")
+        overview = OverviewFactory.create(country=country)
+        self.create_component_assessment(overview, component_num=14, is_parent=True)
+
+        response = self.client.get("/api/v2/per-map-data")
+
+        self.assert_200(response)
+        self.assertEqual(response.data["processes"][0]["prioritized_components"], [])
 
     def test_dashboard_data_enriches_component_assessments_and_retains_empty_country_assessments(self):
         country_with_components = self.create_country("Country With Components", "C4", "C04")
@@ -601,11 +631,15 @@ class PerDashboardDataTestCase(APITestCase):
 
         self.assert_200(response)
         component_item = next(item for item in response.data["assessments"] if item["component_id"] == component.id)
+        self.assertEqual(component_item["area_num"], 2)
+        self.assertIsNone(component_item["component_letter"])
+        self.assertIs(component_item["is_parent"], False)
         component_assessment = next(item for item in component_item["assessments"] if item["assessment_id"] == assessment.id)
         self.assertEqual(component_assessment["country_id"], country_with_components.id)
         self.assertEqual(component_assessment["country_name"], country_with_components.name)
         self.assertEqual(component_assessment["region_id"], self.region.id)
-        self.assertEqual(component_assessment["region_name"], "Africa")
+        self.assertNotIn("region_name", component_assessment)
+        self.assertNotIn("type_of_assessment_name", component_assessment)
         self.assertIn("date_of_assessment", component_assessment)
         self.assertEqual(component_assessment["rating_value"], 4)
         self.assertEqual(component_assessment["rating_title"], "High")
@@ -613,7 +647,8 @@ class PerDashboardDataTestCase(APITestCase):
         country_entry = response.data["countryAssessments"][country_with_components.name][0]
         self.assertEqual(country_entry["assessment_id"], assessment.id)
         self.assertEqual(country_entry["country_iso3"], "C04")
-        self.assertEqual(country_entry["phase_display"], "Orientation")
+        self.assertNotIn("phase_display", country_entry)
+        self.assertNotIn("region_name", country_entry)
         self.assertNotIn("components", country_entry)
 
         empty_country_entry = response.data["countryAssessments"][country_without_components.name][0]
@@ -623,6 +658,55 @@ class PerDashboardDataTestCase(APITestCase):
         process_only_entry = response.data["countryAssessments"][country_without_assessment.name][0]
         self.assertIsNone(process_only_entry["assessment_id"])
         self.assertNotIn("components", process_only_entry)
+
+    def test_dashboard_data_marks_component_letters_and_parents(self):
+        country = self.create_country("Country With Sub-components", "C8", "C08")
+        overview = OverviewFactory.create(country=country)
+        _, parent_component = self.create_component_assessment(overview, component_num=14, is_parent=True)
+        _, sub_component = self.create_component_assessment(
+            overview,
+            component_num=14,
+            component_letter="A",
+            title="First Aid",
+        )
+
+        response = self.client.get("/api/v2/per-dashboard-data")
+
+        self.assert_200(response)
+        components_by_id = {item["component_id"]: item for item in response.data["assessments"]}
+        self.assertIs(components_by_id[parent_component.id]["is_parent"], True)
+        self.assertEqual(components_by_id[sub_component.id]["component_num"], 14)
+        self.assertEqual(components_by_id[sub_component.id]["component_letter"], "A")
+        self.assertIs(components_by_id[sub_component.id]["is_parent"], False)
+
+    def test_map_and_dashboard_data_are_gzipped(self):
+        country = self.create_country("Gzip Country", "G1", "G01")
+        overview = OverviewFactory.create(country=country)
+        self.create_component_assessment(overview)
+
+        for url in ("/api/v2/per-map-data", "/api/v2/per-dashboard-data"):
+            with self.subTest(url=url):
+                response = self.client.get(url, HTTP_ACCEPT_ENCODING="gzip")
+
+                self.assert_200(response)
+                self.assertEqual(response["Content-Encoding"], "gzip")
+
+    @override_settings(CACHES=TEST_LOC_MEM_CACHE)
+    def test_map_data_cache_is_kept_per_language(self):
+        country = self.create_country("Cached Language Country", "L1", "L01")
+        OverviewFactory.create(country=country)
+
+        with override_settings(DJANGO_READ_ONLY=True):
+            cache.clear()
+            try:
+                self.assert_200(self.client.get("/api/v2/per-map-data", HTTP_ACCEPT_LANGUAGE="en"))
+                with mock.patch("per.drf_views.get_per_map_data", return_value={"processes": []}) as get_per_map_data:
+                    response = self.client.get("/api/v2/per-map-data", HTTP_ACCEPT_LANGUAGE="fr")
+
+                self.assert_200(response)
+                get_per_map_data.assert_called_once()
+            finally:
+                cache.clear()
 
     @override_settings(CACHES=TEST_LOC_MEM_CACHE)
     def test_map_data_uses_cache_in_read_only_mode(self):
