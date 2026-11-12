@@ -702,9 +702,11 @@ class PublicFormAssessmentViewSet(viewsets.ReadOnlyModelViewSet):
 
 # Consolidated public endpoints (map-data, assessments-processed, dashboard-data)
 PER_MAP_DATA_CACHE_KEY = "per-dashboard:map-data:v4"
-PER_MAP_DATA_CACHE_TIMEOUT_SECONDS = 60
 PER_DASHBOARD_DATA_CACHE_KEY = "per-dashboard:dashboard-data:v3"
-PER_DASHBOARD_DATA_CACHE_TIMEOUT_SECONDS = 60
+# NOTE: Building the dashboard data takes about 17 s on production data and PER processes change a
+# few times a day, so the data can be up to an hour old
+PER_MAP_DATA_CACHE_TIMEOUT_SECONDS = 60 * 60
+PER_DASHBOARD_DATA_CACHE_TIMEOUT_SECONDS = 60 * 60
 
 
 def _per_dashboard_cache_key(key: str) -> str:
@@ -723,20 +725,12 @@ class PerMapDataView(views.APIView):
     @extend_schema(request=None, responses=PerMapDataSerializer)
     def get(self, request):
         cache_key = _per_dashboard_cache_key(PER_MAP_DATA_CACHE_KEY)
-        if settings.DJANGO_READ_ONLY:
-            cached_data = cache.get(cache_key)
-            if cached_data is not None:
-                return Response(cached_data)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return Response(cached_data)
 
         data = get_per_map_data()
-
-        if settings.DJANGO_READ_ONLY:
-            cache.set(
-                cache_key,
-                data,
-                timeout=PER_MAP_DATA_CACHE_TIMEOUT_SECONDS,
-            )
-
+        cache.set(cache_key, data, timeout=PER_MAP_DATA_CACHE_TIMEOUT_SECONDS)
         return Response(data)
 
 
@@ -858,20 +852,12 @@ class PerDashboardDataView(views.APIView):
     @extend_schema(request=None, responses=PerDashboardDataSerializer)
     def get(self, request):
         cache_key = _per_dashboard_cache_key(PER_DASHBOARD_DATA_CACHE_KEY)
-        if settings.DJANGO_READ_ONLY:
-            cached_data = cache.get(cache_key)
-            if cached_data is not None:
-                return Response(cached_data)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return Response(cached_data)
 
         data = get_per_dashboard_data()
-
-        if settings.DJANGO_READ_ONLY:
-            cache.set(
-                cache_key,
-                data,
-                timeout=PER_DASHBOARD_DATA_CACHE_TIMEOUT_SECONDS,
-            )
-
+        cache.set(cache_key, data, timeout=PER_DASHBOARD_DATA_CACHE_TIMEOUT_SECONDS)
         return Response(data)
 
 

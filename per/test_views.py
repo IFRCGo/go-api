@@ -691,63 +691,61 @@ class PerDashboardDataTestCase(APITestCase):
                 self.assert_200(response)
                 self.assertEqual(response["Content-Encoding"], "gzip")
 
-    @override_settings(CACHES=TEST_LOC_MEM_CACHE)
+    # NOTE: DJANGO_READ_ONLY=False as on the live API, which used to skip the cache
+    @override_settings(CACHES=TEST_LOC_MEM_CACHE, DJANGO_READ_ONLY=False)
     def test_map_data_cache_is_kept_per_language(self):
         country = self.create_country("Cached Language Country", "L1", "L01")
         OverviewFactory.create(country=country)
 
-        with override_settings(DJANGO_READ_ONLY=True):
+        cache.clear()
+        try:
+            self.assert_200(self.client.get("/api/v2/per-map-data", HTTP_ACCEPT_LANGUAGE="en"))
+            with mock.patch("per.drf_views.get_per_map_data", return_value={"processes": []}) as get_per_map_data:
+                response = self.client.get("/api/v2/per-map-data", HTTP_ACCEPT_LANGUAGE="fr")
+
+            self.assert_200(response)
+            get_per_map_data.assert_called_once()
+        finally:
             cache.clear()
-            try:
-                self.assert_200(self.client.get("/api/v2/per-map-data", HTTP_ACCEPT_LANGUAGE="en"))
-                with mock.patch("per.drf_views.get_per_map_data", return_value={"processes": []}) as get_per_map_data:
-                    response = self.client.get("/api/v2/per-map-data", HTTP_ACCEPT_LANGUAGE="fr")
 
-                self.assert_200(response)
-                get_per_map_data.assert_called_once()
-            finally:
-                cache.clear()
-
-    @override_settings(CACHES=TEST_LOC_MEM_CACHE)
-    def test_map_data_uses_cache_in_read_only_mode(self):
+    @override_settings(CACHES=TEST_LOC_MEM_CACHE, DJANGO_READ_ONLY=False)
+    def test_map_data_uses_cache(self):
         country = self.create_country("Cached Map Country", "M1", "M01")
         OverviewFactory.create(country=country)
 
-        with override_settings(DJANGO_READ_ONLY=True):
+        cache.clear()
+        try:
+            first_response = self.client.get("/api/v2/per-map-data")
+
+            self.assert_200(first_response)
+            with mock.patch("per.drf_views.get_per_map_data") as get_per_map_data:
+                second_response = self.client.get("/api/v2/per-map-data")
+
+            self.assert_200(second_response)
+            get_per_map_data.assert_not_called()
+            self.assertEqual(second_response.data, first_response.data)
+        finally:
             cache.clear()
-            try:
-                first_response = self.client.get("/api/v2/per-map-data")
 
-                self.assert_200(first_response)
-                with mock.patch("per.drf_views.get_per_map_data") as get_per_map_data:
-                    second_response = self.client.get("/api/v2/per-map-data")
-
-                self.assert_200(second_response)
-                get_per_map_data.assert_not_called()
-                self.assertEqual(second_response.data, first_response.data)
-            finally:
-                cache.clear()
-
-    @override_settings(CACHES=TEST_LOC_MEM_CACHE)
-    def test_dashboard_data_uses_cache_in_read_only_mode(self):
+    @override_settings(CACHES=TEST_LOC_MEM_CACHE, DJANGO_READ_ONLY=False)
+    def test_dashboard_data_uses_cache(self):
         country = self.create_country("Cached Dashboard Country", "D1", "D01")
         overview = OverviewFactory.create(country=country)
         self.create_component_assessment(overview)
 
-        with override_settings(DJANGO_READ_ONLY=True):
+        cache.clear()
+        try:
+            first_response = self.client.get("/api/v2/per-dashboard-data")
+
+            self.assert_200(first_response)
+            with mock.patch("per.drf_views.get_per_dashboard_data") as get_per_dashboard_data:
+                second_response = self.client.get("/api/v2/per-dashboard-data")
+
+            self.assert_200(second_response)
+            get_per_dashboard_data.assert_not_called()
+            self.assertEqual(second_response.data, first_response.data)
+        finally:
             cache.clear()
-            try:
-                first_response = self.client.get("/api/v2/per-dashboard-data")
-
-                self.assert_200(first_response)
-                with mock.patch("per.drf_views.get_per_dashboard_data") as get_per_dashboard_data:
-                    second_response = self.client.get("/api/v2/per-dashboard-data")
-
-                self.assert_200(second_response)
-                get_per_dashboard_data.assert_not_called()
-                self.assertEqual(second_response.data, first_response.data)
-            finally:
-                cache.clear()
 
     def test_map_data_query_count_is_bounded_for_many_overviews(self):
         for index in range(12):
