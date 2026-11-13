@@ -236,3 +236,4 @@ class GoApiGlobalTest(APITestCase):
     def test_docs_api(self, **kwargs):
         resp = self.client.get("/docs/")
         self.assert_200(resp)
+        self.assertContains(resp, 'src="https://cdn.jsdelivr.net/npm/redoc@2.5.4/bundles/redoc.standalone.js"')
