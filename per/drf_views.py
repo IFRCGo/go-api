@@ -7,7 +7,9 @@ from django.db import transaction
 from django.db.models import Count, F, Prefetch, Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
 from django.utils.translation import get_language as django_get_language
+from django.views.decorators.gzip import gzip_page
 from django_filters import rest_framework as filters
 from django_filters.widgets import CSVWidget
 from drf_spectacular.utils import extend_schema
@@ -89,10 +91,12 @@ from .serializers import (
     OpsLearningStatSerializer,
     OpsLearningSummarySerializer,
     PerAssessmentSerializer,
+    PerDashboardDataSerializer,
     PerDocumentUploadSerializer,
     PerFileInputSerializer,
     PerFileSerializer,
     PerFormDataSerializer,
+    PerMapDataSerializer,
     PerOptionsSerializer,
     PerOverviewSerializer,
     PerProcessSerializer,
@@ -697,33 +701,36 @@ class PublicFormAssessmentViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 # Consolidated public endpoints (map-data, assessments-processed, dashboard-data)
-PER_MAP_DATA_CACHE_KEY = "per-dashboard:map-data:v3"
-PER_MAP_DATA_CACHE_TIMEOUT_SECONDS = 60
-PER_DASHBOARD_DATA_CACHE_KEY = "per-dashboard:dashboard-data:v2"
-PER_DASHBOARD_DATA_CACHE_TIMEOUT_SECONDS = 60
+PER_MAP_DATA_CACHE_KEY = "per-dashboard:map-data:v4"
+PER_DASHBOARD_DATA_CACHE_KEY = "per-dashboard:dashboard-data:v3"
+# NOTE: Building the dashboard data takes about 17 s on production data and PER processes change a
+# few times a day, so the data can be up to an hour old
+PER_MAP_DATA_CACHE_TIMEOUT_SECONDS = 60 * 60
+PER_DASHBOARD_DATA_CACHE_TIMEOUT_SECONDS = 60 * 60
 
 
+def _per_dashboard_cache_key(key: str) -> str:
+    # NOTE: Country, component and rating names are translated, so each language is cached on its own
+    return f"{key}:{django_get_language()}"
+
+
+# NOTE: Only these two large public responses are compressed for now; compressing the whole API is a separate follow-up
+@method_decorator(gzip_page, name="dispatch")
 class PerMapDataView(views.APIView):
-    """Public consolidated PER map data.
+    """Public PER map data.
 
-    Joins latest Overview per country with minimal country info and normalized phase display.
+    Every PER process (Overview) with its country, phase, considerations and prioritized components.
     """
 
+    @extend_schema(request=None, responses=PerMapDataSerializer)
     def get(self, request):
-        if settings.DJANGO_READ_ONLY:
-            cached_data = cache.get(PER_MAP_DATA_CACHE_KEY)
-            if cached_data is not None:
-                return Response(cached_data)
+        cache_key = _per_dashboard_cache_key(PER_MAP_DATA_CACHE_KEY)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return Response(cached_data)
 
         data = get_per_map_data()
-
-        if settings.DJANGO_READ_ONLY:
-            cache.set(
-                PER_MAP_DATA_CACHE_KEY,
-                data,
-                timeout=PER_MAP_DATA_CACHE_TIMEOUT_SECONDS,
-            )
-
+        cache.set(cache_key, data, timeout=PER_MAP_DATA_CACHE_TIMEOUT_SECONDS)
         return Response(data)
 
 
@@ -835,27 +842,22 @@ class PerAssessmentsProcessedView(views.APIView):
         return Response({"results": results})
 
 
+@method_decorator(gzip_page, name="dispatch")
 class PerDashboardDataView(views.APIView):
     """Public consolidated PER dashboard data.
 
     Aggregates by PER components (not countries) and attaches assessments.
     """
 
+    @extend_schema(request=None, responses=PerDashboardDataSerializer)
     def get(self, request):
-        if settings.DJANGO_READ_ONLY:
-            cached_data = cache.get(PER_DASHBOARD_DATA_CACHE_KEY)
-            if cached_data is not None:
-                return Response(cached_data)
+        cache_key = _per_dashboard_cache_key(PER_DASHBOARD_DATA_CACHE_KEY)
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return Response(cached_data)
 
         data = get_per_dashboard_data()
-
-        if settings.DJANGO_READ_ONLY:
-            cache.set(
-                PER_DASHBOARD_DATA_CACHE_KEY,
-                data,
-                timeout=PER_DASHBOARD_DATA_CACHE_TIMEOUT_SECONDS,
-            )
-
+        cache.set(cache_key, data, timeout=PER_DASHBOARD_DATA_CACHE_TIMEOUT_SECONDS)
         return Response(data)
 
 
