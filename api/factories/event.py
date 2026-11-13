@@ -112,6 +112,7 @@ class AppealFactory(factory.django.DjangoModelFactory):
     num_beneficiaries = fuzzy.FuzzyInteger(0)
     amount_requested = fuzzy.FuzzyInteger(0)
     amount_funded = fuzzy.FuzzyInteger(0)
+    amount_potential_funding = fuzzy.FuzzyInteger(0)
     event = factory.SubFactory(EventFactory)
     country = factory.SubFactory(CountryFactory)
 
@@ -129,6 +130,7 @@ class AppealHistoryFactory(factory.django.DjangoModelFactory):
     num_beneficiaries = fuzzy.FuzzyInteger(0)
     amount_requested = fuzzy.FuzzyInteger(0)
     amount_funded = fuzzy.FuzzyInteger(0)
+    amount_potential_funding = fuzzy.FuzzyInteger(0)
     appeal = factory.SubFactory(AppealFactory)
     country = factory.SubFactory(CountryFactory)
     atype = factory.SubFactory(AppealTypeFactory)
