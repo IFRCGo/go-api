@@ -218,7 +218,7 @@ def add_update_appeal_history(sender, instance, created, **kwargs):
     fields_watched = [
         field.name
         for field in AppealHistory._meta.get_fields()
-        if field.name not in ["id", "appeal", "valid_from", "valid_to", "aid", "amount_funded"]
+        if field.name not in ["id", "appeal", "valid_from", "valid_to", "aid", "amount_funded", "amount_potential_funding"]
     ]
     now = timezone.now()
     changed = False
@@ -229,6 +229,7 @@ def add_update_appeal_history(sender, instance, created, **kwargs):
             num_beneficiaries=instance.num_beneficiaries,
             amount_requested=instance.amount_requested,
             amount_funded=instance.amount_funded,
+            amount_potential_funding=instance.amount_potential_funding,
             valid_from=now,
             # TODO: use coalesce to fill valid_to instead of defining here.
             valid_to=datetime(2200, 1, 1, tzinfo=datetime_timezone.utc),
@@ -261,6 +262,7 @@ def add_update_appeal_history(sender, instance, created, **kwargs):
                 num_beneficiaries=instance.num_beneficiaries,
                 amount_requested=instance.amount_requested,
                 amount_funded=instance.amount_funded,
+                amount_potential_funding=instance.amount_potential_funding,
                 valid_from=now,
                 valid_to=datetime(2200, 1, 1, tzinfo=datetime_timezone.utc),
                 start_date=instance.start_date,
@@ -290,6 +292,7 @@ def add_update_appeal_history(sender, instance, created, **kwargs):
             num_beneficiaries=instance.num_beneficiaries,
             amount_requested=instance.amount_requested,
             amount_funded=instance.amount_funded,
+            amount_potential_funding=instance.amount_potential_funding,
             valid_from=now,
             # TODO: use coalesce to fill valid_to instead of defining here.
             valid_to=datetime(2200, 1, 1, tzinfo=datetime_timezone.utc),
