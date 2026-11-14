@@ -35,6 +35,7 @@ from dref.factories.dref import (
     IdentifiedNeedFactory,
 )
 from dref.models import Dref, DrefFile, DrefSummary
+from main import error_codes
 from main.test_case import APITestCase
 from per.factories import OpsLearningFactory
 
@@ -388,6 +389,45 @@ class AuthTokenTest(APITestCase):
         response = self.client.post("/get_auth_token", body, format="json", headers=headers).json()
         self.assertIsNotNone(response.get("token"))
         self.assertIsNotNone(response.get("expires"))
+
+    def test_get_auth_deactivated_user(self):
+        user = User.objects.create(username="deactivated", email="deactivated@example.com", is_active=False)
+        user.set_password("12345678")
+        user.save()
+
+        headers = {"CONTENT_TYPE": "application/json"}
+
+        # Correct credentials, but the account is deactivated.
+        response = self.client.post(
+            "/get_auth_token",
+            {"username": "deactivated", "password": "12345678"},
+            format="json",
+            headers=headers,
+        )
+        self.assertEqual(response.status_code, 400)
+        data = response.json()
+        self.assertEqual(data.get("error_code"), error_codes.USER_DEACTIVATED)
+        self.assertIn("deactivated", data.get("error_message"))
+
+        # Works with the email too.
+        response = self.client.post(
+            "/get_auth_token",
+            {"username": "deactivated@example.com", "password": "12345678"},
+            format="json",
+            headers=headers,
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json().get("error_code"), error_codes.USER_DEACTIVATED)
+
+        # Wrong password on a deactivated account should still look like a generic failure.
+        response = self.client.post(
+            "/get_auth_token",
+            {"username": "deactivated", "password": "wrong-password"},
+            format="json",
+            headers=headers,
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertIsNone(response.json().get("error_code"))
 
 
 class EventApiTest(APITestCase):
