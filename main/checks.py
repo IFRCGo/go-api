@@ -1,5 +1,19 @@
+from pydoc import locate
+
 from django.conf import settings
 from django.core.checks import Error, Tags, register
+
+
+@register(Tags.compatibility)
+def celery_beat_tasks(app_configs, **kwargs):
+    """Catch a typo'd SCHEDULES task path now, not on beat's first tick."""
+    from main.cronjobs import SCHEDULES
+
+    errors = []
+    for name, config in SCHEDULES.items():
+        if locate(config.task) is None:
+            errors.append(Error(f"Celery beat <{name}> task is incorrect: {config.task}"))
+    return errors
 
 
 @register(Tags.compatibility)
