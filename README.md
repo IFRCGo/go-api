@@ -149,15 +149,11 @@ Django automatically generates description strings for **standard** fields like
 [Circle-ci](https://circleci.com/gh/IFRCGo/go-api) handles continuous
 integration.
 
-## Release to Docker Hub
+## Releases
 
-To release a new version to docker hub do the following:
-
--   Update `version` value in `main/__init__.py`
--   Create a new git tag with the same version
--   Commit and make a PR against master
--   The tagged version of the code is used to build a new docker image and is
-    pushed to docker hub
+Releases are cut from `develop` with `./release.sh`, which pushes a `vX.Y.Z` tag
+that CI publishes as a Docker image, Helm chart and GitHub Release.
+See [docs/release.md](./docs/release.md) for the release, hotfix and rollback process.
 
 # Deployment
 
