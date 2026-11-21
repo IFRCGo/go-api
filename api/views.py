@@ -60,6 +60,7 @@ from deployments.models import (
     Statuses,
 )
 from flash_update.models import FlashUpdate
+from main import error_codes
 from main.permissions import DenyGuestUserPermission
 from notifications.models import Subscription, SurgeAlert, SurgeAlertStatus
 from notifications.notification import send_notification
@@ -86,8 +87,11 @@ from .utils import is_user_ifrc, strip_diacritics
 # get_predefined_search_urls,
 
 
-def bad_request(message):
-    return JsonResponse({"statusCode": 400, "error_message": message}, status=400)
+def bad_request(message, error_code=None):
+    body = {"statusCode": 400, "error_message": message}
+    if error_code is not None:
+        body["error_code"] = error_code
+    return JsonResponse(body, status=400)
 
 
 def bad_http_request(header, message):
@@ -946,6 +950,15 @@ class GetAuthToken(APIView):
                 # We get the first one if there are still multiple available is_active:
                 user = authenticate(username=users[0].username, password=password)
 
+        # authenticate() also returns None for correct credentials on a deactivated account
+        # (ModelBackend rejects inactive users), so check that case separately to give an
+        # accurate message instead of the generic "invalid credentials" one.
+        deactivated_user = None
+        if user is None:
+            candidate = User.objects.filter(Q(username__iexact=username) | Q(email__iexact=username), is_active=False).first()
+            if candidate is not None and candidate.check_password(password):
+                deactivated_user = candidate
+
         # Determining the client IP is not always straightforward:
         clientIP = ""
         # if 'REMOTE_ADDR' in request.META:        clientIP += 'R' + request.META['REMOTE_ADDR']
@@ -961,7 +974,7 @@ class GetAuthToken(APIView):
             % (
                 username,
                 clientIP,
-                "ok" if user else "ERR",
+                "ok" if user else ("DEACTIVATED" if deactivated_user else "ERR"),
                 request.META["HTTP_ACCEPT_LANGUAGE"] if "HTTP_ACCEPT_LANGUAGE" in request.META else "",
                 request.META["HTTP_USER_AGENT"] if "HTTP_USER_AGENT" in request.META else "",
             )
@@ -988,6 +1001,11 @@ class GetAuthToken(APIView):
                     "expires": api_key.created + timedelta(7),
                     "id": user.id,
                 }
+            )
+        elif deactivated_user is not None:
+            return bad_request(
+                "Your account is deactivated, please contact the IM team at im@ifrc.org for more information.",
+                error_code=error_codes.USER_DEACTIVATED,
             )
         else:
             return bad_request("Invalid username or password")  # most probably password issue
