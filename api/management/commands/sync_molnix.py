@@ -129,44 +129,46 @@ def add_tags(molnix_tags, api):
     ]
 
     for molnix_tag in molnix_tags:
-        tag, created = MolnixTag.objects.get_or_create(molnix_id=molnix_tag["id"])
+        # Fetch from Molnix outside the transaction so no DB locks are held during HTTP calls
         tag_groups = api.get_tag_groups(molnix_tag["id"]) if molnix_tag["id"] else []
-        for g in tag_groups:
-            tag_group, created = MolnixTagGroup.objects.get_or_create(molnix_id=g["id"], name=g["name"])
-            if created:
-                tag_group.created_at = g["created_at"]
-            tag_group.updated_at = g["updated_at"]
-            tag_group.save()
-            tag.groups.add(tag_group)
-        tag.molnix_id = molnix_tag["id"]
-        tag.name = n = molnix_tag["name"]
-        tag.description = molnix_tag["description"]
-        if tag.description is None:
-            tag.description = ""
-            logger.warning("%s named tag has no description." % tag.name)
-        tag.tag_type = molnix_tag["type"]
-        tag.tag_category = (
-            "molnix_language"
-            if n.startswith("L-")
-            else (
-                "molnix_operation"
-                if n.startswith("OP-")
+        with transaction.atomic():
+            tag, created = MolnixTag.objects.get_or_create(molnix_id=molnix_tag["id"])
+            for g in tag_groups:
+                tag_group, created = MolnixTagGroup.objects.get_or_create(molnix_id=g["id"], name=g["name"])
+                if created:
+                    tag_group.created_at = g["created_at"]
+                tag_group.updated_at = g["updated_at"]
+                tag_group.save()
+                tag.groups.add(tag_group)
+            tag.molnix_id = molnix_tag["id"]
+            tag.name = n = molnix_tag["name"]
+            tag.description = molnix_tag["description"]
+            if tag.description is None:
+                tag.description = ""
+                logger.warning("%s named tag has no description." % tag.name)
+            tag.tag_type = molnix_tag["type"]
+            tag.tag_category = (
+                "molnix_language"
+                if n.startswith("L-")
                 else (
-                    "molnix_modality"
-                    if n in modality
+                    "molnix_operation"
+                    if n.startswith("OP-")
                     else (
-                        "molnix_region"
-                        if n in region
+                        "molnix_modality"
+                        if n in modality
                         else (
-                            "molnix_scope"
-                            if n in scope
-                            else "molnix_sector" if n in sector else "molnix_status" if n in status else "molnix_role_profile"
+                            "molnix_region"
+                            if n in region
+                            else (
+                                "molnix_scope"
+                                if n in scope
+                                else "molnix_sector" if n in sector else "molnix_status" if n in status else "molnix_role_profile"
+                            )
                         )
                     )
                 )
             )
-        )
-        tag.save()
+            tag.save()
 
 
 def skip_this(tags):
@@ -434,8 +436,9 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
 
         personnel.country_from = country_from
 
-        personnel.save()
-        add_tags_to_obj(personnel, md["tags"])
+        with transaction.atomic():
+            personnel.save()
+            add_tags_to_obj(personnel, md["tags"])
         if created:
             successful_creates += 1
         else:
@@ -507,8 +510,9 @@ def sync_open_positions(molnix_positions, molnix_api, countries):
         go_alert.closes = get_datetime(position["closes"])
         go_alert.start = get_datetime(position["start"])
         go_alert.end = get_datetime(position["end"])
-        go_alert.save()
-        add_tags_to_obj(go_alert, position["tags"])
+        with transaction.atomic():
+            go_alert.save()
+            add_tags_to_obj(go_alert, position["tags"])
         if created:
             successful_creates += 1
         else:
@@ -546,8 +550,9 @@ def sync_open_positions(molnix_positions, molnix_api, countries):
 class Command(BaseCommand):
     help = "Sync data from Molnix API to GO db"
 
+    # NOTE: Do not wrap the whole command in a transaction. It makes many slow Molnix API calls,
+    # and an open transaction for the whole run blocks migrations (and then every query behind them).
     @monitor(monitor_slug=SentryMonitor.SYNC_MOLNIX)
-    @transaction.atomic
     def handle(self, *args, **options):
         logger.info("Starting Sync Molnix job")
         molnix = MolnixApi(url=settings.MOLNIX_API_BASE, username=settings.MOLNIX_USERNAME, password=settings.MOLNIX_PASSWORD)
