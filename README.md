@@ -187,12 +187,29 @@ docker-compose exec serve bash python manage.py update_index
 ## Sentry
 
 Cron monitors are created/updated automatically on each check-in: `@sentry_cron_monitor(SentryMonitor.X)`
-(`main/sentry.py`) sends the schedule and thresholds along with the check-in.
+(`main/sentry.py`) sends the schedule and settings along with the check-in.
 A new monitor only shows up in Sentry after the job's first run.
+Don't run cron commands locally with the staging/production `SENTRY_DSN`: it adds your local environment to the real monitor, which then reports missed check-ins.
 
-To register all monitors up front (e.g. before a new job's first run)
+### Adding a new cronjob
+1. Add the job to `app.cronjobs.jobs` in `deploy/helm/values.yaml`
+2. Add it to `SentryMonitor` in `main/sentry.py` with the same name and schedule
+   ```python
+   MY_JOB = CronJobSentryConfig("my_job", "0 1 * * *")
+   ```
+   Defaults: grace period 15 min, max runtime 30 min, failure/recovery threshold 1. Override if needed:
+   ```python
+   MY_JOB = CronJobSentryConfig("my_job", "0 1 * * *", max_runtime=60)
+   ```
+3. Decorate the command's `handle`
+   ```python
+   @sentry_cron_monitor(SentryMonitor.MY_JOB)
+   def handle(self, *args, **options):
+   ```
+
+To validate `SentryMonitor` against `values.yaml`
 ```(bash)
-docker-compose exec serve bash ./manage.py cron_job_monitor
+docker-compose exec serve bash ./manage.py validate_sentry_monitors
 ```
 
 ## See logs from Kubernetes

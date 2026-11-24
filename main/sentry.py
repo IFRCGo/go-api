@@ -1,3 +1,4 @@
+import enum
 import logging
 import os
 import typing
@@ -11,7 +12,6 @@ from billiard.exceptions import Terminated
 from celery.exceptions import Retry as CeleryRetry
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
-from django.db import models
 from sentry_sdk.crons import monitor
 from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
@@ -103,43 +103,85 @@ def init_sentry(app_type, tags={}, **config):
             scope.set_tag(tag, value)
 
 
-class SentryMonitor(models.TextChoices):
+class CronJobSentryConfig(typing.NamedTuple):
     """
-    This class is used to create Sentry monitor of cron jobs
+    Sentry monitor config for a cronjob
+    https://docs.sentry.io/platforms/python/crons/
+    """
+
+    slug: str
+    """Monitor slug, same as the management command name and the values.yaml job key."""
+
+    schedule: str
+    """Crontab schedule, same as values.yaml."""
+
+    checkin_margin: int = 15
+    """
+    The amount of time (in minutes) Sentry should wait for your check-in before it's considered missed ("grace period").
+    """
+
+    max_runtime: int = 30
+    """The amount of time (in minutes) your job is allowed to run before it's considered failed."""
+
+    failure_issue_threshold: int = 1
+    """The number of consecutive failed check-ins it takes before an issue is created."""
+
+    recovery_threshold: int = 1
+    """The number of consecutive OK check-ins it takes before an issue is resolved."""
+
+    def as_dict(self) -> "MonitorConfig":
+        return {
+            "schedule": {
+                "type": "crontab",
+                "value": self.schedule,
+            },
+            "timezone": settings.TIME_ZONE,
+            "checkin_margin": self.checkin_margin,
+            "max_runtime": self.max_runtime,
+            "failure_issue_threshold": self.failure_issue_threshold,
+            "recovery_threshold": self.recovery_threshold,
+        }
+
+
+class SentryMonitor(enum.Enum):
+    """
+    Sentry cron monitors of cron jobs
     @Note: Before adding the jobs to this class, make sure to add the job to the `Values.yaml` file
     """
 
-    INDEX_AND_NOTIFY = "index_and_notify", "*/5 * * * *"
-    SYNC_MOLNIX = "sync_molnix", "10 */2 * * *"
-    INGEST_APPEALS = "ingest_appeals", "*/30 * * * *"
-    SYNC_APPEALDOCS = "sync_appealdocs", "15 * * * *"
-    REVOKE_STAFF_STATUS = "revoke_staff_status", "51 * * * *"
-    UPDATE_PROJECT_STATUS = "update_project_status", "1 3 * * *"
-    USER_REGISTRATION_REMINDER = "user_registration_reminder", "0 9 * * *"
-    INGEST_COUNTRY_PLAN_FILE = "ingest_country_plan_file", "1 0 * * *"
-    FDRS_ANNUAL_INCOME = "fdrs_annual_income", "0 0 * * 0"
-    FDRS_INCOME = "FDRS_INCOME", "0 0 * * 0"
-    INGEST_ACAPS = "ingest_acaps", "0 1 * * 0"
-    INGEST_CLIMATE = "ingest_climate", "0 0 * * 0"
-    INGEST_DATABANK = "ingest_databank", "0 0 * * 0"
-    INGEST_HDR = "ingest_hdr", "0 0 * * 0"
-    INGEST_UNICEF = "ingest_unicef", "0 0 * * 0"
-    INGEST_WORLDBANK = "ingest_worldbank", "0 2 * * 0"
-    INGEST_DISASTER_LAW = "ingest_disaster_law", "0 0 * * 0"
-    INGEST_NS_CONTACT = "ingest_ns_contact", "0 0 * * 0"
-    INGEST_NS_CAPACITY = "ingest_ns_capacity", "0 0 * * 0"
-    INGEST_NS_DIRECTORY = "ingest_ns_directory", "0 0 * * 0"
-    INGEST_NS_DOCUMENT = "ingest_ns_document", "0 0 * * 0"
-    INGEST_NS_INITIATIVES = "ingest_ns_initiatives", "0 0 * * 0"
-    INGEST_ICRC = "ingest_icrc", "0 3 * * 0"
-    NOTIFY_VALIDATORS = "notify_validators", "0 0 * * *"
-    POLL_USGS_EARTHQUAKE = "poll_usgs_earthquake", "0 18 * * 0"
-    POLL_GDACS_FLOOD = "poll_gdacs_flood", "0 11 * * *"
-    POLL_GDACS_CYCLONE = "poll_gdacs_cyclone", "0 11 * * 0"
-    OAUTH_CLEARTOKENS = "oauth_cleartokens", "0 1 * * *"
-    EAP_SUBMISSION_REMINDER = "eap_submission_reminder", "0 0 * * *"
-    ALERT_NOTIFICATION = "alert_notification", "0 */2 * * *"
-    DREF_FINAL_REPORT_ALERT = "dref_final_report_alert", "0 6 * * *"
+    # NOTE: Runs every 5 minutes; we allow up to 6 consecutive failures
+    INDEX_AND_NOTIFY = CronJobSentryConfig("index_and_notify", "*/5 * * * *", failure_issue_threshold=6)
+    # NOTE: Takes longer than the default max runtime
+    SYNC_MOLNIX = CronJobSentryConfig("sync_molnix", "10 */2 * * *", max_runtime=40)
+    INGEST_APPEALS = CronJobSentryConfig("ingest_appeals", "*/30 * * * *")
+    SYNC_APPEALDOCS = CronJobSentryConfig("sync_appealdocs", "15 * * * *")
+    REVOKE_STAFF_STATUS = CronJobSentryConfig("revoke_staff_status", "51 * * * *")
+    UPDATE_PROJECT_STATUS = CronJobSentryConfig("update_project_status", "1 3 * * *")
+    USER_REGISTRATION_REMINDER = CronJobSentryConfig("user_registration_reminder", "0 9 * * *")
+    INGEST_COUNTRY_PLAN_FILE = CronJobSentryConfig("ingest_country_plan_file", "1 0 * * *")
+    FDRS_ANNUAL_INCOME = CronJobSentryConfig("fdrs_annual_income", "0 0 * * 0")
+    FDRS_INCOME = CronJobSentryConfig("FDRS_INCOME", "0 0 * * 0")
+    INGEST_ACAPS = CronJobSentryConfig("ingest_acaps", "0 1 * * 0")
+    INGEST_CLIMATE = CronJobSentryConfig("ingest_climate", "0 0 * * 0")
+    INGEST_DATABANK = CronJobSentryConfig("ingest_databank", "0 0 * * 0")
+    INGEST_HDR = CronJobSentryConfig("ingest_hdr", "0 0 * * 0")
+    INGEST_UNICEF = CronJobSentryConfig("ingest_unicef", "0 0 * * 0")
+    INGEST_WORLDBANK = CronJobSentryConfig("ingest_worldbank", "0 2 * * 0")
+    INGEST_DISASTER_LAW = CronJobSentryConfig("ingest_disaster_law", "0 0 * * 0")
+    INGEST_NS_CONTACT = CronJobSentryConfig("ingest_ns_contact", "0 0 * * 0")
+    INGEST_NS_CAPACITY = CronJobSentryConfig("ingest_ns_capacity", "0 0 * * 0")
+    INGEST_NS_DIRECTORY = CronJobSentryConfig("ingest_ns_directory", "0 0 * * 0")
+    INGEST_NS_DOCUMENT = CronJobSentryConfig("ingest_ns_document", "0 0 * * 0")
+    INGEST_NS_INITIATIVES = CronJobSentryConfig("ingest_ns_initiatives", "0 0 * * 0")
+    INGEST_ICRC = CronJobSentryConfig("ingest_icrc", "0 3 * * 0")
+    NOTIFY_VALIDATORS = CronJobSentryConfig("notify_validators", "0 0 * * *")
+    POLL_USGS_EARTHQUAKE = CronJobSentryConfig("poll_usgs_earthquake", "0 18 * * 0")
+    POLL_GDACS_FLOOD = CronJobSentryConfig("poll_gdacs_flood", "0 11 * * *")
+    POLL_GDACS_CYCLONE = CronJobSentryConfig("poll_gdacs_cyclone", "0 11 * * 0")
+    OAUTH_CLEARTOKENS = CronJobSentryConfig("oauth_cleartokens", "0 1 * * *")
+    EAP_SUBMISSION_REMINDER = CronJobSentryConfig("eap_submission_reminder", "0 0 * * *")
+    ALERT_NOTIFICATION = CronJobSentryConfig("alert_notification", "0 */2 * * *")
+    DREF_FINAL_REPORT_ALERT = CronJobSentryConfig("dref_final_report_alert", "0 6 * * *")
 
     @staticmethod
     def load_cron_data() -> typing.List[typing.Tuple[str, str]]:
@@ -147,7 +189,7 @@ class SentryMonitor(models.TextChoices):
             try:
                 # Helm chart cronjobs are keyed by the management-command name under
                 # app.cronjobs.jobs.<name> = {schedule, command}. Keep the job keys in
-                # sync with the SentryMonitor members (name == command).
+                # sync with the SentryMonitor members (slug == command).
                 jobs = yaml.safe_load(fp)["app"]["cronjobs"]["jobs"]
                 return [(name, metadata["schedule"]) for name, metadata in jobs.items()]
             except yaml.YAMLError as e:
@@ -159,16 +201,17 @@ class SentryMonitor(models.TextChoices):
         """
         Validate SentryMonitor task list with Helm
         """
-        current_helm_crons = cls.load_cron_data()
-        assert set(cls.choices) == set(current_helm_crons), (
+        current_crons = {(job.value.slug, job.value.schedule) for job in cls}
+        current_helm_crons = set(cls.load_cron_data())
+        assert current_crons == current_helm_crons, (
             # Show a simple diff for correction
             "SentryMonitor needs update\n\n"
             + (
                 "\n".join(
                     list(
                         context_diff(
-                            [f"{c} {s}" for c, s in set(cls.choices)],
-                            [f"{c} {s}" for c, s in set(current_helm_crons)],
+                            sorted(f"{c} {s}" for c, s in current_crons),
+                            sorted(f"{c} {s}" for c, s in current_helm_crons),
                             fromfile="SentryMonitor",
                             tofile="Values.yml",
                         )
@@ -178,80 +221,16 @@ class SentryMonitor(models.TextChoices):
         )
 
 
-class SentryMonitorConfig:
-    """
-    Custom config for SentryMonitor
-    https://docs.sentry.io/product/crons/getting-started/http/#creating-or-updating-a-monitor-through-a-check-in-optional
-    """
-
-    CHECKIN_MARGIN_DEFAULT = 5  # minutes
-    MAX_RUNTIME_DEFAULT = 30  # minutes
-    MAX_RUNTIME = {
-        SentryMonitor.SYNC_MOLNIX: 40,  # minutes
-    }
-
-    FAILURE_THRESHOLD_DEFAULT = 1
-    FAILURE_THRESHOLD = {
-        # NOTE: INDEX_AND_NOTIFY runs every 5 minutes; we allow up to 6 consecutive failures
-        SentryMonitor.INDEX_AND_NOTIFY: 6,
-    }
-
-    @classmethod
-    def get_checkin_margin(cls, _: SentryMonitor) -> int:
-        """
-        The amount of time (in minutes) [Sentry Default 1 min]
-        Sentry should wait for your checkin before it's considered missed ("grace period")
-        """
-        return cls.CHECKIN_MARGIN_DEFAULT
-
-    @classmethod
-    def get_max_runtime(cls, enum: SentryMonitor) -> int:
-        """
-        The amount of time (in minutes) [Sentry Default 30 min]
-        a job can run (after the in-progress checkin) before it's considered timed out.
-        """
-        return cls.MAX_RUNTIME.get(enum, cls.MAX_RUNTIME_DEFAULT)
-
-    @classmethod
-    def get_failure_issue_threshold(cls, enum: SentryMonitor) -> int:
-        """
-        The number of consecutive failed check-ins it takes before an issue is created. Optional.
-        """
-        return cls.FAILURE_THRESHOLD.get(enum, cls.FAILURE_THRESHOLD_DEFAULT)
-
-    @classmethod
-    def get_recovery_threshold(cls, _: SentryMonitor) -> int:
-        """
-        [Sentry Default 1]
-        The number of consecutive OK check-ins it takes before an issue is resolved. Optional.
-        """
-        return 1
-
-    @classmethod
-    def get_monitor_config(cls, enum: SentryMonitor) -> "MonitorConfig":
-        return {
-            "schedule": {
-                "type": "crontab",
-                "value": enum.label,
-            },
-            "timezone": settings.TIME_ZONE,
-            "checkin_margin": cls.get_checkin_margin(enum),
-            "max_runtime": cls.get_max_runtime(enum),
-            "failure_issue_threshold": cls.get_failure_issue_threshold(enum),
-            "recovery_threshold": cls.get_recovery_threshold(enum),
-        }
-
-
-def sentry_cron_monitor(enum: SentryMonitor):
+def sentry_cron_monitor(job: SentryMonitor):
     """
     Wrap sentry_sdk.crons.monitor with the monitor_config, so Sentry creates/updates
     the monitor on check-in.
     """
 
     def decorator(func):
-        wrapped = monitor(monitor_slug=enum.value, monitor_config=SentryMonitorConfig.get_monitor_config(enum))(func)
+        wrapped = monitor(monitor_slug=job.value.slug, monitor_config=job.value.as_dict())(func)
         # Used by tests to verify each SentryMonitor command is monitored
-        wrapped.sentry_monitor = enum
+        wrapped.sentry_monitor = job
         return wrapped
 
     return decorator
