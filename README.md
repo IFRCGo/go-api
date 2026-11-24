@@ -186,7 +186,11 @@ docker-compose exec serve bash python manage.py update_index
 ```
 ## Sentry
 
-For updating the cron monitored tasks
+Cron monitors are created/updated automatically on each check-in: `@sentry_cron_monitor(SentryMonitor.X)`
+(`main/sentry.py`) sends the schedule and thresholds along with the check-in.
+A new monitor only shows up in Sentry after the job's first run.
+
+To register all monitors up front (e.g. before a new job's first run)
 ```(bash)
 docker-compose exec serve bash ./manage.py cron_job_monitor
 ```

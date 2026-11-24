@@ -74,7 +74,7 @@ Each cluster has its own vault, so the value has to be created once per environm
 
 ## Cronjobs
 
-`app.cronjobs.jobs` is kept in lockstep with the `SentryMonitor` enum in `main/sentry.py` (job key == management command == monitor name). `cron_job_monitor --validate-only` fails if the two drift and CI runs it on every change — update both together.
+`app.cronjobs.jobs` is kept in lockstep with the `SentryMonitor` enum in `main/sentry.py` (job key == management command == monitor name). `cron_job_monitor --validate-only` fails if the two drift and CI runs it on every change — update both together. Sentry monitors are created/updated by the job's own check-in (`@sentry_cron_monitor` sends the schedule from the enum), so no manual registration is needed.
 
 CronJobs are created in the same deploy stage as the api and worker, after the pre-deploy hooks, so a first-time install cannot fire a scheduled command against an unmigrated database. That defers when a CronJob is *created*, not when an existing one fires: during an upgrade a CronJob left from the previous release can still run the old image while the migration hook is in flight, so migrations must stay compatible with the previous image — the same constraint a rolling api update already has.
 
