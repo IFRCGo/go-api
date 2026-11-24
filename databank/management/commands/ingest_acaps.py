@@ -5,18 +5,16 @@ import requests
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import models, transaction
-from sentry_sdk.crons import monitor
 
 from api.logger import logger
 from api.models import CountryType
 from databank.models import AcapsSeasonalCalender, CountryOverview
-from main.sentry import SentryMonitor
+from main.sentry import SentryMonitor, sentry_cron_monitor
 
 
 class Command(BaseCommand):
     help = "Add Acaps seasonal calender data"
 
-    @monitor(monitor_slug=SentryMonitor.INGEST_ACAPS)
     @transaction.atomic
     def load_country(self, overview):
         # Remove all existing Seasonal Calendar data for this country
@@ -51,6 +49,7 @@ class Command(BaseCommand):
         # NOTE: Acaps throttles our requests
         time.sleep(5)
 
+    @sentry_cron_monitor(SentryMonitor.INGEST_ACAPS)
     def handle(self, *args, **kwargs):
         logger.info("Importing Acaps Data")
         country_overview_qs = CountryOverview.objects.filter(country__record_type=CountryType.COUNTRY).annotate(
