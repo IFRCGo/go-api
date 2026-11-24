@@ -1,9 +1,8 @@
 from django.core.management.base import BaseCommand
-from sentry_sdk import monitor
 
 from alert_system.email_processing import process_email_alert
 from alert_system.models import LoadItem
-from main.sentry import SentryMonitor
+from main.sentry import SentryMonitor, sentry_cron_monitor
 
 # NOTE: Disabled parallel processing to avoid inconsistent state and keep
 #  execution deterministic. Email logic is intentionally moved out of tasks.py for now.
@@ -14,7 +13,7 @@ from main.sentry import SentryMonitor
 class Command(BaseCommand):
     help = "Send alert email notifications for eligible load items"
 
-    @monitor(monitor_slug=SentryMonitor.ALERT_NOTIFICATION)
+    @sentry_cron_monitor(SentryMonitor.ALERT_NOTIFICATION)
     def handle(self, *args, **options):
 
         items = LoadItem.objects.filter(item_eligible=True, is_past_event=False)

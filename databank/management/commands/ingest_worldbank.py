@@ -6,12 +6,11 @@ import typing
 import requests
 from django.core.management.base import BaseCommand
 from django.db import models
-from sentry_sdk.crons import monitor
 
 from api.models import Country, CountryType
 from databank.models import CountryOverview
 from main.managers import BulkUpdateManager
-from main.sentry import SentryMonitor
+from main.sentry import SentryMonitor, sentry_cron_monitor
 from main.utils import logger_context, pretty_seconds
 
 logger = logging.getLogger(__name__)
@@ -147,7 +146,7 @@ class Command(BaseCommand):
                 break
             page += 1
 
-    @monitor(monitor_slug=SentryMonitor.INGEST_WORLDBANK)
+    @sentry_cron_monitor(SentryMonitor.INGEST_WORLDBANK)
     def handle(self, **_):
         bulk_mgr = BulkUpdateManager(update_fields=COUNTRY_OVERVIEW_CHANGED_FIELDS, chunk_size=20)
         total_start_time = time.time()

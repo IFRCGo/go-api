@@ -1,9 +1,8 @@
 from django.contrib.auth.models import Group, User
 from django.core.management.base import BaseCommand
-from sentry_sdk.crons import monitor
 
 from api.logger import logger
-from main.sentry import SentryMonitor
+from main.sentry import SentryMonitor, sentry_cron_monitor
 
 # from registrations.views import is_valid_domain
 
@@ -52,7 +51,7 @@ class Command(BaseCommand):
     #
     #       return editors
 
-    @monitor(monitor_slug=SentryMonitor.REVOKE_STAFF_STATUS)
+    @sentry_cron_monitor(SentryMonitor.REVOKE_STAFF_STATUS)
     def handle(self, *args, **options):
         logger.info("Moving Read only users out of staff status...")
 

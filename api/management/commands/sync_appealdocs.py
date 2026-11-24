@@ -6,7 +6,6 @@ from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from sentry_sdk.crons import monitor
 
 from api.logger import logger
 from api.models import (
@@ -16,7 +15,7 @@ from api.models import (
     CronJob,
     CronJobStatus,
 )
-from main.sentry import SentryMonitor
+from main.sentry import SentryMonitor, sentry_cron_monitor
 
 CRON_NAME = "sync_appealdocs"
 PUBLIC_SOURCE = "https://go-api.ifrc.org/api/publicsiteappeals?Hidden=false&BaseAppealnumber="
@@ -40,7 +39,7 @@ class Command(BaseCommand):
         timeformat = "%Y-%m-%dT%H:%M:%S"
         return datetime.strptime(date_string[:18], timeformat).replace(tzinfo=datetime_timezone.utc)
 
-    @monitor(monitor_slug=SentryMonitor.SYNC_APPEALDOCS)
+    @sentry_cron_monitor(SentryMonitor.SYNC_APPEALDOCS)
     def handle(self, *args, **options):
         logger.info("Starting appeal document ingest")
 

@@ -2,14 +2,13 @@ from dateutil import parser as date_parser
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from sentry_sdk.crons import monitor
 
 from api.create_cron import create_cron_record
 from api.logger import logger
 from api.models import Country, CronJobStatus, Event
 from api.molnix_utils import MolnixApi
 from deployments.models import MolnixTag, MolnixTagGroup, Personnel, PersonnelDeployment
-from main.sentry import SentryMonitor
+from main.sentry import SentryMonitor, sentry_cron_monitor
 from notifications.models import (
     SurgeAlert,
     SurgeAlertCategory,
@@ -552,7 +551,7 @@ class Command(BaseCommand):
 
     # NOTE: Do not wrap the whole command in a transaction. It makes many slow Molnix API calls,
     # and an open transaction for the whole run blocks migrations (and then every query behind them).
-    @monitor(monitor_slug=SentryMonitor.SYNC_MOLNIX)
+    @sentry_cron_monitor(SentryMonitor.SYNC_MOLNIX)
     def handle(self, *args, **options):
         logger.info("Starting Sync Molnix job")
         molnix = MolnixApi(url=settings.MOLNIX_API_BASE, username=settings.MOLNIX_USERNAME, password=settings.MOLNIX_PASSWORD)

@@ -5,10 +5,9 @@ from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from sentry_sdk.crons import monitor
 
 from databank.models import CountryOverview, FDRSIncome, FDRSIndicator
-from main.sentry import SentryMonitor
+from main.sentry import SentryMonitor, sentry_cron_monitor
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +15,7 @@ logger = logging.getLogger(__name__)
 class Command(BaseCommand):
     help = "Import FDRS income data"
 
-    @monitor(monitor_slug=SentryMonitor.FDRS_INCOME)
+    @sentry_cron_monitor(SentryMonitor.FDRS_INCOME)
     def handle(self, *args, **kwargs):
         # NOTE: Loading FDRS indicators
         call_command("loaddata", "fdrs_indicator.json", verbosity=2)

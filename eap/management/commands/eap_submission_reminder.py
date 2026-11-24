@@ -2,17 +2,16 @@ from datetime import timedelta
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from sentry_sdk.crons import monitor
 
 from eap.models import EAPRegistration
 from eap.tasks import send_deadline_reminder_email
-from main.sentry import SentryMonitor
+from main.sentry import SentryMonitor, sentry_cron_monitor
 
 
 class Command(BaseCommand):
     help = "Send EAP submission reminder emails 1 week before deadline"
 
-    @monitor(monitor_slug=SentryMonitor.EAP_SUBMISSION_REMINDER)
+    @sentry_cron_monitor(SentryMonitor.EAP_SUBMISSION_REMINDER)
     def handle(self, *args, **options):
         """
         Finds EAP-registrations whose submission deadline is exactly 1 week from today

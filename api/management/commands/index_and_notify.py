@@ -10,7 +10,6 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.html import strip_tags
 from elasticsearch.helpers import bulk
-from sentry_sdk.crons import monitor
 
 from api.esconnection import ES_CLIENT
 from api.logger import logger
@@ -24,7 +23,7 @@ from api.models import (
     FieldReport,
 )
 from deployments.models import ERU, Personnel, PersonnelDeployment
-from main.sentry import SentryMonitor
+from main.sentry import SentryMonitor, sentry_cron_monitor
 from main.utils import logger_context
 from notifications.hello import get_hello
 from notifications.models import (
@@ -1031,7 +1030,7 @@ class Command(BaseCommand):
                 + ", notification sent to IM team"
             )
 
-    @monitor(monitor_slug=SentryMonitor.INDEX_AND_NOTIFY)
+    @sentry_cron_monitor(SentryMonitor.INDEX_AND_NOTIFY)
     def handle(self, *args, **options):
         if self.is_digest_mode():
             time_diff = self.diff_1_week()  # in digest mode (once a week, for new_entities only) we use a bigger interval

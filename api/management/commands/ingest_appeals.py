@@ -10,7 +10,6 @@ from django.utils import timezone as tz
 from requests import Session
 from requests import exceptions as reqexc
 from requests.adapters import HTTPAdapter
-from sentry_sdk.crons import monitor
 
 from api.create_cron import create_cron_record
 from api.fixtures.dtype_map import DISASTER_TYPE_MAPPING
@@ -26,7 +25,7 @@ from api.models import (
     GECCode,
     Region,
 )
-from main.sentry import SentryMonitor
+from main.sentry import SentryMonitor, sentry_cron_monitor
 
 CRON_NAME = "ingest_appeals"
 # DANGER! It should be changed when disaster type changes in database:
@@ -344,7 +343,7 @@ class Command(BaseCommand):
 
         return fields
 
-    @monitor(monitor_slug=SentryMonitor.INGEST_APPEALS)
+    @sentry_cron_monitor(SentryMonitor.INGEST_APPEALS)
     def handle(self, *args, **options):
         logger.info("Starting appeals ingest")
         start_appeals_count = Appeal.objects.all().count()

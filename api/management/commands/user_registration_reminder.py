@@ -3,10 +3,9 @@ from datetime import timedelta
 from django.core.management.base import BaseCommand
 from django.template.loader import render_to_string
 from django.utils import timezone
-from sentry_sdk.crons import monitor
 
 from api.models import Region, UserRegion
-from main.sentry import SentryMonitor
+from main.sentry import SentryMonitor, sentry_cron_monitor
 from notifications.notification import send_notification
 from registrations.models import Pending
 
@@ -17,7 +16,7 @@ class Command(BaseCommand):
     def diff_3_day(self):
         return timezone.now() - timedelta(days=3)
 
-    @monitor(monitor_slug=SentryMonitor.USER_REGISTRATION_REMINDER)
+    @sentry_cron_monitor(SentryMonitor.USER_REGISTRATION_REMINDER)
     def handle(self, *args, **options):
         region_ids = Region.objects.all().values_list("id", flat=True)
         time_diff_3_day = self.diff_3_day()

@@ -6,11 +6,10 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
-from sentry_sdk.crons import monitor
 
 from deployments.models import Project, Statuses
 from main.frontend import get_project_url
-from main.sentry import SentryMonitor
+from main.sentry import SentryMonitor, sentry_cron_monitor
 from notifications.notification import send_notification
 
 COMPLETE_STATUS_CHANGE_ALERT_DAYS = 5
@@ -25,7 +24,7 @@ class Command(BaseCommand):
 
     help = "Update project status using start/end date"
 
-    @monitor(monitor_slug=SentryMonitor.UPDATE_PROJECT_STATUS)
+    @sentry_cron_monitor(SentryMonitor.UPDATE_PROJECT_STATUS)
     def handle(self, *args, **options):
         now = timezone.now().date()
 

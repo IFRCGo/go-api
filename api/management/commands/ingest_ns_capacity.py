@@ -2,17 +2,16 @@ import requests
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from sentry_sdk.crons import monitor
 
 from api.logger import logger
 from api.models import Country, CountryCapacityStrengthening, CronJob, CronJobStatus
-from main.sentry import SentryMonitor
+from main.sentry import SentryMonitor, sentry_cron_monitor
 
 
 class Command(BaseCommand):
     help = "Add ns contact details"
 
-    @monitor(monitor_slug=SentryMonitor.INGEST_NS_CAPACITY)
+    @sentry_cron_monitor(SentryMonitor.INGEST_NS_CAPACITY)
     @transaction.atomic
     def handle(self, *args, **kwargs):
         logger.info("Starting NS Contacts")
