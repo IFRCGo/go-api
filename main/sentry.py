@@ -12,10 +12,14 @@ from celery.exceptions import Retry as CeleryRetry
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db import models
+from sentry_sdk.crons import monitor
 from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.logging import ignore_logger
 from sentry_sdk.integrations.redis import RedisIntegration
+
+if typing.TYPE_CHECKING:
+    from sentry_sdk._types import MonitorConfig
 
 IGNORED_ERRORS = [
     Terminated,
@@ -180,7 +184,11 @@ class SentryMonitorConfig:
     https://docs.sentry.io/product/crons/getting-started/http/#creating-or-updating-a-monitor-through-a-check-in-optional
     """
 
-    MAX_RUNTIME_DEFAULT = 30  # Our default is 30 min
+    CHECKIN_MARGIN_DEFAULT = 5  # minutes
+    MAX_RUNTIME_DEFAULT = 30  # minutes
+    MAX_RUNTIME = {
+        SentryMonitor.SYNC_MOLNIX: 40,  # minutes
+    }
 
     FAILURE_THRESHOLD_DEFAULT = 1
     FAILURE_THRESHOLD = {
@@ -194,7 +202,15 @@ class SentryMonitorConfig:
         The amount of time (in minutes) [Sentry Default 1 min]
         Sentry should wait for your checkin before it's considered missed ("grace period")
         """
-        return cls.MAX_RUNTIME_DEFAULT
+        return cls.CHECKIN_MARGIN_DEFAULT
+
+    @classmethod
+    def get_max_runtime(cls, enum: SentryMonitor) -> int:
+        """
+        The amount of time (in minutes) [Sentry Default 30 min]
+        a job can run (after the in-progress checkin) before it's considered timed out.
+        """
+        return cls.MAX_RUNTIME.get(enum, cls.MAX_RUNTIME_DEFAULT)
 
     @classmethod
     def get_failure_issue_threshold(cls, enum: SentryMonitor) -> int:
@@ -210,3 +226,32 @@ class SentryMonitorConfig:
         The number of consecutive OK check-ins it takes before an issue is resolved. Optional.
         """
         return 1
+
+    @classmethod
+    def get_monitor_config(cls, enum: SentryMonitor) -> "MonitorConfig":
+        return {
+            "schedule": {
+                "type": "crontab",
+                "value": enum.label,
+            },
+            "timezone": settings.TIME_ZONE,
+            "checkin_margin": cls.get_checkin_margin(enum),
+            "max_runtime": cls.get_max_runtime(enum),
+            "failure_issue_threshold": cls.get_failure_issue_threshold(enum),
+            "recovery_threshold": cls.get_recovery_threshold(enum),
+        }
+
+
+def sentry_cron_monitor(enum: SentryMonitor):
+    """
+    Wrap sentry_sdk.crons.monitor with the monitor_config, so Sentry creates/updates
+    the monitor on check-in.
+    """
+
+    def decorator(func):
+        wrapped = monitor(monitor_slug=enum.value, monitor_config=SentryMonitorConfig.get_monitor_config(enum))(func)
+        # Used by tests to verify each SentryMonitor command is monitored
+        wrapped.sentry_monitor = enum
+        return wrapped
+
+    return decorator

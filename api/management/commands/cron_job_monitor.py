@@ -38,31 +38,21 @@ class Command(BaseCommand):
 
         SENTRY_INGEST = f"{parsed_url.scheme}://{parsed_url.hostname}"
 
-        for cronjob in SentryMonitor.choices:
-            job, schedule = cronjob
-            SENTRY_CRONS = f"{SENTRY_INGEST}/api/{project_id}/cron/{job}/{api_key}/"
+        for job in SentryMonitor:
+            SENTRY_CRONS = f"{SENTRY_INGEST}/api/{project_id}/cron/{job.value}/{api_key}/"
 
             payload = {
-                "monitor_config": {
-                    "schedule": {
-                        "type": "crontab",
-                        "value": str(schedule),
-                    },
-                    "tz": settings.TIME_ZONE,
-                    "checkin_margin": SentryMonitorConfig.get_checkin_margin(cronjob),
-                    "failure_issue_threshold": SentryMonitorConfig.get_failure_issue_threshold(cronjob),
-                    "recovery_threshold": SentryMonitorConfig.get_recovery_threshold(cronjob),
-                },
+                "monitor_config": SentryMonitorConfig.get_monitor_config(job),
                 "environment": settings.GO_ENVIRONMENT,
                 "status": "ok",
             }
 
             response = requests.post(SENTRY_CRONS, json=payload, headers={"Content-Type": "application/json"})
             if response.status_code == 202:
-                self.stdout.write(self.style.SUCCESS(f"Successfully created cron job for {job}"))
+                self.stdout.write(self.style.SUCCESS(f"Successfully created cron job for {job.value}"))
             else:
                 self.stdout.write(
                     self.style.ERROR(
-                        f"Failed to create cron job for {job} with status code {response.status_code}: {response.content}"
+                        f"Failed to create cron job for {job.value} with status code {response.status_code}: {response.content}"
                     )
                 )
