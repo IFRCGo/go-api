@@ -8,11 +8,10 @@ from django.core.files.base import File
 from django.core.management.base import BaseCommand
 from django.db import models
 from django.utils.timezone import make_aware
-from sentry_sdk.crons import monitor
 
 from api.models import Country
 from country_plan.models import CountryPlan
-from main.sentry import SentryMonitor
+from main.sentry import SentryMonitor, sentry_cron_monitor
 from main.utils import DownloadFileManager
 
 logger = logging.getLogger(__name__)
@@ -130,7 +129,7 @@ class Command(BaseCommand):
             except Exception:
                 logger.error("Could not update countries plan", exc_info=True)
 
-    @monitor(monitor_slug=SentryMonitor.INGEST_COUNTRY_PLAN_FILE)
+    @sentry_cron_monitor(SentryMonitor.INGEST_COUNTRY_PLAN_FILE)
     def handle(self, **_):
         # Public
         self.stdout.write("Fetching data for country plans:: PUBLIC")

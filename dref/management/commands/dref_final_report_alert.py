@@ -2,7 +2,6 @@ from dateutil.relativedelta import relativedelta
 from django.core.management.base import BaseCommand
 from django.db.models import Q
 from django.utils import timezone
-from sentry_sdk.crons import monitor
 
 from api.create_cron import create_cron_record
 from api.logger import logger
@@ -23,7 +22,7 @@ from dref.utils import (
     get_final_report_operation_end_date,
     get_latest_dref_per_appeal_code_filter,
 )
-from main.sentry import SentryMonitor
+from main.sentry import SentryMonitor, sentry_cron_monitor
 
 CRON_NAME = "dref_final_report_alert"
 
@@ -37,7 +36,7 @@ NOT_SUBMITTED_FILTER = Q(dreffinalreport__isnull=True) | ~Q(dreffinalreport__sta
 class Command(BaseCommand):
     help = "Send DREF Final Report alert emails (implementation end, reminder, overdue, recurring overdue)."
 
-    @monitor(monitor_slug=SentryMonitor.DREF_FINAL_REPORT_ALERT)
+    @sentry_cron_monitor(SentryMonitor.DREF_FINAL_REPORT_ALERT)
     def handle(self, *args, **options):
         logger.info("Starting DREF final report alert check")
         today = timezone.now().date()

@@ -2,7 +2,6 @@ import requests
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from sentry_sdk.crons import monitor
 
 from api.logger import logger
 from api.models import (
@@ -12,7 +11,7 @@ from api.models import (
     NSDInitiatives,
     NSDInitiativesCategory,
 )
-from main.sentry import SentryMonitor
+from main.sentry import SentryMonitor, sentry_cron_monitor
 
 DEFAULT_COUNTRY_ID = 289  # IFRC
 
@@ -53,7 +52,7 @@ def get_defaults(element, country, funding_period, lang):
 class Command(BaseCommand):
     help = "Add ns initiatives"
 
-    @monitor(monitor_slug=SentryMonitor.INGEST_NS_INITIATIVES)
+    @sentry_cron_monitor(SentryMonitor.INGEST_NS_INITIATIVES)
     @transaction.atomic
     def handle(self, *args, **kwargs):
         logger.info("Starting NS Inititatives")

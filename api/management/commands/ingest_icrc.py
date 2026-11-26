@@ -1,17 +1,16 @@
 import requests
 from bs4 import BeautifulSoup
 from django.core.management.base import BaseCommand
-from sentry_sdk.crons import monitor
 
 from api.logger import logger
 from api.models import Country, CountryICRCPresence, CronJob, CronJobStatus
-from main.sentry import SentryMonitor
+from main.sentry import SentryMonitor, sentry_cron_monitor
 
 
 class Command(BaseCommand):
     help = "Add ICRC data"
 
-    @monitor(monitor_slug=SentryMonitor.INGEST_ICRC)
+    @sentry_cron_monitor(SentryMonitor.INGEST_ICRC)
     def handle(self, *args, **kwargs):
         logger.info("Starting ICRC data ingest")
         HEADERS = {

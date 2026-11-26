@@ -96,7 +96,7 @@ app:
           cpu: "4"
           memory: 2Gi
     # NOTE: job keys + schedules are kept in sync with main/sentry.py SentryMonitor
-    # (validated by the cron_job_monitor command). Keep both in lockstep.
+    # (validated by the validate_sentry_monitors command). Keep both in lockstep.
     jobs:
       index_and_notify:
         enabled: true

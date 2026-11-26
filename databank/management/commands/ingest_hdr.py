@@ -4,11 +4,10 @@ import requests
 from django.core.management.base import BaseCommand
 from django.db import models, transaction
 from requests.adapters import HTTPAdapter
-from sentry_sdk.crons import monitor
 from urllib3.util.retry import Retry
 
 from databank.models import CountryOverview
-from main.sentry import SentryMonitor
+from main.sentry import SentryMonitor, sentry_cron_monitor
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +15,7 @@ logger = logging.getLogger(__name__)
 class Command(BaseCommand):
     help = "Add HDR GII data"
 
-    @monitor(monitor_slug=SentryMonitor.INGEST_HDR)
+    @sentry_cron_monitor(SentryMonitor.INGEST_HDR)
     @transaction.atomic
     def handle(self, *args, **kwargs):
         overview_qs = CountryOverview.objects.annotate(
