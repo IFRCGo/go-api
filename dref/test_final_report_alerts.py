@@ -37,6 +37,7 @@ class DrefFinalReportDueDateTest(TestCase):
     def _create_update(self, **kwargs):
         kwargs.setdefault("dref", self.dref)
         kwargs.setdefault("appeal_code", self.dref.appeal_code)
+        kwargs.setdefault("status", Dref.Status.APPROVED)
         kwargs.setdefault("date_of_approval", date(2026, 2, 1))
         kwargs.setdefault("new_operational_end_date", date(2026, 5, 31))
         return DrefOperationalUpdateFactory.create(**kwargs)
@@ -48,7 +49,7 @@ class DrefFinalReportDueDateTest(TestCase):
             operational_update_number=2,
             new_operational_end_date=date(2026, 5, 31),
         )
-        self._create_update(date_of_approval=None, new_operational_end_date=date(2026, 12, 31))
+        self._create_update(status=Dref.Status.DRAFT, date_of_approval=None, new_operational_end_date=date(2026, 12, 31))
         self._create_update(appeal_code="MDRXX999", date_of_approval=date(2026, 3, 1))
 
         self.dref.refresh_from_db()
@@ -91,11 +92,12 @@ class DrefFinalReportDueDateTest(TestCase):
         self.assertEqual(self.dref.final_report_due_date, date(2026, 4, 30))
 
     def test_due_date_changes_when_update_is_approved_edited_and_deleted(self):
-        update = self._create_update(date_of_approval=None)
+        update = self._create_update(status=Dref.Status.DRAFT, date_of_approval=None)
         self.dref.refresh_from_db()
         self.assertEqual(self.dref.final_report_due_date, date(2026, 4, 30))
+        update.status = Dref.Status.APPROVED
         update.date_of_approval = date(2026, 2, 1)
-        update.save(update_fields=["date_of_approval"])
+        update.save(update_fields=["status", "date_of_approval"])
         self.dref.refresh_from_db()
         self.assertEqual(self.dref.final_report_due_date, date(2026, 8, 31))
         update.new_operational_end_date = date(2026, 6, 30)
@@ -135,8 +137,9 @@ class DrefFinalReportDueDateTest(TestCase):
 
     def test_due_date_falls_back_when_approval_is_removed(self):
         update = self._create_update()
+        update.status = Dref.Status.DRAFT
         update.date_of_approval = None
-        update.save(update_fields=["date_of_approval"])
+        update.save(update_fields=["status", "date_of_approval"])
         self.dref.refresh_from_db()
         self.assertEqual(self.dref.final_report_due_date, date(2026, 4, 30))
 
@@ -243,6 +246,7 @@ class DrefFinalReportAlertCommandTest(TestCase):
         DrefOperationalUpdateFactory.create(
             dref=dref,
             appeal_code=dref.appeal_code,
+            status=Dref.Status.APPROVED,
             date_of_approval=self.today,
             new_operational_end_date=self.today + relativedelta(months=1),
         )
@@ -261,6 +265,7 @@ class DrefFinalReportAlertCommandTest(TestCase):
         DrefOperationalUpdateFactory.create(
             dref=dref,
             appeal_code=dref.appeal_code,
+            status=Dref.Status.APPROVED,
             date_of_approval=self.today,
             new_operational_end_date=self.today
             - relativedelta(months=DREF_FINAL_REPORT_DUE_MONTHS - DREF_FINAL_REPORT_REMINDER_MONTHS_BEFORE_DUE),
@@ -546,7 +551,9 @@ class GetFinalReportAlertRecipientsTest(TestCase):
         self.assertIsNone(get_latest_approved_operational_update(self.dref))
 
     def test_latest_approved_operational_update_ignores_unapproved_ones(self):
-        DrefOperationalUpdateFactory.create(dref=self.dref, appeal_code=self.dref.appeal_code, date_of_approval=None)
+        DrefOperationalUpdateFactory.create(
+            dref=self.dref, appeal_code=self.dref.appeal_code, status=Dref.Status.DRAFT, date_of_approval=None
+        )
 
         self.assertIsNone(get_latest_approved_operational_update(self.dref))
 
@@ -557,6 +564,7 @@ class GetFinalReportAlertRecipientsTest(TestCase):
         operational_update = DrefOperationalUpdateFactory.create(
             dref=other_dref,
             appeal_code=self.dref.appeal_code,
+            status=Dref.Status.APPROVED,
             date_of_approval=timezone.now().date(),
         )
 
@@ -567,12 +575,14 @@ class GetFinalReportAlertRecipientsTest(TestCase):
         DrefOperationalUpdateFactory.create(
             dref=self.dref,
             appeal_code=self.dref.appeal_code,
+            status=Dref.Status.APPROVED,
             date_of_approval=today - timedelta(days=10),
             operational_update_number=1,
         )
         latest = DrefOperationalUpdateFactory.create(
             dref=self.dref,
             appeal_code=self.dref.appeal_code,
+            status=Dref.Status.APPROVED,
             date_of_approval=today,
             operational_update_number=2,
         )
@@ -596,6 +606,7 @@ class GetFinalReportAlertRecipientsTest(TestCase):
         DrefOperationalUpdateFactory.create(
             dref=self.dref,
             appeal_code=self.dref.appeal_code,
+            status=Dref.Status.DRAFT,
             date_of_approval=None,
             ifrc_appeal_manager_email="ou.appeal.manager@example.com",
         )
@@ -608,6 +619,7 @@ class GetFinalReportAlertRecipientsTest(TestCase):
         DrefOperationalUpdateFactory.create(
             dref=self.dref,
             appeal_code=self.dref.appeal_code,
+            status=Dref.Status.APPROVED,
             date_of_approval=timezone.now().date(),
             ifrc_appeal_manager_email="ou.appeal.manager@example.com",
             ifrc_project_manager_email="ou.project.manager@example.com",
@@ -631,6 +643,7 @@ class GetFinalReportAlertRecipientsTest(TestCase):
         DrefOperationalUpdateFactory.create(
             dref=self.dref,
             appeal_code=self.dref.appeal_code,
+            status=Dref.Status.APPROVED,
             date_of_approval=timezone.now().date(),
             ifrc_appeal_manager_email="ou.appeal.manager@example.com",
             ifrc_project_manager_email="",
