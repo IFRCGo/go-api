@@ -39,10 +39,10 @@ def get_final_report_alert_email_context(dref: Dref) -> dict:
 def get_latest_approved_operational_update(dref: Dref) -> Optional[DrefOperationalUpdate]:
     """Return the latest approved DrefOperationalUpdate sharing the same appeal_code as the given Dref.
 
-    "Approved" here is determined by date_of_approval being set, since date_of_approval is only ever
-    set when an Operational Update transitions to Dref.Status.APPROVED (see
-    DrefOperationalUpdateViewSet.get_approved). Matching is done via appeal_code rather than the
-    Operational Update's dref FK, since appeal_code is the shared business identifier across DREF stages.
+    "Approved" here is determined by status == Dref.Status.APPROVED, since that's the authoritative
+    approval state (see DrefOperationalUpdateViewSet.get_approved, which sets status and
+    date_of_approval together). Matching is done via appeal_code rather than the Operational Update's
+    dref FK, since appeal_code is the shared business identifier across DREF stages.
     """
     if not dref.appeal_code:
         return None
@@ -50,7 +50,7 @@ def get_latest_approved_operational_update(dref: Dref) -> Optional[DrefOperation
     return (
         DrefOperationalUpdate.objects.filter(
             appeal_code=dref.appeal_code,
-            date_of_approval__isnull=False,
+            status=Dref.Status.APPROVED,
         )
         .order_by("-date_of_approval", "-operational_update_number", "-pk")
         .first()
