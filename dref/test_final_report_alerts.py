@@ -11,6 +11,7 @@ from dref.factories.dref import (
     DrefFinalReportFactory,
     DrefOperationalUpdateFactory,
 )
+from dref.management.commands.dref_final_report_alert import SKIP_APPEAL_CODES
 from dref.models import (
     DREF_FINAL_REPORT_DUE_MONTHS,
     DREF_FINAL_REPORT_RECURRING_OVERDUE_INTERVAL_MONTHS,
@@ -535,6 +536,35 @@ class DrefFinalReportAlertCommandTest(TestCase):
         call_command("dref_final_report_alert")
 
         mock_implementation_end.assert_called_once_with(in_scope.id)
+
+    def test_skipped_appeal_codes_get_no_alerts_of_any_kind(
+        self, mock_implementation_end, mock_reminder, mock_overdue, mock_recurring
+    ):
+        skipped_appeal_code = next(iter(SKIP_APPEAL_CODES))
+        recurring_end_date = self.today - relativedelta(months=self.RECURRING_DUE_MONTHS_AGO)
+        last_sent = timezone.now() - timedelta(days=35)
+        self._create_dref(
+            appeal_code=skipped_appeal_code,
+            end_date=recurring_end_date,
+            final_report_overdue_alert_sent_at=last_sent,
+            final_report_recurring_overdue_alert_sent_at=last_sent,
+        )
+
+        call_command("dref_final_report_alert")
+
+        mock_implementation_end.assert_not_called()
+        mock_reminder.assert_not_called()
+        mock_overdue.assert_not_called()
+        mock_recurring.assert_not_called()
+
+    def test_non_skipped_appeal_code_still_gets_alerts(
+        self, mock_implementation_end, mock_reminder, mock_overdue, mock_recurring
+    ):
+        dref = self._create_dref(appeal_code="MDRXX001", end_date=self.today)
+
+        call_command("dref_final_report_alert")
+
+        mock_implementation_end.assert_called_once_with(dref.id)
 
 
 class GetFinalReportAlertRecipientsTest(TestCase):

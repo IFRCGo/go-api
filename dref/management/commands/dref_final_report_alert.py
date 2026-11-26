@@ -32,6 +32,11 @@ IN_SCOPE_DREF_TYPES = [Dref.DrefType.IMMINENT, Dref.DrefType.ASSESSMENT, Dref.Dr
 # Final Report is considered submitted once it has been approved (see DrefFinalReportViewSet.get_approved).
 NOT_SUBMITTED_FILTER = Q(dreffinalreport__isnull=True) | ~Q(dreffinalreport__status=Dref.Status.APPROVED)
 
+# Appeal codes for which no final report alert emails should be sent at all (e.g. known exceptions
+# handled manually outside this automated flow). Comma-separated; whitespace around each code is ignored.
+SKIP_DREFS = "MDRPH057,MDRAF019"
+SKIP_APPEAL_CODES = {code.strip() for code in SKIP_DREFS.split(",") if code.strip()}
+
 
 class Command(BaseCommand):
     help = "Send DREF Final Report alert emails (implementation end, reminder, overdue, recurring overdue)."
@@ -72,6 +77,8 @@ class Command(BaseCommand):
 
         count = 0
         for instance in queryset.iterator():
+            if instance.appeal_code in SKIP_APPEAL_CODES:
+                continue
             end_date = get_final_report_operation_end_date(instance)
             if end_date is None or end_date > today:
                 continue
@@ -96,6 +103,8 @@ class Command(BaseCommand):
 
         count = 0
         for instance in queryset.iterator():
+            if instance.appeal_code in SKIP_APPEAL_CODES:
+                continue
             end_date = get_final_report_operation_end_date(instance)
             if end_date is None or end_date > target_end_date:
                 continue
@@ -119,6 +128,8 @@ class Command(BaseCommand):
 
         count = 0
         for instance in queryset.iterator():
+            if instance.appeal_code in SKIP_APPEAL_CODES:
+                continue
             self.stdout.write(self.style.NOTICE(f"Sending final report overdue alert for Dref ID={instance.id}"))
             send_final_report_overdue_email(instance.id)
             count += 1
@@ -138,6 +149,8 @@ class Command(BaseCommand):
 
         count = 0
         for instance in queryset.iterator():
+            if instance.appeal_code in SKIP_APPEAL_CODES:
+                continue
             if instance.final_report_recurring_overdue_alert_sent_at and (
                 instance.final_report_recurring_overdue_alert_sent_at.date() == today
             ):
