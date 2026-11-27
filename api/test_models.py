@@ -1,6 +1,7 @@
 from datetime import timedelta
 from unittest.mock import patch
 
+import reversion
 from django.contrib.admin.sites import AdminSite
 from django.contrib.auth.models import User
 from django.forms.models import model_to_dict
@@ -296,3 +297,24 @@ class EventAdminFormValidationTest(TestCase):
 
         form.is_valid()
         self.assertNotIn("ifrc_severity_level_update_date", form.errors)
+
+
+class GlobalReversionLogTest(TestCase):
+    def _save_with_revision(self, obj, comment):
+        with self.captureOnCommitCallbacks(execute=True):
+            with reversion.create_revision():
+                obj.save()
+                reversion.set_comment(comment)
+
+    def test_change_is_diffed_against_previous_version_of_same_object(self):
+        link = models.AdminLink(title="Old title", url="https://example.com/a")
+        other = models.AdminLink(title="Other", url="https://example.com/b")
+        self._save_with_revision(link, "Added.")
+        self._save_with_revision(other, "Added.")
+
+        link.title = "New title"
+        self._save_with_revision(link, "Changed title.")
+
+        log = models.ReversionDifferenceLog.objects.filter(object_id=str(link.pk), action="Changed").get()
+        self.assertEqual(log.changed_from, ["title: Old title"])
+        self.assertEqual(log.changed_to, ["title: New title"])

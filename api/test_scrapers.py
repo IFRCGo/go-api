@@ -12,9 +12,10 @@ from notifications.models import (
     Region,
     Subscription,
     SubscriptionType,
+    SurgeAlert,
 )
 
-from .models import Appeal, FieldReport
+from .models import Appeal, Event, FieldReport
 
 
 def get_user():
@@ -242,3 +243,29 @@ class FilterJustCreatedTest(TestCase):
         filtered = notify.filter_just_created(Appeal.objects.filter(created_at__gte=notify.diff_9_minutes()))
         self.assertEqual(len(filtered), 1)
         self.assertEqual(filtered[0].aid, "test2")
+
+
+class SurgeAlertNotificationContentTest(TestCase):
+    def setUp(self):
+        self.notify = Notify()
+        self.country = Country(name="Kenya")
+
+    def test_alert_without_event_uses_operation(self):
+        alert = SurgeAlert(operation="Kenya Floods", message="Need logistics, urgent", country=self.country)
+
+        self.assertEqual(
+            self.notify.get_record_content(alert, RecordType.SURGE_ALERT),
+            "Kenya Floods | Need logistics",
+        )
+        self.assertEqual(self.notify.get_surge_alert_label(alert, ", "), "Kenya Floods")
+
+    def test_alert_without_event_or_operation_uses_country(self):
+        alert = SurgeAlert(operation="", message="", country=self.country)
+
+        self.assertEqual(self.notify.get_record_content(alert, RecordType.SURGE_ALERT), "Kenya")
+
+    def test_alert_with_event_appends_country(self):
+        alert = SurgeAlert(operation="", message="", event=Event(name="Floods"), country=self.country)
+
+        self.assertEqual(self.notify.get_record_content(alert, RecordType.SURGE_ALERT), "Floods – Kenya")
+        self.assertEqual(self.notify.get_surge_alert_label(alert, ", "), "Floods, Kenya")

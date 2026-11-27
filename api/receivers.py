@@ -77,8 +77,9 @@ def create_global_reversion_log(versions, revision):
         action_happened = "Added" if "Added" in revision.comment else "Changed"
 
         previous_version = Version.objects.filter(
-            object_id=version.object_id,
+            db=version.db,
             content_type_id=version.content_type_id,
+            object_id=version.object_id,
             id__lt=version.id,
         ).first()
 
