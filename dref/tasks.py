@@ -344,10 +344,10 @@ def _translate_related_objects(
     if visited is None:
         visited = set()
 
-    instance_id = id(instance)
-    if instance_id in visited:
+    instance_key = (type(instance), instance.pk)
+    if instance_key in visited:
         return
-    visited.add(instance_id)
+    visited.add(instance_key)
 
     for field in instance._meta.get_fields():
         if not field.is_relation or field.auto_created:
@@ -366,8 +366,9 @@ def _translate_related_objects(
                 model_name = get_model_name(type(related_value))
                 if auto_translate:
                     translate_model_fields(model_name, related_value.id)
-                related_value.translation_module_original_language = language
-                related_value.save(update_fields=["translation_module_original_language"])
+                if related_value.translation_module_original_language != language:
+                    related_value.translation_module_original_language = language
+                    related_value.save(update_fields=["translation_module_original_language"])
                 _translate_related_objects(related_value, visited, auto_translate, language)
         else:
             for related_obj in related_value.all():
@@ -375,6 +376,7 @@ def _translate_related_objects(
                     model_name = get_model_name(type(related_obj))
                     if auto_translate:
                         translate_model_fields(model_name, related_obj.id)
-                    related_obj.translation_module_original_language = language
-                    related_obj.save(update_fields=["translation_module_original_language"])
+                    if related_obj.translation_module_original_language != language:
+                        related_obj.translation_module_original_language = language
+                        related_obj.save(update_fields=["translation_module_original_language"])
                     _translate_related_objects(related_obj, visited, auto_translate, language)

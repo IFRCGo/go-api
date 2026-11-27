@@ -697,6 +697,12 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
                 {"non_field_errors": gettext("This Dref has already been approved and cannot be modified.")}
             )
 
+        _translate_related_objects(
+            instance=instance,
+            auto_translate=False,
+            language=instance.translation_module_original_language,
+        )
+
         if type_of_dref and type_of_dref == Dref.DrefType.ASSESSMENT:
             # Previous Operations
             validated_data["lessons_learned"] = None
@@ -1144,6 +1150,12 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             raise serializers.ValidationError(
                 {"non_field_errors": gettext("This Operational Update has already been approved and cannot be modified.")}
             )
+
+        _translate_related_objects(
+            instance=instance,
+            auto_translate=False,
+            language=instance.translation_module_original_language,
+        )
 
         validated_data["modified_at"] = timezone.now()
         return super().update(instance, validated_data)
@@ -1614,6 +1626,11 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             raise serializers.ValidationError(
                 {"non_field_errors": gettext("This Final Report has already been approved and cannot be modified.")}
             )
+        _translate_related_objects(
+            instance=instance,
+            auto_translate=False,
+            language=instance.translation_module_original_language,
+        )
         validated_data["modified_at"] = timezone.now()
         validated_data["modified_by"] = self.context["request"].user
         return super().update(instance, validated_data)
