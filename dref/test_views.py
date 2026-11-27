@@ -28,6 +28,8 @@ from dref.factories.dref import (
     DrefFileFactory,
     DrefFinalReportFactory,
     DrefOperationalUpdateFactory,
+    PlannedInterventionFactory,
+    PlannedInterventionIndicatorsFactory,
     ProposedActionActivitiesFactory,
     ProposedActionFactory,
 )
@@ -2974,3 +2976,67 @@ class Dref3ViewSetTests(APITestCase):
         # self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         # New decision: normal users can access but see fewer records
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+class DrefNestedItemLanguageTest(APITestCase):
+    def _create_es_intervention_with_en_indicator(self):
+        indicator = PlannedInterventionIndicatorsFactory.create(title="Indicador", translation_module_original_language="es")
+        intervention = PlannedInterventionFactory.create(translation_module_original_language="es")
+        intervention.indicators.add(indicator)
+        # Shared nested item switched to English, e.g. by finalizing another document that links it
+        indicator.translation_module_original_language = "en"
+        indicator.save(update_fields=["translation_module_original_language"])
+        return intervention, indicator
+
+    def _patch_es(self, url, intervention, indicator):
+        data = {
+            "modified_at": datetime.now() + timedelta(days=1),
+            "planned_interventions": [
+                {
+                    "id": intervention.id,
+                    "title": intervention.title,
+                    "indicators": [{"id": indicator.id, "title": "Indicador actualizado"}],
+                }
+            ],
+        }
+        self.authenticate(self.user)
+        return self.client.patch(url, data=data, format="json", HTTP_ACCEPT_LANGUAGE="es")
+
+    def _assert_indicator_saved_in_es(self, indicator):
+        indicator.refresh_from_db()
+        self.assertEqual(indicator.translation_module_original_language, "es")
+        self.assertEqual(indicator.title_es, "Indicador actualizado")
+
+    def test_operational_update_patch_with_nested_item_in_other_language(self):
+        dref = DrefFactory.create(created_by=self.user, status=Dref.Status.APPROVED)
+        intervention, indicator = self._create_es_intervention_with_en_indicator()
+        op_update = DrefOperationalUpdateFactory.create(
+            dref=dref,
+            created_by=self.user,
+            status=Dref.Status.DRAFT,
+            translation_module_original_language="es",
+            starting_language="es",
+        )
+        op_update.planned_interventions.add(intervention)
+
+        response = self._patch_es(f"/api/v2/dref-op-update/{op_update.id}/", intervention, indicator)
+
+        self.assert_200(response)
+        self._assert_indicator_saved_in_es(indicator)
+
+    def test_final_report_patch_with_nested_item_in_other_language(self):
+        dref = DrefFactory.create(created_by=self.user, status=Dref.Status.APPROVED)
+        intervention, indicator = self._create_es_intervention_with_en_indicator()
+        final_report = DrefFinalReportFactory.create(
+            dref=dref,
+            created_by=self.user,
+            status=Dref.Status.DRAFT,
+            translation_module_original_language="es",
+            starting_language="es",
+        )
+        final_report.planned_interventions.add(intervention)
+
+        response = self._patch_es(f"/api/v2/dref-final-report/{final_report.id}/", intervention, indicator)
+
+        self.assert_200(response)
+        self._assert_indicator_saved_in_es(indicator)
