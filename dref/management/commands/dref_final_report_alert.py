@@ -21,10 +21,12 @@ from dref.tasks import (
 from dref.utils import (
     get_final_report_operation_end_date,
     get_latest_dref_per_appeal_code_filter,
+    is_latest_operational_update_loan,
 )
 from main.sentry import SentryMonitor, sentry_cron_monitor
 
 CRON_NAME = "dref_final_report_alert"
+MAX_FINAL_REPORT_OVERDUE_MONTHS = 12
 
 # Response (incl. Assessment) and Imminent DREFs only; Loan is out of scope.
 IN_SCOPE_DREF_TYPES = [Dref.DrefType.IMMINENT, Dref.DrefType.ASSESSMENT, Dref.DrefType.RESPONSE]
@@ -45,6 +47,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         logger.info("Starting DREF final report alert check")
         today = timezone.now().date()
+        self.overdue_escalation_logged_ids = set()
 
         implementation_end_count = self.send_implementation_end_alerts(today)
         reminder_count = self.send_reminder_alerts(today)
@@ -65,6 +68,20 @@ class Command(BaseCommand):
         )
         create_cron_record(CRON_NAME, cron_msg, CronJobStatus.SUCCESSFUL, total_count)
 
+    def should_skip_for_overdue_escalation(self, instance, today):
+        due_date = instance.final_report_due_date
+        if due_date is None or due_date + relativedelta(months=MAX_FINAL_REPORT_OVERDUE_MONTHS) >= today:
+            return False
+
+        if instance.id not in self.overdue_escalation_logged_ids:
+            logger.warning(
+                f"Skipping final report alerts for Dref ID={instance.id}, appeal_code={instance.appeal_code}: "
+                f"final report was due more than {MAX_FINAL_REPORT_OVERDUE_MONTHS} months ago; "
+                "another escalation is required."
+            )
+            self.overdue_escalation_logged_ids.add(instance.id)
+        return True
+
     def send_implementation_end_alerts(self, today):
         # end_date <= today (not == today) so a Dref whose implementation end date was missed on its
         # exact day (e.g. cron downtime, or it only became eligible afterwards) is still caught up here,
@@ -81,6 +98,10 @@ class Command(BaseCommand):
                 continue
             end_date = get_final_report_operation_end_date(instance)
             if end_date is None or end_date > today:
+                continue
+            if is_latest_operational_update_loan(instance):
+                continue
+            if self.should_skip_for_overdue_escalation(instance, today):
                 continue
             self.stdout.write(self.style.NOTICE(f"Sending implementation end alert for Dref ID={instance.id}"))
             send_final_report_implementation_end_email(instance.id)
@@ -108,6 +129,10 @@ class Command(BaseCommand):
             end_date = get_final_report_operation_end_date(instance)
             if end_date is None or end_date > target_end_date:
                 continue
+            if is_latest_operational_update_loan(instance):
+                continue
+            if self.should_skip_for_overdue_escalation(instance, today):
+                continue
             self.stdout.write(self.style.NOTICE(f"Sending final report reminder for Dref ID={instance.id}"))
             send_final_report_reminder_email(instance.id)
             count += 1
@@ -129,6 +154,10 @@ class Command(BaseCommand):
         count = 0
         for instance in queryset.iterator():
             if instance.appeal_code in SKIP_APPEAL_CODES:
+                continue
+            if is_latest_operational_update_loan(instance):
+                continue
+            if self.should_skip_for_overdue_escalation(instance, today):
                 continue
             self.stdout.write(self.style.NOTICE(f"Sending final report overdue alert for Dref ID={instance.id}"))
             send_final_report_overdue_email(instance.id)
@@ -161,6 +190,10 @@ class Command(BaseCommand):
             if months_elapsed < DREF_FINAL_REPORT_RECURRING_OVERDUE_INTERVAL_MONTHS:
                 continue
             if due_date + relativedelta(months=months_elapsed) != today:
+                continue
+            if is_latest_operational_update_loan(instance):
+                continue
+            if self.should_skip_for_overdue_escalation(instance, today):
                 continue
 
             self.stdout.write(self.style.NOTICE(f"Sending recurring overdue alert for Dref ID={instance.id}"))
