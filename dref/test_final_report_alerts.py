@@ -11,7 +11,10 @@ from dref.factories.dref import (
     DrefFinalReportFactory,
     DrefOperationalUpdateFactory,
 )
-from dref.management.commands.dref_final_report_alert import SKIP_APPEAL_CODES
+from dref.management.commands.dref_final_report_alert import (
+    MAX_FINAL_REPORT_OVERDUE_MONTHS,
+    SKIP_APPEAL_CODES,
+)
 from dref.models import (
     DREF_FINAL_REPORT_DUE_MONTHS,
     DREF_FINAL_REPORT_RECURRING_OVERDUE_INTERVAL_MONTHS,
@@ -293,6 +296,74 @@ class DrefFinalReportAlertCommandTest(TestCase):
         call_command("dref_final_report_alert")
 
         mock_implementation_end.assert_not_called()
+
+    def test_alerts_skipped_when_latest_operational_update_is_loan(
+        self, mock_implementation_end, mock_reminder, mock_overdue, mock_recurring
+    ):
+        dref = self._create_dref(
+            appeal_code="MDRXX001",
+            end_date=self.today - relativedelta(months=self.RECURRING_DUE_MONTHS_AGO),
+            final_report_overdue_alert_sent_at=timezone.now(),
+        )
+        DrefOperationalUpdateFactory.create(
+            dref=dref,
+            appeal_code=dref.appeal_code,
+            type_of_dref=Dref.DrefType.LOAN,
+            status=Dref.Status.APPROVED,
+            date_of_approval=self.today,
+            new_operational_end_date=self.today - relativedelta(months=self.RECURRING_DUE_MONTHS_AGO),
+        )
+
+        call_command("dref_final_report_alert")
+
+        mock_implementation_end.assert_not_called()
+        mock_reminder.assert_not_called()
+        mock_overdue.assert_not_called()
+        mock_recurring.assert_not_called()
+
+    def test_alerts_skipped_and_warning_logged_when_overdue_more_than_12_months(
+        self, mock_implementation_end, mock_reminder, mock_overdue, mock_recurring
+    ):
+        dref = self._create_dref(
+            end_date=self.today
+            - relativedelta(months=DREF_FINAL_REPORT_DUE_MONTHS + MAX_FINAL_REPORT_OVERDUE_MONTHS)
+            - timedelta(days=1),
+        )
+
+        with mock.patch("dref.management.commands.dref_final_report_alert.logger.warning") as mock_warning:
+            call_command("dref_final_report_alert")
+
+        mock_implementation_end.assert_not_called()
+        mock_reminder.assert_not_called()
+        mock_overdue.assert_not_called()
+        mock_recurring.assert_not_called()
+        mock_warning.assert_called_once()
+        self.assertIn(f"Dref ID={dref.id}", mock_warning.call_args.args[0])
+
+    def test_recurring_alert_skipped_when_overdue_more_than_12_months(
+        self, mock_implementation_end, mock_reminder, mock_overdue, mock_recurring
+    ):
+        last_sent = timezone.now() - timedelta(days=35)
+        self._create_dref(
+            end_date=self.today - relativedelta(months=DREF_FINAL_REPORT_DUE_MONTHS + MAX_FINAL_REPORT_OVERDUE_MONTHS + 1),
+            final_report_overdue_alert_sent_at=last_sent,
+            final_report_recurring_overdue_alert_sent_at=last_sent,
+        )
+
+        call_command("dref_final_report_alert")
+
+        mock_recurring.assert_not_called()
+
+    def test_alerts_not_skipped_when_exactly_12_months_overdue(
+        self, mock_implementation_end, mock_reminder, mock_overdue, mock_recurring
+    ):
+        dref = self._create_dref(
+            end_date=self.today - relativedelta(months=DREF_FINAL_REPORT_DUE_MONTHS + MAX_FINAL_REPORT_OVERDUE_MONTHS),
+        )
+
+        call_command("dref_final_report_alert")
+
+        mock_overdue.assert_called_once_with(dref.id)
 
     def test_implementation_end_alert_skipped_once_already_sent(
         self, mock_implementation_end, mock_reminder, mock_overdue, mock_recurring

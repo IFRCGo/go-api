@@ -73,6 +73,12 @@ def get_latest_dref_per_appeal_code_filter(dref_types) -> Q:
     return Q(appeal_code__isnull=True) | Q(appeal_code="") | Q(id__in=latest_ids)
 
 
+def is_latest_operational_update_loan(dref: Dref) -> bool:
+    """True if the latest approved Operational Update is of DrefType LOAN (no final report alerts then)."""
+    latest_operational_update = get_latest_approved_operational_update(dref)
+    return latest_operational_update is not None and latest_operational_update.type_of_dref == Dref.DrefType.LOAN
+
+
 def get_final_report_operation_end_date(dref: Dref):
     """Use the latest approved update's end date, falling back to the application."""
     latest_operational_update = get_latest_approved_operational_update(dref)
