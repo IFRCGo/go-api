@@ -11,7 +11,7 @@
          </p>
          <p>
            The implementation timeframe ended on <b>{{ operation_end_date|date:"d M Y" }}</b>, and 1 month
-           remains until the report submission deadline.
+           remains until the report approval deadline.
          </p>
          <p>If work on the report has already started, please ensure it is finalized and submitted by the due date.</p>
          <p>
@@ -22,6 +22,9 @@
          <p>
            This is an automatically generated email. You are receiving this notification because your contact
            information has been recorded as one of the main contacts for this operation in IFRC GO.
+           If you are no longer involved in this operation or believe you should no longer receive
+           these notifications, please contact your IFRC DREF Regional Focal Point to request
+           that your contact information be updated or removed from the operation record in IFRC GO.
          </p>
          <br>
          <p>Kind regards,<br>DREF Team</p>
@@ -29,4 +32,4 @@
      </tr>
    </table>
 
-{% include "design/foot1.html" %}
+{% include "email/dref/foot.html" %}
