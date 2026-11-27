@@ -302,7 +302,7 @@ class Command(BaseCommand):
             else:
                 duration = f"{(record.end - record.start).days} days"
             return (
-                f"{record.operation if record.operation_en else record.event.name}"
+                f"{record.operation if record.operation_en else self.get_surge_alert_name(record)}"
                 f", {duration} starting on {record.start.date()}"
             )
             # go-frontend/issues/2041: del ' (' + record.atype.name + ', ' + record.category.name.lower() +')'
@@ -310,6 +310,18 @@ class Command(BaseCommand):
             return "%s, %s" % (record.country_deployed_to, record.region_deployed_to)
         else:
             return record.name
+
+    @staticmethod
+    def get_surge_alert_name(record):
+        if record.event:
+            return record.event.name
+        return record.operation or ""
+
+    def get_surge_alert_label(self, record, separator):
+        name = self.get_surge_alert_name(record)
+        if record.country and record.country.name not in name:
+            return f"{name}{separator}{record.country.name}" if name else record.country.name
+        return name
 
     def get_record_content(self, record, rtype):
         if rtype == RecordType.FIELD_REPORT:
@@ -321,13 +333,7 @@ class Command(BaseCommand):
         elif rtype == RecordType.EVENT or rtype == RecordType.FOLLOWED_EVENT:
             sendMe = record.summary
         elif rtype == RecordType.SURGE_ALERT:
-            if record.country:
-                if record.country.name in record.event.name:
-                    sendMe = record.event.name
-                else:
-                    sendMe = f"{record.event.name} – {record.country.name}"
-            else:
-                sendMe = record.event.name
+            sendMe = self.get_surge_alert_label(record, " – ")
             if record.message:
                 sendMe += " | " + record.message.split(",", 1)[0]
         elif rtype == RecordType.SURGE_DEPLOYMENT_MESSAGES:
@@ -791,13 +797,12 @@ class Command(BaseCommand):
             )
 
         if rtype == RecordType.SURGE_ALERT and record_count == 1:  # go-frontend/issues/2041
-            if record.country:
-                if record.country.name in record.event.name:
-                    subject += f": {record.event.name}"
-                else:
-                    subject += f": {record.event.name}, {record.country.name}"
+            if record.event:
+                label = self.get_surge_alert_label(record, ", ")
             else:
-                subject += f": {record.event.name}"
+                label = record.country.name if record.country else ""
+            if label:
+                subject += f": {label}"
 
         if self.is_daily_checkup_time():
             subject += " [daily followup]"
