@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Added
+ - Return an accurate "account deactivated" error (with `error_code`) from `/get_auth_token`
+   instead of the generic "Invalid username or password" when the credentials are correct
+   but the account is inactive
  - Add potential funding (`PotentialFunding`) ingestion and expose it on Appeal/AppealHistory
  - EAP: add RCRC Climate Centre to registration and lift activity limit
  - Use APP_subtype instead of APD_TYP_Id in ingest_appeals
