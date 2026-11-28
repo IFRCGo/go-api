@@ -181,7 +181,7 @@ class SentryMonitor(enum.Enum):
     OAUTH_CLEARTOKENS = CronJobSentryConfig("oauth_cleartokens", "0 1 * * *")
     EAP_SUBMISSION_REMINDER = CronJobSentryConfig("eap_submission_reminder", "0 0 * * *")
     ALERT_NOTIFICATION = CronJobSentryConfig("alert_notification", "0 */2 * * *")
-    DREF_FINAL_REPORT_ALERT = CronJobSentryConfig("dref_final_report_alert", "0 6 * * *")
+    DREF_FINAL_REPORT_ALERT = CronJobSentryConfig("dref_final_report_alert", "0 16 * * *")
 
     @staticmethod
     def load_cron_data() -> typing.List[typing.Tuple[str, str]]:

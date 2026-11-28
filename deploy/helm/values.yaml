@@ -212,7 +212,7 @@ app:
         command: ["./manage.py", "alert_notification"]
       dref_final_report_alert:
         enabled: true
-        schedule: "0 6 * * *"
+        schedule: "0 16 * * *"
         command: ["./manage.py", "dref_final_report_alert"]
       oauth_cleartokens:
         enabled: true
