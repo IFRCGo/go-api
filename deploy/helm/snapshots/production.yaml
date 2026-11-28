@@ -816,7 +816,7 @@ metadata:
     environment: production
     release: release-name
 spec:
-  schedule: "0 6 * * *"
+  schedule: "0 16 * * *"
   concurrencyPolicy: "Forbid"
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 1

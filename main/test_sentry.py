@@ -11,7 +11,7 @@ class SentryMonitorTest(SimpleTestCase):
         self.assertEqual(
             SentryMonitor.DREF_FINAL_REPORT_ALERT.value.as_dict(),
             {
-                "schedule": {"type": "crontab", "value": "0 6 * * *"},
+                "schedule": {"type": "crontab", "value": "0 16 * * *"},
                 "timezone": "UTC",
                 "checkin_margin": 15,
                 "max_runtime": 30,
